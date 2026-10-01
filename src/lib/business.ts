@@ -47,6 +47,7 @@ export const business = {
     { name: "Piazza", logo: "/brand/marcas/piazza.png" },
     { name: "Hydros", logo: "/brand/marcas/hydros.png" },
     { name: "Flowater", logo: "/brand/marcas/flowater.png" },
+    { name: "TST", logo: "/brand/marcas/tst.png", invert: true },
     { name: "Pringles", logo: "/brand/marcas/pringles.jpg" },
     { name: "Bosca", logo: "/brand/marcas/bosca.png" },
   ],

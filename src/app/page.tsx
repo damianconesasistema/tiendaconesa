@@ -136,7 +136,7 @@ export default function Home() {
               Trabajamos con las mejores
             </h2>
           </div>
-          <div className="grid grid-cols-2 items-center gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+          <div className="grid grid-cols-2 items-center gap-6 sm:grid-cols-4 lg:grid-cols-8">
             {business.brands.map((brand) => (
               <div
                 key={brand.name}
