@@ -68,7 +68,7 @@ export default function Home() {
       <section className="noise-bg relative overflow-hidden border-b border-[var(--border)]">
         <div className="mx-auto flex min-h-[88vh] max-w-6xl flex-col items-center justify-center px-6 py-20 text-center">
           <div className="animate-fade-up">
-            <ConesaLogo className="h-24 w-auto text-[var(--brand-black)] dark:text-white sm:h-32 md:h-40" />
+            <ConesaLogo className="h-32 w-auto sm:h-40 md:h-48" priority />
           </div>
 
           <div className="animate-fade-up-delay-1 mt-10 flex items-center gap-3">
@@ -147,7 +147,7 @@ export default function Home() {
                   key={cat.name}
                   className="group relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 transition-all hover:-translate-y-1 hover:border-[var(--brand-red)] hover:shadow-xl"
                 >
-                  <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-white text-[var(--brand-red)] shadow-sm transition-colors group-hover:bg-[var(--brand-red)] group-hover:text-white dark:bg-black">
+                  <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-white text-[var(--brand-red)] shadow-sm transition-colors group-hover:bg-[var(--brand-red)] group-hover:text-white">
                     <Icon className="h-7 w-7" strokeWidth={1.8} />
                   </div>
                   <h3 className="font-display text-2xl font-bold uppercase tracking-tight">
@@ -267,7 +267,7 @@ export default function Home() {
       <footer className="px-6 py-14">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
           <div className="flex items-center gap-4">
-            <ConesaLogo className="h-10 w-auto text-[var(--brand-black)] dark:text-white" />
+            <ConesaLogo className="h-12 w-auto" />
           </div>
           <p className="text-xs text-[var(--muted)]">
             © {new Date().getFullYear()} {business.name}. Todos los derechos
@@ -353,7 +353,7 @@ function SocialPill({
       rel="noopener noreferrer"
       className="group inline-flex items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-3 pr-5 transition-all hover:border-[var(--brand-red)]"
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[var(--brand-red)] shadow-sm group-hover:bg-[var(--brand-red)] group-hover:text-white dark:bg-black">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[var(--brand-red)] shadow-sm group-hover:bg-[var(--brand-red)] group-hover:text-white">
         <Icon className="h-4 w-4" />
       </span>
       <span className="font-display text-sm font-bold uppercase tracking-wider">
