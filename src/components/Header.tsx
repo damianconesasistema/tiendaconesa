@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { MessageCircle, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { ConesaLogo } from "@/components/ConesaLogo";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { business, whatsappLink } from "@/lib/business";
 
 export function Header() {
@@ -31,9 +32,9 @@ export function Header() {
             href={whatsappLink()}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-white shadow-sm transition-all hover:scale-[1.02] hover:bg-[var(--brand-red-hover)] sm:px-5"
+            className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-white shadow-sm transition-all hover:scale-[1.02] hover:bg-[#1DA851] sm:px-5"
           >
-            <MessageCircle className="h-4 w-4" />
+            <WhatsAppIcon className="h-4 w-4" />
             <span className="hidden sm:inline">WhatsApp</span>
           </Link>
         </nav>

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { MessageCircle, MapPin, ArrowRight } from "lucide-react";
+import { MapPin, ArrowRight } from "lucide-react";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { business, whatsappLink } from "@/lib/business";
 
 const photos = [
@@ -78,9 +79,9 @@ export function HeroCarousel() {
                 href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-base font-bold uppercase tracking-wider text-white shadow-xl shadow-red-900/40 transition-all hover:scale-[1.02] hover:bg-[var(--brand-red-hover)]"
+                className="group inline-flex items-center justify-center gap-3 rounded-full bg-[#25D366] px-8 py-4 font-display text-base font-bold uppercase tracking-wider text-white shadow-xl shadow-green-900/40 transition-all hover:scale-[1.02] hover:bg-[#1DA851]"
               >
-                <MessageCircle className="h-5 w-5" />
+                <WhatsAppIcon className="h-5 w-5" />
                 Escribinos por WhatsApp
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
