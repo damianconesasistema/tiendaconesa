@@ -38,8 +38,8 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-display), "Barlow Condensed", ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display), "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.015em;
 }
 
 @keyframes fadeUp {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { LocalCarousel } from "@/components/LocalCarousel";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import {
   MapPin,
   Clock,
@@ -67,69 +67,14 @@ export default function Home() {
   return (
     <main className="relative flex-1">
       {/* HERO */}
-      <section className="relative overflow-hidden bg-white border-b border-[var(--border)]">
-        <div className="mx-auto flex min-h-[88vh] max-w-6xl flex-col items-center justify-center px-6 py-20 text-center">
-          <div className="animate-logo-reveal">
-            <div className="animate-float">
-              <ConesaLogo
-                className="h-56 w-auto mix-blend-multiply sm:h-72 md:h-[22rem] lg:h-[26rem]"
-                priority
-              />
-            </div>
-          </div>
+      <HeroCarousel />
 
-          <div className="animate-fade-up-delay-1 mt-10 flex items-center gap-3">
-            <span className="h-px w-10 bg-[var(--brand-red)]" />
-            <span className="font-display text-sm font-semibold uppercase tracking-[0.4em] text-[var(--brand-red)]">
-              Próximamente online
-            </span>
-            <span className="h-px w-10 bg-[var(--brand-red)]" />
-          </div>
-
-          <h1 className="animate-fade-up-delay-2 mt-6 max-w-3xl font-display text-5xl font-black uppercase leading-[0.95] tracking-tight sm:text-6xl md:text-7xl">
-            Tu baño nuevo,
-            <br />
-            <span className="text-[var(--brand-red)]">a un clic</span> de distancia.
-          </h1>
-
-          <p className="animate-fade-up-delay-3 mt-6 max-w-xl text-lg text-[var(--muted)] sm:text-xl">
-            {business.tagline}. Estamos armando nuestra tienda online. Mientras
-            tanto, pasá por el local o escribinos.
-          </p>
-
-          <div className="animate-fade-up-delay-3 mt-10 flex flex-col items-center gap-4 sm:flex-row">
-            <Link
-              href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-base font-bold uppercase tracking-wider text-white shadow-lg shadow-red-500/20 transition-all hover:scale-[1.02] hover:bg-[var(--brand-red-hover)] hover:shadow-xl hover:shadow-red-500/30"
-            >
-              <MessageCircle className="h-5 w-5" />
-              Escribinos por WhatsApp
-              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </Link>
-
-            <a
-              href="#local"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] px-7 py-4 font-display text-base font-bold uppercase tracking-wider text-foreground transition-all hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
-            >
-              <MapPin className="h-5 w-5" />
-              Ver el local
-            </a>
-          </div>
-
-          <div className="mt-16 grid grid-cols-3 gap-10 border-t border-[var(--border)] pt-10 sm:gap-16">
-            <Stat value="14k+" label="En Instagram" />
-            <Stat value="20+" label="Marcas" />
-            <Stat value="7" label="Días a la semana" sub="atención por WhatsApp" />
-          </div>
-        </div>
-      </section>
-
-      {/* LOCAL CAROUSEL */}
-      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-14">
-        <div className="mx-auto max-w-6xl">
-          <LocalCarousel />
+      {/* STATS */}
+      <section className="border-b border-[var(--border)] bg-white px-6 py-12">
+        <div className="mx-auto grid max-w-6xl grid-cols-3 gap-6 sm:gap-16">
+          <Stat value="14k+" label="En Instagram" />
+          <Stat value="20+" label="Marcas" />
+          <Stat value="7" label="Días a la semana" sub="atención por WhatsApp" />
         </div>
       </section>
 

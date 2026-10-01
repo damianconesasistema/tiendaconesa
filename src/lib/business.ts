@@ -51,9 +51,9 @@ export const business = {
     { name: "Pringles", logo: "/brand/marcas/pringles.jpg" },
     { name: "Bosca", logo: "/brand/marcas/bosca.png" },
     { name: "Gulliart", logo: "/brand/marcas/gulliart.png", invert: true },
-    { name: "Masecord" },
+    { name: "Masecor", logo: "/brand/marcas/masecor.webp" },
+    { name: "Precons", logo: "/brand/marcas/precons.png" },
     { name: "ROT-AR" },
-    { name: "Precons" },
   ],
   brand: {
     red: "#E63020",
