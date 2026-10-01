@@ -1,0 +1,123 @@
+[
+  {
+    "id": "sanitarios",
+    "label": "Sanitarios",
+    "keywords": [
+      "inodoro",
+      "bidet",
+      "lavatorio",
+      "vanitory",
+      "bacha",
+      "sanitario",
+      "mingitorio",
+      "porcelana"
+    ]
+  },
+  {
+    "id": "griferia",
+    "label": "Grifería",
+    "keywords": [
+      "griferia",
+      "canilla",
+      "mezclador",
+      "monocomando",
+      "duchador",
+      "ducha",
+      "flexible",
+      "pico",
+      "transferencia"
+    ]
+  },
+  {
+    "id": "banera",
+    "label": "Bañeras y receptáculos",
+    "keywords": [
+      "banera",
+      "bañera",
+      "receptaculo",
+      "receptáculo",
+      "mampara",
+      "hidromas",
+      "jacuzzi"
+    ]
+  },
+  {
+    "id": "accesorios",
+    "label": "Accesorios",
+    "keywords": [
+      "jabonera",
+      "toallero",
+      "porta",
+      "perchero",
+      "perchera",
+      "percha",
+      "espejo",
+      "repisa",
+      "porta rollo",
+      "porta cepillo",
+      "porta jabon"
+    ]
+  },
+  {
+    "id": "salamandras",
+    "label": "Salamandras y calefacción",
+    "keywords": [
+      "salamandra",
+      "estufa",
+      "leña",
+      "lena",
+      "pellet",
+      "hogar a leña",
+      "calefactor",
+      "tromen"
+    ]
+  },
+  {
+    "id": "calefones",
+    "label": "Calefones y termotanques",
+    "keywords": [
+      "calefon",
+      "termotanque",
+      "calefactor",
+      "boiler",
+      "caldera"
+    ]
+  },
+  {
+    "id": "materiales",
+    "label": "Materiales de obra",
+    "keywords": [
+      "caño",
+      "cano",
+      "codo",
+      "union",
+      "tee",
+      "reduccion",
+      "sifonete",
+      "sifon",
+      "manguera",
+      "válvula",
+      "valvula",
+      "llave de paso",
+      "canilla de servicio",
+      "termofusion",
+      "asiento",
+      "tapa",
+      "junta",
+      "goma",
+      "pelicula",
+      "nocolock",
+      "ptf"
+    ]
+  },
+  {
+    "id": "piletas",
+    "label": "Piletas y bombas",
+    "keywords": [
+      "pileta",
+      "bomba",
+      "agua",
+      "tanque"
+    ]
+  }
+]

@@ -21,9 +21,15 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/catalogo"
+            className="hidden items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] md:inline-flex"
+          >
+            Catálogo
+          </Link>
           <a
             href={`tel:${business.phone.international.replace(/\s/g, "")}`}
-            className="hidden items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] md:inline-flex"
+            className="hidden items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] lg:inline-flex"
           >
             <MapPin className="h-4 w-4" />
             {business.phone.display}
