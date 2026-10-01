@@ -108,16 +108,16 @@ export default function Home() {
             {business.brands.map((brand) => (
               <div
                 key={brand.name}
-                className="group relative flex h-20 items-center justify-center rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex h-24 items-center justify-center rounded-xl bg-white px-3 py-3 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
                 title={brand.name}
               >
                 <Image
                   src={brand.logo}
                   alt={brand.name}
-                  width={160}
-                  height={60}
-                  className={`max-h-12 w-auto object-contain opacity-80 transition-opacity group-hover:opacity-100 ${
-                    "invert" in brand && brand.invert ? "brightness-0" : ""
+                  width={200}
+                  height={80}
+                  className={`max-h-16 w-auto max-w-full object-contain transition-opacity group-hover:opacity-100 ${
+                    "invert" in brand && brand.invert ? "brightness-0" : "opacity-90"
                   }`}
                 />
               </div>
