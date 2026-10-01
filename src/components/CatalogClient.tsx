@@ -215,7 +215,10 @@ function ProductCard({ p }: { p: Product }) {
         </h3>
         <div className="mt-4 flex items-baseline gap-2">
           <span className="font-display text-2xl font-black text-[var(--brand-red)]">
-            {formatPrice(p.price)}
+            $999.999
+          </span>
+          <span className="text-[10px] uppercase tracking-wider text-[var(--muted)]">
+            precio referencial
           </span>
         </div>
         <div className="mt-5 flex gap-2">
