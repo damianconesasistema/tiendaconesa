@@ -354,7 +354,7 @@ function SocialPill({
       className="group inline-flex items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-3 pr-5 transition-all hover:border-[var(--brand-red)]"
     >
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[var(--brand-red)] shadow-sm group-hover:bg-[var(--brand-red)] group-hover:text-white dark:bg-black">
-        <Icon className="h-4 w-4" strokeWidth={2} />
+        <Icon className="h-4 w-4" />
       </span>
       <span className="font-display text-sm font-bold uppercase tracking-wider">
         {label}
