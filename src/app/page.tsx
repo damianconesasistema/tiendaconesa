@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   MapPin,
   Clock,
@@ -67,8 +68,13 @@ export default function Home() {
       {/* HERO */}
       <section className="relative overflow-hidden bg-white border-b border-[var(--border)]">
         <div className="mx-auto flex min-h-[88vh] max-w-6xl flex-col items-center justify-center px-6 py-20 text-center">
-          <div className="animate-fade-up">
-            <ConesaLogo className="h-44 w-auto sm:h-60 md:h-72 lg:h-80" priority />
+          <div className="animate-logo-reveal">
+            <div className="animate-float">
+              <ConesaLogo
+                className="h-56 w-auto drop-shadow-sm sm:h-72 md:h-[22rem] lg:h-[26rem]"
+                priority
+              />
+            </div>
           </div>
 
           <div className="animate-fade-up-delay-1 mt-10 flex items-center gap-3">
@@ -122,7 +128,7 @@ export default function Home() {
       {/* MARCAS */}
       <section className="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex flex-col items-center justify-center text-center">
+          <div className="mb-10 flex flex-col items-center justify-center text-center">
             <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
               Marcas destacadas
             </span>
@@ -130,14 +136,23 @@ export default function Home() {
               Trabajamos con las mejores
             </h2>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
+          <div className="grid grid-cols-2 items-center gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
             {business.brands.map((brand) => (
-              <span
-                key={brand}
-                className="font-display text-xl font-bold uppercase tracking-wider text-[var(--muted)] transition-colors hover:text-[var(--brand-black)] sm:text-2xl"
+              <div
+                key={brand.name}
+                className="group relative flex h-20 items-center justify-center rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
+                title={brand.name}
               >
-                {brand}
-              </span>
+                <Image
+                  src={brand.logo}
+                  alt={brand.name}
+                  width={160}
+                  height={60}
+                  className={`max-h-12 w-auto object-contain opacity-80 transition-opacity group-hover:opacity-100 ${
+                    "invert" in brand && brand.invert ? "brightness-0" : ""
+                  }`}
+                />
+              </div>
             ))}
           </div>
         </div>
