@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import { TikTokFeed } from "@/components/TikTokFeed";
 import {
   MapPin,
   Clock,
@@ -173,6 +174,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* TIKTOK */}
+      <TikTokFeed />
 
       {/* LOCAL + CONTACTO */}
       <section id="local" className="border-b border-[var(--border)] px-6 py-24">
