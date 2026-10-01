@@ -136,22 +136,28 @@ export default function Home() {
               Trabajamos con las mejores
             </h2>
           </div>
-          <div className="grid grid-cols-2 items-center gap-6 sm:grid-cols-4 lg:grid-cols-8">
+          <div className="grid grid-cols-2 items-center gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {business.brands.map((brand) => (
               <div
                 key={brand.name}
                 className="group relative flex h-20 items-center justify-center rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
                 title={brand.name}
               >
-                <Image
-                  src={brand.logo}
-                  alt={brand.name}
-                  width={160}
-                  height={60}
-                  className={`max-h-12 w-auto object-contain opacity-80 transition-opacity group-hover:opacity-100 ${
-                    "invert" in brand && brand.invert ? "brightness-0" : ""
-                  }`}
-                />
+                {"logo" in brand && brand.logo ? (
+                  <Image
+                    src={brand.logo}
+                    alt={brand.name}
+                    width={160}
+                    height={60}
+                    className={`max-h-12 w-auto object-contain opacity-80 transition-opacity group-hover:opacity-100 ${
+                      "invert" in brand && brand.invert ? "brightness-0" : ""
+                    }`}
+                  />
+                ) : (
+                  <span className="font-display text-xl font-black uppercase tracking-wider text-[var(--foreground)] opacity-70 transition-opacity group-hover:opacity-100 sm:text-2xl">
+                    {brand.name}
+                  </span>
+                )}
               </div>
             ))}
           </div>

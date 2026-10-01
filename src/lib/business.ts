@@ -50,6 +50,10 @@ export const business = {
     { name: "TST", logo: "/brand/marcas/tst.png", invert: true },
     { name: "Pringles", logo: "/brand/marcas/pringles.jpg" },
     { name: "Bosca", logo: "/brand/marcas/bosca.png" },
+    { name: "Gulliart", logo: "/brand/marcas/gulliart.png", invert: true },
+    { name: "Masecord" },
+    { name: "ROT-AR" },
+    { name: "Precons" },
   ],
   brand: {
     red: "#E63020",
