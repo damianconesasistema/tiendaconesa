@@ -44,10 +44,9 @@ export function HeroCarousel() {
           />
         ))}
 
-        {/* Dark overlays for text readability */}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
+        {/* Lighter overlays — solo donde va el texto, dejamos ver la foto */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/10 to-transparent" />
 
         {/* Content */}
         <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-center px-6 py-16 text-left">
