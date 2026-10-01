@@ -44,9 +44,9 @@ export function HeroCarousel() {
           />
         ))}
 
-        {/* Lighter overlays — solo donde va el texto, dejamos ver la foto */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/10 to-transparent" />
+        {/* Overlay minimo — solo en la zona del texto */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black/50 via-transparent to-transparent md:w-1/2" />
 
         {/* Content */}
         <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-center px-6 py-16 text-left">
