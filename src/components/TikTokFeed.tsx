@@ -11,9 +11,6 @@ const topVideos: readonly Video[] = [
   { id: "7642401319138905351", views: "1.5M" },
   { id: "7641748237560335623", views: "285K" },
   { id: "7644024623402634504", views: "237K" },
-  { id: "7376074707419892998", views: "161K" },
-  { id: "7641407942226414866", views: "138K" },
-  { id: "7647241028734323986", views: "109K" },
 ] as const;
 
 export function TikTokFeed() {
@@ -41,7 +38,7 @@ export function TikTokFeed() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {topVideos.map((v) => (
             <div
               key={v.id}
@@ -49,7 +46,7 @@ export function TikTokFeed() {
             >
               <div className="relative aspect-[9/16] w-full">
                 <iframe
-                  src={`https://www.tiktok.com/embed/v2/${v.id}?lang=es`}
+                  src={`https://www.tiktok.com/embed/v2/${v.id}?lang=es&autoplay=1&loop=1&mute=1&music_info=0&description=0`}
                   title={`Video de TikTok con ${v.views} vistas`}
                   loading="lazy"
                   allow="encrypted-media; autoplay; picture-in-picture; web-share"
