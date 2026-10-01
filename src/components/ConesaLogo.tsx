@@ -12,8 +12,11 @@ export function ConesaLogo({ className, priority = false }: Props) {
       alt="Sanitarios Conesa Traslasierra"
       width={800}
       height={800}
+      quality={100}
       priority={priority}
+      unoptimized
       className={className}
+      sizes="(max-width: 640px) 70vw, 480px"
     />
   );
 }

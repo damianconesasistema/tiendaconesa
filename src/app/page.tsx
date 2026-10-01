@@ -65,7 +65,7 @@ export default function Home() {
   return (
     <main className="relative flex-1">
       {/* HERO */}
-      <section className="noise-bg relative overflow-hidden border-b border-[var(--border)]">
+      <section className="relative overflow-hidden bg-white border-b border-[var(--border)]">
         <div className="mx-auto flex min-h-[88vh] max-w-6xl flex-col items-center justify-center px-6 py-20 text-center">
           <div className="animate-fade-up">
             <ConesaLogo className="h-32 w-auto sm:h-40 md:h-48" priority />
