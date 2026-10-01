@@ -41,6 +41,16 @@ export const business = {
     { name: "Materiales de obra", description: "Caños, uniones, accesorios de instalación" },
     { name: "Accesorios", description: "Grifos, flexibles, repuestos" },
   ],
+  brands: [
+    "Piazza",
+    "Hydros",
+    "FV",
+    "Ferrum",
+    "Peirano",
+    "Peisa",
+    "Johnson",
+    "Rotoplas",
+  ],
   brand: {
     red: "#E63020",
     black: "#111111",

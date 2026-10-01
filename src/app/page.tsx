@@ -68,7 +68,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-white border-b border-[var(--border)]">
         <div className="mx-auto flex min-h-[88vh] max-w-6xl flex-col items-center justify-center px-6 py-20 text-center">
           <div className="animate-fade-up">
-            <ConesaLogo className="h-32 w-auto sm:h-40 md:h-48" priority />
+            <ConesaLogo className="h-44 w-auto sm:h-60 md:h-72 lg:h-80" priority />
           </div>
 
           <div className="animate-fade-up-delay-1 mt-10 flex items-center gap-3">
@@ -115,6 +115,30 @@ export default function Home() {
             <Stat value="14k+" label="En Instagram" />
             <Stat value="20+" label="Marcas" />
             <Stat value="7" label="Días a la semana" sub="atención por WhatsApp" />
+          </div>
+        </div>
+      </section>
+
+      {/* MARCAS */}
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 flex flex-col items-center justify-center text-center">
+            <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
+              Marcas destacadas
+            </span>
+            <h2 className="mt-3 font-display text-2xl font-black uppercase leading-tight sm:text-3xl">
+              Trabajamos con las mejores
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
+            {business.brands.map((brand) => (
+              <span
+                key={brand}
+                className="font-display text-xl font-bold uppercase tracking-wider text-[var(--muted)] transition-colors hover:text-[var(--brand-black)] sm:text-2xl"
+              >
+                {brand}
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -284,8 +308,7 @@ export default function Home() {
         aria-label="Escribinos por WhatsApp"
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-green-500/30 transition-transform hover:scale-110 sm:bottom-8 sm:right-8"
       >
-        <span className="pulse-ring absolute inset-0 rounded-full" />
-        <MessageCircle className="relative h-7 w-7" />
+        <MessageCircle className="h-7 w-7" />
       </Link>
     </main>
   );
