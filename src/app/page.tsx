@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { LocalCarousel } from "@/components/LocalCarousel";
 import {
   MapPin,
   Clock,
@@ -122,6 +123,13 @@ export default function Home() {
             <Stat value="20+" label="Marcas" />
             <Stat value="7" label="Días a la semana" sub="atención por WhatsApp" />
           </div>
+        </div>
+      </section>
+
+      {/* LOCAL CAROUSEL */}
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-14">
+        <div className="mx-auto max-w-6xl">
+          <LocalCarousel />
         </div>
       </section>
 
