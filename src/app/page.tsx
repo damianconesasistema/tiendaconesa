@@ -71,7 +71,7 @@ export default function Home() {
           <div className="animate-logo-reveal">
             <div className="animate-float">
               <ConesaLogo
-                className="h-56 w-auto drop-shadow-sm sm:h-72 md:h-[22rem] lg:h-[26rem]"
+                className="h-56 w-auto mix-blend-multiply sm:h-72 md:h-[22rem] lg:h-[26rem]"
                 priority
               />
             </div>
