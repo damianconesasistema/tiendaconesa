@@ -12,7 +12,11 @@ export function Header() {
           aria-label={business.name}
           className="flex items-center"
         >
-          <ConesaLogo className="h-14 w-auto mix-blend-multiply sm:h-20" priority />
+          <ConesaLogo
+            variant="horizontal"
+            className="h-10 w-auto mix-blend-multiply sm:h-14"
+            priority
+          />
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-3">
