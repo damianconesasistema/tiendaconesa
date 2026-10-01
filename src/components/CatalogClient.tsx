@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ExternalLink, Search, Package } from "lucide-react";
+import { Search, Package } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { whatsappLink } from "@/lib/business";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
@@ -195,15 +196,29 @@ function CatButton({
 
 function ProductCard({ p }: { p: Product }) {
   const msg = `Hola! Quería consultar por: ${p.title} (ID ${p.itemId})`;
+  const [imgError, setImgError] = useState(false);
+  const photoPath = `/products/${p.itemId}.jpg`;
+
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-      {/* Placeholder visual */}
-      <div className="relative flex aspect-square items-center justify-center bg-[var(--surface)]">
-        <Package
-          className="h-16 w-16 text-[var(--border)]"
-          strokeWidth={1.2}
-        />
-        <span className="absolute right-3 top-3 inline-flex items-center rounded-full bg-black/80 px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+      {/* Foto o placeholder */}
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
+        {!imgError ? (
+          <Image
+            src={photoPath}
+            alt={p.title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            onError={() => setImgError(true)}
+            className="object-contain p-4"
+          />
+        ) : (
+          <Package
+            className="h-16 w-16 text-[var(--border)]"
+            strokeWidth={1.2}
+          />
+        )}
+        <span className="absolute right-3 top-3 z-10 inline-flex items-center rounded-full bg-black/80 px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
           {CAT_LABELS[p.category] || p.category}
         </span>
       </div>
@@ -221,26 +236,16 @@ function ProductCard({ p }: { p: Product }) {
             precio referencial
           </span>
         </div>
-        <div className="mt-5 flex gap-2">
+        <div className="mt-5">
           <Link
             href={whatsappLink(msg)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#25D366] px-3 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#1DA851]"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#1DA851]"
           >
             <WhatsAppIcon className="h-3.5 w-3.5" />
-            Consultar
+            Consultar por WhatsApp
           </Link>
-          <a
-            href={p.mlUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1 rounded-full border border-[var(--border)] px-3 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
-            title="Ver en MercadoLibre"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            ML
-          </a>
         </div>
       </div>
     </div>

@@ -116,6 +116,11 @@ export default function Home() {
                   alt={brand.name}
                   width={200}
                   height={80}
+                  style={
+                    "scale" in brand && typeof brand.scale === "number"
+                      ? { transform: `scale(${brand.scale})` }
+                      : undefined
+                  }
                   className={`max-h-16 w-auto max-w-full object-contain transition-opacity group-hover:opacity-100 ${
                     "invert" in brand && brand.invert ? "brightness-0" : "opacity-90"
                   }`}

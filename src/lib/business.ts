@@ -66,7 +66,7 @@ export const business = {
     { name: "Saladillo", logo: "/brand/marcas/saladillo.png" },
     { name: "Grupo DEMA", logo: "/brand/marcas/dema.jpg" },
     { name: "Redeco", logo: "/brand/marcas/redeco.avif" },
-    { name: "Heineken", logo: "/brand/marcas/heineken.jpg" },
+    { name: "Heineken", logo: "/brand/marcas/heineken.jpg", scale: 1.6 },
   ],
   brand: {
     red: "#E63020",
