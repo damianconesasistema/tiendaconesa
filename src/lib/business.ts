@@ -12,7 +12,10 @@ export const business = {
   phone: {
     display: "03544 40-0979",
     international: "+54 3544 40-0979",
-    whatsappNumber: "543544400979",
+  },
+  whatsapp: {
+    display: "+54 9 3544 43-0522",
+    number: "5493544430522",
   },
   email: "sanitariosconesatraslasierra@gmail.com",
   hours: {
@@ -64,7 +67,7 @@ export const business = {
 } as const;
 
 export function whatsappLink(message?: string) {
-  const base = `https://api.whatsapp.com/send?phone=${business.phone.whatsappNumber}`;
+  const base = `https://api.whatsapp.com/send?phone=${business.whatsapp.number}`;
   if (!message) return `${base}&text=${encodeURIComponent("Hola! Vi su web y quería consultar por...")}`;
   return `${base}&text=${encodeURIComponent(message)}`;
 }
