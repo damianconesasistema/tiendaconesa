@@ -2,12 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { TikTokFeed } from "@/components/TikTokFeed";
+import { BackToTop } from "@/components/BackToTop";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import {
   MapPin,
   Clock,
   Phone,
   Mail,
-  MessageCircle,
   ShowerHead,
   Droplets,
   Bath,
@@ -296,10 +297,13 @@ export default function Home() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Escribinos por WhatsApp"
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-green-500/30 transition-transform hover:scale-110 sm:bottom-8 sm:right-8"
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-green-500/30 transition-transform hover:scale-110 sm:bottom-8 sm:right-8"
       >
-        <MessageCircle className="h-7 w-7" />
+        <WhatsAppIcon className="h-7 w-7" />
       </Link>
+
+      {/* BACK TO TOP */}
+      <BackToTop />
     </main>
   );
 }

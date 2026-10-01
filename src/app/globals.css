@@ -28,6 +28,12 @@ html,
 body {
   background: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -35,6 +41,15 @@ body {
   font-feature-settings: "ss01", "ss02";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Evita que el viewport "salte" cuando aparecen/desaparecen barras del navegador
+   en mobile. svh/dvh con fallback a vh */
+@supports (height: 100svh) {
+  :root {
+    --vh-safe: 1svh;
+  }
 }
 
 .font-display {

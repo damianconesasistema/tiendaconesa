@@ -30,7 +30,7 @@ export function HeroCarousel() {
 
   return (
     <section className="relative isolate overflow-hidden">
-      <div className="relative h-[75vh] min-h-[520px] w-full sm:h-[82vh]">
+      <div className="relative h-[85svh] min-h-[560px] w-full sm:h-[85svh]">
         {photos.map((photo, i) => (
           <Image
             key={photo.src}
@@ -62,7 +62,7 @@ export function HeroCarousel() {
               </span>
             </div>
 
-            <h1 className="animate-fade-up-delay-1 mt-6 font-display text-5xl font-black uppercase leading-[0.95] tracking-tight text-white drop-shadow-lg sm:text-6xl md:text-7xl lg:text-8xl">
+            <h1 className="animate-fade-up-delay-1 mt-5 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight text-white drop-shadow-lg sm:text-6xl md:text-7xl lg:text-8xl">
               Tu baño nuevo,
               <br />
               <span className="text-[var(--brand-red)]">a un clic</span> de
@@ -74,7 +74,7 @@ export function HeroCarousel() {
               Mientras tanto, pasá por el local o escribinos por WhatsApp.
             </p>
 
-            <div className="animate-fade-up-delay-3 mt-10 flex flex-col gap-3 sm:flex-row">
+            <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
                 target="_blank"
