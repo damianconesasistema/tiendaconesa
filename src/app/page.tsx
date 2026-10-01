@@ -54,6 +54,19 @@ function FacebookIcon({ className }: { className?: string }) {
   );
 }
 
+function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M19.6 6.3c-1.7-.3-3-1.6-3.3-3.3h-3v12.4c0 1.5-1.2 2.6-2.6 2.6s-2.7-1.2-2.7-2.6c0-1.5 1.2-2.7 2.7-2.7.3 0 .5 0 .8.1V9.7c-.3 0-.5-.1-.8-.1-3.1 0-5.6 2.5-5.6 5.6s2.5 5.6 5.6 5.6 5.6-2.5 5.6-5.6V9.3c1.2.9 2.7 1.4 4.3 1.4V7.7c-.3 0-.7 0-1-.1z"/>
+    </svg>
+  );
+}
+
 const categoryIcons = [
   ShowerHead,
   Droplets,
@@ -218,6 +231,11 @@ export default function Home() {
                 href={business.social.facebook.url}
                 icon={FacebookIcon}
                 label="Facebook"
+              />
+              <SocialPill
+                href={business.social.tiktok.url}
+                icon={TikTokIcon}
+                label="TikTok"
               />
             </div>
           </div>

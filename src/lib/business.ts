@@ -30,7 +30,8 @@ export const business = {
       url: "https://www.facebook.com/sanitariosconesatraslasierra/",
     },
     tiktok: {
-      url: "https://www.tiktok.com/@sanitariosconesatraslasierra",
+      handle: "@sanitarios.conesa",
+      url: "https://www.tiktok.com/@sanitarios.conesa",
     },
   },
   categories: [
