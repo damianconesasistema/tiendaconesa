@@ -84,10 +84,12 @@ export function HeroCarousel() {
             <span className="block text-lg font-bold sm:text-3xl md:text-4xl">
               Todo para tu
             </span>
-            <span className="mt-1 block whitespace-nowrap text-[42px] font-black sm:text-7xl md:text-8xl lg:text-[108px]">
-              <span className="text-white">baño</span>{" "}
-              <span className="font-display text-[var(--brand-red)] italic">&amp;</span>{" "}
-              <span className="text-white">cocina</span>
+            <span className="mt-1 block text-6xl font-black sm:whitespace-nowrap sm:text-7xl md:text-8xl lg:text-[108px]">
+              <span className="text-white">baño</span>
+              <span className="block sm:inline">
+                <span className="font-display text-[var(--brand-red)] italic">&nbsp;&amp;&nbsp;</span>
+                <span className="text-white">cocina</span>
+              </span>
             </span>
           </h1>
 
