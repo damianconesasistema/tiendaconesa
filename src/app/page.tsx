@@ -360,12 +360,15 @@ export default async function Home() {
           <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr_1fr_1.2fr]">
             {/* Marca + redes */}
             <div>
-              <ConesaLogo className="h-14 w-auto" />
-              <p className="mt-5 max-w-xs text-sm leading-relaxed text-[var(--muted)]">
+              <ConesaLogo
+                variant="horizontal"
+                className="h-10 w-auto mix-blend-multiply sm:h-12"
+              />
+              <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--muted)]">
                 Sanitarios, grifería y materiales en Villa Cura Brochero.
                 Al servicio del Valle de Traslasierra.
               </p>
-              <div className="mt-5 flex gap-2">
+              <div className="mt-4 flex gap-2">
                 <SocialIcon href={business.social.instagram.url} icon={InstagramIcon} label="Instagram" />
                 <SocialIcon href={business.social.facebook.url} icon={FacebookIcon} label="Facebook" />
                 <SocialIcon href={business.social.tiktok.url} icon={TikTokIcon} label="TikTok" />
