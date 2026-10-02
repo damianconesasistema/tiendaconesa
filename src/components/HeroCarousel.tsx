@@ -30,7 +30,7 @@ export function HeroCarousel() {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--brand-red)]" />
               </span>
               <span className="font-display text-xs font-bold uppercase tracking-[0.3em] text-white">
-                Próximamente online
+                Tienda online activa
               </span>
             </div>
 
