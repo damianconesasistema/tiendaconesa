@@ -1,9 +1,18 @@
 // Importa los 779 productos desde src/data/products.json a la DB Prisma.
 // Mantiene idempotencia: usa itemId como clave unica (upsert).
+// Si la DB ya tiene productos y no se paso --force, no hace nada.
 import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "node:fs";
 
 const prisma = new PrismaClient();
+const force = process.argv.includes("--force");
+
+const existing = await prisma.product.count();
+if (existing > 0 && !force) {
+  console.log(`Seed skip: la DB ya tiene ${existing} productos. Usa --force para re-seedear.`);
+  await prisma.$disconnect();
+  process.exit(0);
+}
 
 const products = JSON.parse(
   readFileSync("src/data/products.json", "utf8"),

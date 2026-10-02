@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "prisma migrate deploy && node prisma/seed.mjs && next start",
     "lint": "eslint",
     "db:seed": "node prisma/seed.mjs",
+    "db:migrate": "prisma migrate deploy",
     "postinstall": "prisma generate"
   },
   "dependencies": {
