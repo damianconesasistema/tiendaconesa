@@ -15,7 +15,7 @@ const topVideos: readonly Video[] = [
 
 export function TikTokFeed() {
   return (
-    <section className="border-b border-[var(--border)] px-6 py-24">
+    <section className="hidden border-b border-[var(--border)] px-6 py-24 md:block">
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 flex flex-col items-center justify-center text-center">
           <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
