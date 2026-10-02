@@ -22,11 +22,12 @@ if (marker && marker.price === target) {
   process.exit(0);
 }
 
+// Setear price, limpiar salePrice y activarlos (muchos venian Inactiva del CSV)
 const { count } = await prisma.product.updateMany({
   where: { itemId: { not: SENTINEL } },
-  data: { price: target, salePrice: null },
+  data: { price: target, salePrice: null, active: true },
 });
-console.log(`✓ ${count} productos actualizados a ${target}`);
+console.log(`✓ ${count} productos actualizados a ${target} y activados`);
 
 // Actualizar/crear marcador
 await prisma.product.upsert({
