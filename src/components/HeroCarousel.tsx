@@ -7,17 +7,18 @@ import { ArrowRight } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { whatsappLink } from "@/lib/business";
 
-// Fotos del hero. Cuando subas mas, agregalas aca y el crossfade las rota auto.
+// Fotos del hero — carrusel con crossfade + Ken Burns.
+// Mezcla baños y cocinas (renders estilo de los que podemos armar con nuestros productos).
 const photos: readonly { src: string; alt: string }[] = [
-  {
-    src: "/local/local-1.jpg",
-    alt: "Frente de Sanitarios Conesa en Villa Cura Brochero",
-  },
-  // { src: "/local/bano-1.jpg", alt: "Diseño de baño con griferia Piazza" },
-  // { src: "/local/cocina-1.jpg", alt: "Diseño de cocina con bacha de acero inox" },
+  { src: "/local/bano-1.jpg", alt: "Baño spa con bañera, doble lavatorio y ducha de lluvia" },
+  { src: "/local/cocina-1.jpg", alt: "Cocina moderna con isla de mármol y bacha de acero" },
+  { src: "/local/bano-2.jpg", alt: "Baño moderno con grifería negra y lavatorio ovalado" },
+  { src: "/local/cocina-2.jpg", alt: "Cocina industrial oscura con mesa de madera" },
+  { src: "/local/bano-3.jpg", alt: "Baño clásico con bañera protagonista" },
+  { src: "/local/cocina-3.jpg", alt: "Cocina con isla de mármol y taburetes de mimbre" },
 ] as const;
 
-const ROTATION_MS = 6000; // crossfade cada 6s cuando hay mas de una foto
+const ROTATION_MS = 5500; // crossfade cada 5.5s
 
 // Hero "Dark Luxe" — fondo oscuro + glow rojo + stats laterales
 export function HeroCarousel() {
@@ -39,7 +40,7 @@ export function HeroCarousel() {
           <div
             key={photo.src}
             className={`absolute inset-0 overflow-hidden transition-opacity duration-[1800ms] ease-in-out ${
-              i === index ? "opacity-30" : "opacity-0"
+              i === index ? "opacity-55" : "opacity-0"
             }`}
             aria-hidden="true"
           >
