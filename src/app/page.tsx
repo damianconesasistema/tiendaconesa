@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { TikTokFeed } from "@/components/TikTokFeed";
+import { TikTokCollage } from "@/components/TikTokCollage";
 import { BackToTop } from "@/components/BackToTop";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
@@ -179,7 +180,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TIKTOK */}
+      {/* TIKTOK COLLAGE */}
+      <TikTokCollage />
+
+      {/* TIKTOK EMBED (top 3) */}
       <TikTokFeed />
 
       {/* LOCAL + CONTACTO */}
