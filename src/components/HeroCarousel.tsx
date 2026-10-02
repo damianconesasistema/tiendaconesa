@@ -2,81 +2,128 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
-import { business, whatsappLink } from "@/lib/business";
+import { whatsappLink } from "@/lib/business";
 
+// Hero "Dark Luxe" — fondo oscuro + glow rojo + stats laterales
 export function HeroCarousel() {
   return (
-    <section className="relative isolate overflow-hidden">
-      <div className="relative h-[85svh] min-h-[560px] w-full sm:h-[85svh]">
+    <section className="relative isolate overflow-hidden bg-[#0a0a0a] text-white">
+      {/* Foto del local con Ken Burns (zoom in/out lento) */}
+      <div className="absolute inset-0 overflow-hidden opacity-30">
         <Image
           src="/local/local-1.jpg"
-          alt="Frente del local de Sanitarios Conesa en Villa Cura Brochero"
+          alt=""
           fill
           sizes="100vw"
           priority
-          className="object-cover"
+          className="animate-ken-burns object-cover"
+          aria-hidden="true"
         />
+      </div>
 
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black/50 via-transparent to-transparent md:w-1/2" />
+      {/* Glows radiales rojos */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 72% 28%, rgba(230,48,32,0.42) 0%, transparent 55%), radial-gradient(ellipse at 15% 85%, rgba(230,48,32,0.22) 0%, transparent 55%)",
+        }}
+      />
 
-        {/* Content */}
-        <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-center px-6 py-16 text-left">
-          <div className="animate-fade-up max-w-3xl">
-            <div className="inline-flex items-center gap-3 rounded-full border border-white/30 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--brand-red)] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--brand-red)]" />
-              </span>
-              <span className="font-display text-xs font-bold uppercase tracking-[0.3em] text-white">
-                Tienda online activa
-              </span>
-            </div>
+      {/* Grid de líneas sutiles tipo blueprint */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
 
-            <h1 className="animate-fade-up-delay-1 mt-5 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight text-white drop-shadow-lg sm:text-6xl md:text-7xl lg:text-8xl">
-              Tu baño nuevo,
-              <br />
-              <span className="text-[var(--brand-red)]">a un clic</span> de
-              distancia.
-            </h1>
+      {/* Overlay vertical para legibilidad */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
 
-            <p className="animate-fade-up-delay-2 mt-6 max-w-md text-balance text-base text-white/90 drop-shadow sm:text-lg">
-              Más de <strong className="text-white">790 productos</strong> online. Comprá o consultá por WhatsApp.
-            </p>
+      <div className="relative mx-auto flex min-h-[88svh] max-w-6xl flex-col justify-center px-6 py-20 sm:py-28">
+        <div className="animate-fade-up max-w-3xl">
+          {/* Pill "Tienda online activa" */}
+          <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 backdrop-blur-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--brand-red)] opacity-75" />
+              <span
+                className="relative inline-flex h-2 w-2 rounded-full bg-[var(--brand-red)]"
+                style={{ boxShadow: "0 0 12px rgba(230,48,32,0.9)" }}
+              />
+            </span>
+            <span className="font-display text-[11px] font-bold uppercase tracking-[0.3em] text-white">
+              Tienda online activa
+            </span>
+          </div>
 
-            <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/tienda"
-                className="animate-titilate-delay group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-base font-bold uppercase tracking-wider text-white transition-all hover:bg-[var(--brand-red-hover)]"
-              >
-                Entrá a la tienda
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+          {/* Headline con gradiente en la frase clave */}
+          <h1 className="animate-fade-up-delay-1 mt-6 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight drop-shadow-xl sm:text-6xl md:text-7xl lg:text-[88px]">
+            Tu baño nuevo,
+            <br />
+            <span
+              className="bg-gradient-to-br from-[var(--brand-red)] via-[#ff6b55] to-[var(--brand-red)] bg-clip-text text-transparent"
+              style={{ WebkitTextFillColor: "transparent" }}
+            >
+              a un click
+            </span>
+            .
+          </h1>
 
-              <Link
-                href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-7 py-4 font-display text-base font-bold uppercase tracking-wider text-white backdrop-blur-sm transition-all hover:border-white hover:bg-[#25D366]"
-              >
-                <WhatsAppIcon className="h-5 w-5" />
-                WhatsApp
-              </Link>
-            </div>
+          <p className="animate-fade-up-delay-2 mt-6 max-w-lg text-balance text-base text-white/70 drop-shadow sm:text-lg">
+            Más de <strong className="text-white">790 productos</strong> de las
+            mejores marcas, listos para comprar o retirar en Villa Cura Brochero.
+          </p>
+
+          <div className="animate-fade-up-delay-3 mt-9 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/tienda"
+              className="animate-titilate-delay group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white transition-all hover:bg-[var(--brand-red-hover)]"
+              style={{ boxShadow: "0 10px 32px -8px rgba(230,48,32,0.55)" }}
+            >
+              Entrá a la tienda
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+
+            <Link
+              href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-7 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-[#25D366]/90"
+            >
+              <WhatsAppIcon className="h-5 w-5" />
+              WhatsApp
+            </Link>
           </div>
         </div>
 
-        {/* Caption */}
-        <div className="absolute bottom-6 left-6 z-10 hidden sm:block">
-          <div className="font-display text-[11px] font-bold uppercase tracking-[0.3em] text-white/70">
-            Nuestro local
-          </div>
-          <div className="mt-1 font-display text-base font-bold text-white/90">
-            {business.address.street} · {business.address.city}
-          </div>
-        </div>
+        {/* Stats laterales (desktop) */}
+        <aside className="pointer-events-none absolute bottom-16 right-10 hidden flex-col gap-6 text-right lg:flex">
+          <StatMini value="790+" label="Productos" />
+          <StatMini value="17" label="Localidades" />
+          <StatMini value="14k+" label="En Instagram" />
+        </aside>
       </div>
     </section>
+  );
+}
+
+function StatMini({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <div
+        className="font-display text-3xl font-black leading-none text-[var(--brand-red)] sm:text-4xl"
+        style={{ textShadow: "0 0 24px rgba(230,48,32,0.4)" }}
+      >
+        {value}
+      </div>
+      <div className="mt-1 font-display text-[10px] font-bold uppercase tracking-[0.25em] text-white/55">
+        {label}
+      </div>
+    </div>
   );
 }
