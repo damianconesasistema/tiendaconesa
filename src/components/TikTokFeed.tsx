@@ -32,9 +32,8 @@ export function TikTokFeed() {
               {business.social.tiktok.handle}
             </a>
           </h2>
-          <p className="mt-3 max-w-xl text-base text-[var(--muted)]">
-            17.000+ seguidores y más de 46.800 me gusta. Mirá los videos que
-            más vieron en nuestra tienda.
+          <p className="mt-3 text-balance text-base text-[var(--muted)]">
+            17.000+ seguidores. Mirá nuestros videos más vistos.
           </p>
         </div>
 

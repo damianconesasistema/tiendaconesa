@@ -34,9 +34,8 @@ export function TikTokCollage() {
         <h2 className="mt-3 font-display text-4xl font-black uppercase leading-tight sm:text-5xl md:text-6xl">
           <span className="text-[var(--brand-red)]">14.000+</span> nos siguen
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-base text-white/70">
-          Mirá lo último de @sanitarios.conesa — instalaciones, novedades y
-          consejos para tu casa.
+        <p className="mx-auto mt-4 max-w-xl text-balance text-base text-white/70">
+          Instalaciones, novedades y consejos de @sanitarios.conesa.
         </p>
       </div>
 

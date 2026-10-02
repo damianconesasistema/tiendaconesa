@@ -73,8 +73,8 @@ export function FeaturedProducts() {
             <h2 className="mt-3 font-display text-4xl font-black uppercase leading-tight sm:text-5xl">
               Productos destacados
             </h2>
-            <p className="mt-2 max-w-sm text-base text-[var(--muted)]">
-              Más de 790 productos disponibles. Entrá a la tienda a verlos todos.
+            <p className="mt-2 text-balance text-base text-[var(--muted)]">
+              Más de 790 productos. Entrá a la tienda.
             </p>
           </div>
           <Link

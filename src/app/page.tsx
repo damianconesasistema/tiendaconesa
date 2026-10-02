@@ -150,9 +150,8 @@ export default function Home() {
                 tu hogar y tu obra.
               </h2>
             </div>
-            <p className="max-w-sm text-base text-[var(--muted)]">
-              Desde una canilla hasta la obra completa. Marcas confiables y
-              asesoramiento personalizado.
+            <p className="max-w-sm text-balance text-base text-[var(--muted)]">
+              Desde una canilla hasta la obra completa.
             </p>
           </div>
 
@@ -198,9 +197,8 @@ export default function Home() {
               <br />
               <span className="text-[var(--brand-red)]">Traslasierra.</span>
             </h2>
-            <p className="mt-6 max-w-md text-base text-[var(--muted)]">
-              Tenemos salón de ventas en Villa Cura Brochero. Vení a ver los
-              productos en persona o consultanos por WhatsApp y te asesoramos.
+            <p className="mt-6 max-w-md text-balance text-base text-[var(--muted)]">
+              Salón de ventas en Villa Cura Brochero. Vení a verlo o escribinos.
             </p>
 
             <div className="mt-10 space-y-6">
@@ -263,11 +261,9 @@ export default function Home() {
                 <br />
                 <span className="text-[var(--brand-red)]">muy grande.</span>
               </h3>
-              <p className="mt-5 text-base text-[var(--muted)]">
-                Catálogo online, carrito, pagos con tarjeta y entrega en toda la
-                región de Traslasierra. Muy pronto en{" "}
-                <span className="font-semibold text-foreground">conesa.com.ar</span>
-                .
+              <p className="mt-5 text-balance text-base text-[var(--muted)]">
+                Catálogo online, pagos y entrega en Traslasierra. Pronto en{" "}
+                <span className="font-semibold text-foreground">conesa.com.ar</span>.
               </p>
 
               <div className="mt-10 space-y-3">

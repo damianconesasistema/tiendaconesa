@@ -69,9 +69,8 @@ export function HeroCarousel() {
               distancia.
             </h1>
 
-            <p className="animate-fade-up-delay-2 mt-6 max-w-xl text-base text-white/90 drop-shadow sm:text-lg md:text-xl">
-              {business.tagline}. <strong className="text-white">Más de 790 productos</strong>{" "}
-              en nuestra tienda online — comprá o consultá por WhatsApp.
+            <p className="animate-fade-up-delay-2 mt-6 max-w-md text-balance text-base text-white/90 drop-shadow sm:text-lg">
+              Más de <strong className="text-white">790 productos</strong> online. Comprá o consultá por WhatsApp.
             </p>
 
             <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row">
