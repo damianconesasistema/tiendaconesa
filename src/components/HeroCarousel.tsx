@@ -50,7 +50,7 @@ export function HeroCarousel() {
               fill
               sizes="100vw"
               priority={i === 0}
-              className="animate-ken-burns object-cover"
+              className="object-cover"
             />
           </div>
         ))}
