@@ -81,10 +81,10 @@ export function HeroCarousel() {
             className="animate-fade-up-delay-1 mt-6 font-display uppercase leading-[0.9] tracking-tight text-white"
             style={{ textShadow: "0 2px 24px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.6)" }}
           >
-            <span className="block text-2xl font-bold sm:text-3xl md:text-4xl">
+            <span className="block text-lg font-bold sm:text-3xl md:text-4xl">
               Todo para tu
             </span>
-            <span className="mt-1 block whitespace-nowrap text-5xl font-black sm:text-7xl md:text-8xl lg:text-[108px]">
+            <span className="mt-1 block whitespace-nowrap text-[42px] font-black sm:text-7xl md:text-8xl lg:text-[108px]">
               <span className="text-white">baño</span>{" "}
               <span className="font-display text-[var(--brand-red)] italic">&amp;</span>{" "}
               <span className="text-white">cocina</span>
