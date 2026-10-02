@@ -483,9 +483,16 @@ export default async function Home() {
             <p>
               © {new Date().getFullYear()} {business.name}. Todos los derechos reservados.
             </p>
-            <p>
-              CUIT 20-XX-XXXXXXXX-X · Hecho con ❤ en Traslasierra
-            </p>
+            <div className="flex items-center justify-center gap-4 sm:justify-end">
+              <span>Hecho con ❤ en Traslasierra</span>
+              <Link
+                href="/admin/login"
+                className="inline-flex items-center gap-1 text-[var(--muted)]/60 hover:text-[var(--brand-red)]"
+                aria-label="Panel de administración"
+              >
+                🔒 Admin
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
