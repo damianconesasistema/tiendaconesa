@@ -130,7 +130,7 @@ export default async function Home() {
       <HeroCarousel />
 
       {/* STATS */}
-      <section className="border-b border-[var(--border)] bg-[var(--surface-raised)] px-6 py-12">
+      <section className="border-b border-[var(--border)] bg-white px-6 py-12">
         <div className="mx-auto grid max-w-6xl grid-cols-3 gap-6 sm:gap-16">
           <Stat value="14k+" label="En Instagram" />
           <Stat value="20+" label="Marcas" />
@@ -153,7 +153,7 @@ export default async function Home() {
             {business.brands.map((brand) => (
               <div
                 key={brand.name}
-                className="group relative flex h-24 items-center justify-center rounded-xl bg-[var(--surface-raised)] px-3 py-3 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex h-24 items-center justify-center rounded-xl bg-white px-3 py-3 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
                 title={brand.name}
               >
                 <Image
@@ -206,7 +206,7 @@ export default async function Home() {
                   key={cat.name}
                   className="group relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 transition-all hover:-translate-y-1 hover:border-[var(--brand-red)] hover:shadow-xl"
                 >
-                  <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--surface-raised)] text-[var(--brand-red)] shadow-sm transition-colors group-hover:bg-[var(--brand-red)] group-hover:text-white">
+                  <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-white text-[var(--brand-red)] shadow-sm transition-colors group-hover:bg-[var(--brand-red)] group-hover:text-white">
                     <Icon className="h-7 w-7" strokeWidth={1.8} />
                   </div>
                   <h3 className="font-display text-2xl font-bold uppercase tracking-tight">
@@ -422,7 +422,7 @@ function SocialPill({
       rel="noopener noreferrer"
       className="group inline-flex items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-3 pr-5 transition-all hover:border-[var(--brand-red)]"
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface-raised)] text-[var(--brand-red)] shadow-sm group-hover:bg-[var(--brand-red)] group-hover:text-white">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[var(--brand-red)] shadow-sm group-hover:bg-[var(--brand-red)] group-hover:text-white">
         <Icon className="h-4 w-4" />
       </span>
       <span className="font-display text-sm font-bold uppercase tracking-wider">

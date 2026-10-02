@@ -102,14 +102,14 @@ export default async function ProductosAdmin({
       />
 
       {products.length === 0 ? (
-        <div className="mt-8 rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--surface-raised)] p-10 text-center">
+        <div className="mt-8 rounded-2xl border-2 border-dashed border-[var(--border)] bg-white p-10 text-center">
           <Package className="mx-auto h-10 w-10 text-[var(--muted)]" strokeWidth={1.5} />
           <p className="mt-4 font-display text-sm font-bold uppercase tracking-wider text-[var(--muted)]">
             Sin resultados
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] shadow-sm">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
           <table className="w-full">
             <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               <tr>
@@ -246,7 +246,7 @@ function PageLink({
 }) {
   if (disabled) {
     return (
-      <span className="rounded-lg border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-xs text-[var(--muted)]">
+      <span className="rounded-lg border border-[var(--border)] bg-white px-3 py-1.5 text-xs text-[var(--muted)]">
         {label}
       </span>
     );
@@ -259,7 +259,7 @@ function PageLink({
   return (
     <Link
       href={`/admin/productos?${params.toString()}`}
-      className="rounded-lg border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-xs font-semibold hover:border-[var(--brand-red)]"
+      className="rounded-lg border border-[var(--border)] bg-white px-3 py-1.5 text-xs font-semibold hover:border-[var(--brand-red)]"
     >
       {label}
     </Link>

@@ -56,7 +56,7 @@ export function OrderStatusSelect({
           value={status}
           onChange={(e) => handleChange(e.target.value)}
           disabled={pending}
-          className="h-11 min-w-[200px] rounded-full border border-[var(--border)] bg-[var(--surface-raised)] pl-[142px] pr-4 text-sm outline-none focus:border-[var(--brand-red)] focus:ring-2 focus:ring-[var(--brand-red)]/20 disabled:opacity-60"
+          className="h-11 min-w-[200px] rounded-full border border-[var(--border)] bg-white pl-[142px] pr-4 text-sm outline-none focus:border-[var(--brand-red)] focus:ring-2 focus:ring-[var(--brand-red)]/20 disabled:opacity-60"
         >
           {STATUSES.map((s) => (
             <option key={s.id} value={s.id}>

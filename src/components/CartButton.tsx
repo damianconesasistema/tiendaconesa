@@ -10,7 +10,7 @@ export function CartButton() {
     <Link
       href="/tienda/carrito"
       aria-label={`Carrito (${count} ${count === 1 ? "item" : "items"})`}
-      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-raised)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] sm:h-11 sm:w-11"
+      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] sm:h-11 sm:w-11"
     >
       <ShoppingCart className="h-5 w-5" />
       {count > 0 && (

@@ -63,7 +63,7 @@ export function LocalCarousel() {
                 aria-label={`Ver foto ${i + 1}`}
                 onClick={() => setIndex(i)}
                 className={`h-2 rounded-full transition-all ${
-                  i === index ? "w-8 bg-[var(--surface-raised)]" : "w-2 bg-white/50 hover:bg-white/80"
+                  i === index ? "w-8 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
                 }`}
               />
             ))}

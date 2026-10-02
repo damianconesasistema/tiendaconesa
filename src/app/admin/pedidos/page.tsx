@@ -69,7 +69,7 @@ export default async function PedidosAdmin({
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
                 active
                   ? "bg-[var(--brand-red)] text-white"
-                  : "border border-[var(--border)] bg-[var(--surface-raised)] text-foreground hover:border-[var(--brand-red)]/40"
+                  : "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)]/40"
               }`}
             >
               {s.label}
@@ -80,7 +80,7 @@ export default async function PedidosAdmin({
       </div>
 
       {orders.length === 0 ? (
-        <div className="mt-8 rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--surface-raised)] p-10 text-center">
+        <div className="mt-8 rounded-2xl border-2 border-dashed border-[var(--border)] bg-white p-10 text-center">
           <ShoppingBag className="mx-auto h-10 w-10 text-[var(--muted)]" strokeWidth={1.5} />
           <p className="mt-4 font-display text-sm font-bold uppercase tracking-wider text-[var(--muted)]">
             Sin pedidos{status && ` ${status}`}
@@ -90,7 +90,7 @@ export default async function PedidosAdmin({
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] shadow-sm">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
           <table className="w-full">
             <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               <tr>

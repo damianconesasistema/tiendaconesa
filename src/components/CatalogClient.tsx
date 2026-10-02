@@ -62,7 +62,7 @@ export function CatalogClient({ products, categories }: Props) {
   return (
     <main className="flex-1 bg-[var(--surface)]">
       {/* HERO */}
-      <section className="border-b border-[var(--border)] bg-[var(--surface-raised)] px-6 py-16">
+      <section className="border-b border-[var(--border)] bg-white px-6 py-16">
         <div className="mx-auto max-w-6xl text-center">
           <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
             Tienda online
@@ -76,7 +76,7 @@ export function CatalogClient({ products, categories }: Props) {
           </p>
 
           {/* SEARCH */}
-          <div className="mx-auto mt-10 flex max-w-xl items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-5 py-3 shadow-sm">
+          <div className="mx-auto mt-10 flex max-w-xl items-center gap-2 rounded-full border border-[var(--border)] bg-white px-5 py-3 shadow-sm">
             <Search className="h-5 w-5 shrink-0 text-[var(--muted)]" />
             <input
               type="search"
@@ -90,7 +90,7 @@ export function CatalogClient({ products, categories }: Props) {
       </section>
 
       {/* CATEGORY TABS */}
-      <section className="sticky top-20 z-30 border-b border-[var(--border)] bg-[var(--surface-raised)] sm:top-24">
+      <section className="sticky top-20 z-30 border-b border-[var(--border)] bg-white sm:top-24">
         <div className="mx-auto max-w-6xl overflow-x-auto px-4 py-4 sm:px-6">
           <div className="flex gap-2 whitespace-nowrap">
             <CatButton
@@ -131,7 +131,7 @@ export function CatalogClient({ products, categories }: Props) {
       {/* GRID */}
       <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
         {filtered.length === 0 ? (
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-12 text-center">
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-12 text-center">
             <Package className="mx-auto h-10 w-10 text-[var(--muted)]" />
             <p className="mt-4 font-display text-xl font-bold uppercase">
               Sin resultados
@@ -176,7 +176,7 @@ function CatButton({
       className={`inline-flex items-center gap-2 rounded-full px-4 py-2 font-display text-sm font-bold uppercase tracking-wider transition-colors ${
         active
           ? "bg-[var(--brand-red)] text-white shadow-sm"
-          : "border border-[var(--border)] bg-[var(--surface-raised)] text-foreground hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+          : "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
       }`}
     >
       {label}
@@ -218,7 +218,7 @@ function ProductCard({ p }: { p: Product }) {
   return (
     <Link
       href={`/tienda/${p.itemId}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
       {/* Foto o placeholder */}
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">

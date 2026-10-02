@@ -14,7 +14,7 @@ export function AdminShell({
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Top bar */}
-      <div className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--surface-raised)]">
+      <div className="sticky top-0 z-20 border-b border-[var(--border)] bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">

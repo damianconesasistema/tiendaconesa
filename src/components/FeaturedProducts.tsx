@@ -85,7 +85,7 @@ function FeaturedCard({ p }: { p: Product }) {
   return (
     <Link
       href={`/tienda/${p.itemId}`}
-      className="card-lift group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] shadow-sm"
+      className="card-lift group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm"
     >
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
         {!imgError ? (

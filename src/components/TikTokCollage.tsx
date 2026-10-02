@@ -56,7 +56,7 @@ export function TikTokCollage() {
           href={business.social.tiktok.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-raised)] px-7 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-black transition-transform hover:scale-[1.03]"
+          className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-black transition-transform hover:scale-[1.03]"
         >
           Ver todos los videos en TikTok
           <ArrowRight className="h-4 w-4" />

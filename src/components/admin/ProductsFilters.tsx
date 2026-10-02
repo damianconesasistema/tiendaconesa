@@ -37,7 +37,7 @@ export function ProductsFilters({
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4 shadow-sm">
+    <div className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-sm">
       <div className="relative">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
         <input
@@ -45,7 +45,7 @@ export function ProductsFilters({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Buscar por nombre…"
-          className="h-11 w-full rounded-full border border-[var(--border)] bg-[var(--surface-raised)] pl-11 pr-4 text-sm outline-none focus:border-[var(--brand-red)] focus:ring-2 focus:ring-[var(--brand-red)]/20"
+          className="h-11 w-full rounded-full border border-[var(--border)] bg-white pl-11 pr-4 text-sm outline-none focus:border-[var(--brand-red)] focus:ring-2 focus:ring-[var(--brand-red)]/20"
         />
       </div>
 
@@ -117,7 +117,7 @@ function Chip({
       className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
         active
           ? "bg-[var(--brand-red)] text-white"
-          : "border border-[var(--border)] bg-[var(--surface-raised)] text-foreground hover:border-[var(--brand-red)]/40"
+          : "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)]/40"
       }`}
     >
       {children}
@@ -141,7 +141,7 @@ function QuickFilter({
       className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
         active
           ? "border-[var(--brand-red)] bg-[var(--brand-red)]/10 text-[var(--brand-red)]"
-          : "border-[var(--border)] bg-[var(--surface-raised)] text-[var(--muted)] hover:border-[var(--brand-red)]/40"
+          : "border-[var(--border)] bg-white text-[var(--muted)] hover:border-[var(--brand-red)]/40"
       }`}
     >
       {children}

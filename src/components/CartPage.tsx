@@ -23,7 +23,7 @@ export function CartPage() {
     return (
       <main className="min-h-screen bg-[var(--surface)] px-4 py-20">
         <div className="mx-auto max-w-md text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--surface-raised)] shadow-sm">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm">
             <ShoppingBag
               className="h-10 w-10 text-[var(--muted)]"
               strokeWidth={1.4}
@@ -68,7 +68,7 @@ export function CartPage() {
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           {/* ITEMS */}
-          <div className="rounded-2xl bg-[var(--surface-raised)] p-4 shadow-sm ring-1 ring-[var(--border)] sm:p-6">
+          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[var(--border)] sm:p-6">
             <div className="divide-y divide-[var(--border)]">
               {items.map((it) => (
                 <div
@@ -148,7 +148,7 @@ export function CartPage() {
 
           {/* RESUMEN */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-2xl bg-[var(--surface-raised)] p-6 shadow-sm ring-1 ring-[var(--border)]">
+            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[var(--border)]">
               <h2 className="font-display text-lg font-black uppercase tracking-tight">
                 Resumen
               </h2>
@@ -188,7 +188,7 @@ export function CartPage() {
               </Link>
             </div>
 
-            <div className="mt-4 space-y-2 rounded-2xl bg-[var(--surface-raised)] p-4 shadow-sm ring-1 ring-[var(--border)]">
+            <div className="mt-4 space-y-2 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[var(--border)]">
               <Perk icon={Shield} text="Compra protegida — pagás al confirmar" />
               <Perk icon={Truck} text="Envíos a todo el Valle de Traslasierra" />
             </div>
