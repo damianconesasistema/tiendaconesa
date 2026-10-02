@@ -6,6 +6,8 @@ export type CartItem = {
   itemId: string;
   title: string;
   qty: number;
+  price: number | null; // null = "a consultar"
+  category: string;
 };
 
 type CartContextValue = {

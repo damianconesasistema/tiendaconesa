@@ -3,15 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Package, ArrowRight } from "lucide-react";
+import { Package, ArrowRight, ShoppingCart, Check } from "lucide-react";
 import productsData from "@/data/products.json";
-import { whatsappLink } from "@/lib/business";
-import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { useCart } from "@/lib/cart";
+import { formatPrice } from "@/lib/order";
 
 type Product = {
   itemId: string;
   title: string;
   price: number;
+  salePrice: number | null;
   category: string;
 };
 
@@ -98,12 +99,29 @@ export function FeaturedProducts() {
 
 function FeaturedCard({ p }: { p: Product }) {
   const [imgError, setImgError] = useState(false);
-  const msg = `Hola! Quería consultar por: ${p.title} (ID ${p.itemId})`;
-  // Foto por categoria (garantiza coherencia visual con el badge)
+  const [added, setAdded] = useState(false);
+  const { add } = useCart();
   const photoPath = `/categories/${p.category}.jpg`;
+  const effectivePrice = p.salePrice ?? p.price;
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    add({
+      itemId: p.itemId,
+      title: p.title,
+      price: effectivePrice,
+      category: p.category,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
 
   return (
-    <div className="card-lift group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+    <Link
+      href={`/tienda/${p.itemId}`}
+      className="card-lift group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm"
+    >
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
         {!imgError ? (
           <Image
@@ -125,24 +143,35 @@ function FeaturedCard({ p }: { p: Product }) {
         </span>
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-tight text-foreground sm:text-sm">
+        <h3 className="line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-tight text-foreground group-hover:text-[var(--brand-red)] sm:text-sm">
           {p.title}
         </h3>
         <div className="mt-3">
-          <span className="font-display text-lg font-black text-[var(--brand-red)] sm:text-xl">
-            $999.999
+          <span className="font-display text-lg font-black text-foreground sm:text-xl">
+            {formatPrice(effectivePrice)}
           </span>
         </div>
-        <Link
-          href={whatsappLink(msg)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-[#25D366] px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#1DA851] sm:text-xs"
+        <button
+          onClick={handleAdd}
+          className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wider transition-colors sm:text-xs ${
+            added
+              ? "bg-green-500 text-white"
+              : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
+          }`}
         >
-          <WhatsAppIcon className="h-3 w-3" />
-          Consultar
-        </Link>
+          {added ? (
+            <>
+              <Check className="h-3 w-3" />
+              Agregado
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-3 w-3" />
+              Agregar
+            </>
+          )}
+        </button>
       </div>
-    </div>
+    </Link>
   );
 }

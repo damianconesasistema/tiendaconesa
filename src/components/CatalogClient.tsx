@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Package } from "lucide-react";
+import { Search, Package, ShoppingCart, Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { whatsappLink } from "@/lib/business";
-import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { useCart } from "@/lib/cart";
+import { formatPrice as fmtPrice } from "@/lib/order";
 
 type Product = {
   itemId: string;
@@ -42,9 +42,6 @@ const CAT_LABELS: Record<string, string> = {
   otros: "Otros",
 };
 
-function formatPrice(n: number): string {
-  return `$${n.toLocaleString("es-AR")}`;
-}
 
 export function CatalogClient({ products, categories }: Props) {
   const [query, setQuery] = useState("");
@@ -195,12 +192,34 @@ function CatButton({
 }
 
 function ProductCard({ p }: { p: Product }) {
-  const msg = `Hola! Quería consultar por: ${p.title} (ID ${p.itemId})`;
   const [imgError, setImgError] = useState(false);
+  const [added, setAdded] = useState(false);
+  const { add } = useCart();
   const photoPath = `/categories/${p.category}.jpg`;
+  const effectivePrice = p.salePrice ?? p.price;
+  const hasDiscount = p.salePrice !== null && p.salePrice < p.price;
+  const discount = hasDiscount
+    ? Math.round(((p.price - p.salePrice!) / p.price) * 100)
+    : 0;
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    add({
+      itemId: p.itemId,
+      title: p.title,
+      price: effectivePrice,
+      category: p.category,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <Link
+      href={`/tienda/${p.itemId}`}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+    >
       {/* Foto o placeholder */}
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
         {!imgError ? (
@@ -210,7 +229,7 @@ function ProductCard({ p }: { p: Product }) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             onError={() => setImgError(true)}
-            className="object-cover"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <Package
@@ -221,33 +240,52 @@ function ProductCard({ p }: { p: Product }) {
         <span className="absolute right-3 top-3 z-10 inline-flex items-center rounded-full bg-black/80 px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
           {CAT_LABELS[p.category] || p.category}
         </span>
+        {hasDiscount && (
+          <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[var(--brand-red)] px-2.5 py-1 font-display text-[10px] font-black uppercase tracking-wider text-white">
+            -{discount}%
+          </span>
+        )}
       </div>
 
       {/* Info */}
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="line-clamp-2 min-h-[3rem] text-sm font-semibold leading-tight text-foreground">
+        <h3 className="line-clamp-2 min-h-[3rem] text-sm font-semibold leading-tight text-foreground group-hover:text-[var(--brand-red)]">
           {p.title}
         </h3>
-        <div className="mt-4 flex items-baseline gap-2">
-          <span className="font-display text-2xl font-black text-[var(--brand-red)]">
-            $999.999
+        <div className="mt-4 flex flex-col">
+          {hasDiscount && (
+            <span className="text-xs text-[var(--muted)] line-through">
+              {fmtPrice(p.price)}
+            </span>
+          )}
+          <span className="font-display text-2xl font-black text-foreground">
+            {fmtPrice(effectivePrice)}
           </span>
-          <span className="text-[10px] uppercase tracking-wider text-[var(--muted)]">
-            precio referencial
+          <span className="mt-0.5 text-[10px] uppercase tracking-wider text-[var(--muted)]">
+            3 cuotas sin interés
           </span>
         </div>
-        <div className="mt-5">
-          <Link
-            href={whatsappLink(msg)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#1DA851]"
-          >
-            <WhatsAppIcon className="h-3.5 w-3.5" />
-            Consultar por WhatsApp
-          </Link>
-        </div>
+        <button
+          onClick={handleAdd}
+          className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
+            added
+              ? "bg-green-500 text-white"
+              : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
+          }`}
+        >
+          {added ? (
+            <>
+              <Check className="h-3.5 w-3.5" />
+              Agregado
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-3.5 w-3.5" />
+              Agregar al carrito
+            </>
+          )}
+        </button>
       </div>
-    </div>
+    </Link>
   );
 }
