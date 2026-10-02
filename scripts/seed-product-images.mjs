@@ -16,9 +16,9 @@ const sample = [];
 for (const cat of cats) {
   if (byCat[cat] && byCat[cat].length) sample.push(byCat[cat][0]);
 }
-// Rellenar hasta 20 con primeros productos
+// Rellenar hasta 100 con primeros productos
 for (const p of products) {
-  if (sample.length >= 20) break;
+  if (sample.length >= 100) break;
   if (!sample.find(s => s.itemId === p.itemId)) sample.push(p);
 }
 
