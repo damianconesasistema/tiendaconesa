@@ -23,9 +23,9 @@ export function Header() {
         <nav className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/tienda"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] sm:px-4 sm:text-sm"
+            className="animate-titilate inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-red)] px-3 py-2 font-display text-[11px] font-black uppercase tracking-wider text-white shadow-lg shadow-red-500/40 transition-all hover:scale-[1.03] hover:bg-[var(--brand-red-hover)] sm:px-5 sm:py-2.5 sm:text-sm"
           >
-            Tienda
+            ¡COMPRA AHORA!
           </Link>
           <a
             href={`tel:${business.phone.international.replace(/\s/g, "")}`}
