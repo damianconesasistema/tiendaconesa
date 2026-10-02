@@ -64,7 +64,7 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         {/* Items */}
-        <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-sm">
           <h2 className="font-display text-lg font-black uppercase tracking-tight">
             Items ({order.items.reduce((s, i) => s + i.qty, 0)} unidades)
           </h2>
@@ -101,7 +101,7 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
 
         {/* Datos cliente + envio */}
         <aside className="space-y-6">
-          <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-sm">
             <h2 className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               Cliente
             </h2>
@@ -129,7 +129,7 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-sm">
             <h2 className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               Entrega
             </h2>
@@ -160,7 +160,7 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
           </section>
 
           {order.notes && (
-            <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+            <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-sm">
               <h2 className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
                 Notas del cliente
               </h2>

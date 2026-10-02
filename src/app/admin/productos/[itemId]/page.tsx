@@ -41,7 +41,7 @@ export default async function EditProductPage({ params }: RouteProps) {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.5fr]">
         {/* Preview */}
-        <aside className="rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm">
+        <aside className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-sm">
           <h2 className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
             Vista previa
           </h2>
@@ -90,7 +90,7 @@ export default async function EditProductPage({ params }: RouteProps) {
         </aside>
 
         {/* Form */}
-        <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm sm:p-8">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-sm sm:p-8">
           <h1 className="font-display text-2xl font-black uppercase leading-tight">
             Editar producto
           </h1>

@@ -167,7 +167,7 @@ export function ProductForm({
           padding: 0 .75rem;
           border: 1px solid var(--border);
           border-radius: .75rem;
-          background: #fff;
+          background: var(--surface-raised);
           font-size: .875rem;
           color: var(--foreground);
           outline: none;
@@ -205,7 +205,7 @@ function Toggle({
   defaultChecked: boolean;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--border)] bg-white p-3 hover:border-[var(--brand-red)]/40">
+    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] p-3 hover:border-[var(--brand-red)]/40">
       <input
         type="checkbox"
         name={name}

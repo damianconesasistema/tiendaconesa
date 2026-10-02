@@ -47,7 +47,7 @@ export function LoginForm() {
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
           required
-          className="w-full rounded-lg border border-[var(--border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--brand-red)]"
+          className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 outline-none transition focus:border-[var(--brand-red)]"
         />
       </div>
 
@@ -61,7 +61,7 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
           required
-          className="w-full rounded-lg border border-[var(--border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--brand-red)]"
+          className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-3 outline-none transition focus:border-[var(--brand-red)]"
         />
       </div>
 

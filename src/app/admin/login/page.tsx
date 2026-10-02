@@ -14,7 +14,7 @@ export default async function AdminLoginPage() {
 
   return (
     <main className="flex min-h-[70svh] items-center justify-center bg-[var(--surface)] px-6 py-16">
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-white p-8 shadow-sm sm:p-10">
+      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-8 shadow-sm sm:p-10">
         <div className="text-center">
           <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
             Panel privado

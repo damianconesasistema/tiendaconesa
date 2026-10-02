@@ -129,7 +129,7 @@ export default async function AdminDashboard() {
         </div>
 
         {recentOrders.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-[var(--border)] bg-white p-10 text-center">
+          <div className="rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--surface-raised)] p-10 text-center">
             <ShoppingBag
               className="mx-auto h-10 w-10 text-[var(--muted)]"
               strokeWidth={1.5}
@@ -142,7 +142,7 @@ export default async function AdminDashboard() {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] shadow-sm">
             <table className="w-full">
               <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
                 <tr>
@@ -201,7 +201,7 @@ function KpiCard({
   href?: string;
 }) {
   const content = (
-    <div className="h-full rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm transition-all hover:border-[var(--brand-red)]/40 hover:shadow-md">
+    <div className="h-full rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-5 shadow-sm transition-all hover:border-[var(--brand-red)]/40 hover:shadow-md">
       <div className="flex items-center justify-between">
         <div className="font-display text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
           {label}

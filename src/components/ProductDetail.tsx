@@ -100,7 +100,7 @@ export function ProductDetail({
           Volver al catálogo
         </Link>
 
-        <div className="mt-6 grid gap-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[var(--border)] sm:p-8 lg:grid-cols-[1.1fr_1fr]">
+        <div className="mt-6 grid gap-6 rounded-2xl bg-[var(--surface-raised)] p-4 shadow-sm ring-1 ring-[var(--border)] sm:p-8 lg:grid-cols-[1.1fr_1fr]">
           {/* FOTO */}
           <div className="relative aspect-square overflow-hidden rounded-xl bg-[var(--surface)]">
             <Image
@@ -171,7 +171,7 @@ export function ProductDetail({
               <span className="text-sm font-medium text-foreground">
                 Cantidad:
               </span>
-              <div className="inline-flex items-center rounded-full border border-[var(--border)] bg-white">
+              <div className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface-raised)]">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   className="flex h-10 w-10 items-center justify-center text-foreground hover:text-[var(--brand-red)]"
@@ -206,7 +206,7 @@ export function ProductDetail({
                 className={`inline-flex items-center justify-center gap-2 rounded-full border-2 px-6 py-4 font-display text-base font-bold uppercase tracking-wider transition-all hover:scale-[1.02] ${
                   added
                     ? "border-green-500 bg-green-500 text-white"
-                    : "border-[var(--brand-red)] bg-white text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white"
+                    : "border-[var(--brand-red)] bg-[var(--surface-raised)] text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white"
                 }`}
               >
                 {added ? (
@@ -302,7 +302,7 @@ function RelatedCard({ p }: { p: Product }) {
   return (
     <Link
       href={`/tienda/${p.itemId}`}
-      className="group block overflow-hidden rounded-xl bg-white ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="group block overflow-hidden rounded-xl bg-[var(--surface-raised)] ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="relative aspect-square bg-[var(--surface)]">
         <Image

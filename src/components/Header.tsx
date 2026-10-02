@@ -7,7 +7,7 @@ import { business, whatsappLink } from "@/lib/business";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-white shadow-sm">
+    <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[var(--surface-raised)] shadow-sm">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-4 sm:h-24 sm:px-6">
         <Link
           href="/"

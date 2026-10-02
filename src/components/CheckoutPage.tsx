@@ -109,7 +109,7 @@ export function CheckoutPage() {
             </Link>
             <Link
               href="/"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-foreground"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-raised)] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-foreground"
             >
               Volver al inicio
             </Link>
@@ -140,7 +140,7 @@ export function CheckoutPage() {
         <form onSubmit={handleSubmit} className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="space-y-6">
             {/* DATOS DEL COMPRADOR */}
-            <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[var(--border)]">
+            <section className="rounded-2xl bg-[var(--surface-raised)] p-6 shadow-sm ring-1 ring-[var(--border)]">
               <h2 className="font-display text-lg font-black uppercase tracking-tight">
                 1. Tus datos
               </h2>
@@ -191,7 +191,7 @@ export function CheckoutPage() {
             </section>
 
             {/* ENVIO */}
-            <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[var(--border)]">
+            <section className="rounded-2xl bg-[var(--surface-raised)] p-6 shadow-sm ring-1 ring-[var(--border)]">
               <h2 className="font-display text-lg font-black uppercase tracking-tight">
                 2. Entrega
               </h2>
@@ -230,7 +230,7 @@ export function CheckoutPage() {
                         setCustomer({ ...customer, locality: e.target.value })
                       }
                       data-error={!!errors.locality}
-                      className={`mt-1.5 h-11 w-full rounded-xl border bg-white px-3 text-sm text-foreground outline-none ring-[var(--brand-red)]/20 focus:border-[var(--brand-red)] focus:ring-2 ${
+                      className={`mt-1.5 h-11 w-full rounded-xl border bg-[var(--surface-raised)] px-3 text-sm text-foreground outline-none ring-[var(--brand-red)]/20 focus:border-[var(--brand-red)] focus:ring-2 ${
                         errors.locality
                           ? "border-red-400"
                           : "border-[var(--border)]"
@@ -282,7 +282,7 @@ export function CheckoutPage() {
             </section>
 
             {/* NOTAS */}
-            <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[var(--border)]">
+            <section className="rounded-2xl bg-[var(--surface-raised)] p-6 shadow-sm ring-1 ring-[var(--border)]">
               <h2 className="font-display text-lg font-black uppercase tracking-tight">
                 3. Notas (opcional)
               </h2>
@@ -293,14 +293,14 @@ export function CheckoutPage() {
                 }
                 rows={3}
                 placeholder="Horario preferido, aclaraciones del pedido, etc."
-                className="mt-3 w-full resize-none rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-[var(--brand-red)] focus:ring-2 focus:ring-[var(--brand-red)]/20"
+                className="mt-3 w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-2 text-sm text-foreground outline-none focus:border-[var(--brand-red)] focus:ring-2 focus:ring-[var(--brand-red)]/20"
               />
             </section>
           </div>
 
           {/* RESUMEN */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[var(--border)]">
+            <div className="rounded-2xl bg-[var(--surface-raised)] p-6 shadow-sm ring-1 ring-[var(--border)]">
               <h2 className="font-display text-lg font-black uppercase tracking-tight">
                 Tu pedido
               </h2>
@@ -421,7 +421,7 @@ function Field({
         autoComplete={autoComplete}
         inputMode={inputMode}
         data-error={!!error}
-        className={`mt-1.5 h-11 w-full rounded-xl border bg-white px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-[var(--brand-red)]/20 ${
+        className={`mt-1.5 h-11 w-full rounded-xl border bg-[var(--surface-raised)] px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-[var(--brand-red)]/20 ${
           error
             ? "border-red-400 focus:border-red-500"
             : "border-[var(--border)] focus:border-[var(--brand-red)]"
@@ -454,7 +454,7 @@ function ShippingOption({
       className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${
         active
           ? "border-[var(--brand-red)] bg-[var(--brand-red)]/5"
-          : "border-[var(--border)] bg-white hover:border-[var(--brand-red)]/40"
+          : "border-[var(--border)] bg-[var(--surface-raised)] hover:border-[var(--brand-red)]/40"
       }`}
     >
       <div
