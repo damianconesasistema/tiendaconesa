@@ -490,17 +490,6 @@ export default async function Home() {
         </div>
       </footer>
 
-      {/* FLOATING WHATSAPP */}
-      <Link
-        href={whatsappLink()}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Escribinos por WhatsApp"
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-green-500/30 transition-transform hover:scale-110 sm:bottom-8 sm:right-8"
-      >
-        <WhatsAppIcon className="h-7 w-7" />
-      </Link>
-
       {/* BACK TO TOP */}
       <BackToTop />
     </main>

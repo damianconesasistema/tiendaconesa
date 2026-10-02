@@ -3,6 +3,8 @@ import { Inter, Montserrat } from "next/font/google";
 import Script from "next/script";
 import { Header } from "@/components/Header";
 import { CartProvider } from "@/components/CartProvider";
+import { CartFab } from "@/components/CartFab";
+import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { business } from "@/lib/business";
 import "./globals.css";
 
@@ -204,6 +206,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <CartProvider>
           <Header />
           {children}
+          <FloatingWhatsApp />
+          <CartFab />
         </CartProvider>
       </body>
     </html>
