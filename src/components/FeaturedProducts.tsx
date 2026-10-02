@@ -102,7 +102,7 @@ function FeaturedCard({ p }: { p: Product }) {
   const photoPath = `/products/${p.itemId}.jpg`;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <div className="card-lift group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
         {!imgError ? (
           <Image
