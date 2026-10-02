@@ -4,6 +4,7 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { TikTokFeed } from "@/components/TikTokFeed";
 import { BackToTop } from "@/components/BackToTop";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { FeaturedProducts } from "@/components/FeaturedProducts";
 import {
   MapPin,
   Clock,
@@ -130,6 +131,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* DESTACADOS */}
+      <FeaturedProducts />
 
       {/* CATEGORIES */}
       <section className="border-b border-[var(--border)] px-6 py-24">

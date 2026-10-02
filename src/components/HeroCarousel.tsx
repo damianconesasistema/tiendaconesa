@@ -70,29 +70,28 @@ export function HeroCarousel() {
             </h1>
 
             <p className="animate-fade-up-delay-2 mt-6 max-w-xl text-base text-white/90 drop-shadow sm:text-lg md:text-xl">
-              {business.tagline}. Estamos armando nuestra tienda online.
-              Mientras tanto, pasá por el local o escribinos por WhatsApp.
+              {business.tagline}. <strong className="text-white">Más de 790 productos</strong>{" "}
+              en nuestra tienda online — comprá o consultá por WhatsApp.
             </p>
 
             <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex items-center justify-center gap-3 rounded-full bg-[#25D366] px-8 py-4 font-display text-base font-bold uppercase tracking-wider text-white shadow-xl shadow-green-900/40 transition-all hover:scale-[1.02] hover:bg-[#1DA851]"
+                href="/tienda"
+                className="group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-base font-bold uppercase tracking-wider text-white shadow-xl shadow-red-900/40 transition-all hover:scale-[1.02] hover:bg-[var(--brand-red-hover)]"
               >
-                <WhatsAppIcon className="h-5 w-5" />
-                Escribinos por WhatsApp
+                Entrá a la tienda
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
 
-              <a
-                href="#local"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-7 py-4 font-display text-base font-bold uppercase tracking-wider text-white backdrop-blur-sm transition-all hover:border-white hover:bg-white hover:text-[var(--brand-black)]"
+              <Link
+                href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-7 py-4 font-display text-base font-bold uppercase tracking-wider text-white backdrop-blur-sm transition-all hover:border-white hover:bg-[#25D366]"
               >
-                <MapPin className="h-5 w-5" />
-                Ver el local
-              </a>
+                <WhatsAppIcon className="h-5 w-5" />
+                WhatsApp
+              </Link>
             </div>
           </div>
         </div>
