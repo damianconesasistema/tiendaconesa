@@ -259,10 +259,10 @@ export default async function Home() {
             <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
               Visitanos
             </span>
-            <h2 className="mt-3 font-display text-4xl font-black uppercase leading-tight sm:text-5xl">
-              En el corazón de
+            <h2 className="mt-3 font-display text-3xl font-black uppercase leading-tight sm:text-5xl">
+              En el corazón
               <br />
-              <span className="text-[var(--brand-red)]">Traslasierra.</span>
+              <span className="text-[var(--brand-red)]">de Traslasierra.</span>
             </h2>
             <p className="mt-6 max-w-md text-balance text-base text-[var(--muted)]">
               Salón de ventas en Villa Cura Brochero. Vení a verlo o escribinos.
