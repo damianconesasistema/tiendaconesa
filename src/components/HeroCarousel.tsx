@@ -33,14 +33,14 @@ export function HeroCarousel() {
   }, []);
 
   return (
-    <section className="relative isolate overflow-hidden bg-[#0a0a0a] text-white">
+    <section className="relative isolate overflow-hidden bg-black text-white">
       {/* Fotos de fondo con crossfade + Ken Burns individual */}
       <div className="absolute inset-0">
         {photos.map((photo, i) => (
           <div
             key={photo.src}
             className={`absolute inset-0 overflow-hidden transition-opacity duration-[1800ms] ease-in-out ${
-              i === index ? "opacity-55" : "opacity-0"
+              i === index ? "opacity-100" : "opacity-0"
             }`}
             aria-hidden="true"
           >
@@ -56,29 +56,9 @@ export function HeroCarousel() {
         ))}
       </div>
 
-      {/* Glows radiales rojos */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at 72% 28%, rgba(230,48,32,0.42) 0%, transparent 55%), radial-gradient(ellipse at 15% 85%, rgba(230,48,32,0.22) 0%, transparent 55%)",
-        }}
-      />
-
-      {/* Grid de líneas sutiles tipo blueprint */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
-
-      {/* Overlay vertical para legibilidad */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+      {/* Overlay sutil solo para legibilidad del texto (lado izq y borde inferior) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent" />
 
       <div className="relative mx-auto flex min-h-[88svh] max-w-6xl flex-col justify-center px-6 py-20 sm:py-28">
         <div className="animate-fade-up max-w-3xl">
@@ -165,14 +145,11 @@ export function HeroCarousel() {
 
 function StatMini({ value, label }: { value: string; label: string }) {
   return (
-    <div>
-      <div
-        className="font-display text-3xl font-black leading-none text-[var(--brand-red)] sm:text-4xl"
-        style={{ textShadow: "0 0 24px rgba(230,48,32,0.4)" }}
-      >
+    <div className="rounded-xl bg-black/40 px-4 py-3 backdrop-blur-md">
+      <div className="font-display text-2xl font-black leading-none text-white sm:text-3xl">
         {value}
       </div>
-      <div className="mt-1 font-display text-[10px] font-bold uppercase tracking-[0.25em] text-white/55">
+      <div className="mt-1 font-display text-[10px] font-bold uppercase tracking-[0.25em] text-white/70">
         {label}
       </div>
     </div>
