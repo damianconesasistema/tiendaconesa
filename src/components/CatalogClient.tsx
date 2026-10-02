@@ -68,7 +68,7 @@ export function CatalogClient({ products, categories }: Props) {
       <section className="border-b border-[var(--border)] bg-white px-6 py-16">
         <div className="mx-auto max-w-6xl text-center">
           <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
-            Catálogo
+            Tienda online
           </span>
           <h1 className="mt-3 font-display text-4xl font-black uppercase leading-tight sm:text-5xl md:text-6xl">
             {products.length}+ productos

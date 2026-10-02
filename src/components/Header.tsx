@@ -22,10 +22,10 @@ export function Header() {
 
         <nav className="flex items-center gap-2 sm:gap-3">
           <Link
-            href="/catalogo"
-            className="hidden items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] md:inline-flex"
+            href="/tienda"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] sm:px-4 sm:text-sm"
           >
-            Catálogo
+            Tienda
           </Link>
           <a
             href={`tel:${business.phone.international.replace(/\s/g, "")}`}

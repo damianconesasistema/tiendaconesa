@@ -94,10 +94,10 @@ export default async function AdminDashboard() {
         {/* Shortcuts */}
         <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ShortcutCard
-            title="Catalogo publico"
-            href="/catalogo"
+            title="Tienda publica"
+            href="/tienda"
             desc="Ver como estan apareciendo los productos para el cliente"
-            cta="Abrir catalogo"
+            cta="Abrir tienda"
           />
           <ShortcutCard
             title="Landing publica"

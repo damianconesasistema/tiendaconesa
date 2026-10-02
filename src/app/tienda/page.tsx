@@ -4,7 +4,7 @@ import categoriesData from "@/data/categories.json";
 import { CatalogClient } from "@/components/CatalogClient";
 
 export const metadata: Metadata = {
-  title: "Catálogo · Sanitarios Conesa Traslasierra",
+  title: "Tienda · Sanitarios Conesa Traslasierra",
   description:
     "Más de 790 productos de sanitarios, grifería, salamandras, calefones y materiales de obra. Las mejores marcas de Argentina.",
 };

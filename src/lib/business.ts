@@ -55,7 +55,6 @@ export const business = {
     { name: "Pringles", logo: "/brand/marcas/pringles.jpg" },
     { name: "Bosca", logo: "/brand/marcas/bosca.png" },
     { name: "Gulliart", logo: "/brand/marcas/gulliart.png", invert: true },
-    { name: "Lekons", logo: "/brand/marcas/lekons.png" },
     { name: "Masecor", logo: "/brand/marcas/masecor.webp" },
     { name: "Precons", logo: "/brand/marcas/precons.png", invert: true },
     { name: "ROT-AR", logo: "/brand/marcas/rot-ar.png" },
@@ -66,7 +65,7 @@ export const business = {
     { name: "Saladillo", logo: "/brand/marcas/saladillo.png" },
     { name: "Grupo DEMA", logo: "/brand/marcas/dema.jpg" },
     { name: "Redeco", logo: "/brand/marcas/redeco.avif" },
-    { name: "Heineken", logo: "/brand/marcas/heineken.jpg", scale: 1.6 },
+    { name: "Heineken", logo: "/brand/marcas/heineken.jpg", scale: 2.2 },
   ],
   brand: {
     red: "#E63020",
