@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { ConesaLogo } from "@/components/ConesaLogo";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { CartButton } from "@/components/CartButton";
 import { business, whatsappLink } from "@/lib/business";
 
 export function Header() {
@@ -34,14 +35,15 @@ export function Header() {
             <MapPin className="h-4 w-4" />
             {business.phone.display}
           </a>
+          <CartButton />
           <Link
             href={whatsappLink()}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-white shadow-sm transition-all hover:scale-[1.02] hover:bg-[#1DA851] sm:px-5"
+            className="hidden items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-white shadow-sm transition-all hover:scale-[1.02] hover:bg-[#1DA851] sm:inline-flex sm:px-5"
           >
             <WhatsAppIcon className="h-4 w-4" />
-            <span className="hidden sm:inline">WhatsApp</span>
+            <span>WhatsApp</span>
           </Link>
         </nav>
       </div>
