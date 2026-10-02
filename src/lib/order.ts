@@ -1,5 +1,6 @@
 import type { CartItem } from "@/lib/cart";
 import type { Customer } from "@/lib/customer";
+import { shippingCostForLocality } from "@/lib/traslasierra";
 
 export function formatPrice(price: number | null): string {
   if (price === null || price === undefined) return "A consultar";
@@ -26,7 +27,13 @@ export function buildOrderMessage(
   c: Customer,
   orderNumber?: number,
 ): string {
-  const { total, hasUnpriced } = cartTotal(items);
+  const { total: subtotal, hasUnpriced } = cartTotal(items);
+  const shippingCost =
+    c.shipping === "envio" && c.locality
+      ? shippingCostForLocality(c.locality)
+      : 0;
+  const total = subtotal + shippingCost;
+
   const lines: string[] = [];
 
   if (orderNumber) {
@@ -44,10 +51,14 @@ export function buildOrderMessage(
   }
   lines.push("");
 
-  if (hasUnpriced) {
-    lines.push("*Total:* (algunos items a consultar precio)");
+  lines.push(`*Subtotal:* ${hasUnpriced ? "a consultar" : formatPrice(subtotal)}`);
+  if (c.shipping === "envio") {
+    lines.push(`*Envío:* ${formatPrice(shippingCost)}`);
   } else {
-    lines.push(`*Total:* ${formatPrice(total)}`);
+    lines.push(`*Envío:* Gratis (retiro en tienda)`);
+  }
+  if (!hasUnpriced) {
+    lines.push(`*TOTAL:* ${formatPrice(total)}`);
   }
   lines.push("");
 
@@ -59,9 +70,9 @@ export function buildOrderMessage(
   lines.push("");
 
   if (c.shipping === "retiro") {
-    lines.push("*Envío:* Retiro en el local (Villa Cura Brochero)");
+    lines.push("*Entrega:* Retiro en el local (Villa Cura Brochero)");
   } else {
-    lines.push("*Envío:* A domicilio en Traslasierra");
+    lines.push("*Entrega:* A domicilio en Traslasierra");
     lines.push(`• Localidad: ${c.locality}`);
     lines.push(`• Dirección: ${c.street} ${c.streetNumber}`);
     if (c.reference) lines.push(`• Referencia: ${c.reference}`);

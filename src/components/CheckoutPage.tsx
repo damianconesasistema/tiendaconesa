@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
-import { localidadesTraslasierra } from "@/lib/traslasierra";
+import { localidadesTraslasierra, shippingCostForLocality } from "@/lib/traslasierra";
 import { formatPrice, cartTotal, buildOrderMessage, whatsappOrderLink } from "@/lib/order";
 import { business } from "@/lib/business";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
@@ -23,7 +23,12 @@ export function CheckoutPage() {
   const router = useRouter();
   const { items, clear } = useCart();
   const { customer, setCustomer, hydrated } = useCustomer();
-  const { total, hasUnpriced } = cartTotal(items);
+  const { total: subtotal, hasUnpriced } = cartTotal(items);
+  const shippingCost =
+    customer.shipping === "envio" && customer.locality
+      ? shippingCostForLocality(customer.locality)
+      : 0;
+  const total = subtotal + shippingCost;
   const [sent, setSent] = useState(false);
   const [orderNumber, setOrderNumber] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -235,8 +240,8 @@ export function CheckoutPage() {
                     >
                       <option value="">— Elegí una localidad —</option>
                       {localidadesTraslasierra.map((l) => (
-                        <option key={l} value={l}>
-                          {l}
+                        <option key={l.name} value={l.name}>
+                          {l.name} · {formatPrice(l.cost)}
                         </option>
                       ))}
                     </select>
@@ -325,7 +330,7 @@ export function CheckoutPage() {
                 <div className="flex justify-between">
                   <span className="text-[var(--muted)]">Subtotal</span>
                   <span className="font-semibold">
-                    {hasUnpriced ? "a consultar" : formatPrice(total)}
+                    {hasUnpriced ? "a consultar" : formatPrice(subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -333,7 +338,9 @@ export function CheckoutPage() {
                   <span className="font-semibold">
                     {customer.shipping === "retiro"
                       ? "Gratis"
-                      : "A coordinar"}
+                      : customer.locality
+                        ? formatPrice(shippingCost)
+                        : "Elegí localidad"}
                   </span>
                 </div>
               </div>

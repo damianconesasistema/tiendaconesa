@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import type { CartItem } from "@/lib/cart";
 import type { Customer } from "@/lib/customer";
+import { shippingCostForLocality } from "@/lib/traslasierra";
 
 type Result =
   | { ok: true; orderId: string; orderNumber: number }
@@ -39,7 +40,10 @@ export async function createOrder(
       return { ok: false, error: "No se encontraron productos válidos" };
 
     const subtotal = validItems.reduce((s, i) => s + i.price * i.qty, 0);
-    const shippingCost = 0; // "a coordinar" por ahora
+    const shippingCost =
+      customer.shipping === "envio" && customer.locality
+        ? shippingCostForLocality(customer.locality)
+        : 0;
     const total = subtotal + shippingCost;
 
     const nextNumber = ((await prisma.order.findFirst({ orderBy: { number: "desc" } }))?.number || 0) + 1;
