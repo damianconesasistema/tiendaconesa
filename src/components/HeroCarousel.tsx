@@ -77,7 +77,7 @@ export function HeroCarousel() {
             <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/tienda"
-                className="animate-titilate group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-base font-bold uppercase tracking-wider text-white transition-all hover:bg-[var(--brand-red-hover)]"
+                className="animate-titilate-delay group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-base font-bold uppercase tracking-wider text-white transition-all hover:bg-[var(--brand-red-hover)]"
               >
                 Entrá a la tienda
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

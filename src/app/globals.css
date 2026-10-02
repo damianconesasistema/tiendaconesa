@@ -124,6 +124,12 @@ body {
   animation: titilate 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+/* Variante desfasada para que 2 botones titilen a destiempo */
+.animate-titilate-delay {
+  animation: titilate 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.9s;
+}
+
 @keyframes marquee-left {
   from {
     transform: translateX(0);

@@ -197,7 +197,7 @@ function CatButton({
 function ProductCard({ p }: { p: Product }) {
   const msg = `Hola! Quería consultar por: ${p.title} (ID ${p.itemId})`;
   const [imgError, setImgError] = useState(false);
-  const photoPath = `/products/${p.itemId}.jpg`;
+  const photoPath = `/categories/${p.category}.jpg`;
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
@@ -210,7 +210,7 @@ function ProductCard({ p }: { p: Product }) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             onError={() => setImgError(true)}
-            className="object-contain p-4"
+            className="object-cover"
           />
         ) : (
           <Package

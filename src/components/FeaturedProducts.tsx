@@ -99,7 +99,8 @@ export function FeaturedProducts() {
 function FeaturedCard({ p }: { p: Product }) {
   const [imgError, setImgError] = useState(false);
   const msg = `Hola! Quería consultar por: ${p.title} (ID ${p.itemId})`;
-  const photoPath = `/products/${p.itemId}.jpg`;
+  // Foto por categoria (garantiza coherencia visual con el badge)
+  const photoPath = `/categories/${p.category}.jpg`;
 
   return (
     <div className="card-lift group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
@@ -111,7 +112,7 @@ function FeaturedCard({ p }: { p: Product }) {
             fill
             sizes="(max-width: 640px) 50vw, 25vw"
             onError={() => setImgError(true)}
-            className="object-contain p-4"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <Package
