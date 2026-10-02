@@ -123,11 +123,11 @@ export function HeroCarousel() {
           </div>
         </div>
 
-        {/* Stats laterales (desktop) */}
-        <aside className="pointer-events-none absolute bottom-16 right-10 hidden flex-col gap-6 text-right lg:flex">
-          <StatMini value="790+" label="Productos" />
-          <StatMini value="17" label="Localidades" />
+        {/* Stats laterales (desktop) — enfocadas en fortaleza en redes */}
+        <aside className="pointer-events-none absolute bottom-16 right-10 hidden flex-col gap-4 text-right lg:flex">
           <StatMini value="14k+" label="En Instagram" />
+          <StatMini value="17k+" label="En TikTok" />
+          <StatMini value="790+" label="Productos" />
         </aside>
 
         {/* Indicadores de slide (solo si hay > 1 foto) */}
