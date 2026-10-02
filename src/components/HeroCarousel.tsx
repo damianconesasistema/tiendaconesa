@@ -1,51 +1,23 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { MapPin, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { business, whatsappLink } from "@/lib/business";
 
-const photos = [
-  {
-    src: "/local/local-1.jpg",
-    alt: "Frente del local de Sanitarios Conesa en Villa Cura Brochero",
-  },
-  {
-    src: "/local/local-2.jpg",
-    alt: "Vista lateral del local con vidrieras de marcas FV, Piazza, Johnson",
-  },
-] as const;
-
 export function HeroCarousel() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setIndex((i) => (i + 1) % photos.length);
-    }, 5000);
-    return () => clearInterval(t);
-  }, []);
-
   return (
     <section className="relative isolate overflow-hidden">
       <div className="relative h-[85svh] min-h-[560px] w-full sm:h-[85svh]">
-        {photos.map((photo, i) => (
-          <Image
-            key={photo.src}
-            src={photo.src}
-            alt={photo.alt}
-            fill
-            sizes="100vw"
-            priority={i === 0}
-            className={`object-cover transition-opacity duration-1000 ease-in-out ${
-              i === index ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))}
+        <Image
+          src="/local/local-1.jpg"
+          alt="Frente del local de Sanitarios Conesa en Villa Cura Brochero"
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
+        />
 
-        {/* Overlay minimo — solo en la zona del texto */}
+        {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
         <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black/50 via-transparent to-transparent md:w-1/2" />
 
@@ -93,20 +65,6 @@ export function HeroCarousel() {
               </Link>
             </div>
           </div>
-        </div>
-
-        {/* Dots */}
-        <div className="absolute bottom-6 right-6 z-10 flex gap-2 sm:bottom-8 sm:right-8">
-          {photos.map((_, i) => (
-            <button
-              key={i}
-              aria-label={`Ver foto ${i + 1}`}
-              onClick={() => setIndex(i)}
-              className={`h-2 rounded-full transition-all ${
-                i === index ? "w-10 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
-              }`}
-            />
-          ))}
         </div>
 
         {/* Caption */}
