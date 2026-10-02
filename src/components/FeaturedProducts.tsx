@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Package, ArrowRight, ShoppingCart, Check } from "lucide-react";
-import productsData from "@/data/products.json";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
 
@@ -28,41 +27,7 @@ const CAT_LABELS: Record<string, string> = {
   otros: "Otros",
 };
 
-// Mix de categorias para que el destacado luzca variado
-function pickFeatured(all: Product[], n = 8): Product[] {
-  const buckets = new Map<string, Product[]>();
-  for (const p of all) {
-    const arr = buckets.get(p.category) || [];
-    arr.push(p);
-    buckets.set(p.category, arr);
-  }
-  const prefOrder = [
-    "sanitarios",
-    "griferia",
-    "salamandras",
-    "banera",
-    "calefones",
-    "accesorios",
-    "piletas",
-    "materiales",
-  ];
-  const picked: Product[] = [];
-  for (const cat of prefOrder) {
-    const arr = buckets.get(cat);
-    if (arr && arr.length) picked.push(arr[0]);
-    if (picked.length >= n) break;
-  }
-  // Si quedan huecos, rellenar con otros
-  for (const p of all) {
-    if (picked.length >= n) break;
-    if (!picked.find((x) => x.itemId === p.itemId)) picked.push(p);
-  }
-  return picked.slice(0, n);
-}
-
-const featured = pickFeatured(productsData as Product[], 8);
-
-export function FeaturedProducts() {
+export function FeaturedProducts({ featured }: { featured: Product[] }) {
   return (
     <section className="border-b border-[var(--border)] px-6 py-24">
       <div className="mx-auto max-w-6xl">

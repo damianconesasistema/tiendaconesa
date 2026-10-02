@@ -6,6 +6,10 @@ import { TikTokCollage } from "@/components/TikTokCollage";
 import { BackToTop } from "@/components/BackToTop";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
+import { prisma } from "@/lib/db";
+
+// En runtime hay DB (Railway). En build no la tenemos → forzar dynamic
+export const dynamic = "force-dynamic";
 import {
   MapPin,
   Clock,
@@ -80,7 +84,46 @@ const categoryIcons = [
   Wrench,
 ] as const;
 
-export default function Home() {
+export default async function Home() {
+  // Destacados: primero los que el admin marco featured, sino los primeros 8
+  // activos variados por categoria
+  let featured = await prisma.product.findMany({
+    where: {
+      featured: true,
+      active: true,
+      itemId: { not: "__RESET_PRICES_MARKER__" },
+    },
+    select: {
+      itemId: true,
+      title: true,
+      price: true,
+      salePrice: true,
+      category: true,
+    },
+    take: 8,
+    orderBy: { title: "asc" },
+  });
+
+  if (featured.length < 8) {
+    const extras = await prisma.product.findMany({
+      where: {
+        active: true,
+        featured: false,
+        itemId: { not: "__RESET_PRICES_MARKER__" },
+      },
+      select: {
+        itemId: true,
+        title: true,
+        price: true,
+        salePrice: true,
+        category: true,
+      },
+      take: 8 - featured.length,
+      orderBy: { title: "asc" },
+    });
+    featured = [...featured, ...extras];
+  }
+
   return (
     <main className="relative flex-1">
       {/* HERO */}
@@ -134,7 +177,7 @@ export default function Home() {
       </section>
 
       {/* DESTACADOS */}
-      <FeaturedProducts />
+      <FeaturedProducts featured={featured} />
 
       {/* CATEGORIES */}
       <section className="border-b border-[var(--border)] px-6 py-24">

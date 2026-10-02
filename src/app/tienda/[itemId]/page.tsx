@@ -1,19 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import productsData from "@/data/products.json";
+import { prisma } from "@/lib/db";
 import { ProductDetail } from "@/components/ProductDetail";
 
-type Product = {
-  itemId: string;
-  title: string;
-  price: number;
-  salePrice: number | null;
-  stock: number;
-  condition: string | null;
-  status: string | null;
-  category: string;
-  mlUrl: string;
-};
+export const dynamic = "force-dynamic";
 
 type RouteProps = {
   params: Promise<{ itemId: string }>;
@@ -23,10 +13,11 @@ export async function generateMetadata(
   { params }: RouteProps,
 ): Promise<Metadata> {
   const { itemId } = await params;
-  const p = (productsData as Product[]).find((x) => x.itemId === itemId);
-  if (!p) {
-    return { title: "Producto no encontrado · Sanitarios Conesa" };
-  }
+  const p = await prisma.product.findUnique({
+    where: { itemId },
+    select: { title: true },
+  });
+  if (!p) return { title: "Producto no encontrado · Sanitarios Conesa" };
   return {
     title: `${p.title} · Sanitarios Conesa Traslasierra`,
     description: `${p.title}. Pedilo online o retiralo en nuestro local de Villa Cura Brochero.`,
@@ -35,14 +26,42 @@ export async function generateMetadata(
 
 export default async function ProductoPage({ params }: RouteProps) {
   const { itemId } = await params;
-  const products = productsData as Product[];
-  const product = products.find((p) => p.itemId === itemId);
-  if (!product) notFound();
+  const product = await prisma.product.findUnique({ where: { itemId } });
+  if (!product || !product.active || product.itemId === "__RESET_PRICES_MARKER__") {
+    notFound();
+  }
 
-  // Productos relacionados: misma categoria, max 4
-  const related = products
-    .filter((p) => p.category === product.category && p.itemId !== product.itemId)
-    .slice(0, 4);
+  const related = await prisma.product.findMany({
+    where: {
+      category: product.category,
+      active: true,
+      itemId: { notIn: [product.itemId, "__RESET_PRICES_MARKER__"] },
+    },
+    orderBy: { title: "asc" },
+    take: 4,
+  });
 
-  return <ProductDetail product={product} related={related} />;
+  // Shape compat con ProductDetail (que esperaba Product del JSON)
+  const compat = {
+    itemId: product.itemId,
+    title: product.title,
+    price: product.price,
+    salePrice: product.salePrice,
+    stock: product.stock,
+    condition: "Nuevo" as string | null,
+    status: product.active ? "Activa" : "Inactiva",
+    category: product.category,
+  };
+  const relatedCompat = related.map((p) => ({
+    itemId: p.itemId,
+    title: p.title,
+    price: p.price,
+    salePrice: p.salePrice,
+    stock: p.stock,
+    condition: "Nuevo" as string | null,
+    status: p.active ? "Activa" : "Inactiva",
+    category: p.category,
+  }));
+
+  return <ProductDetail product={compat} related={relatedCompat} />;
 }
