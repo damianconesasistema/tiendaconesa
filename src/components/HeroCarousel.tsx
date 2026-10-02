@@ -33,7 +33,7 @@ export function HeroCarousel() {
   }, []);
 
   return (
-    <section className="relative isolate overflow-hidden bg-black text-white">
+    <section className="relative isolate -mt-20 overflow-hidden bg-black text-white sm:-mt-24">
       {/* Fotos de fondo con crossfade + Ken Burns individual */}
       <div className="absolute inset-0">
         {photos.map((photo, i) => (
@@ -60,7 +60,7 @@ export function HeroCarousel() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent md:via-black/35 md:to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent" />
 
-      <div className="relative mx-auto flex min-h-[88svh] max-w-6xl flex-col justify-center px-6 py-20 sm:py-28">
+      <div className="relative mx-auto flex min-h-[92svh] max-w-6xl flex-col justify-center px-6 pb-20 pt-32 sm:pb-28 sm:pt-40">
         <div className="animate-fade-up max-w-3xl">
           {/* Pill "Tienda online activa" */}
           <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 backdrop-blur-sm">
@@ -76,18 +76,25 @@ export function HeroCarousel() {
             </span>
           </div>
 
-          {/* Headline: todo blanco con sombra fuerte + underline rojo en frase clave */}
+          {/* Headline */}
           <h1
-            className="animate-fade-up-delay-1 mt-6 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[88px]"
+            className="animate-fade-up-delay-1 mt-6 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
             style={{ textShadow: "0 2px 24px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.6)" }}
           >
-            Tu baño nuevo,
-            <br />
+            Tenemos todo para tu{" "}
             <span className="relative inline-block">
-              a un click
+              baño
               <span
                 aria-hidden="true"
-                className="absolute inset-x-0 -bottom-1 h-[6px] rounded-full bg-[var(--brand-red)] md:h-[10px] md:-bottom-2"
+                className="absolute inset-x-0 -bottom-1 h-[6px] rounded-full bg-[var(--brand-red)] md:h-[9px] md:-bottom-2"
+              />
+            </span>{" "}
+            y{" "}
+            <span className="relative inline-block">
+              cocina
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 -bottom-1 h-[6px] rounded-full bg-[var(--brand-red)] md:h-[9px] md:-bottom-2"
               />
             </span>
             .
