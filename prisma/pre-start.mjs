@@ -27,4 +27,13 @@ run("npx", ["prisma", "migrate", "deploy"]);
 // Seed (idempotente, skip si ya hay productos)
 run("node", ["prisma/seed.mjs"]);
 
+// Reset de precios one-shot: setea todos los productos activos a 1_000_000
+// para evitar compras mientras el admin actualiza precios reales.
+// Trigger: setear RESET_PRICES=1000000 (o cualquier numero) en Railway Variables.
+// Ejecucion: una vez por valor distinto (persistido en tabla PriceResetLog).
+if (process.env.RESET_PRICES) {
+  console.log(`\n$ reset de precios → ${process.env.RESET_PRICES}`);
+  run("node", ["prisma/reset-prices.mjs"]);
+}
+
 console.log("\n✓ DB lista");
