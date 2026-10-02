@@ -60,7 +60,7 @@ export function HeroCarousel() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent md:via-black/35 md:to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent" />
 
-      <div className="relative mx-auto flex min-h-[92svh] max-w-6xl flex-col justify-center px-6 pb-20 pt-32 sm:pb-28 sm:pt-40">
+      <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-center px-6 pb-24 pt-28 sm:pb-28 sm:pt-40">
         <div className="animate-fade-up max-w-3xl">
           {/* Pill "Tienda online activa" */}
           <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 backdrop-blur-sm">
