@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   ShoppingBag,
   Users,
   Package,
   DollarSign,
-  LogOut,
+  AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
-import { LogoutButton } from "@/components/admin/LogoutButton";
-import productsData from "@/data/products.json";
+import { AdminShell } from "@/components/admin/AdminShell";
+import { prisma } from "@/lib/db";
+import { formatPrice } from "@/lib/order";
 
 export const metadata: Metadata = {
   title: "Panel · Sanitarios Conesa",
@@ -20,94 +23,167 @@ export default async function AdminDashboard() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
 
-  const totalProducts = productsData.length;
+  // KPIs desde DB
+  const [totalProducts, activeProducts, lowStock, totalOrders, pendingOrders, customers] =
+    await Promise.all([
+      prisma.product.count(),
+      prisma.product.count({ where: { active: true } }),
+      prisma.product.count({ where: { active: true, stock: { lt: 5 } } }),
+      prisma.order.count(),
+      prisma.order.count({ where: { status: "pendiente" } }),
+      prisma.customer.count(),
+    ]);
+
+  // Ventas del mes (orders con status != pendiente/cancelado, del mes actual)
+  const firstDayOfMonth = new Date();
+  firstDayOfMonth.setDate(1);
+  firstDayOfMonth.setHours(0, 0, 0, 0);
+
+  const monthOrders = await prisma.order.findMany({
+    where: {
+      createdAt: { gte: firstDayOfMonth },
+      status: { notIn: ["cancelado"] },
+    },
+    select: { total: true },
+  });
+  const monthRevenue = monthOrders.reduce((s, o) => s + o.total, 0);
+
+  // Ultimos 5 pedidos
+  const recentOrders = await prisma.order.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    include: {
+      customer: true,
+      items: true,
+    },
+  });
 
   return (
-    <main className="min-h-screen bg-[var(--surface)]">
-      {/* Admin top bar */}
-      <div className="border-b border-[var(--border)] bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
-              Panel admin
-            </div>
-            <div className="hidden text-sm text-[var(--muted)] sm:block">
-              · Sanitarios Conesa Traslasierra
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden text-sm sm:block">
-              <span className="text-[var(--muted)]">Usuario: </span>
-              <strong>{session.username}</strong>
-            </div>
-            <LogoutButton />
-          </div>
-        </div>
+    <AdminShell username={session.username} active="dashboard">
+      <h1 className="font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
+        Dashboard
+      </h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">
+        Resumen general del negocio.
+      </p>
+
+      {/* KPIs */}
+      <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <KpiCard
+          icon={ShoppingBag}
+          label="Pedidos pendientes"
+          value={String(pendingOrders)}
+          href="/admin/pedidos?status=pendiente"
+        />
+        <KpiCard
+          icon={DollarSign}
+          label="Ventas del mes"
+          value={formatPrice(monthRevenue)}
+          hint={`${monthOrders.length} pedidos`}
+        />
+        <KpiCard
+          icon={Package}
+          label="Productos activos"
+          value={`${activeProducts}/${totalProducts}`}
+          href="/admin/productos"
+        />
+        <KpiCard
+          icon={Users}
+          label="Clientes"
+          value={String(customers)}
+          hint={`${totalOrders} pedidos totales`}
+        />
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <h1 className="font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
-          Dashboard
-        </h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          Resumen general del negocio.
-        </p>
+      {/* Alertas */}
+      {lowStock > 0 && (
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div className="flex-1">
+            <strong>{lowStock}</strong> {lowStock === 1 ? "producto activo tiene" : "productos activos tienen"} stock
+            bajo (&lt;5 unidades).{" "}
+            <Link
+              href="/admin/productos?filter=low-stock"
+              className="font-semibold underline hover:text-amber-700"
+            >
+              Ver cuáles →
+            </Link>
+          </div>
+        </div>
+      )}
 
-        {/* KPI cards */}
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard
-            icon={ShoppingBag}
-            label="Pedidos nuevos"
-            value="0"
-            hint="Esperando que configuremos la DB"
-          />
-          <KpiCard
-            icon={DollarSign}
-            label="Ventas del mes"
-            value="$0"
-            hint="Se calculara con los pedidos cerrados"
-          />
-          <KpiCard icon={Package} label="Productos" value={String(totalProducts)} hint="Importados del Excel ML" />
-          <KpiCard icon={Users} label="Clientes" value="0" hint="Se registraran al pedir" />
+      {/* Pedidos recientes */}
+      <section className="mt-10">
+        <div className="mb-4 flex items-end justify-between">
+          <h2 className="font-display text-xl font-black uppercase tracking-tight">
+            Pedidos recientes
+          </h2>
+          {recentOrders.length > 0 && (
+            <Link
+              href="/admin/pedidos"
+              className="text-sm font-semibold text-[var(--brand-red)] hover:underline"
+            >
+              Ver todos →
+            </Link>
+          )}
         </div>
 
-        {/* ORDERS placeholder */}
-        <section className="mt-12 rounded-2xl border border-[var(--border)] bg-white p-8 shadow-sm">
-          <h2 className="font-display text-2xl font-black uppercase">Pedidos recientes</h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Cuando conectemos la base de datos, acá va a aparecer la tabla con
-            los pedidos: cliente, teléfono, items, total, estado y acciones
-            (confirmar / marcar pagado / enviar / cancelar).
-          </p>
-
-          <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)] p-10 text-center">
-            <ShoppingBag className="mx-auto h-10 w-10 text-[var(--muted)]" strokeWidth={1.5} />
+        {recentOrders.length === 0 ? (
+          <div className="rounded-2xl border-2 border-dashed border-[var(--border)] bg-white p-10 text-center">
+            <ShoppingBag
+              className="mx-auto h-10 w-10 text-[var(--muted)]"
+              strokeWidth={1.5}
+            />
             <p className="mt-4 font-display text-sm font-bold uppercase tracking-wider text-[var(--muted)]">
-              Todavia no hay pedidos
+              Todavía no hay pedidos
             </p>
             <p className="mt-2 text-xs text-[var(--muted)]">
-              Siguiente paso: activar la base de datos y el flujo de pedido en el catalogo.
+              Cuando un cliente complete el checkout, el pedido aparecerá acá.
             </p>
           </div>
-        </section>
-
-        {/* Shortcuts */}
-        <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <ShortcutCard
-            title="Tienda publica"
-            href="/tienda"
-            desc="Ver como estan apareciendo los productos para el cliente"
-            cta="Abrir tienda"
-          />
-          <ShortcutCard
-            title="Landing publica"
-            href="/"
-            desc="Ver la home con las fotos del local y marcas"
-            cta="Abrir home"
-          />
-        </section>
-      </div>
-    </main>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+            <table className="w-full">
+              <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+                <tr>
+                  <th className="px-5 py-3">#</th>
+                  <th className="px-5 py-3">Cliente</th>
+                  <th className="px-5 py-3">Items</th>
+                  <th className="px-5 py-3">Total</th>
+                  <th className="px-5 py-3">Estado</th>
+                  <th className="px-5 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {recentOrders.map((o) => (
+                  <tr key={o.id} className="text-sm hover:bg-[var(--surface)]">
+                    <td className="px-5 py-3 font-display font-bold">#{o.number}</td>
+                    <td className="px-5 py-3">
+                      {o.customer.firstName} {o.customer.lastName}
+                    </td>
+                    <td className="px-5 py-3 text-[var(--muted)]">
+                      {o.items.reduce((s, i) => s + i.qty, 0)}
+                    </td>
+                    <td className="px-5 py-3 font-semibold">{formatPrice(o.total)}</td>
+                    <td className="px-5 py-3">
+                      <StatusBadge status={o.status} />
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <Link
+                        href={`/admin/pedidos/${o.id}`}
+                        className="text-[var(--brand-red)] hover:underline"
+                      >
+                        Ver →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </AdminShell>
   );
 }
 
@@ -116,51 +192,58 @@ function KpiCard({
   label,
   value,
   hint,
+  href,
 }: {
   icon: typeof ShoppingBag;
   label: string;
   value: string;
   hint?: string;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm">
+  const content = (
+    <div className="h-full rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm transition-all hover:border-[var(--brand-red)]/40 hover:shadow-md">
       <div className="flex items-center justify-between">
-        <div className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+        <div className="font-display text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
           {label}
         </div>
         <Icon className="h-5 w-5 text-[var(--brand-red)]" />
       </div>
-      <div className="mt-3 font-display text-3xl font-black text-foreground">
+      <div className="mt-3 font-display text-2xl font-black text-foreground sm:text-3xl">
         {value}
       </div>
       {hint && <div className="mt-1 text-xs text-[var(--muted)]">{hint}</div>}
+      {href && (
+        <div className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[var(--brand-red)]">
+          Ver <ArrowRight className="h-3 w-3" />
+        </div>
+      )}
     </div>
+  );
+  return href ? (
+    <Link href={href} className="block">
+      {content}
+    </Link>
+  ) : (
+    content
   );
 }
 
-function ShortcutCard({
-  title,
-  href,
-  desc,
-  cta,
-}: {
-  title: string;
-  href: string;
-  desc: string;
-  cta: string;
-}) {
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    pendiente: "bg-amber-100 text-amber-800",
+    confirmado: "bg-blue-100 text-blue-800",
+    en_preparacion: "bg-indigo-100 text-indigo-800",
+    en_entrega: "bg-purple-100 text-purple-800",
+    entregado: "bg-green-100 text-green-800",
+    cancelado: "bg-red-100 text-red-700",
+  };
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group block rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ${
+        map[status] || "bg-gray-100 text-gray-700"
+      }`}
     >
-      <h3 className="font-display text-lg font-black uppercase">{title}</h3>
-      <p className="mt-1 text-sm text-[var(--muted)]">{desc}</p>
-      <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-[var(--brand-red)] group-hover:gap-2">
-        {cta} →
-      </span>
-    </a>
+      {status.replace("_", " ")}
+    </span>
   );
 }

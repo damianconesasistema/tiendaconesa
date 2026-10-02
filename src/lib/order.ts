@@ -21,11 +21,19 @@ export function cartTotal(items: CartItem[]): { total: number; hasUnpriced: bool
   return { total, hasUnpriced };
 }
 
-export function buildOrderMessage(items: CartItem[], c: Customer): string {
+export function buildOrderMessage(
+  items: CartItem[],
+  c: Customer,
+  orderNumber?: number,
+): string {
   const { total, hasUnpriced } = cartTotal(items);
   const lines: string[] = [];
 
-  lines.push("*¡Hola! Quiero hacer un pedido 🛒*");
+  if (orderNumber) {
+    lines.push(`*¡Hola! Pedido #${orderNumber} 🛒*`);
+  } else {
+    lines.push("*¡Hola! Quiero hacer un pedido 🛒*");
+  }
   lines.push("");
   lines.push("*Items:*");
   for (const it of items) {

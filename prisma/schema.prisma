@@ -1,0 +1,86 @@
+// Schema para la tienda de Sanitarios Conesa.
+// Pedidos + productos + clientes. Admin con cookies HMAC existentes.
+// SQLite para desarrollo, Postgres en Railway en produccion.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  itemId      String   @unique // ID original (MLA12345...)
+  title       String
+  description String?  // Opcional, para la ficha
+  category    String   // sanitarios, griferia, banera, etc.
+  price       Int      // en pesos argentinos (sin decimales)
+  salePrice   Int?     // precio con descuento (opcional)
+  stock       Int      @default(0)
+  active      Boolean  @default(true)
+  featured    Boolean  @default(false) // Aparece en destacados del home
+  imageUrl    String?  // Override: por defecto usa /categories/{category}.jpg
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orderItems  OrderItem[]
+
+  @@index([category])
+  @@index([active])
+  @@index([featured])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  dni       String
+  email     String
+  phone     String
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dni])
+  @@index([email])
+}
+
+// Estados: pendiente, confirmado, en_preparacion, en_entrega, entregado, cancelado
+model Order {
+  id           String      @id @default(cuid())
+  number       Int         @unique // numero legible (#1, #2, ...) asignado en codigo
+  status       String      @default("pendiente")
+  customer     Customer    @relation(fields: [customerId], references: [id])
+  customerId   String
+  items        OrderItem[]
+  shipping     String      // "retiro" | "envio"
+  locality     String?     // solo si shipping = envio
+  street       String?
+  streetNumber String?
+  reference    String?
+  notes        String?
+  subtotal     Int         // suma de items
+  shippingCost Int         @default(0)
+  total        Int         // subtotal + shippingCost
+  paidAt       DateTime?   // marca manual cuando el admin confirma pago
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  title     String  // snapshot al momento de la venta
+  price     Int     // snapshot (en caso que cambie despues)
+  qty       Int
+
+  @@index([orderId])
+}

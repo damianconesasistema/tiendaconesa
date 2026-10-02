@@ -17,6 +17,7 @@ import { localidadesTraslasierra } from "@/lib/traslasierra";
 import { formatPrice, cartTotal, buildOrderMessage, whatsappOrderLink } from "@/lib/order";
 import { business } from "@/lib/business";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { createOrder } from "@/app/tienda/checkout/actions";
 
 export function CheckoutPage() {
   const router = useRouter();
@@ -24,6 +25,9 @@ export function CheckoutPage() {
   const { customer, setCustomer, hydrated } = useCustomer();
   const { total, hasUnpriced } = cartTotal(items);
   const [sent, setSent] = useState(false);
+  const [orderNumber, setOrderNumber] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -56,16 +60,24 @@ export function CheckoutPage() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (ev: React.FormEvent) => {
+  const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
+    setServerError(null);
     if (!validate()) {
-      // scroll al primer error
       const first = document.querySelector("[data-error='true']");
       first?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    const msg = buildOrderMessage(items, customer);
+    setSubmitting(true);
+    const result = await createOrder(items, customer);
+    setSubmitting(false);
+    if (!result.ok) {
+      setServerError(result.error);
+      return;
+    }
+    const msg = buildOrderMessage(items, customer, result.orderNumber);
     const url = whatsappOrderLink(msg, business.whatsapp.number);
+    setOrderNumber(result.orderNumber);
     setSent(true);
     clear();
     window.open(url, "_blank", "noopener,noreferrer");
@@ -79,11 +91,11 @@ export function CheckoutPage() {
             <Check className="h-10 w-10" strokeWidth={2.5} />
           </div>
           <h1 className="font-display text-3xl font-black uppercase tracking-tight">
-            ¡Pedido enviado!
+            ¡Pedido #{orderNumber} enviado!
           </h1>
           <p className="mt-3 text-balance text-[var(--muted)]">
-            Te abrimos WhatsApp con tu pedido pre-cargado. Confirmanos para
-            avanzar con el pago y la entrega.
+            Guardamos tu pedido y te abrimos WhatsApp para coordinar pago y
+            entrega.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
@@ -340,13 +352,20 @@ export function CheckoutPage() {
                   Revisá los campos marcados.
                 </div>
               )}
+              {serverError && (
+                <div className="mt-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-xs text-red-700">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  {serverError}
+                </div>
+              )}
 
               <button
                 type="submit"
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-4 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
+                disabled={submitting}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-4 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <WhatsAppIcon className="h-5 w-5" />
-                Confirmar por WhatsApp
+                {submitting ? "Enviando pedido…" : "Confirmar por WhatsApp"}
               </button>
               <p className="mt-3 text-balance text-center text-xs text-[var(--muted)]">
                 Te abrimos WhatsApp con el pedido ya cargado para coordinar
