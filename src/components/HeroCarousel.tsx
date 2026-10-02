@@ -56,8 +56,8 @@ export function HeroCarousel() {
         ))}
       </div>
 
-      {/* Overlay sutil solo para legibilidad del texto (lado izq y borde inferior) */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+      {/* Overlay para legibilidad del texto (lado izq fuerte + borde inferior) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent md:via-black/35 md:to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent" />
 
       <div className="relative mx-auto flex min-h-[88svh] max-w-6xl flex-col justify-center px-6 py-20 sm:py-28">
@@ -76,20 +76,27 @@ export function HeroCarousel() {
             </span>
           </div>
 
-          {/* Headline con gradiente en la frase clave */}
-          <h1 className="animate-fade-up-delay-1 mt-6 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight drop-shadow-xl sm:text-6xl md:text-7xl lg:text-[88px]">
+          {/* Headline: todo blanco con sombra fuerte + underline rojo en frase clave */}
+          <h1
+            className="animate-fade-up-delay-1 mt-6 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[88px]"
+            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.6)" }}
+          >
             Tu baño nuevo,
             <br />
-            <span
-              className="bg-gradient-to-br from-[var(--brand-red)] via-[#ff6b55] to-[var(--brand-red)] bg-clip-text text-transparent"
-              style={{ WebkitTextFillColor: "transparent" }}
-            >
+            <span className="relative inline-block">
               a un click
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 -bottom-1 h-[6px] rounded-full bg-[var(--brand-red)] md:h-[10px] md:-bottom-2"
+              />
             </span>
             .
           </h1>
 
-          <p className="animate-fade-up-delay-2 mt-6 max-w-lg text-balance text-base text-white/70 drop-shadow sm:text-lg">
+          <p
+            className="animate-fade-up-delay-2 mt-8 max-w-lg text-balance text-base text-white/90 sm:text-lg"
+            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}
+          >
             Más de <strong className="text-white">790 productos</strong> de las
             mejores marcas, listos para comprar o retirar en Villa Cura Brochero.
           </p>
