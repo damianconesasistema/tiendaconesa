@@ -57,7 +57,7 @@ export const business = {
     { name: "Gulliart", logo: "/brand/marcas/gulliart.png", invert: true },
     { name: "Masecor", logo: "/brand/marcas/masecor.webp" },
     { name: "Precons", logo: "/brand/marcas/precons.png", invert: true },
-    { name: "ROT-AR", logo: "/brand/marcas/rot-ar.png", scale: 1.4 },
+    { name: "ROT-AR", logo: "/brand/marcas/rot-ar.jpg" },
     { name: "Acindar", logo: "/brand/marcas/acindar.webp" },
     { name: "Tromen", logo: "/brand/marcas/tromen.png" },
     { name: "Fusiogas", logo: "/brand/marcas/fusiogas.jpg" },
