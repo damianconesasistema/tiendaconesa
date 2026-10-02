@@ -26,6 +26,30 @@ import {
 import { ConesaLogo } from "@/components/ConesaLogo";
 import { business, whatsappLink } from "@/lib/business";
 
+function SocialIcon({
+  href,
+  icon: Icon,
+  label,
+  external,
+}: {
+  href: string;
+  icon: (props: { className?: string }) => React.ReactElement;
+  label: string;
+  external?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      aria-label={label}
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-raised,white)] text-[var(--muted)] transition-all hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+    >
+      <Icon className="h-4 w-4" />
+    </a>
+  );
+}
+
 function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -331,15 +355,135 @@ export default async function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="px-6 py-14">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
-          <div className="flex items-center gap-4">
-            <ConesaLogo className="h-12 w-auto" />
+      <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr_1fr_1.2fr]">
+            {/* Marca + redes */}
+            <div>
+              <ConesaLogo className="h-14 w-auto" />
+              <p className="mt-5 max-w-xs text-sm leading-relaxed text-[var(--muted)]">
+                Sanitarios, grifería y materiales en Villa Cura Brochero.
+                Al servicio del Valle de Traslasierra.
+              </p>
+              <div className="mt-5 flex gap-2">
+                <SocialIcon href={business.social.instagram.url} icon={InstagramIcon} label="Instagram" />
+                <SocialIcon href={business.social.facebook.url} icon={FacebookIcon} label="Facebook" />
+                <SocialIcon href={business.social.tiktok.url} icon={TikTokIcon} label="TikTok" />
+                <SocialIcon href={whatsappLink()} icon={WhatsAppIcon} label="WhatsApp" external />
+              </div>
+            </div>
+
+            {/* Tienda */}
+            <div>
+              <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-[var(--brand-red)]">
+                Tienda
+              </div>
+              <ul className="mt-4 space-y-2.5 text-sm">
+                <li><Link href="/tienda" className="text-foreground hover:text-[var(--brand-red)]">Catálogo completo</Link></li>
+                <li><Link href="/tienda?cat=sanitarios" className="text-[var(--muted)] hover:text-[var(--brand-red)]">Sanitarios</Link></li>
+                <li><Link href="/tienda?cat=griferia" className="text-[var(--muted)] hover:text-[var(--brand-red)]">Grifería</Link></li>
+                <li><Link href="/tienda?cat=banera" className="text-[var(--muted)] hover:text-[var(--brand-red)]">Bañeras</Link></li>
+                <li><Link href="/tienda?cat=salamandras" className="text-[var(--muted)] hover:text-[var(--brand-red)]">Salamandras</Link></li>
+                <li><Link href="/tienda/carrito" className="text-[var(--muted)] hover:text-[var(--brand-red)]">Mi carrito</Link></li>
+              </ul>
+            </div>
+
+            {/* Contacto */}
+            <div>
+              <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-[var(--brand-red)]">
+                Contacto
+              </div>
+              <ul className="mt-4 space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <Phone className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
+                  <a
+                    href={`tel:${business.phone.international.replace(/\s/g, "")}`}
+                    className="text-foreground hover:text-[var(--brand-red)]"
+                  >
+                    {business.phone.display}
+                  </a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <WhatsAppIcon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
+                  <a
+                    href={whatsappLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground hover:text-[var(--brand-red)]"
+                  >
+                    {business.whatsapp.display}
+                  </a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
+                  <a
+                    href={`mailto:${business.email}`}
+                    className="break-all text-foreground hover:text-[var(--brand-red)]"
+                  >
+                    {business.email}
+                  </a>
+                </li>
+                <li className="flex items-start gap-2 pt-2">
+                  <Clock className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
+                  <div className="text-xs text-[var(--muted)]">
+                    {business.hours.weekdays}
+                    <br />
+                    {business.hours.saturday}
+                    <br />
+                    {business.hours.sunday}
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            {/* Ubicación */}
+            <div>
+              <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-[var(--brand-red)]">
+                Dónde estamos
+              </div>
+              <div className="mt-4 flex items-start gap-2 text-sm">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
+                <div>
+                  <div className="font-semibold text-foreground">
+                    {business.address.street}
+                  </div>
+                  <div className="text-xs text-[var(--muted)]">
+                    {business.address.city}, {business.address.province}
+                    <br />
+                    CP {business.address.postalCode}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)]">
+                <iframe
+                  src="https://maps.google.com/maps?q=Av+Belgrano+758+Villa+Cura+Brochero+Cordoba&hl=es&z=15&output=embed"
+                  width="100%"
+                  height="180"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Ubicación de Sanitarios Conesa"
+                  className="block"
+                />
+              </div>
+              <a
+                href="https://maps.google.com/?q=Av+Belgrano+758+Villa+Cura+Brochero+Cordoba"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[var(--brand-red)] hover:gap-2"
+              >
+                Cómo llegar <ArrowRight className="h-3 w-3" />
+              </a>
+            </div>
           </div>
-          <p className="text-xs text-[var(--muted)]">
-            © {new Date().getFullYear()} {business.name}. Todos los derechos
-            reservados.
-          </p>
+
+          <div className="mt-12 flex flex-col gap-3 border-t border-[var(--border)] pt-6 text-center text-xs text-[var(--muted)] sm:flex-row sm:justify-between sm:text-left">
+            <p>
+              © {new Date().getFullYear()} {business.name}. Todos los derechos reservados.
+            </p>
+            <p>
+              CUIT 20-XX-XXXXXXXX-X · Hecho con ❤ en Traslasierra
+            </p>
+          </div>
         </div>
       </footer>
 

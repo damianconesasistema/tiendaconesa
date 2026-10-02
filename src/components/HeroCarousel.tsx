@@ -76,28 +76,19 @@ export function HeroCarousel() {
             </span>
           </div>
 
-          {/* Headline */}
+          {/* Headline con juego de tamaños y rojo/blanco */}
           <h1
-            className="animate-fade-up-delay-1 mt-6 font-display text-4xl font-black uppercase leading-[0.95] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+            className="animate-fade-up-delay-1 mt-6 font-display uppercase leading-[0.9] tracking-tight text-white"
             style={{ textShadow: "0 2px 24px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.6)" }}
           >
-            Tenemos todo para tu{" "}
-            <span className="relative inline-block">
-              baño
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-0 -bottom-1 h-[6px] rounded-full bg-[var(--brand-red)] md:h-[9px] md:-bottom-2"
-              />
-            </span>{" "}
-            y{" "}
-            <span className="relative inline-block">
-              cocina
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-0 -bottom-1 h-[6px] rounded-full bg-[var(--brand-red)] md:h-[9px] md:-bottom-2"
-              />
+            <span className="block text-2xl font-bold sm:text-3xl md:text-4xl">
+              Todo para tu
             </span>
-            .
+            <span className="mt-1 block whitespace-nowrap text-5xl font-black sm:text-7xl md:text-8xl lg:text-[108px]">
+              <span className="text-white">baño</span>{" "}
+              <span className="font-display text-[var(--brand-red)] italic">&amp;</span>{" "}
+              <span className="text-white">cocina</span>
+            </span>
           </h1>
 
           <p
