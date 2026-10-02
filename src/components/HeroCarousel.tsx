@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Store, Truck, CreditCard } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { whatsappLink } from "@/lib/business";
 
@@ -123,11 +123,23 @@ export function HeroCarousel() {
           </div>
         </div>
 
-        {/* Stats laterales (desktop) — enfocadas en fortaleza en redes */}
-        <aside className="pointer-events-none absolute bottom-16 right-10 hidden flex-col gap-4 text-right lg:flex">
-          <StatMini value="14k+" label="En Instagram" />
-          <StatMini value="17k+" label="En TikTok" />
-          <StatMini value="790+" label="Productos" />
+        {/* Beneficios laterales (desktop) */}
+        <aside className="pointer-events-none absolute bottom-16 right-10 hidden flex-col gap-3 lg:flex">
+          <BenefitChip
+            icon={Store}
+            title="Retiro en tienda"
+            desc="Villa Cura Brochero · gratis"
+          />
+          <BenefitChip
+            icon={Truck}
+            title="Envíos a Traslasierra"
+            desc="Mina Clavero, Nono, Villa Dolores y más"
+          />
+          <BenefitChip
+            icon={CreditCard}
+            title="Pagá en cuotas"
+            desc="Tarjeta de crédito o débito"
+          />
         </aside>
 
         {/* Indicadores de slide (solo si hay > 1 foto) */}
@@ -150,14 +162,27 @@ export function HeroCarousel() {
   );
 }
 
-function StatMini({ value, label }: { value: string; label: string }) {
+function BenefitChip({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: typeof Store;
+  title: string;
+  desc: string;
+}) {
   return (
-    <div className="rounded-xl bg-black/40 px-4 py-3 backdrop-blur-md">
-      <div className="font-display text-2xl font-black leading-none text-white sm:text-3xl">
-        {value}
+    <div className="flex max-w-xs items-start gap-3 rounded-xl border border-white/15 bg-black/50 px-4 py-3 backdrop-blur-md">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-red)] text-white">
+        <Icon className="h-4 w-4" strokeWidth={2.2} />
       </div>
-      <div className="mt-1 font-display text-[10px] font-bold uppercase tracking-[0.25em] text-white/70">
-        {label}
+      <div>
+        <div className="font-display text-xs font-black uppercase tracking-wider text-white">
+          {title}
+        </div>
+        <div className="mt-0.5 text-[11px] leading-snug text-white/70">
+          {desc}
+        </div>
       </div>
     </div>
   );
