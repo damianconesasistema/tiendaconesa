@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
-import { localidadesTraslasierra, shippingCostForLocality } from "@/lib/traslasierra";
+import { localidadesTraslasierra } from "@/lib/traslasierra";
 import { formatPrice, cartTotal, buildOrderMessage, whatsappOrderLink } from "@/lib/order";
 import { business } from "@/lib/business";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
@@ -24,11 +24,9 @@ export function CheckoutPage() {
   const { items, clear } = useCart();
   const { customer, setCustomer, hydrated } = useCustomer();
   const { total: subtotal, hasUnpriced } = cartTotal(items);
-  const shippingCost =
-    customer.shipping === "envio" && customer.locality
-      ? shippingCostForLocality(customer.locality)
-      : 0;
-  const total = subtotal + shippingCost;
+  // Costos de envio aun no definidos: el admin confirma por WhatsApp
+  const shippingCost = 0;
+  const total = subtotal;
   const [sent, setSent] = useState(false);
   const [orderNumber, setOrderNumber] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -241,7 +239,7 @@ export function CheckoutPage() {
                       <option value="">— Elegí una localidad —</option>
                       {localidadesTraslasierra.map((l) => (
                         <option key={l.name} value={l.name}>
-                          {l.name} · {formatPrice(l.cost)}
+                          {l.name}
                         </option>
                       ))}
                     </select>
@@ -336,11 +334,7 @@ export function CheckoutPage() {
                 <div className="flex justify-between">
                   <span className="text-[var(--muted)]">Envío</span>
                   <span className="font-semibold">
-                    {customer.shipping === "retiro"
-                      ? "Gratis"
-                      : customer.locality
-                        ? formatPrice(shippingCost)
-                        : "Elegí localidad"}
+                    {customer.shipping === "retiro" ? "Gratis" : "A consultar"}
                   </span>
                 </div>
               </div>

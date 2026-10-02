@@ -1,6 +1,5 @@
 import type { CartItem } from "@/lib/cart";
 import type { Customer } from "@/lib/customer";
-import { shippingCostForLocality } from "@/lib/traslasierra";
 
 export function formatPrice(price: number | null): string {
   if (price === null || price === undefined) return "A consultar";
@@ -28,11 +27,7 @@ export function buildOrderMessage(
   orderNumber?: number,
 ): string {
   const { total: subtotal, hasUnpriced } = cartTotal(items);
-  const shippingCost =
-    c.shipping === "envio" && c.locality
-      ? shippingCostForLocality(c.locality)
-      : 0;
-  const total = subtotal + shippingCost;
+  const total = subtotal; // envio a consultar por WhatsApp
 
   const lines: string[] = [];
 
@@ -53,12 +48,12 @@ export function buildOrderMessage(
 
   lines.push(`*Subtotal:* ${hasUnpriced ? "a consultar" : formatPrice(subtotal)}`);
   if (c.shipping === "envio") {
-    lines.push(`*Envío:* ${formatPrice(shippingCost)}`);
+    lines.push(`*Envío:* a consultar`);
   } else {
     lines.push(`*Envío:* Gratis (retiro en tienda)`);
   }
   if (!hasUnpriced) {
-    lines.push(`*TOTAL:* ${formatPrice(total)}`);
+    lines.push(`*TOTAL (sin envío):* ${formatPrice(total)}`);
   }
   lines.push("");
 
