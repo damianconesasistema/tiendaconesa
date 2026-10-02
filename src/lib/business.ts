@@ -63,9 +63,9 @@ export const business = {
     { name: "Fusiogas", logo: "/brand/marcas/fusiogas.jpg" },
     { name: "Awaduct", logo: "/brand/marcas/awaduct.jpg" },
     { name: "Saladillo", logo: "/brand/marcas/saladillo.png" },
-    { name: "Grupo DEMA", logo: "/brand/marcas/dema.jpg" },
+    { name: "Grupo DEMA", logo: "/brand/marcas/dema.png" },
     { name: "Redeco", logo: "/brand/marcas/redeco.avif" },
-    { name: "Heineken", logo: "/brand/marcas/heineken.jpg", scale: 2.2 },
+    { name: "Heineken", logo: "/brand/marcas/heineken.png" },
   ],
   brand: {
     red: "#E63020",
