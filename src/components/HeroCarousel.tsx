@@ -1,24 +1,58 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { whatsappLink } from "@/lib/business";
 
+// Fotos del hero. Cuando subas mas, agregalas aca y el crossfade las rota auto.
+const photos: readonly { src: string; alt: string }[] = [
+  {
+    src: "/local/local-1.jpg",
+    alt: "Frente de Sanitarios Conesa en Villa Cura Brochero",
+  },
+  // { src: "/local/bano-1.jpg", alt: "Diseño de baño con griferia Piazza" },
+  // { src: "/local/cocina-1.jpg", alt: "Diseño de cocina con bacha de acero inox" },
+] as const;
+
+const ROTATION_MS = 6000; // crossfade cada 6s cuando hay mas de una foto
+
 // Hero "Dark Luxe" — fondo oscuro + glow rojo + stats laterales
 export function HeroCarousel() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (photos.length <= 1) return;
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % photos.length);
+    }, ROTATION_MS);
+    return () => clearInterval(t);
+  }, []);
+
   return (
     <section className="relative isolate overflow-hidden bg-[#0a0a0a] text-white">
-      {/* Foto del local con Ken Burns (zoom in/out lento) */}
-      <div className="absolute inset-0 overflow-hidden opacity-30">
-        <Image
-          src="/local/local-1.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-          className="animate-ken-burns object-cover"
-          aria-hidden="true"
-        />
+      {/* Fotos de fondo con crossfade + Ken Burns individual */}
+      <div className="absolute inset-0">
+        {photos.map((photo, i) => (
+          <div
+            key={photo.src}
+            className={`absolute inset-0 overflow-hidden transition-opacity duration-[1800ms] ease-in-out ${
+              i === index ? "opacity-30" : "opacity-0"
+            }`}
+            aria-hidden="true"
+          >
+            <Image
+              src={photo.src}
+              alt=""
+              fill
+              sizes="100vw"
+              priority={i === 0}
+              className="animate-ken-burns object-cover"
+            />
+          </div>
+        ))}
       </div>
 
       {/* Glows radiales rojos */}
@@ -107,6 +141,22 @@ export function HeroCarousel() {
           <StatMini value="17" label="Localidades" />
           <StatMini value="14k+" label="En Instagram" />
         </aside>
+
+        {/* Indicadores de slide (solo si hay > 1 foto) */}
+        {photos.length > 1 && (
+          <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+            {photos.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIndex(i)}
+                aria-label={`Ver foto ${i + 1}`}
+                className={`h-1 rounded-full transition-all ${
+                  i === index ? "w-8 bg-[var(--brand-red)]" : "w-4 bg-white/30 hover:bg-white/60"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
