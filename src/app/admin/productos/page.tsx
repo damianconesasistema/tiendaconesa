@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Package } from "lucide-react";
+import { Package, Tag } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
 import { ProductsFilters } from "@/components/admin/ProductsFilters";
+import { InlineNumber, InlineToggle } from "@/components/admin/InlineEdit";
 
 export const metadata: Metadata = {
   title: "Productos · Panel Admin",
@@ -58,11 +59,17 @@ export default async function ProductosAdmin({
     where.stock = { lt: 5 };
   } else if (filter === "inactive") where.active = false;
   else if (filter === "featured") where.featured = true;
+  else if (filter === "on-sale") where.salePrice = { not: null };
 
   const [products, total, categories] = await Promise.all([
     prisma.product.findMany({
       where,
-      orderBy: [{ featured: "desc" }, { title: "asc" }],
+      // Ofertas primero, luego destacados, luego el resto
+      orderBy: [
+        { salePrice: { sort: "desc", nulls: "last" } },
+        { featured: "desc" },
+        { title: "asc" },
+      ],
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
@@ -109,92 +116,101 @@ export default async function ProductosAdmin({
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-          <table className="w-full">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+          <table className="w-full min-w-[900px]">
             <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               <tr>
                 <th className="px-4 py-3">Producto</th>
                 <th className="px-4 py-3 hidden md:table-cell">Categoría</th>
-                <th className="px-4 py-3 text-right">Precio</th>
-                <th className="px-4 py-3 text-center">Stock</th>
-                <th className="px-4 py-3 hidden sm:table-cell text-center">Estado</th>
+                <th className="px-4 py-3 text-right">Precio base</th>
+                <th className="px-4 py-3 text-right">Oferta</th>
+                <th className="px-4 py-3 text-right">Stock</th>
+                <th className="px-4 py-3 text-center">Estado</th>
+                <th className="px-4 py-3 text-center">Destacado</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
-              {products.map((p) => (
-                <tr key={p.id} className="text-sm hover:bg-[var(--surface)]">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-[var(--surface)]">
-                        <Image
-                          src={p.imageUrl || `/categories/${p.category}.jpg`}
-                          alt=""
-                          fill
-                          sizes="40px"
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="line-clamp-2 font-medium">{p.title}</div>
-                        <div className="text-xs text-[var(--muted)]">
-                          {p.itemId}
-                          {p.featured && (
-                            <span className="ml-2 rounded-full bg-[var(--brand-red)]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-[var(--brand-red)]">
-                              Destacado
-                            </span>
-                          )}
+              {products.map((p) => {
+                const hasSale = p.salePrice !== null && p.salePrice < p.price;
+                return (
+                  <tr key={p.id} className="text-sm hover:bg-[var(--surface)]/60">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-[var(--surface)]">
+                          <Image
+                            src={p.imageUrl || `/categories/${p.category}.jpg`}
+                            alt=""
+                            fill
+                            sizes="40px"
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <Link
+                            href={`/admin/productos/${p.itemId}`}
+                            className="line-clamp-2 font-medium hover:text-[var(--brand-red)]"
+                          >
+                            {p.title}
+                          </Link>
+                          <div className="text-xs text-[var(--muted)]">
+                            {p.itemId}
+                            {hasSale && (
+                              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-1.5 py-0.5 text-[9px] font-black uppercase text-white">
+                                <Tag className="h-2.5 w-2.5" />
+                                -{Math.round(((p.price - p.salePrice!) / p.price) * 100)}%
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--muted)]">
-                    {CAT_LABELS[p.category] || p.category}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="font-display font-black">
-                      {formatPrice(p.salePrice ?? p.price)}
-                    </div>
-                    {p.salePrice && p.salePrice < p.price && (
-                      <div className="text-xs text-[var(--muted)] line-through">
-                        {formatPrice(p.price)}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span
-                      className={`font-display font-bold ${
-                        p.stock === 0
-                          ? "text-red-600"
-                          : p.stock < 5
-                            ? "text-amber-600"
-                            : "text-foreground"
-                      }`}
-                    >
-                      {p.stock}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell text-center">
-                    {p.active ? (
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-800">
-                        Activo
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-700">
-                        Inactivo
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/admin/productos/${p.itemId}`}
-                      className="font-semibold text-[var(--brand-red)] hover:underline"
-                    >
-                      Editar
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--muted)]">
+                      {CAT_LABELS[p.category] || p.category}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <InlineNumber itemId={p.itemId} field="price" initial={p.price} />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <InlineNumber
+                        itemId={p.itemId}
+                        field="salePrice"
+                        initial={p.salePrice}
+                        allowNull
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <InlineNumber itemId={p.itemId} field="stock" initial={p.stock} />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <InlineToggle
+                        itemId={p.itemId}
+                        field="active"
+                        initial={p.active}
+                        labelOn="Activo"
+                        labelOff="Pausado"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <InlineToggle
+                        itemId={p.itemId}
+                        field="featured"
+                        initial={p.featured}
+                        labelOn="Destacado"
+                        labelOff="— —"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/admin/productos/${p.itemId}`}
+                        className="font-semibold text-[var(--brand-red)] hover:underline"
+                      >
+                        Editar
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

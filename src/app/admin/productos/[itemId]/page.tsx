@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { ProductImageUpload } from "@/components/admin/ProductImageUpload";
 import { formatPrice } from "@/lib/order";
 import { updateProduct } from "@/app/admin/productos/actions";
 
@@ -43,15 +43,13 @@ export default async function EditProductPage({ params }: RouteProps) {
         {/* Preview */}
         <aside className="rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm">
           <h2 className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-            Vista previa
+            Foto del producto
           </h2>
-          <div className="relative mt-3 aspect-square overflow-hidden rounded-xl bg-[var(--surface)]">
-            <Image
-              src={product.imageUrl || `/categories/${product.category}.jpg`}
-              alt={product.title}
-              fill
-              sizes="400px"
-              className="object-cover"
+          <div className="mt-3">
+            <ProductImageUpload
+              itemId={product.itemId}
+              category={product.category}
+              currentUrl={product.imageUrl}
             />
           </div>
           <h3 className="mt-4 line-clamp-3 font-display text-sm font-bold leading-tight">

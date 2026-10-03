@@ -17,14 +17,28 @@ type Category = {
 
 export const dynamic = "force-dynamic";
 
-export default async function Catalogo() {
+type SearchParams = Promise<{ filter?: string }>;
+
+export default async function Catalogo({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const sp = await searchParams;
+  const onlySale = sp.filter === "on-sale";
+
   const products = await prisma.product.findMany({
     where: {
       active: true,
-      // excluir el marker interno de reset-prices
       itemId: { not: "__RESET_PRICES_MARKER__" },
+      ...(onlySale ? { salePrice: { not: null } } : {}),
     },
-    orderBy: [{ featured: "desc" }, { title: "asc" }],
+    // Ofertas primero (más valor del descuento arriba), después destacados, después alfabético
+    orderBy: [
+      { salePrice: { sort: "desc", nulls: "last" } },
+      { featured: "desc" },
+      { title: "asc" },
+    ],
     select: {
       itemId: true,
       title: true,

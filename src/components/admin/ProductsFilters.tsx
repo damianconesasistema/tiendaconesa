@@ -73,6 +73,14 @@ export function ProductsFilters({
           Filtros rápidos:
         </span>
         <QuickFilter
+          active={filter === "on-sale"}
+          onClick={() =>
+            applyFilter({ q: input, cat, filter: filter === "on-sale" ? "" : "on-sale" })
+          }
+        >
+          Con oferta
+        </QuickFilter>
+        <QuickFilter
           active={filter === "low-stock"}
           onClick={() =>
             applyFilter({ q: input, cat, filter: filter === "low-stock" ? "" : "low-stock" })

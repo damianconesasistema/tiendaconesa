@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Package, ShoppingCart, Check } from "lucide-react";
+import { Search, Package, ShoppingCart, Check, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
@@ -241,8 +241,11 @@ function ProductCard({ p }: { p: Product }) {
           {CAT_LABELS[p.category] || p.category}
         </span>
         {hasDiscount && (
-          <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[var(--brand-red)] px-2.5 py-1 font-display text-[10px] font-black uppercase tracking-wider text-white">
-            -{discount}%
+          <span
+            className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-3 py-1.5 font-display text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-red-500/40"
+            style={{ animation: "titilate 1.8s cubic-bezier(0.4,0,0.2,1) infinite" }}
+          >
+            <Tag className="h-3 w-3" />-{discount}%
           </span>
         )}
       </div>

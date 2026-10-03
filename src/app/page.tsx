@@ -109,12 +109,30 @@ const categoryIcons = [
 ] as const;
 
 export default async function Home() {
-  // Destacados: primero los que el admin marco featured, sino los primeros 8
-  // activos variados por categoria
+  // Ofertas: productos con salePrice < price
+  const onSale = await prisma.product.findMany({
+    where: {
+      active: true,
+      salePrice: { not: null },
+      itemId: { not: "__RESET_PRICES_MARKER__" },
+    },
+    select: {
+      itemId: true,
+      title: true,
+      price: true,
+      salePrice: true,
+      category: true,
+    },
+    orderBy: [{ featured: "desc" }, { title: "asc" }],
+    take: 8,
+  });
+
+  // Destacados: primero los que el admin marco featured, sino rellenar
   let featured = await prisma.product.findMany({
     where: {
       featured: true,
       active: true,
+      salePrice: null, // excluir los que ya están en ofertas
       itemId: { not: "__RESET_PRICES_MARKER__" },
     },
     select: {
@@ -133,6 +151,7 @@ export default async function Home() {
       where: {
         active: true,
         featured: false,
+        salePrice: null,
         itemId: { not: "__RESET_PRICES_MARKER__" },
       },
       select: {
@@ -199,6 +218,18 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* OFERTAS (solo si hay) */}
+      {onSale.length > 0 && (
+        <FeaturedProducts
+          featured={onSale}
+          variant="offers"
+          eyebrow="Ofertas vigentes"
+          title="En oferta ahora"
+          cta="Ver todas las ofertas"
+          ctaHref="/tienda?filter=on-sale"
+        />
+      )}
 
       {/* DESTACADOS */}
       <FeaturedProducts featured={featured} />
