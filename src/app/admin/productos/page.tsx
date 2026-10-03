@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Package, Upload } from "lucide-react";
+import { Package, Upload, Download, RefreshCw } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -10,7 +10,7 @@ import { ProductsFilters } from "@/components/admin/ProductsFilters";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 
 export const metadata: Metadata = {
-  title: "Productos Â· Panel Admin",
+  title: "Productos · Panel Admin",
   robots: { index: false, follow: false },
 };
 
@@ -25,8 +25,8 @@ const PAGE_SIZE = 50;
 
 const CAT_LABELS: Record<string, string> = {
   sanitarios: "Sanitarios",
-  griferia: "GriferÃ­a",
-  banera: "BaÃ±eras",
+  griferia: "Grifería",
+  banera: "Bañeras",
   accesorios: "Accesorios",
   salamandras: "Salamandras",
   calefones: "Calefones",
@@ -93,13 +93,29 @@ export default async function ProductosAdmin({
             {q && ` para "${q}"`}
           </p>
         </div>
-        <Link
-          href="/admin/productos/importar"
-          className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
-        >
-          <Upload className="h-4 w-4" />
-          Importar Excel
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={buildExportUrl(q, cat, filter)}
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+          >
+            <Download className="h-4 w-4" />
+            Exportar
+          </a>
+          <Link
+            href="/admin/productos/sync-stock"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Sync stock
+          </Link>
+          <Link
+            href="/admin/productos/importar"
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
+          >
+            <Upload className="h-4 w-4" />
+            Importar Excel
+          </Link>
+        </div>
       </div>
 
       <ProductsFilters
@@ -127,7 +143,7 @@ export default async function ProductosAdmin({
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between">
           <div className="text-xs text-[var(--muted)]">
-            PÃ¡gina {page} de {totalPages}
+            Página {page} de {totalPages}
           </div>
           <div className="flex gap-2">
             <PageLink
@@ -136,7 +152,7 @@ export default async function ProductosAdmin({
               q={q}
               cat={cat}
               filter={filter}
-              label="â† Anterior"
+              label="← Anterior"
             />
             <PageLink
               page={page + 1}
@@ -144,13 +160,22 @@ export default async function ProductosAdmin({
               q={q}
               cat={cat}
               filter={filter}
-              label="Siguiente â†’"
+              label="Siguiente →"
             />
           </div>
         </div>
       )}
     </AdminShell>
   );
+}
+
+function buildExportUrl(q: string, cat: string, filter: string): string {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (cat) params.set("cat", cat);
+  if (filter) params.set("filter", filter);
+  const qs = params.toString();
+  return `/api/admin/productos/export${qs ? `?${qs}` : ""}`;
 }
 
 function PageLink({

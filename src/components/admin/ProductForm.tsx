@@ -5,6 +5,7 @@ import { Check, AlertCircle } from "lucide-react";
 
 type Product = {
   itemId: string;
+  sku: string | null;
   title: string;
   description: string | null;
   category: string;
@@ -13,6 +14,7 @@ type Product = {
   stock: number;
   active: boolean;
   featured: boolean;
+  memo: string | null;
 };
 
 type State = { ok?: true } | { error: string } | null;
@@ -45,14 +47,25 @@ export function ProductForm({
     <form action={formAction} className="mt-6 space-y-5">
       <input type="hidden" name="itemId" value={product.itemId} />
 
-      <div>
-        <Label>Título</Label>
-        <input
-          name="title"
-          defaultValue={product.title}
-          required
-          className="input"
-        />
+      <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
+        <div>
+          <Label>Título</Label>
+          <input
+            name="title"
+            defaultValue={product.title}
+            required
+            className="input"
+          />
+        </div>
+        <div>
+          <Label>SKU interno (opcional)</Label>
+          <input
+            name="sku"
+            defaultValue={product.sku ?? ""}
+            placeholder="Ej: GRI-001"
+            className="input"
+          />
+        </div>
       </div>
 
       <div>
@@ -118,6 +131,20 @@ export function ProductForm({
           placeholder="Marca, medidas, color, incluye, etc."
           className="input resize-none"
         />
+      </div>
+
+      <div>
+        <Label>Ayuda memoria (privada)</Label>
+        <textarea
+          name="memo"
+          defaultValue={product.memo || ""}
+          rows={3}
+          placeholder="Proveedor, cotización, último remito, dónde está guardado, etc. Solo lo ve el admin."
+          className="input resize-none"
+        />
+        <p className="mt-1 text-[11px] text-[var(--muted)]">
+          No se publica. Es para que recuerdes información del artículo.
+        </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

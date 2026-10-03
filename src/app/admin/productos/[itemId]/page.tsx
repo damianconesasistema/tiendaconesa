@@ -7,6 +7,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { ProductImageUpload } from "@/components/admin/ProductImageUpload";
+import { PriceHistoryPanel } from "@/components/admin/PriceHistoryPanel";
 import { formatPrice } from "@/lib/order";
 import { updateProduct } from "@/app/admin/productos/actions";
 
@@ -28,6 +29,12 @@ export default async function EditProductPage({ params }: RouteProps) {
     where: { itemId },
   });
   if (!product) notFound();
+
+  const history = await prisma.priceHistory.findMany({
+    where: { productId: product.id },
+    orderBy: { createdAt: "desc" },
+    take: 30,
+  });
 
   return (
     <AdminShell username={session.username} active="productos">
@@ -99,6 +106,20 @@ export default async function EditProductPage({ params }: RouteProps) {
           <ProductForm product={product} action={updateProduct} />
         </section>
       </div>
+
+      <PriceHistoryPanel
+        itemId={product.itemId}
+        currentPrice={product.price}
+        currentSalePrice={product.salePrice}
+        history={history.map((h) => ({
+          id: h.id,
+          price: h.price,
+          salePrice: h.salePrice,
+          note: h.note,
+          source: h.source,
+          createdAt: h.createdAt.toISOString(),
+        }))}
+      />
     </AdminShell>
   );
 }

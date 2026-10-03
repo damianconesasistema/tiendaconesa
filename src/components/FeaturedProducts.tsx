@@ -166,7 +166,7 @@ function FeaturedCard({ p }: { p: Product }) {
           <span
             className={`font-display font-black ${
               hasSale
-                ? "text-emerald-600 text-xl sm:text-2xl"
+                ? "text-emerald-600 text-xl sm:text-2xl animate-price-flash"
                 : "text-foreground text-lg sm:text-xl"
             }`}
           >

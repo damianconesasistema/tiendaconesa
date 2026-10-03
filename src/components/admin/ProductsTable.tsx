@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Tag, Check, Play, Pause, Star, Loader2, X } from "lucide-react";
+import { Tag, Check, Play, Pause, Star, Loader2, X, ExternalLink, Pencil } from "lucide-react";
 import { InlineNumber, InlineSegmented, InlineToggle } from "@/components/admin/InlineEdit";
 import { bulkUpdate } from "@/app/admin/productos/actions";
 
@@ -233,12 +233,25 @@ export function ProductsTable({ products }: { products: Product[] }) {
                     />
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/admin/productos/${p.itemId}`}
-                      className="font-semibold text-[var(--brand-red)] hover:underline"
-                    >
-                      Editar
-                    </Link>
+                    <div className="inline-flex items-center gap-1">
+                      <Link
+                        href={`/tienda/${p.itemId}`}
+                        target="_blank"
+                        rel="noopener"
+                        title="Ver en tienda (como lo ve el cliente)"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Link>
+                      <Link
+                        href={`/admin/productos/${p.itemId}`}
+                        title="Editar ficha completa"
+                        className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-white hover:bg-[var(--brand-red-hover)]"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Editar
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               );

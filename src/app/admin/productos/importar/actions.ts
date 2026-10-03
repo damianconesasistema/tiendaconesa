@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 
 export type ParsedRow = {
   itemId: string;
+  sku: string | null;
   title: string;
   category: string;
   price: number;
@@ -17,6 +18,7 @@ export type ParsedRow = {
   active: boolean;
   featured: boolean;
   description: string | null;
+  memo: string | null;
   imageUrl: string | null;
   // Metadata del parseo
   __rowNumber: number;
@@ -52,10 +54,20 @@ function norm(s: string): string {
 const COL_ALIASES: Record<string, string> = {
   codigo: "itemId",
   code: "itemId",
-  sku: "itemId",
   id: "itemId",
   itemid: "itemId",
   mla: "itemId",
+
+  sku: "sku",
+  codigo_interno: "sku",
+  "codigo interno": "sku",
+
+  memo: "memo",
+  nota: "memo",
+  observacion: "memo",
+  observaciones: "memo",
+  ayudamemoria: "memo",
+  "ayuda memoria": "memo",
 
   titulo: "title",
   nombre: "title",
@@ -244,9 +256,12 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
       const imageUrl = parsed.imageUrl
         ? String(parsed.imageUrl).trim()
         : null;
+      const sku = parsed.sku ? String(parsed.sku).trim() || null : null;
+      const memo = parsed.memo ? String(parsed.memo).trim() || null : null;
 
       normalized.push({
         itemId,
+        sku,
         title,
         category,
         price: price ?? 0,
@@ -255,6 +270,7 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
         active,
         featured,
         description,
+        memo,
         imageUrl,
         __rowNumber: i + 2, // +2 porque Excel es 1-indexed y hay header
         __errors: errors,

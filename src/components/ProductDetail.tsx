@@ -132,13 +132,29 @@ export function ProductDetail({
 
             <div className="mt-6">
               {hasDiscount && (
-                <div className="text-sm text-[var(--muted)] line-through">
-                  {formatPrice(product.price)}
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-[var(--muted)] line-through">
+                    {formatPrice(product.price)}
+                  </div>
+                  <span className="inline-flex items-center rounded-full bg-[var(--brand-red)] px-2 py-0.5 font-display text-[11px] font-black uppercase tracking-wider text-white animate-price-flash">
+                    -{discount}%
+                  </span>
                 </div>
               )}
-              <div className="font-display text-4xl font-black text-foreground sm:text-5xl">
+              <div
+                className={`font-display text-4xl font-black sm:text-5xl ${
+                  hasDiscount
+                    ? "text-emerald-600 animate-price-flash drop-shadow-[0_0_12px_rgba(16,185,129,0.35)]"
+                    : "text-foreground"
+                }`}
+              >
                 {formatPrice(effectivePrice)}
               </div>
+              {hasDiscount && (
+                <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 font-display text-xs font-black uppercase tracking-wider text-emerald-800">
+                  Ahorrás {formatPrice(product.price - product.salePrice!)}
+                </div>
+              )}
               <div className="mt-1 text-sm text-[var(--muted)]">
                 3 cuotas sin interés desde{" "}
                 <strong className="text-foreground">

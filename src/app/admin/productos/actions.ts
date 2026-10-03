@@ -8,6 +8,39 @@ import { prisma } from "@/lib/db";
 
 type UpdateResult = { ok?: true; error?: string };
 
+// Loguea un cambio en el historial de precios de un producto.
+// Se llama internamente desde updateProduct / quickUpdate cuando cambia price o salePrice.
+async function logPriceChange(opts: {
+  itemId: string;
+  newPrice: number;
+  newSalePrice: number | null;
+  source: "manual" | "excel" | "bulk" | "quick";
+  note?: string | null;
+}) {
+  try {
+    const current = await prisma.product.findUnique({
+      where: { itemId: opts.itemId },
+      select: { id: true, price: true, salePrice: true },
+    });
+    if (!current) return;
+    const changed =
+      current.price !== opts.newPrice ||
+      (current.salePrice ?? null) !== (opts.newSalePrice ?? null);
+    if (!changed) return;
+    await prisma.priceHistory.create({
+      data: {
+        productId: current.id,
+        price: opts.newPrice,
+        salePrice: opts.newSalePrice,
+        source: opts.source,
+        note: opts.note ?? null,
+      },
+    });
+  } catch {
+    // No queremos que un fallo del log rompa la actualizacion
+  }
+}
+
 // Edicion completa desde la ficha
 export async function updateProduct(
   prevState: unknown,
@@ -31,6 +64,16 @@ export async function updateProduct(
   const stock = Math.max(0, Math.floor(Number(formData.get("stock") || 0)));
   const active = formData.get("active") === "on";
   const featured = formData.get("featured") === "on";
+  const memoRaw = formData.get("memo");
+  const memo =
+    memoRaw != null && String(memoRaw).trim() !== ""
+      ? String(memoRaw).trim()
+      : null;
+  const skuRaw = formData.get("sku");
+  const sku =
+    skuRaw != null && String(skuRaw).trim() !== ""
+      ? String(skuRaw).trim()
+      : null;
 
   if (!title) return { error: "El título es obligatorio" };
   if (!Number.isFinite(priceRaw) || priceRaw < 0)
@@ -40,22 +83,36 @@ export async function updateProduct(
   if (salePrice !== null && salePrice >= priceRaw)
     return { error: "El precio de oferta debe ser menor al precio base" };
 
+  const newPrice = Math.round(priceRaw);
+  const newSalePrice = salePrice !== null ? Math.round(salePrice) : null;
+
   try {
+    await logPriceChange({
+      itemId,
+      newPrice,
+      newSalePrice,
+      source: "manual",
+    });
     await prisma.product.update({
       where: { itemId },
       data: {
         title,
+        sku,
         category,
         description,
-        price: Math.round(priceRaw),
-        salePrice: salePrice !== null ? Math.round(salePrice) : null,
+        price: newPrice,
+        salePrice: newSalePrice,
         stock,
         active,
         featured,
+        memo,
       },
     });
   } catch (e) {
-    return { error: `Error al guardar: ${(e as Error).message}` };
+    const msg = (e as Error).message;
+    if (msg.includes("Unique constraint") && msg.includes("sku"))
+      return { error: "Ese SKU ya está en uso en otro producto" };
+    return { error: `Error al guardar: ${msg}` };
   }
 
   revalidatePath("/admin/productos");
@@ -113,6 +170,27 @@ export async function quickUpdate(
   }
 
   try {
+    // Si cambia precio o oferta, loguear primero el estado nuevo
+    if (field === "price" || field === "salePrice") {
+      const current = await prisma.product.findUnique({
+        where: { itemId },
+        select: { price: true, salePrice: true },
+      });
+      if (current) {
+        const nextPrice =
+          field === "price" ? (data.price as number) : current.price;
+        const nextSale =
+          field === "salePrice"
+            ? (data.salePrice as number | null)
+            : current.salePrice;
+        await logPriceChange({
+          itemId,
+          newPrice: nextPrice,
+          newSalePrice: nextSale,
+          source: "quick",
+        });
+      }
+    }
     await prisma.product.update({ where: { itemId }, data });
   } catch (e) {
     return { error: `Error al guardar: ${(e as Error).message}` };
@@ -124,6 +202,33 @@ export async function quickUpdate(
   revalidatePath(`/tienda/${itemId}`);
   revalidatePath("/");
 
+  return { ok: true };
+}
+
+// Nota manual en el historial de precios (ayuda memoria puntual)
+export async function addPriceNote(
+  itemId: string,
+  note: string,
+): Promise<UpdateResult> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  const trimmed = note.trim();
+  if (!trimmed) return { error: "La nota no puede estar vacía" };
+  const p = await prisma.product.findUnique({
+    where: { itemId },
+    select: { id: true, price: true, salePrice: true },
+  });
+  if (!p) return { error: "Producto no encontrado" };
+  await prisma.priceHistory.create({
+    data: {
+      productId: p.id,
+      price: p.price,
+      salePrice: p.salePrice,
+      note: trimmed,
+      source: "manual",
+    },
+  });
+  revalidatePath(`/admin/productos/${itemId}`);
   return { ok: true };
 }
 

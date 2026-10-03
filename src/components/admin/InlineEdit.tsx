@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { quickUpdate } from "@/app/admin/productos/actions";
-import { formatPrice } from "@/lib/order";
 
 type NumField = "price" | "salePrice" | "stock";
 type BoolField = "active" | "featured";
@@ -24,26 +23,28 @@ export function InlineNumber({
   allowNull?: boolean;
   className?: string;
 }) {
-  const [value, setValue] = useState<string>(initial === null ? "" : String(initial));
+  const initialStr = initial === null ? "" : String(initial);
+  const [value, setValue] = useState<string>(initialStr);
+  const [savedInitial, setSavedInitial] = useState<string>(initialStr);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
     "idle",
   );
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
+  const dirty = value !== savedInitial;
+  // Para price/stock no permitimos vacio: no se puede aplicar si quedo vacio
+  const canApply = dirty && (allowNull || value !== "");
+
   function commit() {
-    const current = initial === null ? "" : String(initial);
-    if (value === current) return; // sin cambios
-    if (value === "" && !allowNull) {
-      setValue(current);
-      return;
-    }
+    if (!canApply) return;
     startTransition(async () => {
       setStatus("saving");
       setError(null);
       const payload = value === "" ? null : Number(value);
       const r = await quickUpdate(itemId, field, payload);
       if (r.ok) {
+        setSavedInitial(value);
         setStatus("saved");
         setTimeout(() => setStatus("idle"), 1500);
       } else {
@@ -54,9 +55,19 @@ export function InlineNumber({
     });
   }
 
+  function cancel() {
+    setValue(savedInitial);
+    setError(null);
+    setStatus("idle");
+  }
+
   return (
     <div className="inline-flex flex-col items-end">
-      <div className="inline-flex items-center gap-1.5">
+      <div
+        className={`inline-flex items-center gap-1 rounded-md transition-all ${
+          dirty ? "ring-2 ring-amber-400/60 bg-amber-50/60 p-0.5" : ""
+        }`}
+      >
         {prefix && <span className="text-xs text-[var(--muted)]">{prefix}</span>}
         <input
           type="number"
@@ -64,12 +75,14 @@ export function InlineNumber({
           step={1}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          onBlur={commit}
           onKeyDown={(e) => {
-            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            }
             if (e.key === "Escape") {
-              setValue(initial === null ? "" : String(initial));
-              (e.target as HTMLInputElement).blur();
+              e.preventDefault();
+              cancel();
             }
           }}
           placeholder={allowNull ? "—" : "0"}
@@ -78,18 +91,49 @@ export function InlineNumber({
               ? "border-red-400 focus:border-red-500 focus:ring-red-200"
               : status === "saved"
                 ? "border-green-400 focus:ring-green-200"
-                : "border-[var(--border)] focus:border-[var(--brand-red)] focus:ring-[var(--brand-red)]/20"
+                : dirty
+                  ? "border-amber-400 focus:border-amber-500 focus:ring-amber-200"
+                  : "border-[var(--border)] focus:border-[var(--brand-red)] focus:ring-[var(--brand-red)]/20"
           } ${className}`}
         />
-        <span className="inline-flex w-3 justify-start">
-          {status === "saving" && (
-            <Loader2 className="h-3 w-3 animate-spin text-[var(--muted)]" />
-          )}
-          {status === "saved" && <Check className="h-3 w-3 text-green-500" />}
-        </span>
+        {dirty ? (
+          <>
+            <button
+              type="button"
+              onClick={commit}
+              disabled={!canApply || status === "saving"}
+              title="Aplicar (Enter)"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
+            >
+              {status === "saving" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Check className="h-3.5 w-3.5" strokeWidth={3} />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={cancel}
+              disabled={status === "saving"}
+              title="Cancelar (Esc)"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border)] bg-white text-[var(--muted)] hover:border-red-400 hover:text-red-500"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+            </button>
+          </>
+        ) : (
+          <span className="inline-flex w-3 justify-start">
+            {status === "saved" && <Check className="h-3 w-3 text-green-500" />}
+          </span>
+        )}
       </div>
       {error && (
         <span className="mt-0.5 text-[10px] text-red-500">{error}</span>
+      )}
+      {dirty && !error && status !== "saving" && (
+        <span className="mt-0.5 text-[10px] text-amber-700">
+          Sin guardar · Enter / Esc
+        </span>
       )}
     </div>
   );

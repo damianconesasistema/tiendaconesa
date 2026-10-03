@@ -268,7 +268,7 @@ function ProductCard({ p }: { p: Product }) {
           <span
             className={`font-display font-black ${
               hasDiscount
-                ? "text-3xl text-emerald-600"
+                ? "text-3xl text-emerald-600 animate-price-flash"
                 : "text-2xl text-foreground"
             }`}
           >
