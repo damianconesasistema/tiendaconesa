@@ -1,0 +1,4 @@
+codigo,titulo,categoria,precio,oferta,stock,activo,destacado,descripcion,imagen_url
+PROD-001,Inodoro Ferrum Marina blanco,sanitarios,185000,165000,8,SI,SI,Taza con mochila incluida. Pozo bajo. Color blanco.,https://ejemplo.com/inodoro-ferrum.jpg
+PROD-002,Griferia FV Allegro monocomando,griferia,89900,,15,SI,NO,Monocomando para lavatorio. Cromada.,
+PROD-003,Bañera acrilica 150x70,banera,320000,290000,3,SI,SI,Bañera blanca acrílica con pies.,

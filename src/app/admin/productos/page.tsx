@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Package, Tag } from "lucide-react";
+import { Package, Tag, Upload } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -85,7 +85,7 @@ export default async function ProductosAdmin({
 
   return (
     <AdminShell username={session.username} active="productos">
-      <div className="mb-6 flex items-end justify-between gap-4">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
             Productos
@@ -95,6 +95,13 @@ export default async function ProductosAdmin({
             {q && ` para "${q}"`}
           </p>
         </div>
+        <Link
+          href="/admin/productos/importar"
+          className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
+        >
+          <Upload className="h-4 w-4" />
+          Importar Excel
+        </Link>
       </div>
 
       <ProductsFilters
