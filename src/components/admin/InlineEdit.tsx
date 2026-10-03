@@ -95,7 +95,7 @@ export function InlineNumber({
   );
 }
 
-// Toggle para activo/destacado
+// Toggle simple (featured): un boton que cambia estado
 export function InlineToggle({
   itemId,
   field,
@@ -145,5 +145,65 @@ export function InlineToggle({
       {status === "saving" && <Loader2 className="h-2.5 w-2.5 animate-spin" />}
       {value ? labelOn : labelOff}
     </button>
+  );
+}
+
+// Segmented control de 2 opciones (ej. Activo | Pausado) - ambas visibles
+export function InlineSegmented({
+  itemId,
+  field,
+  initial,
+  labelOn,
+  labelOff,
+}: {
+  itemId: string;
+  field: BoolField;
+  initial: boolean;
+  labelOn: string;
+  labelOff: string;
+}) {
+  const [value, setValue] = useState(initial);
+  const [status, setStatus] = useState<"idle" | "saving">("idle");
+  const [, startTransition] = useTransition();
+
+  function set(next: boolean) {
+    if (next === value) return;
+    const prev = value;
+    setValue(next);
+    startTransition(async () => {
+      setStatus("saving");
+      const r = await quickUpdate(itemId, field, next);
+      if (!r.ok) setValue(prev);
+      setStatus("idle");
+    });
+  }
+
+  return (
+    <div className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] p-0.5 text-[10px] font-bold uppercase">
+      <button
+        type="button"
+        onClick={() => set(true)}
+        disabled={status === "saving"}
+        className={`rounded-full px-2.5 py-1 transition-colors ${
+          value
+            ? "bg-green-500 text-white shadow"
+            : "text-[var(--muted)] hover:text-foreground"
+        }`}
+      >
+        {labelOn}
+      </button>
+      <button
+        type="button"
+        onClick={() => set(false)}
+        disabled={status === "saving"}
+        className={`rounded-full px-2.5 py-1 transition-colors ${
+          !value
+            ? "bg-gray-700 text-white shadow"
+            : "text-[var(--muted)] hover:text-foreground"
+        }`}
+      >
+        {labelOff}
+      </button>
+    </div>
   );
 }

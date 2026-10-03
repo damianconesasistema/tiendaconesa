@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { Package, Tag, Upload } from "lucide-react";
+import { Package, Upload } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
-import { formatPrice } from "@/lib/order";
 import { ProductsFilters } from "@/components/admin/ProductsFilters";
-import { InlineNumber, InlineToggle } from "@/components/admin/InlineEdit";
+import { ProductsTable } from "@/components/admin/ProductsTable";
 
 export const metadata: Metadata = {
-  title: "Productos · Panel Admin",
+  title: "Productos Â· Panel Admin",
   robots: { index: false, follow: false },
 };
 
@@ -27,8 +25,8 @@ const PAGE_SIZE = 50;
 
 const CAT_LABELS: Record<string, string> = {
   sanitarios: "Sanitarios",
-  griferia: "Grifería",
-  banera: "Bañeras",
+  griferia: "GriferÃ­a",
+  banera: "BaÃ±eras",
   accesorios: "Accesorios",
   salamandras: "Salamandras",
   calefones: "Calefones",
@@ -123,110 +121,13 @@ export default async function ProductosAdmin({
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-          <table className="w-full min-w-[900px]">
-            <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-              <tr>
-                <th className="px-4 py-3">Producto</th>
-                <th className="px-4 py-3 hidden md:table-cell">Categoría</th>
-                <th className="px-4 py-3 text-right">Precio base</th>
-                <th className="px-4 py-3 text-right">Oferta</th>
-                <th className="px-4 py-3 text-right">Stock</th>
-                <th className="px-4 py-3 text-center">Estado</th>
-                <th className="px-4 py-3 text-center">Destacado</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {products.map((p) => {
-                const hasSale = p.salePrice !== null && p.salePrice < p.price;
-                return (
-                  <tr key={p.id} className="text-sm hover:bg-[var(--surface)]/60">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-[var(--surface)]">
-                          <Image
-                            src={p.imageUrl || `/categories/${p.category}.jpg`}
-                            alt=""
-                            fill
-                            sizes="40px"
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <Link
-                            href={`/admin/productos/${p.itemId}`}
-                            className="line-clamp-2 font-medium hover:text-[var(--brand-red)]"
-                          >
-                            {p.title}
-                          </Link>
-                          <div className="text-xs text-[var(--muted)]">
-                            {p.itemId}
-                            {hasSale && (
-                              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-1.5 py-0.5 text-[9px] font-black uppercase text-white">
-                                <Tag className="h-2.5 w-2.5" />
-                                -{Math.round(((p.price - p.salePrice!) / p.price) * 100)}%
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--muted)]">
-                      {CAT_LABELS[p.category] || p.category}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <InlineNumber itemId={p.itemId} field="price" initial={p.price} />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <InlineNumber
-                        itemId={p.itemId}
-                        field="salePrice"
-                        initial={p.salePrice}
-                        allowNull
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <InlineNumber itemId={p.itemId} field="stock" initial={p.stock} />
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <InlineToggle
-                        itemId={p.itemId}
-                        field="active"
-                        initial={p.active}
-                        labelOn="Activo"
-                        labelOff="Pausado"
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <InlineToggle
-                        itemId={p.itemId}
-                        field="featured"
-                        initial={p.featured}
-                        labelOn="Destacado"
-                        labelOff="— —"
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/admin/productos/${p.itemId}`}
-                        className="font-semibold text-[var(--brand-red)] hover:underline"
-                      >
-                        Editar
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <ProductsTable products={products} />
       )}
 
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between">
           <div className="text-xs text-[var(--muted)]">
-            Página {page} de {totalPages}
+            PÃ¡gina {page} de {totalPages}
           </div>
           <div className="flex gap-2">
             <PageLink
@@ -235,7 +136,7 @@ export default async function ProductosAdmin({
               q={q}
               cat={cat}
               filter={filter}
-              label="← Anterior"
+              label="â† Anterior"
             />
             <PageLink
               page={page + 1}
@@ -243,7 +144,7 @@ export default async function ProductosAdmin({
               q={q}
               cat={cat}
               filter={filter}
-              label="Siguiente →"
+              label="Siguiente â†’"
             />
           </div>
         </div>

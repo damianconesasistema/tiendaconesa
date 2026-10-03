@@ -218,7 +218,11 @@ function ProductCard({ p }: { p: Product }) {
   return (
     <Link
       href={`/tienda/${p.itemId}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
+        hasDiscount
+          ? "border-emerald-500/60 shadow-emerald-500/10 ring-1 ring-emerald-400/40"
+          : "border-[var(--border)]"
+      }`}
     >
       {/* Foto o placeholder */}
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
@@ -261,10 +265,21 @@ function ProductCard({ p }: { p: Product }) {
               {fmtPrice(p.price)}
             </span>
           )}
-          <span className="font-display text-2xl font-black text-foreground">
+          <span
+            className={`font-display font-black ${
+              hasDiscount
+                ? "text-3xl text-emerald-600"
+                : "text-2xl text-foreground"
+            }`}
+          >
             {fmtPrice(effectivePrice)}
           </span>
-          <span className="mt-0.5 text-[10px] uppercase tracking-wider text-[var(--muted)]">
+          {hasDiscount && (
+            <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-700">
+              Ahorrás {fmtPrice(p.price - effectivePrice)}
+            </span>
+          )}
+          <span className="mt-1 text-[10px] uppercase tracking-wider text-[var(--muted)]">
             3 cuotas sin interés
           </span>
         </div>

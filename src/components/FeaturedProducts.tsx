@@ -119,7 +119,11 @@ function FeaturedCard({ p }: { p: Product }) {
   return (
     <Link
       href={`/tienda/${p.itemId}`}
-      className="card-lift group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm"
+      className={`card-lift group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${
+        hasSale
+          ? "border-emerald-500/60 shadow-emerald-500/10 ring-1 ring-emerald-400/40"
+          : "border-[var(--border)]"
+      }`}
     >
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
         {!imgError ? (
@@ -162,12 +166,17 @@ function FeaturedCard({ p }: { p: Product }) {
           <span
             className={`font-display font-black ${
               hasSale
-                ? "text-[var(--brand-red)] text-xl sm:text-2xl"
+                ? "text-emerald-600 text-xl sm:text-2xl"
                 : "text-foreground text-lg sm:text-xl"
             }`}
           >
             {formatPrice(effectivePrice)}
           </span>
+          {hasSale && (
+            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700">
+              Ahorrás {formatPrice(p.price - effectivePrice)}
+            </span>
+          )}
         </div>
         <button
           onClick={handleAdd}

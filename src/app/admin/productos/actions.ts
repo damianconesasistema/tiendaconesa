@@ -127,6 +127,38 @@ export async function quickUpdate(
   return { ok: true };
 }
 
+// Acciones en bulk: pausar / activar / destacar muchos a la vez
+type BulkAction = "activate" | "pause" | "feature" | "unfeature";
+
+export async function bulkUpdate(
+  itemIds: string[],
+  action: BulkAction,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!itemIds.length) return { error: "Ningún producto seleccionado" };
+
+  const data: Record<string, boolean> = {};
+  if (action === "activate") data.active = true;
+  else if (action === "pause") data.active = false;
+  else if (action === "feature") data.featured = true;
+  else if (action === "unfeature") data.featured = false;
+  else return { error: "Acción no soportada" };
+
+  try {
+    const r = await prisma.product.updateMany({
+      where: { itemId: { in: itemIds } },
+      data,
+    });
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    revalidatePath("/");
+    return { ok: true, count: r.count };
+  } catch (e) {
+    return { error: `Error al actualizar: ${(e as Error).message}` };
+  }
+}
+
 // Upload de foto personalizada para un producto.
 // Guarda el archivo en /public/products/{itemId}.jpg y setea imageUrl.
 // NOTA: Para persistencia en Railway hace falta un Volume mounted en
