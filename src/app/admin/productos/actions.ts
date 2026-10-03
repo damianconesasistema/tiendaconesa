@@ -205,29 +205,51 @@ export async function quickUpdate(
   return { ok: true };
 }
 
-// Nota manual en el historial de precios (ayuda memoria puntual)
-export async function addPriceNote(
+// Registrar manualmente un precio pasado en el historial.
+// Sirve para cargar datos previos ("este producto antes lo vendía a X")
+// sin tener que modificar el precio actual del producto.
+export async function addHistoricalPrice(
   itemId: string,
-  note: string,
+  price: number,
+  salePrice: number | null,
+  note: string | null,
 ): Promise<UpdateResult> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
-  const trimmed = note.trim();
-  if (!trimmed) return { error: "La nota no puede estar vacía" };
+  if (!Number.isFinite(price) || price < 0)
+    return { error: "Precio inválido" };
+  if (salePrice !== null && (!Number.isFinite(salePrice) || salePrice < 0))
+    return { error: "Precio de oferta inválido" };
+  if (salePrice !== null && salePrice >= price)
+    return { error: "La oferta debe ser menor al precio base" };
+
   const p = await prisma.product.findUnique({
     where: { itemId },
-    select: { id: true, price: true, salePrice: true },
+    select: { id: true },
   });
   if (!p) return { error: "Producto no encontrado" };
+
   await prisma.priceHistory.create({
     data: {
       productId: p.id,
-      price: p.price,
-      salePrice: p.salePrice,
-      note: trimmed,
+      price: Math.round(price),
+      salePrice: salePrice !== null ? Math.round(salePrice) : null,
+      note: note && note.trim() ? note.trim() : null,
       source: "manual",
     },
   });
+  revalidatePath(`/admin/productos/${itemId}`);
+  return { ok: true };
+}
+
+// Eliminar una entrada del historial (en caso de error de carga)
+export async function deleteHistoryEntry(
+  entryId: string,
+  itemId: string,
+): Promise<UpdateResult> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  await prisma.priceHistory.delete({ where: { id: entryId } });
   revalidatePath(`/admin/productos/${itemId}`);
   return { ok: true };
 }

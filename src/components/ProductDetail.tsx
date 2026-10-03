@@ -144,7 +144,7 @@ export function ProductDetail({
               <div
                 className={`font-display text-4xl font-black sm:text-5xl ${
                   hasDiscount
-                    ? "text-emerald-600 animate-price-flash drop-shadow-[0_0_12px_rgba(16,185,129,0.35)]"
+                    ? "text-emerald-600 animate-price-flash"
                     : "text-foreground"
                 }`}
               >

@@ -245,23 +245,20 @@ body {
     radial-gradient(circle at 80% 90%, rgba(230, 48, 32, 0.08), transparent 50%);
 }
 
-/* Titilar sutil del precio en oferta: cambia luminosidad + leve scale */
+/* Titilar sutil del precio en oferta: solo un leve brillo verde,
+   sin movimiento (sin scale) para no marear al cliente. */
 @keyframes priceFlash {
   0%,
   100% {
-    opacity: 1;
     text-shadow: 0 0 0 rgba(16, 185, 129, 0);
-    transform: scale(1);
   }
   50% {
-    opacity: 0.75;
-    text-shadow: 0 0 18px rgba(16, 185, 129, 0.55);
-    transform: scale(1.03);
+    text-shadow: 0 0 14px rgba(16, 185, 129, 0.45);
   }
 }
 
 .animate-price-flash {
-  animation: priceFlash 1.4s ease-in-out infinite;
+  animation: priceFlash 2.2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

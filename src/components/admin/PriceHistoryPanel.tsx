@@ -1,8 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { History, TrendingUp, TrendingDown, Minus, Plus, Loader2, Check } from "lucide-react";
-import { addPriceNote } from "@/app/admin/productos/actions";
+import {
+  History,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Plus,
+  Loader2,
+  Check,
+  Trash2,
+} from "lucide-react";
+import {
+  addHistoricalPrice,
+  deleteHistoryEntry,
+} from "@/app/admin/productos/actions";
 
 type Entry = {
   id: string;
@@ -14,7 +26,7 @@ type Entry = {
 };
 
 const SOURCE_LABEL: Record<string, string> = {
-  manual: "Manual",
+  manual: "Carga manual",
   quick: "Edición rápida",
   excel: "Import Excel",
   bulk: "Acción masiva",
@@ -48,26 +60,52 @@ export function PriceHistoryPanel({
   currentSalePrice: number | null;
   history: Entry[];
 }) {
+  const [price, setPrice] = useState("");
+  const [salePrice, setSalePrice] = useState("");
   const [note, setNote] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedbackError, setFeedbackError] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function save() {
-    const trimmed = note.trim();
-    if (!trimmed) return;
+    const p = Number(price);
+    if (!Number.isFinite(p) || p <= 0) {
+      setFeedback("Ingresá un precio válido");
+      setFeedbackError(true);
+      setTimeout(() => setFeedback(null), 2500);
+      return;
+    }
+    const sp =
+      salePrice.trim() === "" ? null : Number(salePrice);
     startTransition(async () => {
-      const r = await addPriceNote(itemId, trimmed);
+      const r = await addHistoricalPrice(
+        itemId,
+        p,
+        sp,
+        note.trim() || null,
+      );
       if (r.ok) {
+        setPrice("");
+        setSalePrice("");
         setNote("");
-        setFeedback("Nota guardada");
+        setFeedback("Precio histórico agregado");
+        setFeedbackError(false);
         setTimeout(() => setFeedback(null), 2000);
       } else {
         setFeedback(r.error ?? "Error");
+        setFeedbackError(true);
       }
     });
   }
 
-  // El primer item del historial es el estado actual.
+  function remove(entryId: string) {
+    if (!confirm("¿Eliminar esta entrada del historial?")) return;
+    startTransition(async () => {
+      await deleteHistoryEntry(entryId, itemId);
+    });
+  }
+
+  // El primer item del historial es el más reciente.
   // Calculamos el delta de cada registro vs el inmediato siguiente (más viejo).
   const entriesWithDelta = history.map((h, i) => {
     const older = history[i + 1];
@@ -76,9 +114,13 @@ export function PriceHistoryPanel({
   });
 
   const minPrice =
-    history.length > 0 ? Math.min(...history.map((h) => h.price)) : currentPrice;
+    history.length > 0
+      ? Math.min(...history.map((h) => h.price))
+      : currentPrice;
   const maxPrice =
-    history.length > 0 ? Math.max(...history.map((h) => h.price)) : currentPrice;
+    history.length > 0
+      ? Math.max(...history.map((h) => h.price))
+      : currentPrice;
 
   return (
     <section className="mt-6 rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm sm:p-8">
@@ -91,49 +133,99 @@ export function PriceHistoryPanel({
           <h2 className="mt-1 font-display text-2xl font-black uppercase leading-tight">
             A cuánto lo vendí antes
           </h2>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Se registra automáticamente cada vez que cambia el precio o la
+            oferta. También podés cargar precios pasados a mano.
+          </p>
         </div>
         {history.length > 0 && (
           <div className="hidden sm:flex gap-3 text-right">
             <Stat label="Mínimo" value={formatARS(minPrice)} tone="green" />
-            <Stat label="Actual" value={formatARS(currentSalePrice ?? currentPrice)} tone="brand" />
+            <Stat
+              label="Actual"
+              value={formatARS(currentSalePrice ?? currentPrice)}
+              tone="brand"
+            />
             <Stat label="Máximo" value={formatARS(maxPrice)} tone="red" />
           </div>
         )}
       </div>
 
-      {/* Agregar nota */}
-      <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                save();
-              }
-            }}
-            placeholder='Agregar nota al historial (ej: "cotización marzo 2026", "subió proveedor 15 %")'
-            className="flex-1 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm outline-none focus:border-[var(--brand-red)]"
-          />
-          <button
-            type="button"
-            onClick={save}
-            disabled={pending || !note.trim()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--brand-red)] px-4 py-2 font-display text-xs font-black uppercase tracking-wider text-white disabled:opacity-50"
-          >
-            {pending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Plus className="h-3.5 w-3.5" />
-            )}
-            Agregar
-          </button>
+      {/* Cargar precio pasado manualmente */}
+      <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <div className="font-display text-xs font-black uppercase tracking-wider text-[var(--muted)]">
+          Agregar precio histórico
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_1.5fr_auto]">
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+              Precio ARS
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="850000"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-white px-2 py-1.5 font-display text-sm font-bold outline-none focus:border-[var(--brand-red)]"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+              Oferta (opcional)
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={salePrice}
+              onChange={(e) => setSalePrice(e.target.value)}
+              placeholder="—"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-white px-2 py-1.5 font-display text-sm font-bold outline-none focus:border-[var(--brand-red)]"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+              Nota (opcional)
+            </label>
+            <input
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  save();
+                }
+              }}
+              placeholder='Ej: "cotización marzo 2026"'
+              className="mt-1 w-full rounded-lg border border-[var(--border)] bg-white px-2 py-1.5 text-sm outline-none focus:border-[var(--brand-red)]"
+            />
+          </div>
+          <div className="flex items-end">
+            <button
+              type="button"
+              onClick={save}
+              disabled={pending || !price}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--brand-red)] px-4 font-display text-xs font-black uppercase tracking-wider text-white disabled:opacity-50"
+            >
+              {pending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Plus className="h-3.5 w-3.5" />
+              )}
+              Agregar
+            </button>
+          </div>
         </div>
         {feedback && (
-          <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-green-700">
-            <Check className="h-3 w-3" />
+          <div
+            className={`mt-2 inline-flex items-center gap-1 text-[11px] font-bold ${
+              feedbackError ? "text-red-700" : "text-green-700"
+            }`}
+          >
+            {!feedbackError && <Check className="h-3 w-3" />}
             {feedback}
           </div>
         )}
@@ -164,7 +256,7 @@ export function PriceHistoryPanel({
                 )}
               </span>
 
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <div className="group flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="font-display text-lg font-black">
                   {formatARS(e.price)}
                 </span>
@@ -196,6 +288,14 @@ export function PriceHistoryPanel({
                     Sin cambio
                   </span>
                 )}
+                <button
+                  type="button"
+                  onClick={() => remove(e.id)}
+                  title="Eliminar entrada"
+                  className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-[var(--muted)] hover:text-red-600"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
 
               <div className="mt-0.5 text-[11px] text-[var(--muted)]">
@@ -239,7 +339,9 @@ function Stat({
       <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
         {label}
       </div>
-      <div className={`font-display text-sm font-black ${palette}`}>{value}</div>
+      <div className={`font-display text-sm font-black ${palette}`}>
+        {value}
+      </div>
     </div>
   );
 }
