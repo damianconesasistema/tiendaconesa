@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/admin/LogoutButton";
+import { LiveClock } from "@/components/admin/LiveClock";
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink } from "lucide-react";
+import { APP_VERSION } from "@/lib/version";
 
 export function AdminShell({
   username,
@@ -8,7 +10,7 @@ export function AdminShell({
   children,
 }: {
   username: string;
-  active: "dashboard" | "productos" | "pedidos";
+  active: "dashboard" | "productos" | "pedidos" | "version";
   children: React.ReactNode;
 }) {
   return (
@@ -20,11 +22,20 @@ export function AdminShell({
             <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
               Panel admin
             </span>
+            <Link
+              href="/admin/version"
+              title="Ver changelog"
+              className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 font-mono text-[10px] font-bold tabular-nums text-[var(--muted)] hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+            >
+              {APP_VERSION}
+            </Link>
             <span className="hidden text-sm text-[var(--muted)] sm:block">
               · Sanitarios Conesa
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <LiveClock />
+            <span className="hidden h-4 w-px bg-[var(--border)] sm:block" />
             <span className="hidden text-sm sm:block">
               <span className="text-[var(--muted)]">Usuario: </span>
               <strong>{username}</strong>
