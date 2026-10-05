@@ -97,8 +97,8 @@ export function CatalogClient({ products, categories, initialCat = "all" }: Prop
 
       {/* CATEGORY TABS */}
       <section className="sticky top-20 z-30 border-b border-[var(--border)] bg-white sm:top-24">
-        <div className="mx-auto max-w-6xl overflow-x-auto px-4 py-4 sm:px-6">
-          <div className="flex gap-2 whitespace-nowrap">
+        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <CatButton
               active={activeCat === "all"}
               onClick={() => setActiveCat("all")}
