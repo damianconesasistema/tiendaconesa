@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.10.1";
+export const APP_VERSION = "V.0.10.2";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.10.2",
+    date: "2026-10-05",
+    changes: [
+      "Fix: botón 'Volver arriba' ya no se superpone con el de WhatsApp. Ahora se posiciona arriba del WhatsApp y sube más cuando hay items en el carrito.",
+    ],
+  },
   {
     version: "V.0.10.1",
     date: "2026-10-03",
