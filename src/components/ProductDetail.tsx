@@ -350,9 +350,7 @@ function RelatedCard({ p }: { p: Product }) {
         />
       </div>
       <div className="p-3">
-        <h3 className="line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-tight">
-          {p.title}
-        </h3>
+        <h3 className="text-xs font-semibold leading-snug">{p.title}</h3>
         <div className="mt-2 font-display text-base font-black text-foreground">
           {formatPrice(price)}
         </div>

@@ -90,7 +90,7 @@ export function CartPage() {
                   <div className="flex min-w-0 flex-1 flex-col">
                     <Link
                       href={`/tienda/${it.itemId}`}
-                      className="line-clamp-2 text-sm font-semibold leading-tight hover:text-[var(--brand-red)] sm:text-base"
+                      className="text-sm font-semibold leading-snug hover:text-[var(--brand-red)] sm:text-base"
                     >
                       {it.title}
                     </Link>

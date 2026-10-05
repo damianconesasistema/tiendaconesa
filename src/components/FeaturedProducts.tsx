@@ -159,17 +159,7 @@ function FeaturedCard({ p }: { p: Product }) {
         )}
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <h3
-          className="text-xs font-semibold leading-tight text-foreground group-hover:text-[var(--brand-red)] sm:text-sm"
-          style={{
-            display: "-webkit-box",
-            WebkitBoxOrient: "vertical",
-            WebkitLineClamp: 2,
-            overflow: "hidden",
-            minHeight: "2.25rem",
-          }}
-          title={p.title}
-        >
+        <h3 className="text-xs font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)] sm:text-sm">
           {p.title}
         </h3>
         <div className="mt-3">

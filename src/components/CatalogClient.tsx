@@ -261,17 +261,7 @@ function ProductCard({ p }: { p: Product }) {
 
       {/* Info */}
       <div className="flex flex-1 flex-col p-5">
-        <h3
-          className="text-sm font-semibold leading-tight text-foreground group-hover:text-[var(--brand-red)]"
-          style={{
-            display: "-webkit-box",
-            WebkitBoxOrient: "vertical",
-            WebkitLineClamp: 2,
-            overflow: "hidden",
-            minHeight: "2.5rem",
-          }}
-          title={p.title}
-        >
+        <h3 className="text-sm font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)]">
           {p.title}
         </h3>
         <div className="mt-4 flex flex-col">

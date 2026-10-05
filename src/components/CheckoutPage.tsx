@@ -311,7 +311,7 @@ export function CheckoutPage() {
                       {it.qty}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="line-clamp-2 text-xs font-medium leading-tight">
+                      <div className="text-xs font-medium leading-snug">
                         {it.title}
                       </div>
                     </div>
