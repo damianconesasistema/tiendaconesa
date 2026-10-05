@@ -3,7 +3,6 @@ import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { TikTokFeed } from "@/components/TikTokFeed";
 import { TikTokCollage } from "@/components/TikTokCollage";
-import { BackToTop } from "@/components/BackToTop";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { prisma } from "@/lib/db";
@@ -528,8 +527,6 @@ export default async function Home() {
         </div>
       </footer>
 
-      {/* BACK TO TOP */}
-      <BackToTop />
     </main>
   );
 }

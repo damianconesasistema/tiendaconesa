@@ -3,9 +3,25 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Tag, Check, Play, Pause, Star, Loader2, X, ExternalLink, Pencil } from "lucide-react";
+import {
+  Tag,
+  Check,
+  Play,
+  Pause,
+  Star,
+  Loader2,
+  X,
+  ExternalLink,
+  Pencil,
+  Package,
+  DollarSign,
+} from "lucide-react";
 import { InlineNumber, InlineSegmented, InlineToggle } from "@/components/admin/InlineEdit";
-import { bulkUpdate } from "@/app/admin/productos/actions";
+import {
+  bulkUpdate,
+  bulkSetStock,
+  bulkAdjustPrice,
+} from "@/app/admin/productos/actions";
 
 type Product = {
   id: string;
@@ -36,6 +52,7 @@ export function ProductsTable({ products }: { products: Product[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [popover, setPopover] = useState<"stock" | "price" | null>(null);
 
   const allSelected =
     products.length > 0 && selected.size === products.length;
@@ -73,6 +90,40 @@ export function ProductsTable({ products }: { products: Product[] }) {
     });
   }
 
+  function applyStock(mode: "set" | "delta", value: number) {
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    startTransition(async () => {
+      const r = await bulkSetStock(ids, mode, value);
+      if (r.ok) {
+        setFeedback(`Stock actualizado en ${r.count} productos`);
+        setPopover(null);
+        setSelected(new Set());
+        setTimeout(() => setFeedback(null), 2500);
+      } else {
+        setFeedback(`Error: ${r.error}`);
+        setTimeout(() => setFeedback(null), 3000);
+      }
+    });
+  }
+
+  function applyPrice(mode: "set" | "pct", value: number) {
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    startTransition(async () => {
+      const r = await bulkAdjustPrice(ids, mode, value);
+      if (r.ok) {
+        setFeedback(`Precios actualizados en ${r.count} productos`);
+        setPopover(null);
+        setSelected(new Set());
+        setTimeout(() => setFeedback(null), 2500);
+      } else {
+        setFeedback(`Error: ${r.error}`);
+        setTimeout(() => setFeedback(null), 3000);
+      }
+    });
+  }
+
   return (
     <div className="mt-6">
       {/* Barra de acciones bulk sticky */}
@@ -98,6 +149,23 @@ export function ProductsTable({ products }: { products: Product[] }) {
             <Star className="h-3.5 w-3.5" />
             Quitar destacado
           </BulkBtn>
+          <div className="h-5 w-px bg-[var(--brand-red)]/30" />
+          <BulkBtn
+            onClick={() => setPopover(popover === "stock" ? null : "stock")}
+            disabled={pending}
+            color="blue"
+          >
+            <Package className="h-3.5 w-3.5" />
+            Stock
+          </BulkBtn>
+          <BulkBtn
+            onClick={() => setPopover(popover === "price" ? null : "price")}
+            disabled={pending}
+            color="blue"
+          >
+            <DollarSign className="h-3.5 w-3.5" />
+            Precio
+          </BulkBtn>
           <button
             onClick={clearSelection}
             className="ml-auto inline-flex items-center gap-1 text-xs text-[var(--muted)] hover:text-foreground"
@@ -107,6 +175,23 @@ export function ProductsTable({ products }: { products: Product[] }) {
           </button>
           {pending && (
             <Loader2 className="h-4 w-4 animate-spin text-[var(--brand-red)]" />
+          )}
+
+          {popover === "stock" && (
+            <StockPopover
+              onApply={applyStock}
+              onClose={() => setPopover(null)}
+              count={selected.size}
+              pending={pending}
+            />
+          )}
+          {popover === "price" && (
+            <PricePopover
+              onApply={applyPrice}
+              onClose={() => setPopover(null)}
+              count={selected.size}
+              pending={pending}
+            />
           )}
         </div>
       )}
@@ -272,12 +357,13 @@ function BulkBtn({
   onClick: () => void;
   disabled?: boolean;
   children: React.ReactNode;
-  color: "green" | "gray" | "red" | "muted";
+  color: "green" | "gray" | "red" | "muted" | "blue";
 }) {
   const palette: Record<typeof color, string> = {
     green: "bg-green-500 text-white hover:bg-green-600",
     gray: "bg-gray-700 text-white hover:bg-gray-800",
     red: "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]",
+    blue: "bg-blue-600 text-white hover:bg-blue-700",
     muted: "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)]",
   };
   return (
@@ -286,6 +372,238 @@ function BulkBtn({
       onClick={onClick}
       disabled={disabled}
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-wider transition-colors disabled:opacity-50 ${palette[color]}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Popover para setear stock masivo (reemplazar o sumar/restar).
+function StockPopover({
+  onApply,
+  onClose,
+  count,
+  pending,
+}: {
+  onApply: (mode: "set" | "delta", value: number) => void;
+  onClose: () => void;
+  count: number;
+  pending: boolean;
+}) {
+  const [mode, setMode] = useState<"set" | "delta">("set");
+  const [value, setValue] = useState("");
+
+  return (
+    <div className="absolute left-0 top-full z-40 mt-2 w-80 rounded-xl border border-[var(--border)] bg-white p-4 shadow-xl">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-display text-xs font-black uppercase tracking-wider text-[var(--muted)]">
+            Stock masivo
+          </div>
+          <div className="mt-0.5 text-sm text-foreground">
+            Aplicar a <strong>{count}</strong> producto{count === 1 ? "" : "s"}
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          type="button"
+          className="text-[var(--muted)] hover:text-foreground"
+          aria-label="Cerrar"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="mt-3 inline-flex rounded-full border border-[var(--border)] bg-[var(--surface)] p-0.5 text-[10px] font-bold uppercase">
+        <button
+          type="button"
+          onClick={() => setMode("set")}
+          className={`rounded-full px-3 py-1 ${mode === "set" ? "bg-blue-600 text-white" : "text-[var(--muted)]"}`}
+        >
+          Reemplazar
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("delta")}
+          className={`rounded-full px-3 py-1 ${mode === "delta" ? "bg-blue-600 text-white" : "text-[var(--muted)]"}`}
+        >
+          Sumar / Restar
+        </button>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2">
+        <input
+          type="number"
+          step={1}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={mode === "set" ? "Nuevo stock" : "Ej: 5 o -3"}
+          className="h-10 flex-1 rounded-lg border border-[var(--border)] bg-white px-3 font-display text-sm font-bold outline-none focus:border-blue-500"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            const n = Number(value);
+            if (Number.isFinite(n)) onApply(mode, n);
+          }}
+          disabled={pending || value === ""}
+          className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-blue-600 px-4 font-display text-xs font-black uppercase tracking-wider text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          Aplicar
+        </button>
+      </div>
+
+      <p className="mt-2 text-[11px] text-[var(--muted)]">
+        {mode === "set"
+          ? "Todos los seleccionados quedarán con este stock."
+          : "Suma (o resta con -) a cada stock actual. No baja de 0."}
+      </p>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <QuickBtn onClick={() => onApply("set", 0)} disabled={pending}>
+          Sin stock (0)
+        </QuickBtn>
+        <QuickBtn onClick={() => onApply("delta", 1)} disabled={pending}>
+          +1 a cada uno
+        </QuickBtn>
+        <QuickBtn onClick={() => onApply("delta", -1)} disabled={pending}>
+          -1 a cada uno
+        </QuickBtn>
+      </div>
+    </div>
+  );
+}
+
+// Popover para ajustar precios masivamente (reemplazar o % de ajuste)
+function PricePopover({
+  onApply,
+  onClose,
+  count,
+  pending,
+}: {
+  onApply: (mode: "set" | "pct", value: number) => void;
+  onClose: () => void;
+  count: number;
+  pending: boolean;
+}) {
+  const [mode, setMode] = useState<"set" | "pct">("pct");
+  const [value, setValue] = useState("");
+
+  return (
+    <div className="absolute left-0 top-full z-40 mt-2 w-80 rounded-xl border border-[var(--border)] bg-white p-4 shadow-xl">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-display text-xs font-black uppercase tracking-wider text-[var(--muted)]">
+            Precio masivo
+          </div>
+          <div className="mt-0.5 text-sm text-foreground">
+            Aplicar a <strong>{count}</strong> producto{count === 1 ? "" : "s"}
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          type="button"
+          className="text-[var(--muted)] hover:text-foreground"
+          aria-label="Cerrar"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="mt-3 inline-flex rounded-full border border-[var(--border)] bg-[var(--surface)] p-0.5 text-[10px] font-bold uppercase">
+        <button
+          type="button"
+          onClick={() => setMode("pct")}
+          className={`rounded-full px-3 py-1 ${mode === "pct" ? "bg-blue-600 text-white" : "text-[var(--muted)]"}`}
+        >
+          Ajustar %
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("set")}
+          className={`rounded-full px-3 py-1 ${mode === "set" ? "bg-blue-600 text-white" : "text-[var(--muted)]"}`}
+        >
+          Reemplazar
+        </button>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2">
+        <div className="relative flex-1">
+          <input
+            type="number"
+            step={mode === "pct" ? 0.5 : 1}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={
+              mode === "pct"
+                ? "Ej: 10 (subir) o -5 (bajar)"
+                : "Nuevo precio ARS"
+            }
+            className="h-10 w-full rounded-lg border border-[var(--border)] bg-white px-3 pr-8 font-display text-sm font-bold outline-none focus:border-blue-500"
+          />
+          {mode === "pct" && (
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[var(--muted)]">
+              %
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            const n = Number(value);
+            if (Number.isFinite(n)) onApply(mode, n);
+          }}
+          disabled={pending || value === ""}
+          className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-blue-600 px-4 font-display text-xs font-black uppercase tracking-wider text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          Aplicar
+        </button>
+      </div>
+
+      <p className="mt-2 text-[11px] text-[var(--muted)]">
+        {mode === "pct"
+          ? "Ajusta precio y oferta por este porcentaje. Negativo = bajar."
+          : "Todos los seleccionados quedarán con este precio base."}
+      </p>
+
+      {mode === "pct" && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <QuickBtn onClick={() => onApply("pct", 10)} disabled={pending}>
+            +10%
+          </QuickBtn>
+          <QuickBtn onClick={() => onApply("pct", 20)} disabled={pending}>
+            +20%
+          </QuickBtn>
+          <QuickBtn onClick={() => onApply("pct", -10)} disabled={pending}>
+            -10%
+          </QuickBtn>
+        </div>
+      )}
+
+      <p className="mt-3 rounded-lg bg-amber-50 p-2 text-[11px] text-amber-800">
+        Cada cambio queda registrado en el historial de precios de cada producto.
+      </p>
+    </div>
+  );
+}
+
+function QuickBtn({
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[10px] font-bold uppercase text-foreground hover:border-blue-500 hover:text-blue-700 disabled:opacity-50"
     >
       {children}
     </button>

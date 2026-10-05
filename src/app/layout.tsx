@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { CartProvider } from "@/components/CartProvider";
 import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
+import { BackToTop } from "@/components/BackToTop";
 import { business } from "@/lib/business";
 import "./globals.css";
 
@@ -207,6 +208,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Header />
           {children}
           <FloatingWhatsApp />
+          <BackToTop />
           <CartFab />
         </CartProvider>
       </body>

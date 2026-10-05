@@ -61,80 +61,91 @@ export function InlineNumber({
     setStatus("idle");
   }
 
+  const borderCls =
+    status === "error"
+      ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+      : status === "saved"
+        ? "border-green-400 focus:ring-green-200"
+        : dirty
+          ? "border-amber-400 focus:border-amber-500 focus:ring-amber-200"
+          : "border-[var(--border)] focus:border-[var(--brand-red)] focus:ring-[var(--brand-red)]/20";
+
   return (
-    <div className="inline-flex flex-col items-end">
-      <div
-        className={`inline-flex items-center gap-1 rounded-md transition-all ${
-          dirty ? "ring-2 ring-amber-400/60 bg-amber-50/60 p-0.5" : ""
-        }`}
-      >
-        {prefix && <span className="text-xs text-[var(--muted)]">{prefix}</span>}
-        <input
-          type="number"
-          min={0}
-          step={1}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              commit();
-            }
-            if (e.key === "Escape") {
-              e.preventDefault();
-              cancel();
-            }
-          }}
-          placeholder={allowNull ? "—" : "0"}
-          className={`h-8 w-24 rounded border bg-white px-2 text-right font-display text-sm font-bold outline-none focus:ring-2 ${
-            status === "error"
-              ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-              : status === "saved"
-                ? "border-green-400 focus:ring-green-200"
-                : dirty
-                  ? "border-amber-400 focus:border-amber-500 focus:ring-amber-200"
-                  : "border-[var(--border)] focus:border-[var(--brand-red)] focus:ring-[var(--brand-red)]/20"
-          } ${className}`}
-        />
+    // Ancho fijo que SIEMPRE reserva espacio para los 2 botones chicos,
+    // asi la fila nunca cambia de tamaño al pasar de clean a dirty.
+    <div className="inline-flex items-center justify-end gap-1" style={{ width: "9rem" }}>
+      {prefix && (
+        <span className="text-xs text-[var(--muted)]">{prefix}</span>
+      )}
+      <input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        step={1}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+          }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            cancel();
+          }
+        }}
+        placeholder={allowNull ? "—" : "0"}
+        title={dirty ? "Sin guardar — Enter aplica, Esc cancela" : undefined}
+        className={`inline-edit-number h-9 min-w-0 flex-1 rounded border bg-white px-2 text-right font-display text-sm font-bold outline-none focus:ring-2 ${borderCls} ${className}`}
+      />
+      {/* Slot reservado para los 2 botones (ancho fijo, no cambia la fila) */}
+      <div className="flex w-14 items-center justify-start gap-0.5">
         {dirty ? (
           <>
             <button
               type="button"
-              onClick={commit}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                commit();
+              }}
               disabled={!canApply || status === "saving"}
               title="Aplicar (Enter)"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
+              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
             >
               {status === "saving" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
-                <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                <Check className="h-3 w-3" strokeWidth={3} />
               )}
             </button>
             <button
               type="button"
-              onClick={cancel}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                cancel();
+              }}
               disabled={status === "saving"}
               title="Cancelar (Esc)"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border)] bg-white text-[var(--muted)] hover:border-red-400 hover:text-red-500"
+              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded border border-[var(--border)] bg-white text-[var(--muted)] hover:border-red-400 hover:text-red-500"
             >
-              <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+              <X className="h-3 w-3" strokeWidth={2.5} />
             </button>
           </>
-        ) : (
-          <span className="inline-flex w-3 justify-start">
-            {status === "saved" && <Check className="h-3 w-3 text-green-500" />}
-          </span>
-        )}
+        ) : status === "saved" ? (
+          <Check className="h-4 w-4 text-green-500" />
+        ) : null}
       </div>
-      {error && (
-        <span className="mt-0.5 text-[10px] text-red-500">{error}</span>
-      )}
-      {dirty && !error && status !== "saving" && (
-        <span className="mt-0.5 text-[10px] text-amber-700">
-          Sin guardar · Enter / Esc
-        </span>
-      )}
+      <style>{`
+        .inline-edit-number::-webkit-outer-spin-button,
+        .inline-edit-number::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        .inline-edit-number {
+          -moz-appearance: textfield;
+          appearance: textfield;
+        }
+      `}</style>
     </div>
   );
 }

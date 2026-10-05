@@ -286,6 +286,117 @@ export async function bulkUpdate(
   }
 }
 
+// Stock masivo: reemplaza o suma/resta a los seleccionados.
+// mode "set" => value es el nuevo stock para todos.
+// mode "delta" => se suma value a cada stock (puede ser negativo). Nunca baja de 0.
+export async function bulkSetStock(
+  itemIds: string[],
+  mode: "set" | "delta",
+  value: number,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!itemIds.length) return { error: "Ningún producto seleccionado" };
+  if (!Number.isFinite(value)) return { error: "Valor inválido" };
+  const v = Math.floor(value);
+
+  try {
+    if (mode === "set") {
+      const stock = Math.max(0, v);
+      const r = await prisma.product.updateMany({
+        where: { itemId: { in: itemIds } },
+        data: { stock },
+      });
+      revalidatePath("/admin/productos");
+      revalidatePath("/tienda");
+      revalidatePath("/");
+      return { ok: true, count: r.count };
+    }
+    // delta: necesitamos leer cada stock actual
+    const current = await prisma.product.findMany({
+      where: { itemId: { in: itemIds } },
+      select: { itemId: true, stock: true },
+    });
+    let count = 0;
+    for (const p of current) {
+      const next = Math.max(0, p.stock + v);
+      if (next === p.stock) continue;
+      await prisma.product.update({
+        where: { itemId: p.itemId },
+        data: { stock: next },
+      });
+      count++;
+    }
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    revalidatePath("/");
+    return { ok: true, count };
+  } catch (e) {
+    return { error: `Error al actualizar: ${(e as Error).message}` };
+  }
+}
+
+// Precio masivo: reemplaza o ajusta por porcentaje.
+// mode "set" => value = precio nuevo para todos los seleccionados.
+// mode "pct" => multiplica precio y oferta por (1 + value/100). value puede ser negativo.
+// Loguea cada cambio en el historial de precios.
+export async function bulkAdjustPrice(
+  itemIds: string[],
+  mode: "set" | "pct",
+  value: number,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!itemIds.length) return { error: "Ningún producto seleccionado" };
+  if (!Number.isFinite(value)) return { error: "Valor inválido" };
+
+  try {
+    const current = await prisma.product.findMany({
+      where: { itemId: { in: itemIds } },
+      select: { itemId: true, price: true, salePrice: true },
+    });
+    let count = 0;
+    for (const p of current) {
+      let newPrice: number;
+      let newSale: number | null;
+      if (mode === "set") {
+        if (value < 0) continue;
+        newPrice = Math.round(value);
+        // Si tenía oferta, la mantenemos SOLO si sigue siendo menor
+        newSale =
+          p.salePrice !== null && p.salePrice < newPrice ? p.salePrice : null;
+      } else {
+        const factor = 1 + value / 100;
+        newPrice = Math.max(0, Math.round(p.price * factor));
+        newSale =
+          p.salePrice !== null
+            ? Math.max(0, Math.round(p.salePrice * factor))
+            : null;
+        // Si la oferta quedó >= al precio nuevo, la limpiamos
+        if (newSale !== null && newSale >= newPrice) newSale = null;
+      }
+      if (newPrice === p.price && newSale === p.salePrice) continue;
+      await logPriceChange({
+        itemId: p.itemId,
+        newPrice,
+        newSalePrice: newSale,
+        source: "bulk",
+      });
+      await prisma.product.update({
+        where: { itemId: p.itemId },
+        data: { price: newPrice, salePrice: newSale },
+      });
+      count++;
+    }
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    revalidatePath("/");
+    return { ok: true, count };
+  } catch (e) {
+    return { error: `Error al actualizar: ${(e as Error).message}` };
+  }
+}
+
 // Upload de foto personalizada para un producto.
 // Guarda el archivo en /public/products/{itemId}.jpg y setea imageUrl.
 // NOTA: Para persistencia en Railway hace falta un Volume mounted en
