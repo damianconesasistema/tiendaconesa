@@ -22,6 +22,7 @@
     "prisma": "^5.22.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "sdk-node-payway": "^1.0.8",
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {

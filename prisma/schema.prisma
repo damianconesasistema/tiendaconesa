@@ -83,6 +83,22 @@ model Order {
   shippingCost Int         @default(0)
   total        Int         // subtotal + shippingCost
   paidAt       DateTime?   // marca manual cuando el admin confirma pago
+
+  // --- Pago online (Payway / Decidir) ---
+  // paymentMethod: "transferencia" | "efectivo_local" | "tarjeta"
+  paymentMethod       String?
+  // Estado especifico de Payway: approved | rejected | pending | error | null
+  paywayStatus        String?
+  paywayPaymentId     String?  // id devuelto por Payway (para refunds / tracking)
+  paywaySiteTxId      String?  // site_transaction_id que mandamos
+  paywayAuthCode      String?  // codigo de autorizacion (POS)
+  paywayCardBrand     String?  // visa, master, amex, etc.
+  paywayCardLast4     String?  // ultimos 4 digitos
+  paywayCardInstallments Int?  // cuotas elegidas
+  paywayErrorCode     String?  // codigo de error en caso de rechazo
+  paywayErrorMessage  String?  // mensaje de error en caso de rechazo
+  paywayRawResponse   String?  // JSON crudo de la respuesta (para debug/soporte)
+
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
