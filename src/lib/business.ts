@@ -37,13 +37,14 @@ export const business = {
       url: "https://www.tiktok.com/@sanitarios.conesa",
     },
   },
+  // slug: cat= filter que se usa en /tienda?cat=<slug> para linkear al catalogo
   categories: [
-    { name: "Sanitarios", description: "Inodoros, bidets, lavatorios, mingitorios" },
-    { name: "Grifería", description: "Piazza, Hydros y más marcas" },
-    { name: "Equipamiento de baño", description: "Vanitorys, espejos, accesorios" },
-    { name: "Salamandras", description: "Calefactores a leña para tu hogar" },
-    { name: "Materiales de obra", description: "Caños, uniones, accesorios de instalación" },
-    { name: "Accesorios", description: "Grifos, flexibles, repuestos" },
+    { name: "Sanitarios", slug: "sanitarios", description: "Inodoros, bidets, lavatorios, mingitorios" },
+    { name: "Grifería", slug: "griferia", description: "Piazza, Hydros y más marcas" },
+    { name: "Equipamiento de baño", slug: "banera", description: "Vanitorys, espejos, accesorios" },
+    { name: "Salamandras", slug: "salamandras", description: "Calefactores a leña para tu hogar" },
+    { name: "Materiales de obra", slug: "materiales", description: "Caños, uniones, accesorios de instalación" },
+    { name: "Accesorios", slug: "accesorios", description: "Grifos, flexibles, repuestos" },
   ],
   brands: [
     { name: "Ferrum", logo: "/brand/marcas/ferrum.png" },

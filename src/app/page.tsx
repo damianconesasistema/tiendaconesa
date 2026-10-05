@@ -256,20 +256,24 @@ export default async function Home() {
             {business.categories.map((cat, i) => {
               const Icon = categoryIcons[i] ?? Wrench;
               return (
-                <div
+                <Link
                   key={cat.name}
-                  className="group relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 transition-all hover:-translate-y-1 hover:border-[var(--brand-red)] hover:shadow-xl"
+                  href={`/tienda?cat=${cat.slug}`}
+                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 transition-all hover:-translate-y-1 hover:border-[var(--brand-red)] hover:shadow-xl"
                 >
                   <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-white text-[var(--brand-red)] shadow-sm transition-colors group-hover:bg-[var(--brand-red)] group-hover:text-white">
                     <Icon className="h-7 w-7" strokeWidth={1.8} />
                   </div>
-                  <h3 className="font-display text-2xl font-bold uppercase tracking-tight">
+                  <h3 className="font-display text-2xl font-bold uppercase tracking-tight group-hover:text-[var(--brand-red)]">
                     {cat.name}
                   </h3>
                   <p className="mt-2 text-sm text-[var(--muted)]">
                     {cat.description}
                   </p>
-                </div>
+                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[var(--brand-red)] opacity-0 transition-opacity group-hover:opacity-100">
+                    Ver productos →
+                  </span>
+                </Link>
               );
             })}
           </div>

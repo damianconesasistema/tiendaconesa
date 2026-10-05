@@ -33,6 +33,7 @@ type Category = {
 type Props = {
   products: Product[];
   categories: Category[];
+  initialCat?: string;
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -48,9 +49,9 @@ const CAT_LABELS: Record<string, string> = {
 };
 
 
-export function CatalogClient({ products, categories }: Props) {
+export function CatalogClient({ products, categories, initialCat = "all" }: Props) {
   const [query, setQuery] = useState("");
-  const [activeCat, setActiveCat] = useState<string>("all");
+  const [activeCat, setActiveCat] = useState<string>(initialCat);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

@@ -17,7 +17,7 @@ type Category = {
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ filter?: string }>;
+type SearchParams = Promise<{ filter?: string; cat?: string }>;
 
 export default async function Catalogo({
   searchParams,
@@ -26,6 +26,7 @@ export default async function Catalogo({
 }) {
   const sp = await searchParams;
   const onlySale = sp.filter === "on-sale";
+  const initialCat = sp.cat ?? "all";
 
   const products = await prisma.product.findMany({
     where: {
@@ -59,5 +60,11 @@ export default async function Catalogo({
 
   const categories = categoriesData as Category[];
 
-  return <CatalogClient products={compat} categories={categories} />;
+  return (
+    <CatalogClient
+      products={compat}
+      categories={categories}
+      initialCat={initialCat}
+    />
+  );
 }
