@@ -18,7 +18,14 @@ import {
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
+import {
+  transferPrice,
+  showTransferPrice,
+  TRANSFER_DISCOUNT_PCT,
+  TRANSFER_LABEL,
+} from "@/lib/pricing";
 import { useRouter } from "next/navigation";
+import { Banknote } from "lucide-react";
 
 type Product = {
   itemId: string;
@@ -155,7 +162,20 @@ export function ProductDetail({
                   Ahorrás {formatPrice(product.price - product.salePrice!)}
                 </div>
               )}
-              <div className="mt-1 text-sm text-[var(--muted)]">
+              {showTransferPrice(effectivePrice) && (
+                <div className="mt-3 inline-flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2">
+                  <Banknote className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                  <div>
+                    <div className="font-display text-base font-black text-blue-800 sm:text-lg">
+                      {formatPrice(transferPrice(effectivePrice))}
+                    </div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                      {TRANSFER_LABEL} ({TRANSFER_DISCOUNT_PCT}% off)
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="mt-2 text-sm text-[var(--muted)]">
                 3 cuotas sin interés desde{" "}
                 <strong className="text-foreground">
                   {formatPrice(Math.round(effectivePrice / 3))}

@@ -6,6 +6,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice as fmtPrice } from "@/lib/order";
+import {
+  transferPrice,
+  showTransferPrice,
+  TRANSFER_DISCOUNT_PCT,
+} from "@/lib/pricing";
 
 type Product = {
   itemId: string;
@@ -104,7 +109,7 @@ export function CatalogClient({ products, categories }: Props) {
                 key={c.id}
                 active={activeCat === c.id}
                 onClick={() => setActiveCat(c.id)}
-                label={c.label}
+                label={CAT_LABELS[c.id] || c.label}
                 count={counts[c.id] || 0}
               />
             ))}
@@ -256,7 +261,17 @@ function ProductCard({ p }: { p: Product }) {
 
       {/* Info */}
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="line-clamp-2 min-h-[3rem] text-sm font-semibold leading-tight text-foreground group-hover:text-[var(--brand-red)]">
+        <h3
+          className="text-sm font-semibold leading-tight text-foreground group-hover:text-[var(--brand-red)]"
+          style={{
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+            overflow: "hidden",
+            minHeight: "2.5rem",
+          }}
+          title={p.title}
+        >
           {p.title}
         </h3>
         <div className="mt-4 flex flex-col">
@@ -277,6 +292,12 @@ function ProductCard({ p }: { p: Product }) {
           {hasDiscount && (
             <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-700">
               Ahorrás {fmtPrice(p.price - effectivePrice)}
+            </span>
+          )}
+          {showTransferPrice(effectivePrice) && (
+            <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-800">
+              {fmtPrice(transferPrice(effectivePrice))} transferencia
+              <span className="text-blue-500">(-{TRANSFER_DISCOUNT_PCT}%)</span>
             </span>
           )}
           <span className="mt-1 text-[10px] uppercase tracking-wider text-[var(--muted)]">
