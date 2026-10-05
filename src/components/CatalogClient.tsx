@@ -265,56 +265,63 @@ function ProductCard({ p }: { p: Product }) {
         <h3 className="text-sm font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)]">
           {p.title}
         </h3>
-        <div className="mt-4 flex flex-col">
-          {hasDiscount && (
-            <span className="text-xs text-[var(--muted)] line-through">
-              {fmtPrice(p.price)}
+        {/* mt-auto empuja precio+boton al fondo para que queden alineados
+            entre todas las cards de la fila, aunque los titulos tengan
+            distinto largo. */}
+        <div className="mt-auto">
+          <div className="mt-4 flex flex-col">
+            {hasDiscount && (
+              <span className="text-xs text-[var(--muted)] line-through">
+                {fmtPrice(p.price)}
+              </span>
+            )}
+            <span
+              className={`font-display font-black ${
+                hasDiscount
+                  ? "text-3xl text-emerald-600 animate-price-flash"
+                  : "text-2xl text-foreground"
+              }`}
+            >
+              {fmtPrice(effectivePrice)}
             </span>
-          )}
-          <span
-            className={`font-display font-black ${
-              hasDiscount
-                ? "text-3xl text-emerald-600 animate-price-flash"
-                : "text-2xl text-foreground"
+            {hasDiscount && (
+              <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-700">
+                Ahorrás {fmtPrice(p.price - effectivePrice)}
+              </span>
+            )}
+            {showTransferPrice(effectivePrice) && (
+              <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-800">
+                {fmtPrice(transferPrice(effectivePrice))} transferencia
+                <span className="text-blue-500">
+                  (-{TRANSFER_DISCOUNT_PCT}%)
+                </span>
+              </span>
+            )}
+            <span className="mt-1 text-[10px] uppercase tracking-wider text-[var(--muted)]">
+              3 cuotas sin interés
+            </span>
+          </div>
+          <button
+            onClick={handleAdd}
+            className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
+              added
+                ? "bg-green-500 text-white"
+                : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
             }`}
           >
-            {fmtPrice(effectivePrice)}
-          </span>
-          {hasDiscount && (
-            <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-700">
-              Ahorrás {fmtPrice(p.price - effectivePrice)}
-            </span>
-          )}
-          {showTransferPrice(effectivePrice) && (
-            <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-800">
-              {fmtPrice(transferPrice(effectivePrice))} transferencia
-              <span className="text-blue-500">(-{TRANSFER_DISCOUNT_PCT}%)</span>
-            </span>
-          )}
-          <span className="mt-1 text-[10px] uppercase tracking-wider text-[var(--muted)]">
-            3 cuotas sin interés
-          </span>
+            {added ? (
+              <>
+                <Check className="h-3.5 w-3.5" />
+                Agregado
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-3.5 w-3.5" />
+                Agregar al carrito
+              </>
+            )}
+          </button>
         </div>
-        <button
-          onClick={handleAdd}
-          className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
-            added
-              ? "bg-green-500 text-white"
-              : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
-          }`}
-        >
-          {added ? (
-            <>
-              <Check className="h-3.5 w-3.5" />
-              Agregado
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-3.5 w-3.5" />
-              Agregar al carrito
-            </>
-          )}
-        </button>
       </div>
     </Link>
   );

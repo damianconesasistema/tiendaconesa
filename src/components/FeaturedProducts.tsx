@@ -162,55 +162,58 @@ function FeaturedCard({ p }: { p: Product }) {
         <h3 className="text-xs font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)] sm:text-sm">
           {p.title}
         </h3>
-        <div className="mt-3">
-          {hasSale && (
-            <div className="text-xs text-[var(--muted)] line-through">
-              {formatPrice(p.price)}
-            </div>
-          )}
-          <span
-            className={`font-display font-black ${
-              hasSale
-                ? "text-emerald-600 text-xl sm:text-2xl animate-price-flash"
-                : "text-foreground text-lg sm:text-xl"
+        {/* mt-auto empuja precio+boton al fondo. Asi se alinean entre cards */}
+        <div className="mt-auto">
+          <div className="mt-3 flex flex-col">
+            {hasSale && (
+              <div className="text-xs text-[var(--muted)] line-through">
+                {formatPrice(p.price)}
+              </div>
+            )}
+            <span
+              className={`font-display font-black ${
+                hasSale
+                  ? "text-emerald-600 text-xl sm:text-2xl animate-price-flash"
+                  : "text-foreground text-lg sm:text-xl"
+              }`}
+            >
+              {formatPrice(effectivePrice)}
+            </span>
+            {hasSale && (
+              <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700">
+                Ahorrás {formatPrice(p.price - effectivePrice)}
+              </span>
+            )}
+            {showTransferPrice(effectivePrice) && (
+              <div className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
+                {formatPrice(transferPrice(effectivePrice))}{" "}
+                <span className="font-normal text-blue-600">
+                  transf. (-{TRANSFER_DISCOUNT_PCT}%)
+                </span>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleAdd}
+            className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wider transition-colors sm:text-xs ${
+              added
+                ? "bg-green-500 text-white"
+                : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
             }`}
           >
-            {formatPrice(effectivePrice)}
-          </span>
-          {hasSale && (
-            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700">
-              Ahorrás {formatPrice(p.price - effectivePrice)}
-            </span>
-          )}
-          {showTransferPrice(effectivePrice) && (
-            <div className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
-              {formatPrice(transferPrice(effectivePrice))}{" "}
-              <span className="font-normal text-blue-600">
-                transf. (-{TRANSFER_DISCOUNT_PCT}%)
-              </span>
-            </div>
-          )}
+            {added ? (
+              <>
+                <Check className="h-3 w-3" />
+                Agregado
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-3 w-3" />
+                Agregar
+              </>
+            )}
+          </button>
         </div>
-        <button
-          onClick={handleAdd}
-          className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wider transition-colors sm:text-xs ${
-            added
-              ? "bg-green-500 text-white"
-              : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
-          }`}
-        >
-          {added ? (
-            <>
-              <Check className="h-3 w-3" />
-              Agregado
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-3 w-3" />
-              Agregar
-            </>
-          )}
-        </button>
       </div>
     </Link>
   );
