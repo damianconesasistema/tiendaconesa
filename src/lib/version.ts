@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.13.0";
+export const APP_VERSION = "V.0.14.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.14.0",
+    date: "2026-10-06",
+    changes: [
+      "Plantilla Excel descargable para carga masiva: botón 'Descargar plantilla Excel' en Importar. Trae las columnas (código, sku, título, categoría, precio, oferta, stock, activo, destacado, descripción, memo, imagen_url) + una hoja de instrucciones y una fila de ejemplo.",
+      "Carga de fotos por carpeta (sin necesidad de subirlas a una web): nueva pantalla 'Cargar fotos por carpeta'. Elegís la carpeta de tu PC y cada foto se asigna al producto cuyo SKU o código coincida con el nombre del archivo (ej: GRI-001.jpg → SKU GRI-001). Muestra preview con matches/sin match y sube todas con barra de progreso.",
+    ],
+  },
   {
     version: "V.0.13.0",
     date: "2026-10-06",
