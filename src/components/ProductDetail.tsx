@@ -18,14 +18,7 @@ import {
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
-import {
-  transferPrice,
-  showTransferPrice,
-  TRANSFER_DISCOUNT_PCT,
-  TRANSFER_LABEL,
-} from "@/lib/pricing";
 import { useRouter } from "next/navigation";
-import { Banknote } from "lucide-react";
 
 type Product = {
   itemId: string;
@@ -37,6 +30,7 @@ type Product = {
   status: string | null;
   category: string;
   imageUrl: string | null;
+  imageIds?: string[];
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -62,13 +56,20 @@ export function ProductDetail({
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [activeImg, setActiveImg] = useState(0);
 
   const effectivePrice = product.salePrice ?? product.price;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
   const discount = hasDiscount
     ? Math.round(((product.price - product.salePrice!) / product.price) * 100)
     : 0;
-  const img = product.imageUrl || `/categories/${product.category}.jpg`;
+
+  // Galeria: si hay imagenes cargadas usamos sus ids; sino la generica.
+  const gallery =
+    product.imageIds && product.imageIds.length > 0
+      ? product.imageIds.map((id) => `/api/productos/img/${id}`)
+      : [product.imageUrl || `/categories/${product.category}.jpg`];
+  const mainImg = gallery[Math.min(activeImg, gallery.length - 1)];
 
   const handleAdd = () => {
     add(
@@ -109,23 +110,53 @@ export function ProductDetail({
         </Link>
 
         <div className="mt-6 grid gap-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[var(--border)] sm:p-8 lg:grid-cols-[1.1fr_1fr]">
-          {/* FOTO */}
-          <div className="relative aspect-square overflow-hidden rounded-xl bg-[var(--surface)]">
-            <Image
-              src={img}
-              alt={product.title}
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-              priority
-            />
-            <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-black/80 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-              {CAT_LABELS[product.category] || product.category}
-            </span>
-            {hasDiscount && (
-              <span className="absolute right-4 top-4 inline-flex items-center rounded-full bg-[var(--brand-red)] px-3 py-1.5 font-display text-xs font-black uppercase tracking-wider text-white shadow-lg">
-                -{discount}%
+          {/* FOTO + GALERIA */}
+          <div>
+            <div className="relative aspect-square overflow-hidden rounded-xl bg-[var(--surface)]">
+              <Image
+                key={mainImg}
+                src={mainImg}
+                alt={product.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+                unoptimized={mainImg.startsWith("/api/")}
+                priority
+              />
+              <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-black/80 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                {CAT_LABELS[product.category] || product.category}
               </span>
+              {hasDiscount && (
+                <span className="absolute right-4 top-4 inline-flex items-center rounded-full bg-[var(--brand-red)] px-3 py-1.5 font-display text-xs font-black uppercase tracking-wider text-white shadow-lg">
+                  -{discount}%
+                </span>
+              )}
+            </div>
+
+            {gallery.length > 1 && (
+              <div className="mt-3 grid grid-cols-5 gap-2">
+                {gallery.map((src, i) => (
+                  <button
+                    key={src}
+                    type="button"
+                    onClick={() => setActiveImg(i)}
+                    className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-colors ${
+                      i === activeImg
+                        ? "border-[var(--brand-red)]"
+                        : "border-[var(--border)] hover:border-[var(--brand-red)]/50"
+                    }`}
+                  >
+                    <Image
+                      src={src}
+                      alt={`${product.title} foto ${i + 1}`}
+                      fill
+                      sizes="80px"
+                      unoptimized={src.startsWith("/api/")}
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
@@ -163,24 +194,11 @@ export function ProductDetail({
                   Ahorrás {formatPrice(product.price - product.salePrice!)}
                 </div>
               )}
-              {showTransferPrice(effectivePrice) && (
-                <div className="mt-3 inline-flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2">
-                  <Banknote className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
-                  <div>
-                    <div className="font-display text-base font-black text-blue-800 sm:text-lg">
-                      {formatPrice(transferPrice(effectivePrice))}
-                    </div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-                      {TRANSFER_LABEL} ({TRANSFER_DISCOUNT_PCT}% off)
-                    </div>
-                  </div>
-                </div>
-              )}
               <div className="mt-2 text-sm text-[var(--muted)]">
-                3 cuotas sin interés desde{" "}
-                <strong className="text-foreground">
-                  {formatPrice(Math.round(effectivePrice / 3))}
-                </strong>
+                Precio efectivo o transferencia
+              </div>
+              <div className="mt-0.5 text-xs text-[var(--muted)]">
+                Consultanos por pago en cuotas.
               </div>
             </div>
 

@@ -6,11 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice as fmtPrice } from "@/lib/order";
-import {
-  transferPrice,
-  showTransferPrice,
-  TRANSFER_DISCOUNT_PCT,
-} from "@/lib/pricing";
 
 type Product = {
   itemId: string;
@@ -290,16 +285,8 @@ function ProductCard({ p }: { p: Product }) {
                 Ahorrás {fmtPrice(p.price - effectivePrice)}
               </span>
             )}
-            {showTransferPrice(effectivePrice) && (
-              <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-800">
-                {fmtPrice(transferPrice(effectivePrice))} transferencia
-                <span className="text-blue-500">
-                  (-{TRANSFER_DISCOUNT_PCT}%)
-                </span>
-              </span>
-            )}
             <span className="mt-1 text-[10px] uppercase tracking-wider text-[var(--muted)]">
-              3 cuotas sin interés
+              Efectivo o transferencia
             </span>
           </div>
           <button

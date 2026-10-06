@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.14.1";
+export const APP_VERSION = "V.0.15.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.15.0",
+    date: "2026-10-06",
+    changes: [
+      "Galería de fotos: cada producto puede tener hasta 10 fotos. En la ficha del admin subís varias de una, elegís la principal (estrella) y borrás las que quieras. En la tienda, el cliente ve la foto grande + miniaturas para cambiar de imagen.",
+      "La carga por carpeta y la subida individual ahora AGREGAN fotos a la galería (no reemplazan).",
+      "Se quitó el 'precio por transferencia' de toda la tienda (quedó en standby).",
+      "Se cambió '3 cuotas sin interés' por 'Efectivo o transferencia' + 'Consultanos por cuotas', hasta definir el esquema de cuotas con Payway.",
+    ],
+  },
   {
     version: "V.0.14.1",
     date: "2026-10-06",

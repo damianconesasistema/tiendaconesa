@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import {
+  MAX_PRODUCT_IMAGES,
+  type ProductImageInfo,
+} from "@/lib/product-images";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -557,70 +561,127 @@ export async function bulkAdjustPrice(
   }
 }
 
-// Upload de foto personalizada para un producto.
-// La imagen se guarda en la DB (tabla ProductImage) y se sirve por
-// GET /api/productos/[itemId]/imagen. Asi persiste en Railway sin
-// depender del filesystem (efimero / de solo lectura en runtime).
+// --- Galeria de imagenes del producto (hasta MAX por producto) ---
+// Sincroniza Product.imageUrl con la imagen principal (position mas baja).
+// El ?v invalida la cache del navegador en cada cambio.
+async function syncMainImageUrl(itemId: string, productId: string) {
+  const main = await prisma.productImage.findFirst({
+    where: { productId },
+    orderBy: { position: "asc" },
+    select: { id: true },
+  });
+  await prisma.product.update({
+    where: { itemId },
+    data: {
+      imageUrl: main
+        ? `/api/productos/${itemId}/imagen?v=${Date.now()}`
+        : null,
+    },
+  });
+}
+
+function imgContentType(type: string): string {
+  return ["image/png", "image/webp", "image/jpeg"].includes(type)
+    ? type
+    : "image/jpeg";
+}
+
+function revalidateProduct(itemId: string) {
+  revalidatePath("/admin/productos");
+  revalidatePath(`/admin/productos/${itemId}`);
+  revalidatePath("/tienda");
+  revalidatePath(`/tienda/${itemId}`);
+  revalidatePath("/");
+}
+
+// Sube una o varias imagenes a un producto. Acepta archivos bajo la clave
+// "image" (una) o "images" (varias). Las agrega al final de la galeria.
 export async function uploadProductImage(
   itemId: string,
   formData: FormData,
-): Promise<UpdateResult & { imageUrl?: string }> {
+): Promise<UpdateResult & { imageUrl?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
 
-  const file = formData.get("image");
-  if (!(file instanceof File) || file.size === 0)
-    return { error: "No se recibió ninguna imagen" };
+  const raw = [...formData.getAll("images"), ...formData.getAll("image")];
+  const files = raw.filter(
+    (f): f is File => f instanceof File && f.size > 0,
+  );
+  if (files.length === 0) return { error: "No se recibió ninguna imagen" };
 
-  if (file.size > 10 * 1024 * 1024)
-    return { error: "La imagen no puede superar 10 MB" };
-  if (!file.type.startsWith("image/"))
-    return { error: "El archivo debe ser una imagen" };
-
-  const contentType = ["image/png", "image/webp", "image/jpeg"].includes(
-    file.type,
-  )
-    ? file.type
-    : "image/jpeg";
+  for (const f of files) {
+    if (f.size > 10 * 1024 * 1024)
+      return { error: `"${f.name}" supera los 10 MB` };
+    if (!f.type.startsWith("image/"))
+      return { error: `"${f.name}" no es una imagen` };
+  }
 
   try {
-    const buf = Buffer.from(await file.arrayBuffer());
     const product = await prisma.product.findUnique({
       where: { itemId },
       select: { id: true },
     });
     if (!product) return { error: "Producto no encontrado" };
 
-    await prisma.productImage.upsert({
+    const existing = await prisma.productImage.count({
       where: { productId: product.id },
-      create: { productId: product.id, data: buf, contentType },
-      update: { data: buf, contentType },
     });
+    const room = MAX_PRODUCT_IMAGES - existing;
+    if (room <= 0)
+      return {
+        error: `El producto ya tiene el máximo de ${MAX_PRODUCT_IMAGES} fotos. Borrá alguna para agregar más.`,
+      };
 
-    // imageUrl apunta a la ruta que sirve la imagen desde la DB.
-    // El ?v invalida la cache del navegador en cada cambio.
+    const toAdd = files.slice(0, room);
+    let pos = existing;
+    for (const f of toAdd) {
+      const buf = Buffer.from(await f.arrayBuffer());
+      await prisma.productImage.create({
+        data: {
+          productId: product.id,
+          data: buf,
+          contentType: imgContentType(f.type),
+          position: pos++,
+        },
+      });
+    }
+
+    await syncMainImageUrl(itemId, product.id);
+    revalidateProduct(itemId);
+
     const imageUrl = `/api/productos/${itemId}/imagen?v=${Date.now()}`;
-    await prisma.product.update({
-      where: { itemId },
-      data: { imageUrl },
-    });
-
-    revalidatePath("/admin/productos");
-    revalidatePath(`/admin/productos/${itemId}`);
-    revalidatePath("/tienda");
-    revalidatePath(`/tienda/${itemId}`);
-    revalidatePath("/");
-
-    return { ok: true, imageUrl };
+    return { ok: true, imageUrl, count: toAdd.length };
   } catch (e) {
     return { error: `No se pudo guardar: ${(e as Error).message}` };
   }
 }
 
-export async function removeProductImage(itemId: string): Promise<UpdateResult> {
+// Lista las imagenes (solo ids + posicion) para armar la galeria en el admin.
+export async function listProductImages(
+  itemId: string,
+): Promise<{ ok: boolean; images?: ProductImageInfo[]; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { ok: false, error: "No autorizado" };
+  const product = await prisma.product.findUnique({
+    where: { itemId },
+    select: { id: true },
+  });
+  if (!product) return { ok: false, error: "Producto no encontrado" };
+  const images = await prisma.productImage.findMany({
+    where: { productId: product.id },
+    orderBy: { position: "asc" },
+    select: { id: true, position: true },
+  });
+  return { ok: true, images };
+}
+
+// Borra UNA imagen de la galeria.
+export async function deleteProductImageById(
+  imageId: string,
+  itemId: string,
+): Promise<UpdateResult> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
-
   try {
     const product = await prisma.product.findUnique({
       where: { itemId },
@@ -629,20 +690,87 @@ export async function removeProductImage(itemId: string): Promise<UpdateResult> 
     if (!product) return { error: "Producto no encontrado" };
 
     await prisma.productImage
-      .delete({ where: { productId: product.id } })
-      .catch(() => {}); // tolerante si no existe
+      .delete({ where: { id: imageId } })
+      .catch(() => {});
 
+    // Renumerar las restantes 0..n
+    const rest = await prisma.productImage.findMany({
+      where: { productId: product.id },
+      orderBy: { position: "asc" },
+      select: { id: true },
+    });
+    for (let i = 0; i < rest.length; i++) {
+      await prisma.productImage.update({
+        where: { id: rest[i].id },
+        data: { position: i },
+      });
+    }
+
+    await syncMainImageUrl(itemId, product.id);
+    revalidateProduct(itemId);
+    return { ok: true };
+  } catch (e) {
+    return { error: `No se pudo eliminar: ${(e as Error).message}` };
+  }
+}
+
+// Marca una imagen como principal (la mueve al frente de la galeria).
+export async function setMainProductImage(
+  imageId: string,
+  itemId: string,
+): Promise<UpdateResult> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  try {
+    const product = await prisma.product.findUnique({
+      where: { itemId },
+      select: { id: true },
+    });
+    if (!product) return { error: "Producto no encontrado" };
+
+    const all = await prisma.productImage.findMany({
+      where: { productId: product.id },
+      orderBy: { position: "asc" },
+      select: { id: true },
+    });
+    const reordered = [
+      imageId,
+      ...all.map((a) => a.id).filter((id) => id !== imageId),
+    ];
+    for (let i = 0; i < reordered.length; i++) {
+      await prisma.productImage.update({
+        where: { id: reordered[i] },
+        data: { position: i },
+      });
+    }
+
+    await syncMainImageUrl(itemId, product.id);
+    revalidateProduct(itemId);
+    return { ok: true };
+  } catch (e) {
+    return { error: `No se pudo actualizar: ${(e as Error).message}` };
+  }
+}
+
+// Quita TODAS las fotos del producto.
+export async function removeProductImage(itemId: string): Promise<UpdateResult> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  try {
+    const product = await prisma.product.findUnique({
+      where: { itemId },
+      select: { id: true },
+    });
+    if (!product) return { error: "Producto no encontrado" };
+
+    await prisma.productImage.deleteMany({
+      where: { productId: product.id },
+    });
     await prisma.product.update({
       where: { itemId },
       data: { imageUrl: null },
     });
-
-    revalidatePath("/admin/productos");
-    revalidatePath(`/admin/productos/${itemId}`);
-    revalidatePath("/tienda");
-    revalidatePath(`/tienda/${itemId}`);
-    revalidatePath("/");
-
+    revalidateProduct(itemId);
     return { ok: true };
   } catch (e) {
     return { error: `No se pudo eliminar: ${(e as Error).message}` };

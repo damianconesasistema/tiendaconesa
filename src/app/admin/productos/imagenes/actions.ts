@@ -83,10 +83,17 @@ export async function uploadOneImage(
     });
     if (!product) return { ok: false, error: "Producto no encontrado" };
 
-    await prisma.productImage.upsert({
+    // Agrega la imagen al final de la galeria del producto.
+    const existing = await prisma.productImage.count({
       where: { productId: product.id },
-      create: { productId: product.id, data: buf, contentType },
-      update: { data: buf, contentType },
+    });
+    await prisma.productImage.create({
+      data: {
+        productId: product.id,
+        data: buf,
+        contentType,
+        position: existing,
+      },
     });
     await prisma.product.update({
       where: { itemId },

@@ -6,11 +6,6 @@ import { useState } from "react";
 import { Package, ArrowRight, ShoppingCart, Check, Tag } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
-import {
-  transferPrice,
-  showTransferPrice,
-  TRANSFER_DISCOUNT_PCT,
-} from "@/lib/pricing";
 
 type Product = {
   itemId: string;
@@ -184,14 +179,6 @@ function FeaturedCard({ p }: { p: Product }) {
               <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700">
                 Ahorrás {formatPrice(p.price - effectivePrice)}
               </span>
-            )}
-            {showTransferPrice(effectivePrice) && (
-              <div className="mt-1 inline-flex w-fit items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
-                {formatPrice(transferPrice(effectivePrice))}{" "}
-                <span className="font-normal text-blue-600">
-                  transf. (-{TRANSFER_DISCOUNT_PCT}%)
-                </span>
-              </div>
             )}
           </div>
           <button

@@ -31,6 +31,13 @@ export default async function ProductoPage({ params }: RouteProps) {
     notFound();
   }
 
+  const galleryImages = await prisma.productImage.findMany({
+    where: { productId: product.id },
+    orderBy: { position: "asc" },
+    select: { id: true },
+  });
+  const imageIds = galleryImages.map((g) => g.id);
+
   const related = await prisma.product.findMany({
     where: {
       category: product.category,
@@ -52,6 +59,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     status: product.active ? "Activa" : "Inactiva",
     category: product.category,
     imageUrl: product.imageUrl,
+    imageIds,
   };
   const relatedCompat = related.map((p) => ({
     itemId: p.itemId,

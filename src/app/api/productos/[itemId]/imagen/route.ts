@@ -19,8 +19,9 @@ export async function GET(
     return new Response("No encontrado", { status: 404 });
   }
 
-  const image = await prisma.productImage.findUnique({
+  const image = await prisma.productImage.findFirst({
     where: { productId: product.id },
+    orderBy: { position: "asc" },
     select: { data: true, contentType: true, updatedAt: true },
   });
   if (!image) {

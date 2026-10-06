@@ -36,6 +36,12 @@ export default async function EditProductPage({ params }: RouteProps) {
     take: 30,
   });
 
+  const images = await prisma.productImage.findMany({
+    where: { productId: product.id },
+    orderBy: { position: "asc" },
+    select: { id: true, position: true },
+  });
+
   return (
     <AdminShell username={session.username} active="productos">
       <Link
@@ -56,7 +62,7 @@ export default async function EditProductPage({ params }: RouteProps) {
             <ProductImageUpload
               itemId={product.itemId}
               category={product.category}
-              currentUrl={product.imageUrl}
+              initialImages={images}
             />
           </div>
           <h3 className="mt-4 line-clamp-3 font-display text-sm font-bold leading-tight">
