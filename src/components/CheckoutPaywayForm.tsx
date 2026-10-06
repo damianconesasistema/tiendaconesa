@@ -125,9 +125,24 @@ export function CheckoutPaywayForm({
     decidir.createToken(form, async (status, response) => {
       if (status !== 200 && status !== 201) {
         setProcessing(false);
-        const msg =
-          (response?.error as { message?: string } | undefined)?.message ||
-          "No pudimos validar la tarjeta. Revisá los datos.";
+        // status 0 / 5xx / sin status => falla de red o CORS (servicio no
+        // disponible / dominio no habilitado), NO un problema de los datos.
+        const networkFail =
+          !status || status === 0 || status === 503 || status === 504;
+        if (networkFail) {
+          setError(
+            "El pago con tarjeta no está disponible en este momento. Probá de nuevo más tarde o coordiná por WhatsApp.",
+          );
+          return;
+        }
+        // 4xx con detalle de validación => sí es un problema de los datos
+        const validationErrors = (
+          response as { error?: { code?: string }[] } | undefined
+        )?.error;
+        const msg = Array.isArray(validationErrors)
+          ? "Revisá los datos de la tarjeta (número, vencimiento o código)."
+          : (response?.error as { message?: string } | undefined)?.message ||
+            "No pudimos validar la tarjeta. Revisá los datos.";
         setError(String(msg));
         return;
       }

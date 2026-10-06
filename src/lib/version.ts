@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.12.0";
+export const APP_VERSION = "V.0.12.1";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.12.1",
+    date: "2026-10-06",
+    changes: [
+      "Pago con tarjeta: mejor mensaje de error. Si la tokenización falla por red/CORS (servicio no disponible o dominio no habilitado todavía en Payway) muestra 'el pago no está disponible, probá por WhatsApp' en vez del confuso 'revisá los datos'. Verificado que el código es correcto; falta activar las credenciales reales de Payway atadas a conesa.com.ar.",
+    ],
+  },
   {
     version: "V.0.12.0",
     date: "2026-10-06",
