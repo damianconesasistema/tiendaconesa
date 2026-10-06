@@ -144,7 +144,11 @@ export default async function ProductosAdmin({
           </p>
         </div>
       ) : (
-        <ProductsTable products={products} />
+        <ProductsTable
+          products={products}
+          total={total}
+          filter={{ q, cat, filter }}
+        />
       )}
 
       {totalPages > 1 && (

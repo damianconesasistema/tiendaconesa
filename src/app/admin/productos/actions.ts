@@ -393,6 +393,59 @@ export async function bulkUpdate(
   }
 }
 
+// Acción masiva sobre TODOS los productos que coinciden con el filtro
+// actual (no solo los de la página visible). Sirve para "pausar todos".
+type ProductFilter = { q?: string; cat?: string; filter?: string };
+
+function buildProductWhere(f: ProductFilter) {
+  const where: {
+    itemId?: { not: string };
+    title?: { contains: string };
+    category?: string;
+    active?: boolean;
+    featured?: boolean;
+    stock?: { lt: number };
+    salePrice?: { not: null };
+  } = { itemId: { not: "__RESET_PRICES_MARKER__" } };
+  if (f.q) where.title = { contains: f.q };
+  if (f.cat) where.category = f.cat;
+  if (f.filter === "low-stock") {
+    where.active = true;
+    where.stock = { lt: 5 };
+  } else if (f.filter === "inactive") where.active = false;
+  else if (f.filter === "featured") where.featured = true;
+  else if (f.filter === "on-sale") where.salePrice = { not: null };
+  return where;
+}
+
+export async function bulkUpdateAll(
+  filter: ProductFilter,
+  action: BulkAction,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+
+  const data: Record<string, boolean> = {};
+  if (action === "activate") data.active = true;
+  else if (action === "pause") data.active = false;
+  else if (action === "feature") data.featured = true;
+  else if (action === "unfeature") data.featured = false;
+  else return { error: "Acción no soportada" };
+
+  try {
+    const r = await prisma.product.updateMany({
+      where: buildProductWhere(filter),
+      data,
+    });
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    revalidatePath("/");
+    return { ok: true, count: r.count };
+  } catch (e) {
+    return { error: `Error al actualizar: ${(e as Error).message}` };
+  }
+}
+
 // Stock masivo: reemplaza o suma/resta a los seleccionados.
 // mode "set" => value es el nuevo stock para todos.
 // mode "delta" => se suma value a cada stock (puede ser negativo). Nunca baja de 0.

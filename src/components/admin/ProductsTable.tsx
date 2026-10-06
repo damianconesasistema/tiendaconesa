@@ -19,6 +19,7 @@ import {
 import { InlineNumber, InlineSegmented, InlineToggle } from "@/components/admin/InlineEdit";
 import {
   bulkUpdate,
+  bulkUpdateAll,
   bulkSetStock,
   bulkAdjustPrice,
 } from "@/app/admin/productos/actions";
@@ -48,19 +49,34 @@ const CAT_LABELS: Record<string, string> = {
   otros: "Otros",
 };
 
-export function ProductsTable({ products }: { products: Product[] }) {
+export function ProductsTable({
+  products,
+  total = products.length,
+  filter,
+}: {
+  products: Product[];
+  total?: number;
+  filter?: { q?: string; cat?: string; filter?: string };
+}) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [popover, setPopover] = useState<"stock" | "price" | null>(null);
+  // Cuando true, las acciones aplican a TODOS los que coinciden con el
+  // filtro (no solo los de esta página).
+  const [allMatching, setAllMatching] = useState(false);
 
   const allSelected =
     products.length > 0 && selected.size === products.length;
   const someSelected = selected.size > 0 && !allSelected;
 
   function toggleAll() {
-    if (allSelected || selected.size > 0) setSelected(new Set());
-    else setSelected(new Set(products.map((p) => p.itemId)));
+    if (allSelected || selected.size > 0) {
+      setSelected(new Set());
+      setAllMatching(false);
+    } else {
+      setSelected(new Set(products.map((p) => p.itemId)));
+    }
   }
 
   function toggleOne(itemId: string) {
@@ -68,20 +84,26 @@ export function ProductsTable({ products }: { products: Product[] }) {
     if (next.has(itemId)) next.delete(itemId);
     else next.add(itemId);
     setSelected(next);
+    setAllMatching(false);
   }
 
   function clearSelection() {
     setSelected(new Set());
+    setAllMatching(false);
   }
 
   function bulk(action: "activate" | "pause" | "feature" | "unfeature") {
     const ids = Array.from(selected);
-    if (!ids.length) return;
+    if (!ids.length && !allMatching) return;
     startTransition(async () => {
-      const r = await bulkUpdate(ids, action);
+      const r =
+        allMatching && filter
+          ? await bulkUpdateAll(filter, action)
+          : await bulkUpdate(ids, action);
       if (r.ok) {
         setFeedback(`${r.count} productos actualizados`);
         setSelected(new Set());
+        setAllMatching(false);
         setTimeout(() => setFeedback(null), 2500);
       } else {
         setFeedback(`Error: ${r.error}`);
@@ -126,11 +148,43 @@ export function ProductsTable({ products }: { products: Product[] }) {
 
   return (
     <div className="mt-6">
+      {/* Banner "seleccionar todos los que coinciden" */}
+      {allSelected && total > products.length && (
+        <div className="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-900">
+          {allMatching ? (
+            <>
+              <strong>Los {total.toLocaleString("es-AR")} productos</strong> que
+              coinciden con el filtro están seleccionados.
+              <button
+                onClick={() => setAllMatching(false)}
+                className="font-bold text-blue-700 underline hover:text-blue-900"
+              >
+                Seleccionar solo esta página
+              </button>
+            </>
+          ) : (
+            <>
+              Seleccionaste los <strong>{products.length}</strong> de esta
+              página.
+              <button
+                onClick={() => setAllMatching(true)}
+                className="font-bold text-blue-700 underline hover:text-blue-900"
+              >
+                Seleccionar los {total.toLocaleString("es-AR")} que coinciden
+                con el filtro
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Barra de acciones bulk sticky */}
       {selected.size > 0 && (
         <div className="sticky top-32 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--brand-red)]/40 bg-[var(--brand-red)]/10 px-4 py-3 shadow-lg backdrop-blur">
           <span className="font-display text-sm font-bold text-[var(--brand-red)]">
-            {selected.size} seleccionado{selected.size === 1 ? "" : "s"}
+            {allMatching
+              ? `${total.toLocaleString("es-AR")} (todos)`
+              : `${selected.size} seleccionado${selected.size === 1 ? "" : "s"}`}
           </span>
           <div className="h-5 w-px bg-[var(--brand-red)]/30" />
           <BulkBtn onClick={() => bulk("activate")} disabled={pending} color="green">

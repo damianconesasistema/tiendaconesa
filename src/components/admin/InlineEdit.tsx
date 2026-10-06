@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import { Check, Loader2, X } from "lucide-react";
 import { quickUpdate } from "@/app/admin/productos/actions";
 
@@ -33,6 +33,17 @@ export function InlineNumber({
   const [, startTransition] = useTransition();
 
   const dirty = value !== savedInitial;
+
+  // Si el server manda un nuevo valor (ej. tras una acción masiva o
+  // recarga de datos), sincronizamos — PERO solo si el usuario no está
+  // editando este campo, para no pisarle lo que escribió.
+  useEffect(() => {
+    if (!dirty) {
+      setValue(initialStr);
+      setSavedInitial(initialStr);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStr]);
   // Para price/stock no permitimos vacio: no se puede aplicar si quedo vacio
   const canApply = dirty && (allowNull || value !== "");
 
@@ -168,9 +179,17 @@ export function InlineToggle({
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [, startTransition] = useTransition();
 
+  // Sincronizar con el server cuando llega un valor nuevo (acción masiva,
+  // recarga), salvo que haya un guardado en curso.
+  const savingRef = useRef(false);
+  useEffect(() => {
+    if (!savingRef.current) setValue(initial);
+  }, [initial]);
+
   function toggle() {
     const next = !value;
     setValue(next);
+    savingRef.current = true;
     startTransition(async () => {
       setStatus("saving");
       const r = await quickUpdate(itemId, field, next);
@@ -181,6 +200,7 @@ export function InlineToggle({
         setValue(!next); // revertir
         setStatus("idle");
       }
+      savingRef.current = false;
     });
   }
 
@@ -221,15 +241,24 @@ export function InlineSegmented({
   const [status, setStatus] = useState<"idle" | "saving">("idle");
   const [, startTransition] = useTransition();
 
+  // Sincronizar con el server cuando llega un valor nuevo (acción masiva,
+  // recarga), salvo que haya un guardado en curso.
+  const savingRef = useRef(false);
+  useEffect(() => {
+    if (!savingRef.current) setValue(initial);
+  }, [initial]);
+
   function set(next: boolean) {
     if (next === value) return;
     const prev = value;
     setValue(next);
+    savingRef.current = true;
     startTransition(async () => {
       setStatus("saving");
       const r = await quickUpdate(itemId, field, next);
       if (!r.ok) setValue(prev);
       setStatus("idle");
+      savingRef.current = false;
     });
   }
 
