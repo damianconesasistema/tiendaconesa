@@ -1,7 +1,18 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Phone, Mail, User, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Mail,
+  User,
+  FileText,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  Clock,
+} from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
@@ -159,6 +170,60 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             )}
           </section>
 
+          {/* Pago */}
+          <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+            <h2 className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+              Pago
+            </h2>
+            <div className="mt-3 space-y-2 text-sm">
+              <InfoRow icon={CreditCard}>
+                {order.paymentMethod === "tarjeta"
+                  ? "Tarjeta (Payway)"
+                  : order.paymentMethod === "efectivo_local"
+                    ? "Efectivo en el local"
+                    : "Transferencia / a coordinar"}
+              </InfoRow>
+
+              {order.paymentMethod === "tarjeta" ? (
+                <>
+                  <PayStatusBadge status={order.paywayStatus} />
+                  {order.paywayCardBrand && order.paywayCardLast4 && (
+                    <div className="text-[var(--muted)]">
+                      {order.paywayCardBrand.toUpperCase()} ····{" "}
+                      {order.paywayCardLast4}
+                      {order.paywayCardInstallments &&
+                      order.paywayCardInstallments > 1
+                        ? ` · ${order.paywayCardInstallments} cuotas`
+                        : ""}
+                    </div>
+                  )}
+                  {order.paywayPaymentId && (
+                    <div className="text-xs text-[var(--muted)]">
+                      ID Payway: {order.paywayPaymentId}
+                    </div>
+                  )}
+                  {order.paywayAuthCode && (
+                    <div className="text-xs text-[var(--muted)]">
+                      Cód. autorización: {order.paywayAuthCode}
+                    </div>
+                  )}
+                  {order.paywayStatus !== "approved" &&
+                    order.paywayErrorMessage && (
+                      <div className="text-xs text-red-600">
+                        {order.paywayErrorMessage}
+                      </div>
+                    )}
+                </>
+              ) : (
+                <div className="text-[var(--muted)]">
+                  {order.paidAt
+                    ? `Pago confirmado el ${order.paidAt.toLocaleDateString("es-AR")}`
+                    : "Pago pendiente de confirmación manual."}
+                </div>
+              )}
+            </div>
+          </section>
+
           {order.notes && (
             <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
               <h2 className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
@@ -170,6 +235,38 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
         </aside>
       </div>
     </AdminShell>
+  );
+}
+
+function PayStatusBadge({ status }: { status: string | null }) {
+  if (status === "approved") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold text-green-800">
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        Aprobado
+      </span>
+    );
+  }
+  if (status === "rejected") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-800">
+        <XCircle className="h-3.5 w-3.5" />
+        Rechazado
+      </span>
+    );
+  }
+  if (status === "pending") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
+        <Clock className="h-3.5 w-3.5" />
+        Pendiente
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-700">
+      Sin procesar
+    </span>
   );
 }
 

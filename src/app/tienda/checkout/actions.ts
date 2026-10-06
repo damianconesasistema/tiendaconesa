@@ -8,9 +8,12 @@ type Result =
   | { ok: true; orderId: string; orderNumber: number }
   | { ok: false; error: string };
 
+type PaymentMethod = "whatsapp" | "tarjeta";
+
 export async function createOrder(
   items: CartItem[],
   customer: Customer,
+  paymentMethod: PaymentMethod = "whatsapp",
 ): Promise<Result> {
   if (items.length === 0) return { ok: false, error: "El carrito está vacío" };
   if (!customer.firstName || !customer.lastName || !customer.email || !customer.phone)
@@ -55,6 +58,7 @@ export async function createOrder(
         streetNumber: customer.shipping === "envio" ? customer.streetNumber : null,
         reference: customer.reference || null,
         notes: customer.notes || null,
+        paymentMethod: paymentMethod === "tarjeta" ? "tarjeta" : "whatsapp",
         subtotal,
         shippingCost,
         total,

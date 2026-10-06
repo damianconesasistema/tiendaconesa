@@ -10,6 +10,7 @@ import {
   Check,
   AlertCircle,
   MessageCircle,
+  CreditCard,
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
@@ -32,6 +33,9 @@ export function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [payMethod, setPayMethod] = useState<"whatsapp" | "tarjeta">(
+    "whatsapp",
+  );
 
   useEffect(() => {
     if (hydrated && items.length === 0 && !sent) {
@@ -72,12 +76,22 @@ export function CheckoutPage() {
       return;
     }
     setSubmitting(true);
-    const result = await createOrder(items, customer);
-    setSubmitting(false);
+    const result = await createOrder(items, customer, payMethod);
     if (!result.ok) {
+      setSubmitting(false);
       setServerError(result.error);
       return;
     }
+
+    // Camino tarjeta: vamos a la pantalla de pago con Payway.
+    // No limpiamos el carrito todavia (por si el pago falla y hay que reintentar).
+    if (payMethod === "tarjeta") {
+      router.push(`/tienda/checkout/pago?orden=${result.orderNumber}`);
+      return;
+    }
+
+    // Camino WhatsApp (default): abrimos el chat con el pedido cargado.
+    setSubmitting(false);
     const msg = buildOrderMessage(items, customer, result.orderNumber);
     const url = whatsappOrderLink(msg, business.whatsapp.number);
     setOrderNumber(result.orderNumber);
@@ -296,6 +310,31 @@ export function CheckoutPage() {
                 className="mt-3 w-full resize-none rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-[var(--brand-red)] focus:ring-2 focus:ring-[var(--brand-red)]/20"
               />
             </section>
+
+            {/* METODO DE PAGO */}
+            <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[var(--border)]">
+              <h2 className="font-display text-lg font-black uppercase tracking-tight">
+                4. Método de pago
+              </h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <PayOption
+                  active={payMethod === "whatsapp"}
+                  onClick={() => setPayMethod("whatsapp")}
+                  icon={MessageCircle}
+                  title="Coordinar por WhatsApp"
+                  desc="Transferencia o efectivo. Confirmás con nosotros."
+                  badge="Sin recargo"
+                />
+                <PayOption
+                  active={payMethod === "tarjeta"}
+                  onClick={() => setPayMethod("tarjeta")}
+                  icon={CreditCard}
+                  title="Pagar con tarjeta"
+                  desc="Crédito o débito, hasta en cuotas. Al instante."
+                  badge="Online"
+                />
+              </div>
+            </section>
           </div>
 
           {/* RESUMEN */}
@@ -360,17 +399,29 @@ export function CheckoutPage() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-4 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <WhatsAppIcon className="h-5 w-5" />
-                {submitting ? "Enviando pedido…" : "Confirmar por WhatsApp"}
-              </button>
+              {payMethod === "tarjeta" ? (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-red)] px-6 py-4 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <CreditCard className="h-5 w-5" />
+                  {submitting ? "Preparando pago…" : "Pagar con tarjeta"}
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-4 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <WhatsAppIcon className="h-5 w-5" />
+                  {submitting ? "Enviando pedido…" : "Confirmar por WhatsApp"}
+                </button>
+              )}
               <p className="mt-3 text-balance text-center text-xs text-[var(--muted)]">
-                Te abrimos WhatsApp con el pedido ya cargado para coordinar
-                pago y entrega.
+                {payMethod === "tarjeta"
+                  ? "Vas a pasar a una pantalla segura para ingresar los datos de tu tarjeta."
+                  : "Te abrimos WhatsApp con el pedido ya cargado para coordinar pago y entrega."}
               </p>
             </div>
 
@@ -478,3 +529,6 @@ function ShippingOption({
     </button>
   );
 }
+
+// Mismo diseño que ShippingOption, usado para el selector de método de pago.
+const PayOption = ShippingOption;
