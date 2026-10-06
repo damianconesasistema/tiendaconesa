@@ -141,7 +141,7 @@ export function ProductImageUpload({
   return (
     <div>
       {/* Imagen principal (grande) */}
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-[var(--surface)]">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-white">
         {mainId ? (
           <Image
             key={`${mainId}-${bust}`}
@@ -150,7 +150,7 @@ export function ProductImageUpload({
             fill
             sizes="400px"
             unoptimized
-            className="object-cover"
+            className="object-contain p-3"
           />
         ) : (
           <Image
@@ -219,7 +219,7 @@ export function ProductImageUpload({
                 fill
                 sizes="80px"
                 unoptimized
-                className="object-cover"
+                className="bg-white object-contain"
               />
               {i === 0 && (
                 <span className="absolute left-0.5 top-0.5 z-10 inline-flex items-center rounded bg-[var(--brand-red)] px-1 py-0.5 text-[8px] font-black uppercase text-white">

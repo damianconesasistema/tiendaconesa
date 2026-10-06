@@ -227,7 +227,7 @@ function ProductCard({ p }: { p: Product }) {
       }`}
     >
       {/* Foto o placeholder */}
-      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white">
         {!imgError ? (
           <Image
             src={photoPath}
@@ -235,7 +235,8 @@ function ProductCard({ p }: { p: Product }) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             onError={() => setImgError(true)}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized={photoPath.startsWith("/api/")}
+            className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <Package

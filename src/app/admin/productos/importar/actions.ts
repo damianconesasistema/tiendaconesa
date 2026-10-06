@@ -24,6 +24,8 @@ export type ParsedRow = {
   __rowNumber: number;
   __errors: string[];
   __exists: boolean; // ya está en DB
+  __hasActive: boolean; // la fila traía explícito el campo "activo"
+  __hasFeatured: boolean; // la fila traía explícito el campo "destacado"
 };
 
 export type ParseResult = {
@@ -245,11 +247,16 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
       const stock = stockRaw !== null ? Math.max(0, Math.floor(stockRaw)) : 0;
 
       const category = normalizeCategory(parsed.category);
-      const active =
-        parsed.active === undefined || parsed.active === null
-          ? true
-          : toBool(parsed.active);
-      const featured = toBool(parsed.featured);
+      const hasActive =
+        parsed.active !== undefined &&
+        parsed.active !== null &&
+        String(parsed.active).trim() !== "";
+      const hasFeatured =
+        parsed.featured !== undefined &&
+        parsed.featured !== null &&
+        String(parsed.featured).trim() !== "";
+      const active = hasActive ? toBool(parsed.active) : true;
+      const featured = hasFeatured ? toBool(parsed.featured) : false;
       const description = parsed.description
         ? String(parsed.description).trim()
         : null;
@@ -275,6 +282,8 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
         __rowNumber: i + 2, // +2 porque Excel es 1-indexed y hay header
         __errors: errors,
         __exists: false,
+        __hasActive: hasActive,
+        __hasFeatured: hasFeatured,
       });
     }
 
@@ -372,8 +381,10 @@ export async function importExcel(
         }
       }
 
-      const data = {
+      // Al CREAR: usamos los valores (con defaults).
+      const createData = {
         itemId: row.itemId,
+        sku: row.sku,
         title: row.title,
         category: row.category,
         price: Math.round(row.price),
@@ -382,13 +393,30 @@ export async function importExcel(
         active: row.active,
         featured: row.featured,
         description: row.description,
+        memo: row.memo,
+        ...(finalImageUrl ? { imageUrl: finalImageUrl } : {}),
+      };
+
+      // Al ACTUALIZAR: NO tocamos active/featured si el Excel no traía
+      // esas columnas (para no re-activar productos pausados sin querer).
+      const updateData: Record<string, unknown> = {
+        title: row.title,
+        category: row.category,
+        price: Math.round(row.price),
+        salePrice: row.salePrice,
+        stock: row.stock,
+        description: row.description,
+        ...(row.sku !== null ? { sku: row.sku } : {}),
+        ...(row.memo !== null ? { memo: row.memo } : {}),
+        ...(row.__hasActive ? { active: row.active } : {}),
+        ...(row.__hasFeatured ? { featured: row.featured } : {}),
         ...(finalImageUrl ? { imageUrl: finalImageUrl } : {}),
       };
 
       const result = await prisma.product.upsert({
         where: { itemId: row.itemId },
-        create: data,
-        update: data,
+        create: createData,
+        update: updateData,
       });
       // En updates `createdAt === updatedAt` ya no es cierto, uso otra heurística:
       // chequeo si existía

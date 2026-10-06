@@ -14,6 +14,8 @@ import {
   Check,
   Minus,
   Plus,
+  ZoomIn,
+  X,
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
@@ -57,6 +59,7 @@ export function ProductDetail({
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
+  const [zoom, setZoom] = useState(false);
 
   const effectivePrice = product.salePrice ?? product.price;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
@@ -112,17 +115,24 @@ export function ProductDetail({
         <div className="mt-6 grid gap-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[var(--border)] sm:p-8 lg:grid-cols-[1.1fr_1fr]">
           {/* FOTO + GALERIA */}
           <div>
-            <div className="relative aspect-square overflow-hidden rounded-xl bg-[var(--surface)]">
+            <div
+              onClick={() => setZoom(true)}
+              className="relative aspect-square cursor-zoom-in overflow-hidden rounded-xl bg-white"
+            >
               <Image
                 key={mainImg}
                 src={mainImg}
                 alt={product.title}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
+                className="object-contain p-3"
                 unoptimized={mainImg.startsWith("/api/")}
                 priority
               />
+              <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+                <ZoomIn className="h-3.5 w-3.5" />
+                Ampliar
+              </span>
               <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-black/80 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
                 {CAT_LABELS[product.category] || product.category}
               </span>
@@ -152,7 +162,7 @@ export function ProductDetail({
                       fill
                       sizes="80px"
                       unoptimized={src.startsWith("/api/")}
-                      className="object-cover"
+                      className="bg-white object-contain p-0.5"
                     />
                   </button>
                 ))}
@@ -326,6 +336,54 @@ export function ProductDetail({
           </section>
         )}
       </div>
+
+      {/* LIGHTBOX / ZOOM */}
+      {zoom && (
+        <div
+          onClick={() => setZoom(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+        >
+          <button
+            type="button"
+            onClick={() => setZoom(false)}
+            aria-label="Cerrar"
+            className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div
+            className="relative h-full max-h-[85vh] w-full max-w-4xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={mainImg}
+              alt={product.title}
+              fill
+              sizes="90vw"
+              className="object-contain"
+              unoptimized={mainImg.startsWith("/api/")}
+            />
+          </div>
+          {gallery.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+              {gallery.map((src, i) => (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImg(i);
+                  }}
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    i === activeImg ? "bg-white" : "bg-white/40"
+                  }`}
+                  aria-label={`Foto ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </main>
   );
 }
@@ -359,13 +417,14 @@ function RelatedCard({ p }: { p: Product }) {
       href={`/tienda/${p.itemId}`}
       className="group block overflow-hidden rounded-xl bg-white ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
-      <div className="relative aspect-square bg-[var(--surface)]">
+      <div className="relative aspect-square bg-white">
         <Image
           src={p.imageUrl || `/categories/${p.category}.jpg`}
           alt={p.title}
           fill
           sizes="(max-width: 640px) 50vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          unoptimized={!!p.imageUrl && p.imageUrl.startsWith("/api/")}
+          className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
         />
       </div>
       <div className="p-3">

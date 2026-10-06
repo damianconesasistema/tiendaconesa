@@ -149,12 +149,15 @@ export function ProductsTable({
   return (
     <div className="mt-6">
       {/* Banner "seleccionar todos los que coinciden" */}
-      {allSelected && total > products.length && (
+      {total > products.length && (selected.size > 0 || allMatching) && (
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-900">
           {allMatching ? (
             <>
-              <strong>Los {total.toLocaleString("es-AR")} productos</strong> que
-              coinciden con el filtro están seleccionados.
+              <strong>
+                Los {total.toLocaleString("es-AR")} productos
+              </strong>{" "}
+              que coinciden con el filtro están seleccionados — la acción se
+              aplica a TODOS.
               <button
                 onClick={() => setAllMatching(false)}
                 className="font-bold text-blue-700 underline hover:text-blue-900"
@@ -164,14 +167,16 @@ export function ProductsTable({
             </>
           ) : (
             <>
-              Seleccionaste los <strong>{products.length}</strong> de esta
-              página.
+              ¿Querés pausar/activar <strong>todos</strong>?
               <button
-                onClick={() => setAllMatching(true)}
-                className="font-bold text-blue-700 underline hover:text-blue-900"
+                onClick={() => {
+                  setAllMatching(true);
+                  // marcamos visualmente la página también
+                  setSelected(new Set(products.map((p) => p.itemId)));
+                }}
+                className="rounded-full bg-blue-600 px-3 py-1 font-bold text-white hover:bg-blue-700"
               >
-                Seleccionar los {total.toLocaleString("es-AR")} que coinciden
-                con el filtro
+                Seleccionar los {total.toLocaleString("es-AR")} productos
               </button>
             </>
           )}
@@ -179,11 +184,11 @@ export function ProductsTable({
       )}
 
       {/* Barra de acciones bulk sticky */}
-      {selected.size > 0 && (
+      {(selected.size > 0 || allMatching) && (
         <div className="sticky top-32 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--brand-red)]/40 bg-[var(--brand-red)]/10 px-4 py-3 shadow-lg backdrop-blur">
           <span className="font-display text-sm font-bold text-[var(--brand-red)]">
             {allMatching
-              ? `${total.toLocaleString("es-AR")} (todos)`
+              ? `${total.toLocaleString("es-AR")} (TODOS)`
               : `${selected.size} seleccionado${selected.size === 1 ? "" : "s"}`}
           </span>
           <div className="h-5 w-px bg-[var(--brand-red)]/30" />
@@ -304,13 +309,16 @@ export function ProductsTable({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-[var(--surface)]">
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-white">
                         <Image
                           src={p.imageUrl || `/categories/${p.category}.jpg`}
                           alt=""
                           fill
                           sizes="40px"
-                          className="object-cover"
+                          unoptimized={
+                            !!p.imageUrl && p.imageUrl.startsWith("/api/")
+                          }
+                          className="object-contain"
                         />
                       </div>
                       <div className="min-w-0">

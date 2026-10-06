@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.15.1";
+export const APP_VERSION = "V.0.16.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,19 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.16.0",
+    date: "2026-10-06",
+    changes: [
+      "Fotos no se cortan más: se muestran completas (object-contain) sobre fondo blanco en ficha, catálogo, home y panel.",
+      "Fix: la foto subida ahora SÍ aparece en el catálogo y la home (antes el optimizador de Next fallaba con la ruta de la imagen).",
+      "Fotos más nítidas: al subirlas se auto-rotan, redimensionan a máx 1400px y recomprimen a buena calidad (menos pixelado, menos peso).",
+      "Zoom: en la ficha del producto se puede hacer clic en la foto para ampliarla a pantalla completa.",
+      "Pausar/activar TODOS: el botón 'Seleccionar los N productos' ahora aparece siempre que haya más resultados que la página, aunque no estén todos tildados.",
+      "El panel de productos siempre muestra el estado real (sin caché) de activo/pausado.",
+      "Importar Excel ya no re-activa productos pausados si el archivo no trae la columna 'activo'.",
+    ],
+  },
   {
     version: "V.0.15.1",
     date: "2026-10-06",

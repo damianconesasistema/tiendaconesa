@@ -126,7 +126,7 @@ function FeaturedCard({ p }: { p: Product }) {
           : "border-[var(--border)]"
       }`}
     >
-      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[var(--surface)]">
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white">
         {!imgError ? (
           <Image
             src={photoPath}
@@ -134,7 +134,8 @@ function FeaturedCard({ p }: { p: Product }) {
             fill
             sizes="(max-width: 640px) 50vw, 25vw"
             onError={() => setImgError(true)}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized={photoPath.startsWith("/api/")}
+            className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <Package

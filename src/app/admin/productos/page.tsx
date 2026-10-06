@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Siempre fresco: el admin debe reflejar el estado real de la DB
+// (nada de caché que muestre estados viejos de activo/pausado).
+export const dynamic = "force-dynamic";
+
 type SearchParams = Promise<{
   q?: string;
   cat?: string;

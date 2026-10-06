@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import { processProductImage } from "@/lib/image-processing";
 
 export type ImageMatch = {
   key: string; // nombre de archivo sin extension (normalizado)
@@ -69,14 +70,9 @@ export async function uploadOneImage(
   if (!file.type.startsWith("image/"))
     return { ok: false, error: "No es imagen" };
 
-  const contentType = ["image/png", "image/webp", "image/jpeg"].includes(
-    file.type,
-  )
-    ? file.type
-    : "image/jpeg";
-
   try {
-    const buf = Buffer.from(await file.arrayBuffer());
+    const raw = Buffer.from(await file.arrayBuffer());
+    const processed = await processProductImage(raw);
     const product = await prisma.product.findUnique({
       where: { itemId },
       select: { id: true },
@@ -90,8 +86,8 @@ export async function uploadOneImage(
     await prisma.productImage.create({
       data: {
         productId: product.id,
-        data: buf,
-        contentType,
+        data: processed.data,
+        contentType: processed.contentType,
         position: existing,
       },
     });

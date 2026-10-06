@@ -7,6 +7,7 @@ import {
   MAX_PRODUCT_IMAGES,
   type ProductImageInfo,
 } from "@/lib/product-images";
+import { processProductImage } from "@/lib/image-processing";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -580,12 +581,6 @@ async function syncMainImageUrl(itemId: string, productId: string) {
   });
 }
 
-function imgContentType(type: string): string {
-  return ["image/png", "image/webp", "image/jpeg"].includes(type)
-    ? type
-    : "image/jpeg";
-}
-
 function revalidateProduct(itemId: string) {
   revalidatePath("/admin/productos");
   revalidatePath(`/admin/productos/${itemId}`);
@@ -635,12 +630,13 @@ export async function uploadProductImage(
     const toAdd = files.slice(0, room);
     let pos = existing;
     for (const f of toAdd) {
-      const buf = Buffer.from(await f.arrayBuffer());
+      const raw = Buffer.from(await f.arrayBuffer());
+      const { data, contentType } = await processProductImage(raw);
       await prisma.productImage.create({
         data: {
           productId: product.id,
-          data: buf,
-          contentType: imgContentType(f.type),
+          data,
+          contentType,
           position: pos++,
         },
       });
