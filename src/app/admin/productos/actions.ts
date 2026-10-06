@@ -1,12 +1,119 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { writeFile, mkdir, unlink } from "node:fs/promises";
-import path from "node:path";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 
 type UpdateResult = { ok?: true; error?: string };
+
+// Crear un producto manualmente desde el panel.
+// Devuelve el itemId generado para poder redirigir a la ficha (y subir foto).
+const VALID_CATEGORIES_CREATE = new Set([
+  "sanitarios",
+  "griferia",
+  "banera",
+  "accesorios",
+  "salamandras",
+  "calefones",
+  "materiales",
+  "piletas",
+  "otros",
+]);
+
+export async function createProduct(
+  prevState: unknown,
+  formData: FormData,
+): Promise<{ ok?: true; itemId?: string; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+
+  const title = String(formData.get("title") || "").trim();
+  if (!title) return { error: "El título es obligatorio" };
+
+  let category = String(formData.get("category") || "otros").trim();
+  if (!VALID_CATEGORIES_CREATE.has(category)) category = "otros";
+
+  const description =
+    String(formData.get("description") || "").trim() || null;
+  const memoRaw = formData.get("memo");
+  const memo =
+    memoRaw != null && String(memoRaw).trim() !== ""
+      ? String(memoRaw).trim()
+      : null;
+  const skuRaw = formData.get("sku");
+  const sku =
+    skuRaw != null && String(skuRaw).trim() !== ""
+      ? String(skuRaw).trim()
+      : null;
+
+  const priceRaw = Number(formData.get("price") || 0);
+  if (!Number.isFinite(priceRaw) || priceRaw < 0)
+    return { error: "Precio inválido" };
+  const price = Math.round(priceRaw);
+
+  const salePriceRaw = formData.get("salePrice");
+  const salePrice =
+    salePriceRaw && String(salePriceRaw).trim() !== ""
+      ? Math.round(Number(salePriceRaw))
+      : null;
+  if (salePrice !== null && (!Number.isFinite(salePrice) || salePrice < 0))
+    return { error: "Precio de oferta inválido" };
+  if (salePrice !== null && salePrice >= price)
+    return { error: "El precio de oferta debe ser menor al precio base" };
+
+  const stock = Math.max(0, Math.floor(Number(formData.get("stock") || 0)));
+  const active = formData.get("active") === "on";
+  const featured = formData.get("featured") === "on";
+
+  // itemId unico para productos cargados a mano
+  const itemId = `MAN-${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 6)}`.toUpperCase();
+
+  try {
+    await prisma.product.create({
+      data: {
+        itemId,
+        sku,
+        title,
+        category,
+        description,
+        price,
+        salePrice,
+        stock,
+        active,
+        featured,
+        memo,
+      },
+    });
+    // Primer registro en el historial de precios
+    await prisma.priceHistory.create({
+      data: {
+        productId: (
+          await prisma.product.findUniqueOrThrow({
+            where: { itemId },
+            select: { id: true },
+          })
+        ).id,
+        price,
+        salePrice,
+        note: "Alta manual",
+        source: "manual",
+      },
+    });
+  } catch (e) {
+    const msg = (e as Error).message;
+    if (msg.includes("Unique constraint") && msg.includes("sku"))
+      return { error: "Ese SKU ya está en uso en otro producto" };
+    return { error: `Error al crear: ${msg}` };
+  }
+
+  revalidatePath("/admin/productos");
+  revalidatePath("/tienda");
+  revalidatePath("/");
+
+  return { ok: true, itemId };
+}
 
 // Loguea un cambio en el historial de precios de un producto.
 // Se llama internamente desde updateProduct / quickUpdate cuando cambia price o salePrice.
@@ -398,9 +505,9 @@ export async function bulkAdjustPrice(
 }
 
 // Upload de foto personalizada para un producto.
-// Guarda el archivo en /public/products/{itemId}.jpg y setea imageUrl.
-// NOTA: Para persistencia en Railway hace falta un Volume mounted en
-// /app/public/products (sino se pierde al redeploy).
+// La imagen se guarda en la DB (tabla ProductImage) y se sirve por
+// GET /api/productos/[itemId]/imagen. Asi persiste en Railway sin
+// depender del filesystem (efimero / de solo lectura en runtime).
 export async function uploadProductImage(
   itemId: string,
   formData: FormData,
@@ -412,27 +519,34 @@ export async function uploadProductImage(
   if (!(file instanceof File) || file.size === 0)
     return { error: "No se recibió ninguna imagen" };
 
-  if (file.size > 8 * 1024 * 1024)
-    return { error: "La imagen no puede superar 8 MB" };
+  if (file.size > 10 * 1024 * 1024)
+    return { error: "La imagen no puede superar 10 MB" };
   if (!file.type.startsWith("image/"))
     return { error: "El archivo debe ser una imagen" };
 
-  const buf = Buffer.from(await file.arrayBuffer());
-  const ext =
-    file.type === "image/png"
-      ? "png"
-      : file.type === "image/webp"
-        ? "webp"
-        : "jpg";
-  const relPath = `/products/${itemId}.${ext}`;
-  const absDir = path.join(process.cwd(), "public", "products");
-  const absPath = path.join(absDir, `${itemId}.${ext}`);
+  const contentType = ["image/png", "image/webp", "image/jpeg"].includes(
+    file.type,
+  )
+    ? file.type
+    : "image/jpeg";
 
   try {
-    await mkdir(absDir, { recursive: true });
-    await writeFile(absPath, buf);
-    // Timestamp para invalidar cache del navegador
-    const imageUrl = `${relPath}?v=${Date.now()}`;
+    const buf = Buffer.from(await file.arrayBuffer());
+    const product = await prisma.product.findUnique({
+      where: { itemId },
+      select: { id: true },
+    });
+    if (!product) return { error: "Producto no encontrado" };
+
+    await prisma.productImage.upsert({
+      where: { productId: product.id },
+      create: { productId: product.id, data: buf, contentType },
+      update: { data: buf, contentType },
+    });
+
+    // imageUrl apunta a la ruta que sirve la imagen desde la DB.
+    // El ?v invalida la cache del navegador en cada cambio.
+    const imageUrl = `/api/productos/${itemId}/imagen?v=${Date.now()}`;
     await prisma.product.update({
       where: { itemId },
       data: { imageUrl },
@@ -457,16 +571,14 @@ export async function removeProductImage(itemId: string): Promise<UpdateResult> 
   try {
     const product = await prisma.product.findUnique({
       where: { itemId },
-      select: { imageUrl: true },
+      select: { id: true },
     });
-    if (product?.imageUrl) {
-      // intentar borrar archivo (tolerante si no existe)
-      const rel = product.imageUrl.split("?")[0];
-      const abs = path.join(process.cwd(), "public", rel);
-      try {
-        await unlink(abs);
-      } catch {}
-    }
+    if (!product) return { error: "Producto no encontrado" };
+
+    await prisma.productImage
+      .delete({ where: { productId: product.id } })
+      .catch(() => {}); // tolerante si no existe
+
     await prisma.product.update({
       where: { itemId },
       data: { imageUrl: null },

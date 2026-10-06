@@ -36,6 +36,7 @@ type Product = {
   condition: string | null;
   status: string | null;
   category: string;
+  imageUrl: string | null;
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -67,7 +68,7 @@ export function ProductDetail({
   const discount = hasDiscount
     ? Math.round(((product.price - product.salePrice!) / product.price) * 100)
     : 0;
-  const img = `/categories/${product.category}.jpg`;
+  const img = product.imageUrl || `/categories/${product.category}.jpg`;
 
   const handleAdd = () => {
     add(
@@ -342,7 +343,7 @@ function RelatedCard({ p }: { p: Product }) {
     >
       <div className="relative aspect-square bg-[var(--surface)]">
         <Image
-          src={`/categories/${p.category}.jpg`}
+          src={p.imageUrl || `/categories/${p.category}.jpg`}
           alt={p.title}
           fill
           sizes="(max-width: 640px) 50vw, 25vw"

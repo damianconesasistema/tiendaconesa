@@ -51,6 +51,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     condition: "Nuevo" as string | null,
     status: product.active ? "Activa" : "Inactiva",
     category: product.category,
+    imageUrl: product.imageUrl,
   };
   const relatedCompat = related.map((p) => ({
     itemId: p.itemId,
@@ -61,6 +62,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     condition: "Nuevo" as string | null,
     status: p.active ? "Activa" : "Inactiva",
     category: p.category,
+    imageUrl: p.imageUrl,
   }));
 
   return <ProductDetail product={compat} related={relatedCompat} />;

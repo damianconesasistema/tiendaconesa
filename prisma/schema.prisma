@@ -29,10 +29,23 @@ model Product {
   updatedAt     DateTime @updatedAt
   orderItems    OrderItem[]
   priceHistory  PriceHistory[]
+  image         ProductImage?
 
   @@index([category])
   @@index([active])
   @@index([featured])
+}
+
+// Imagen del producto guardada en la DB (bytes). Se sirve por
+// GET /api/productos/[itemId]/imagen. Evita depender del filesystem
+// de Railway (efimero / de solo lectura en runtime).
+model ProductImage {
+  id          String   @id @default(cuid())
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String   @unique
+  data        Bytes    // contenido binario de la imagen
+  contentType String   // image/jpeg, image/png, image/webp
+  updatedAt   DateTime @updatedAt
 }
 
 // Historial de precios: se registra cada vez que cambia price o salePrice.

@@ -47,6 +47,7 @@ export default async function Catalogo({
       salePrice: true,
       stock: true,
       category: true,
+      imageUrl: true,
     },
   });
 

@@ -22,6 +22,7 @@ type Product = {
   status: string | null;
   category: string;
   mlUrl: string;
+  imageUrl: string | null;
 };
 
 type Category = {
@@ -201,7 +202,7 @@ function ProductCard({ p }: { p: Product }) {
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
   const { add } = useCart();
-  const photoPath = `/categories/${p.category}.jpg`;
+  const photoPath = p.imageUrl || `/categories/${p.category}.jpg`;
   const effectivePrice = p.salePrice ?? p.price;
   const hasDiscount = p.salePrice !== null && p.salePrice < p.price;
   const discount = hasDiscount

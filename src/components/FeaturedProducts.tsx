@@ -18,6 +18,7 @@ type Product = {
   price: number;
   salePrice: number | null;
   category: string;
+  imageUrl: string | null;
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -101,7 +102,7 @@ function FeaturedCard({ p }: { p: Product }) {
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
   const { add } = useCart();
-  const photoPath = `/categories/${p.category}.jpg`;
+  const photoPath = p.imageUrl || `/categories/${p.category}.jpg`;
   const effectivePrice = p.salePrice ?? p.price;
   const hasSale = p.salePrice !== null && p.salePrice < p.price;
   const discount = hasSale
