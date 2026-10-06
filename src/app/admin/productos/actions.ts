@@ -714,6 +714,45 @@ export async function deleteProductImageById(
   }
 }
 
+// Reordena toda la galeria segun el orden de ids recibido.
+export async function reorderProductImages(
+  itemId: string,
+  orderedIds: string[],
+): Promise<UpdateResult> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  try {
+    const product = await prisma.product.findUnique({
+      where: { itemId },
+      select: { id: true },
+    });
+    if (!product) return { error: "Producto no encontrado" };
+
+    // Solo reordenamos ids que realmente pertenecen al producto
+    const owned = await prisma.productImage.findMany({
+      where: { productId: product.id },
+      select: { id: true },
+    });
+    const ownedSet = new Set(owned.map((o) => o.id));
+    const finalOrder = orderedIds.filter((id) => ownedSet.has(id));
+    // por si quedó alguno afuera, lo agregamos al final
+    for (const o of owned) if (!finalOrder.includes(o.id)) finalOrder.push(o.id);
+
+    for (let i = 0; i < finalOrder.length; i++) {
+      await prisma.productImage.update({
+        where: { id: finalOrder[i] },
+        data: { position: i },
+      });
+    }
+
+    await syncMainImageUrl(itemId, product.id);
+    revalidateProduct(itemId);
+    return { ok: true };
+  } catch (e) {
+    return { error: `No se pudo reordenar: ${(e as Error).message}` };
+  }
+}
+
 // Marca una imagen como principal (la mueve al frente de la galeria).
 export async function setMainProductImage(
   imageId: string,
