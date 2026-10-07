@@ -121,6 +121,31 @@ export async function createOrder(
       },
     });
 
+    // Mail de confirmación. Va en try/catch y NO bloquea la respuesta: si
+    // Resend está caído o sin configurar, el pedido igual se tomó.
+    try {
+      const { mailPedidoRecibido, emailConfigurado } = await import(
+        "@/lib/email"
+      );
+      if (emailConfigurado()) {
+        const r = await mailPedidoRecibido({
+          to: customer.email.trim().toLowerCase(),
+          nombre: customer.firstName.trim(),
+          orderNumber: order.number,
+          items: validItems.map((it) => ({
+            title: it.product.title,
+            qty: it.qty,
+            price: it.price,
+          })),
+          total,
+          retira: customer.shipping === "retiro",
+        });
+        if (!r.ok) console.error("mail pedido:", r.error);
+      }
+    } catch (e) {
+      console.error("mail pedido (excepción):", (e as Error).message);
+    }
+
     return { ok: true, orderId: order.id, orderNumber: order.number };
   } catch (e) {
     console.error("createOrder error", e);

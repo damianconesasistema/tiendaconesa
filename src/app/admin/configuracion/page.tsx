@@ -5,6 +5,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { RecargosForm } from "@/components/admin/RecargosForm";
 import { getRecargosMp } from "@/lib/settings";
 import { MP_CONFIGURED, MP_IS_TEST } from "@/lib/mercadopago";
+import { emailConfigurado } from "@/lib/email";
 
 export const metadata: Metadata = {
   title: "Configuración · Panel Admin",
@@ -55,6 +56,27 @@ export default async function ConfiguracionPage() {
             <>
               <strong>MercadoPago en PRODUCCIÓN.</strong> Los pagos son reales y
               se acreditan en tu cuenta.
+            </>
+          )}
+        </div>
+
+        {/* Estado del correo */}
+        <div
+          className={`rounded-2xl border p-4 text-sm ${
+            emailConfigurado()
+              ? "border-green-200 bg-green-50 text-green-900"
+              : "border-amber-200 bg-amber-50 text-amber-900"
+          }`}
+        >
+          {emailConfigurado() ? (
+            <>
+              <strong>Mails activados.</strong> Cada pedido dispara un mail de
+              confirmación al cliente.
+            </>
+          ) : (
+            <>
+              <strong>Mails apagados.</strong> La tienda no envía ninguna
+              confirmación. Falta cargar RESEND_API_KEY y MAIL_FROM en Railway.
             </>
           )}
         </div>
