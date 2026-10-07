@@ -15,13 +15,18 @@ import {
   Pencil,
   Package,
   DollarSign,
+  ArrowUp,
+  ArrowDown,
+  ChevronsUpDown,
 } from "lucide-react";
 import { InlineNumber, InlineSegmented, InlineToggle } from "@/components/admin/InlineEdit";
 import {
   bulkUpdate,
   bulkUpdateAll,
   bulkSetStock,
+  bulkSetStockAll,
   bulkAdjustPrice,
+  bulkAdjustPriceAll,
 } from "@/app/admin/productos/actions";
 
 type Product = {
@@ -53,10 +58,14 @@ export function ProductsTable({
   products,
   total = products.length,
   filter,
+  sort = "",
+  dir = "desc",
 }: {
   products: Product[];
   total?: number;
   filter?: { q?: string; cat?: string; filter?: string };
+  sort?: string;
+  dir?: "asc" | "desc";
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
@@ -92,6 +101,31 @@ export function ProductsTable({
     setAllMatching(false);
   }
 
+  // Direccion por defecto la primera vez que se clickea cada columna.
+  const DEFAULT_DIR: Record<string, "asc" | "desc"> = {
+    title: "asc",
+    category: "asc",
+    price: "desc",
+    sale: "desc",
+    stock: "desc",
+    estado: "desc",
+    featured: "desc",
+  };
+
+  // Construye el link de ordenamiento preservando los filtros actuales.
+  // Si ya estamos ordenando por esa columna, invierte la direccion.
+  function sortHref(col: string): string {
+    const params = new URLSearchParams();
+    if (filter?.q) params.set("q", filter.q);
+    if (filter?.cat) params.set("cat", filter.cat);
+    if (filter?.filter) params.set("filter", filter.filter);
+    const nextDir =
+      sort === col ? (dir === "asc" ? "desc" : "asc") : DEFAULT_DIR[col] ?? "asc";
+    params.set("sort", col);
+    params.set("dir", nextDir);
+    return `/admin/productos?${params.toString()}`;
+  }
+
   function bulk(action: "activate" | "pause" | "feature" | "unfeature") {
     const ids = Array.from(selected);
     if (!ids.length && !allMatching) return;
@@ -114,13 +148,17 @@ export function ProductsTable({
 
   function applyStock(mode: "set" | "delta", value: number) {
     const ids = Array.from(selected);
-    if (!ids.length) return;
+    if (!ids.length && !allMatching) return;
     startTransition(async () => {
-      const r = await bulkSetStock(ids, mode, value);
+      const r =
+        allMatching && filter
+          ? await bulkSetStockAll(filter, mode, value)
+          : await bulkSetStock(ids, mode, value);
       if (r.ok) {
         setFeedback(`Stock actualizado en ${r.count} productos`);
         setPopover(null);
         setSelected(new Set());
+        setAllMatching(false);
         setTimeout(() => setFeedback(null), 2500);
       } else {
         setFeedback(`Error: ${r.error}`);
@@ -131,13 +169,17 @@ export function ProductsTable({
 
   function applyPrice(mode: "set" | "pct", value: number) {
     const ids = Array.from(selected);
-    if (!ids.length) return;
+    if (!ids.length && !allMatching) return;
     startTransition(async () => {
-      const r = await bulkAdjustPrice(ids, mode, value);
+      const r =
+        allMatching && filter
+          ? await bulkAdjustPriceAll(filter, mode, value)
+          : await bulkAdjustPrice(ids, mode, value);
       if (r.ok) {
         setFeedback(`Precios actualizados en ${r.count} productos`);
         setPopover(null);
         setSelected(new Set());
+        setAllMatching(false);
         setTimeout(() => setFeedback(null), 2500);
       } else {
         setFeedback(`Error: ${r.error}`);
@@ -167,7 +209,8 @@ export function ProductsTable({
             </>
           ) : (
             <>
-              ¿Querés pausar/activar <strong>todos</strong>?
+              ¿Querés aplicar la acción (estado, stock o precio) a{" "}
+              <strong>todos</strong>?
               <button
                 onClick={() => {
                   setAllMatching(true);
@@ -240,7 +283,7 @@ export function ProductsTable({
             <StockPopover
               onApply={applyStock}
               onClose={() => setPopover(null)}
-              count={selected.size}
+              count={allMatching ? total : selected.size}
               pending={pending}
             />
           )}
@@ -248,7 +291,7 @@ export function ProductsTable({
             <PricePopover
               onApply={applyPrice}
               onClose={() => setPopover(null)}
-              count={selected.size}
+              count={allMatching ? total : selected.size}
               pending={pending}
             />
           )}
@@ -276,13 +319,13 @@ export function ProductsTable({
                   className="h-4 w-4 accent-[var(--brand-red)]"
                 />
               </th>
-              <th className="px-4 py-3">Producto</th>
-              <th className="px-4 py-3 hidden md:table-cell">Categoría</th>
-              <th className="px-4 py-3 text-right">Precio base</th>
-              <th className="px-4 py-3 text-right">Oferta</th>
-              <th className="px-4 py-3 text-right">Stock</th>
-              <th className="px-4 py-3 text-center">Estado</th>
-              <th className="px-4 py-3 text-center">Destacado</th>
+              <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} />
+              <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden md:table-cell" />
+              <SortHeader label="Precio base" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
+              <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
+              <SortHeader label="Stock" href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
+              <SortHeader label="Estado" href={sortHref("estado")} active={sort === "estado"} dir={dir} align="center" />
+              <SortHeader label="Destacado" href={sortHref("featured")} active={sort === "featured"} dir={dir} align="center" />
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
@@ -407,6 +450,82 @@ export function ProductsTable({
         </table>
       </div>
     </div>
+  );
+}
+
+// Cabecera de columna clickeable que ordena por esa columna.
+// La flecha indica la direccion actual; sin flecha => no se esta ordenando por ella.
+function SortHeader({
+  label,
+  href,
+  active,
+  dir,
+  align = "left",
+  className = "",
+  boxed = false,
+}: {
+  label: string;
+  href: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  align?: "left" | "right" | "center";
+  className?: string;
+  // boxed: columnas numericas (precio/oferta/stock). El titulo se alinea
+  // exactamente sobre el input de la celda, que vive en un contenedor de
+  // 7.5rem con un espaciador fijo de w-11 a la derecha (los botones de
+  // guardar). Replicamos esa estructura para que coincidan verticalmente.
+  boxed?: boolean;
+}) {
+  const alignCls =
+    align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
+  const justify =
+    align === "right"
+      ? "justify-end"
+      : align === "center"
+        ? "justify-center"
+        : "justify-start";
+
+  const arrow = active ? (
+    dir === "asc" ? (
+      <ArrowUp className="h-3.5 w-3.5" />
+    ) : (
+      <ArrowDown className="h-3.5 w-3.5" />
+    )
+  ) : (
+    <ChevronsUpDown className="h-3 w-3 opacity-40" />
+  );
+
+  const link = (
+    <Link
+      href={href}
+      scroll={false}
+      className={`inline-flex items-center gap-1 ${
+        boxed ? "flex-1 justify-end" : justify
+      } transition-colors hover:text-[var(--brand-red)] ${
+        active ? "text-[var(--brand-red)]" : ""
+      }`}
+      title="Ordenar por esta columna"
+    >
+      {label}
+      {arrow}
+    </Link>
+  );
+
+  return (
+    <th className={`px-4 py-3 ${alignCls} ${className}`}>
+      {boxed ? (
+        // Mismo contenedor que InlineNumber: 7.5rem, gap-1, + espaciador w-11.
+        <span
+          className="inline-flex items-center justify-end gap-1 align-middle"
+          style={{ width: "7.5rem" }}
+        >
+          {link}
+          <span className="w-11 shrink-0" aria-hidden />
+        </span>
+      ) : (
+        link
+      )}
+    </th>
   );
 }
 

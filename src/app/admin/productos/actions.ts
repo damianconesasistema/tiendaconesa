@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import {
@@ -460,27 +461,22 @@ export async function bulkUpdateAll(
   }
 }
 
-// Stock masivo: reemplaza o suma/resta a los seleccionados.
+// Stock masivo: reemplaza o suma/resta a un conjunto de productos definido
+// por un `where` de Prisma (sea por IDs de la pagina o por filtro => TODOS).
 // mode "set" => value es el nuevo stock para todos.
 // mode "delta" => se suma value a cada stock (puede ser negativo). Nunca baja de 0.
-export async function bulkSetStock(
-  itemIds: string[],
+async function applyStockWhere(
+  where: Prisma.ProductWhereInput,
   mode: "set" | "delta",
   value: number,
 ): Promise<{ ok?: true; error?: string; count?: number }> {
-  const session = await getAdminSession();
-  if (!session) return { error: "No autorizado" };
-  if (!itemIds.length) return { error: "Ningún producto seleccionado" };
   if (!Number.isFinite(value)) return { error: "Valor inválido" };
   const v = Math.floor(value);
 
   try {
     if (mode === "set") {
       const stock = Math.max(0, v);
-      const r = await prisma.product.updateMany({
-        where: { itemId: { in: itemIds } },
-        data: { stock },
-      });
+      const r = await prisma.product.updateMany({ where, data: { stock } });
       revalidatePath("/admin/productos");
       revalidatePath("/tienda");
       revalidatePath("/");
@@ -488,7 +484,7 @@ export async function bulkSetStock(
     }
     // delta: necesitamos leer cada stock actual
     const current = await prisma.product.findMany({
-      where: { itemId: { in: itemIds } },
+      where,
       select: { itemId: true, stock: true },
     });
     let count = 0;
@@ -510,23 +506,44 @@ export async function bulkSetStock(
   }
 }
 
-// Precio masivo: reemplaza o ajusta por porcentaje.
-// mode "set" => value = precio nuevo para todos los seleccionados.
-// mode "pct" => multiplica precio y oferta por (1 + value/100). value puede ser negativo.
-// Loguea cada cambio en el historial de precios.
-export async function bulkAdjustPrice(
+export async function bulkSetStock(
   itemIds: string[],
-  mode: "set" | "pct",
+  mode: "set" | "delta",
   value: number,
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   if (!itemIds.length) return { error: "Ningún producto seleccionado" };
+  return applyStockWhere({ itemId: { in: itemIds } }, mode, value);
+}
+
+// Igual que bulkSetStock pero aplica a TODOS los que coinciden con el filtro
+// (no solo la pagina visible).
+export async function bulkSetStockAll(
+  filter: ProductFilter,
+  mode: "set" | "delta",
+  value: number,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  return applyStockWhere(buildProductWhere(filter), mode, value);
+}
+
+// Precio masivo: reemplaza o ajusta por porcentaje sobre el conjunto que
+// define `where` (IDs de la pagina o filtro => TODOS).
+// mode "set" => value = precio nuevo para todos.
+// mode "pct" => multiplica precio y oferta por (1 + value/100). value puede ser negativo.
+// Loguea cada cambio en el historial de precios.
+async function applyPriceWhere(
+  where: Prisma.ProductWhereInput,
+  mode: "set" | "pct",
+  value: number,
+): Promise<{ ok?: true; error?: string; count?: number }> {
   if (!Number.isFinite(value)) return { error: "Valor inválido" };
 
   try {
     const current = await prisma.product.findMany({
-      where: { itemId: { in: itemIds } },
+      where,
       select: { itemId: true, price: true, salePrice: true },
     });
     let count = 0;
@@ -569,6 +586,28 @@ export async function bulkAdjustPrice(
   } catch (e) {
     return { error: `Error al actualizar: ${(e as Error).message}` };
   }
+}
+
+export async function bulkAdjustPrice(
+  itemIds: string[],
+  mode: "set" | "pct",
+  value: number,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!itemIds.length) return { error: "Ningún producto seleccionado" };
+  return applyPriceWhere({ itemId: { in: itemIds } }, mode, value);
+}
+
+// Igual que bulkAdjustPrice pero aplica a TODOS los que coinciden con el filtro.
+export async function bulkAdjustPriceAll(
+  filter: ProductFilter,
+  mode: "set" | "pct",
+  value: number,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  return applyPriceWhere(buildProductWhere(filter), mode, value);
 }
 
 // --- Galeria de imagenes del producto (hasta MAX por producto) ---

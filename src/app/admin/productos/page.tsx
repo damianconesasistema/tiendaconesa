@@ -23,9 +23,43 @@ type SearchParams = Promise<{
   cat?: string;
   filter?: string;
   page?: string;
+  sort?: string;
+  dir?: string;
 }>;
 
 const PAGE_SIZE = 50;
+
+// Columnas por las que se puede ordenar (click en el titulo de la tabla).
+// El orden se aplica en la DB => ordena TODOS los productos, no solo la pagina.
+function buildOrderBy(
+  sort: string,
+  dir: "asc" | "desc",
+): Prisma.ProductOrderByWithRelationInput[] {
+  const titleTiebreak: Prisma.ProductOrderByWithRelationInput = { title: "asc" };
+  switch (sort) {
+    case "title":
+      return [{ title: dir }];
+    case "category":
+      return [{ category: dir }, titleTiebreak];
+    case "price":
+      return [{ price: dir }, titleTiebreak];
+    case "sale":
+      return [{ salePrice: { sort: dir, nulls: "last" } }, titleTiebreak];
+    case "stock":
+      return [{ stock: dir }, titleTiebreak];
+    case "estado":
+      return [{ active: dir }, titleTiebreak];
+    case "featured":
+      return [{ featured: dir }, titleTiebreak];
+    default:
+      // Orden por defecto: ofertas primero, luego destacados, luego A-Z
+      return [
+        { salePrice: { sort: "desc", nulls: "last" } },
+        { featured: "desc" },
+        { title: "asc" },
+      ];
+  }
+}
 
 const CAT_LABELS: Record<string, string> = {
   sanitarios: "Sanitarios",
@@ -52,6 +86,8 @@ export default async function ProductosAdmin({
   const cat = sp.cat || "";
   const filter = sp.filter || "";
   const page = Math.max(1, Number(sp.page) || 1);
+  const sort = sp.sort || "";
+  const dir: "asc" | "desc" = sp.dir === "asc" ? "asc" : "desc";
 
   const where: Prisma.ProductWhereInput = {};
   if (q) where.title = { contains: q, mode: "insensitive" };
@@ -66,12 +102,7 @@ export default async function ProductosAdmin({
   const [products, total, categories] = await Promise.all([
     prisma.product.findMany({
       where,
-      // Ofertas primero, luego destacados, luego el resto
-      orderBy: [
-        { salePrice: { sort: "desc", nulls: "last" } },
-        { featured: "desc" },
-        { title: "asc" },
-      ],
+      orderBy: buildOrderBy(sort, dir),
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
@@ -152,6 +183,8 @@ export default async function ProductosAdmin({
           products={products}
           total={total}
           filter={{ q, cat, filter }}
+          sort={sort}
+          dir={dir}
         />
       )}
 
@@ -167,6 +200,8 @@ export default async function ProductosAdmin({
               q={q}
               cat={cat}
               filter={filter}
+              sort={sort}
+              dir={dir}
               label="← Anterior"
             />
             <PageLink
@@ -175,6 +210,8 @@ export default async function ProductosAdmin({
               q={q}
               cat={cat}
               filter={filter}
+              sort={sort}
+              dir={dir}
               label="Siguiente →"
             />
           </div>
@@ -199,6 +236,8 @@ function PageLink({
   q,
   cat,
   filter,
+  sort,
+  dir,
   label,
 }: {
   page: number;
@@ -206,6 +245,8 @@ function PageLink({
   q: string;
   cat: string;
   filter: string;
+  sort: string;
+  dir: string;
   label: string;
 }) {
   if (disabled) {
@@ -219,6 +260,10 @@ function PageLink({
   if (q) params.set("q", q);
   if (cat) params.set("cat", cat);
   if (filter) params.set("filter", filter);
+  if (sort) {
+    params.set("sort", sort);
+    params.set("dir", dir);
+  }
   if (page > 1) params.set("page", String(page));
   return (
     <Link

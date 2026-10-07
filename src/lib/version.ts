@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.19.0";
+export const APP_VERSION = "V.0.20.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.20.0",
+    date: "2026-10-07",
+    changes: [
+      "Stock y Precio masivos ahora SÍ se aplican a TODOS los productos que coinciden con el filtro (no solo a los 50 de la página visible). Cuando elegís 'Seleccionar los N productos', el popover de Stock/Precio dice 'Aplicar a N' y afecta a todos. Ejemplo: poner stock 0 a las 781 publicaciones de una sola vez.",
+      "Los títulos de la tabla (Producto, Categoría, Precio base, Oferta, Stock, Estado, Destacado) ahora son ordenables: clic para ordenar de mayor a menor / A-Z, otro clic para invertir. El orden se aplica sobre TODOS los productos, no solo la página. Una flechita indica por qué columna y en qué sentido se está ordenando.",
+      "Los títulos de Precio base, Oferta y Stock ahora quedan alineados exactamente arriba de su cuadrito de edición (antes el título se corría a la derecha porque la celda reserva lugar para los botones de guardar).",
+    ],
+  },
   {
     version: "V.0.19.0",
     date: "2026-10-07",
