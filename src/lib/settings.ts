@@ -25,7 +25,10 @@ export const SETTING_CUOTAS_MAX = "mp_cuotas_max";
 
 // Valores por defecto, del simulador de MercadoPago (oct 2026).
 // Se editan desde el panel: Configuración.
-const DEFAULT_1PAGO = 8.68;
+// 11,11% y no 8,68% (el costo real) a pedido del comercio: con 11,11% el
+// descuento del contado da exactamente 10%, asi que el cartel "10% OFF"
+// es cierto y pega mas fuerte. La diferencia queda a favor del negocio.
+const DEFAULT_1PAGO = 11.11;
 const DEFAULT_CUOTAS_PCT = 25.71;
 const DEFAULT_CUOTAS = 6;
 
