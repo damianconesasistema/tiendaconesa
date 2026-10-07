@@ -260,8 +260,8 @@ export function ProductsTable({
             </>
           ) : (
             <>
-              ¿Querés aplicar la acción (estado, stock o precio) a{" "}
-              <strong>todos</strong>?
+              Seleccionaste {selected.size} de esta página. ¿Querés aplicar la
+              acción a <strong>todos</strong>?
               <button
                 onClick={() => {
                   setAllMatching(true);
@@ -504,10 +504,9 @@ export function ProductsTable({
                       <Link
                         href={`/admin/productos/${p.itemId}`}
                         title="Editar ficha completa"
-                        className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-white hover:bg-[var(--brand-red-hover)]"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
                       >
-                        <Pencil className="h-3 w-3" />
-                        Editar
+                        <Pencil className="h-3.5 w-3.5" />
                       </Link>
                       <button
                         type="button"
@@ -538,6 +537,12 @@ export function ProductsTable({
           target={confirmDel}
           error={deleteError}
           pending={pending}
+          totalMatching={total}
+          onExtendToAll={() => {
+            setAllMatching(true);
+            setSelected(new Set(products.map((p) => p.itemId)));
+            setConfirmDel({ kind: "bulk", count: total, all: true });
+          }}
           onCancel={() => {
             setConfirmDel(null);
             setDeleteError(null);
@@ -555,6 +560,8 @@ function DeleteConfirm({
   target,
   error,
   pending,
+  totalMatching,
+  onExtendToAll,
   onCancel,
   onConfirm,
 }: {
@@ -563,11 +570,16 @@ function DeleteConfirm({
     | { kind: "bulk"; count: number; all: boolean };
   error: string | null;
   pending: boolean;
+  totalMatching: number;
+  onExtendToAll: () => void;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
   const isBulk = target.kind === "bulk";
   const count = isBulk ? target.count : 1;
+  // Si solo tiene seleccionada la pagina pero hay mas que coinciden con el
+  // filtro, ofrecemos extender el borrado a todos sin salir del modal.
+  const canExtend = isBulk && !target.all && totalMatching > count;
 
   return (
     <div
@@ -593,7 +605,9 @@ function DeleteConfirm({
                   <strong className="text-foreground">
                     {count.toLocaleString("es-AR")} productos
                   </strong>
-                  {target.all ? " (todos los que coinciden con el filtro)" : ""}.
+                  {target.all
+                    ? " — TODOS los que coinciden con el filtro."
+                    : " (los que tenés seleccionados en esta página)."}
                 </>
               ) : (
                 <>
@@ -604,6 +618,20 @@ function DeleteConfirm({
             </p>
           </div>
         </div>
+
+        {canExtend && (
+          <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+            ¿Querés borrar <strong>todos</strong> en vez de solo estos {count}?
+            <button
+              type="button"
+              onClick={onExtendToAll}
+              disabled={pending}
+              className="mt-2 block w-full rounded-full bg-blue-600 px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              Eliminar los {totalMatching.toLocaleString("es-AR")} productos
+            </button>
+          </div>
+        )}
 
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
           <strong>Esto no se puede deshacer.</strong> Se borran también sus fotos

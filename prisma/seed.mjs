@@ -7,9 +7,21 @@ import { readFileSync } from "node:fs";
 const prisma = new PrismaClient();
 const force = process.argv.includes("--force");
 
-const existing = await prisma.product.count();
-if (existing > 0 && !force) {
-  console.log(`Seed skip: la DB ya tiene ${existing} productos. Usa --force para re-seedear.`);
+// IMPORTANTE: el seed NO debe correr solo nunca mas.
+//
+// Antes la condicion era `existing > 0` => si la DB se quedaba sin productos
+// (por ejemplo borrandolos desde el panel), el siguiente deploy re-importaba
+// los 779 del JSON pisando precios, ofertas, stock y el estado activo/pausado.
+// Eso hacia parecer que "se reactivo todo solo".
+//
+// Ahora hay que pedirlo explicitamente: SEED_PRODUCTS=1 o --force.
+const explicit = force || process.env.SEED_PRODUCTS === "1";
+if (!explicit) {
+  const existing = await prisma.product.count();
+  console.log(
+    `Seed skip: no se pidio seed explicito (hay ${existing} productos). ` +
+      `Para re-importar desde el JSON: SEED_PRODUCTS=1 o node prisma/seed.mjs --force.`,
+  );
   await prisma.$disconnect();
   process.exit(0);
 }
