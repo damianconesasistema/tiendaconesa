@@ -58,6 +58,16 @@ export function ProductForm({
   const [iaFuentes, setIaFuentes] = useState<string[] | null>(null);
 
   function escribirConIA() {
+    // Si ya hay texto escrito a mano, preguntamos antes de pisarlo.
+    const actual = descRef.current?.value.trim();
+    if (actual) {
+      const ok = window.confirm(
+        "Este producto ya tiene descripción.\n\n" +
+          "Si seguís, la IA la reemplaza por completo y lo que está escrito se pierde.\n\n" +
+          "¿Reemplazar igual?",
+      );
+      if (!ok) return;
+    }
     setIaError(null);
     setIaFuentes(null);
     const fd = new FormData(formRef.current!);
