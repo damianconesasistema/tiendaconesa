@@ -61,6 +61,11 @@ export function CheckoutPage({
 
   const ahorroContado = subtotal - totalContado;
   const extraCuotas = totalCuotas - subtotal;
+  // Porcentaje REAL de descuento sobre el precio mostrado. No es el mismo
+  // número que el recargo: sacarle 11,11% a un precio que tiene 11,11%
+  // agregado da 10%. Se calcula para que el cartel nunca mienta.
+  const dctoRealPct =
+    subtotal > 0 ? Math.round((ahorroContado / subtotal) * 100) : 0;
 
   useEffect(() => {
     if (hydrated && items.length === 0 && !sent) {
@@ -369,7 +374,7 @@ export function CheckoutPage({
                   icon={MessageCircle}
                   title="Efectivo o transferencia"
                   desc="Coordinás con nosotros por WhatsApp."
-                  badge={`${recargos.unPago}% OFF`}
+                  badge={`${dctoRealPct}% OFF`}
                 />
                 {mpDisponible && (
                   <>
@@ -378,9 +383,8 @@ export function CheckoutPage({
                       onClick={() => setPayMethod("mp_1pago")}
                       icon={CreditCard}
                       title="Débito o 1 pago"
-                      desc={`Con MercadoPago, al instante.${
-                        recargos.unPago > 0 ? ` Recargo ${recargos.unPago}%.` : ""
-                      }`}
+                      // El precio mostrado YA es el de 1 pago: no se suma nada.
+                      desc="Con MercadoPago, al instante. Es el precio de lista."
                       badge="Online"
                     />
                     <PayOption
@@ -388,9 +392,11 @@ export function CheckoutPage({
                       onClick={() => setPayMethod("mp_cuotas")}
                       icon={CreditCard}
                       title={`Hasta ${recargos.cuotasMax} cuotas`}
-                      desc={`Crédito, sin interés.${
-                        recargos.cuotas > 0 ? ` Recargo ${recargos.cuotas}%.` : ""
-                      }`}
+                      // Mostramos el valor de la cuota en pesos: un porcentaje
+                      // acá se compararía contra otra base y confundiría.
+                      desc={`Crédito. ${recargos.cuotasMax} cuotas de ${formatPrice(
+                        Math.round(totalCuotas / recargos.cuotasMax),
+                      )}.`}
                       badge="Online"
                     />
                   </>
@@ -432,10 +438,14 @@ export function CheckoutPage({
                     {hasUnpriced ? "a consultar" : formatPrice(subtotal)}
                   </span>
                 </div>
+                {/* Si retira, NO hay envío: decir "Gratis" haría creer que se
+                    lo llevan sin cargo. */}
                 <div className="flex justify-between">
-                  <span className="text-[var(--muted)]">Envío</span>
+                  <span className="text-[var(--muted)]">Entrega</span>
                   <span className="font-semibold">
-                    {customer.shipping === "retiro" ? "Gratis" : "A consultar"}
+                    {customer.shipping === "retiro"
+                      ? "Retiro en tienda"
+                      : "Envío a coordinar"}
                   </span>
                 </div>
                 {/* La diferencia según la forma de pago se muestra SIEMPRE
@@ -444,7 +454,7 @@ export function CheckoutPage({
                 {!hasUnpriced && payMethod === "whatsapp" && ahorroContado > 0 && (
                   <div className="flex justify-between text-emerald-700">
                     <span className="font-semibold">
-                      Descuento efectivo/transferencia ({recargos.unPago}%)
+                      Descuento efectivo/transferencia ({dctoRealPct}%)
                     </span>
                     <span className="font-bold">
                       −{formatPrice(ahorroContado)}
@@ -508,7 +518,7 @@ export function CheckoutPage({
                   ? `Hasta ${recargos.cuotasMax} cuotas sin interés. Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda.`
                   : payMethod === "mp_1pago"
                     ? "Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda."
-                    : `Pagando en efectivo o por transferencia tenés ${recargos.unPago}% de descuento. Te abrimos WhatsApp con el pedido cargado para coordinar pago y entrega.`}
+                    : `Pagando en efectivo o por transferencia tenés ${dctoRealPct}% de descuento. Te abrimos WhatsApp con el pedido cargado para coordinar pago y entrega.`}
               </p>
             </div>
 
