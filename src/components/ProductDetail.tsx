@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 type Product = {
   itemId: string;
   title: string;
+  description?: string | null;
   price: number;
   salePrice: number | null;
   stock: number;
@@ -54,9 +55,11 @@ const CAT_LABELS: Record<string, string> = {
 export function ProductDetail({
   product,
   related,
+  bestSellers = [],
 }: {
   product: Product;
   related: Product[];
+  bestSellers?: Product[];
 }) {
   const { add } = useCart();
   const router = useRouter();
@@ -389,6 +392,20 @@ export function ProductDetail({
           </div>
         </div>
 
+        {/* DESCRIPCION */}
+        {product.description && product.description.trim() !== "" && (
+          <section className="mt-6 rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm sm:p-8">
+            <h2 className="font-display text-xl font-black uppercase tracking-tight sm:text-2xl">
+              Descripción
+            </h2>
+            {/* whitespace-pre-line respeta los saltos de linea que carga el
+                admin, sin necesidad de HTML. */}
+            <div className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-foreground/90">
+              {product.description}
+            </div>
+          </section>
+        )}
+
         {/* RELACIONADOS */}
         {related.length > 0 && (
           <section className="mt-12">
@@ -397,6 +414,23 @@ export function ProductDetail({
             </h2>
             <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
               {related.map((p) => (
+                <RelatedCard key={p.itemId} p={p} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* MAS VENDIDOS */}
+        {bestSellers.length > 0 && (
+          <section className="mt-12">
+            <h2 className="font-display text-2xl font-black uppercase tracking-tight sm:text-3xl">
+              Los más vendidos
+            </h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Lo que más sale de nuestro local.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {bestSellers.map((p) => (
                 <RelatedCard key={p.itemId} p={p} />
               ))}
             </div>

@@ -38,20 +38,63 @@ export default async function ProductoPage({ params }: RouteProps) {
   });
   const imageIds = galleryImages.map((g) => g.id);
 
-  const related = await prisma.product.findMany({
+  const EXCLUIR = [product.itemId, "__RESET_PRICES_MARKER__"];
+  const CUANTOS = 4;
+
+  // 1) Misma categoria, con stock primero (son los que realmente puede comprar)
+  const mismaCategoria = await prisma.product.findMany({
     where: {
       category: product.category,
       active: true,
-      itemId: { notIn: [product.itemId, "__RESET_PRICES_MARKER__"] },
+      itemId: { notIn: EXCLUIR },
     },
-    orderBy: { title: "asc" },
-    take: 4,
+    orderBy: [{ stock: "desc" }, { salePrice: { sort: "desc", nulls: "last" } }],
+    take: CUANTOS,
   });
+
+  // 2) Si no alcanza, completamos con otros productos publicados, asi la
+  //    seccion "Tambien te puede interesar" nunca queda vacia si hay catalogo.
+  let related = mismaCategoria;
+  if (related.length < CUANTOS) {
+    const relleno = await prisma.product.findMany({
+      where: {
+        active: true,
+        itemId: { notIn: [...EXCLUIR, ...related.map((r) => r.itemId)] },
+      },
+      orderBy: [{ featured: "desc" }, { stock: "desc" }],
+      take: CUANTOS - related.length,
+    });
+    related = [...related, ...relleno];
+  }
+
+  // MAS VENDIDOS: se calcula con las unidades realmente vendidas (OrderItem).
+  const masVendidosRaw = await prisma.orderItem.groupBy({
+    by: ["productId"],
+    _sum: { qty: true },
+    orderBy: { _sum: { qty: "desc" } },
+    take: 12,
+  });
+  let masVendidos: typeof related = [];
+  if (masVendidosRaw.length) {
+    const encontrados = await prisma.product.findMany({
+      where: {
+        id: { in: masVendidosRaw.map((m) => m.productId) },
+        active: true,
+        itemId: { notIn: EXCLUIR },
+      },
+    });
+    // Respetar el orden de ventas que devolvio el groupBy
+    const orden = new Map(masVendidosRaw.map((m, i) => [m.productId, i]));
+    masVendidos = encontrados
+      .sort((a, b) => (orden.get(a.id) ?? 0) - (orden.get(b.id) ?? 0))
+      .slice(0, CUANTOS);
+  }
 
   // Shape compat con ProductDetail (que esperaba Product del JSON)
   const compat = {
     itemId: product.itemId,
     title: product.title,
+    description: product.description,
     price: product.price,
     salePrice: product.salePrice,
     stock: product.stock,
@@ -62,7 +105,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     imageIds,
     shippingType: product.shippingType,
   };
-  const relatedCompat = related.map((p) => ({
+  const toCompat = (p: (typeof related)[number]) => ({
     itemId: p.itemId,
     title: p.title,
     price: p.price,
@@ -72,7 +115,13 @@ export default async function ProductoPage({ params }: RouteProps) {
     status: p.active ? "Activa" : "Inactiva",
     category: p.category,
     imageUrl: p.imageUrl,
-  }));
+  });
 
-  return <ProductDetail product={compat} related={relatedCompat} />;
+  return (
+    <ProductDetail
+      product={compat}
+      related={related.map(toCompat)}
+      bestSellers={masVendidos.map(toCompat)}
+    />
+  );
 }
