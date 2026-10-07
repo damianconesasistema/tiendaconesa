@@ -419,16 +419,24 @@ export async function bulkUpdate(
 // actual (no solo los de la página visible). Sirve para "pausar todos".
 type ProductFilter = { q?: string; cat?: string; filter?: string };
 
-function buildProductWhere(f: ProductFilter) {
+// `excluir` son los itemId que el admin destildo a mano estando en modo
+// "todos los que coinciden". Sin esto, destildar uno hacia perder la
+// seleccion completa y caia a los de la pagina visible.
+function buildProductWhere(f: ProductFilter, excluir: string[] = []) {
   const where: {
-    itemId?: { not: string };
+    itemId?: { not: string; notIn?: string[] };
     title?: { contains: string; mode: "insensitive" };
     category?: string;
     active?: boolean;
     featured?: boolean;
     stock?: { lt: number };
     salePrice?: { not: null };
-  } = { itemId: { not: "__RESET_PRICES_MARKER__" } };
+  } = {
+    itemId: {
+      not: "__RESET_PRICES_MARKER__",
+      ...(excluir.length ? { notIn: excluir } : {}),
+    },
+  };
   if (f.q) where.title = { contains: f.q, mode: "insensitive" };
   if (f.cat) where.category = f.cat;
   if (f.filter === "low-stock") {
@@ -443,6 +451,7 @@ function buildProductWhere(f: ProductFilter) {
 export async function bulkUpdateAll(
   filter: ProductFilter,
   action: BulkAction,
+  excluir: string[] = [],
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
@@ -456,7 +465,7 @@ export async function bulkUpdateAll(
 
   try {
     const r = await prisma.product.updateMany({
-      where: { ...buildProductWhere(filter), locked: false },
+      where: { ...buildProductWhere(filter, excluir), locked: false },
       data,
     });
     revalidatePath("/admin/productos");
@@ -867,12 +876,13 @@ export async function bulkSetLocked(
 export async function bulkSetLockedAll(
   filter: ProductFilter,
   locked: boolean,
+  excluir: string[] = [],
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   try {
     const r = await prisma.product.updateMany({
-      where: buildProductWhere(filter),
+      where: buildProductWhere(filter, excluir),
       data: { locked },
     });
     revalidatePath("/admin/productos");
@@ -958,10 +968,11 @@ export async function bulkDelete(
 
 export async function bulkDeleteAll(
   filter: ProductFilter,
+  excluir: string[] = [],
 ): Promise<{ ok?: true; error?: string; count?: number; skipped?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
-  return deleteWhere(buildProductWhere(filter));
+  return deleteWhere(buildProductWhere(filter, excluir));
 }
 
 // Stock masivo: reemplaza o suma/resta a un conjunto de productos definido
@@ -1028,10 +1039,11 @@ export async function bulkSetStockAll(
   filter: ProductFilter,
   mode: "set" | "delta",
   value: number,
+  excluir: string[] = [],
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
-  return applyStockWhere(buildProductWhere(filter), mode, value);
+  return applyStockWhere(buildProductWhere(filter, excluir), mode, value);
 }
 
 // Precio masivo: reemplaza o ajusta por porcentaje sobre el conjunto que
@@ -1111,10 +1123,11 @@ export async function bulkAdjustPriceAll(
   filter: ProductFilter,
   mode: "set" | "pct",
   value: number,
+  excluir: string[] = [],
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
-  return applyPriceWhere(buildProductWhere(filter), mode, value);
+  return applyPriceWhere(buildProductWhere(filter, excluir), mode, value);
 }
 
 // --- Galeria de imagenes del producto (hasta MAX por producto) ---

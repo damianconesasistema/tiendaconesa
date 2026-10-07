@@ -89,6 +89,10 @@ export function ProductsTable({
   // Cuando true, las acciones aplican a TODOS los que coinciden con el
   // filtro (no solo los de esta página).
   const [allMatching, setAllMatching] = useState(false);
+  // Estando en modo "todos", estos son los que el admin destildo a mano.
+  // Sin esto, destildar uno perdia la seleccion de los 682 y caia a los 49
+  // de la pagina visible.
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
   // Confirmacion de borrado (no hay deshacer, siempre pasa por aca)
   const [confirmDel, setConfirmDel] = useState<
     | { kind: "one"; itemId: string; title: string }
@@ -97,31 +101,45 @@ export function ProductsTable({
   >(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const allSelected =
-    products.length > 0 && selected.size === products.length;
-  const someSelected = selected.size > 0 && !allSelected;
+  const allSelected = allMatching
+    ? excluded.size === 0
+    : products.length > 0 && selected.size === products.length;
+  const someSelected = allMatching
+    ? excluded.size > 0
+    : selected.size > 0 && !allSelected;
 
   function toggleAll() {
-    if (allSelected || selected.size > 0) {
-      setSelected(new Set());
-      setAllMatching(false);
+    if (allMatching || allSelected || selected.size > 0) {
+      clearSelection();
     } else {
       setSelected(new Set(products.map((p) => p.itemId)));
     }
   }
 
   function toggleOne(itemId: string) {
+    // En modo "todos": destildar NO rompe la seleccion, solo excluye ese.
+    if (allMatching) {
+      const next = new Set(excluded);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      setExcluded(next);
+      return;
+    }
     const next = new Set(selected);
     if (next.has(itemId)) next.delete(itemId);
     else next.add(itemId);
     setSelected(next);
-    setAllMatching(false);
   }
 
   function clearSelection() {
     setSelected(new Set());
     setAllMatching(false);
+    setExcluded(new Set());
   }
+
+  // Cuantos productos va a afectar realmente la accion
+  const affected = allMatching ? total - excluded.size : selected.size;
+  const excluirIds = () => Array.from(excluded);
 
   // Duplicar: crea la copia pausada y abre su ficha para editarla.
   function duplicate(itemId: string) {
@@ -152,7 +170,7 @@ export function ProductsTable({
     startTransition(async () => {
       const r =
         allMatching && filter
-          ? await bulkSetLockedAll(filter, locked)
+          ? await bulkSetLockedAll(filter, locked, excluirIds())
           : await bulkSetLocked(ids, locked);
       if (r.ok) {
         setFeedback(
@@ -160,6 +178,7 @@ export function ProductsTable({
         );
         setSelected(new Set());
         setAllMatching(false);
+        setExcluded(new Set());
         setTimeout(() => setFeedback(null), 2500);
       } else {
         setFeedback(`Error: ${r.error}`);
@@ -185,7 +204,7 @@ export function ProductsTable({
       } else {
         const r =
           target.all && filter
-            ? await bulkDeleteAll(filter)
+            ? await bulkDeleteAll(filter, excluirIds())
             : await bulkDelete(Array.from(selected));
         ok = !!r.ok;
         error = r.error;
@@ -200,6 +219,7 @@ export function ProductsTable({
         setConfirmDel(null);
         setSelected(new Set());
         setAllMatching(false);
+        setExcluded(new Set());
         setTimeout(() => setFeedback(null), 4000);
       } else {
         setDeleteError(error ?? "Error al eliminar");
@@ -238,12 +258,13 @@ export function ProductsTable({
     startTransition(async () => {
       const r =
         allMatching && filter
-          ? await bulkUpdateAll(filter, action)
+          ? await bulkUpdateAll(filter, action, excluirIds())
           : await bulkUpdate(ids, action);
       if (r.ok) {
         setFeedback(`${r.count} productos actualizados`);
         setSelected(new Set());
         setAllMatching(false);
+        setExcluded(new Set());
         setTimeout(() => setFeedback(null), 2500);
       } else {
         setFeedback(`Error: ${r.error}`);
@@ -258,13 +279,14 @@ export function ProductsTable({
     startTransition(async () => {
       const r =
         allMatching && filter
-          ? await bulkSetStockAll(filter, mode, value)
+          ? await bulkSetStockAll(filter, mode, value, excluirIds())
           : await bulkSetStock(ids, mode, value);
       if (r.ok) {
         setFeedback(`Stock actualizado en ${r.count} productos`);
         setPopover(null);
         setSelected(new Set());
         setAllMatching(false);
+        setExcluded(new Set());
         setTimeout(() => setFeedback(null), 2500);
       } else {
         setFeedback(`Error: ${r.error}`);
@@ -279,13 +301,14 @@ export function ProductsTable({
     startTransition(async () => {
       const r =
         allMatching && filter
-          ? await bulkAdjustPriceAll(filter, mode, value)
+          ? await bulkAdjustPriceAll(filter, mode, value, excluirIds())
           : await bulkAdjustPrice(ids, mode, value);
       if (r.ok) {
         setFeedback(`Precios actualizados en ${r.count} productos`);
         setPopover(null);
         setSelected(new Set());
         setAllMatching(false);
+        setExcluded(new Set());
         setTimeout(() => setFeedback(null), 2500);
       } else {
         setFeedback(`Error: ${r.error}`);
@@ -302,12 +325,15 @@ export function ProductsTable({
           {allMatching ? (
             <>
               <strong>
-                Los {total.toLocaleString("es-AR")} productos
+                Los {affected.toLocaleString("es-AR")} productos
               </strong>{" "}
               que coinciden con el filtro están seleccionados — la acción se
               aplica a TODOS.
               <button
-                onClick={() => setAllMatching(false)}
+                onClick={() => {
+                  setAllMatching(false);
+                  setExcluded(new Set());
+                }}
                 className="font-bold text-blue-700 underline hover:text-blue-900"
               >
                 Seleccionar solo esta página
@@ -320,6 +346,7 @@ export function ProductsTable({
               <button
                 onClick={() => {
                   setAllMatching(true);
+                  setExcluded(new Set());
                   // marcamos visualmente la página también
                   setSelected(new Set(products.map((p) => p.itemId)));
                 }}
@@ -337,7 +364,7 @@ export function ProductsTable({
         <div className="sticky top-32 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--brand-red)]/40 bg-[var(--brand-red)]/10 px-4 py-3 shadow-lg backdrop-blur">
           <span className="font-display text-sm font-bold text-[var(--brand-red)]">
             {allMatching
-              ? `${total.toLocaleString("es-AR")} (TODOS)`
+              ? `${affected.toLocaleString("es-AR")} (TODOS)`
               : `${selected.size} seleccionado${selected.size === 1 ? "" : "s"}`}
           </span>
           <div className="h-5 w-px bg-[var(--brand-red)]/30" />
@@ -390,7 +417,7 @@ export function ProductsTable({
               setPopover(null);
               setConfirmDel({
                 kind: "bulk",
-                count: allMatching ? total : selected.size,
+                count: affected,
                 all: allMatching,
               });
             }}
@@ -415,7 +442,7 @@ export function ProductsTable({
             <StockPopover
               onApply={applyStock}
               onClose={() => setPopover(null)}
-              count={allMatching ? total : selected.size}
+              count={affected}
               pending={pending}
             />
           )}
@@ -423,7 +450,7 @@ export function ProductsTable({
             <PricePopover
               onApply={applyPrice}
               onClose={() => setPopover(null)}
-              count={allMatching ? total : selected.size}
+              count={affected}
               pending={pending}
             />
           )}
@@ -463,7 +490,10 @@ export function ProductsTable({
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
             {products.map((p) => {
-              const isSelected = selected.has(p.itemId);
+              // En modo "todos" estan todos tildados salvo los excluidos
+              const isSelected = allMatching
+                ? !excluded.has(p.itemId)
+                : selected.has(p.itemId);
               const hasSale = p.salePrice !== null && p.salePrice < p.price;
               return (
                 <tr
@@ -653,6 +683,7 @@ export function ProductsTable({
           totalMatching={total}
           onExtendToAll={() => {
             setAllMatching(true);
+            setExcluded(new Set());
             setSelected(new Set(products.map((p) => p.itemId)));
             setConfirmDel({ kind: "bulk", count: total, all: true });
           }}
