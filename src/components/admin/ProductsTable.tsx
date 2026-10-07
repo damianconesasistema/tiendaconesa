@@ -86,8 +86,6 @@ export function ProductsTable({
     | null
   >(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  // Para borrados grandes exigimos escribir ELIMINAR a mano
-  const [confirmText, setConfirmText] = useState("");
 
   const allSelected =
     products.length > 0 && selected.size === products.length;
@@ -145,7 +143,6 @@ export function ProductsTable({
       if (ok) {
         setFeedback(msg);
         setConfirmDel(null);
-        setConfirmText("");
         setSelected(new Set());
         setAllMatching(false);
         setTimeout(() => setFeedback(null), 4000);
@@ -541,12 +538,9 @@ export function ProductsTable({
           target={confirmDel}
           error={deleteError}
           pending={pending}
-          confirmText={confirmText}
-          onConfirmTextChange={setConfirmText}
           onCancel={() => {
             setConfirmDel(null);
             setDeleteError(null);
-            setConfirmText("");
           }}
           onConfirm={doDelete}
         />
@@ -561,8 +555,6 @@ function DeleteConfirm({
   target,
   error,
   pending,
-  confirmText,
-  onConfirmTextChange,
   onCancel,
   onConfirm,
 }: {
@@ -571,16 +563,11 @@ function DeleteConfirm({
     | { kind: "bulk"; count: number; all: boolean };
   error: string | null;
   pending: boolean;
-  confirmText: string;
-  onConfirmTextChange: (v: string) => void;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
   const isBulk = target.kind === "bulk";
   const count = isBulk ? target.count : 1;
-  // A partir de 10 productos pedimos que escriba ELIMINAR
-  const needsTyping = isBulk && count >= 10;
-  const canConfirm = !pending && (!needsTyping || confirmText.trim().toUpperCase() === "ELIMINAR");
 
   return (
     <div
@@ -597,7 +584,7 @@ function DeleteConfirm({
           </div>
           <div className="min-w-0">
             <h3 className="font-display text-lg font-black uppercase leading-tight">
-              {isBulk ? `Eliminar ${count.toLocaleString("es-AR")} productos` : "Eliminar producto"}
+              ¿Estás seguro?
             </h3>
             <p className="mt-1 text-sm text-[var(--muted)]">
               {isBulk ? (
@@ -625,21 +612,6 @@ function DeleteConfirm({
           de ventas — a esos conviene pausarlos o dejarlos en stock 0.
         </div>
 
-        {needsTyping && (
-          <div className="mt-4">
-            <label className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-              Escribí ELIMINAR para confirmar
-            </label>
-            <input
-              autoFocus
-              value={confirmText}
-              onChange={(e) => onConfirmTextChange(e.target.value)}
-              placeholder="ELIMINAR"
-              className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 font-display text-sm font-bold uppercase tracking-wider outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
-            />
-          </div>
-        )}
-
         {error && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
             {error}
@@ -651,22 +623,23 @@ function DeleteConfirm({
             type="button"
             onClick={onCancel}
             disabled={pending}
-            className="rounded-full border border-[var(--border)] bg-white px-4 py-2 font-display text-xs font-bold uppercase tracking-wider hover:bg-[var(--surface)] disabled:opacity-50"
+            className="rounded-full border border-[var(--border)] bg-white px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wider hover:bg-[var(--surface)] disabled:opacity-50"
           >
-            Cancelar
+            No
           </button>
           <button
             type="button"
+            autoFocus
             onClick={onConfirm}
-            disabled={!canConfirm}
-            className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-4 py-2 font-display text-xs font-bold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-40"
+            disabled={pending}
+            className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-40"
           >
             {pending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className="h-4 w-4" />
             )}
-            Eliminar
+            Sí, eliminar
           </button>
         </div>
       </div>
