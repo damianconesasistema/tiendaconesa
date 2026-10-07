@@ -246,6 +246,10 @@ export function ProductDetail({
               >
                 {formatPrice(effectivePrice)}
               </div>
+              {/* Aclarar a qué corresponde el precio grande, pegado a él */}
+              <div className="mt-1 text-sm font-semibold text-[var(--muted)]">
+                Débito o tarjeta en 1 pago
+              </div>
               {hasDiscount && (
                 <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 font-display text-xs font-black uppercase tracking-wider text-emerald-800">
                   Ahorrás {formatPrice(listaVitrina - effectivePrice)}
@@ -261,10 +265,7 @@ export function ProductDetail({
                   {formatPrice(contado)}
                 </div>
               </div>
-              <div className="mt-2 text-sm text-[var(--muted)]">
-                Precio de lista: con tarjeta en 1 pago.
-              </div>
-              <div className="mt-0.5 text-xs text-[var(--muted)]">
+              <div className="mt-2 text-xs text-[var(--muted)]">
                 Hasta {cuotasMax} cuotas sin interés: {formatPrice(precioEnCuotas)}.
               </div>
             </div>

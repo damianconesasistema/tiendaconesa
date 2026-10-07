@@ -196,6 +196,9 @@ function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: numbe
                 Ahorrás {formatPrice(listaVitrina - effectivePrice)}
               </span>
             )}
+            <span className="text-[9px] uppercase tracking-wider text-[var(--muted)]">
+              Débito o 1 pago
+            </span>
             {/* Contado destacado en celeste */}
             {dctoPct > 0 && (
               <span className="mt-1.5 inline-flex w-fit items-center rounded-full bg-sky-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">
