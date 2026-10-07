@@ -483,12 +483,12 @@ type RestoreStats = {
   restaurados?: number;
 };
 
+// Se importa como modulo (NO se lee con fs en runtime): asi queda incrustado
+// en el build y funciona siempre, sin depender de que el archivo fuente este
+// presente en el servidor ni de cual sea el process.cwd().
 async function leerCatalogoOriginal() {
-  const { readFile } = await import("node:fs/promises");
-  const path = await import("node:path");
-  const file = path.join(process.cwd(), "src/data/products.json");
-  const raw = await readFile(file, "utf8");
-  return JSON.parse(raw) as Array<{
+  const mod = await import("@/data/products.json");
+  const data = (mod.default ?? mod) as Array<{
     itemId: string;
     title: string;
     price: number;
@@ -497,6 +497,7 @@ async function leerCatalogoOriginal() {
     category: string;
     status?: string;
   }>;
+  return data;
 }
 
 // Solo cuenta: no toca nada. Sirve para mostrar el preview antes de restaurar.

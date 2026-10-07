@@ -33,22 +33,32 @@ export function RestoreProducts() {
     setError(null);
     setDone(null);
     startTransition(async () => {
-      const r = await previewRestore();
-      if (r.ok) setStats(r);
-      else setError(r.error ?? "Error");
+      try {
+        const r = await previewRestore();
+        if (r.ok) setStats(r);
+        else setError(r.error ?? "Error");
+      } catch (e) {
+        // Sin esto, si la accion del server falla el spinner queda girando
+        // para siempre y el usuario no se entera de nada.
+        setError(`Falló la consulta: ${(e as Error).message}`);
+      }
     });
   }
 
   function restore() {
     setError(null);
     startTransition(async () => {
-      const r = await restoreMissingProducts();
-      if (r.ok) {
-        setDone(r);
-        setStats(null);
-        setConfirming(false);
-      } else {
-        setError(r.error ?? "Error");
+      try {
+        const r = await restoreMissingProducts();
+        if (r.ok) {
+          setDone(r);
+          setStats(null);
+          setConfirming(false);
+        } else {
+          setError(r.error ?? "Error");
+        }
+      } catch (e) {
+        setError(`Falló la restauración: ${(e as Error).message}`);
       }
     });
   }
