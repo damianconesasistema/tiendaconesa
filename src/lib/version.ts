@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.20.0";
+export const APP_VERSION = "V.0.20.1";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.20.1",
+    date: "2026-10-07",
+    changes: [
+      "La plantilla de importación ahora es SIEMPRE Excel (.xlsx). Se eliminó la plantilla CSV vieja: los dos botones de la pantalla de importar descargan el mismo Excel, con las columnas listas para completar, una fila de ejemplo y una hoja 'Instrucciones' explicando campo por campo.",
+      "CORREGIDO: la plantilla decía que la columna 'codigo' era opcional y que se generaba sola. Era falso: el importador rechazaba la fila con 'itemId vacío'. Ahora la plantilla aclara que el código es OBLIGATORIO (si ya existe actualiza el producto, si no lo crea).",
+      "CORREGIDO: la tabla de 'formato esperado' decía que 'sku' era lo mismo que 'codigo'. Son campos distintos: 'codigo' identifica la publicación y 'sku' es tu código interno. Se agregó también la columna 'memo' que faltaba documentar.",
+    ],
+  },
   {
     version: "V.0.20.0",
     date: "2026-10-07",

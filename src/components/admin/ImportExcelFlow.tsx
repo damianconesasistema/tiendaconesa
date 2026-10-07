@@ -309,26 +309,27 @@ export function ImportExcelFlow() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
-              <TemplateCol col="codigo / sku / itemId" field="Código único" ex="MLA123456" req />
+              <TemplateCol col="codigo / code / id / mla" field="Código único del producto. No puede quedar vacío." ex="MLA123456" req />
               <TemplateCol col="titulo / nombre" field="Nombre del producto" ex="Inodoro Ferrum" req />
               <TemplateCol col="precio" field="Precio base ARS" ex="150000" req />
-              <TemplateCol col="oferta / precio_oferta" field="Precio oferta (opcional)" ex="135000" />
+              <TemplateCol col="sku / codigo_interno" field="Tu código interno (opcional). Sirve para sincronizar stock y matchear fotos." ex="GRI-001" />
+              <TemplateCol col="oferta / precio_oferta" field="Precio oferta (opcional, menor al precio)" ex="135000" />
               <TemplateCol col="stock" field="Unidades disponibles" ex="12" />
               <TemplateCol col="categoria" field="sanitarios, griferia, banera, salamandras, calefones, accesorios, piletas, materiales, otros" ex="sanitarios" />
               <TemplateCol col="activo" field="Publicado (SI/NO)" ex="SI" />
               <TemplateCol col="destacado" field="Aparece en home (SI/NO)" ex="SI" />
               <TemplateCol col="descripcion" field="Detalle" ex="Taza + depósito" />
+              <TemplateCol col="memo" field="Nota privada (solo la ves vos en el panel)" ex="Proveedor FV - remito 1234" />
               <TemplateCol col="imagen / imagen_url" field="URL de la foto" ex="https://ejemplo.com/foto.jpg" />
             </tbody>
           </table>
         </div>
         <a
-          href="/plantilla-productos.csv"
-          download
+          href="/api/admin/productos/plantilla"
           className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 font-display text-xs font-bold uppercase tracking-wider hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
         >
           <Download className="h-3.5 w-3.5" />
-          Descargar plantilla CSV
+          Descargar plantilla Excel
         </a>
       </div>
     </div>

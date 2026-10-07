@@ -59,7 +59,7 @@ export async function GET() {
 
   // Segunda hoja con instrucciones / categorías válidas
   const guia = [
-    { campo: "codigo", detalle: "Opcional. Si lo dejás vacío se genera uno automático. Si ya existe, actualiza ese producto." },
+    { campo: "codigo", detalle: "OBLIGATORIO. Código único del producto, no puede quedar vacío. Si el código ya existe en la tienda, se ACTUALIZA ese producto; si no existe, se CREA uno nuevo. Podés inventarlo (ej: GRI-001)." },
     { campo: "sku", detalle: "Opcional. Código interno tuyo. Sirve para sincronizar stock y matchear fotos por nombre de archivo." },
     { campo: "titulo", detalle: "OBLIGATORIO. Nombre del producto." },
     { campo: "categoria", detalle: "Una de: sanitarios, griferia, banera, accesorios, salamandras, calefones, materiales, piletas, otros." },
