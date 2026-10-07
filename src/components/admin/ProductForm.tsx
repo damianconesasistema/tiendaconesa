@@ -157,10 +157,13 @@ export function ProductForm({
         <textarea
           name="description"
           defaultValue={product.description || ""}
-          rows={4}
+          rows={16}
           placeholder="Marca, medidas, color, incluye, etc."
-          className="input resize-none"
+          className="input resize-y leading-relaxed"
         />
+        <p className="mt-1 text-[11px] text-[var(--muted)]">
+          Podés agrandar el campo arrastrando la esquina de abajo a la derecha.
+        </p>
       </div>
 
       <div>
