@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { RotateCcw, Check, AlertTriangle, Loader2 } from "lucide-react";
+import { useState, useRef, useTransition } from "react";
+import {
+  RotateCcw,
+  Check,
+  AlertTriangle,
+  Loader2,
+  Download,
+  Upload,
+} from "lucide-react";
 import {
   previewRestore,
   restoreMissingProducts,
+  restoreFromBackup,
 } from "@/app/admin/productos/actions";
 
 type Stats = {
@@ -148,6 +156,124 @@ export function RestoreProducts() {
         </div>
       )}
 
+      {error && (
+        <div className="mt-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Backup completo (incluye los articulos de alta manual, que NO estan en el
+// catalogo original) y restauracion desde ese archivo.
+export function BackupProducts() {
+  const [pending, startTransition] = useTransition();
+  const [msg, setMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pisar, setPisar] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function onFile(file: File) {
+    setError(null);
+    setMsg(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const texto = String(reader.result || "");
+      startTransition(async () => {
+        const r = await restoreFromBackup(texto, pisar);
+        if (r.ok) {
+          setMsg(
+            `${r.creados} creados · ${r.actualizados} actualizados · ${r.fotos} fotos restauradas (de ${r.enBackup} en el backup)`,
+          );
+        } else {
+          setError(r.error ?? "Error");
+        }
+      });
+    };
+    reader.onerror = () => setError("No se pudo leer el archivo");
+    reader.readAsText(file);
+  }
+
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-white p-6">
+      <h2 className="font-display text-lg font-black uppercase tracking-wider">
+        Backup completo
+      </h2>
+      <p className="mt-2 text-sm text-[var(--muted)]">
+        Guarda <strong>todos</strong> los productos con todos sus datos,
+        incluidos los que diste de alta a mano (que no están en el catálogo
+        original). Bajalo seguido y guardalo en tu compu.
+      </p>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        <a
+          href="/api/admin/productos/backup"
+          className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-black)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white hover:opacity-90"
+        >
+          <Download className="h-4 w-4" />
+          Bajar backup (datos)
+        </a>
+        <a
+          href="/api/admin/productos/backup?fotos=1"
+          className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+        >
+          <Download className="h-4 w-4" />
+          Bajar backup con fotos
+        </a>
+      </div>
+      <p className="mt-2 text-xs text-[var(--muted)]">
+        El de fotos pesa mucho más (incluye las imágenes de la galería) pero es
+        el único que te deja recuperar las fotos que subiste.
+      </p>
+
+      <div className="mt-6 border-t border-[var(--border)] pt-5">
+        <h3 className="font-display text-sm font-black uppercase tracking-wider">
+          Restaurar desde un backup
+        </h3>
+        <label className="mt-3 flex items-center gap-2 text-xs text-[var(--muted)]">
+          <input
+            type="checkbox"
+            checked={pisar}
+            onChange={(e) => setPisar(e.target.checked)}
+            className="h-4 w-4 accent-[var(--brand-red)]"
+          />
+          También pisar los productos que ya existen (sobrescribe precios y
+          estado actuales)
+        </label>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={pending}
+          className="mt-3 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:opacity-50"
+        >
+          {pending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Upload className="h-4 w-4" />
+          )}
+          Elegir archivo de backup
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onFile(f);
+            e.target.value = "";
+          }}
+        />
+      </div>
+
+      {msg && (
+        <div className="mt-5 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900">
+          <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+          {msg}
+        </div>
+      )}
       {error && (
         <div className="mt-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />

@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.22.0";
+export const APP_VERSION = "V.0.23.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.23.0",
+    date: "2026-10-07",
+    changes: [
+      "BACKUP COMPLETO (Productos → Restaurar): baja un archivo con TODOS los productos y todos sus datos, incluidos los que diste de alta a mano, que no están en el catálogo original. Hay dos versiones: solo datos (liviano) o con fotos (pesado, pero es el único que recupera las imágenes que subiste).",
+      "RESTAURAR DESDE BACKUP: subís ese archivo y vuelve todo como estaba, fotos incluidas. Por defecto solo crea los que faltan; hay una opción para pisar también los existentes.",
+      "DUPLICAR PUBLICACIÓN: botón nuevo en cada fila. Crea una copia con todo (datos y fotos de la galería), te abre la ficha para editarla y la deja PAUSADA para que no salga sola a la tienda. Ideal para publicar algo parecido sin cargar todo de cero.",
+    ],
+  },
   {
     version: "V.0.22.0",
     date: "2026-10-07",

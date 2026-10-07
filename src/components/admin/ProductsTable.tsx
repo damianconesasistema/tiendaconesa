@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Tag,
   Check,
@@ -22,6 +23,7 @@ import {
   AlertTriangle,
   Lock,
   Unlock,
+  Copy,
 } from "lucide-react";
 import { InlineNumber, InlineSegmented, InlineToggle } from "@/components/admin/InlineEdit";
 import {
@@ -37,6 +39,7 @@ import {
   setProductLocked,
   bulkSetLocked,
   bulkSetLockedAll,
+  duplicateProduct,
 } from "@/app/admin/productos/actions";
 
 type Product = {
@@ -78,6 +81,7 @@ export function ProductsTable({
   sort?: string;
   dir?: "asc" | "desc";
 }) {
+  const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -117,6 +121,19 @@ export function ProductsTable({
   function clearSelection() {
     setSelected(new Set());
     setAllMatching(false);
+  }
+
+  // Duplicar: crea la copia pausada y abre su ficha para editarla.
+  function duplicate(itemId: string) {
+    startTransition(async () => {
+      const r = await duplicateProduct(itemId);
+      if (r.ok && r.itemId) {
+        router.push(`/admin/productos/${r.itemId}`);
+      } else {
+        setFeedback(`Error: ${r.error}`);
+        setTimeout(() => setFeedback(null), 3000);
+      }
+    });
   }
 
   function toggleLock(itemId: string, locked: boolean) {
@@ -567,6 +584,15 @@ export function ProductsTable({
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Link>
+                      <button
+                        type="button"
+                        onClick={() => duplicate(p.itemId)}
+                        disabled={pending}
+                        title="Duplicar: crea una copia con todo (fotos incluidas) para publicar algo similar"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-blue-500 hover:bg-blue-500 hover:text-white disabled:opacity-50"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => toggleLock(p.itemId, !p.locked)}

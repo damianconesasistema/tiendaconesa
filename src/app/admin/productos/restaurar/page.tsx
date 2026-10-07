@@ -4,7 +4,10 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { RestoreProducts } from "@/components/admin/RestoreProducts";
+import {
+  RestoreProducts,
+  BackupProducts,
+} from "@/components/admin/RestoreProducts";
 
 export const metadata: Metadata = {
   title: "Restaurar productos · Panel Admin",
@@ -28,13 +31,15 @@ export default async function RestaurarPage() {
       </Link>
 
       <h1 className="mt-4 font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
-        Restaurar productos
+        Backup y restaurar
       </h1>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Recuperá los productos del catálogo original que se hayan borrado.
+        Guardá una copia de seguridad de tus productos y recuperá los que se
+        hayan borrado.
       </p>
 
-      <div className="mt-6 max-w-2xl">
+      <div className="mt-6 flex max-w-2xl flex-col gap-6">
+        <BackupProducts />
         <RestoreProducts />
       </div>
     </AdminShell>

@@ -577,6 +577,224 @@ export async function restoreMissingProducts(): Promise<RestoreStats> {
   }
 }
 
+// --- Restaurar desde un archivo de backup (el JSON de /api/.../backup) ---
+// A diferencia de restoreMissingProducts (que lee el catalogo original y por
+// lo tanto NO tiene los articulos de alta manual), esto restaura exactamente
+// lo que habia cuando se hizo el backup, fotos incluidas si el backup las trae.
+//
+// Por defecto SOLO crea los que faltan. Con pisarExistentes=true tambien
+// actualiza los que ya estan (ojo: sobrescribe precios y estado actuales).
+
+type BackupFoto = { position: number; contentType: string; data: string };
+type BackupProducto = {
+  itemId: string;
+  sku: string | null;
+  title: string;
+  description: string | null;
+  category: string;
+  price: number;
+  salePrice: number | null;
+  stock: number;
+  active: boolean;
+  featured: boolean;
+  locked?: boolean;
+  memo: string | null;
+  shippingType: string | null;
+  imageUrl: string | null;
+  fotos?: BackupFoto[];
+};
+
+export async function restoreFromBackup(
+  json: string,
+  pisarExistentes = false,
+): Promise<{
+  ok?: true;
+  error?: string;
+  creados?: number;
+  actualizados?: number;
+  fotos?: number;
+  enBackup?: number;
+}> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+
+  let parsed: { formato?: string; productos?: BackupProducto[] };
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return { error: "El archivo no es un JSON válido" };
+  }
+  if (parsed.formato !== "conesa-backup-productos" || !parsed.productos) {
+    return {
+      error:
+        "Ese archivo no es un backup de Conesa. Usá el que baja el botón 'Backup'.",
+    };
+  }
+
+  const productos = parsed.productos;
+  let creados = 0;
+  let actualizados = 0;
+  let fotos = 0;
+
+  try {
+    for (const p of productos) {
+      if (!p.itemId || !p.title) continue;
+
+      const existe = await prisma.product.findUnique({
+        where: { itemId: p.itemId },
+        select: { id: true },
+      });
+
+      if (existe && !pisarExistentes) continue;
+
+      const data = {
+        title: p.title,
+        description: p.description ?? null,
+        category: p.category || "otros",
+        price: Math.round(p.price || 0),
+        salePrice: p.salePrice != null ? Math.round(p.salePrice) : null,
+        stock: Math.max(0, Math.floor(p.stock || 0)),
+        active: !!p.active,
+        featured: !!p.featured,
+        locked: !!p.locked,
+        memo: p.memo ?? null,
+        shippingType: p.shippingType ?? "ambos",
+        imageUrl: p.imageUrl ?? null,
+        // sku es unique: si choca con otro producto lo dejamos vacio
+        sku: p.sku ?? null,
+      };
+
+      let productId: string;
+      if (existe) {
+        const up = await prisma.product.update({
+          where: { itemId: p.itemId },
+          data,
+          select: { id: true },
+        });
+        productId = up.id;
+        actualizados++;
+      } else {
+        const cr = await prisma.product.create({
+          data: { itemId: p.itemId, ...data },
+          select: { id: true },
+        });
+        productId = cr.id;
+        creados++;
+      }
+
+      // Fotos: solo si el backup las trae y el producto no tiene ninguna,
+      // para no duplicar galerias al re-restaurar.
+      if (p.fotos && p.fotos.length) {
+        const yaTiene = await prisma.productImage.count({ where: { productId } });
+        if (yaTiene === 0) {
+          for (const f of p.fotos) {
+            await prisma.productImage.create({
+              data: {
+                productId,
+                data: Buffer.from(f.data, "base64"),
+                contentType: f.contentType || "image/jpeg",
+                position: f.position ?? 0,
+              },
+            });
+            fotos++;
+          }
+          await prisma.product.update({
+            where: { id: productId },
+            data: {
+              imageUrl: `/api/productos/${p.itemId}/imagen?v=${Date.now()}`,
+            },
+          });
+        }
+      }
+    }
+
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    revalidatePath("/");
+    return {
+      ok: true,
+      creados,
+      actualizados,
+      fotos,
+      enBackup: productos.length,
+    };
+  } catch (e) {
+    return { error: `Error al restaurar: ${(e as Error).message}` };
+  }
+}
+
+// --- Duplicar publicacion ---
+// Copia un producto entero (campos + galeria de fotos) con un itemId nuevo.
+// Queda PAUSADO y sin candado, listo para editar y publicar.
+
+export async function duplicateProduct(
+  itemId: string,
+): Promise<{ ok?: true; error?: string; itemId?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+
+  try {
+    const orig = await prisma.product.findUnique({
+      where: { itemId },
+      include: { images: { orderBy: { position: "asc" } } },
+    });
+    if (!orig) return { error: "El producto no existe" };
+
+    // itemId nuevo y unico. COPIA-<timestamp36>-<random> es corto y no choca.
+    const nuevoItemId = `COPIA-${Date.now().toString(36).toUpperCase()}-${Math.random()
+      .toString(36)
+      .slice(2, 6)
+      .toUpperCase()}`;
+
+    const copia = await prisma.product.create({
+      data: {
+        itemId: nuevoItemId,
+        // sku es unique: no se copia, lo completa el admin
+        sku: null,
+        title: `${orig.title} (copia)`,
+        description: orig.description,
+        category: orig.category,
+        price: orig.price,
+        salePrice: orig.salePrice,
+        stock: orig.stock,
+        // Pausado y sin destacar: que no salga solo a la tienda
+        active: false,
+        featured: false,
+        locked: false,
+        memo: orig.memo,
+        shippingType: orig.shippingType,
+        imageUrl: null,
+      },
+      select: { id: true },
+    });
+
+    // Copiar la galeria de fotos
+    for (const img of orig.images) {
+      await prisma.productImage.create({
+        data: {
+          productId: copia.id,
+          data: img.data,
+          contentType: img.contentType,
+          position: img.position,
+        },
+      });
+    }
+    if (orig.images.length) {
+      await prisma.product.update({
+        where: { id: copia.id },
+        data: {
+          imageUrl: `/api/productos/${nuevoItemId}/imagen?v=${Date.now()}`,
+        },
+      });
+    }
+
+    revalidatePath("/admin/productos");
+    return { ok: true, itemId: nuevoItemId };
+  } catch (e) {
+    return { error: `Error al duplicar: ${(e as Error).message}` };
+  }
+}
+
 // --- Candado (locked) ---
 // Un producto con locked=true no se puede editar ni eliminar. Es la red de
 // seguridad contra cambios masivos accidentales: las acciones masivas lo
