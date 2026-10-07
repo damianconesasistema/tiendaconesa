@@ -567,22 +567,22 @@ export function ProductsTable({
                     />
                   </td>
                   <td className="px-2 py-3 text-right">
-                    {/* flex-wrap: si no entran en una fila, bajan a la
-                        siguiente en vez de ensanchar la tabla. */}
-                    <div className="inline-flex max-w-[5.5rem] flex-wrap items-center justify-end gap-1">
+                    {/* Botones chicos para que los 5 entren en UNA fila sin
+                        ensanchar la tabla ni estirar el alto de la fila. */}
+                    <div className="inline-flex flex-nowrap items-center justify-end gap-0.5">
                       <Link
                         href={`/tienda/${p.itemId}`}
                         target="_blank"
                         rel="noopener"
                         title="Ver en tienda (como lo ve el cliente)"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                       <Link
                         href={`/admin/productos/${p.itemId}`}
                         title="Editar ficha completa"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Link>
@@ -591,7 +591,7 @@ export function ProductsTable({
                         onClick={() => duplicate(p.itemId)}
                         disabled={pending}
                         title="Duplicar: crea una copia con todo (fotos incluidas) para publicar algo similar"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-blue-500 hover:bg-blue-500 hover:text-white disabled:opacity-50"
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-blue-500 hover:bg-blue-500 hover:text-white disabled:opacity-50"
                       >
                         <Copy className="h-3.5 w-3.5" />
                       </button>
@@ -604,7 +604,7 @@ export function ProductsTable({
                             ? "Bloqueado: nada lo puede modificar ni borrar. Click para desbloquear."
                             : "Bloquear: protege este producto de cambios y borrados"
                         }
-                        className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors disabled:opacity-50 ${
+                        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors disabled:opacity-50 ${
                           p.locked
                             ? "border-amber-400 bg-amber-100 text-amber-700 hover:bg-amber-200"
                             : "border-[var(--border)] bg-white text-[var(--muted)] hover:border-amber-400 hover:text-amber-600"
@@ -632,7 +632,7 @@ export function ProductsTable({
                             ? "Bloqueado con candado: no se puede eliminar"
                             : "Eliminar producto"
                         }
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-red-500 hover:bg-red-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-[var(--border)] disabled:hover:bg-white disabled:hover:text-[var(--muted)]"
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-red-500 hover:bg-red-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-[var(--border)] disabled:hover:bg-white disabled:hover:text-[var(--muted)]"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
