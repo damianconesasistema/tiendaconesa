@@ -468,6 +468,21 @@ export async function bulkUpdateAll(
   }
 }
 
+// --- Redactar descripcion con IA ---
+// Busca el producto en internet (Gemini + google_search) y arma el texto.
+// No guarda nada: devuelve el texto para que el admin lo revise y edite
+// antes de apretar Guardar. La IA se puede equivocar, asi que la ultima
+// palabra siempre la tiene la persona.
+export async function redactarDescripcionIA(
+  titulo: string,
+  categoria: string,
+): Promise<{ ok?: true; texto?: string; fuentes?: string[]; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  const { redactarDescripcion } = await import("@/lib/gemini");
+  return redactarDescripcion(titulo, categoria);
+}
+
 // --- Restaurar productos borrados desde el catalogo original ---
 // src/data/products.json tiene los 779 productos del catalogo original con sus
 // precios reales. Si se borraron por accidente, esto los vuelve a crear.

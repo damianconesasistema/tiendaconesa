@@ -10,6 +10,7 @@ import { ProductImageUpload } from "@/components/admin/ProductImageUpload";
 import { PriceHistoryPanel } from "@/components/admin/PriceHistoryPanel";
 import { formatPrice } from "@/lib/order";
 import { updateProduct } from "@/app/admin/productos/actions";
+import { geminiConfigurado } from "@/lib/gemini";
 
 export const metadata: Metadata = {
   title: "Editar producto · Panel Admin",
@@ -109,7 +110,11 @@ export default async function EditProductPage({ params }: RouteProps) {
             Precios, stock, descripción y estado.
           </p>
 
-          <ProductForm product={product} action={updateProduct} />
+          <ProductForm
+            product={product}
+            action={updateProduct}
+            iaDisponible={geminiConfigurado()}
+          />
         </section>
       </div>
 

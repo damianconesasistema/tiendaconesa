@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
-import { Check, AlertCircle } from "lucide-react";
+import { useActionState, useState, useRef, useTransition } from "react";
+import { Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
+import { redactarDescripcionIA } from "@/app/admin/productos/actions";
 
 type Product = {
   itemId: string;
@@ -37,17 +38,48 @@ const CATEGORIES = [
 export function ProductForm({
   product,
   action,
+  iaDisponible = false,
 }: {
   product: Product;
   action: (prev: unknown, fd: FormData) => Promise<State>;
+  // true solo si GEMINI_API_KEY esta cargada en el server
+  iaDisponible?: boolean;
 }) {
   const [state, formAction, isPending] = useActionState<State, FormData>(
     action as (prev: State, fd: FormData) => Promise<State>,
     null,
   );
 
+  // --- Descripcion con IA ---
+  const formRef = useRef<HTMLFormElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
+  const [iaPending, startIA] = useTransition();
+  const [iaError, setIaError] = useState<string | null>(null);
+  const [iaFuentes, setIaFuentes] = useState<string[] | null>(null);
+
+  function escribirConIA() {
+    setIaError(null);
+    setIaFuentes(null);
+    const fd = new FormData(formRef.current!);
+    const titulo = String(fd.get("title") || "");
+    const categoria = String(fd.get("category") || "otros");
+    startIA(async () => {
+      try {
+        const r = await redactarDescripcionIA(titulo, categoria);
+        if (r.ok && r.texto && descRef.current) {
+          descRef.current.value = r.texto;
+          setIaFuentes(r.fuentes?.length ? r.fuentes : null);
+        } else {
+          setIaError(r.error ?? "No se pudo generar la descripción");
+        }
+      } catch (e) {
+        setIaError(`Falló la consulta: ${(e as Error).message}`);
+      }
+    });
+  }
+
   return (
-    <form action={formAction} className="mt-6 space-y-5">
+    <form ref={formRef} action={formAction} className="mt-6 space-y-5">
       <input type="hidden" name="itemId" value={product.itemId} />
 
       <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
@@ -153,14 +185,44 @@ export function ProductForm({
       </div>
 
       <div>
-        <Label>Descripción (opcional)</Label>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Label>Descripción (opcional)</Label>
+          {iaDisponible && (
+            <button
+              type="button"
+              onClick={escribirConIA}
+              disabled={iaPending}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brand-red)]/40 bg-[var(--brand-red)]/5 px-3 py-1.5 font-display text-[11px] font-bold uppercase tracking-wider text-[var(--brand-red)] transition-colors hover:bg-[var(--brand-red)] hover:text-white disabled:opacity-50"
+            >
+              {iaPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              {iaPending ? "Buscando en internet…" : "Escribir con IA"}
+            </button>
+          )}
+        </div>
         <textarea
+          ref={descRef}
           name="description"
           defaultValue={product.description || ""}
           rows={16}
           placeholder="Marca, medidas, color, incluye, etc."
           className="input resize-y leading-relaxed"
         />
+        {iaError && (
+          <p className="mt-1 inline-flex items-start gap-1.5 text-[11px] font-bold text-red-500">
+            <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+            {iaError}
+          </p>
+        )}
+        {iaFuentes && (
+          <p className="mt-1 text-[11px] text-[var(--muted)]">
+            <strong>Revisá el texto antes de guardar.</strong> La IA se basó en:{" "}
+            {iaFuentes.join(" · ")}
+          </p>
+        )}
         <p className="mt-1 text-[11px] text-[var(--muted)]">
           Podés agrandar el campo arrastrando la esquina de abajo a la derecha.
         </p>
