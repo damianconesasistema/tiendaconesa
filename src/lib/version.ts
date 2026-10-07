@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.20.1";
+export const APP_VERSION = "V.0.21.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.21.0",
+    date: "2026-10-07",
+    changes: [
+      "Nuevo botón ELIMINAR: cada producto tiene su tachito al lado de Editar, y además hay un botón 'Eliminar' en la barra de acciones masivas (sirve también con 'Seleccionar los 781').",
+      "Siempre pide confirmación en una ventana, porque NO se puede deshacer. Al eliminar un producto se borran también sus fotos y su historial de precios. Si son 10 o más productos, hay que escribir ELIMINAR a mano para evitar accidentes.",
+      "PROTECCIÓN: los productos que ya están en algún pedido NO se eliminan (se omiten y te avisa cuántos), para no romper el historial de ventas. A esos conviene pausarlos o dejarlos en stock 0.",
+    ],
+  },
   {
     version: "V.0.20.1",
     date: "2026-10-07",

@@ -18,6 +18,8 @@ import {
   ArrowUp,
   ArrowDown,
   ChevronsUpDown,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { InlineNumber, InlineSegmented, InlineToggle } from "@/components/admin/InlineEdit";
 import {
@@ -27,6 +29,9 @@ import {
   bulkSetStockAll,
   bulkAdjustPrice,
   bulkAdjustPriceAll,
+  deleteProduct,
+  bulkDelete,
+  bulkDeleteAll,
 } from "@/app/admin/productos/actions";
 
 type Product = {
@@ -74,6 +79,15 @@ export function ProductsTable({
   // Cuando true, las acciones aplican a TODOS los que coinciden con el
   // filtro (no solo los de esta página).
   const [allMatching, setAllMatching] = useState(false);
+  // Confirmacion de borrado (no hay deshacer, siempre pasa por aca)
+  const [confirmDel, setConfirmDel] = useState<
+    | { kind: "one"; itemId: string; title: string }
+    | { kind: "bulk"; count: number; all: boolean }
+    | null
+  >(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Para borrados grandes exigimos escribir ELIMINAR a mano
+  const [confirmText, setConfirmText] = useState("");
 
   const allSelected =
     products.length > 0 && selected.size === products.length;
@@ -99,6 +113,46 @@ export function ProductsTable({
   function clearSelection() {
     setSelected(new Set());
     setAllMatching(false);
+  }
+
+  // Borrado: siempre pasa por el modal de confirmacion. No hay deshacer.
+  function doDelete() {
+    if (!confirmDel) return;
+    const target = confirmDel;
+    startTransition(async () => {
+      let ok = false;
+      let error: string | undefined;
+      let msg = "";
+
+      if (target.kind === "one") {
+        const r = await deleteProduct(target.itemId);
+        ok = !!r.ok;
+        error = r.error;
+        msg = "Producto eliminado";
+      } else {
+        const r =
+          target.all && filter
+            ? await bulkDeleteAll(filter)
+            : await bulkDelete(Array.from(selected));
+        ok = !!r.ok;
+        error = r.error;
+        const skipped = r.skipped ?? 0;
+        msg = `${r.count ?? 0} eliminados${
+          skipped > 0 ? ` · ${skipped} omitidos (están en pedidos)` : ""
+        }`;
+      }
+
+      if (ok) {
+        setFeedback(msg);
+        setConfirmDel(null);
+        setConfirmText("");
+        setSelected(new Set());
+        setAllMatching(false);
+        setTimeout(() => setFeedback(null), 4000);
+      } else {
+        setDeleteError(error ?? "Error al eliminar");
+      }
+    });
   }
 
   // Direccion por defecto la primera vez que se clickea cada columna.
@@ -267,6 +321,23 @@ export function ProductsTable({
           >
             <DollarSign className="h-3.5 w-3.5" />
             Precio
+          </BulkBtn>
+          <div className="h-5 w-px bg-[var(--brand-red)]/30" />
+          <BulkBtn
+            onClick={() => {
+              setDeleteError(null);
+              setPopover(null);
+              setConfirmDel({
+                kind: "bulk",
+                count: allMatching ? total : selected.size,
+                all: allMatching,
+              });
+            }}
+            disabled={pending}
+            color="danger"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Eliminar
           </BulkBtn>
           <button
             onClick={clearSelection}
@@ -441,6 +512,21 @@ export function ProductsTable({
                         <Pencil className="h-3 w-3" />
                         Editar
                       </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDeleteError(null);
+                          setConfirmDel({
+                            kind: "one",
+                            itemId: p.itemId,
+                            title: p.title,
+                          });
+                        }}
+                        title="Eliminar producto"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-red-500 hover:bg-red-500 hover:text-white"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -448,6 +534,141 @@ export function ProductsTable({
             })}
           </tbody>
         </table>
+      </div>
+
+      {confirmDel && (
+        <DeleteConfirm
+          target={confirmDel}
+          error={deleteError}
+          pending={pending}
+          confirmText={confirmText}
+          onConfirmTextChange={setConfirmText}
+          onCancel={() => {
+            setConfirmDel(null);
+            setDeleteError(null);
+            setConfirmText("");
+          }}
+          onConfirm={doDelete}
+        />
+      )}
+    </div>
+  );
+}
+
+// Modal de confirmacion de borrado. No hay deshacer, asi que para borrados
+// masivos grandes exigimos escribir ELIMINAR a mano.
+function DeleteConfirm({
+  target,
+  error,
+  pending,
+  confirmText,
+  onConfirmTextChange,
+  onCancel,
+  onConfirm,
+}: {
+  target:
+    | { kind: "one"; itemId: string; title: string }
+    | { kind: "bulk"; count: number; all: boolean };
+  error: string | null;
+  pending: boolean;
+  confirmText: string;
+  onConfirmTextChange: (v: string) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const isBulk = target.kind === "bulk";
+  const count = isBulk ? target.count : 1;
+  // A partir de 10 productos pedimos que escriba ELIMINAR
+  const needsTyping = isBulk && count >= 10;
+  const canConfirm = !pending && (!needsTyping || confirmText.trim().toUpperCase() === "ELIMINAR");
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-display text-lg font-black uppercase leading-tight">
+              {isBulk ? `Eliminar ${count.toLocaleString("es-AR")} productos` : "Eliminar producto"}
+            </h3>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {isBulk ? (
+                <>
+                  Vas a eliminar{" "}
+                  <strong className="text-foreground">
+                    {count.toLocaleString("es-AR")} productos
+                  </strong>
+                  {target.all ? " (todos los que coinciden con el filtro)" : ""}.
+                </>
+              ) : (
+                <>
+                  Vas a eliminar{" "}
+                  <strong className="text-foreground">{target.title}</strong>.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          <strong>Esto no se puede deshacer.</strong> Se borran también sus fotos
+          y su historial de precios. Los productos que estén en algún pedido{" "}
+          <strong>no se eliminan</strong> (se omiten) para no romper el historial
+          de ventas — a esos conviene pausarlos o dejarlos en stock 0.
+        </div>
+
+        {needsTyping && (
+          <div className="mt-4">
+            <label className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+              Escribí ELIMINAR para confirmar
+            </label>
+            <input
+              autoFocus
+              value={confirmText}
+              onChange={(e) => onConfirmTextChange(e.target.value)}
+              placeholder="ELIMINAR"
+              className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 font-display text-sm font-bold uppercase tracking-wider outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
+            />
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+            {error}
+          </div>
+        )}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={pending}
+            className="rounded-full border border-[var(--border)] bg-white px-4 py-2 font-display text-xs font-bold uppercase tracking-wider hover:bg-[var(--surface)] disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={!canConfirm}
+            className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-4 py-2 font-display text-xs font-bold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-40"
+          >
+            {pending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5" />
+            )}
+            Eliminar
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -538,13 +759,15 @@ function BulkBtn({
   onClick: () => void;
   disabled?: boolean;
   children: React.ReactNode;
-  color: "green" | "gray" | "red" | "muted" | "blue";
+  color: "green" | "gray" | "red" | "muted" | "blue" | "danger";
 }) {
   const palette: Record<typeof color, string> = {
     green: "bg-green-500 text-white hover:bg-green-600",
     gray: "bg-gray-700 text-white hover:bg-gray-800",
     red: "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]",
     blue: "bg-blue-600 text-white hover:bg-blue-700",
+    danger:
+      "border border-red-300 bg-white text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600",
     muted: "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)]",
   };
   return (

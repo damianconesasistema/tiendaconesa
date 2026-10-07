@@ -461,6 +461,78 @@ export async function bulkUpdateAll(
   }
 }
 
+// --- Eliminar productos ---
+// OJO: un producto que ya fue vendido NO se puede borrar. OrderItem apunta a
+// Product sin onDelete:Cascade (es Restrict), asi que borrarlo romperia el
+// historial de pedidos. En esos casos avisamos y sugerimos pausar / sin stock.
+// Las imagenes y el historial de precios SI se borran solos (tienen Cascade).
+
+export async function deleteProduct(
+  itemId: string,
+): Promise<{ ok?: true; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { itemId },
+      select: { title: true, _count: { select: { orderItems: true } } },
+    });
+    if (!product) return { error: "El producto ya no existe" };
+
+    const vendido = product._count.orderItems;
+    if (vendido > 0) {
+      return {
+        error: `No se puede eliminar "${product.title}": está en ${vendido} pedido${vendido === 1 ? "" : "s"} y se perdería el historial de ventas. Pausalo o ponelo en stock 0 para sacarlo de la tienda.`,
+      };
+    }
+
+    await prisma.product.delete({ where: { itemId } });
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    revalidatePath("/");
+    return { ok: true };
+  } catch (e) {
+    return { error: `Error al eliminar: ${(e as Error).message}` };
+  }
+}
+
+// Borrado masivo. Solo borra los que NO esten en ningun pedido; el resto se
+// informa como "omitidos" para que el admin sepa que quedaron sin tocar.
+async function deleteWhere(
+  where: Prisma.ProductWhereInput,
+): Promise<{ ok?: true; error?: string; count?: number; skipped?: number }> {
+  try {
+    const total = await prisma.product.count({ where });
+    const r = await prisma.product.deleteMany({
+      where: { ...where, orderItems: { none: {} } },
+    });
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    revalidatePath("/");
+    return { ok: true, count: r.count, skipped: total - r.count };
+  } catch (e) {
+    return { error: `Error al eliminar: ${(e as Error).message}` };
+  }
+}
+
+export async function bulkDelete(
+  itemIds: string[],
+): Promise<{ ok?: true; error?: string; count?: number; skipped?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!itemIds.length) return { error: "Ningún producto seleccionado" };
+  return deleteWhere({ itemId: { in: itemIds } });
+}
+
+export async function bulkDeleteAll(
+  filter: ProductFilter,
+): Promise<{ ok?: true; error?: string; count?: number; skipped?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  return deleteWhere(buildProductWhere(filter));
+}
+
 // Stock masivo: reemplaza o suma/resta a un conjunto de productos definido
 // por un `where` de Prisma (sea por IDs de la pagina o por filtro => TODOS).
 // mode "set" => value es el nuevo stock para todos.
