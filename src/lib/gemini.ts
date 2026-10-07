@@ -18,6 +18,12 @@ export function geminiConfigurado(): boolean {
   return !!process.env.GEMINI_API_KEY;
 }
 
+// Cuando Google corta la busqueda web por cupo, dejamos de intentarla por un
+// rato. Es memoria del proceso nomas: si el server reinicia se vuelve a
+// probar, y no pasa nada.
+const VENTANA_SIN_BUSQUEDA = 30 * 60 * 1000; // 30 minutos
+let busquedaCortadaHasta = 0;
+
 type Resultado = {
   ok?: true;
   texto?: string;
@@ -57,22 +63,39 @@ export async function redactarDescripcion(
 
   const rubro = CATEGORIA_LABEL[categoria] || "sanitarios";
 
-  const prompt = `Sos el encargado de cargar productos en la tienda online de Sanitarios Conesa, en Villa Cura Brochero, Córdoba, Argentina. Rubro: ${rubro}.
+  const comun = `Reglas:
+- Español rioplatense neutro, de Argentina. Tratá al cliente de "vos".
+- Arrancá con 2 o 3 renglones contando qué es y para qué sirve.
+- Después una lista de características, UNA por renglón, arrancando con "- ".
+- NO pongas precios, ni stock, ni links, ni nombres de otras tiendas.
+- NO uses markdown (nada de ** o ##). Texto plano, que se va a mostrar tal cual.
+- No agregues títulos tipo "Descripción:" ni cierres de vendedor. Solo el texto.`;
+
+  // Dos prompts distintos. Pedirle "buscá en internet" cuando NO tiene la
+  // herramienta de busqueda es la receta para que invente datos.
+  const promptConBusqueda = `Sos el encargado de cargar productos en la tienda online de Sanitarios Conesa, en Villa Cura Brochero, Córdoba, Argentina. Rubro: ${rubro}.
 
 Buscá en internet este producto y escribí la descripción para la ficha de venta:
 
 "${titulo}"
 
-Reglas:
-- Español rioplatense neutro, de Argentina. Tratá al cliente de "vos".
-- Arrancá con 2 o 3 renglones contando qué es y para qué sirve.
-- Después una lista con las características concretas que encuentres: marca, modelo, material, medidas, color, qué incluye, tipo de instalación, garantía.
-- Poné UNA característica por renglón, arrancando con "- ".
-- Usá SOLO datos que hayas encontrado de fuentes reales. Si un dato no lo encontrás, no lo pongas y no lo inventes.
-- Si no encontrás casi nada del producto, escribí igual una descripción corta y honesta con lo que se deduce del título, sin inventar medidas ni especificaciones.
-- NO pongas precios, ni stock, ni links, ni nombres de otras tiendas.
-- NO uses markdown (nada de ** o ##). Texto plano, que se va a mostrar tal cual.
-- No agregues títulos tipo "Descripción:" ni cierres de vendedor. Solo el texto.`;
+${comun}
+- Incluí las características concretas que encuentres: marca, modelo, material, medidas, color, qué incluye, tipo de instalación, garantía.
+- Usá SOLO datos que hayas encontrado en fuentes reales. Si un dato no lo encontrás, no lo pongas y no lo inventes.`;
+
+  const promptSinBusqueda = `Sos el encargado de cargar productos en la tienda online de Sanitarios Conesa, en Villa Cura Brochero, Córdoba, Argentina. Rubro: ${rubro}.
+
+Escribí la descripción para la ficha de venta de este producto:
+
+"${titulo}"
+
+IMPORTANTE: NO tenés acceso a internet y NO conocés este producto en particular. Trabajá ÚNICAMENTE con lo que dice el título y con lo que es de conocimiento general del rubro.
+
+${comun}
+- Del título podés deducir y nombrar: marca, modelo/código, color o terminación, y el tipo de artículo. Eso sí ponelo.
+- PROHIBIDO inventar medidas, pesos, materiales, caudales, garantías o contenido de la caja. Si el título no lo dice, NO lo pongas.
+- Mejor una descripción corta y honesta que una larga con datos inventados.
+- Cerrá con un renglón que diga: "Consultanos por medidas y especificaciones técnicas."`;
 
   // Una llamada a Gemini. `conBusqueda` activa el grounding con Google Search.
   async function llamar(conBusqueda: boolean) {
@@ -85,7 +108,14 @@ Reglas:
           "x-goog-api-key": key!,
         },
         body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: conBusqueda ? promptConBusqueda : promptSinBusqueda },
+              ],
+            },
+          ],
           ...(conBusqueda ? { tools: [{ google_search: {} }] } : {}),
           generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
         }),
@@ -99,10 +129,15 @@ Reglas:
     // (en cuentas sin facturacion es practicamente nulo). Por eso, si falla
     // por limite, reintentamos sin buscar: la descripcion sale mas pobre pero
     // sale, en vez de dejar al admin sin nada.
-    let conBusqueda = true;
-    let { r, data } = await llamar(true);
+    //
+    // Si ya sabemos que la busqueda esta sin cupo, ni la intentamos: sin esto
+    // CADA producto gastaria una llamada al pedo y tardaria el doble. Pasada
+    // la ventana se vuelve a probar, por si el cupo se renovo.
+    let conBusqueda = Date.now() > busquedaCortadaHasta;
+    let { r, data } = await llamar(conBusqueda);
 
-    if (r.status === 429 || r.status === 403) {
+    if (conBusqueda && (r.status === 429 || r.status === 403)) {
+      busquedaCortadaHasta = Date.now() + VENTANA_SIN_BUSQUEDA;
       conBusqueda = false;
       ({ r, data } = await llamar(false));
     }
