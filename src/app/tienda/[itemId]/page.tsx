@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { ProductDetail } from "@/components/ProductDetail";
-import { getRecargosMp } from "@/lib/settings";
+import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -118,7 +118,10 @@ export default async function ProductoPage({ params }: RouteProps) {
     imageUrl: p.imageUrl,
   });
 
-  const recargos = await getRecargosMp();
+  const [recargos, planes] = await Promise.all([
+    getRecargosMp(),
+    getPlanesCuotas(),
+  ]);
 
   return (
     <ProductDetail
@@ -126,8 +129,7 @@ export default async function ProductoPage({ params }: RouteProps) {
       related={related.map(toCompat)}
       bestSellers={masVendidos.map(toCompat)}
       comisionUnPago={recargos.unPago}
-      comisionCuotas={recargos.cuotas}
-      cuotasMax={recargos.cuotasMax}
+      planes={planes}
     />
   );
 }

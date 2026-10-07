@@ -5,7 +5,8 @@ import { TikTokFeed } from "@/components/TikTokFeed";
 import { TikTokCollage } from "@/components/TikTokCollage";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
-import { getRecargosMp } from "@/lib/settings";
+import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
+import { CuotasBanner } from "@/components/CuotasBanner";
 import { prisma } from "@/lib/db";
 
 // En runtime hay DB (Railway). En build no la tenemos → forzar dynamic
@@ -109,7 +110,11 @@ const categoryIcons = [
 ] as const;
 
 export default async function Home() {
-  const recargos = await getRecargosMp();
+  const [recargos, planes] = await Promise.all([
+    getRecargosMp(),
+    getPlanesCuotas(),
+  ]);
+  const cuotasMax = planes.length ? planes[planes.length - 1].cuotas : 0;
   // Ofertas: productos con salePrice < price
   const onSale = await prisma.product.findMany({
     where: {
@@ -225,6 +230,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* FINANCIACIÓN */}
+      <CuotasBanner cuotasMax={cuotasMax} />
 
       {/* OFERTAS (solo si hay) */}
       {onSale.length > 0 && (

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import categoriesData from "@/data/categories.json";
 import { CatalogClient } from "@/components/CatalogClient";
-import { getRecargosMp } from "@/lib/settings";
+import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
+import { CuotasBanner } from "@/components/CuotasBanner";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -61,14 +62,21 @@ export default async function Catalogo({
   }));
 
   const categories = categoriesData as Category[];
-  const recargos = await getRecargosMp();
+  const [recargos, planes] = await Promise.all([
+    getRecargosMp(),
+    getPlanesCuotas(),
+  ]);
+  const cuotasMax = planes.length ? planes[planes.length - 1].cuotas : 0;
 
   return (
+    <>
+    <CuotasBanner cuotasMax={cuotasMax} variant="strip" />
     <CatalogClient
       products={compat}
       categories={categories}
       initialCat={initialCat}
       comisionUnPago={recargos.unPago}
     />
+    </>
   );
 }

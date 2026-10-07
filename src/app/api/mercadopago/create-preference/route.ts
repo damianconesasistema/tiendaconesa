@@ -46,13 +46,20 @@ export async function POST(req: NextRequest) {
   // pago elegida (ver checkout/actions.ts). No hay que sumar nada aparte, o se
   // cobraria dos veces.
 
-  const modo =
-    order.paymentMethod === "mp_cuotas"
-      ? ("cuotas" as const)
-      : order.paymentMethod === "mp_1pago"
-        ? ("1pago" as const)
-        : undefined;
+  // paymentMethod guarda "mp_cuotas_12" para saber el plan exacto
+  const esCuotas = (order.paymentMethod ?? "").startsWith("mp_cuotas");
+  const modo = esCuotas
+    ? ("cuotas" as const)
+    : order.paymentMethod === "mp_1pago"
+      ? ("1pago" as const)
+      : undefined;
 
+  // Las cuotas que se habilitan en MercadoPago tienen que ser EXACTAMENTE
+  // las que el cliente eligió: si pagó el recargo de 6 y pudiera elegir 18,
+  // el costo extra lo comería el negocio.
+  const cuotasDelPedido = Number(
+    (order.paymentMethod ?? "").replace("mp_cuotas_", ""),
+  );
   const { getRecargosMp } = await import("@/lib/settings");
   const recargos = await getRecargosMp();
 
@@ -60,7 +67,9 @@ export async function POST(req: NextRequest) {
     orderNumber: order.number,
     items,
     modo,
-    cuotasMax: recargos.cuotasMax,
+    cuotasMax: Number.isFinite(cuotasDelPedido) && cuotasDelPedido > 0
+      ? cuotasDelPedido
+      : recargos.cuotasMax,
     payer: {
       name: order.customer.firstName,
       surname: order.customer.lastName,

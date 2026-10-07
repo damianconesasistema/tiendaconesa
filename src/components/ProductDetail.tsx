@@ -58,15 +58,14 @@ export function ProductDetail({
   related,
   bestSellers = [],
   comisionUnPago = 10,
-  comisionCuotas = 26,
-  cuotasMax = 6,
+  planes = [],
 }: {
   product: Product;
   related: Product[];
   bestSellers?: Product[];
   comisionUnPago?: number;
-  comisionCuotas?: number;
-  cuotasMax?: number;
+  // Planes de cuotas con su recargo ya calculado
+  planes?: Array<{ cuotas: number; recargoPct: number }>;
 }) {
   const { add } = useCart();
   const router = useRouter();
@@ -81,7 +80,15 @@ export function ProductDetail({
   const effectivePrice = precioVitrina(contado, comisionUnPago);
   const listaVitrina = precioVitrina(product.price, comisionUnPago);
   const dctoPct = descuentoContadoPct(effectivePrice, contado);
-  const precioEnCuotas = precioCuotas(contado, comisionCuotas);
+  // El plan de mas cuotas es el que se promociona
+  const planMax = planes.length ? planes[planes.length - 1] : null;
+  const cuotasMax = planMax?.cuotas ?? 0;
+  const totalPlanMax = planMax
+    ? precioCuotas(contado, planMax.recargoPct)
+    : contado;
+  const valorCuotaMax = planMax
+    ? Math.round(totalPlanMax / planMax.cuotas)
+    : 0;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
   const discount = hasDiscount
     ? Math.round(((product.price - product.salePrice!) / product.price) * 100)
@@ -265,9 +272,42 @@ export function ProductDetail({
                   {formatPrice(contado)}
                 </div>
               </div>
-              <div className="mt-2 text-xs text-[var(--muted)]">
-                Hasta {cuotasMax} cuotas sin interés: {formatPrice(precioEnCuotas)}.
-              </div>
+              {planMax && (
+                <div className="mt-2 text-xs text-[var(--muted)]">
+                  <span className="font-bold text-[#009EE3]">
+                    Hasta {cuotasMax} cuotas de {formatPrice(valorCuotaMax)}
+                  </span>{" "}
+                  sin interés ({formatPrice(totalPlanMax)} total).
+                </div>
+              )}
+              {planes.length > 1 && (
+                <details className="mt-1.5">
+                  <summary className="cursor-pointer text-xs font-bold text-[#009EE3] hover:underline">
+                    Ver todos los planes de cuotas
+                  </summary>
+                  <div className="mt-2 space-y-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-xs">
+                    {planes.map((pl) => {
+                      const tot = precioCuotas(contado, pl.recargoPct);
+                      return (
+                        <div
+                          key={pl.cuotas}
+                          className="flex justify-between gap-4"
+                        >
+                          <span>
+                            {pl.cuotas} cuotas de{" "}
+                            <strong>
+                              {formatPrice(Math.round(tot / pl.cuotas))}
+                            </strong>
+                          </span>
+                          <span className="text-[var(--muted)]">
+                            {formatPrice(tot)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </details>
+              )}
             </div>
 
             {/* Stock */}

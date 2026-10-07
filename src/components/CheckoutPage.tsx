@@ -21,13 +21,17 @@ import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { createOrder } from "@/app/tienda/checkout/actions";
 
 type Recargos = { unPago: number; cuotas: number; cuotasMax: number };
+type Plan = { cuotas: number; recargoPct: number };
 
 export function CheckoutPage({
   recargos = { unPago: 10, cuotas: 26, cuotasMax: 6 },
   mpDisponible = false,
+  planes = [],
 }: {
   recargos?: Recargos;
   mpDisponible?: boolean;
+  // Planes de cuotas con su recargo ya calculado
+  planes?: Plan[];
 }) {
   const router = useRouter();
   const { items, clear } = useCart();
@@ -44,13 +48,20 @@ export function CheckoutPage({
     "whatsapp",
   );
   const esMp = payMethod === "mp_1pago" || payMethod === "mp_cuotas";
+  // Plan de cuotas elegido (por defecto el de mas cuotas)
+  const [planSel, setPlanSel] = useState<number>(
+    planes.length ? planes[planes.length - 1].cuotas : 0,
+  );
+  const plan = planes.find((pl) => pl.cuotas === planSel) ?? null;
 
   // El carrito guarda el precio de VITRINA (contado + recargo de 1 pago).
   // Para volver al contado hay que DIVIDIR por (1 + recargo), no restar el
   // porcentaje: sacarle 8% a un precio que tiene 8% agregado no devuelve el
   // original.
   const totalContado = Math.round(subtotal / (1 + recargos.unPago / 100));
-  const totalCuotas = Math.round(totalContado * (1 + recargos.cuotas / 100));
+  const totalCuotas = plan
+    ? Math.round(totalContado * (1 + plan.recargoPct / 100))
+    : Math.round(totalContado * (1 + recargos.cuotas / 100));
 
   const total =
     payMethod === "mp_cuotas"
@@ -106,7 +117,7 @@ export function CheckoutPage({
       return;
     }
     setSubmitting(true);
-    const result = await createOrder(items, customer, payMethod);
+    const result = await createOrder(items, customer, payMethod, planSel);
     if (!result.ok) {
       setSubmitting(false);
       setServerError(result.error);
@@ -391,17 +402,50 @@ export function CheckoutPage({
                       active={payMethod === "mp_cuotas"}
                       onClick={() => setPayMethod("mp_cuotas")}
                       icon={CreditCard}
-                      title={`Hasta ${recargos.cuotasMax} cuotas`}
-                      // Mostramos el valor de la cuota en pesos: un porcentaje
-                      // acá se compararía contra otra base y confundiría.
-                      desc={`Crédito. ${recargos.cuotasMax} cuotas de ${formatPrice(
-                        Math.round(totalCuotas / recargos.cuotasMax),
-                      )}.`}
+                      title={`Hasta ${planes.length ? planes[planes.length - 1].cuotas : recargos.cuotasMax} cuotas`}
+                      desc="Crédito sin interés. Elegís el plan abajo."
                       badge="Online"
                     />
                   </>
                 )}
               </div>
+
+              {/* Selector de plan: solo cuando eligió cuotas */}
+              {payMethod === "mp_cuotas" && planes.length > 0 && (
+                <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+                  <div className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+                    Elegí en cuántas cuotas
+                  </div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {planes.map((pl) => {
+                      const tot = Math.round(
+                        totalContado * (1 + pl.recargoPct / 100),
+                      );
+                      const act = planSel === pl.cuotas;
+                      return (
+                        <button
+                          key={pl.cuotas}
+                          type="button"
+                          onClick={() => setPlanSel(pl.cuotas)}
+                          className={`rounded-xl border-2 px-3 py-2 text-left transition-colors ${
+                            act
+                              ? "border-[#009EE3] bg-[#009EE3]/5"
+                              : "border-[var(--border)] bg-white hover:border-[#009EE3]/50"
+                          }`}
+                        >
+                          <div className="font-display text-sm font-black">
+                            {pl.cuotas} cuotas de{" "}
+                            {formatPrice(Math.round(tot / pl.cuotas))}
+                          </div>
+                          <div className="text-[11px] text-[var(--muted)]">
+                            Total {formatPrice(tot)}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </section>
           </div>
 
@@ -464,7 +508,7 @@ export function CheckoutPage({
                 {!hasUnpriced && payMethod === "mp_cuotas" && extraCuotas > 0 && (
                   <div className="flex justify-between">
                     <span className="text-[var(--muted)]">
-                      Financiación en {recargos.cuotasMax} cuotas
+                      Financiación en {planSel} cuotas
                     </span>
                     <span className="font-semibold">
                       {formatPrice(extraCuotas)}
@@ -515,7 +559,7 @@ export function CheckoutPage({
               )}
               <p className="mt-3 text-balance text-center text-xs text-[var(--muted)]">
                 {payMethod === "mp_cuotas"
-                  ? `Hasta ${recargos.cuotasMax} cuotas sin interés. Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda.`
+                  ? `${planSel} cuotas sin interés. Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda.`
                   : payMethod === "mp_1pago"
                     ? "Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda."
                     : `Pagando en efectivo o por transferencia tenés ${dctoRealPct}% de descuento. Te abrimos WhatsApp con el pedido cargado para coordinar pago y entrega.`}

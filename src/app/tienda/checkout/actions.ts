@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db";
 import type { CartItem } from "@/lib/cart";
 import type { Customer } from "@/lib/customer";
-import { getRecargosMp } from "@/lib/settings";
+import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { precioVitrina, precioCuotas } from "@/lib/precios";
 
 type Result =
@@ -16,6 +16,8 @@ export async function createOrder(
   items: CartItem[],
   customer: Customer,
   paymentMethod: PaymentMethod = "whatsapp",
+  // Cuántas cuotas eligió el cliente (solo aplica a mp_cuotas)
+  cuotasElegidas = 0,
 ): Promise<Result> {
   if (items.length === 0) return { ok: false, error: "El carrito está vacío" };
   if (!customer.firstName || !customer.lastName || !customer.email || !customer.phone)
@@ -34,12 +36,18 @@ export async function createOrder(
     // El precio guardado es el de CONTADO. Según cómo pague, se le aplica la
     // comisión correspondiente. Se calcula acá (server) y no se confía en lo
     // que manda el navegador.
-    const recargos = await getRecargosMp();
+    const [recargos, planes] = await Promise.all([
+      getRecargosMp(),
+      getPlanesCuotas(),
+    ]);
+    // El plan tiene que existir en la config: si el navegador manda uno
+    // inventado, no se aplica un recargo cualquiera.
+    const plan = planes.find((p) => p.cuotas === cuotasElegidas) ?? null;
     const precioSegunPago = (contado: number) => {
       if (paymentMethod === "mp_1pago")
         return precioVitrina(contado, recargos.unPago);
       if (paymentMethod === "mp_cuotas")
-        return precioCuotas(contado, recargos.cuotas);
+        return precioCuotas(contado, plan ? plan.recargoPct : recargos.cuotas);
       return contado; // efectivo / transferencia (WhatsApp)
     };
 
@@ -85,7 +93,10 @@ export async function createOrder(
         // Guardar el metodo REAL. Antes caia todo lo que no fuera "tarjeta"
         // en "whatsapp", asi que un pedido de MercadoPago quedaba registrado
         // como coordinado por WhatsApp.
-        paymentMethod,
+        paymentMethod:
+          paymentMethod === "mp_cuotas" && plan
+            ? `mp_cuotas_${plan.cuotas}`
+            : paymentMethod,
         subtotal,
         shippingCost,
         surcharge: recargo,

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CheckoutPage } from "@/components/CheckoutPage";
-import { getRecargosMp } from "@/lib/settings";
+import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { MP_CONFIGURED } from "@/lib/mercadopago";
 
 export const metadata: Metadata = {
@@ -13,6 +13,15 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function Checkout() {
-  const recargos = await getRecargosMp();
-  return <CheckoutPage recargos={recargos} mpDisponible={MP_CONFIGURED} />;
+  const [recargos, planes] = await Promise.all([
+    getRecargosMp(),
+    getPlanesCuotas(),
+  ]);
+  return (
+    <CheckoutPage
+      recargos={recargos}
+      mpDisponible={MP_CONFIGURED}
+      planes={planes}
+    />
+  );
 }
