@@ -222,6 +222,14 @@ export function ProductDetail({
                 ))}
               </div>
             )}
+
+            {/* Aviso: las fotos pueden no coincidir exactamente con el
+                producto (variantes de color, terminación, accesorios). */}
+            <p className="mt-3 text-[11px] leading-snug text-[var(--muted)]">
+              Las fotos son a modo ilustrativo. El producto puede presentar
+              diferencias de color, terminación o accesorios según el lote del
+              fabricante. Ante cualquier duda, consultanos antes de comprar.
+            </p>
           </div>
 
           {/* INFO */}

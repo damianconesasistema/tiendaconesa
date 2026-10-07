@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Shield,
   Truck,
+  ImageIcon,
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { formatPrice, cartTotal } from "@/lib/order";
@@ -191,6 +192,7 @@ export function CartPage() {
             <div className="mt-4 space-y-2 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[var(--border)]">
               <Perk icon={Shield} text="Compra protegida — pagás al confirmar" />
               <Perk icon={Truck} text="Envíos a todo el Valle de Traslasierra" />
+              <Perk icon={ImageIcon} text="Las fotos son a modo ilustrativo" />
             </div>
           </aside>
         </div>
