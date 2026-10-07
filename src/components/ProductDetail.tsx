@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   ArrowLeft,
   ShoppingCart,
@@ -16,6 +16,8 @@ import {
   Plus,
   ZoomIn,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
@@ -73,6 +75,31 @@ export function ProductDetail({
       ? product.imageIds.map((id) => `/api/productos/img/${id}`)
       : [product.imageUrl || `/categories/${product.category}.jpg`];
   const mainImg = gallery[Math.min(activeImg, gallery.length - 1)];
+
+  const prevImg = useCallback(
+    () => setActiveImg((i) => (i - 1 + gallery.length) % gallery.length),
+    [gallery.length],
+  );
+  const nextImg = useCallback(
+    () => setActiveImg((i) => (i + 1) % gallery.length),
+    [gallery.length],
+  );
+
+  // Teclado en el zoom: Esc cierra, flechas pasan fotos.
+  useEffect(() => {
+    if (!zoom) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setZoom(false);
+      else if (e.key === "ArrowLeft") prevImg();
+      else if (e.key === "ArrowRight") nextImg();
+    }
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [zoom, prevImg, nextImg]);
 
   const handleAdd = () => {
     add(
@@ -341,21 +368,47 @@ export function ProductDetail({
       {zoom && (
         <div
           onClick={() => setZoom(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm sm:p-10"
         >
+          {/* Cerrar */}
           <button
             type="button"
             onClick={() => setZoom(false)}
             aria-label="Cerrar"
-            className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
+            className="absolute right-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
           >
             <X className="h-5 w-5" />
           </button>
+
+          {/* Contador */}
+          {gallery.length > 1 && (
+            <div className="absolute left-1/2 top-5 z-10 -translate-x-1/2 rounded-full bg-white/15 px-3 py-1 text-sm font-bold text-white">
+              {activeImg + 1} / {gallery.length}
+            </div>
+          )}
+
+          {/* Flecha anterior */}
+          {gallery.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                prevImg();
+              }}
+              aria-label="Foto anterior"
+              className="absolute left-3 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30 sm:left-6"
+            >
+              <ChevronLeft className="h-7 w-7" />
+            </button>
+          )}
+
+          {/* Imagen (no cierra al tocarla) */}
           <div
-            className="relative h-full max-h-[85vh] w-full max-w-4xl"
+            className="relative h-full max-h-[82vh] w-full max-w-4xl"
             onClick={(e) => e.stopPropagation()}
           >
             <Image
+              key={mainImg}
               src={mainImg}
               alt={product.title}
               fill
@@ -364,21 +417,47 @@ export function ProductDetail({
               unoptimized={mainImg.startsWith("/api/")}
             />
           </div>
+
+          {/* Flecha siguiente */}
           {gallery.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                nextImg();
+              }}
+              aria-label="Foto siguiente"
+              className="absolute right-3 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30 sm:right-6"
+            >
+              <ChevronRight className="h-7 w-7" />
+            </button>
+          )}
+
+          {/* Miniaturas abajo */}
+          {gallery.length > 1 && (
+            <div
+              className="absolute bottom-4 left-1/2 flex max-w-[92vw] -translate-x-1/2 gap-2 overflow-x-auto px-2"
+              onClick={(e) => e.stopPropagation()}
+            >
               {gallery.map((src, i) => (
                 <button
                   key={src}
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveImg(i);
-                  }}
-                  className={`h-2.5 w-2.5 rounded-full ${
-                    i === activeImg ? "bg-white" : "bg-white/40"
+                  onClick={() => setActiveImg(i)}
+                  className={`relative h-12 w-12 shrink-0 overflow-hidden rounded-md border-2 bg-white ${
+                    i === activeImg ? "border-white" : "border-white/30"
                   }`}
                   aria-label={`Foto ${i + 1}`}
-                />
+                >
+                  <Image
+                    src={src}
+                    alt=""
+                    fill
+                    sizes="48px"
+                    unoptimized={src.startsWith("/api/")}
+                    className="object-contain"
+                  />
+                </button>
               ))}
             </div>
           )}

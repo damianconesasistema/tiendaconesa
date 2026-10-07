@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.16.0";
+export const APP_VERSION = "V.0.16.1";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.16.1",
+    date: "2026-10-07",
+    changes: [
+      "Zoom de fotos mejorado: flechas ◀ ▶ para pasar las fotos, contador (2/7), miniaturas abajo y navegación con el teclado (←/→ y Esc). Tocar la imagen o las flechas ya no cierra el zoom (solo la X o el fondo).",
+    ],
+  },
   {
     version: "V.0.16.0",
     date: "2026-10-06",
