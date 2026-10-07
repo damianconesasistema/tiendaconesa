@@ -15,6 +15,10 @@ const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN ?? "";
 
 export const MP_CONFIGURED = MP_ACCESS_TOKEN.length > 0;
 
+// Las credenciales de prueba arrancan con "TEST-". Lo usamos para elegir el
+// link de pago correcto (sandbox vs produccion).
+export const MP_IS_TEST = MP_ACCESS_TOKEN.startsWith("TEST-");
+
 export const SITE_URL = (
   process.env.SITE_URL || "https://conesa.com.ar"
 ).replace(/\/$/, "");
@@ -70,7 +74,16 @@ export async function createPreference(
       },
     });
 
-    const initPoint = res.init_point || res.sandbox_init_point;
+    // MercadoPago devuelve DOS links y hay que usar el que corresponde al
+    // tipo de credencial:
+    //   - token TEST-...  => sandbox_init_point
+    //   - token productivo => init_point
+    // Mandar un pago de prueba al checkout de produccion da el error
+    // "Una de las partes con la que intentás hacer el pago es de prueba".
+    const initPoint = MP_IS_TEST
+      ? res.sandbox_init_point || res.init_point
+      : res.init_point || res.sandbox_init_point;
+
     if (!initPoint)
       return { ok: false, error: "MercadoPago no devolvió el link de pago." };
     return { ok: true, initPoint, preferenceId: res.id };
