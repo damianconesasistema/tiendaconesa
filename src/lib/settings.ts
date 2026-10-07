@@ -7,8 +7,9 @@
 // DE DONDE SALEN LOS NUMEROS
 // Del simulador de costos de MercadoPago (app > Tu negocio > Costos): se pone
 // cuanto se quiere RECIBIR y dice cuanto tiene que PAGAR el cliente.
-// Medido en oct 2026 con cobro al instante y 6 cuotas: para recibir 100.000
-// el cliente paga 125.711,84 => recargo 25,71%.
+// Medido en oct 2026, Checkout + tarjeta, cobro al instante:
+//   1 pago   -> para recibir 100.000 el cliente paga 108.683,84 => 8,68%
+//   6 cuotas -> para recibir 100.000 el cliente paga 125.711,84 => 25,71%
 // El desglose eran 6,60% por cobro + 10,30% por financiar, mas IVA.
 //
 // Son DOS recargos distintos porque financiar cuesta mucho mas que cobrar.
@@ -24,7 +25,7 @@ export const SETTING_CUOTAS_MAX = "mp_cuotas_max";
 
 // Valores por defecto, del simulador de MercadoPago (oct 2026).
 // Se editan desde el panel: Configuración.
-const DEFAULT_1PAGO = 8;
+const DEFAULT_1PAGO = 8.68;
 const DEFAULT_CUOTAS_PCT = 25.71;
 const DEFAULT_CUOTAS = 6;
 
