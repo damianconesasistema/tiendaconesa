@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice as fmtPrice } from "@/lib/order";
+import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
 
 type Product = {
   itemId: string;
@@ -30,6 +31,8 @@ type Props = {
   products: Product[];
   categories: Category[];
   initialCat?: string;
+  // Comisión de MercadoPago en 1 pago: define el precio de vitrina.
+  comisionUnPago?: number;
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -45,7 +48,7 @@ const CAT_LABELS: Record<string, string> = {
 };
 
 
-export function CatalogClient({ products, categories, initialCat = "all" }: Props) {
+export function CatalogClient({ products, categories, initialCat = "all", comisionUnPago = 10 }: Props) {
   const [query, setQuery] = useState("");
   const [activeCat, setActiveCat] = useState<string>(initialCat);
 
@@ -145,7 +148,7 @@ export function CatalogClient({ products, categories, initialCat = "all" }: Prop
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.slice(0, 60).map((p) => (
-              <ProductCard key={p.itemId} p={p} />
+              <ProductCard key={p.itemId} p={p} comisionUnPago={comisionUnPago} />
             ))}
           </div>
         )}
@@ -193,12 +196,16 @@ function CatButton({
   );
 }
 
-function ProductCard({ p }: { p: Product }) {
+function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number }) {
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
   const { add } = useCart();
   const photoPath = p.imageUrl || `/categories/${p.category}.jpg`;
-  const effectivePrice = p.salePrice ?? p.price;
+  // contado = lo guardado en la base. vitrina = lo que se muestra.
+  const contado = p.salePrice ?? p.price;
+  const effectivePrice = precioVitrina(contado, comisionUnPago);
+  const dctoPct = descuentoContadoPct(effectivePrice, contado);
+  const listaVitrina = precioVitrina(p.price, comisionUnPago);
   const hasDiscount = p.salePrice !== null && p.salePrice < p.price;
   const discount = hasDiscount
     ? Math.round(((p.price - p.salePrice!) / p.price) * 100)
@@ -275,7 +282,7 @@ function ProductCard({ p }: { p: Product }) {
           <div className="mt-4 flex flex-col">
             {hasDiscount && (
               <span className="text-xs text-[var(--muted)] line-through">
-                {fmtPrice(p.price)}
+                {fmtPrice(listaVitrina)}
               </span>
             )}
             <span
@@ -292,8 +299,14 @@ function ProductCard({ p }: { p: Product }) {
                 Ahorrás {fmtPrice(p.price - effectivePrice)}
               </span>
             )}
-            <span className="mt-1 text-[10px] uppercase tracking-wider text-[var(--muted)]">
-              Efectivo o transferencia
+            {/* El precio de arriba es el de vitrina (incluye la comisión de
+                1 pago). El contado es exactamente un 10% menos, por eso el
+                cartel dice la verdad. */}
+            <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+              {dctoPct}% OFF efectivo o transferencia
+            </span>
+            <span className="mt-0.5 text-[11px] font-bold text-emerald-700">
+              {fmtPrice(contado)}
             </span>
           </div>
           {outOfStock ? (

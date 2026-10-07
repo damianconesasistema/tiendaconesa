@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings } from "lucide-react";
 import { APP_VERSION } from "@/lib/version";
 
 export function AdminShell({
@@ -10,7 +10,7 @@ export function AdminShell({
   children,
 }: {
   username: string;
-  active: "dashboard" | "productos" | "pedidos" | "version";
+  active: "dashboard" | "productos" | "pedidos" | "configuracion" | "version";
   children: React.ReactNode;
 }) {
   return (

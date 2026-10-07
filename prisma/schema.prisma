@@ -11,6 +11,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Configuracion editable desde el panel, sin tener que tocar codigo ni
+// variables de Railway. Clave/valor para no migrar la tabla cada vez que
+// aparece un ajuste nuevo.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 model Product {
   id            String   @id @default(cuid())
   itemId        String   @unique // ID original interno (MLA12345...)
@@ -102,7 +111,8 @@ model Order {
   notes        String?
   subtotal     Int         // suma de items
   shippingCost Int         @default(0)
-  total        Int         // subtotal + shippingCost
+  surcharge    Int         @default(0) // recargo por pagar con tarjeta
+  total        Int         // subtotal + shippingCost + surcharge
   paidAt       DateTime?   // marca manual cuando el admin confirma pago
 
   // --- Pago online (Payway / Decidir) ---

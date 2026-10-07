@@ -35,14 +35,32 @@ export async function POST(req: NextRequest) {
   if (order.paidAt)
     return NextResponse.json({ ok: false, error: "La orden ya está pagada" }, { status: 409 });
 
+  const items = order.items.map((it) => ({
+    id: it.productId,
+    title: it.title,
+    quantity: it.qty,
+    unitPrice: it.price,
+  }));
+
+  // OJO: los precios de los items YA incluyen la comision segun la forma de
+  // pago elegida (ver checkout/actions.ts). No hay que sumar nada aparte, o se
+  // cobraria dos veces.
+
+  const modo =
+    order.paymentMethod === "mp_cuotas"
+      ? ("cuotas" as const)
+      : order.paymentMethod === "mp_1pago"
+        ? ("1pago" as const)
+        : undefined;
+
+  const { getRecargosMp } = await import("@/lib/settings");
+  const recargos = await getRecargosMp();
+
   const pref = await createPreference({
     orderNumber: order.number,
-    items: order.items.map((it) => ({
-      id: it.productId,
-      title: it.title,
-      quantity: it.qty,
-      unitPrice: it.price,
-    })),
+    items,
+    modo,
+    cuotasMax: recargos.cuotasMax,
     payer: {
       name: order.customer.firstName,
       surname: order.customer.lastName,

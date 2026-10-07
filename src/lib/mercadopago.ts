@@ -38,6 +38,11 @@ export type CreatePrefInput = {
   orderNumber: number;
   items: PrefItem[];
   payer: { name: string; surname: string; email: string };
+  // "1pago" | "cuotas": el cliente ya eligio en NUESTRO checkout y el recargo
+  // correspondiente ya esta sumado al total. Limitamos las cuotas en
+  // MercadoPago para que no pague en mas cuotas de las que abono de recargo.
+  modo?: "1pago" | "cuotas";
+  cuotasMax?: number;
 };
 
 export async function createPreference(
@@ -71,6 +76,21 @@ export async function createPreference(
         auto_return: "approved",
         notification_url: `${SITE_URL}/api/mercadopago/webhook`,
         statement_descriptor: "SANITARIOS CONESA",
+        // El recargo cobrado corresponde a la cantidad de pagos elegida, asi
+        // que limitamos las cuotas disponibles. Si eligio 1 pago y despues
+        // pudiera elegir 6 cuotas, pagariamos 26% habiendo cobrado 10%.
+        // Se excluye efectivo (ticket/atm): esos no tienen este recargo.
+        ...(input.modo
+          ? {
+              payment_methods: {
+                excluded_payment_types: [{ id: "ticket" }, { id: "atm" }],
+                installments:
+                  input.modo === "1pago" ? 1 : (input.cuotasMax ?? 6),
+                default_installments:
+                  input.modo === "1pago" ? 1 : (input.cuotasMax ?? 6),
+              },
+            }
+          : {}),
       },
     });
 

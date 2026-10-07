@@ -3,12 +3,14 @@
 import { prisma } from "@/lib/db";
 import type { CartItem } from "@/lib/cart";
 import type { Customer } from "@/lib/customer";
+import { getRecargosMp } from "@/lib/settings";
+import { precioVitrina, precioCuotas } from "@/lib/precios";
 
 type Result =
   | { ok: true; orderId: string; orderNumber: number }
   | { ok: false; error: string };
 
-type PaymentMethod = "whatsapp" | "tarjeta" | "mercadopago";
+type PaymentMethod = "whatsapp" | "mp_1pago" | "mp_cuotas";
 
 export async function createOrder(
   items: CartItem[],
@@ -29,11 +31,24 @@ export async function createOrder(
     });
     const byItemId = new Map(dbProducts.map((p) => [p.itemId, p]));
 
+    // El precio guardado es el de CONTADO. Según cómo pague, se le aplica la
+    // comisión correspondiente. Se calcula acá (server) y no se confía en lo
+    // que manda el navegador.
+    const recargos = await getRecargosMp();
+    const precioSegunPago = (contado: number) => {
+      if (paymentMethod === "mp_1pago")
+        return precioVitrina(contado, recargos.unPago);
+      if (paymentMethod === "mp_cuotas")
+        return precioCuotas(contado, recargos.cuotas);
+      return contado; // efectivo / transferencia (WhatsApp)
+    };
+
     const validItems = items
       .map((it) => {
         const p = byItemId.get(it.itemId);
         if (!p) return null;
-        const price = p.salePrice ?? p.price;
+        const contado = p.salePrice ?? p.price;
+        const price = precioSegunPago(contado);
         return { product: p, price, qty: Math.max(1, Math.floor(it.qty)) };
       })
       .filter((x): x is { product: typeof dbProducts[number]; price: number; qty: number } => x !== null);
@@ -41,10 +56,19 @@ export async function createOrder(
     if (validItems.length === 0)
       return { ok: false, error: "No se encontraron productos válidos" };
 
+    // Los precios de los items YA incluyen la comisión según la forma de pago,
+    // así que el subtotal es el total a cobrar. `surcharge` queda solo como
+    // registro de cuánto de ese total fue comisión (para poder auditarlo).
     const subtotal = validItems.reduce((s, i) => s + i.price * i.qty, 0);
+    const contadoTotal = validItems.reduce((s, i) => {
+      const p = byItemId.get(i.product.itemId);
+      const contado = p ? (p.salePrice ?? p.price) : i.price;
+      return s + contado * i.qty;
+    }, 0);
     // Costos de envio aun no definidos: el admin confirma por WhatsApp
     const shippingCost = 0;
-    const total = subtotal;
+    const recargo = Math.max(0, subtotal - contadoTotal);
+    const total = subtotal + shippingCost;
 
     const nextNumber = ((await prisma.order.findFirst({ orderBy: { number: "desc" } }))?.number || 0) + 1;
 
@@ -64,6 +88,7 @@ export async function createOrder(
         paymentMethod,
         subtotal,
         shippingCost,
+        surcharge: recargo,
         total,
         customer: {
           create: {

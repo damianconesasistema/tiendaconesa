@@ -23,6 +23,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
 import { parseShipping } from "@/lib/shipping";
+import { precioVitrina, precioCuotas, descuentoContadoPct } from "@/lib/precios";
 import { useRouter } from "next/navigation";
 
 type Product = {
@@ -56,10 +57,16 @@ export function ProductDetail({
   product,
   related,
   bestSellers = [],
+  comisionUnPago = 10,
+  comisionCuotas = 26,
+  cuotasMax = 6,
 }: {
   product: Product;
   related: Product[];
   bestSellers?: Product[];
+  comisionUnPago?: number;
+  comisionCuotas?: number;
+  cuotasMax?: number;
 }) {
   const { add } = useCart();
   const router = useRouter();
@@ -68,7 +75,13 @@ export function ProductDetail({
   const [activeImg, setActiveImg] = useState(0);
   const [zoom, setZoom] = useState(false);
 
-  const effectivePrice = product.salePrice ?? product.price;
+  // En la base guardamos el precio de CONTADO. La vitrina muestra el de
+  // 1 pago (incluye comisión), y el contado queda como descuento.
+  const contado = product.salePrice ?? product.price;
+  const effectivePrice = precioVitrina(contado, comisionUnPago);
+  const listaVitrina = precioVitrina(product.price, comisionUnPago);
+  const dctoPct = descuentoContadoPct(effectivePrice, contado);
+  const precioEnCuotas = precioCuotas(contado, comisionCuotas);
   const hasDiscount = product.salePrice && product.salePrice < product.price;
   const discount = hasDiscount
     ? Math.round(((product.price - product.salePrice!) / product.price) * 100)
@@ -217,7 +230,7 @@ export function ProductDetail({
               {hasDiscount && (
                 <div className="flex items-center gap-2">
                   <div className="text-sm text-[var(--muted)] line-through">
-                    {formatPrice(product.price)}
+                    {formatPrice(listaVitrina)}
                   </div>
                   <span className="inline-flex items-center rounded-full bg-[var(--brand-red)] px-2 py-0.5 font-display text-[11px] font-black uppercase tracking-wider text-white animate-price-flash">
                     -{discount}%
@@ -238,11 +251,21 @@ export function ProductDetail({
                   Ahorrás {formatPrice(product.price - product.salePrice!)}
                 </div>
               )}
+              {/* El contado es exactamente dctoPct% menos que la vitrina, así
+                  que el cartel es literalmente cierto. */}
+              <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                <div className="inline-flex items-center rounded-full bg-emerald-600 px-2.5 py-1 font-display text-[11px] font-black uppercase tracking-wider text-white">
+                  {dctoPct}% OFF en efectivo o transferencia
+                </div>
+                <div className="mt-1.5 font-display text-2xl font-black text-emerald-700">
+                  {formatPrice(contado)}
+                </div>
+              </div>
               <div className="mt-2 text-sm text-[var(--muted)]">
-                Precio efectivo o transferencia
+                Precio de lista: con tarjeta en 1 pago.
               </div>
               <div className="mt-0.5 text-xs text-[var(--muted)]">
-                Consultanos por pago en cuotas.
+                Hasta {cuotasMax} cuotas sin interés: {formatPrice(precioEnCuotas)}.
               </div>
             </div>
 

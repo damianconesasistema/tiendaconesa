@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import categoriesData from "@/data/categories.json";
 import { CatalogClient } from "@/components/CatalogClient";
+import { getRecargosMp } from "@/lib/settings";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -60,12 +61,14 @@ export default async function Catalogo({
   }));
 
   const categories = categoriesData as Category[];
+  const recargos = await getRecargosMp();
 
   return (
     <CatalogClient
       products={compat}
       categories={categories}
       initialCat={initialCat}
+      comisionUnPago={recargos.unPago}
     />
   );
 }

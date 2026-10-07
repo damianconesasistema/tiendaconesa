@@ -20,22 +20,50 @@ import { business } from "@/lib/business";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { createOrder } from "@/app/tienda/checkout/actions";
 
-export function CheckoutPage() {
+type Recargos = { unPago: number; cuotas: number; cuotasMax: number };
+
+export function CheckoutPage({
+  recargos = { unPago: 10, cuotas: 26, cuotasMax: 6 },
+  mpDisponible = false,
+}: {
+  recargos?: Recargos;
+  mpDisponible?: boolean;
+}) {
   const router = useRouter();
   const { items, clear } = useCart();
   const { customer, setCustomer, hydrated } = useCustomer();
   const { total: subtotal, hasUnpriced } = cartTotal(items);
   // Costos de envio aun no definidos: el admin confirma por WhatsApp
   const shippingCost = 0;
-  const total = subtotal;
   const [sent, setSent] = useState(false);
   const [orderNumber, setOrderNumber] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [payMethod, setPayMethod] = useState<"whatsapp" | "mercadopago">(
+  const [payMethod, setPayMethod] = useState<"whatsapp" | "mp_1pago" | "mp_cuotas">(
     "whatsapp",
   );
+  const esMp = payMethod === "mp_1pago" || payMethod === "mp_cuotas";
+
+  // El carrito guarda el precio de VITRINA (el de 1 pago). De ahí derivamos:
+  //   contado = vitrina menos la comisión de 1 pago
+  //   cuotas  = contado dividido (1 - comisión de cuotas)
+  // El server recalcula todo desde la base; esto es solo para mostrar.
+  const totalContado = Math.round(subtotal * (1 - recargos.unPago / 100));
+  const totalCuotas =
+    recargos.cuotas > 0 && recargos.cuotas < 100
+      ? Math.round(totalContado / (1 - recargos.cuotas / 100))
+      : totalContado;
+
+  const total =
+    payMethod === "mp_cuotas"
+      ? totalCuotas + shippingCost
+      : payMethod === "mp_1pago"
+        ? subtotal + shippingCost
+        : totalContado + shippingCost;
+
+  const ahorroContado = subtotal - totalContado;
+  const extraCuotas = totalCuotas - subtotal;
 
   useEffect(() => {
     if (hydrated && items.length === 0 && !sent) {
@@ -86,7 +114,7 @@ export function CheckoutPage() {
     // Camino MercadoPago: pedimos el link de pago y mandamos al cliente a
     // Checkout Pro. NO limpiamos el carrito todavia: si el pago falla o lo
     // abandona, tiene que poder volver y reintentar.
-    if (payMethod === "mercadopago") {
+    if (esMp) {
       try {
         const res = await fetch("/api/mercadopago/create-preference", {
           method: "POST",
@@ -342,18 +370,34 @@ export function CheckoutPage() {
                   active={payMethod === "whatsapp"}
                   onClick={() => setPayMethod("whatsapp")}
                   icon={MessageCircle}
-                  title="Coordinar por WhatsApp"
-                  desc="Transferencia o efectivo. Confirmás con nosotros."
-                  badge="Sin recargo"
+                  title="Efectivo o transferencia"
+                  desc="Coordinás con nosotros por WhatsApp."
+                  badge={`${recargos.unPago}% OFF`}
                 />
-                <PayOption
-                  active={payMethod === "mercadopago"}
-                  onClick={() => setPayMethod("mercadopago")}
-                  icon={CreditCard}
-                  title="Pagar con MercadoPago"
-                  desc="Tarjeta, débito, dinero en cuenta o efectivo. Al instante."
-                  badge="Online"
-                />
+                {mpDisponible && (
+                  <>
+                    <PayOption
+                      active={payMethod === "mp_1pago"}
+                      onClick={() => setPayMethod("mp_1pago")}
+                      icon={CreditCard}
+                      title="Débito o 1 pago"
+                      desc={`Con MercadoPago, al instante.${
+                        recargos.unPago > 0 ? ` Recargo ${recargos.unPago}%.` : ""
+                      }`}
+                      badge="Online"
+                    />
+                    <PayOption
+                      active={payMethod === "mp_cuotas"}
+                      onClick={() => setPayMethod("mp_cuotas")}
+                      icon={CreditCard}
+                      title={`Hasta ${recargos.cuotasMax} cuotas`}
+                      desc={`Crédito, sin interés.${
+                        recargos.cuotas > 0 ? ` Recargo ${recargos.cuotas}%.` : ""
+                      }`}
+                      badge="Online"
+                    />
+                  </>
+                )}
               </div>
             </section>
           </div>
@@ -397,6 +441,29 @@ export function CheckoutPage() {
                     {customer.shipping === "retiro" ? "Gratis" : "A consultar"}
                   </span>
                 </div>
+                {/* La diferencia según la forma de pago se muestra SIEMPRE
+                    antes de pagar: el cliente tiene que ver exactamente
+                    cuánto se le va a cobrar y por qué. */}
+                {!hasUnpriced && payMethod === "whatsapp" && ahorroContado > 0 && (
+                  <div className="flex justify-between text-emerald-700">
+                    <span className="font-semibold">
+                      Descuento efectivo/transferencia ({recargos.unPago}%)
+                    </span>
+                    <span className="font-bold">
+                      −{formatPrice(ahorroContado)}
+                    </span>
+                  </div>
+                )}
+                {!hasUnpriced && payMethod === "mp_cuotas" && extraCuotas > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-[var(--muted)]">
+                      Financiación en {recargos.cuotasMax} cuotas
+                    </span>
+                    <span className="font-semibold">
+                      {formatPrice(extraCuotas)}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="mt-4 flex items-end justify-between border-t border-[var(--border)] pt-4">
                 <span className="font-display text-sm font-bold uppercase">
@@ -420,7 +487,7 @@ export function CheckoutPage() {
                 </div>
               )}
 
-              {payMethod === "mercadopago" ? (
+              {esMp ? (
                 <button
                   type="submit"
                   disabled={submitting}
@@ -440,9 +507,11 @@ export function CheckoutPage() {
                 </button>
               )}
               <p className="mt-3 text-balance text-center text-xs text-[var(--muted)]">
-                {payMethod === "mercadopago"
-                  ? "Te llevamos al sitio seguro de MercadoPago para pagar. Tus datos de tarjeta no pasan por nuestra tienda."
-                  : "Te abrimos WhatsApp con el pedido ya cargado para coordinar pago y entrega."}
+                {payMethod === "mp_cuotas"
+                  ? `Hasta ${recargos.cuotasMax} cuotas sin interés. Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda.`
+                  : payMethod === "mp_1pago"
+                    ? "Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda."
+                    : `Pagando en efectivo o por transferencia tenés ${recargos.unPago}% de descuento. Te abrimos WhatsApp con el pedido cargado para coordinar pago y entrega.`}
               </p>
             </div>
 

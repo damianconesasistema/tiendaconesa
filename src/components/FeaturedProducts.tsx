@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Package, ArrowRight, ShoppingCart, Check, Tag } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
+import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
 
 type Product = {
   itemId: string;
@@ -38,6 +39,7 @@ export function FeaturedProducts({
   title,
   cta,
   ctaHref,
+  comisionUnPago = 10,
 }: {
   featured: Product[];
   variant?: Variant;
@@ -45,6 +47,8 @@ export function FeaturedProducts({
   title?: string;
   cta?: string;
   ctaHref?: string;
+  // Comisión de 1 pago: define el precio de vitrina.
+  comisionUnPago?: number;
 }) {
   const isOffers = variant === "offers";
   return (
@@ -86,7 +90,7 @@ export function FeaturedProducts({
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {featured.map((p) => (
-            <FeaturedCard key={p.itemId} p={p} />
+            <FeaturedCard key={p.itemId} p={p} comisionUnPago={comisionUnPago} />
           ))}
         </div>
       </div>
@@ -94,12 +98,16 @@ export function FeaturedProducts({
   );
 }
 
-function FeaturedCard({ p }: { p: Product }) {
+function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number }) {
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
   const { add } = useCart();
   const photoPath = p.imageUrl || `/categories/${p.category}.jpg`;
-  const effectivePrice = p.salePrice ?? p.price;
+  // La base guarda el contado; la vitrina muestra el de 1 pago.
+  const contado = p.salePrice ?? p.price;
+  const effectivePrice = precioVitrina(contado, comisionUnPago);
+  const listaVitrina = precioVitrina(p.price, comisionUnPago);
+  const dctoPct = descuentoContadoPct(effectivePrice, contado);
   const hasSale = p.salePrice !== null && p.salePrice < p.price;
   const discount = hasSale
     ? Math.round(((p.price - p.salePrice!) / p.price) * 100)
@@ -171,7 +179,7 @@ function FeaturedCard({ p }: { p: Product }) {
           <div className="mt-3 flex flex-col">
             {hasSale && (
               <div className="text-xs text-[var(--muted)] line-through">
-                {formatPrice(p.price)}
+                {formatPrice(listaVitrina)}
               </div>
             )}
             <span
