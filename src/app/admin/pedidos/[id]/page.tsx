@@ -18,6 +18,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
 import { OrderStatusSelect } from "@/components/admin/OrderStatusSelect";
+import { DeleteOrderButton } from "@/components/admin/DeleteOrderButton";
 import { updateOrderStatus } from "@/app/admin/pedidos/actions";
 
 export const metadata: Metadata = {
@@ -66,11 +67,14 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             })}
           </p>
         </div>
-        <OrderStatusSelect
-          orderId={order.id}
-          current={order.status}
-          action={updateOrderStatus}
-        />
+        <div className="flex flex-col items-end gap-2">
+          <OrderStatusSelect
+            orderId={order.id}
+            current={order.status}
+            action={updateOrderStatus}
+          />
+          <DeleteOrderButton orderId={order.id} orderNumber={order.number} />
+        </div>
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.5fr_1fr]">

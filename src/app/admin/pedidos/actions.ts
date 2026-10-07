@@ -38,3 +38,22 @@ export async function updateOrderStatus(orderId: string, status: string) {
   revalidatePath(`/admin/pedidos/${orderId}`);
   return { ok: true };
 }
+
+// Elimina un pedido (y sus items en cascada). Para limpiar pedidos de prueba.
+export async function deleteOrder(
+  orderId: string,
+): Promise<{ ok?: true; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+
+  try {
+    // Los OrderItem se borran en cascada (onDelete: Cascade en el schema).
+    await prisma.order.delete({ where: { id: orderId } });
+  } catch (e) {
+    return { error: `No se pudo eliminar: ${(e as Error).message}` };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/pedidos");
+  return { ok: true };
+}
