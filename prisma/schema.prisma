@@ -26,6 +26,7 @@ model Product {
   imageUrl      String?  // Override: por defecto usa /categories/{category}.jpg
   memo          String?  // Ayuda memoria del admin (proveedor, remito, cotizacion, etc.)
   shippingType  String?  @default("ambos") // ambos | retiro | envio | gratis
+  locked        Boolean  @default(false) // Candado: bloquea edicion y borrado
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   orderItems    OrderItem[]

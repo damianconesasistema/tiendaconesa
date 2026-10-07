@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Package, Upload, Download, RefreshCw, PackagePlus } from "lucide-react";
+import { Package, Upload, Download, RefreshCw, PackagePlus, RotateCcw } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -136,6 +136,13 @@ export default async function ProductosAdmin({
             <Download className="h-4 w-4" />
             Exportar
           </a>
+          <Link
+            href="/admin/productos/restaurar"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Restaurar
+          </Link>
           <Link
             href="/admin/productos/sync-stock"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"

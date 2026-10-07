@@ -15,6 +15,7 @@ export function InlineNumber({
   prefix,
   allowNull = false,
   className = "",
+  disabled = false,
 }: {
   itemId: string;
   field: NumField;
@@ -22,6 +23,8 @@ export function InlineNumber({
   prefix?: string;
   allowNull?: boolean;
   className?: string;
+  // disabled: producto bloqueado con candado. El server igual lo rechaza.
+  disabled?: boolean;
 }) {
   const initialStr = initial === null ? "" : String(initial);
   const [value, setValue] = useState<string>(initialStr);
@@ -108,6 +111,7 @@ export function InlineNumber({
         inputMode="numeric"
         min={0}
         step={1}
+        disabled={disabled}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={() => {
@@ -129,7 +133,7 @@ export function InlineNumber({
         }}
         placeholder={allowNull ? "—" : "0"}
         title={dirty ? "Sin guardar — Enter o salí del campo para guardar, Esc cancela" : undefined}
-        className={`inline-edit-number h-9 min-w-0 flex-1 rounded border bg-white px-2 text-right font-display text-sm font-bold outline-none focus:ring-2 ${borderCls} ${className}`}
+        className={`inline-edit-number h-9 min-w-0 flex-1 rounded border bg-white px-2 text-right font-display text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-[var(--surface)] disabled:text-[var(--muted)] ${borderCls} ${className}`}
       />
       {/* Slot reservado para los 2 botones (ancho fijo, no cambia la fila) */}
       <div className="flex w-11 items-center justify-start gap-0.5">
@@ -190,12 +194,14 @@ export function InlineToggle({
   initial,
   labelOn,
   labelOff,
+  disabled = false,
 }: {
   itemId: string;
   field: BoolField;
   initial: boolean;
   labelOn: string;
   labelOff: string;
+  disabled?: boolean;
 }) {
   const [value, setValue] = useState(initial);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -230,8 +236,9 @@ export function InlineToggle({
     <button
       type="button"
       onClick={toggle}
-      disabled={status === "saving"}
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase transition-colors ${
+      disabled={disabled || status === "saving"}
+      title={disabled ? "Bloqueado con candado" : undefined}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
         value
           ? field === "featured"
             ? "bg-[var(--brand-red)]/10 text-[var(--brand-red)] hover:bg-[var(--brand-red)]/20"
@@ -252,12 +259,14 @@ export function InlineSegmented({
   initial,
   labelOn,
   labelOff,
+  disabled = false,
 }: {
   itemId: string;
   field: BoolField;
   initial: boolean;
   labelOn: string;
   labelOff: string;
+  disabled?: boolean;
 }) {
   const [value, setValue] = useState(initial);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -295,8 +304,9 @@ export function InlineSegmented({
       <button
         type="button"
         onClick={() => set(true)}
-        disabled={status === "saving"}
-        className={`rounded-full px-2.5 py-1 transition-colors ${
+        disabled={disabled || status === "saving"}
+        title={disabled ? "Bloqueado con candado" : undefined}
+        className={`rounded-full px-2.5 py-1 transition-colors disabled:cursor-not-allowed ${
           value
             ? "bg-green-500 text-white shadow"
             : "text-[var(--muted)] hover:text-foreground"
@@ -307,8 +317,9 @@ export function InlineSegmented({
       <button
         type="button"
         onClick={() => set(false)}
-        disabled={status === "saving"}
-        className={`rounded-full px-2.5 py-1 transition-colors ${
+        disabled={disabled || status === "saving"}
+        title={disabled ? "Bloqueado con candado" : undefined}
+        className={`rounded-full px-2.5 py-1 transition-colors disabled:cursor-not-allowed ${
           !value
             ? "bg-gray-700 text-white shadow"
             : "text-[var(--muted)] hover:text-foreground"

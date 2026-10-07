@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.21.1";
+export const APP_VERSION = "V.0.22.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,17 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.22.0",
+    date: "2026-10-07",
+    changes: [
+      "CANDADO 🔒: cada producto tiene un botón de candado. Un producto bloqueado NO se puede modificar ni eliminar — ni a mano, ni con acciones masivas, ni por error. Los campos quedan grises y el botón de borrar deshabilitado. También hay Bloquear / Desbloquear masivo en la barra de acciones.",
+      "Las acciones masivas (activar, pausar, destacar, stock, precio y eliminar) ahora SALTEAN los productos bloqueados en vez de tocarlos.",
+      "RESTAURAR PRODUCTOS: nuevo botón en Productos. Vuelve a crear los productos del catálogo original (779) que se hayan borrado, con sus PRECIOS REALES originales. Solo crea los que faltan, nunca pisa los que ya están. Se restauran pausados para revisar antes de publicarlos.",
+      "BLINDAJE: el seed ya no corre solo nunca más. Antes, si la base se quedaba sin productos, el siguiente deploy re-importaba los 779 del JSON pisando todo. Ahora exige pedido explícito (SEED_PRODUCTS=1).",
+      "El botón Editar pasa a ser solo ícono para que la fila no se corra al costado.",
+    ],
+  },
   {
     version: "V.0.21.1",
     date: "2026-10-07",

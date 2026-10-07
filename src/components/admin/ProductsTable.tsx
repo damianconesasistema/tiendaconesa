@@ -20,6 +20,8 @@ import {
   ChevronsUpDown,
   Trash2,
   AlertTriangle,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { InlineNumber, InlineSegmented, InlineToggle } from "@/components/admin/InlineEdit";
 import {
@@ -32,6 +34,9 @@ import {
   deleteProduct,
   bulkDelete,
   bulkDeleteAll,
+  setProductLocked,
+  bulkSetLocked,
+  bulkSetLockedAll,
 } from "@/app/admin/productos/actions";
 
 type Product = {
@@ -45,6 +50,7 @@ type Product = {
   stock: number;
   active: boolean;
   featured: boolean;
+  locked: boolean;
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -111,6 +117,38 @@ export function ProductsTable({
   function clearSelection() {
     setSelected(new Set());
     setAllMatching(false);
+  }
+
+  function toggleLock(itemId: string, locked: boolean) {
+    startTransition(async () => {
+      const r = await setProductLocked(itemId, locked);
+      if (!r.ok) {
+        setFeedback(`Error: ${r.error}`);
+        setTimeout(() => setFeedback(null), 3000);
+      }
+    });
+  }
+
+  function bulkLock(locked: boolean) {
+    const ids = Array.from(selected);
+    if (!ids.length && !allMatching) return;
+    startTransition(async () => {
+      const r =
+        allMatching && filter
+          ? await bulkSetLockedAll(filter, locked)
+          : await bulkSetLocked(ids, locked);
+      if (r.ok) {
+        setFeedback(
+          `${r.count} producto(s) ${locked ? "bloqueados 🔒" : "desbloqueados"}`,
+        );
+        setSelected(new Set());
+        setAllMatching(false);
+        setTimeout(() => setFeedback(null), 2500);
+      } else {
+        setFeedback(`Error: ${r.error}`);
+        setTimeout(() => setFeedback(null), 3000);
+      }
+    });
   }
 
   // Borrado: siempre pasa por el modal de confirmacion. No hay deshacer.
@@ -320,6 +358,15 @@ export function ProductsTable({
             Precio
           </BulkBtn>
           <div className="h-5 w-px bg-[var(--brand-red)]/30" />
+          <BulkBtn onClick={() => bulkLock(true)} disabled={pending} color="amber">
+            <Lock className="h-3.5 w-3.5" />
+            Bloquear
+          </BulkBtn>
+          <BulkBtn onClick={() => bulkLock(false)} disabled={pending} color="muted">
+            <Unlock className="h-3.5 w-3.5" />
+            Desbloquear
+          </BulkBtn>
+          <div className="h-5 w-px bg-[var(--brand-red)]/30" />
           <BulkBtn
             onClick={() => {
               setDeleteError(null);
@@ -440,6 +487,15 @@ export function ProductsTable({
                           {p.title}
                         </Link>
                         <div className="text-xs text-[var(--muted)]">
+                          {p.locked && (
+                            <span
+                              title="Bloqueado: protegido contra cambios y borrado"
+                              className="mr-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-black uppercase text-amber-700"
+                            >
+                              <Lock className="h-2.5 w-2.5" />
+                              Bloqueado
+                            </span>
+                          )}
                           {p.itemId}
                           {hasSale && (
                             <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-1.5 py-0.5 text-[9px] font-black uppercase text-white">
@@ -459,7 +515,7 @@ export function ProductsTable({
                     {CAT_LABELS[p.category] || p.category}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <InlineNumber itemId={p.itemId} field="price" initial={p.price} />
+                    <InlineNumber itemId={p.itemId} field="price" initial={p.price} disabled={p.locked} />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <InlineNumber
@@ -467,10 +523,11 @@ export function ProductsTable({
                       field="salePrice"
                       initial={p.salePrice}
                       allowNull
+                      disabled={p.locked}
                     />
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <InlineNumber itemId={p.itemId} field="stock" initial={p.stock} />
+                    <InlineNumber itemId={p.itemId} field="stock" initial={p.stock} disabled={p.locked} />
                   </td>
                   <td className="px-4 py-3 text-center">
                     <InlineSegmented
@@ -479,6 +536,7 @@ export function ProductsTable({
                       initial={p.active}
                       labelOn="Activo"
                       labelOff="Pausado"
+                      disabled={p.locked}
                     />
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -488,6 +546,7 @@ export function ProductsTable({
                       initial={p.featured}
                       labelOn="Destacado"
                       labelOff="— —"
+                      disabled={p.locked}
                     />
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -510,6 +569,28 @@ export function ProductsTable({
                       </Link>
                       <button
                         type="button"
+                        onClick={() => toggleLock(p.itemId, !p.locked)}
+                        disabled={pending}
+                        title={
+                          p.locked
+                            ? "Bloqueado: nada lo puede modificar ni borrar. Click para desbloquear."
+                            : "Bloquear: protege este producto de cambios y borrados"
+                        }
+                        className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors disabled:opacity-50 ${
+                          p.locked
+                            ? "border-amber-400 bg-amber-100 text-amber-700 hover:bg-amber-200"
+                            : "border-[var(--border)] bg-white text-[var(--muted)] hover:border-amber-400 hover:text-amber-600"
+                        }`}
+                      >
+                        {p.locked ? (
+                          <Lock className="h-3.5 w-3.5" />
+                        ) : (
+                          <Unlock className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={p.locked}
                         onClick={() => {
                           setDeleteError(null);
                           setConfirmDel({
@@ -518,8 +599,12 @@ export function ProductsTable({
                             title: p.title,
                           });
                         }}
-                        title="Eliminar producto"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-red-500 hover:bg-red-500 hover:text-white"
+                        title={
+                          p.locked
+                            ? "Bloqueado con candado: no se puede eliminar"
+                            : "Eliminar producto"
+                        }
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--muted)] transition-colors hover:border-red-500 hover:bg-red-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-[var(--border)] disabled:hover:bg-white disabled:hover:text-[var(--muted)]"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -760,9 +845,10 @@ function BulkBtn({
   onClick: () => void;
   disabled?: boolean;
   children: React.ReactNode;
-  color: "green" | "gray" | "red" | "muted" | "blue" | "danger";
+  color: "green" | "gray" | "red" | "muted" | "blue" | "danger" | "amber";
 }) {
   const palette: Record<typeof color, string> = {
+    amber: "bg-amber-500 text-white hover:bg-amber-600",
     green: "bg-green-500 text-white hover:bg-green-600",
     gray: "bg-gray-700 text-white hover:bg-gray-800",
     red: "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]",

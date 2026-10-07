@@ -170,6 +170,9 @@ export async function updateProduct(
   const itemId = String(formData.get("itemId") || "");
   if (!itemId) return { error: "itemId requerido" };
 
+  const bloqueado = await assertUnlocked(itemId);
+  if (bloqueado) return { error: bloqueado };
+
   const title = String(formData.get("title") || "").trim();
   const category = String(formData.get("category") || "otros");
   const description = String(formData.get("description") || "").trim() || null;
@@ -257,6 +260,9 @@ export async function quickUpdate(
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   if (!itemId) return { error: "itemId requerido" };
+
+  const bloqueado = await assertUnlocked(itemId);
+  if (bloqueado) return { error: bloqueado };
 
   const data: Record<string, number | boolean | null> = {};
 
@@ -395,8 +401,9 @@ export async function bulkUpdate(
   else return { error: "Acción no soportada" };
 
   try {
+    // locked: false => los bloqueados con candado quedan intactos
     const r = await prisma.product.updateMany({
-      where: { itemId: { in: itemIds } },
+      where: { itemId: { in: itemIds }, locked: false },
       data,
     });
     revalidatePath("/admin/productos");
@@ -449,7 +456,7 @@ export async function bulkUpdateAll(
 
   try {
     const r = await prisma.product.updateMany({
-      where: buildProductWhere(filter),
+      where: { ...buildProductWhere(filter), locked: false },
       data,
     });
     revalidatePath("/admin/productos");
@@ -458,6 +465,186 @@ export async function bulkUpdateAll(
     return { ok: true, count: r.count };
   } catch (e) {
     return { error: `Error al actualizar: ${(e as Error).message}` };
+  }
+}
+
+// --- Restaurar productos borrados desde el catalogo original ---
+// src/data/products.json tiene los 779 productos del catalogo original con sus
+// precios reales. Si se borraron por accidente, esto los vuelve a crear.
+// SOLO crea los que faltan: nunca pisa un producto que ya existe en la DB,
+// asi los que sobrevivieron conservan sus precios, ofertas y estado.
+
+type RestoreStats = {
+  ok?: true;
+  error?: string;
+  enJson?: number;
+  yaExisten?: number;
+  faltantes?: number;
+  restaurados?: number;
+};
+
+async function leerCatalogoOriginal() {
+  const { readFile } = await import("node:fs/promises");
+  const path = await import("node:path");
+  const file = path.join(process.cwd(), "src/data/products.json");
+  const raw = await readFile(file, "utf8");
+  return JSON.parse(raw) as Array<{
+    itemId: string;
+    title: string;
+    price: number;
+    salePrice: number | null;
+    stock: number;
+    category: string;
+    status?: string;
+  }>;
+}
+
+// Solo cuenta: no toca nada. Sirve para mostrar el preview antes de restaurar.
+export async function previewRestore(): Promise<RestoreStats> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  try {
+    const catalogo = await leerCatalogoOriginal();
+    const ids = catalogo.map((p) => p.itemId);
+    const existentes = await prisma.product.findMany({
+      where: { itemId: { in: ids } },
+      select: { itemId: true },
+    });
+    const yaExisten = existentes.length;
+    return {
+      ok: true,
+      enJson: catalogo.length,
+      yaExisten,
+      faltantes: catalogo.length - yaExisten,
+    };
+  } catch (e) {
+    return { error: `Error al leer el catálogo: ${(e as Error).message}` };
+  }
+}
+
+export async function restoreMissingProducts(): Promise<RestoreStats> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  try {
+    const catalogo = await leerCatalogoOriginal();
+    const ids = catalogo.map((p) => p.itemId);
+    const existentes = await prisma.product.findMany({
+      where: { itemId: { in: ids } },
+      select: { itemId: true },
+    });
+    const yaHay = new Set(existentes.map((e) => e.itemId));
+    const faltantes = catalogo.filter((p) => !yaHay.has(p.itemId));
+
+    if (!faltantes.length) {
+      return {
+        ok: true,
+        enJson: catalogo.length,
+        yaExisten: yaHay.size,
+        faltantes: 0,
+        restaurados: 0,
+      };
+    }
+
+    // createMany + skipDuplicates: no puede pisar nada existente.
+    const r = await prisma.product.createMany({
+      data: faltantes.map((p) => ({
+        itemId: p.itemId,
+        title: p.title,
+        category: p.category || "otros",
+        price: Math.round(p.price || 0),
+        salePrice: p.salePrice ? Math.round(p.salePrice) : null,
+        stock: p.stock > 0 ? p.stock : 0,
+        // Se restauran PAUSADOS a proposito: que el admin revise precio y
+        // stock antes de que vuelvan a aparecer en la tienda.
+        active: false,
+        featured: false,
+      })),
+      skipDuplicates: true,
+    });
+
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    revalidatePath("/");
+    return {
+      ok: true,
+      enJson: catalogo.length,
+      yaExisten: yaHay.size,
+      faltantes: faltantes.length,
+      restaurados: r.count,
+    };
+  } catch (e) {
+    return { error: `Error al restaurar: ${(e as Error).message}` };
+  }
+}
+
+// --- Candado (locked) ---
+// Un producto con locked=true no se puede editar ni eliminar. Es la red de
+// seguridad contra cambios masivos accidentales: las acciones masivas lo
+// saltean en vez de tocarlo, y las individuales devuelven error.
+
+// Devuelve un mensaje de error si el producto esta bloqueado; null si se puede tocar.
+async function assertUnlocked(itemId: string): Promise<string | null> {
+  const p = await prisma.product.findUnique({
+    where: { itemId },
+    select: { locked: true, title: true },
+  });
+  if (!p) return "El producto no existe";
+  if (p.locked)
+    return `"${p.title}" está bloqueado con candado 🔒. Quitá el candado para poder modificarlo.`;
+  return null;
+}
+
+export async function setProductLocked(
+  itemId: string,
+  locked: boolean,
+): Promise<{ ok?: true; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!itemId) return { error: "itemId requerido" };
+  try {
+    await prisma.product.update({ where: { itemId }, data: { locked } });
+    revalidatePath("/admin/productos");
+    return { ok: true };
+  } catch (e) {
+    return { error: `Error: ${(e as Error).message}` };
+  }
+}
+
+// Candado masivo sobre los seleccionados o sobre todo el filtro.
+export async function bulkSetLocked(
+  itemIds: string[],
+  locked: boolean,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!itemIds.length) return { error: "Ningún producto seleccionado" };
+  try {
+    const r = await prisma.product.updateMany({
+      where: { itemId: { in: itemIds } },
+      data: { locked },
+    });
+    revalidatePath("/admin/productos");
+    return { ok: true, count: r.count };
+  } catch (e) {
+    return { error: `Error: ${(e as Error).message}` };
+  }
+}
+
+export async function bulkSetLockedAll(
+  filter: ProductFilter,
+  locked: boolean,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  try {
+    const r = await prisma.product.updateMany({
+      where: buildProductWhere(filter),
+      data: { locked },
+    });
+    revalidatePath("/admin/productos");
+    return { ok: true, count: r.count };
+  } catch (e) {
+    return { error: `Error: ${(e as Error).message}` };
   }
 }
 
@@ -476,9 +663,18 @@ export async function deleteProduct(
   try {
     const product = await prisma.product.findUnique({
       where: { itemId },
-      select: { title: true, _count: { select: { orderItems: true } } },
+      select: {
+        title: true,
+        locked: true,
+        _count: { select: { orderItems: true } },
+      },
     });
     if (!product) return { error: "El producto ya no existe" };
+
+    if (product.locked)
+      return {
+        error: `"${product.title}" está bloqueado con candado 🔒. Quitá el candado para poder eliminarlo.`,
+      };
 
     const vendido = product._count.orderItems;
     if (vendido > 0) {
@@ -504,8 +700,9 @@ async function deleteWhere(
 ): Promise<{ ok?: true; error?: string; count?: number; skipped?: number }> {
   try {
     const total = await prisma.product.count({ where });
+    // Nunca borramos bloqueados ni vendidos: se omiten y se reportan.
     const r = await prisma.product.deleteMany({
-      where: { ...where, orderItems: { none: {} } },
+      where: { ...where, locked: false, orderItems: { none: {} } },
     });
     revalidatePath("/admin/productos");
     revalidatePath("/tienda");
@@ -538,12 +735,14 @@ export async function bulkDeleteAll(
 // mode "set" => value es el nuevo stock para todos.
 // mode "delta" => se suma value a cada stock (puede ser negativo). Nunca baja de 0.
 async function applyStockWhere(
-  where: Prisma.ProductWhereInput,
+  whereIn: Prisma.ProductWhereInput,
   mode: "set" | "delta",
   value: number,
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   if (!Number.isFinite(value)) return { error: "Valor inválido" };
   const v = Math.floor(value);
+  // Los bloqueados con candado nunca se tocan
+  const where: Prisma.ProductWhereInput = { ...whereIn, locked: false };
 
   try {
     if (mode === "set") {
@@ -607,11 +806,13 @@ export async function bulkSetStockAll(
 // mode "pct" => multiplica precio y oferta por (1 + value/100). value puede ser negativo.
 // Loguea cada cambio en el historial de precios.
 async function applyPriceWhere(
-  where: Prisma.ProductWhereInput,
+  whereIn: Prisma.ProductWhereInput,
   mode: "set" | "pct",
   value: number,
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   if (!Number.isFinite(value)) return { error: "Valor inválido" };
+  // Los bloqueados con candado nunca se tocan
+  const where: Prisma.ProductWhereInput = { ...whereIn, locked: false };
 
   try {
     const current = await prisma.product.findMany({
