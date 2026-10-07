@@ -9,7 +9,10 @@
 // Se activa google_search para que el modelo busque el producto en internet
 // y traiga specs reales (medidas, materiales, etc.) en vez de inventarlas.
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// Google va dando de baja modelos viejos para las cuentas nuevas. Si en
+// algun momento este tambien queda obsoleto, el error lo dice y se puede
+// cambiar sin tocar codigo: basta con setear GEMINI_MODEL en Railway.
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 export function geminiConfigurado(): boolean {
   return !!process.env.GEMINI_API_KEY;
