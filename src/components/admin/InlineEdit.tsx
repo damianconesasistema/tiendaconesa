@@ -34,14 +34,27 @@ export function InlineNumber({
 
   const dirty = value !== savedInitial;
 
-  // Si el server manda un nuevo valor (ej. tras una acción masiva o
-  // recarga de datos), sincronizamos — PERO solo si el usuario no está
-  // editando este campo, para no pisarle lo que escribió.
+  // Valor que acabamos de guardar nosotros. Mientras esté seteado,
+  // ignoramos valores "viejos" que el server pueda mandar durante la
+  // revalidación (evita que el precio "revierta" al anterior).
+  const justSavedRef = useRef<string | null>(null);
+
+  // Si el server manda un nuevo valor (acción masiva, recarga), sincronizamos
+  // — salvo que el usuario esté editando, o que sea un valor viejo que llega
+  // justo después de que guardamos.
   useEffect(() => {
-    if (!dirty) {
-      setValue(initialStr);
-      setSavedInitial(initialStr);
+    if (dirty) return;
+    if (justSavedRef.current !== null) {
+      if (initialStr === justSavedRef.current) {
+        // llegó el dato fresco que coincide con lo guardado: todo en orden
+        justSavedRef.current = null;
+      } else {
+        // dato viejo/rezagado: lo ignoramos para no revertir
+        return;
+      }
     }
+    setValue(initialStr);
+    setSavedInitial(initialStr);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStr]);
   // Para price/stock no permitimos vacio: no se puede aplicar si quedo vacio
@@ -49,13 +62,15 @@ export function InlineNumber({
 
   function commit() {
     if (!canApply) return;
+    const toSave = value;
     startTransition(async () => {
       setStatus("saving");
       setError(null);
-      const payload = value === "" ? null : Number(value);
+      const payload = toSave === "" ? null : Number(toSave);
       const r = await quickUpdate(itemId, field, payload);
       if (r.ok) {
-        setSavedInitial(value);
+        justSavedRef.current = toSave;
+        setSavedInitial(toSave);
         setStatus("saved");
         setTimeout(() => setStatus("idle"), 1500);
       } else {

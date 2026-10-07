@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   const where: Prisma.ProductWhereInput = {
     itemId: { not: "__RESET_PRICES_MARKER__" },
   };
-  if (q) where.title = { contains: q };
+  if (q) where.title = { contains: q, mode: "insensitive" };
   if (cat) where.category = cat;
   if (filter === "low-stock") {
     where.active = true;

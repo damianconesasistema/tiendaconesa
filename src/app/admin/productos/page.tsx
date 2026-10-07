@@ -54,7 +54,7 @@ export default async function ProductosAdmin({
   const page = Math.max(1, Number(sp.page) || 1);
 
   const where: Prisma.ProductWhereInput = {};
-  if (q) where.title = { contains: q };
+  if (q) where.title = { contains: q, mode: "insensitive" };
   if (cat) where.category = cat;
   if (filter === "low-stock") {
     where.active = true;

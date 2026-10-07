@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Check, AlertCircle } from "lucide-react";
+import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
 
 type Product = {
   itemId: string;
@@ -32,12 +33,6 @@ const CATEGORIES = [
   { id: "otros", label: "Otros" },
 ];
 
-export const SHIPPING_OPTIONS = [
-  { id: "ambos", label: "Retiro o envío (ambos)" },
-  { id: "retiro", label: "Solo retiro en tienda" },
-  { id: "envio", label: "Solo envío a Traslasierra" },
-  { id: "gratis", label: "Envío gratis" },
-];
 
 export function ProductForm({
   product,
@@ -92,18 +87,29 @@ export function ProductForm({
           </select>
         </div>
         <div>
-          <Label>Tipo de envío</Label>
-          <select
-            name="shippingType"
-            defaultValue={product.shippingType ?? "ambos"}
-            className="input"
-          >
-            {SHIPPING_OPTIONS.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+          <Label>Tipo de envío (podés elegir más de uno)</Label>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {SHIPPING_TYPES.map((s) => {
+              const checked = parseShipping(product.shippingType).includes(
+                s.id,
+              );
+              return (
+                <label
+                  key={s.id}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm hover:border-[var(--brand-red)]/40 has-[:checked]:border-[var(--brand-red)] has-[:checked]:bg-[var(--brand-red)]/5"
+                >
+                  <input
+                    type="checkbox"
+                    name="shippingType"
+                    value={s.id}
+                    defaultChecked={checked}
+                    className="h-4 w-4 accent-[var(--brand-red)]"
+                  />
+                  {s.label}
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
 

@@ -22,6 +22,7 @@ import {
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
+import { parseShipping } from "@/lib/shipping";
 import { useRouter } from "next/navigation";
 
 type Product = {
@@ -76,6 +77,7 @@ export function ProductDetail({
       ? product.imageIds.map((id) => `/api/productos/img/${id}`)
       : [product.imageUrl || `/categories/${product.category}.jpg`];
   const mainImg = gallery[Math.min(activeImg, gallery.length - 1)];
+  const shippingList = parseShipping(product.shippingType);
 
   const prevImg = useCallback(
     () => setActiveImg((i) => (i - 1 + gallery.length) % gallery.length),
@@ -331,25 +333,21 @@ export function ProductDetail({
 
             {/* Beneficios / Entrega (según el tipo de envío del producto) */}
             <div className="mt-8 grid gap-3 border-t border-[var(--border)] pt-6">
-              {(product.shippingType === "ambos" ||
-                product.shippingType === "retiro" ||
-                !product.shippingType) && (
+              {shippingList.includes("retiro") && (
                 <Benefit
                   icon={Store}
                   title="Retiro en tienda"
                   desc="Villa Cura Brochero · sin costo"
                 />
               )}
-              {product.shippingType === "gratis" && (
+              {shippingList.includes("gratis") && (
                 <Benefit
                   icon={Truck}
                   title="Envío gratis"
                   desc="A todo el Valle de Traslasierra"
                 />
               )}
-              {(product.shippingType === "ambos" ||
-                product.shippingType === "envio" ||
-                !product.shippingType) && (
+              {shippingList.includes("envio") && (
                 <Benefit
                   icon={Truck}
                   title="Envío a Traslasierra"

@@ -63,13 +63,28 @@ export function NewProductForm() {
           </select>
         </div>
         <div>
-          <Label>Tipo de envío</Label>
-          <select name="shippingType" defaultValue="ambos" className="input">
-            <option value="ambos">Retiro o envío (ambos)</option>
-            <option value="retiro">Solo retiro en tienda</option>
-            <option value="envio">Solo envío a Traslasierra</option>
-            <option value="gratis">Envío gratis</option>
-          </select>
+          <Label>Tipo de envío (podés elegir más de uno)</Label>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {[
+              { id: "retiro", label: "Retiro en tienda" },
+              { id: "envio", label: "Envío a Traslasierra" },
+              { id: "gratis", label: "Envío gratis" },
+            ].map((s) => (
+              <label
+                key={s.id}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm hover:border-[var(--brand-red)]/40 has-[:checked]:border-[var(--brand-red)] has-[:checked]:bg-[var(--brand-red)]/5"
+              >
+                <input
+                  type="checkbox"
+                  name="shippingType"
+                  value={s.id}
+                  defaultChecked={s.id !== "gratis"}
+                  className="h-4 w-4 accent-[var(--brand-red)]"
+                />
+                {s.label}
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 

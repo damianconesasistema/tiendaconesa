@@ -8,6 +8,7 @@ import {
   type ProductImageInfo,
 } from "@/lib/product-images";
 import { processProductImage } from "@/lib/image-processing";
+import { formatShipping } from "@/lib/shipping";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -69,12 +70,9 @@ export async function createProduct(
   const stock = Math.max(0, Math.floor(Number(formData.get("stock") || 0)));
   const active = formData.get("active") === "on";
   const featured = formData.get("featured") === "on";
-  const shippingRaw = String(formData.get("shippingType") || "ambos");
-  const shippingType = ["ambos", "retiro", "envio", "gratis"].includes(
-    shippingRaw,
-  )
-    ? shippingRaw
-    : "ambos";
+  const shippingType = formatShipping(
+    formData.getAll("shippingType").map((v) => String(v)),
+  );
 
   // itemId unico para productos cargados a mano
   const itemId = `MAN-${Date.now().toString(36)}-${Math.random()
@@ -193,12 +191,9 @@ export async function updateProduct(
     skuRaw != null && String(skuRaw).trim() !== ""
       ? String(skuRaw).trim()
       : null;
-  const shippingRaw = String(formData.get("shippingType") || "ambos");
-  const shippingType = ["ambos", "retiro", "envio", "gratis"].includes(
-    shippingRaw,
-  )
-    ? shippingRaw
-    : "ambos";
+  const shippingType = formatShipping(
+    formData.getAll("shippingType").map((v) => String(v)),
+  );
 
   if (!title) return { error: "El título es obligatorio" };
   if (!Number.isFinite(priceRaw) || priceRaw < 0)
@@ -419,14 +414,14 @@ type ProductFilter = { q?: string; cat?: string; filter?: string };
 function buildProductWhere(f: ProductFilter) {
   const where: {
     itemId?: { not: string };
-    title?: { contains: string };
+    title?: { contains: string; mode: "insensitive" };
     category?: string;
     active?: boolean;
     featured?: boolean;
     stock?: { lt: number };
     salePrice?: { not: null };
   } = { itemId: { not: "__RESET_PRICES_MARKER__" } };
-  if (f.q) where.title = { contains: f.q };
+  if (f.q) where.title = { contains: f.q, mode: "insensitive" };
   if (f.cat) where.category = f.cat;
   if (f.filter === "low-stock") {
     where.active = true;
