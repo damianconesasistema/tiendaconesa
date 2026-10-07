@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.18.1";
+export const APP_VERSION = "V.0.19.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.19.0",
+    date: "2026-10-07",
+    changes: [
+      "Nuevo estado 'SIN STOCK': si un producto queda en stock 0, se muestra visible pero marcado 'Sin stock' y sin botón de compra (solo 'Consultar por WhatsApp'). Es la alternativa a pausar: en vez de ocultar, dejás la publicación con el cartel de sin stock. Aplica en catálogo, home y ficha. (Pausar sigue sirviendo para ocultar del todo.)",
+    ],
+  },
   {
     version: "V.0.18.1",
     date: "2026-10-07",

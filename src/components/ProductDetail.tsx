@@ -78,6 +78,7 @@ export function ProductDetail({
       : [product.imageUrl || `/categories/${product.category}.jpg`];
   const mainImg = gallery[Math.min(activeImg, gallery.length - 1)];
   const shippingList = parseShipping(product.shippingType);
+  const outOfStock = product.stock <= 0;
 
   const prevImg = useCallback(
     () => setActiveImg((i) => (i - 1 + gallery.length) % gallery.length),
@@ -244,79 +245,104 @@ export function ProductDetail({
 
             {/* Stock */}
             <div className="mt-6 flex items-center gap-2 text-sm">
-              {product.stock > 0 ? (
+              {outOfStock ? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1 font-display text-xs font-black uppercase tracking-wider text-red-700">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-red-500" />
+                  Sin stock
+                </span>
+              ) : (
                 <>
                   <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />
                   <span className="font-medium text-green-700">
                     Stock disponible
                   </span>
                 </>
-              ) : (
-                <>
-                  <span className="inline-flex h-2 w-2 rounded-full bg-amber-500" />
-                  <span className="font-medium text-amber-700">
-                    A pedido · consultá entrega
-                  </span>
-                </>
               )}
             </div>
 
-            {/* Cantidad */}
-            <div className="mt-6 flex items-center gap-4">
-              <span className="text-sm font-medium text-foreground">
-                Cantidad:
-              </span>
-              <div className="inline-flex items-center rounded-full border border-[var(--border)] bg-white">
-                <button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="flex h-10 w-10 items-center justify-center text-foreground hover:text-[var(--brand-red)]"
-                  aria-label="Restar"
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <span className="min-w-[2.5rem] text-center font-display font-bold">
-                  {qty}
-                </span>
-                <button
-                  onClick={() => setQty((q) => q + 1)}
-                  className="flex h-10 w-10 items-center justify-center text-foreground hover:text-[var(--brand-red)]"
-                  aria-label="Sumar"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
+            {outOfStock ? (
+              /* SIN STOCK: no se puede comprar, solo consultar */
+              <div className="mt-8">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 text-center">
+                  <p className="font-display text-sm font-black uppercase tracking-wider text-[var(--muted)]">
+                    Producto sin stock por el momento
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    Consultanos disponibilidad y tiempo de reposición.
+                  </p>
+                  <Link
+                    href={whatsappLink(
+                      `Hola! Quería consultar disponibilidad de: ${product.title} (ID ${product.itemId})`,
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Consultar por WhatsApp
+                  </Link>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Cantidad */}
+                <div className="mt-6 flex items-center gap-4">
+                  <span className="text-sm font-medium text-foreground">
+                    Cantidad:
+                  </span>
+                  <div className="inline-flex items-center rounded-full border border-[var(--border)] bg-white">
+                    <button
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      className="flex h-10 w-10 items-center justify-center text-foreground hover:text-[var(--brand-red)]"
+                      aria-label="Restar"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="min-w-[2.5rem] text-center font-display font-bold">
+                      {qty}
+                    </span>
+                    <button
+                      onClick={() => setQty((q) => q + 1)}
+                      className="flex h-10 w-10 items-center justify-center text-foreground hover:text-[var(--brand-red)]"
+                      aria-label="Sumar"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
 
-            {/* CTAs */}
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <button
-                onClick={handleBuyNow}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brand-red)] px-6 py-4 font-display text-base font-bold uppercase tracking-wider text-white transition-all hover:bg-[var(--brand-red-hover)] hover:scale-[1.02]"
-              >
-                <Zap className="h-5 w-5" />
-                Comprar ahora
-              </button>
-              <button
-                onClick={handleAdd}
-                className={`inline-flex items-center justify-center gap-2 rounded-full border-2 px-6 py-4 font-display text-base font-bold uppercase tracking-wider transition-all hover:scale-[1.02] ${
-                  added
-                    ? "border-green-500 bg-green-500 text-white"
-                    : "border-[var(--brand-red)] bg-white text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white"
-                }`}
-              >
-                {added ? (
-                  <>
-                    <Check className="h-5 w-5" />
-                    Agregado
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="h-5 w-5" />
-                    Agregar al carrito
-                  </>
-                )}
-              </button>
-            </div>
+                {/* CTAs */}
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={handleBuyNow}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brand-red)] px-6 py-4 font-display text-base font-bold uppercase tracking-wider text-white transition-all hover:bg-[var(--brand-red-hover)] hover:scale-[1.02]"
+                  >
+                    <Zap className="h-5 w-5" />
+                    Comprar ahora
+                  </button>
+                  <button
+                    onClick={handleAdd}
+                    className={`inline-flex items-center justify-center gap-2 rounded-full border-2 px-6 py-4 font-display text-base font-bold uppercase tracking-wider transition-all hover:scale-[1.02] ${
+                      added
+                        ? "border-green-500 bg-green-500 text-white"
+                        : "border-[var(--brand-red)] bg-white text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white"
+                    }`}
+                  >
+                    {added ? (
+                      <>
+                        <Check className="h-5 w-5" />
+                        Agregado
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="h-5 w-5" />
+                        Agregar al carrito
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
 
             {/* WhatsApp alternativo */}
             <Link

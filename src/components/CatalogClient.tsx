@@ -203,6 +203,7 @@ function ProductCard({ p }: { p: Product }) {
   const discount = hasDiscount
     ? Math.round(((p.price - p.salePrice!) / p.price) * 100)
     : 0;
+  const outOfStock = p.stock <= 0;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -247,12 +248,17 @@ function ProductCard({ p }: { p: Product }) {
         <span className="absolute right-3 top-3 z-10 inline-flex items-center rounded-full bg-black/80 px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
           {CAT_LABELS[p.category] || p.category}
         </span>
-        {hasDiscount && (
+        {hasDiscount && !outOfStock && (
           <span
             className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-3 py-1.5 font-display text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-red-500/40"
             style={{ animation: "titilate 1.8s cubic-bezier(0.4,0,0.2,1) infinite" }}
           >
             <Tag className="h-3 w-3" />-{discount}%
+          </span>
+        )}
+        {outOfStock && (
+          <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-gray-800 px-3 py-1.5 font-display text-[11px] font-black uppercase tracking-wider text-white shadow-lg">
+            Sin stock
           </span>
         )}
       </div>
@@ -290,26 +296,32 @@ function ProductCard({ p }: { p: Product }) {
               Efectivo o transferencia
             </span>
           </div>
-          <button
-            onClick={handleAdd}
-            className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
-              added
-                ? "bg-green-500 text-white"
-                : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
-            }`}
-          >
-            {added ? (
-              <>
-                <Check className="h-3.5 w-3.5" />
-                Agregado
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-3.5 w-3.5" />
-                Agregar al carrito
-              </>
-            )}
-          </button>
+          {outOfStock ? (
+            <span className="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+              Sin stock
+            </span>
+          ) : (
+            <button
+              onClick={handleAdd}
+              className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
+                added
+                  ? "bg-green-500 text-white"
+                  : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
+              }`}
+            >
+              {added ? (
+                <>
+                  <Check className="h-3.5 w-3.5" />
+                  Agregado
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                  Agregar al carrito
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </Link>
