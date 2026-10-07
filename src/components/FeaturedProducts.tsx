@@ -193,7 +193,18 @@ function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: numbe
             </span>
             {hasSale && (
               <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700">
-                Ahorrás {formatPrice(p.price - effectivePrice)}
+                Ahorrás {formatPrice(listaVitrina - effectivePrice)}
+              </span>
+            )}
+            {/* Contado destacado en celeste */}
+            {dctoPct > 0 && (
+              <span className="mt-1.5 inline-flex w-fit items-center rounded-full bg-sky-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">
+                {dctoPct}% OFF efectivo
+              </span>
+            )}
+            {dctoPct > 0 && (
+              <span className="font-display text-sm font-black text-sky-700">
+                {formatPrice(contado)}
               </span>
             )}
           </div>

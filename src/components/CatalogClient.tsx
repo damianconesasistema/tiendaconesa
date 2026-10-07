@@ -296,16 +296,16 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
             </span>
             {hasDiscount && (
               <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-700">
-                Ahorrás {fmtPrice(p.price - effectivePrice)}
+                Ahorrás {fmtPrice(listaVitrina - effectivePrice)}
               </span>
             )}
             {/* El precio de arriba es el de vitrina (incluye la comisión de
                 1 pago). El contado es exactamente un 10% menos, por eso el
                 cartel dice la verdad. */}
-            <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+            <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
               {dctoPct}% OFF efectivo o transferencia
             </span>
-            <span className="mt-0.5 text-[11px] font-bold text-emerald-700">
+            <span className="mt-0.5 font-display text-base font-black text-sky-700">
               {fmtPrice(contado)}
             </span>
           </div>

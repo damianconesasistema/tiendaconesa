@@ -248,16 +248,16 @@ export function ProductDetail({
               </div>
               {hasDiscount && (
                 <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 font-display text-xs font-black uppercase tracking-wider text-emerald-800">
-                  Ahorrás {formatPrice(product.price - product.salePrice!)}
+                  Ahorrás {formatPrice(listaVitrina - effectivePrice)}
                 </div>
               )}
               {/* El contado es exactamente dctoPct% menos que la vitrina, así
                   que el cartel es literalmente cierto. */}
-              <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                <div className="inline-flex items-center rounded-full bg-emerald-600 px-2.5 py-1 font-display text-[11px] font-black uppercase tracking-wider text-white">
+              <div className="mt-3 rounded-xl border-2 border-sky-300 bg-sky-50 p-3">
+                <div className="inline-flex items-center rounded-full bg-sky-600 px-2.5 py-1 font-display text-[11px] font-black uppercase tracking-wider text-white">
                   {dctoPct}% OFF en efectivo o transferencia
                 </div>
-                <div className="mt-1.5 font-display text-2xl font-black text-emerald-700">
+                <div className="mt-1.5 font-display text-3xl font-black text-sky-700">
                   {formatPrice(contado)}
                 </div>
               </div>

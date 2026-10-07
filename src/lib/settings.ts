@@ -48,6 +48,9 @@ export async function setSetting(key: string, value: string): Promise<void> {
 }
 
 function parsePct(raw: string | null, fallback: number): number {
+  // OJO: Number(null) es 0, no NaN. Sin este chequeo, una config vacia se
+  // interpretaba como "0%" en vez de usar el valor por defecto.
+  if (raw === null || raw.trim() === "") return fallback;
   const n = Number(raw);
   if (!Number.isFinite(n) || n < 0) return fallback;
   return Math.min(n, RECARGO_MAX);
