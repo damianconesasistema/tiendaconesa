@@ -12,7 +12,7 @@
 // Google va dando de baja modelos viejos para las cuentas nuevas. Si en
 // algun momento este tambien queda obsoleto, el error lo dice y se puede
 // cambiar sin tocar codigo: basta con setear GEMINI_MODEL en Railway.
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 export function geminiConfigurado(): boolean {
   return !!process.env.GEMINI_API_KEY;
@@ -97,9 +97,17 @@ Reglas:
         };
       }
       if (r.status === 429) {
+        // El cupo gratuito es POR MODELO y varía muchísimo entre uno y otro
+        // (gemini-3.8-flash da ~20 por día; los *-flash-lite, 500). Por eso
+        // mostramos cuál se está usando: casi siempre la solución es cambiar
+        // GEMINI_MODEL en Railway, no esperar al día siguiente.
         return {
           error:
-            "Se agotó el límite gratuito de Google por hoy. Probá de nuevo más tarde.",
+            `Google cortó por límite de uso del modelo "${MODEL}". ` +
+            `El cupo gratuito es por modelo y por día. Si pasa seguido, ` +
+            `cambiá la variable GEMINI_MODEL en Railway por uno con más ` +
+            `cupo (por ejemplo gemini-3.5-flash-lite, 500 por día). ` +
+            `Detalle de Google: ${msg}`,
         };
       }
       return { error: msg };
