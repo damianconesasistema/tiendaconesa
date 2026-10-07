@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ArrowUp } from "lucide-react";
 import { useCart } from "@/lib/cart";
+import { useScrollDirection } from "@/lib/use-scroll-direction";
 
 // BackToTop se posiciona SIEMPRE arriba del boton de WhatsApp para no
 // superponerse. La separacion vertical se calcula segun si el CartFab
@@ -12,6 +13,8 @@ export function BackToTop() {
   const [visible, setVisible] = useState(false);
   const pathname = usePathname();
   const { count } = useCart();
+  // Mientras baja leyendo se esconde: en mobile tapa el texto
+  const subiendo = useScrollDirection();
 
   useEffect(() => {
     function onScroll() {
@@ -53,7 +56,7 @@ export function BackToTop() {
       onClick={scrollTop}
       aria-label="Volver arriba"
       className={`fixed right-5 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--brand-black)] text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-[var(--brand-red)] sm:right-8 sm:h-12 sm:w-12 ${positionCls} ${
-        visible
+        visible && subiendo
           ? "translate-y-0 opacity-100"
           : "pointer-events-none translate-y-4 opacity-0"
       }`}

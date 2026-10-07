@@ -23,6 +23,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
 import { parseShipping } from "@/lib/shipping";
+import { ShareButton } from "@/components/ShareButton";
 import { precioVitrina, precioCuotas, descuentoContadoPct } from "@/lib/precios";
 import { useRouter } from "next/navigation";
 
@@ -431,6 +432,13 @@ export function ProductDetail({
               <MessageCircle className="h-4 w-4" />
               O consultá por WhatsApp
             </Link>
+
+            <div className="mt-4 flex justify-center">
+              <ShareButton
+                titulo={product.title}
+                texto={`Mirá esto en Sanitarios Conesa: ${product.title}`}
+              />
+            </div>
 
             {/* Beneficios / Entrega (según el tipo de envío del producto) */}
             <div className="mt-8 grid gap-3 border-t border-[var(--border)] pt-6">
