@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.23.0";
+export const APP_VERSION = "V.0.24.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.24.0",
+    date: "2026-10-07",
+    changes: [
+      "QUITAR FONDO CON IA: al subir fotos del producto hay una opción nueva que recorta el producto y lo deja sobre fondo blanco. Corre en TU computadora, es gratis y sin límite de fotos, y la imagen no se manda a ningún servicio. La primera vez baja el modelo (~109 MB) y después queda guardado en el navegador.",
+      "Si la IA llega a fallar, se sube igual la foto original: nunca te bloquea la carga.",
+      "El hero y los textos para buscadores ya no dicen una cantidad fija de productos (había quedado desactualizada): ahora hablan de las ofertas vigentes.",
+    ],
+  },
   {
     version: "V.0.23.0",
     date: "2026-10-07",

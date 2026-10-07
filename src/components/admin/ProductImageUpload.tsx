@@ -18,6 +18,11 @@ import {
   listProductImages,
 } from "@/app/admin/productos/actions";
 import { MAX_PRODUCT_IMAGES } from "@/lib/product-images";
+import {
+  quitarFondo,
+  soportaQuitarFondo,
+  type ProgresoFondo,
+} from "@/lib/remove-background";
 
 type Img = { id: string; position: number };
 
@@ -40,6 +45,10 @@ export function ProductImageUpload({
   const [, startTransition] = useTransition();
   const [bust, setBust] = useState(Date.now());
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  // Quitar fondo con IA (corre en este navegador, no en el servidor)
+  const [sacarFondo, setSacarFondo] = useState(false);
+  const [fondoProg, setFondoProg] = useState<ProgresoFondo | null>(null);
+  const puedeSacarFondo = soportaQuitarFondo();
 
   async function refresh() {
     const r = await listProductImages(itemId);
@@ -68,8 +77,24 @@ export function ProductImageUpload({
       setProgress({ done: 0, total: toUpload.length });
       let failed = 0;
       for (let i = 0; i < toUpload.length; i++) {
+        let archivo = toUpload[i];
+
+        // Quitar fondo ANTES de subir. Si falla, subimos la original: no
+        // queremos que un problema de la IA te impida cargar la foto.
+        if (sacarFondo) {
+          try {
+            archivo = await quitarFondo(archivo, setFondoProg);
+          } catch (e) {
+            setError(
+              `No se pudo quitar el fondo (${(e as Error).message}). Se sube la foto original.`,
+            );
+          } finally {
+            setFondoProg(null);
+          }
+        }
+
         const fd = new FormData();
-        fd.append("image", toUpload[i]);
+        fd.append("image", archivo);
         const r = await uploadProductImage(itemId, fd);
         if (!r.ok) {
           failed++;
@@ -79,6 +104,7 @@ export function ProductImageUpload({
       }
       await refresh();
       setProgress(null);
+      setFondoProg(null);
       setBusy(false);
       if (files.length > room)
         setError(
@@ -281,6 +307,65 @@ export function ProductImageUpload({
             ? "Subir fotos"
             : "Agregar más fotos"}
       </button>
+
+      {/* Quitar fondo con IA: corre en ESTE navegador, no en el servidor */}
+      {puedeSacarFondo && (
+        <label
+          className={`mt-2 flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 transition-colors ${
+            sacarFondo
+              ? "border-[var(--brand-red)] bg-[var(--brand-red)]/5"
+              : "border-[var(--border)] bg-white hover:border-[var(--brand-red)]/50"
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={sacarFondo}
+            onChange={(e) => setSacarFondo(e.target.checked)}
+            disabled={busy}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand-red)]"
+          />
+          <span className="text-[11px] leading-snug">
+            <span className="font-bold uppercase tracking-wider">
+              Quitar fondo con IA
+            </span>
+            <span className="block text-[var(--muted)]">
+              Deja el producto recortado sobre fondo blanco. Corre en tu
+              computadora (gratis, la foto no se envía a ningún lado). La
+              primera vez baja el modelo, ~109 MB, y después queda guardado.
+            </span>
+          </span>
+        </label>
+      )}
+
+      {/* Progreso del quitar-fondo */}
+      {fondoProg && (
+        <div className="mt-2 rounded-lg border border-[var(--border)] bg-white p-3">
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="inline-flex items-center gap-1.5 text-[var(--brand-red)]">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {fondoProg.etapa === "descargando-modelo"
+                ? "Bajando el modelo de IA (solo esta vez)…"
+                : "Quitando el fondo…"}
+            </span>
+            {fondoProg.porcentaje != null && (
+              <span className="text-[var(--muted)]">
+                {fondoProg.porcentaje}%
+              </span>
+            )}
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface)]">
+            <div
+              className="h-full rounded-full bg-[var(--brand-red)] transition-all"
+              style={{
+                width:
+                  fondoProg.porcentaje != null
+                    ? `${fondoProg.porcentaje}%`
+                    : "100%",
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mt-2 inline-flex items-start gap-1.5 text-xs font-bold text-red-500">
