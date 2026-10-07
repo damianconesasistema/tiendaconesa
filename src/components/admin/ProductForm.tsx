@@ -56,6 +56,7 @@ export function ProductForm({
   const [iaPending, startIA] = useTransition();
   const [iaError, setIaError] = useState<string | null>(null);
   const [iaFuentes, setIaFuentes] = useState<string[] | null>(null);
+  const [iaSinBusqueda, setIaSinBusqueda] = useState(false);
 
   function escribirConIA() {
     // Si ya hay texto escrito a mano, preguntamos antes de pisarlo.
@@ -70,6 +71,7 @@ export function ProductForm({
     }
     setIaError(null);
     setIaFuentes(null);
+    setIaSinBusqueda(false);
     const fd = new FormData(formRef.current!);
     const titulo = String(fd.get("title") || "");
     const categoria = String(fd.get("category") || "otros");
@@ -79,6 +81,7 @@ export function ProductForm({
         if (r.ok && r.texto && descRef.current) {
           descRef.current.value = r.texto;
           setIaFuentes(r.fuentes?.length ? r.fuentes : null);
+          setIaSinBusqueda(r.conBusqueda === false);
         } else {
           setIaError(r.error ?? "No se pudo generar la descripción");
         }
@@ -225,6 +228,17 @@ export function ProductForm({
           <p className="mt-1 inline-flex items-start gap-1.5 text-[11px] font-bold text-red-500">
             <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
             {iaError}
+          </p>
+        )}
+        {iaSinBusqueda && (
+          <p className="mt-1 inline-flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-900">
+            <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+            <span>
+              <strong>Esto se escribió SIN buscar en internet</strong> (se agotó
+              el cupo de búsqueda de Google). Está hecho solo a partir del
+              título, así que revisá bien medidas y características antes de
+              guardar.
+            </span>
           </p>
         )}
         {iaFuentes && (

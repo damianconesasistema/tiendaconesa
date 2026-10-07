@@ -485,7 +485,13 @@ export async function bulkUpdateAll(
 export async function redactarDescripcionIA(
   titulo: string,
   categoria: string,
-): Promise<{ ok?: true; texto?: string; fuentes?: string[]; error?: string }> {
+): Promise<{
+  ok?: true;
+  texto?: string;
+  fuentes?: string[];
+  error?: string;
+  conBusqueda?: boolean;
+}> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   const { redactarDescripcion } = await import("@/lib/gemini");

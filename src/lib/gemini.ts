@@ -18,7 +18,15 @@ export function geminiConfigurado(): boolean {
   return !!process.env.GEMINI_API_KEY;
 }
 
-type Resultado = { ok?: true; texto?: string; fuentes?: string[]; error?: string };
+type Resultado = {
+  ok?: true;
+  texto?: string;
+  fuentes?: string[];
+  error?: string;
+  // false => se genero SIN buscar en internet (el cupo de busqueda estaba
+  // agotado). El texto sale solo del titulo, asi que hay que revisarlo mas.
+  conBusqueda?: boolean;
+};
 
 const CATEGORIA_LABEL: Record<string, string> = {
   sanitarios: "sanitarios",
@@ -66,25 +74,38 @@ Reglas:
 - NO uses markdown (nada de ** o ##). Texto plano, que se va a mostrar tal cual.
 - No agregues títulos tipo "Descripción:" ni cierres de vendedor. Solo el texto.`;
 
-  try {
+  // Una llamada a Gemini. `conBusqueda` activa el grounding con Google Search.
+  async function llamar(conBusqueda: boolean) {
     const r = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": key,
+          "x-goog-api-key": key!,
         },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          // Busqueda web: asi trae specs reales del producto
-          tools: [{ google_search: {} }],
+          ...(conBusqueda ? { tools: [{ google_search: {} }] } : {}),
           generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
         }),
       },
     );
+    return { r, data: await r.json() };
+  }
 
-    const data = await r.json();
+  try {
+    // La busqueda web tiene su PROPIO cupo, mucho mas chico que el del modelo
+    // (en cuentas sin facturacion es practicamente nulo). Por eso, si falla
+    // por limite, reintentamos sin buscar: la descripcion sale mas pobre pero
+    // sale, en vez de dejar al admin sin nada.
+    let conBusqueda = true;
+    let { r, data } = await llamar(true);
+
+    if (r.status === 429 || r.status === 403) {
+      conBusqueda = false;
+      ({ r, data } = await llamar(false));
+    }
 
     if (!r.ok) {
       const msg =
@@ -97,17 +118,12 @@ Reglas:
         };
       }
       if (r.status === 429) {
-        // El cupo gratuito es POR MODELO y varía muchísimo entre uno y otro
-        // (gemini-3.8-flash da ~20 por día; los *-flash-lite, 500). Por eso
-        // mostramos cuál se está usando: casi siempre la solución es cambiar
-        // GEMINI_MODEL en Railway, no esperar al día siguiente.
         return {
           error:
-            `Google cortó por límite de uso del modelo "${MODEL}". ` +
-            `El cupo gratuito es por modelo y por día. Si pasa seguido, ` +
-            `cambiá la variable GEMINI_MODEL en Railway por uno con más ` +
-            `cupo (por ejemplo gemini-3.5-flash-lite, 500 por día). ` +
-            `Detalle de Google: ${msg}`,
+            `Google cortó por límite de uso con el modelo "${MODEL}" ` +
+            `(ya probé también sin búsqueda web). Esperá un rato y probá de ` +
+            `nuevo, o cambiá la variable GEMINI_MODEL en Railway por otro ` +
+            `modelo. Detalle de Google: ${msg}`,
         };
       }
       return { error: msg };
@@ -134,7 +150,7 @@ Reglas:
       .filter((t: string | undefined): t is string => !!t)
       .slice(0, 5);
 
-    return { ok: true, texto, fuentes };
+    return { ok: true, texto, fuentes, conBusqueda };
   } catch (e) {
     return { error: `No se pudo contactar a Google: ${(e as Error).message}` };
   }
