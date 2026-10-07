@@ -84,7 +84,7 @@ export function InlineNumber({
   return (
     // Ancho fijo que SIEMPRE reserva espacio para los 2 botones chicos,
     // asi la fila nunca cambia de tamaño al pasar de clean a dirty.
-    <div className="inline-flex items-center justify-end gap-1" style={{ width: "9rem" }}>
+    <div className="inline-flex items-center justify-end gap-1" style={{ width: "7.5rem" }}>
       {prefix && (
         <span className="text-xs text-[var(--muted)]">{prefix}</span>
       )}
@@ -95,6 +95,13 @@ export function InlineNumber({
         step={1}
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        onBlur={() => {
+          // Guardar también al salir del campo (como una planilla), así no
+          // se pierde el cambio si el usuario no apreta Enter / Aplicar.
+          // Los botones Aplicar/Cancelar usan onPointerDown+preventDefault,
+          // por eso no disparan este blur.
+          if (dirty && canApply) commit();
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
@@ -106,11 +113,11 @@ export function InlineNumber({
           }
         }}
         placeholder={allowNull ? "—" : "0"}
-        title={dirty ? "Sin guardar — Enter aplica, Esc cancela" : undefined}
+        title={dirty ? "Sin guardar — Enter o salí del campo para guardar, Esc cancela" : undefined}
         className={`inline-edit-number h-9 min-w-0 flex-1 rounded border bg-white px-2 text-right font-display text-sm font-bold outline-none focus:ring-2 ${borderCls} ${className}`}
       />
       {/* Slot reservado para los 2 botones (ancho fijo, no cambia la fila) */}
-      <div className="flex w-14 items-center justify-start gap-0.5">
+      <div className="flex w-11 items-center justify-start gap-0.5">
         {dirty ? (
           <>
             <button
@@ -238,7 +245,7 @@ export function InlineSegmented({
   labelOff: string;
 }) {
   const [value, setValue] = useState(initial);
-  const [status, setStatus] = useState<"idle" | "saving">("idle");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [, startTransition] = useTransition();
 
   // Sincronizar con el server cuando llega un valor nuevo (acción masiva,
@@ -256,13 +263,19 @@ export function InlineSegmented({
     startTransition(async () => {
       setStatus("saving");
       const r = await quickUpdate(itemId, field, next);
-      if (!r.ok) setValue(prev);
-      setStatus("idle");
+      if (!r.ok) {
+        setValue(prev);
+        setStatus("idle");
+      } else {
+        setStatus("saved");
+        setTimeout(() => setStatus("idle"), 1200);
+      }
       savingRef.current = false;
     });
   }
 
   return (
+    <div className="inline-flex items-center gap-1">
     <div className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] p-0.5 text-[10px] font-bold uppercase">
       <button
         type="button"
@@ -288,6 +301,13 @@ export function InlineSegmented({
       >
         {labelOff}
       </button>
+    </div>
+      <span className="inline-flex w-3 justify-start">
+        {status === "saving" && (
+          <Loader2 className="h-3 w-3 animate-spin text-[var(--muted)]" />
+        )}
+        {status === "saved" && <Check className="h-3 w-3 text-green-500" />}
+      </span>
     </div>
   );
 }

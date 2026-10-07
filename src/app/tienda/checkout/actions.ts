@@ -8,7 +8,7 @@ type Result =
   | { ok: true; orderId: string; orderNumber: number }
   | { ok: false; error: string };
 
-type PaymentMethod = "whatsapp" | "tarjeta";
+type PaymentMethod = "whatsapp" | "tarjeta" | "mercadopago";
 
 export async function createOrder(
   items: CartItem[],

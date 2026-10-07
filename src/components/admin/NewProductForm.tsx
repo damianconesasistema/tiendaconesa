@@ -51,15 +51,26 @@ export function NewProductForm() {
         </div>
       </div>
 
-      <div>
-        <Label>Categoría</Label>
-        <select name="category" defaultValue="otros" className="input">
-          {CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <Label>Categoría</Label>
+          <select name="category" defaultValue="otros" className="input">
+            {CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <Label>Tipo de envío</Label>
+          <select name="shippingType" defaultValue="ambos" className="input">
+            <option value="ambos">Retiro o envío (ambos)</option>
+            <option value="retiro">Solo retiro en tienda</option>
+            <option value="envio">Solo envío a Traslasierra</option>
+            <option value="gratis">Envío gratis</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-3">

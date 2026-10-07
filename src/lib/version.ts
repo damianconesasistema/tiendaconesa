@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.16.1";
+export const APP_VERSION = "V.0.17.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,18 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.17.0",
+    date: "2026-10-07",
+    changes: [
+      "Fix importante: el panel de productos ya NO queda cacheado. Antes mostraba estados viejos de activo/pausado aunque la base ya estaba actualizada (por eso parecía que pausabas y 'no guardaba'). Ahora siempre muestra el estado real.",
+      "Precios/oferta/stock inline: ahora también se guardan al salir del campo (además de Enter o el check verde). Ya no se pierde el cambio si te olvidás de confirmar.",
+      "Activo/Pausado y Destacado muestran un ✓ cuando se guardó, para que sepas que quedó.",
+      "Tipo de envío EDITABLE por producto: 'Retiro o envío', 'Solo retiro', 'Solo envío' o 'Envío gratis'. Se elige en la ficha y se refleja en la tienda.",
+      "Fix: el botón Editar ya no se corta en la lista de productos (tabla más compacta).",
+      "Base para pagar con MercadoPago (en preparación, se activa al cargar las credenciales).",
+    ],
+  },
   {
     version: "V.0.16.1",
     date: "2026-10-07",

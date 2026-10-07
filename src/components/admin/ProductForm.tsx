@@ -15,6 +15,7 @@ type Product = {
   active: boolean;
   featured: boolean;
   memo: string | null;
+  shippingType: string | null;
 };
 
 type State = { ok?: true } | { error: string } | null;
@@ -29,6 +30,13 @@ const CATEGORIES = [
   { id: "materiales", label: "Materiales" },
   { id: "piletas", label: "Piletas" },
   { id: "otros", label: "Otros" },
+];
+
+export const SHIPPING_OPTIONS = [
+  { id: "ambos", label: "Retiro o envío (ambos)" },
+  { id: "retiro", label: "Solo retiro en tienda" },
+  { id: "envio", label: "Solo envío a Traslasierra" },
+  { id: "gratis", label: "Envío gratis" },
 ];
 
 export function ProductForm({
@@ -68,19 +76,35 @@ export function ProductForm({
         </div>
       </div>
 
-      <div>
-        <Label>Categoría</Label>
-        <select
-          name="category"
-          defaultValue={product.category}
-          className="input"
-        >
-          {CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <Label>Categoría</Label>
+          <select
+            name="category"
+            defaultValue={product.category}
+            className="input"
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <Label>Tipo de envío</Label>
+          <select
+            name="shippingType"
+            defaultValue={product.shippingType ?? "ambos"}
+            className="input"
+          >
+            {SHIPPING_OPTIONS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-3">

@@ -69,6 +69,12 @@ export async function createProduct(
   const stock = Math.max(0, Math.floor(Number(formData.get("stock") || 0)));
   const active = formData.get("active") === "on";
   const featured = formData.get("featured") === "on";
+  const shippingRaw = String(formData.get("shippingType") || "ambos");
+  const shippingType = ["ambos", "retiro", "envio", "gratis"].includes(
+    shippingRaw,
+  )
+    ? shippingRaw
+    : "ambos";
 
   // itemId unico para productos cargados a mano
   const itemId = `MAN-${Date.now().toString(36)}-${Math.random()
@@ -89,6 +95,7 @@ export async function createProduct(
         active,
         featured,
         memo,
+        shippingType,
       },
     });
     // Primer registro en el historial de precios
@@ -186,6 +193,12 @@ export async function updateProduct(
     skuRaw != null && String(skuRaw).trim() !== ""
       ? String(skuRaw).trim()
       : null;
+  const shippingRaw = String(formData.get("shippingType") || "ambos");
+  const shippingType = ["ambos", "retiro", "envio", "gratis"].includes(
+    shippingRaw,
+  )
+    ? shippingRaw
+    : "ambos";
 
   if (!title) return { error: "El título es obligatorio" };
   if (!Number.isFinite(priceRaw) || priceRaw < 0)
@@ -218,6 +231,7 @@ export async function updateProduct(
         active,
         featured,
         memo,
+        shippingType,
       },
     });
   } catch (e) {

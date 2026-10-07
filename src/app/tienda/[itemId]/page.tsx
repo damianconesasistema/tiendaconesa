@@ -60,6 +60,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     category: product.category,
     imageUrl: product.imageUrl,
     imageIds,
+    shippingType: product.shippingType,
   };
   const relatedCompat = related.map((p) => ({
     itemId: p.itemId,

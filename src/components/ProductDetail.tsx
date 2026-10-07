@@ -35,6 +35,7 @@ type Product = {
   category: string;
   imageUrl: string | null;
   imageIds?: string[];
+  shippingType?: string | null;
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -328,18 +329,33 @@ export function ProductDetail({
               O consultá por WhatsApp
             </Link>
 
-            {/* Beneficios */}
+            {/* Beneficios / Entrega (según el tipo de envío del producto) */}
             <div className="mt-8 grid gap-3 border-t border-[var(--border)] pt-6">
-              <Benefit
-                icon={Store}
-                title="Retiro en tienda"
-                desc="Villa Cura Brochero · sin costo"
-              />
-              <Benefit
-                icon={Truck}
-                title="Envío a Traslasierra"
-                desc="Mina Clavero, Nono, Villa Dolores y más"
-              />
+              {(product.shippingType === "ambos" ||
+                product.shippingType === "retiro" ||
+                !product.shippingType) && (
+                <Benefit
+                  icon={Store}
+                  title="Retiro en tienda"
+                  desc="Villa Cura Brochero · sin costo"
+                />
+              )}
+              {product.shippingType === "gratis" && (
+                <Benefit
+                  icon={Truck}
+                  title="Envío gratis"
+                  desc="A todo el Valle de Traslasierra"
+                />
+              )}
+              {(product.shippingType === "ambos" ||
+                product.shippingType === "envio" ||
+                !product.shippingType) && (
+                <Benefit
+                  icon={Truck}
+                  title="Envío a Traslasierra"
+                  desc="Mina Clavero, Nono, Villa Dolores y más"
+                />
+              )}
               <Benefit
                 icon={Shield}
                 title="Compra segura"
