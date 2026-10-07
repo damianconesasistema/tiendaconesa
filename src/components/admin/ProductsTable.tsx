@@ -436,8 +436,8 @@ export function ProductsTable({
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-        <table className="w-full min-w-[820px]">
+      <div className="rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+        <table className="w-full table-auto">
           <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
             <tr>
               <th className="px-3 py-3">
@@ -458,7 +458,7 @@ export function ProductsTable({
               <SortHeader label="Stock" href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
               <SortHeader label="Estado" href={sortHref("estado")} active={sort === "estado"} dir={dir} align="center" />
               <SortHeader label="Destacado" href={sortHref("featured")} active={sort === "featured"} dir={dir} align="center" />
-              <th className="px-4 py-3"></th>
+              <th className="px-2 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
@@ -482,7 +482,7 @@ export function ProductsTable({
                       className="h-4 w-4 accent-[var(--brand-red)]"
                     />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-3">
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-white">
                         <Image
@@ -528,13 +528,13 @@ export function ProductsTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 hidden md:table-cell text-xs text-[var(--muted)]">
+                  <td className="px-2 py-3 hidden md:table-cell text-xs text-[var(--muted)]">
                     {CAT_LABELS[p.category] || p.category}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-3 text-right">
                     <InlineNumber itemId={p.itemId} field="price" initial={p.price} disabled={p.locked} />
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-3 text-right">
                     <InlineNumber
                       itemId={p.itemId}
                       field="salePrice"
@@ -543,10 +543,10 @@ export function ProductsTable({
                       disabled={p.locked}
                     />
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-3 text-right">
                     <InlineNumber itemId={p.itemId} field="stock" initial={p.stock} disabled={p.locked} />
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 py-3 text-center">
                     <InlineSegmented
                       itemId={p.itemId}
                       field="active"
@@ -556,7 +556,7 @@ export function ProductsTable({
                       disabled={p.locked}
                     />
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 py-3 text-center">
                     <InlineToggle
                       itemId={p.itemId}
                       field="featured"
@@ -566,8 +566,10 @@ export function ProductsTable({
                       disabled={p.locked}
                     />
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="inline-flex items-center gap-1">
+                  <td className="px-2 py-3 text-right">
+                    {/* flex-wrap: si no entran en una fila, bajan a la
+                        siguiente en vez de ensanchar la tabla. */}
+                    <div className="inline-flex max-w-[5.5rem] flex-wrap items-center justify-end gap-1">
                       <Link
                         href={`/tienda/${p.itemId}`}
                         target="_blank"
@@ -845,15 +847,15 @@ function SortHeader({
   );
 
   return (
-    <th className={`px-4 py-3 ${alignCls} ${className}`}>
+    <th className={`px-2 py-3 ${alignCls} ${className}`}>
       {boxed ? (
         // Mismo contenedor que InlineNumber: 7.5rem, gap-1, + espaciador w-11.
         <span
           className="inline-flex items-center justify-end gap-1 align-middle"
-          style={{ width: "7.5rem" }}
+          style={{ width: "6.25rem" }}
         >
           {link}
-          <span className="w-11 shrink-0" aria-hidden />
+          <span className="w-9 shrink-0" aria-hidden />
         </span>
       ) : (
         link

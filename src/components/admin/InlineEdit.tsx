@@ -102,7 +102,7 @@ export function InlineNumber({
   return (
     // Ancho fijo que SIEMPRE reserva espacio para los 2 botones chicos,
     // asi la fila nunca cambia de tamaño al pasar de clean a dirty.
-    <div className="inline-flex items-center justify-end gap-1" style={{ width: "7.5rem" }}>
+    <div className="inline-flex items-center justify-end gap-1" style={{ width: "6.25rem" }}>
       {prefix && (
         <span className="text-xs text-[var(--muted)]">{prefix}</span>
       )}
@@ -136,7 +136,7 @@ export function InlineNumber({
         className={`inline-edit-number h-9 min-w-0 flex-1 rounded border bg-white px-2 text-right font-display text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-[var(--surface)] disabled:text-[var(--muted)] ${borderCls} ${className}`}
       />
       {/* Slot reservado para los 2 botones (ancho fijo, no cambia la fila) */}
-      <div className="flex w-11 items-center justify-start gap-0.5">
+      <div className="flex w-9 items-center justify-start gap-0.5">
         {dirty ? (
           <>
             <button
@@ -147,7 +147,7 @@ export function InlineNumber({
               }}
               disabled={!canApply || status === "saving"}
               title="Aplicar (Enter)"
-              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
+              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
             >
               {status === "saving" ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -163,7 +163,7 @@ export function InlineNumber({
               }}
               disabled={status === "saving"}
               title="Cancelar (Esc)"
-              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded border border-[var(--border)] bg-white text-[var(--muted)] hover:border-red-400 hover:text-red-500"
+              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border border-[var(--border)] bg-white text-[var(--muted)] hover:border-red-400 hover:text-red-500"
             >
               <X className="h-3 w-3" strokeWidth={2.5} />
             </button>
