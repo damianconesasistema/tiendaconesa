@@ -1,7 +1,8 @@
-// Setea price = RESET_PRICES y salePrice = null en TODOS los productos.
-// Idempotente: solo corre si el valor no coincide con el ultimo aplicado.
-// Deja un marcador en la fila "RESET_PRICES_APPLIED" dentro de Product para
-// evitar re-aplicar en cada deploy.
+// Reset one-shot de precios: setea price = RESET_PRICES y salePrice = null
+// en TODOS los productos. SOLO corre UNA VEZ por valor distinto de
+// RESET_PRICES (se persiste un marcador en Product). NUNCA re-aplica en
+// deploys posteriores, para no pisar los cambios que hace el admin
+// (precios reales, ofertas, pausados).
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -13,31 +14,26 @@ if (!Number.isFinite(target) || target <= 0) {
   process.exit(0);
 }
 
-// Chequear ultimo valor aplicado via el itemId sentinela.
-// Pero re-aplicar si hay productos inactivos (el admin podria haber desactivado,
-// o el seed los dejo asi por venir Inactiva del CSV).
 const SENTINEL = "__RESET_PRICES_MARKER__";
 const marker = await prisma.product.findUnique({ where: { itemId: SENTINEL } });
-const inactiveCount = await prisma.product.count({
-  where: { active: false, itemId: { not: SENTINEL } },
-});
-if (marker && marker.price === target && inactiveCount === 0) {
-  console.log(`Reset ya aplicado para target=${target} (y todos activos), skip`);
+
+// Si ya se aplicó este mismo valor, NO hacer nada más. El admin ya es dueño
+// de precios / ofertas / activo-pausado a partir de acá.
+if (marker && marker.price === target) {
+  console.log(`Reset ya aplicado para target=${target}, skip (no se toca nada).`);
   await prisma.$disconnect();
   process.exit(0);
 }
-if (inactiveCount > 0) {
-  console.log(`${inactiveCount} productos inactivos encontrados, re-aplicando reset`);
-}
 
-// Setear price, limpiar salePrice y activarlos (muchos venian Inactiva del CSV)
+// Primera aplicación de este valor: reseteamos SOLO precios y ofertas.
+// NO tocamos "active": el estado activo/pausado lo maneja el admin.
 const { count } = await prisma.product.updateMany({
   where: { itemId: { not: SENTINEL } },
-  data: { price: target, salePrice: null, active: true },
+  data: { price: target, salePrice: null },
 });
-console.log(`✓ ${count} productos actualizados a ${target} y activados`);
+console.log(`✓ ${count} productos reseteados a ${target} (precios/ofertas).`);
 
-// Actualizar/crear marcador
+// Marcador para no re-aplicar
 await prisma.product.upsert({
   where: { itemId: SENTINEL },
   create: {
