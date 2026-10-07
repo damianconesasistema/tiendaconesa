@@ -97,8 +97,8 @@ export function HeroCarousel() {
             className="animate-fade-up-delay-2 mt-8 max-w-lg text-balance text-base text-white/90 sm:text-lg"
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}
           >
-            Más de <strong className="text-white">790 productos</strong> de las
-            mejores marcas, listos para comprar o retirar en Villa Cura Brochero.
+            <strong className="text-white">Ofertas vigentes</strong> en las
+            mejores marcas, listas para comprar o retirar en Villa Cura Brochero.
           </p>
 
           <div className="animate-fade-up-delay-3 mt-9 flex flex-col gap-3 sm:flex-row">

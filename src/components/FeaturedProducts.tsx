@@ -70,7 +70,7 @@ export function FeaturedProducts({
             <p className="mt-2 text-balance text-base text-[var(--muted)]">
               {isOffers
                 ? "Aprovechá los descuentos activos."
-                : "Más de 790 productos. Entrá a la tienda."}
+                : "Las mejores marcas. Entrá a la tienda."}
             </p>
           </div>
           <Link

@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 export const metadata: Metadata = {
   title: "Tienda · Sanitarios Conesa Traslasierra",
   description:
-    "Más de 790 productos de sanitarios, grifería, salamandras, calefones y materiales de obra. Las mejores marcas de Argentina.",
+    "Ofertas en sanitarios, grifería, salamandras, calefones y materiales de obra. Las mejores marcas de Argentina.",
 };
 
 type Category = {

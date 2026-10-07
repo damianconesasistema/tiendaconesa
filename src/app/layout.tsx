@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: "%s · Sanitarios Conesa Traslasierra",
   },
   description:
-    "Comprá online sanitarios, grifería, bañeras, salamandras, calefones y materiales de construcción. Más de 790 productos de las mejores marcas (FV, Piazza, Hydros, Johnson). Envío a todo el Valle de Traslasierra o retiro en Villa Cura Brochero.",
+    "Comprá online sanitarios, grifería, bañeras, salamandras, calefones y materiales de construcción. Ofertas en las mejores marcas (FV, Piazza, Hydros, Johnson). Envío a todo el Valle de Traslasierra o retiro en Villa Cura Brochero.",
   keywords: [
     "sanitarios conesa",
     "sanitarios villa cura brochero",
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     title:
       "Sanitarios Conesa Traslasierra · Tienda online en Villa Cura Brochero",
     description:
-      "Más de 790 productos de sanitarios, grifería, salamandras y materiales. Las mejores marcas con envío a todo Traslasierra o retiro en el local.",
+      "Ofertas en sanitarios, grifería, salamandras y materiales. Las mejores marcas con envío a todo Traslasierra o retiro en el local.",
     url: SITE_URL,
     siteName: business.name,
     locale: "es_AR",
