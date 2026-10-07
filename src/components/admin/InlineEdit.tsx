@@ -102,7 +102,7 @@ export function InlineNumber({
   return (
     // Ancho fijo que SIEMPRE reserva espacio para los 2 botones chicos,
     // asi la fila nunca cambia de tamaño al pasar de clean a dirty.
-    <div className="inline-flex items-center justify-end gap-1" style={{ width: "6.25rem" }}>
+    <div className="inline-flex items-center justify-end gap-1" style={{ width: "8.5rem" }}>
       {prefix && (
         <span className="text-xs text-[var(--muted)]">{prefix}</span>
       )}

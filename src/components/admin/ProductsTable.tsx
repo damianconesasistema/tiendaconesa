@@ -479,7 +479,7 @@ export function ProductsTable({
                 />
               </th>
               <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} />
-              <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden md:table-cell" />
+              <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
               <SortHeader label="Precio base" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
               <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
               <SortHeader label="Stock" href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
@@ -558,7 +558,7 @@ export function ProductsTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-2 py-3 hidden md:table-cell text-xs text-[var(--muted)]">
+                  <td className="px-2 py-3 hidden lg:table-cell text-xs text-[var(--muted)]">
                     {CAT_LABELS[p.category] || p.category}
                   </td>
                   <td className="px-2 py-3 text-right">
@@ -883,7 +883,7 @@ function SortHeader({
         // Mismo contenedor que InlineNumber: 7.5rem, gap-1, + espaciador w-11.
         <span
           className="inline-flex items-center justify-end gap-1 align-middle"
-          style={{ width: "6.25rem" }}
+          style={{ width: "8.5rem" }}
         >
           {link}
           <span className="w-9 shrink-0" aria-hidden />
