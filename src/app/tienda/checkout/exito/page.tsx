@@ -27,9 +27,9 @@ export default async function ExitoPage({
         select: {
           number: true,
           total: true,
-          paywayCardBrand: true,
-          paywayCardLast4: true,
-          paywayCardInstallments: true,
+          mpPaymentType: true,
+          mpStatus: true,
+          paymentMethod: true,
         },
       })
     : null;
@@ -46,19 +46,16 @@ export default async function ExitoPage({
         {order ? (
           <p className="mt-3 text-balance text-[var(--muted)]">
             Tu pedido <strong>#{order.number}</strong> quedó confirmado y pagado.
-            {order.paywayCardBrand && order.paywayCardLast4 && (
-              <>
-                {" "}
-                Pagaste {formatPrice(order.total)} con tarjeta{" "}
-                {order.paywayCardBrand.toUpperCase()} terminada en{" "}
-                {order.paywayCardLast4}
-                {order.paywayCardInstallments &&
-                order.paywayCardInstallments > 1
-                  ? ` en ${order.paywayCardInstallments} cuotas`
-                  : ""}
-                .
-              </>
-            )}
+            {" "}
+            Pagaste {formatPrice(order.total)} con MercadoPago
+            {(() => {
+              // paymentMethod guarda "mp_cuotas_12" cuando eligió cuotas
+              const n = Number(
+                (order.paymentMethod ?? "").replace("mp_cuotas_", ""),
+              );
+              return Number.isFinite(n) && n > 1 ? ` en ${n} cuotas` : "";
+            })()}
+            .
           </p>
         ) : (
           <p className="mt-3 text-balance text-[var(--muted)]">
@@ -79,7 +76,7 @@ export default async function ExitoPage({
           <Link
             href={whatsappLink(
               order
-                ? `Hola! Acabo de pagar el pedido #${order.number} con tarjeta.`
+                ? `Hola! Acabo de pagar el pedido #${order.number} con MercadoPago.`
                 : "Hola! Acabo de hacer una compra.",
             )}
             target="_blank"
