@@ -403,7 +403,7 @@ export function CheckoutPage({
                       onClick={() => setPayMethod("mp_cuotas")}
                       icon={CreditCard}
                       title={`Hasta ${planes.length ? planes[planes.length - 1].cuotas : recargos.cuotasMax} cuotas`}
-                      desc="Crédito sin interés. Elegís el plan abajo."
+                      desc="Crédito en cuotas fijas. Elegís el plan abajo."
                       badge="Online"
                     />
                   </>
@@ -559,7 +559,7 @@ export function CheckoutPage({
               )}
               <p className="mt-3 text-balance text-center text-xs text-[var(--muted)]">
                 {payMethod === "mp_cuotas"
-                  ? `${planSel} cuotas sin interés. Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda.`
+                  ? `${planSel} cuotas fijas. Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda.`
                   : payMethod === "mp_1pago"
                     ? "Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda."
                     : `Pagando en efectivo o por transferencia tenés ${dctoRealPct}% de descuento. Te abrimos WhatsApp con el pedido cargado para coordinar pago y entrega.`}

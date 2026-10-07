@@ -76,7 +76,7 @@ export function RecargosForm({
           className="input"
         />
         <p className="mt-1 text-[11px] text-[var(--muted)]">
-          Cuántas cuotas sin interés ofrecés. Tiene que coincidir con lo que
+          Cuántas cuotas fijas ofrecés. Tiene que coincidir con lo que
           tengas acordado con MercadoPago.
         </p>
         <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-[11px] text-sky-900">

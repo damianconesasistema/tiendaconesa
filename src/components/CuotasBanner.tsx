@@ -19,7 +19,7 @@ export function CuotasBanner({
       <div className="bg-[#009EE3] px-4 py-2 text-center text-white">
         <span className="inline-flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider sm:text-sm">
           <CreditCard className="h-4 w-4" />
-          Pagá hasta {cuotasMax} cuotas sin interés con MercadoPago
+          Pagá hasta {cuotasMax} cuotas fijas con MercadoPago
         </span>
       </div>
     );
@@ -31,7 +31,7 @@ export function CuotasBanner({
         <CreditCard className="h-12 w-12 shrink-0" strokeWidth={1.5} />
         <div>
           <h2 className="font-display text-3xl font-black uppercase leading-none sm:text-4xl">
-            Hasta {cuotasMax} cuotas sin interés
+            Hasta {cuotasMax} cuotas fijas
           </h2>
           <p className="mt-1.5 text-sm text-white/90">
             Con todas las tarjetas de crédito, a través de MercadoPago.{" "}

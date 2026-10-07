@@ -277,7 +277,7 @@ export function ProductDetail({
                   <span className="font-bold text-[#009EE3]">
                     Hasta {cuotasMax} cuotas de {formatPrice(valorCuotaMax)}
                   </span>{" "}
-                  sin interés ({formatPrice(totalPlanMax)} total).
+                  en cuotas fijas ({formatPrice(totalPlanMax)} total).
                 </div>
               )}
               {planes.length > 1 && (
