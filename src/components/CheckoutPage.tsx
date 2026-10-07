@@ -45,15 +45,12 @@ export function CheckoutPage({
   );
   const esMp = payMethod === "mp_1pago" || payMethod === "mp_cuotas";
 
-  // El carrito guarda el precio de VITRINA (el de 1 pago). De ahí derivamos:
-  //   contado = vitrina menos la comisión de 1 pago
-  //   cuotas  = contado dividido (1 - comisión de cuotas)
-  // El server recalcula todo desde la base; esto es solo para mostrar.
-  const totalContado = Math.round(subtotal * (1 - recargos.unPago / 100));
-  const totalCuotas =
-    recargos.cuotas > 0 && recargos.cuotas < 100
-      ? Math.round(totalContado / (1 - recargos.cuotas / 100))
-      : totalContado;
+  // El carrito guarda el precio de VITRINA (contado + recargo de 1 pago).
+  // Para volver al contado hay que DIVIDIR por (1 + recargo), no restar el
+  // porcentaje: sacarle 8% a un precio que tiene 8% agregado no devuelve el
+  // original.
+  const totalContado = Math.round(subtotal / (1 + recargos.unPago / 100));
+  const totalCuotas = Math.round(totalContado * (1 + recargos.cuotas / 100));
 
   const total =
     payMethod === "mp_cuotas"

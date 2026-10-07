@@ -32,7 +32,7 @@ export function RecargosForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-            Recargo débito o 1 pago (%)
+            Recargo débito / 1 pago (%)
           </label>
           <input
             name="unPago"
@@ -79,6 +79,13 @@ export function RecargosForm({
           Cuántas cuotas sin interés ofrecés. Tiene que coincidir con lo que
           tengas acordado con MercadoPago.
         </p>
+        <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-[11px] text-sky-900">
+          <strong>De dónde sacar estos números:</strong> en la app de
+          MercadoPago, <em>Tu negocio → Costos → Simulador</em>. Poné cuánto
+          querés RECIBIR y te dice cuánto paga el cliente. El recargo es la
+          diferencia. Ejemplo: si para recibir $100.000 el cliente paga
+          $125.711, el recargo es 25,71%.
+        </div>
       </div>
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm">

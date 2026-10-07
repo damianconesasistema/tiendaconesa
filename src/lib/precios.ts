@@ -15,16 +15,32 @@
 // Por eso el cartel "10% de descuento en efectivo o transferencia" es
 // literalmente cierto y no publicidad engañosa.
 
-/** Precio de vitrina: el que se muestra en la tienda (incluye la comisión de 1 pago). */
-export function precioVitrina(contado: number, comisionPct: number): number {
-  if (comisionPct <= 0 || comisionPct >= 100) return contado;
-  return Math.round(contado / (1 - comisionPct / 100));
+/**
+ * Recargo DIRECTO sobre el precio de contado.
+ *
+ * El número sale del simulador de costos de MercadoPago: ahí se pone cuánto
+ * se quiere recibir y devuelve cuánto tiene que pagar el cliente. Ejemplo real
+ * (oct 2026, cobro al instante, 6 cuotas): para recibir 100.000 el cliente
+ * paga 125.711,84 => recargo 25,71%.
+ *
+ * ANTES ESTO ESTABA MAL: se dividía por (1 - comisión), asumiendo que la
+ * comisión era un único descuento sobre el total. En realidad son dos costos
+ * distintos (cobro + financiación, más IVA) y esa cuenta daba de más: 35%
+ * en vez de 25,7%. Se cobraba casi 10% de más al cliente.
+ */
+function conRecargo(contado: number, recargoPct: number): number {
+  if (recargoPct <= 0) return contado;
+  return Math.round(contado * (1 + recargoPct / 100));
 }
 
-/** Precio pagando en cuotas (incluye la comisión, más alta, de cuotas). */
-export function precioCuotas(contado: number, comisionPct: number): number {
-  if (comisionPct <= 0 || comisionPct >= 100) return contado;
-  return Math.round(contado / (1 - comisionPct / 100));
+/** Precio de vitrina: el que se muestra en la tienda (débito o 1 pago). */
+export function precioVitrina(contado: number, recargoPct: number): number {
+  return conRecargo(contado, recargoPct);
+}
+
+/** Precio pagando en cuotas. */
+export function precioCuotas(contado: number, recargoPct: number): number {
+  return conRecargo(contado, recargoPct);
 }
 
 /**

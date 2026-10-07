@@ -1,18 +1,20 @@
 // Configuracion de la tienda, editable desde el panel (tabla Setting).
 //
 // RECARGOS DE MERCADOPAGO
-// El precio que se muestra en la tienda es "efectivo o transferencia".
-// MercadoPago cobra comision, y es MUY distinta segun en cuantos pagos:
-//   1 pago (debito o credito)      ~10%
-//   hasta 6 cuotas sin interes     ~26%
+// El precio que se muestra en la tienda es "efectivo o transferencia" mas un
+// recargo, porque MercadoPago cobra por cobrar y por financiar.
 //
-// Por eso NO sirve un recargo unico: con Checkout Pro el monto se fija ANTES
-// de que el cliente elija como paga, asi que cobrar 26% a todos castigaria al
-// que paga en 1 pago, y cobrar 10% a todos nos haria perder plata en cuotas.
+// DE DONDE SALEN LOS NUMEROS
+// Del simulador de costos de MercadoPago (app > Tu negocio > Costos): se pone
+// cuanto se quiere RECIBIR y dice cuanto tiene que PAGAR el cliente.
+// Medido en oct 2026 con cobro al instante y 6 cuotas: para recibir 100.000
+// el cliente paga 125.711,84 => recargo 25,71%.
+// El desglose eran 6,60% por cobro + 10,30% por financiar, mas IVA.
 //
-// Solucion: el cliente elige 1 PAGO o CUOTAS en nuestro checkout, y a cada
-// preferencia le limitamos las cuotas en MercadoPago para que no pueda pagar
-// en mas cuotas de las que pago de recargo.
+// Son DOS recargos distintos porque financiar cuesta mucho mas que cobrar.
+// Con Checkout Pro el monto se fija ANTES de que el cliente elija, asi que el
+// cliente elige 1 PAGO o CUOTAS en nuestro checkout y despues le limitamos las
+// cuotas en MercadoPago para que no pague en mas de las que abono de recargo.
 
 import { prisma } from "@/lib/db";
 
@@ -20,9 +22,10 @@ export const SETTING_RECARGO_1PAGO = "recargo_mp_1pago_pct";
 export const SETTING_RECARGO_CUOTAS = "recargo_mp_cuotas_pct";
 export const SETTING_CUOTAS_MAX = "mp_cuotas_max";
 
-// Valores por defecto (los que informó el comercio en 2026-10).
-const DEFAULT_1PAGO = 10;
-const DEFAULT_CUOTAS_PCT = 26;
+// Valores por defecto, del simulador de MercadoPago (oct 2026).
+// Se editan desde el panel: Configuración.
+const DEFAULT_1PAGO = 8;
+const DEFAULT_CUOTAS_PCT = 25.71;
 const DEFAULT_CUOTAS = 6;
 
 // Tope de cordura: un error de tipeo (ej. 1000) no puede generar un cobro
