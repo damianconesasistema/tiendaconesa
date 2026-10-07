@@ -33,7 +33,7 @@ export function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [payMethod, setPayMethod] = useState<"whatsapp" | "tarjeta">(
+  const [payMethod, setPayMethod] = useState<"whatsapp" | "mercadopago">(
     "whatsapp",
   );
 
@@ -83,10 +83,31 @@ export function CheckoutPage() {
       return;
     }
 
-    // Camino tarjeta: vamos a la pantalla de pago con Payway.
-    // No limpiamos el carrito todavia (por si el pago falla y hay que reintentar).
-    if (payMethod === "tarjeta") {
-      router.push(`/tienda/checkout/pago?orden=${result.orderNumber}`);
+    // Camino MercadoPago: pedimos el link de pago y mandamos al cliente a
+    // Checkout Pro. NO limpiamos el carrito todavia: si el pago falla o lo
+    // abandona, tiene que poder volver y reintentar.
+    if (payMethod === "mercadopago") {
+      try {
+        const res = await fetch("/api/mercadopago/create-preference", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderNumber: result.orderNumber }),
+        });
+        const data = (await res.json()) as { ok?: boolean; initPoint?: string; error?: string };
+        if (data.ok && data.initPoint) {
+          window.location.href = data.initPoint;
+          return;
+        }
+        setSubmitting(false);
+        setServerError(
+          `${data.error ?? "No se pudo iniciar el pago"}. Tu pedido quedó guardado con el número ${result.orderNumber}: podés coordinarlo por WhatsApp.`,
+        );
+      } catch (err) {
+        setSubmitting(false);
+        setServerError(
+          `No pudimos conectar con MercadoPago (${(err as Error).message}). Tu pedido quedó guardado con el número ${result.orderNumber}.`,
+        );
+      }
       return;
     }
 
@@ -326,11 +347,11 @@ export function CheckoutPage() {
                   badge="Sin recargo"
                 />
                 <PayOption
-                  active={payMethod === "tarjeta"}
-                  onClick={() => setPayMethod("tarjeta")}
+                  active={payMethod === "mercadopago"}
+                  onClick={() => setPayMethod("mercadopago")}
                   icon={CreditCard}
-                  title="Pagar con tarjeta"
-                  desc="Crédito o débito, hasta en cuotas. Al instante."
+                  title="Pagar con MercadoPago"
+                  desc="Tarjeta, débito, dinero en cuenta o efectivo. Al instante."
                   badge="Online"
                 />
               </div>
@@ -399,14 +420,14 @@ export function CheckoutPage() {
                 </div>
               )}
 
-              {payMethod === "tarjeta" ? (
+              {payMethod === "mercadopago" ? (
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-red)] px-6 py-4 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#009EE3] px-6 py-4 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <CreditCard className="h-5 w-5" />
-                  {submitting ? "Preparando pago…" : "Pagar con tarjeta"}
+                  {submitting ? "Preparando pago…" : "Pagar con MercadoPago"}
                 </button>
               ) : (
                 <button
@@ -419,8 +440,8 @@ export function CheckoutPage() {
                 </button>
               )}
               <p className="mt-3 text-balance text-center text-xs text-[var(--muted)]">
-                {payMethod === "tarjeta"
-                  ? "Vas a pasar a una pantalla segura para ingresar los datos de tu tarjeta."
+                {payMethod === "mercadopago"
+                  ? "Te llevamos al sitio seguro de MercadoPago para pagar. Tus datos de tarjeta no pasan por nuestra tienda."
                   : "Te abrimos WhatsApp con el pedido ya cargado para coordinar pago y entrega."}
               </p>
             </div>

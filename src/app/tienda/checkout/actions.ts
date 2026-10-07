@@ -58,7 +58,10 @@ export async function createOrder(
         streetNumber: customer.shipping === "envio" ? customer.streetNumber : null,
         reference: customer.reference || null,
         notes: customer.notes || null,
-        paymentMethod: paymentMethod === "tarjeta" ? "tarjeta" : "whatsapp",
+        // Guardar el metodo REAL. Antes caia todo lo que no fuera "tarjeta"
+        // en "whatsapp", asi que un pedido de MercadoPago quedaba registrado
+        // como coordinado por WhatsApp.
+        paymentMethod,
         subtotal,
         shippingCost,
         total,
