@@ -186,6 +186,13 @@ export default async function Home() {
 
   return (
     <main className="relative flex-1">
+      {/* Tira superior: lo primero que se ve, antes del hero */}
+      <CuotasBanner
+        cuotasMax={cuotasMax}
+        dctoContadoPct={dctoContadoPct}
+        variant="strip"
+      />
+
       {/* HERO */}
       <HeroCarousel />
 

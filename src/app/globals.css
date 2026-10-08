@@ -266,3 +266,81 @@ body {
     animation: none;
   }
 }
+
+/* --- Banner de financiación --- */
+/* Movimiento suave a propósito: el banner está arriba de todo y se ve en cada
+   visita. Algo que parpadee ahí cansa en vez de llamar la atención. */
+
+/* Brillo que cruza el banner cada tanto, como el reflejo de una tarjeta */
+@keyframes bannerShine {
+  0%   { transform: translateX(-120%) skewX(-20deg); }
+  60%  { transform: translateX(320%) skewX(-20deg); }
+  100% { transform: translateX(320%) skewX(-20deg); }
+}
+.animate-banner-shine {
+  animation: bannerShine 5.5s ease-in-out infinite;
+}
+
+/* Latido apenas perceptible del número de cuotas */
+@keyframes bannerBeat {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.045); }
+}
+.animate-banner-beat {
+  animation: bannerBeat 3.2s ease-in-out infinite;
+}
+
+/* Los círculos del fondo flotan lento, dan sensación de profundidad */
+@keyframes bannerDrift {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-18px, 14px); }
+}
+.animate-banner-drift {
+  animation: bannerDrift 11s ease-in-out infinite;
+}
+.animate-banner-drift-slow {
+  animation: bannerDrift 15s ease-in-out infinite reverse;
+}
+
+/* Entrada: el contenido sube al aparecer */
+@keyframes bannerIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-banner-in {
+  animation: bannerIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-banner-in-2 {
+  animation: bannerIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+.animate-banner-in-3 {
+  animation: bannerIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+}
+
+/* Si el usuario pidió menos movimiento, se apaga todo: el banner sigue
+   leyéndose igual, solo deja de moverse. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-banner-shine,
+  .animate-banner-beat,
+  .animate-banner-drift,
+  .animate-banner-drift-slow,
+  .animate-banner-in,
+  .animate-banner-in-2,
+  .animate-banner-in-3 {
+    animation: none;
+  }
+}
+
+/* Titileo del dato de cuotas en la tira superior. Juega con el brillo y un
+   toque de escala, no con la opacidad a cero: un texto que desaparece y
+   vuelve se lee peor y marea. */
+@keyframes cuotasBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .72; transform: scale(1.04); }
+}
+.animate-cuotas-blink {
+  animation: cuotasBlink 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-cuotas-blink { animation: none; }
+}

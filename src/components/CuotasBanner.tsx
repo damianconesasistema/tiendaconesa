@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { CreditCard, Wallet, ArrowRight } from "lucide-react";
 
 // Banner de financiación.
@@ -25,7 +26,9 @@ export function CuotasBanner({
       <div className="bg-[#009EE3] px-4 py-2 text-center text-white">
         <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 font-display text-xs font-bold uppercase tracking-wider sm:text-sm">
           <CreditCard className="h-4 w-4" />
-          Hasta {cuotasMax} cuotas fijas
+          <span className="animate-cuotas-blink">
+            Hasta {cuotasMax} cuotas fijas
+          </span>
           {dctoContadoPct > 0 && (
             <span className="opacity-90">
               · {dctoContadoPct}% OFF en efectivo o transferencia
@@ -44,20 +47,26 @@ export function CuotasBanner({
         compacto ? "px-6 py-10" : "px-6 py-12 sm:py-14"
       }`}
     >
+      {/* Brillo que cruza cada tanto, como el reflejo de una tarjeta */}
+      <div
+        aria-hidden
+        className="animate-banner-shine pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+      />
+
       {/* Círculos de fondo: dan profundidad sin tapar el texto */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-white/10"
+        className="animate-banner-drift pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-white/10"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-black/10"
+        className="animate-banner-drift-slow pointer-events-none absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-black/10"
       />
 
       <div className="relative mx-auto grid max-w-5xl gap-8 sm:grid-cols-[1.3fr_auto_1fr] sm:items-center">
         {/* CUOTAS */}
-        <div className="flex items-center gap-4 sm:gap-5">
-          <div className="font-display text-[5rem] font-black leading-[0.8] tracking-tighter sm:text-[7rem]">
+        <div className="animate-banner-in flex items-center gap-4 sm:gap-5">
+          <div className="animate-banner-beat font-display text-[5rem] font-black leading-[0.8] tracking-tighter sm:text-[7rem]">
             {cuotasMax}
           </div>
           <div>
@@ -79,23 +88,37 @@ export function CuotasBanner({
           className="hidden h-24 w-px bg-white/30 sm:block"
         />
 
-        {/* CONTADO */}
+        {/* CONTADO + marca */}
         {dctoContadoPct > 0 && (
-          <div className="flex items-center gap-3 border-t border-white/25 pt-6 sm:border-0 sm:pt-0">
-            <Wallet className="h-10 w-10 shrink-0" strokeWidth={1.5} />
-            <div>
-              <div className="font-display text-3xl font-black leading-none sm:text-4xl">
-                {dctoContadoPct}% OFF
+          <div className="animate-banner-in-2 border-t border-white/25 pt-6 sm:border-0 sm:pt-0">
+            <div className="flex items-center gap-3">
+              <Wallet className="h-10 w-10 shrink-0" strokeWidth={1.5} />
+              <div>
+                <div className="font-display text-3xl font-black leading-none sm:text-4xl">
+                  {dctoContadoPct}% OFF
+                </div>
+                <div className="mt-1 text-sm font-bold uppercase tracking-wide">
+                  Efectivo o transferencia
+                </div>
               </div>
-              <div className="mt-1 text-sm font-bold uppercase tracking-wide">
-                Efectivo o transferencia
-              </div>
+            </div>
+
+            {/* El logo es oscuro: sobre el azul no se leería, por eso va
+                sobre una tarjeta blanca. */}
+            <div className="mt-4 inline-flex rounded-xl bg-white px-4 py-2.5 shadow-lg">
+              <Image
+                src="/brand/logo.png"
+                alt="Sanitarios Conesa Traslasierra"
+                width={150}
+                height={38}
+                className="h-8 w-auto object-contain sm:h-9"
+              />
             </div>
           </div>
         )}
       </div>
 
-      <div className="relative mx-auto mt-8 max-w-5xl">
+      <div className="animate-banner-in-3 relative mx-auto mt-8 max-w-5xl">
         <Link
           href="/tienda"
           className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[#009EE3] transition-transform hover:scale-[1.03]"
