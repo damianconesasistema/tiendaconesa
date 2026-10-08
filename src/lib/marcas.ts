@@ -13,6 +13,8 @@ export type Marca = {
   logo?: string;
   /** El logo viene en color y lo queremos monocromo. */
   invert?: boolean;
+  /** Logo casi cuadrado o de baja resolución: necesita mas alto para leerse. */
+  grande?: boolean;
   /** Variantes de escritura que buscamos en el título. */
   alias?: string[];
 };
@@ -24,17 +26,17 @@ export const MARCAS: readonly Marca[] = [
   { id: "hydros", name: "Hydros", logo: "/brand/marcas/hydros.png" },
   { id: "flowater", name: "Flowater", logo: "/brand/marcas/flowater.png", alias: ["flow water"] },
   { id: "tst", name: "TST", logo: "/brand/marcas/tst.png", invert: true },
-  { id: "pringles", name: "Pringles", logo: "/brand/marcas/pringles.jpg" },
+  { id: "pringles", name: "Pringles", logo: "/brand/marcas/pringles.jpg", grande: true },
   { id: "bosca", name: "Bosca", logo: "/brand/marcas/bosca.png" },
   { id: "gulliart", name: "Gulliart", logo: "/brand/marcas/gulliart.png", invert: true },
   { id: "masecor", name: "Masecor", logo: "/brand/marcas/masecor.webp" },
   { id: "precons", name: "Precons", logo: "/brand/marcas/precons.png", invert: true },
   { id: "rot-ar", name: "ROT-AR", logo: "/brand/marcas/rot-ar.jpg", alias: ["rotar", "rot ar"] },
-  { id: "acindar", name: "Acindar", logo: "/brand/marcas/acindar.webp" },
+  { id: "acindar", name: "Acindar", logo: "/brand/marcas/acindar.webp", grande: true },
   { id: "tromen", name: "Tromen", logo: "/brand/marcas/tromen.png" },
   { id: "fusiogas", name: "Fusiogas", logo: "/brand/marcas/fusiogas.jpg", alias: ["fusio gas"] },
   { id: "awaduct", name: "Awaduct", logo: "/brand/marcas/awaduct.jpg" },
-  { id: "saladillo", name: "Saladillo", logo: "/brand/marcas/saladillo.png" },
+  { id: "saladillo", name: "Saladillo", logo: "/brand/marcas/saladillo.png", grande: true },
   { id: "dema", name: "Grupo DEMA", logo: "/brand/marcas/dema.png", alias: ["dema"] },
   { id: "redeco", name: "Redeco", logo: "/brand/marcas/redeco.avif" },
   { id: "heineken", name: "Heineken", logo: "/brand/marcas/heineken.png" },

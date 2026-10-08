@@ -16,6 +16,7 @@ import {
   Minus,
   Plus,
   ZoomIn,
+  ImageIcon,
   Tag,
   X,
   ChevronLeft,
@@ -105,6 +106,13 @@ export function ProductDetail({
       : [product.imageUrl || `/categories/${product.category}.jpg`];
   const mainImg = gallery[Math.min(activeImg, gallery.length - 1)];
   const shippingList = parseShipping(product.shippingType);
+  // Algunas descripciones (las de los combos importados) ya terminan diciendo
+  // "Fotos a modo ilustrativo". El aviso de abajo lo dice mejor, asi que no lo
+  // repetimos dos veces en el mismo bloque.
+  const descripcionLimpia = (product.description ?? "")
+    .replace(/\n*\s*(las\s+)?fotos\s+(son\s+)?a\s+modo\s+ilustrativo\.?\s*$/i, "")
+    .trim();
+
   const outOfStock = product.stock <= 0;
 
   const prevImg = useCallback(
@@ -227,13 +235,6 @@ export function ProductDetail({
               </div>
             )}
 
-            {/* Aviso: las fotos pueden no coincidir exactamente con el
-                producto (variantes de color, terminación, accesorios). */}
-            <p className="mt-3 text-[11px] leading-snug text-[var(--muted)]">
-              Las fotos son a modo ilustrativo. El producto puede presentar
-              diferencias de color, terminación o accesorios según el lote del
-              fabricante. Ante cualquier duda, consultanos antes de comprar.
-            </p>
           </div>
 
           {/* INFO */}
@@ -492,19 +493,33 @@ export function ProductDetail({
           </div>
         </div>
 
-        {/* DESCRIPCION */}
-        {product.description && product.description.trim() !== "" && (
-          <section className="mt-6 rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm sm:p-8">
-            <h2 className="font-display text-xl font-black uppercase tracking-tight sm:text-2xl">
-              Descripción
-            </h2>
-            {/* whitespace-pre-line respeta los saltos de linea que carga el
-                admin, sin necesidad de HTML. */}
+        {/* DESCRIPCION
+            Se muestra siempre, aunque el producto no tenga texto cargado: el
+            aviso de que las fotos son ilustrativas tiene que estar en todas
+            las publicaciones, no solo en las que alguien se sento a describir. */}
+        <section className="mt-6 rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm sm:p-8">
+          <h2 className="font-display text-xl font-black uppercase tracking-tight sm:text-2xl">
+            Descripción
+          </h2>
+          {descripcionLimpia && (
+            /* whitespace-pre-line respeta los saltos de linea que carga el
+               admin, sin necesidad de HTML. */
             <div className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-foreground/90">
-              {product.description}
+              {descripcionLimpia}
             </div>
-          </section>
-        )}
+          )}
+          <div className="mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <p className="text-[13px] leading-snug text-amber-900">
+              <strong className="font-bold">
+                Las imágenes son a modo ilustrativo.
+              </strong>{" "}
+              El producto puede presentar diferencias de color, terminación o
+              accesorios según el lote del fabricante. Ante cualquier duda,
+              consultanos antes de comprar.
+            </p>
+          </div>
+        </section>
 
         {/* RELACIONADOS */}
         {related.length > 0 && (

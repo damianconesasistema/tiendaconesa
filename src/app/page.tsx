@@ -227,14 +227,16 @@ export default async function Home() {
                 key={marca.id}
                 href={`/tienda?marca=${marca.id}`}
                 title={`Ver productos ${marca.name}`}
-                className="group flex h-24 items-center justify-center rounded-xl bg-white px-5 py-4 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-[var(--brand-red)]"
+                className="group flex h-28 items-center justify-center rounded-xl bg-white px-5 py-4 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-[var(--brand-red)]"
               >
                 <Image
                   src={marca.logo!}
                   alt={marca.name}
                   width={200}
                   height={80}
-                  className={`max-h-10 w-auto max-w-full object-contain transition-all group-hover:scale-105 ${
+                  className={`w-auto max-w-full object-contain transition-all group-hover:scale-105 ${
+                    marca.grande ? "max-h-20" : "max-h-16"
+                  } ${
                     marca.invert ? "brightness-0" : ""
                   }`}
                 />
