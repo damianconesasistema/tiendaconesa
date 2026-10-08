@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings } from "lucide-react";
+import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 
 export function AdminShell({
@@ -76,6 +77,7 @@ export function AdminShell({
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">{children}</div>
+      <AlertaVentas />
     </div>
   );
 }

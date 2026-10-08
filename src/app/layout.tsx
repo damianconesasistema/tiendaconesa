@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import Script from "next/script";
 import { Header } from "@/components/Header";
+import { Analytics } from "@/components/Analytics";
 import { CartProvider } from "@/components/CartProvider";
 import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
@@ -211,6 +212,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <BackToTop />
           <CartFab />
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );
