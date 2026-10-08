@@ -52,6 +52,14 @@ body {
   }
 }
 
+
+/* Alto de la tira de cuotas que va arriba del header. El hero lo descuenta
+   para que la primera pantalla entre justa y la seccion siguiente no quede
+   asomando atras de la barra inferior de Safari en iPhone. */
+:root {
+  --strip-h: 2.25rem;
+}
+
 .font-display {
   font-family: var(--font-display), "Montserrat", ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.015em;

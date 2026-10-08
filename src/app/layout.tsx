@@ -207,6 +207,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <CartProvider>
+          <CuotasStrip />
           <Header />
           {children}
           <FloatingWhatsApp />

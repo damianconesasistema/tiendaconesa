@@ -6,16 +6,17 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Store, Truck, CreditCard } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { whatsappLink } from "@/lib/business";
+import blurs from "@/data/hero-blur.json";
 
 // Fotos del hero — carrusel con crossfade + Ken Burns.
 // Mezcla baños y cocinas (renders estilo de los que podemos armar con nuestros productos).
-const photos: readonly { src: string; alt: string }[] = [
-  { src: "/local/bano-1.jpg", alt: "Baño spa con bañera, doble lavatorio y ducha de lluvia" },
-  { src: "/local/cocina-1.jpg", alt: "Cocina moderna con isla de mármol y bacha de acero" },
-  { src: "/local/bano-2.jpg", alt: "Baño moderno con grifería negra y lavatorio ovalado" },
-  { src: "/local/cocina-2.jpg", alt: "Cocina industrial oscura con mesa de madera" },
-  { src: "/local/bano-3.jpg", alt: "Baño clásico con bañera protagonista" },
-  { src: "/local/cocina-3.jpg", alt: "Cocina con isla de mármol y taburetes de mimbre" },
+const photos: readonly { src: string; alt: string; key: keyof typeof blurs }[] = [
+  { key: "bano-1", src: "/local/bano-1.jpg", alt: "Baño spa con bañera, doble lavatorio y ducha de lluvia" },
+  { key: "cocina-1", src: "/local/cocina-1.jpg", alt: "Cocina moderna con isla de mármol y bacha de acero" },
+  { key: "bano-2", src: "/local/bano-2.jpg", alt: "Baño moderno con grifería negra y lavatorio ovalado" },
+  { key: "cocina-2", src: "/local/cocina-2.jpg", alt: "Cocina industrial oscura con mesa de madera" },
+  { key: "bano-3", src: "/local/bano-3.jpg", alt: "Baño clásico con bañera protagonista" },
+  { key: "cocina-3", src: "/local/cocina-3.jpg", alt: "Cocina con isla de mármol y taburetes de mimbre" },
 ] as const;
 
 const ROTATION_MS = 5500; // crossfade cada 5.5s
@@ -50,6 +51,9 @@ export function HeroCarousel() {
               fill
               sizes="100vw"
               priority={i === 0}
+              loading="eager"
+              placeholder="blur"
+              blurDataURL={blurs[photo.key]}
               className="object-cover"
             />
           </div>
@@ -60,7 +64,7 @@ export function HeroCarousel() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent md:via-black/35 md:to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent" />
 
-      <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-center px-6 pb-24 pt-28 sm:pb-28 sm:pt-40">
+      <div className="relative mx-auto flex min-h-[calc(100svh-var(--strip-h,0px))] max-w-6xl flex-col justify-center px-6 pb-24 pt-28 sm:pb-28 sm:pt-40">
         <div className="animate-fade-up max-w-3xl">
           {/* Pill "Tienda online activa" */}
           <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 backdrop-blur-sm">

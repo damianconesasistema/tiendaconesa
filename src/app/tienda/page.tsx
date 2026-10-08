@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import categoriesData from "@/data/categories.json";
 import { CatalogClient } from "@/components/CatalogClient";
 import { getRecargosMp } from "@/lib/settings";
-import { CuotasBanner } from "@/components/CuotasBanner";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
