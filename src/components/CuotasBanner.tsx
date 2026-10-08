@@ -93,8 +93,6 @@ export function CuotasBanner({
           <div className="animate-banner-in-2 border-t border-white/25 pt-6 sm:border-0 sm:pt-0">
             <div className="flex items-center gap-3">
               <Wallet className="h-10 w-10 shrink-0" strokeWidth={1.5} />
-              {/* El logo va DENTRO de esta columna para quedar alineado con
-                  el "% OFF" y no debajo del ícono. */}
               <div>
                 <div className="font-display text-3xl font-black leading-none sm:text-4xl">
                   {dctoContadoPct}% OFF
@@ -102,15 +100,20 @@ export function CuotasBanner({
                 <div className="mt-1 text-sm font-bold uppercase tracking-wide">
                   Efectivo o transferencia
                 </div>
-                <Image
-                  src="/brand/logo.png"
-                  alt="Sanitarios Conesa Traslasierra"
-                  width={520}
-                  height={132}
-                  priority
-                  className="animate-logo-pop mt-5 h-24 w-auto object-contain drop-shadow-[0_3px_10px_rgba(0,0,0,0.3)] sm:h-32"
-                />
               </div>
+            </div>
+
+            {/* El logo va FUERA de la fila: adentro estiraba el alto y
+                descentraba el ícono de la billetera. */}
+            <div className="mt-6 flex justify-center sm:justify-start">
+              <Image
+                src="/brand/logo.png"
+                alt="Sanitarios Conesa Traslasierra"
+                width={420}
+                height={106}
+                priority
+                className="animate-logo-pop h-20 w-auto object-contain drop-shadow-[0_3px_10px_rgba(0,0,0,0.3)] sm:h-24"
+              />
             </div>
           </div>
         )}
