@@ -103,9 +103,10 @@ export function CuotasBanner({
               </div>
             </div>
 
-            {/* El logo va FUERA de la fila: adentro estiraba el alto y
-                descentraba el ícono de la billetera. */}
-            <div className="mt-6 flex justify-center sm:justify-start">
+            {/* El logo va FUERA de la fila (adentro estiraba el alto y
+                descentraba el ícono), pero con la misma sangría que el
+                texto: 40px del ícono + 12px del gap = 52px. */}
+            <div className="mt-6 flex pl-[52px]">
               <Image
                 src="/brand/logo.png"
                 alt="Sanitarios Conesa Traslasierra"

@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.38.2";
+export const APP_VERSION = "V.0.38.3";
 
 export type VersionEntry = {
   version: string;
