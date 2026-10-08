@@ -3,6 +3,7 @@ import { Inter, Montserrat } from "next/font/google";
 import Script from "next/script";
 import { Header } from "@/components/Header";
 import { Analytics } from "@/components/Analytics";
+import { CuotasStrip } from "@/components/CuotasStrip";
 import { CartProvider } from "@/components/CartProvider";
 import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
