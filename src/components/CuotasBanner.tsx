@@ -112,7 +112,9 @@ export function CuotasBanner({
                 width={420}
                 height={106}
                 priority
-                className="animate-logo-pop h-20 w-auto object-contain drop-shadow-[0_3px_10px_rgba(0,0,0,0.3)] sm:h-24"
+                // brightness-0 invert deja el PNG todo blanco. Se pierde la
+                // A roja, pero sobre el azul es la version que mejor se lee.
+                className="animate-logo-pop h-20 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:h-24"
               />
             </div>
           </div>
