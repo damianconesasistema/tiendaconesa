@@ -103,17 +103,15 @@ export function CuotasBanner({
               </div>
             </div>
 
-            {/* El logo es oscuro: sobre el azul no se leería, por eso va
-                sobre una tarjeta blanca. */}
-            <div className="mt-4 inline-flex rounded-xl bg-white px-4 py-2.5 shadow-lg">
-              <Image
-                src="/brand/logo.png"
-                alt="Sanitarios Conesa Traslasierra"
-                width={150}
-                height={38}
-                className="h-8 w-auto object-contain sm:h-9"
-              />
-            </div>
+            {/* Logo sin fondo, directo sobre el azul. El negro contrasta
+                bien (7:1); la sombra suave lo despega del fondo. */}
+            <Image
+              src="/brand/logo.png"
+              alt="Sanitarios Conesa Traslasierra"
+              width={260}
+              height={66}
+              className="mt-5 h-12 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)] sm:h-14"
+            />
           </div>
         )}
       </div>
