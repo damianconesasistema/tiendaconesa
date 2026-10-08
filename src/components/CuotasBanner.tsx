@@ -103,26 +103,13 @@ export function CuotasBanner({
               </div>
             </div>
 
-            {/* El logo va FUERA de la fila (adentro estiraba el alto y
-                descentraba el ícono), pero con la misma sangría que el
-                texto: 40px del ícono + 12px del gap = 52px. */}
-            <div className="mt-6 flex pl-[52px]">
-              <Image
-                src="/brand/logo.png"
-                alt="Sanitarios Conesa Traslasierra"
-                width={420}
-                height={106}
-                priority
-                // brightness-0 invert deja el PNG todo blanco. Se pierde la
-                // A roja, pero sobre el azul es la version que mejor se lee.
-                className="animate-logo-pop h-20 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:h-24"
-              />
-            </div>
           </div>
         )}
       </div>
 
-      <div className="animate-banner-in-3 relative mx-auto mt-8 max-w-5xl">
+      {/* Fila inferior: CTA y marca. El logo sale de la columna del
+          descuento para que las dos de arriba queden simetricas. */}
+      <div className="animate-banner-in-3 relative mx-auto mt-8 flex max-w-5xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
         <Link
           href="/tienda"
           className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[#009EE3] transition-transform hover:scale-[1.03]"
@@ -130,6 +117,25 @@ export function CuotasBanner({
           Ver la tienda
           <ArrowRight className="h-4 w-4" />
         </Link>
+
+        {/* Wordmark armado a mano: texto en blanco y el techito en su rojo
+            original. Con el PNG no se puede, porque un filtro CSS pinta
+            toda la imagen y se perderia el rojo. */}
+        <div className="animate-logo-pop flex flex-col items-center leading-none">
+          <span className="font-display text-[0.7rem] font-bold uppercase tracking-[0.42em] text-white sm:text-xs">
+            Sanitarios
+          </span>
+          <span className="flex items-end font-display text-4xl font-black uppercase tracking-tight text-white sm:text-5xl">
+            Cones
+            <Image
+              src="/brand/roof.png"
+              alt="A"
+              width={67}
+              height={67}
+              className="ml-0.5 h-[0.78em] w-auto object-contain"
+            />
+          </span>
+        </div>
       </div>
     </section>
   );
