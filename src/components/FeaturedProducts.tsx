@@ -185,28 +185,28 @@ function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: numbe
             <span
               className={`font-display font-black ${
                 hasSale
-                  ? "text-emerald-600 text-xl sm:text-2xl animate-price-flash"
-                  : "text-foreground text-lg sm:text-xl"
+                  ? "text-emerald-600 text-2xl sm:text-3xl animate-price-flash"
+                  : "text-foreground text-xl sm:text-2xl"
               }`}
             >
               {formatPrice(effectivePrice)}
             </span>
             {hasSale && (
-              <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700">
+              <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-700">
                 Ahorrás {formatPrice(listaVitrina - effectivePrice)}
               </span>
             )}
-            <span className="text-[9px] uppercase tracking-wider text-[var(--muted)]">
+            <span className="text-[10px] uppercase tracking-wider text-[var(--muted)]">
               Débito o 1 pago
             </span>
             {/* Contado destacado en celeste */}
             {dctoPct > 0 && (
-              <span className="mt-1.5 inline-flex w-fit items-center rounded-full bg-sky-600 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">
-                {dctoPct}% OFF efectivo
+              <span className="mt-1 inline-flex w-fit items-center justify-center gap-1 rounded-full bg-sky-600 px-2.5 py-1 text-center text-[10px] font-black uppercase leading-[1.25] tracking-wider text-white">
+                {dctoPct}% OFF efectivo o transferencia
               </span>
             )}
             {dctoPct > 0 && (
-              <span className="font-display text-sm font-black text-sky-700">
+              <span className="mt-0.5 font-display text-base font-black text-sky-700">
                 {formatPrice(contado)}
               </span>
             )}
