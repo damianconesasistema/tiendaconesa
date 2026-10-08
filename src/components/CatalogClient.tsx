@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MARCAS } from "@/lib/marcas";
+import { MARCAS, nombreMarca } from "@/lib/marcas";
 import { Search, Package, ShoppingCart, Check, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -51,6 +51,29 @@ const CAT_LABELS: Record<string, string> = {
 };
 
 
+// Opciones de orden que ve el cliente. "Recomendados" respeta el orden que
+// ya trae el server (ofertas primero, despues destacados, despues alfabetico).
+const ORDENES = [
+  { id: "recomendados", label: "Recomendados" },
+  { id: "menor-precio", label: "Menor precio" },
+  { id: "mayor-precio", label: "Mayor precio" },
+  { id: "descuento", label: "Mayor descuento" },
+  { id: "nombre", label: "Nombre A-Z" },
+] as const;
+
+type Orden = (typeof ORDENES)[number]["id"];
+
+// El precio que se muestra es el contado por una constante, asi que ordenar
+// por contado ordena igual que por el precio de vitrina.
+function contadoDe(p: { price: number; salePrice: number | null }) {
+  return p.salePrice ?? p.price;
+}
+
+function descuentoDe(p: { price: number; salePrice: number | null }) {
+  if (!p.salePrice || p.salePrice >= p.price) return 0;
+  return (p.price - p.salePrice) / p.price;
+}
+
 export function CatalogClient({
   products,
   categories,
@@ -61,16 +84,24 @@ export function CatalogClient({
   const [query, setQuery] = useState("");
   const [activeCat, setActiveCat] = useState<string>(initialCat);
   const [activeMarca, setActiveMarca] = useState<string>(initialMarca);
+  const [orden, setOrden] = useState<Orden>("recomendados");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return products.filter((p) => {
+    const base = products.filter((p) => {
       if (activeCat !== "all" && p.category !== activeCat) return false;
       if (activeMarca !== "all" && p.brand !== activeMarca) return false;
       if (q && !p.title.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [products, query, activeCat, activeMarca]);
+    // Array.sort es estable, asi que dentro de cada empate se mantiene el
+    // orden que mando el server.
+    if (orden === "menor-precio") return base.sort((a, b) => contadoDe(a) - contadoDe(b));
+    if (orden === "mayor-precio") return base.sort((a, b) => contadoDe(b) - contadoDe(a));
+    if (orden === "descuento") return base.sort((a, b) => descuentoDe(b) - descuentoDe(a));
+    if (orden === "nombre") return base.sort((a, b) => a.title.localeCompare(b.title, "es"));
+    return base;
+  }, [products, query, activeCat, activeMarca, orden]);
 
   const counts: Record<string, number> = { all: products.length };
   for (const p of products) counts[p.category] = (counts[p.category] || 0) + 1;
@@ -166,14 +197,31 @@ export function CatalogClient({
         </div>
       </section>
 
-      {/* RESULTS COUNT */}
-      <section className="mx-auto max-w-6xl px-4 pb-6 pt-8 sm:px-6">
+      {/* RESULTADOS + ORDEN */}
+      <section className="mx-auto flex max-w-6xl flex-col gap-3 px-4 pb-6 pt-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="text-sm text-[var(--muted)]">
           <strong className="text-foreground">{filtered.length}</strong>{" "}
           {filtered.length === 1 ? "producto" : "productos"}
           {activeCat !== "all" && ` en ${CAT_LABELS[activeCat] || activeCat}`}
+          {activeMarca !== "all" && ` de ${nombreMarca(activeMarca)}`}
           {query && ` que coinciden con "${query}"`}
         </p>
+        <label className="flex items-center gap-2 text-sm">
+          <span className="font-display text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+            Ordenar por
+          </span>
+          <select
+            value={orden}
+            onChange={(e) => setOrden(e.target.value as Orden)}
+            className="h-9 rounded-full border border-[var(--border)] bg-white px-3 text-sm font-medium outline-none focus:border-[var(--brand-red)]"
+          >
+            {ORDENES.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </section>
 
       {/* GRID */}
