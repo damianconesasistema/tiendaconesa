@@ -385,7 +385,7 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
             <span className="text-[10px] uppercase tracking-wider text-[var(--muted)]">
               Débito o 1 pago
             </span>
-            <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+            <span className="mt-1 inline-flex w-fit items-center justify-center gap-1 rounded-full bg-sky-600 px-2.5 py-1 text-center text-[10px] font-black uppercase leading-[1.25] tracking-wider text-white">
               {dctoPct}% OFF efectivo o transferencia
             </span>
             <span className="mt-0.5 font-display text-base font-black text-sky-700">
