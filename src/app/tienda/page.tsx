@@ -67,10 +67,17 @@ export default async function Catalogo({
     getPlanesCuotas(),
   ]);
   const cuotasMax = planes.length ? planes[planes.length - 1].cuotas : 0;
+  const dctoContadoPct = Math.round(
+    (1 - 1 / (1 + recargos.unPago / 100)) * 100,
+  );
 
   return (
     <>
-    <CuotasBanner cuotasMax={cuotasMax} variant="strip" />
+    <CuotasBanner
+      cuotasMax={cuotasMax}
+      dctoContadoPct={dctoContadoPct}
+      variant="strip"
+    />
     <CatalogClient
       products={compat}
       categories={categories}

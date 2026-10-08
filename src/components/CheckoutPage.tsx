@@ -462,7 +462,7 @@ export function CheckoutPage({
                       {it.qty}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium leading-snug">
+                      <div className="uppercase text-xs font-medium leading-snug">
                         {it.title}
                       </div>
                     </div>

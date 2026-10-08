@@ -529,7 +529,7 @@ export function ProductsTable({
                       <div className="min-w-0">
                         <Link
                           href={`/admin/productos/${p.itemId}`}
-                          className="line-clamp-2 font-medium hover:text-[var(--brand-red)]"
+                          className="line-clamp-2 font-medium uppercase hover:text-[var(--brand-red)]"
                         >
                           {p.title}
                         </Link>

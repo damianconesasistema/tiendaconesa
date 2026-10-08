@@ -171,7 +171,7 @@ function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: numbe
         )}
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="text-xs font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)] sm:text-sm">
+        <h3 className="uppercase text-xs font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)] sm:text-sm">
           {p.title}
         </h3>
         {/* mt-auto empuja precio+boton al fondo. Asi se alinean entre cards */}

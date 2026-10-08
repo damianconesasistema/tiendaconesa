@@ -272,7 +272,7 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
 
       {/* Info */}
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="text-sm font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)]">
+        <h3 className="uppercase text-sm font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)]">
           {p.title}
         </h3>
         {/* mt-auto empuja precio+boton al fondo para que queden alineados

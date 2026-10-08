@@ -115,6 +115,11 @@ export default async function Home() {
     getPlanesCuotas(),
   ]);
   const cuotasMax = planes.length ? planes[planes.length - 1].cuotas : 0;
+  // Descuento REAL del contado respecto del precio de vitrina. Se calcula,
+  // no se asume: con 11,11% de recargo el descuento es 10%, no 11,11%.
+  const dctoContadoPct = Math.round(
+    (1 - 1 / (1 + recargos.unPago / 100)) * 100,
+  );
   // Ofertas: productos con salePrice < price
   const onSale = await prisma.product.findMany({
     where: {
@@ -184,6 +189,9 @@ export default async function Home() {
       {/* HERO */}
       <HeroCarousel />
 
+      {/* FINANCIACIÓN: apenas termina el hero, es el primer gancho */}
+      <CuotasBanner cuotasMax={cuotasMax} dctoContadoPct={dctoContadoPct} />
+
       {/* STATS */}
       <section className="border-b border-[var(--border)] bg-white px-6 py-12">
         <div className="mx-auto grid max-w-6xl grid-cols-3 gap-6 sm:gap-16">
@@ -231,8 +239,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FINANCIACIÓN */}
-      <CuotasBanner cuotasMax={cuotasMax} />
 
       {/* OFERTAS (solo si hay) */}
       {onSale.length > 0 && (

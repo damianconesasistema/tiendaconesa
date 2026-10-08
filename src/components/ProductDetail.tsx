@@ -246,7 +246,7 @@ export function ProductDetail({
                 className="shrink-0 !px-3 !py-1.5 !text-[10px]"
               />
             </div>
-            <h1 className="mt-2 font-display text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">
+            <h1 className="uppercase mt-2 font-display text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">
               {product.title}
             </h1>
 
@@ -669,7 +669,7 @@ function RelatedCard({ p }: { p: Product }) {
         />
       </div>
       <div className="p-3">
-        <h3 className="text-xs font-semibold leading-snug">{p.title}</h3>
+        <h3 className="uppercase text-xs font-semibold leading-snug">{p.title}</h3>
         <div className="mt-2 font-display text-base font-black text-foreground">
           {formatPrice(price)}
         </div>
