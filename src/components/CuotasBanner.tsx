@@ -105,13 +105,16 @@ export function CuotasBanner({
 
             {/* Logo sin fondo, directo sobre el azul. El negro contrasta
                 bien (7:1); la sombra suave lo despega del fondo. */}
-            <Image
-              src="/brand/logo.png"
-              alt="Sanitarios Conesa Traslasierra"
-              width={260}
-              height={66}
-              className="mt-5 h-12 w-auto object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)] sm:h-14"
-            />
+            <div className="mt-6 flex justify-center sm:justify-start">
+              <Image
+                src="/brand/logo.png"
+                alt="Sanitarios Conesa Traslasierra"
+                width={420}
+                height={106}
+                priority
+                className="animate-logo-pop h-20 w-auto object-contain drop-shadow-[0_3px_10px_rgba(0,0,0,0.3)] sm:h-24"
+              />
+            </div>
           </div>
         )}
       </div>

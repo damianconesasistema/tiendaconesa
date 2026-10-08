@@ -344,3 +344,17 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-cuotas-blink { animation: none; }
 }
+
+/* Entrada del logo en el banner: aparece con un leve zoom, para que se
+   note sin competir con el numero de cuotas. */
+@keyframes logoPop {
+  0%   { opacity: 0; transform: scale(0.88); }
+  70%  { opacity: 1; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-logo-pop {
+  animation: logoPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-logo-pop { animation: none; }
+}

@@ -204,7 +204,7 @@ export default async function Home() {
         <div className="mx-auto grid max-w-6xl grid-cols-3 gap-6 sm:gap-16">
           <Stat value="14k+" label="En Instagram" />
           <Stat value="20+" label="Marcas" />
-          <Stat value="7" label="Días a la semana" sub="atención por WhatsApp" />
+          <Stat value="24/7" label="Comprá cuando quieras" sub="la tienda online nunca cierra" />
         </div>
       </section>
 
