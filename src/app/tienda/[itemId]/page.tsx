@@ -137,6 +137,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     condition: "Nuevo" as string | null,
     status: product.active ? "Activa" : "Inactiva",
     category: product.category,
+    brand: product.brand,
     imageUrl: product.imageUrl,
     imageIds,
     shippingType: product.shippingType,

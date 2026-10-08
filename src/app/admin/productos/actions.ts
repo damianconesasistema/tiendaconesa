@@ -10,6 +10,7 @@ import {
 } from "@/lib/product-images";
 import { processProductImage } from "@/lib/image-processing";
 import { formatShipping } from "@/lib/shipping";
+import { detectarMarca, marcaPorId } from "@/lib/marcas";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -75,6 +76,13 @@ export async function createProduct(
     formData.getAll("shippingType").map((v) => String(v)),
   );
 
+  // Marca: la que eligieron en el formulario y, si no, la que diga el titulo
+  const brandElegida = String(formData.get("brand") || "").trim();
+  const brand =
+    brandElegida && marcaPorId(brandElegida)
+      ? brandElegida
+      : detectarMarca(title);
+
   // itemId unico para productos cargados a mano
   const itemId = `MAN-${Date.now().toString(36)}-${Math.random()
     .toString(36)
@@ -87,6 +95,7 @@ export async function createProduct(
         sku,
         title,
         category,
+        brand,
         description,
         price,
         salePrice,
@@ -175,6 +184,8 @@ export async function updateProduct(
 
   const title = String(formData.get("title") || "").trim();
   const category = String(formData.get("category") || "otros");
+  const brandRaw = String(formData.get("brand") || "").trim();
+  const brand = brandRaw && marcaPorId(brandRaw) ? brandRaw : null;
   const description = String(formData.get("description") || "").trim() || null;
   const priceRaw = Number(formData.get("price") || 0);
   const salePriceRaw = formData.get("salePrice");
@@ -223,6 +234,7 @@ export async function updateProduct(
         title,
         sku,
         category,
+        brand,
         description,
         price: newPrice,
         salePrice: newSalePrice,
@@ -417,7 +429,7 @@ export async function bulkUpdate(
 
 // Acción masiva sobre TODOS los productos que coinciden con el filtro
 // actual (no solo los de la página visible). Sirve para "pausar todos".
-type ProductFilter = { q?: string; cat?: string; filter?: string };
+type ProductFilter = { q?: string; cat?: string; filter?: string; marca?: string };
 
 // `excluir` son los itemId que el admin destildo a mano estando en modo
 // "todos los que coinciden". Sin esto, destildar uno hacia perder la
@@ -431,6 +443,7 @@ function buildProductWhere(f: ProductFilter, excluir: string[] = []) {
     featured?: boolean;
     stock?: { lt: number };
     salePrice?: { not: null };
+    brand?: string | null;
   } = {
     itemId: {
       not: "__RESET_PRICES_MARKER__",
@@ -439,6 +452,8 @@ function buildProductWhere(f: ProductFilter, excluir: string[] = []) {
   };
   if (f.q) where.title = { contains: f.q, mode: "insensitive" };
   if (f.cat) where.category = f.cat;
+  // "sin-marca" es su propio filtro: sirve para encontrar lo que falta etiquetar
+  if (f.marca) where.brand = f.marca === "sin-marca" ? null : f.marca;
   if (f.filter === "low-stock") {
     where.active = true;
     where.stock = { lt: 5 };
@@ -1383,5 +1398,79 @@ export async function removeProductImage(itemId: string): Promise<UpdateResult> 
     return { ok: true };
   } catch (e) {
     return { error: `No se pudo eliminar: ${(e as Error).message}` };
+  }
+}
+
+// Etiqueta la marca leyendola del titulo. Es para ponerse al dia con lo que
+// ya esta cargado: por defecto solo toca lo que no tiene marca, asi lo que el
+// admin corrigio a mano no se pisa. Con sobrescribir=true vuelve a pasar por
+// todos (sirve si se agrega una marca nueva al catalogo).
+export async function asignarMarcasAuto(
+  sobrescribir = false,
+): Promise<{ ok?: true; error?: string; etiquetados?: number; sinMarca?: number }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  try {
+    const productos = await prisma.product.findMany({
+      where: {
+        itemId: { not: "__RESET_PRICES_MARKER__" },
+        ...(sobrescribir ? {} : { brand: null }),
+      },
+      select: { id: true, title: true },
+    });
+
+    // Agrupamos por marca y hacemos un updateMany por cada una: 20 consultas
+    // en vez de una por producto.
+    const porMarca = new Map<string, string[]>();
+    let sinMarca = 0;
+    for (const p of productos) {
+      const marca = detectarMarca(p.title);
+      if (!marca) {
+        sinMarca++;
+        continue;
+      }
+      const lista = porMarca.get(marca);
+      if (lista) lista.push(p.id);
+      else porMarca.set(marca, [p.id]);
+    }
+
+    let etiquetados = 0;
+    for (const [marca, ids] of porMarca) {
+      const r = await prisma.product.updateMany({
+        where: { id: { in: ids } },
+        data: { brand: marca },
+      });
+      etiquetados += r.count;
+    }
+
+    revalidatePath("/admin/productos");
+    revalidatePath("/tienda");
+    return { ok: true, etiquetados, sinMarca };
+  } catch (e) {
+    return { error: `Error: ${(e as Error).message}` };
+  }
+}
+
+// Marca de a uno, desde la tabla o la ficha. Cadena vacia la saca.
+export async function setProductBrand(
+  itemId: string,
+  brand: string,
+): Promise<UpdateResult> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  const limpio = brand.trim();
+  if (limpio && !marcaPorId(limpio)) return { error: "Marca desconocida" };
+  const bloqueado = await assertUnlocked(itemId);
+  if (bloqueado) return { error: bloqueado };
+  try {
+    await prisma.product.update({
+      where: { itemId },
+      data: { brand: limpio || null },
+    });
+    revalidatePath("/admin/productos");
+    revalidatePath(`/tienda/${itemId}`);
+    return { ok: true };
+  } catch (e) {
+    return { error: `Error: ${(e as Error).message}` };
   }
 }

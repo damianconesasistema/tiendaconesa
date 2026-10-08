@@ -7,6 +7,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { ProductsFilters } from "@/components/admin/ProductsFilters";
+import { MarcasAuto } from "@/components/admin/MarcasAuto";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export const dynamic = "force-dynamic";
 type SearchParams = Promise<{
   q?: string;
   cat?: string;
+  marca?: string;
   filter?: string;
   page?: string;
   sort?: string;
@@ -84,6 +86,7 @@ export default async function ProductosAdmin({
   const sp = await searchParams;
   const q = sp.q?.trim() || "";
   const cat = sp.cat || "";
+  const marca = sp.marca || "";
   const filter = sp.filter || "";
   const page = Math.max(1, Number(sp.page) || 1);
   const sort = sp.sort || "";
@@ -92,6 +95,8 @@ export default async function ProductosAdmin({
   const where: Prisma.ProductWhereInput = {};
   if (q) where.title = { contains: q, mode: "insensitive" };
   if (cat) where.category = cat;
+  // "sin-marca" encuentra lo que todavia falta etiquetar
+  if (marca) where.brand = marca === "sin-marca" ? null : marca;
   if (filter === "low-stock") {
     where.active = true;
     where.stock = { lt: 5 };
@@ -167,9 +172,14 @@ export default async function ProductosAdmin({
         </div>
       </div>
 
+      <div className="mb-4">
+        <MarcasAuto />
+      </div>
+
       <ProductsFilters
         q={q}
         cat={cat}
+        marca={marca}
         filter={filter}
         categories={categories.map((c) => ({
           id: c.category,
@@ -189,7 +199,7 @@ export default async function ProductosAdmin({
         <ProductsTable
           products={products}
           total={total}
-          filter={{ q, cat, filter }}
+          filter={{ q, cat, marca, filter }}
           sort={sort}
           dir={dir}
         />

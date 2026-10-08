@@ -27,6 +27,7 @@ model Product {
   title         String
   description   String?  // Opcional, para la ficha
   category      String   // sanitarios, griferia, banera, etc.
+  brand         String?  // slug de marca (fv, ferrum, piazza...). Ver src/lib/marcas.ts
   price         Int      // en pesos argentinos (sin decimales)
   salePrice     Int?     // precio con descuento (opcional)
   stock         Int      @default(0)
@@ -43,6 +44,7 @@ model Product {
   images        ProductImage[]
 
   @@index([category])
+  @@index([brand])
   @@index([active])
   @@index([featured])
 }

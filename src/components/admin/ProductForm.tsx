@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useRef, useTransition } from "react";
 import { Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
+import { MARCAS } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
 import { redactarDescripcionIA } from "@/app/admin/productos/actions";
 
@@ -11,6 +12,7 @@ type Product = {
   title: string;
   description: string | null;
   category: string;
+  brand: string | null;
   price: number;
   salePrice: number | null;
   stock: number;
@@ -130,6 +132,21 @@ export function ProductForm({
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <Label>Marca</Label>
+          <select name="brand" defaultValue={product.brand ?? ""} className="input">
+            <option value="">— Sin marca —</option>
+            {MARCAS.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-[var(--muted)]">
+            Con la marca cargada el producto aparece al filtrar por esa marca en
+            la tienda.
+          </p>
         </div>
         <div>
           <Label>Tipo de envío (podés elegir más de uno)</Label>

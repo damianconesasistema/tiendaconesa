@@ -3,6 +3,7 @@
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
+import { MARCAS } from "@/lib/marcas";
 import { createProduct } from "@/app/admin/productos/actions";
 
 type State = { ok?: true; itemId?: string; error?: string } | null;
@@ -61,6 +62,21 @@ export function NewProductForm() {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <Label>Marca</Label>
+          <select name="brand" defaultValue="" className="input">
+            <option value="">Detectar del título</option>
+            {MARCAS.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-[var(--muted)]">
+            Si lo dejás en automático, la saca del título (ej. "Griferia FV
+            Arizona" → FV).
+          </p>
         </div>
         <div>
           <Label>Tipo de envío (podés elegir más de uno)</Label>

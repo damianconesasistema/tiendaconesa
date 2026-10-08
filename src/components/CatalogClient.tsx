@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { MARCAS } from "@/lib/marcas";
 import { Search, Package, ShoppingCart, Check, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,6 +20,7 @@ type Product = {
   category: string;
   mlUrl: string;
   imageUrl: string | null;
+  brand: string | null;
 };
 
 type Category = {
@@ -31,6 +33,7 @@ type Props = {
   products: Product[];
   categories: Category[];
   initialCat?: string;
+  initialMarca?: string;
   // Comisión de MercadoPago en 1 pago: define el precio de vitrina.
   comisionUnPago?: number;
 };
@@ -48,21 +51,35 @@ const CAT_LABELS: Record<string, string> = {
 };
 
 
-export function CatalogClient({ products, categories, initialCat = "all", comisionUnPago = 10 }: Props) {
+export function CatalogClient({
+  products,
+  categories,
+  initialCat = "all",
+  initialMarca = "all",
+  comisionUnPago = 10,
+}: Props) {
   const [query, setQuery] = useState("");
   const [activeCat, setActiveCat] = useState<string>(initialCat);
+  const [activeMarca, setActiveMarca] = useState<string>(initialMarca);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return products.filter((p) => {
       if (activeCat !== "all" && p.category !== activeCat) return false;
+      if (activeMarca !== "all" && p.brand !== activeMarca) return false;
       if (q && !p.title.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [products, query, activeCat]);
+  }, [products, query, activeCat, activeMarca]);
 
   const counts: Record<string, number> = { all: products.length };
   for (const p of products) counts[p.category] = (counts[p.category] || 0) + 1;
+
+  const marcaCounts: Record<string, number> = {};
+  for (const p of products) {
+    if (p.brand) marcaCounts[p.brand] = (marcaCounts[p.brand] || 0) + 1;
+  }
+  const marcasConProductos = MARCAS.filter((m) => marcaCounts[m.id] > 0);
 
   return (
     <main className="flex-1 bg-[var(--surface)]">
@@ -120,6 +137,32 @@ export function CatalogClient({ products, categories, initialCat = "all", comisi
               count={counts.otros || 0}
             />
           </div>
+
+          {/* MARCAS: segunda fila de filtros. Solo las que tienen productos,
+              asi no mostramos marcas vacias. */}
+          {marcasConProductos.length > 0 && (
+            <div className="mt-6 border-t border-[var(--border)] pt-6">
+              <div className="mb-3 font-display text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--muted)]">
+                Filtrar por marca
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <MarcaButton
+                  active={activeMarca === "all"}
+                  onClick={() => setActiveMarca("all")}
+                  label="Todas"
+                />
+                {marcasConProductos.map((m) => (
+                  <MarcaButton
+                    key={m.id}
+                    active={activeMarca === m.id}
+                    onClick={() => setActiveMarca(m.id)}
+                    label={m.name}
+                    count={marcaCounts[m.id]}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -160,6 +203,43 @@ export function CatalogClient({ products, categories, initialCat = "all", comisi
         )}
       </section>
     </main>
+  );
+}
+
+// Chip de marca. Mas chico que el de categoria: son 20 y si fueran del mismo
+// tamano la fila de marcas le comeria protagonismo a la de categorias.
+function MarcaButton({
+  active,
+  onClick,
+  label,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count?: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
+        active
+          ? "bg-[var(--brand-black)] text-white shadow-sm"
+          : "border border-[var(--border)] bg-white text-[var(--muted)] hover:border-[var(--brand-black)] hover:text-foreground"
+      }`}
+    >
+      {label}
+      {count !== undefined && (
+        <span
+          className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+            active ? "bg-white/20" : "bg-[var(--surface)]"
+          }`}
+        >
+          {count}
+        </span>
+      )}
+    </button>
   );
 }
 

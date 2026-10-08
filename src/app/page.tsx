@@ -8,6 +8,7 @@ import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { CuotasBanner } from "@/components/CuotasBanner";
 import { prisma } from "@/lib/db";
+import { MARCAS_CON_LOGO } from "@/lib/marcas";
 
 // En runtime hay DB (Railway). En build no la tenemos → forzar dynamic
 export const dynamic = "force-dynamic";
@@ -213,34 +214,35 @@ export default async function Home() {
             <h2 className="mt-3 font-display text-2xl font-black uppercase leading-tight sm:text-3xl">
               Trabajamos con las mejores
             </h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Tocá una marca para ver todos sus productos.
+            </p>
           </div>
-          <div className="grid grid-cols-2 items-center gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {business.brands.map((brand) => (
-              <div
-                key={brand.name}
-                className="group relative flex h-24 items-center justify-center rounded-xl bg-white px-3 py-3 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
-                title={brand.name}
+          {/* Caja de alto fijo y logo con el mismo techo para todas: los logos
+              vienen con margenes y proporciones distintas, y si los dejamos
+              crecer libre cada uno pesa distinto y la grilla se ve despareja. */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {MARCAS_CON_LOGO.map((marca) => (
+              <Link
+                key={marca.id}
+                href={`/tienda?marca=${marca.id}`}
+                title={`Ver productos ${marca.name}`}
+                className="group flex h-24 items-center justify-center rounded-xl bg-white px-5 py-4 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-[var(--brand-red)]"
               >
                 <Image
-                  src={brand.logo}
-                  alt={brand.name}
+                  src={marca.logo!}
+                  alt={marca.name}
                   width={200}
                   height={80}
-                  style={
-                    "scale" in brand && typeof brand.scale === "number"
-                      ? { transform: `scale(${brand.scale})` }
-                      : undefined
-                  }
-                  className={`max-h-16 w-auto max-w-full object-contain transition-opacity group-hover:opacity-100 ${
-                    "invert" in brand && brand.invert ? "brightness-0" : "opacity-90"
+                  className={`max-h-10 w-auto max-w-full object-contain transition-all group-hover:scale-105 ${
+                    marca.invert ? "brightness-0" : ""
                   }`}
                 />
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
-
 
       {/* OFERTAS (solo si hay) */}
       {onSale.length > 0 && (

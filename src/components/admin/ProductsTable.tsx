@@ -77,7 +77,7 @@ export function ProductsTable({
 }: {
   products: Product[];
   total?: number;
-  filter?: { q?: string; cat?: string; filter?: string };
+  filter?: { q?: string; cat?: string; marca?: string; filter?: string };
   sort?: string;
   dir?: "asc" | "desc";
 }) {
