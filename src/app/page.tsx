@@ -186,12 +186,13 @@ export default async function Home() {
 
   return (
     <main className="relative flex-1">
-      {/* Tira superior: lo primero que se ve, antes del hero */}
+      {/* Tira superior: lo primero que se ve */}
       <CuotasBanner
         cuotasMax={cuotasMax}
         dctoContadoPct={dctoContadoPct}
         variant="strip"
       />
+
 
       {/* HERO */}
       <HeroCarousel />
@@ -270,9 +271,12 @@ export default async function Home() {
               <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
                 Nuestro rubro
               </span>
-              <h2 className="mt-3 font-display text-4xl font-black uppercase leading-tight sm:text-5xl">
-                Todo para tu baño,
-                <br />
+              {/* text-balance reparte las lineas parejas; el salto forzado
+                  queda solo en pantallas grandes porque en mobile sumaba un
+                  corte extra y dejaba "BAÑO," sola en un renglon. */}
+              <h2 className="mt-3 text-balance font-display text-3xl font-black uppercase leading-[1.05] sm:text-5xl sm:leading-tight">
+                Todo para tu baño,{" "}
+                <br className="hidden sm:block" />
                 tu hogar y tu obra.
               </h2>
             </div>
@@ -647,3 +651,11 @@ function Feature({ text }: { text: string }) {
     </div>
   );
 }
+              {/* text-balance reparte las líneas parejas y el salto forzado
+                  queda solo en pantallas grandes: en mobile sumaba un corte
+                  extra y dejaba "BAÑO," sola en un renglón. */}
+              <h2 className="mt-3 text-balance font-display text-3xl font-black uppercase leading-[1.05] sm:text-5xl sm:leading-tight">
+                Todo para tu baño,
+                <br className="hidden sm:block" />{" "}
+                tu hogar y tu obra.
+              </h2>
