@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { ProductDetail } from "@/components/ProductDetail";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
+import { precioVitrina } from "@/lib/precios";
+import { formatPrice } from "@/lib/order";
 
 export const dynamic = "force-dynamic";
 
@@ -10,18 +12,51 @@ type RouteProps = {
   params: Promise<{ itemId: string }>;
 };
 
+// Open Graph: es lo que lee WhatsApp, Instagram y Facebook al pegar el link.
+// Sin esto mostraban el titulo y la foto genericos del sitio, y el que lo
+// recibia no sabia de que producto se trataba.
 export async function generateMetadata(
   { params }: RouteProps,
 ): Promise<Metadata> {
   const { itemId } = await params;
   const p = await prisma.product.findUnique({
     where: { itemId },
-    select: { title: true },
+    select: { title: true, price: true, salePrice: true, imageUrl: true, category: true },
   });
   if (!p) return { title: "Producto no encontrado · Sanitarios Conesa" };
+
+  const base = (process.env.SITE_URL || "https://conesa.com.ar").replace(/\/$/, "");
+  const recargos = await getRecargosMp();
+  const contado = p.salePrice ?? p.price;
+  const vitrina = precioVitrina(contado, recargos.unPago);
+
+  // La URL TIENE que ser absoluta: WhatsApp no resuelve rutas relativas.
+  // Si el producto no tiene foto propia, va la generica de la categoria.
+  const img = p.imageUrl
+    ? `${base}${p.imageUrl}`
+    : `${base}/categories/${p.category}.jpg`;
+
+  const titulo = `${p.title} · Sanitarios Conesa`;
+  const desc = `${formatPrice(vitrina)} · ${formatPrice(contado)} en efectivo o transferencia. Retiralo en Villa Cura Brochero o te lo enviamos a Traslasierra.`;
+
   return {
     title: `${p.title} · Sanitarios Conesa Traslasierra`,
-    description: `${p.title}. Pedilo online o retiralo en nuestro local de Villa Cura Brochero.`,
+    description: desc,
+    openGraph: {
+      title: titulo,
+      description: desc,
+      url: `${base}/tienda/${itemId}`,
+      siteName: "Sanitarios Conesa Traslasierra",
+      type: "website",
+      locale: "es_AR",
+      images: [{ url: img, width: 1200, height: 1200, alt: p.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: titulo,
+      description: desc,
+      images: [img],
+    },
   };
 }
 

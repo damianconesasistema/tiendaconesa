@@ -235,9 +235,17 @@ export function ProductDetail({
 
           {/* INFO */}
           <div className="flex flex-col">
-            <span className="text-xs text-[var(--muted)]">
-              {product.condition || "Nuevo"} · ID {product.itemId}
-            </span>
+            <div className="flex items-start justify-between gap-3">
+              <span className="text-xs text-[var(--muted)]">
+                {product.condition || "Nuevo"} · ID {product.itemId}
+              </span>
+              {/* Compartir tambien arriba: en mobile el de abajo queda lejos */}
+              <ShareButton
+                titulo={product.title}
+                texto={`Mira esto en Sanitarios Conesa: ${product.title}`}
+                className="shrink-0 !px-3 !py-1.5 !text-[10px]"
+              />
+            </div>
             <h1 className="mt-2 font-display text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">
               {product.title}
             </h1>
