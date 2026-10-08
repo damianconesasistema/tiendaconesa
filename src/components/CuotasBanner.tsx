@@ -118,24 +118,25 @@ export function CuotasBanner({
           <ArrowRight className="h-4 w-4" />
         </Link>
 
-        {/* Wordmark armado a mano: texto en blanco y el techito en su rojo
-            original. Con el PNG no se puede, porque un filtro CSS pinta
-            toda la imagen y se perderia el rojo. */}
-        <div className="animate-logo-pop flex flex-col items-center leading-none">
-          <span className="font-display text-[0.7rem] font-bold uppercase tracking-[0.42em] text-white sm:text-xs">
-            Sanitarios
-          </span>
-          <span className="flex items-end font-display text-4xl font-black uppercase tracking-tight text-white sm:text-5xl">
-            Cones
-            <Image
-              src="/brand/roof.png"
-              alt="A"
-              width={67}
-              height={67}
-              className="ml-0.5 h-[0.78em] w-auto object-contain"
-            />
-          </span>
-        </div>
+        {/* Es el logo ORIGINAL: se usa como máscara y el color va detrás.
+            Un filtro CSS pintaría todo de un solo color; con la máscara se
+            puede cortar el degradado y dejar el techito en naranja.
+            El corte (78%) es donde arranca la A: se ajusta si hace falta. */}
+        <div
+          className="animate-logo-pop h-20 w-56 bg-[linear-gradient(90deg,#fff_0_69%,#F4511E_69%_100%)] sm:h-24 sm:w-64"
+          style={{
+            WebkitMaskImage: "url(/brand/logo.png)",
+            maskImage: "url(/brand/logo.png)",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+          }}
+          role="img"
+          aria-label="Sanitarios Conesa Traslasierra"
+        />
       </div>
     </section>
   );
