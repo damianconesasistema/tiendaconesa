@@ -14,6 +14,7 @@ export async function GET() {
       sku: "GRI-001",
       titulo: "Grifería monocomando cocina (EJEMPLO - borrar esta fila)",
       categoria: "griferia",
+      marca: "fv",
       precio: 85000,
       oferta: 72000,
       stock: 10,
@@ -30,6 +31,7 @@ export async function GET() {
     "sku",
     "titulo",
     "categoria",
+    "marca",
     "precio",
     "oferta",
     "stock",
@@ -47,6 +49,7 @@ export async function GET() {
     { wch: 14 }, // sku
     { wch: 44 }, // titulo
     { wch: 14 }, // categoria
+    { wch: 12 }, // marca
     { wch: 12 }, // precio
     { wch: 12 }, // oferta
     { wch: 8 }, // stock
@@ -63,6 +66,7 @@ export async function GET() {
     { campo: "sku", detalle: "Opcional. Código interno tuyo. Sirve para sincronizar stock y matchear fotos por nombre de archivo." },
     { campo: "titulo", detalle: "OBLIGATORIO. Nombre del producto." },
     { campo: "categoria", detalle: "Una de: sanitarios, griferia, banera, accesorios, salamandras, calefones, materiales, piletas, otros." },
+    { campo: "marca", detalle: "Opcional. Slug o nombre de la marca (fv, ferrum, piazza, pringles...). Si lo dejás vacío se intenta sacar del título." },
     { campo: "precio", detalle: "OBLIGATORIO. Número sin puntos ni símbolos. Ej: 85000." },
     { campo: "oferta", detalle: "Opcional. Precio con descuento (menor al precio). Vacío = sin oferta." },
     { campo: "stock", detalle: "Cantidad disponible. Ej: 10." },

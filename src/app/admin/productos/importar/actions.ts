@@ -6,12 +6,14 @@ import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import { detectarMarca, marcaPorId } from "@/lib/marcas";
 
 export type ParsedRow = {
   itemId: string;
   sku: string | null;
   title: string;
   category: string;
+  brand: string | null;
   price: number;
   salePrice: number | null;
   stock: number;
@@ -26,6 +28,7 @@ export type ParsedRow = {
   __exists: boolean; // ya está en DB
   __hasActive: boolean; // la fila traía explícito el campo "activo"
   __hasFeatured: boolean; // la fila traía explícito el campo "destacado"
+  __traeMarca: boolean; // la fila traía explícito el campo "marca"
 };
 
 export type ParseResult = {
@@ -91,6 +94,9 @@ const COL_ALIASES: Record<string, string> = {
   stock: "stock",
   cantidad: "stock",
   disponible: "stock",
+
+  marca: "brand",
+  brand: "brand",
 
   categoria: "category",
   cat: "category",
@@ -247,6 +253,15 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
       const stock = stockRaw !== null ? Math.max(0, Math.floor(stockRaw)) : 0;
 
       const category = normalizeCategory(parsed.category);
+      // La marca puede venir como slug (fv) o como nombre (FV). Si la columna
+      // no esta, la sacamos del titulo igual que al dar de alta a mano.
+      const marcaCruda = parsed.brand ? String(parsed.brand).trim() : "";
+      const traeMarca = marcaCruda !== "";
+      const brand = traeMarca
+        ? marcaPorId(marcaCruda.toLowerCase())?.id ??
+          detectarMarca(marcaCruda) ??
+          detectarMarca(title)
+        : detectarMarca(title);
       const hasActive =
         parsed.active !== undefined &&
         parsed.active !== null &&
@@ -271,6 +286,8 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
         sku,
         title,
         category,
+        brand,
+        __traeMarca: traeMarca,
         price: price ?? 0,
         salePrice: salePrice === null ? null : Math.round(salePrice),
         stock,
@@ -387,6 +404,7 @@ export async function importExcel(
         sku: row.sku,
         title: row.title,
         category: row.category,
+        brand: row.brand,
         price: Math.round(row.price),
         salePrice: row.salePrice,
         stock: row.stock,
@@ -406,6 +424,7 @@ export async function importExcel(
         salePrice: row.salePrice,
         stock: row.stock,
         description: row.description,
+        ...(row.__traeMarca && row.brand ? { brand: row.brand } : {}),
         ...(row.sku !== null ? { sku: row.sku } : {}),
         ...(row.memo !== null ? { memo: row.memo } : {}),
         ...(row.__hasActive ? { active: row.active } : {}),
