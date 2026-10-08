@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { CreditCard, Wallet, ArrowRight } from "lucide-react";
 
 // Banner de financiación.
@@ -63,7 +62,7 @@ export function CuotasBanner({
         className="animate-banner-drift-slow pointer-events-none absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-black/10"
       />
 
-      <div className="relative mx-auto grid max-w-5xl gap-8 sm:grid-cols-[1.3fr_auto_1fr] sm:items-center">
+      <div className="relative mx-auto grid max-w-5xl items-center gap-8 sm:grid-cols-[1fr_auto_1fr]">
         {/* CUOTAS */}
         <div className="animate-banner-in flex items-center gap-4 sm:gap-5">
           <div className="animate-banner-beat font-display text-[5rem] font-black leading-[0.8] tracking-tighter sm:text-[7rem]">
@@ -91,10 +90,10 @@ export function CuotasBanner({
         {/* CONTADO + marca */}
         {dctoContadoPct > 0 && (
           <div className="animate-banner-in-2 border-t border-white/25 pt-6 sm:border-0 sm:pt-0">
-            <div className="flex items-center gap-3">
-              <Wallet className="h-10 w-10 shrink-0" strokeWidth={1.5} />
+            <div className="flex items-center gap-4 sm:gap-5">
+              <Wallet className="h-14 w-14 shrink-0 sm:h-16 sm:w-16" strokeWidth={1.5} />
               <div>
-                <div className="font-display text-3xl font-black leading-none sm:text-4xl">
+                <div className="font-display text-4xl font-black leading-none sm:text-5xl">
                   {dctoContadoPct}% OFF
                 </div>
                 <div className="mt-1 text-sm font-bold uppercase tracking-wide">
@@ -107,9 +106,7 @@ export function CuotasBanner({
         )}
       </div>
 
-      {/* Fila inferior: CTA y marca. El logo sale de la columna del
-          descuento para que las dos de arriba queden simetricas. */}
-      <div className="animate-banner-in-3 relative mx-auto mt-8 flex max-w-5xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
+      <div className="animate-banner-in-3 relative mx-auto mt-8 flex max-w-5xl justify-center sm:justify-start">
         <Link
           href="/tienda"
           className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[#009EE3] transition-transform hover:scale-[1.03]"
@@ -118,25 +115,6 @@ export function CuotasBanner({
           <ArrowRight className="h-4 w-4" />
         </Link>
 
-        {/* Es el logo ORIGINAL: se usa como máscara y el color va detrás.
-            Un filtro CSS pintaría todo de un solo color; con la máscara se
-            puede cortar el degradado y dejar el techito en naranja.
-            El corte (78%) es donde arranca la A: se ajusta si hace falta. */}
-        <div
-          className="animate-logo-pop h-20 w-56 bg-[linear-gradient(90deg,#fff_0_69%,#F4511E_69%_100%)] sm:h-24 sm:w-64"
-          style={{
-            WebkitMaskImage: "url(/brand/logo.png)",
-            maskImage: "url(/brand/logo.png)",
-            WebkitMaskRepeat: "no-repeat",
-            maskRepeat: "no-repeat",
-            WebkitMaskPosition: "center",
-            maskPosition: "center",
-            WebkitMaskSize: "contain",
-            maskSize: "contain",
-          }}
-          role="img"
-          aria-label="Sanitarios Conesa Traslasierra"
-        />
       </div>
     </section>
   );
