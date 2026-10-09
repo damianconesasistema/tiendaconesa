@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import categoriesData from "@/data/categories.json";
 import { CatalogClient } from "@/components/CatalogClient";
 import { getRecargosMp } from "@/lib/settings";
+import { getMarcas } from "@/lib/marcas-server";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -63,7 +64,7 @@ export default async function Catalogo({
   }));
 
   const categories = categoriesData as Category[];
-  const recargos = await getRecargosMp();
+  const [recargos, marcas] = await Promise.all([getRecargosMp(), getMarcas()]);
   return (
     <>
     <CatalogClient
@@ -71,6 +72,7 @@ export default async function Catalogo({
       categories={categories}
       initialCat={initialCat}
       initialMarca={initialMarca}
+      marcas={marcas}
       comisionUnPago={recargos.unPago}
     />
     </>

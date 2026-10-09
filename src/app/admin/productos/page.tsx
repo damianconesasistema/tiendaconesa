@@ -8,6 +8,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { ProductsFilters } from "@/components/admin/ProductsFilters";
 import { MarcasAuto } from "@/components/admin/MarcasAuto";
+import { getMarcas } from "@/lib/marcas-server";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 
 export const metadata: Metadata = {
@@ -180,6 +181,7 @@ export default async function ProductosAdmin({
         q={q}
         cat={cat}
         marca={marca}
+        marcas={await getMarcas()}
         filter={filter}
         categories={categories.map((c) => ({
           id: c.category,

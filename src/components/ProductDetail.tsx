@@ -41,6 +41,8 @@ type Product = {
   status: string | null;
   category: string;
   brand?: string | null;
+  /** Nombre ya resuelto en el server: puede ser una marca cargada desde el panel. */
+  brandName?: string | null;
   imageUrl: string | null;
   imageIds?: string[];
   shippingType?: string | null;
@@ -259,7 +261,7 @@ export function ProductDetail({
                 className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
               >
                 <Tag className="h-3 w-3" />
-                {nombreMarca(product.brand)}
+                {product.brandName || nombreMarca(product.brand)}
               </Link>
             )}
 

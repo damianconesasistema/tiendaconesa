@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { nombreMarca } from "@/lib/marcas";
+import { getMarcas } from "@/lib/marcas-server";
 import { ProductDetail } from "@/components/ProductDetail";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
@@ -138,6 +140,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     status: product.active ? "Activa" : "Inactiva",
     category: product.category,
     brand: product.brand,
+    brandName: nombreMarca(product.brand, await getMarcas()),
     imageUrl: product.imageUrl,
     imageIds,
     shippingType: product.shippingType,

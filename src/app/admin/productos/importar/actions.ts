@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { detectarMarca, marcaPorId } from "@/lib/marcas";
+import { getMarcas } from "@/lib/marcas-server";
 
 export type ParsedRow = {
   itemId: string;
@@ -229,6 +230,8 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
 
     // Obtener itemIds existentes en DB en una query
     const normalized: ParsedRow[] = [];
+    // Una sola lectura de la lista para todo el archivo.
+    const marcasTodas = await getMarcas();
     for (let i = 0; i < raw.length; i++) {
       const row = raw[i];
       const parsed: Record<string, unknown> = {};
@@ -258,10 +261,10 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
       const marcaCruda = parsed.brand ? String(parsed.brand).trim() : "";
       const traeMarca = marcaCruda !== "";
       const brand = traeMarca
-        ? marcaPorId(marcaCruda.toLowerCase())?.id ??
-          detectarMarca(marcaCruda) ??
-          detectarMarca(title)
-        : detectarMarca(title);
+        ? marcaPorId(marcaCruda.toLowerCase(), marcasTodas)?.id ??
+          detectarMarca(marcaCruda, marcasTodas) ??
+          detectarMarca(title, marcasTodas)
+        : detectarMarca(title, marcasTodas);
       const hasActive =
         parsed.active !== undefined &&
         parsed.active !== null &&

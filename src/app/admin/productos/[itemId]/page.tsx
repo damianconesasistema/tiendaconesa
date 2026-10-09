@@ -6,6 +6,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { getMarcas } from "@/lib/marcas-server";
 import { ProductImageUpload } from "@/components/admin/ProductImageUpload";
 import { PriceHistoryPanel } from "@/components/admin/PriceHistoryPanel";
 import { formatPrice } from "@/lib/order";
@@ -111,6 +112,7 @@ export default async function EditProductPage({ params }: RouteProps) {
           </p>
 
           <ProductForm
+            marcas={await getMarcas()}
             product={product}
             action={updateProduct}
             iaDisponible={geminiConfigurado()}

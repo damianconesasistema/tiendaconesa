@@ -8,7 +8,7 @@ import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { CuotasBanner } from "@/components/CuotasBanner";
 import { prisma } from "@/lib/db";
-import { MARCAS_CON_LOGO } from "@/lib/marcas";
+import { getMarcasConLogo } from "@/lib/marcas-server";
 
 // En runtime hay DB (Railway). En build no la tenemos → forzar dynamic
 export const dynamic = "force-dynamic";
@@ -111,9 +111,10 @@ const categoryIcons = [
 ] as const;
 
 export default async function Home() {
-  const [recargos, planes] = await Promise.all([
+  const [recargos, planes, marcasConLogo] = await Promise.all([
     getRecargosMp(),
     getPlanesCuotas(),
+    getMarcasConLogo(),
   ]);
   const cuotasMax = planes.length ? planes[planes.length - 1].cuotas : 0;
   // Descuento REAL del contado respecto del precio de vitrina. Se calcula,
@@ -222,7 +223,7 @@ export default async function Home() {
               vienen con margenes y proporciones distintas, y si los dejamos
               crecer libre cada uno pesa distinto y la grilla se ve despareja. */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {MARCAS_CON_LOGO.map((marca) => (
+            {marcasConLogo.map((marca) => (
               <Link
                 key={marca.id}
                 href={`/tienda?marca=${marca.id}`}
@@ -232,6 +233,7 @@ export default async function Home() {
                 <Image
                   src={marca.logo!}
                   alt={marca.name}
+                  unoptimized={!marca.logo!.startsWith("/")}
                   width={200}
                   height={80}
                   className={`w-auto max-w-full object-contain transition-all group-hover:scale-105 ${

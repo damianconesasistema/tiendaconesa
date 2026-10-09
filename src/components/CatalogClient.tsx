@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MARCAS, nombreMarca } from "@/lib/marcas";
+import { MARCAS_BASE, nombreMarca, type Marca } from "@/lib/marcas";
 import { Search, Package, ShoppingCart, Check, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -34,6 +34,7 @@ type Props = {
   categories: Category[];
   initialCat?: string;
   initialMarca?: string;
+  marcas?: readonly Marca[];
   // Comisión de MercadoPago en 1 pago: define el precio de vitrina.
   comisionUnPago?: number;
 };
@@ -79,6 +80,7 @@ export function CatalogClient({
   categories,
   initialCat = "all",
   initialMarca = "all",
+  marcas = MARCAS_BASE,
   comisionUnPago = 10,
 }: Props) {
   const [query, setQuery] = useState("");
@@ -110,7 +112,7 @@ export function CatalogClient({
   for (const p of products) {
     if (p.brand) marcaCounts[p.brand] = (marcaCounts[p.brand] || 0) + 1;
   }
-  const marcasConProductos = MARCAS.filter((m) => marcaCounts[m.id] > 0);
+  const marcasConProductos = marcas.filter((m) => marcaCounts[m.id] > 0);
 
   return (
     <main className="flex-1 bg-[var(--surface)]">
@@ -203,7 +205,7 @@ export function CatalogClient({
           <strong className="text-foreground">{filtered.length}</strong>{" "}
           {filtered.length === 1 ? "producto" : "productos"}
           {activeCat !== "all" && ` en ${CAT_LABELS[activeCat] || activeCat}`}
-          {activeMarca !== "all" && ` de ${nombreMarca(activeMarca)}`}
+          {activeMarca !== "all" && ` de ${nombreMarca(activeMarca, marcas)}`}
           {query && ` que coinciden con "${query}"`}
         </p>
         <label className="flex items-center gap-2 text-sm">

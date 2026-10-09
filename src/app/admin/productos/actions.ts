@@ -10,7 +10,8 @@ import {
 } from "@/lib/product-images";
 import { processProductImage } from "@/lib/image-processing";
 import { formatShipping } from "@/lib/shipping";
-import { detectarMarca, marcaPorId } from "@/lib/marcas";
+import { detectarMarca } from "@/lib/marcas";
+import { getMarcas, detectarMarcaDB, marcaValidaDB } from "@/lib/marcas-server";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -79,9 +80,9 @@ export async function createProduct(
   // Marca: la que eligieron en el formulario y, si no, la que diga el titulo
   const brandElegida = String(formData.get("brand") || "").trim();
   const brand =
-    brandElegida && marcaPorId(brandElegida)
+    brandElegida && (await marcaValidaDB(brandElegida))
       ? brandElegida
-      : detectarMarca(title);
+      : await detectarMarcaDB(title);
 
   // itemId unico para productos cargados a mano
   const itemId = `MAN-${Date.now().toString(36)}-${Math.random()
@@ -185,7 +186,7 @@ export async function updateProduct(
   const title = String(formData.get("title") || "").trim();
   const category = String(formData.get("category") || "otros");
   const brandRaw = String(formData.get("brand") || "").trim();
-  const brand = brandRaw && marcaPorId(brandRaw) ? brandRaw : null;
+  const brand = brandRaw && (await marcaValidaDB(brandRaw)) ? brandRaw : null;
   const description = String(formData.get("description") || "").trim() || null;
   const priceRaw = Number(formData.get("price") || 0);
   const salePriceRaw = formData.get("salePrice");
@@ -1421,10 +1422,11 @@ export async function asignarMarcasAuto(
 
     // Agrupamos por marca y hacemos un updateMany por cada una: 20 consultas
     // en vez de una por producto.
+    const marcas = await getMarcas();
     const porMarca = new Map<string, string[]>();
     let sinMarca = 0;
     for (const p of productos) {
-      const marca = detectarMarca(p.title);
+      const marca = detectarMarca(p.title, marcas);
       if (!marca) {
         sinMarca++;
         continue;
@@ -1459,7 +1461,8 @@ export async function setProductBrand(
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   const limpio = brand.trim();
-  if (limpio && !marcaPorId(limpio)) return { error: "Marca desconocida" };
+  if (limpio && !(await marcaValidaDB(limpio)))
+    return { error: "Marca desconocida" };
   const bloqueado = await assertUnlocked(itemId);
   if (bloqueado) return { error: bloqueado };
   try {

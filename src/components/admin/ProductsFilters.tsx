@@ -3,18 +3,20 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
-import { MARCAS } from "@/lib/marcas";
+import { MARCAS_BASE, type Marca } from "@/lib/marcas";
 
 export function ProductsFilters({
   q,
   cat,
   marca,
+  marcas = MARCAS_BASE,
   filter,
   categories,
 }: {
   q: string;
   cat: string;
   marca: string;
+  marcas?: readonly Marca[];
   filter: string;
   categories: { id: string; label: string; count: number }[];
 }) {
@@ -121,7 +123,7 @@ export function ProductsFilters({
         >
           <option value="">Todas</option>
           <option value="sin-marca">— Sin marca —</option>
-          {MARCAS.map((m) => (
+          {marcas.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
             </option>

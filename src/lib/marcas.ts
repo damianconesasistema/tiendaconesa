@@ -19,7 +19,7 @@ export type Marca = {
   alias?: string[];
 };
 
-export const MARCAS: readonly Marca[] = [
+export const MARCAS_BASE: readonly Marca[] = [
   { id: "ferrum", name: "Ferrum", logo: "/brand/marcas/ferrum.png" },
   { id: "fv", name: "FV", logo: "/brand/marcas/fv.png", invert: true },
   { id: "piazza", name: "Piazza", logo: "/brand/marcas/piazza.png" },
@@ -42,6 +42,7 @@ export const MARCAS: readonly Marca[] = [
   { id: "heineken", name: "Heineken", logo: "/brand/marcas/heineken.png" },
 
   // Sin logo todavía: sirven igual para etiquetar y filtrar
+  { id: "narf", name: "Narf" },
   { id: "johnson", name: "Johnson", alias: ["johnson acero"] },
   { id: "roca", name: "Roca" },
   { id: "nuke", name: "Ñuke", alias: ["nuke"] },
@@ -49,18 +50,31 @@ export const MARCAS: readonly Marca[] = [
   { id: "genrod", name: "Genrod" },
   { id: "sanitarios-conesa", name: "Conesa" },
 ] as const;
+// La lista de arriba es la que viene en el codigo. El panel puede sumar mas
+// (tabla Setting, ver src/lib/marcas-server.ts), asi que todo lo de abajo
+// recibe la lista como parametro en vez de leer una global. Por defecto usa
+// la base, para que un componente que todavia no la recibe siga andando.
+export const MARCAS = MARCAS_BASE;
 
-export const MARCAS_CON_LOGO = MARCAS.filter((m) => m.logo);
-
-const POR_ID = new Map(MARCAS.map((m) => [m.id, m]));
-
-export function marcaPorId(id: string | null | undefined): Marca | null {
-  if (!id) return null;
-  return POR_ID.get(id) ?? null;
+export function conLogo(lista: readonly Marca[] = MARCAS_BASE) {
+  return lista.filter((m) => m.logo);
 }
 
-export function nombreMarca(id: string | null | undefined): string {
-  return marcaPorId(id)?.name ?? "";
+export const MARCAS_CON_LOGO = conLogo(MARCAS_BASE);
+
+export function marcaPorId(
+  id: string | null | undefined,
+  lista: readonly Marca[] = MARCAS_BASE,
+): Marca | null {
+  if (!id) return null;
+  return lista.find((m) => m.id === id) ?? null;
+}
+
+export function nombreMarca(
+  id: string | null | undefined,
+  lista: readonly Marca[] = MARCAS_BASE,
+): string {
+  return marcaPorId(id, lista)?.name ?? "";
 }
 
 /** Saca tildes y pasa a minúscula, así "Ñuke" y "nuke" son lo mismo. */
@@ -71,16 +85,6 @@ function normalizar(txt: string) {
     .replace(/[̀-ͯ]/g, "");
 }
 
-// Cada marca con sus términos partidos en palabras y ya normalizados. De más
-// largo a más corto: "johnson acero" tiene que ganarle a "johnson", y una
-// marca de dos palabras a una de una.
-const TERMINOS = MARCAS.map((m) => ({
-  id: m.id,
-  terminos: [m.name, ...(m.alias ?? [])]
-    .map((t) => palabras(t))
-    .sort((a, b) => b.length - a.length),
-})).sort((a, b) => b.terminos[0].length - a.terminos[0].length);
-
 /** Parte en palabras: todo lo que no sea letra o número separa. */
 function palabras(txt: string): string[] {
   return normalizar(txt)
@@ -89,14 +93,35 @@ function palabras(txt: string): string[] {
 }
 
 /**
+ * Convierte un nombre en slug: "Grupo DEMA" -> "grupo-dema". Es lo que se
+ * guarda en Product.brand y lo que viaja en la URL.
+ */
+export function slugMarca(nombre: string): string {
+  return palabras(nombre).join("-");
+}
+
+/**
  * Busca la marca dentro del título, comparando palabras enteras: si no, "fv"
  * aparecería dentro de cualquier código y "roca" dentro de "rocallosa".
- * Devuelve el slug o null si no reconoce ninguna.
+ * Los términos más largos ganan, para que "johnson acero" no se quede en
+ * "johnson". Devuelve el slug o null si no reconoce ninguna.
  */
-export function detectarMarca(titulo: string): string | null {
+export function detectarMarca(
+  titulo: string,
+  lista: readonly Marca[] = MARCAS_BASE,
+): string | null {
   const tokens = palabras(titulo);
-  for (const { id, terminos } of TERMINOS) {
-    for (const termino of terminos) {
+  const terminos = lista
+    .map((m) => ({
+      id: m.id,
+      terminos: [m.name, ...(m.alias ?? [])]
+        .map((t) => palabras(t))
+        .sort((a, b) => b.length - a.length),
+    }))
+    .sort((a, b) => b.terminos[0].length - a.terminos[0].length);
+
+  for (const { id, terminos: ts } of terminos) {
+    for (const termino of ts) {
       for (let i = 0; i + termino.length <= tokens.length; i++) {
         if (termino.every((w, j) => tokens[i + j] === w)) return id;
       }

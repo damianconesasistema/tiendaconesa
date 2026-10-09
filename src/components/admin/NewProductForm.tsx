@@ -3,7 +3,7 @@
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
-import { MARCAS } from "@/lib/marcas";
+import { MARCAS_BASE, type Marca } from "@/lib/marcas";
 import { createProduct } from "@/app/admin/productos/actions";
 
 type State = { ok?: true; itemId?: string; error?: string } | null;
@@ -20,7 +20,11 @@ const CATEGORIES = [
   { id: "otros", label: "Otros" },
 ];
 
-export function NewProductForm() {
+export function NewProductForm({
+  marcas = MARCAS_BASE,
+}: {
+  marcas?: readonly Marca[];
+} = {}) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState<State, FormData>(
     createProduct as (prev: State, fd: FormData) => Promise<State>,
@@ -67,7 +71,7 @@ export function NewProductForm() {
           <Label>Marca</Label>
           <select name="brand" defaultValue="" className="input">
             <option value="">Detectar del título</option>
-            {MARCAS.map((m) => (
+            {marcas.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>

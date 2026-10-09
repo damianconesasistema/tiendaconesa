@@ -5,6 +5,7 @@ import { ArrowLeft, PackagePlus } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { NewProductForm } from "@/components/admin/NewProductForm";
+import { getMarcas } from "@/lib/marcas-server";
 
 export const metadata: Metadata = {
   title: "Nuevo producto · Panel Admin",
@@ -36,7 +37,7 @@ export default async function NuevoProductoPage() {
         </p>
 
         <section className="mt-6 rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm sm:p-8">
-          <NewProductForm />
+          <NewProductForm marcas={await getMarcas()} />
         </section>
       </div>
     </AdminShell>
