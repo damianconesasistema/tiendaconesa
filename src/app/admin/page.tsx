@@ -92,6 +92,7 @@ export default async function AdminDashboard() {
           label="Clientes"
           value={String(customers)}
           hint={`${totalOrders} pedidos totales`}
+          href="/admin/clientes"
         />
       </div>
 

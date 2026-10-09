@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 
@@ -11,7 +11,14 @@ export function AdminShell({
   children,
 }: {
   username: string;
-  active: "dashboard" | "productos" | "marcas" | "pedidos" | "configuracion" | "version";
+  active:
+    | "dashboard"
+    | "productos"
+    | "marcas"
+    | "pedidos"
+    | "clientes"
+    | "configuracion"
+    | "version";
   children: React.ReactNode;
 }) {
   return (
@@ -69,6 +76,12 @@ export function AdminShell({
             icon={ShoppingBag}
             label="Pedidos"
             active={active === "pedidos"}
+          />
+          <Tab
+            href="/admin/clientes"
+            icon={Users}
+            label="Clientes"
+            active={active === "clientes"}
           />
           <a
             href="/"
