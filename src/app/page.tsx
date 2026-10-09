@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
-import { TikTokFeed } from "@/components/TikTokFeed";
 import { TikTokCollage } from "@/components/TikTokCollage";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
@@ -247,8 +246,6 @@ export default async function Home() {
       {/* TIKTOK COLLAGE */}
       <TikTokCollage />
 
-      {/* TIKTOK EMBED (top 3) */}
-      <TikTokFeed />
 
       {/* LOCAL + CONTACTO */}
       <section id="local" className="border-b border-[var(--border)] px-6 py-24">
