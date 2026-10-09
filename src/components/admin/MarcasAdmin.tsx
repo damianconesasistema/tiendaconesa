@@ -96,8 +96,8 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
         {ok && <p className="mt-3 text-xs font-medium text-green-700">{ok}</p>}
       </form>
 
-      <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+        <table className="w-full min-w-[34rem] text-sm">
           <thead className="bg-[var(--surface)] text-left text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
             <tr>
               <th className="px-4 py-3">Marca</th>

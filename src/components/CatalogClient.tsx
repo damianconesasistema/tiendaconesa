@@ -382,7 +382,7 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
             strokeWidth={1.2}
           />
         )}
-        <span className="absolute right-3 top-3 z-10 inline-flex items-center rounded-full bg-black/80 px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+        <span className="absolute bottom-3 right-3 z-10 inline-flex max-w-[calc(100%-1.5rem)] items-center truncate rounded-full bg-black/80 px-2.5 py-1 font-display text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm sm:text-[10px]">
           {CAT_LABELS[p.category] || p.category}
         </span>
         {hasDiscount && !outOfStock && (

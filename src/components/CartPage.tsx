@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import {
   ArrowLeft,
   Minus,
@@ -81,12 +82,10 @@ export function CartPage() {
                     href={`/tienda/${it.itemId}`}
                     className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-[var(--surface)] sm:h-24 sm:w-24"
                   >
-                    <Image
-                      src={`/categories/${it.category}.jpg`}
-                      alt={it.title}
-                      fill
-                      sizes="96px"
-                      className="object-cover"
+                    <FotoCarrito
+                      itemId={it.itemId}
+                      category={it.category}
+                      title={it.title}
                     />
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col">
@@ -215,5 +214,34 @@ function Perk({
       <Icon className="h-4 w-4 text-[var(--brand-red)]" />
       {text}
     </div>
+  );
+}
+
+// La foto del producto en el carrito.
+//
+// El carrito vive en localStorage y solo guarda itemId, titulo, precio y
+// categoria: no tiene la URL de la imagen, y por eso antes mostraba siempre
+// la generica de la categoria. Pedimos la del producto por su endpoint y, si
+// no tiene foto cargada, recien ahi caemos en la generica.
+function FotoCarrito({
+  itemId,
+  category,
+  title,
+}: {
+  itemId: string;
+  category: string;
+  title: string;
+}) {
+  const [falla, setFalla] = useState(false);
+  return (
+    <Image
+      src={falla ? `/categories/${category}.jpg` : `/api/productos/${itemId}/imagen`}
+      alt={title}
+      fill
+      sizes="96px"
+      unoptimized={!falla}
+      onError={() => setFalla(true)}
+      className="object-contain p-1"
+    />
   );
 }

@@ -463,8 +463,8 @@ export function ProductsTable({
         </div>
       )}
 
-      <div className="rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-        <table className="w-full table-auto">
+      <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+        <table className="w-full min-w-[64rem] table-auto">
           <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
             <tr>
               <th className="px-3 py-3">

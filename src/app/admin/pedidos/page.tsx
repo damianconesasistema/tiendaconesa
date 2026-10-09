@@ -90,8 +90,8 @@ export default async function PedidosAdmin({
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-          <table className="w-full">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+          <table className="w-full min-w-[46rem]">
             <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               <tr>
                 <th className="px-4 py-3">#</th>

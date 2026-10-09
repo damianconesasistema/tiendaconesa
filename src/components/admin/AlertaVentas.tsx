@@ -27,6 +27,8 @@ type Nuevo = {
 export function AlertaVentas() {
   const [nuevos, setNuevos] = useState<Nuevo[]>([]);
   const permisoPedido = useRef(false);
+  // Numeros de pedido por los que ya sono: evita repetir el mismo aviso.
+  const avisados = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     let vivo = true;
@@ -91,8 +93,18 @@ export function AlertaVentas() {
         }
 
         if (d.nuevos && d.nuevos.length) {
-          setNuevos(d.nuevos);
-          notificar(d.nuevos[0]);
+          // Avisar UNA vez por pedido. Antes sonaba en cada vuelta del
+          // intervalo mientras el cartel estuviera abierto, porque el punto
+          // de partida solo se movia al tocar la X.
+          const frescos = d.nuevos.filter((n) => !avisados.current.has(n.number));
+          if (frescos.length) {
+            for (const n of frescos) avisados.current.add(n.number);
+            setNuevos((prev) => [...frescos, ...prev].slice(0, 10));
+            notificar(frescos[0]);
+            // Corremos el punto de partida ya: si no, al recargar la pagina
+            // vuelve a sonar por los mismos pedidos.
+            localStorage.setItem(CLAVE, frescos[0].fecha);
+          }
         }
       } catch {
         /* sin conexión: reintenta en el próximo ciclo */
@@ -118,7 +130,6 @@ export function AlertaVentas() {
   }, []);
 
   function marcarVisto() {
-    if (nuevos.length) localStorage.setItem(CLAVE, nuevos[0].fecha);
     setNuevos([]);
   }
 
