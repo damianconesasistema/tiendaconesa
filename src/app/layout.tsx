@@ -4,6 +4,8 @@ import Script from "next/script";
 import { Header } from "@/components/Header";
 import { Analytics } from "@/components/Analytics";
 import { CuotasStrip } from "@/components/CuotasStrip";
+import { Footer } from "@/components/Footer";
+import { FooterGate } from "@/components/FooterGate";
 import { CartProvider } from "@/components/CartProvider";
 import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
@@ -210,6 +212,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <CuotasStrip />
           <Header />
           {children}
+          <FooterGate>
+            <Footer />
+          </FooterGate>
           <FloatingWhatsApp />
           <BackToTop />
           <CartFab />
