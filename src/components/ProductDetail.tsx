@@ -23,6 +23,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
+import { gaVerProducto } from "@/lib/ga";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
 import { parseShipping } from "@/lib/shipping";
@@ -125,6 +126,17 @@ export function ProductDetail({
     () => setActiveImg((i) => (i + 1) % gallery.length),
     [gallery.length],
   );
+
+  // view_item: la primera pata del embudo. Sin esto no se sabe cuantos
+  // miran un producto contra cuantos lo agregan.
+  useEffect(() => {
+    gaVerProducto({
+      itemId: product.itemId,
+      title: product.title,
+      price: effectivePrice,
+      category: product.category,
+    });
+  }, [product.itemId, product.title, product.category, effectivePrice]);
 
   // Teclado en el zoom: Esc cierra, flechas pasan fotos.
   useEffect(() => {

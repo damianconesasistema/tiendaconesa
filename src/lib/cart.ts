@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { gaAgregarAlCarrito } from "@/lib/ga";
 
 export type CartItem = {
   itemId: string;
@@ -54,6 +55,9 @@ export function useCartState() {
   }, [items, hydrated]);
 
   const add = useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
+    // Un solo lugar para avisarle a Analytics: todos los botones de
+    // "Agregar" de la tienda terminan aca.
+    gaAgregarAlCarrito({ ...item, qty });
     setItems((prev) => {
       const idx = prev.findIndex((p) => p.itemId === item.itemId);
       if (idx >= 0) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Store,
@@ -13,6 +13,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
+import { gaArrancarCheckout } from "@/lib/ga";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
 import { localidadesTraslasierra } from "@/lib/traslasierra";
 import { formatPrice, cartTotal, buildOrderMessage, whatsappOrderLink } from "@/lib/order";
@@ -37,6 +38,23 @@ export function CheckoutPage({
   const { items, clear } = useCart();
   const { customer, setCustomer, hydrated } = useCustomer();
   const { total: subtotal, hasUnpriced } = cartTotal(items);
+
+  // begin_checkout: una vez por visita al checkout, cuando ya hidrato el
+  // carrito. Sin el no se puede saber cuantos arrancan y no terminan.
+  const avisadoCheckout = useRef(false);
+  useEffect(() => {
+    if (avisadoCheckout.current || items.length === 0) return;
+    avisadoCheckout.current = true;
+    gaArrancarCheckout(
+      items.map((i) => ({
+        itemId: i.itemId,
+        title: i.title,
+        price: i.price,
+        category: i.category,
+        qty: i.qty,
+      })),
+    );
+  }, [items]);
   // Costos de envio aun no definidos: el admin confirma por WhatsApp
   const shippingCost = 0;
   const [sent, setSent] = useState(false);
