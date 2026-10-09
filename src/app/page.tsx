@@ -9,6 +9,8 @@ import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { CuotasBanner } from "@/components/CuotasBanner";
 import { prisma } from "@/lib/db";
 import { getMarcasConLogo } from "@/lib/marcas-server";
+import { legales } from "@/lib/legales";
+import { DataFiscal } from "@/components/DataFiscal";
 
 // En runtime hay DB (Railway). En build no la tenemos → forzar dynamic
 export const dynamic = "force-dynamic";
@@ -23,7 +25,8 @@ import {
   Flame,
   Hammer,
   Wrench,
-  ArrowRight,
+  ArrowRight,
+  Undo2,
 } from "lucide-react";
 import { ConesaLogo } from "@/components/ConesaLogo";
 import { business, whatsappLink } from "@/lib/business";
@@ -544,6 +547,39 @@ export default async function Home() {
                 Cómo llegar <ArrowRight className="h-3 w-3" />
               </a>
             </div>
+          </div>
+
+          {/* LEGALES: el boton de arrepentimiento tiene que estar visible en
+              el inicio (Res. 424/2020) y el QR de Data Fiscal es obligatorio
+              para quien vende por internet. */}
+          <div className="mt-12 flex flex-col items-center gap-6 border-t border-[var(--border)] pt-8 sm:flex-row sm:items-start sm:justify-between">
+            <div className="text-center sm:text-left">
+              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium sm:justify-start">
+                <Link href="/arrepentimiento" className="inline-flex items-center gap-1.5 font-bold text-[var(--brand-red)] hover:underline">
+                  <Undo2 className="h-3.5 w-3.5" />
+                  Botón de arrepentimiento
+                </Link>
+                <Link href="/legales" className="text-[var(--muted)] hover:text-[var(--brand-red)]">
+                  Términos y condiciones
+                </Link>
+                <a
+                  href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--muted)] hover:text-[var(--brand-red)]"
+                >
+                  Defensa del Consumidor
+                </a>
+              </div>
+              {(legales.razonSocial || legales.cuit) && (
+                <p className="mt-3 text-xs text-[var(--muted)]">
+                  {legales.razonSocial}
+                  {legales.razonSocial && legales.cuit && " · "}
+                  {legales.cuit && <>CUIT {legales.cuit}</>}
+                </p>
+              )}
+            </div>
+            <DataFiscal className="shrink-0" />
           </div>
 
           <div className="mt-12 flex flex-col gap-3 border-t border-[var(--border)] pt-6 text-center text-xs text-[var(--muted)] sm:flex-row sm:justify-between sm:text-left">
