@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { formatPrice, cartTotal } from "@/lib/order";
+import { CartRecomendados } from "@/components/CartRecomendados";
 
 export function CartPage() {
   const { items, setQty, remove, clear } = useCart();
@@ -197,6 +198,7 @@ export function CartPage() {
           </aside>
         </div>
       </div>
+      <CartRecomendados />
     </main>
   );
 }

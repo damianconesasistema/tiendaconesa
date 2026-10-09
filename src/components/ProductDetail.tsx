@@ -531,7 +531,7 @@ export function ProductDetail({
             </h2>
             <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
               {related.map((p) => (
-                <RelatedCard key={p.itemId} p={p} />
+                <RelatedCard key={p.itemId} p={p} comisionUnPago={comisionUnPago} />
               ))}
             </div>
           </section>
@@ -548,7 +548,7 @@ export function ProductDetail({
             </p>
             <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
               {bestSellers.map((p) => (
-                <RelatedCard key={p.itemId} p={p} />
+                <RelatedCard key={p.itemId} p={p} comisionUnPago={comisionUnPago} />
               ))}
             </div>
           </section>
@@ -680,12 +680,34 @@ function Benefit({
   );
 }
 
-function RelatedCard({ p }: { p: Product }) {
-  const price = p.salePrice ?? p.price;
+function RelatedCard({
+  p,
+  comisionUnPago,
+}: {
+  p: Product;
+  comisionUnPago: number;
+}) {
+  // El mismo precio que muestra el catalogo: el de vitrina. Antes esta card
+  // mostraba el contado, asi que el producto se veia mas barato aca que en
+  // la tienda.
+  const contado = p.salePrice ?? p.price;
+  const precio = precioVitrina(contado, comisionUnPago);
+  const { add } = useCart();
+  const [added, setAdded] = useState(false);
+  const sinStock = p.stock <= 0;
+
+  function agregar(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    add({ itemId: p.itemId, title: p.title, price: precio, category: p.category });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  }
+
   return (
     <Link
       href={`/tienda/${p.itemId}`}
-      className="group block overflow-hidden rounded-xl bg-white ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-xl bg-white ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="relative aspect-square bg-white">
         <Image
@@ -697,10 +719,40 @@ function RelatedCard({ p }: { p: Product }) {
           className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
         />
       </div>
-      <div className="p-3">
+      <div className="flex flex-1 flex-col p-3">
         <h3 className="uppercase text-xs font-semibold leading-snug">{p.title}</h3>
-        <div className="mt-2 font-display text-base font-black text-foreground">
-          {formatPrice(price)}
+        {/* mt-auto pega el precio y el boton al piso: asi se alinean entre cards */}
+        <div className="mt-auto">
+          <div className="mt-2 font-display text-base font-black text-foreground">
+            {formatPrice(precio)}
+          </div>
+          {sinStock ? (
+            <span className="mt-2 flex w-full items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+              Sin stock
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={agregar}
+              className={`mt-2 flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                added
+                  ? "bg-green-500 text-white"
+                  : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
+              }`}
+            >
+              {added ? (
+                <>
+                  <Check className="h-3 w-3" />
+                  Agregado
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-3 w-3" />
+                  Agregar
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </Link>
