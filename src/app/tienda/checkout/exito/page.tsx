@@ -4,6 +4,7 @@ import { Check, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
+import { GaCompra } from "@/components/GaCompra";
 
 export const metadata: Metadata = {
   title: "Pago aprobado",
@@ -30,12 +31,34 @@ export default async function ExitoPage({
           mpPaymentType: true,
           mpStatus: true,
           paymentMethod: true,
+          items: {
+            select: {
+              title: true,
+              price: true,
+              qty: true,
+              product: { select: { itemId: true } },
+            },
+          },
         },
       })
     : null;
 
   return (
     <main className="min-h-screen bg-[var(--surface)] px-4 py-20">
+      {/* Le avisa a Analytics que se vendio, una sola vez por pedido */}
+      {order && (
+        <GaCompra
+          orderNumber={order.number}
+          total={order.total}
+          items={order.items.map((i) => ({
+            itemId: i.product.itemId,
+            title: i.title,
+            price: i.price,
+            qty: i.qty,
+          }))}
+        />
+      )}
+
       <div className="mx-auto max-w-lg text-center">
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500 text-white shadow-lg">
           <Check className="h-10 w-10" strokeWidth={2.5} />
