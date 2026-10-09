@@ -72,23 +72,32 @@ export default async function Home() {
     take: 8,
   });
 
-  // Destacados: primero los que el admin marco featured, sino rellenar
+  // Destacados: los que el admin marco como tales y, si no alcanzan,
+  // se completa con el resto del catalogo.
+  //
+  // Antes esto pedia salePrice: null para no repetir lo que ya sale en
+  // "En oferta ahora". Funcionaba cuando solo algunos productos tenian
+  // oferta; hoy los tienen casi todos, asi que la seccion quedaba vacia.
+  // Ahora se excluyen los itemId que YA se mostraron arriba, que es lo
+  // que se queria evitar de verdad.
+  const yaMostrados = onSale.map((p) => p.itemId);
+  const CAMPOS = {
+    itemId: true,
+    title: true,
+    price: true,
+    salePrice: true,
+    category: true,
+    imageUrl: true,
+    stock: true,
+  } as const;
+
   let featured = await prisma.product.findMany({
     where: {
       featured: true,
       active: true,
-      salePrice: null, // excluir los que ya están en ofertas
-      itemId: { not: "__RESET_PRICES_MARKER__" },
+      itemId: { not: "__RESET_PRICES_MARKER__", notIn: yaMostrados },
     },
-    select: {
-      itemId: true,
-      title: true,
-      price: true,
-      salePrice: true,
-      category: true,
-      imageUrl: true,
-      stock: true,
-    },
+    select: CAMPOS,
     take: 8,
     orderBy: { title: "asc" },
   });
@@ -98,24 +107,19 @@ export default async function Home() {
       where: {
         active: true,
         featured: false,
-        salePrice: null,
-        itemId: { not: "__RESET_PRICES_MARKER__" },
+        itemId: {
+          not: "__RESET_PRICES_MARKER__",
+          notIn: [...yaMostrados, ...featured.map((f) => f.itemId)],
+        },
       },
-      select: {
-        itemId: true,
-        title: true,
-        price: true,
-        salePrice: true,
-        category: true,
-        imageUrl: true,
-        stock: true,
-      },
+      select: CAMPOS,
       take: 8 - featured.length,
-      orderBy: { title: "asc" },
+      // Con stock primero: no tiene sentido destacar algo que no se puede
+      // comprar.
+      orderBy: [{ stock: "desc" }, { title: "asc" }],
     });
     featured = [...featured, ...extras];
   }
-
   return (
     <main className="relative flex-1">
 
@@ -190,8 +194,10 @@ export default async function Home() {
         />
       )}
 
-      {/* DESTACADOS */}
-      <FeaturedProducts comisionUnPago={recargos.unPago} featured={featured} />
+      {/* DESTACADOS (solo si hay) */}
+      {featured.length > 0 && (
+        <FeaturedProducts comisionUnPago={recargos.unPago} featured={featured} />
+      )}
 
       {/* CATEGORIES */}
       <section className="border-b border-[var(--border)] px-6 py-24">
