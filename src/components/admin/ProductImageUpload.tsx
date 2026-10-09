@@ -18,6 +18,7 @@ import {
   listProductImages,
 } from "@/app/admin/productos/actions";
 import { MAX_PRODUCT_IMAGES } from "@/lib/product-images";
+import { prepararFotoParaSubir } from "@/lib/image-client";
 import {
   quitarFondo,
   soportaQuitarFondo,
@@ -91,6 +92,18 @@ export function ProductImageUpload({
           } finally {
             setFondoProg(null);
           }
+        }
+
+        // Achicar antes de mandar: una foto de celular de 8 MB se pasa del
+        // tope del request y el server contesta 500.
+        archivo = await prepararFotoParaSubir(archivo);
+        if (archivo.size > 11 * 1024 * 1024) {
+          failed++;
+          setError(
+            `"${archivo.name}" pesa demasiado y no se pudo achicar. Probá con otra foto.`,
+          );
+          setProgress({ done: i + 1, total: toUpload.length });
+          continue;
         }
 
         const fd = new FormData();
@@ -375,7 +388,8 @@ export function ProductImageUpload({
       )}
 
       <p className="mt-2 text-[11px] text-[var(--muted)]">
-        JPG, PNG o WebP · máx. 10 MB c/u · hasta {MAX_PRODUCT_IMAGES} fotos.
+        JPG, PNG o WebP · hasta {MAX_PRODUCT_IMAGES} fotos. Se achican solas
+        antes de subirse.
         {images.length > 0 && (
           <>
             {" "}
