@@ -33,6 +33,7 @@ const CATEGORIES = [
   { id: "calefones", label: "Calefones" },
   { id: "materiales", label: "Materiales" },
   { id: "piletas", label: "Piletas" },
+  { id: "herramientas", label: "Herramientas" },
   { id: "otros", label: "Otros" },
 ];
 

@@ -130,6 +130,7 @@ const VALID_CATEGORIES = new Set([
   "calefones",
   "materiales",
   "piletas",
+  "herramientas",
   "otros",
 ]);
 
@@ -177,6 +178,12 @@ function normalizeCategory(v: unknown): string {
   if (raw.includes("calef") || raw.includes("termo")) return "calefones";
   if (raw.includes("acc") || raw.includes("espejo")) return "accesorios";
   if (raw.includes("pil") || raw.includes("bacha")) return "piletas";
+  if (
+    raw.includes("herram") ||
+    raw.includes("taladro") ||
+    raw.includes("amolad")
+  )
+    return "herramientas";
   if (raw.includes("mat") || raw.includes("ceme") || raw.includes("hierro"))
     return "materiales";
   return "otros";

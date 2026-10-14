@@ -73,6 +73,7 @@ const CAT_LABELS: Record<string, string> = {
   calefones: "Calefones",
   materiales: "Materiales",
   piletas: "Piletas",
+  herramientas: "Herramientas",
   otros: "Otros",
 };
 

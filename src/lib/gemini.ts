@@ -43,6 +43,7 @@ const CATEGORIA_LABEL: Record<string, string> = {
   calefones: "calefones y termotanques",
   materiales: "materiales de obra",
   piletas: "piletas y bachas",
+  herramientas: "herramientas electricas y de mano",
   otros: "artículos de ferretería y sanitarios",
 };
 

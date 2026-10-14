@@ -26,6 +26,7 @@ const VALID_CATEGORIES_CREATE = new Set([
   "calefones",
   "materiales",
   "piletas",
+  "herramientas",
   "otros",
 ]);
 

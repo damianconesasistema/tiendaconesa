@@ -42,6 +42,7 @@ export const MARCAS_BASE: readonly Marca[] = [
   { id: "heineken", name: "Heineken", logo: "/brand/marcas/heineken.png" },
 
   // Sin logo todavía: sirven igual para etiquetar y filtrar
+  { id: "dogo", name: "Dogo" },
   { id: "narf", name: "Narf" },
   { id: "johnson", name: "Johnson", alias: ["johnson acero"] },
   { id: "roca", name: "Roca" },
