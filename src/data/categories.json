@@ -119,5 +119,23 @@
       "agua",
       "tanque"
     ]
+  },
+  {
+    "id": "herramientas",
+    "label": "Herramientas",
+    "keywords": [
+      "herramienta",
+      "taladro",
+      "amoladora",
+      "rotomartillo",
+      "caladora",
+      "pulidora",
+      "atornillador",
+      "lijadora",
+      "sierra",
+      "pistola de calor",
+      "percutor",
+      "dogo"
+    ]
   }
 ]
