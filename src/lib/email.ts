@@ -75,8 +75,14 @@ function layout(contenido: string, pie?: string): string {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:24px 12px">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:12px;overflow:hidden">
-        <tr><td style="background:#111;padding:18px 24px">
-          <span style="color:#fff;font-size:18px;font-weight:bold;letter-spacing:.5px">SANITARIOS CONES<span style="color:${ROJO}">A</span></span>
+        <tr><td align="center" style="background:#fff;padding:22px 24px 18px;border-bottom:3px solid ${ROJO}">
+          <!-- El ancho y el alto van como atributos ademas del style porque
+               Outlook ignora el CSS. El alt esta estilado para que, si el
+               cliente bloquea las imagenes (Gmail lo hace por defecto hasta
+               que marcas el remitente como confiable), igual se lea la marca. -->
+          <img src="${SITE_URL}/brand/logo.png" width="200" height="66"
+            alt="SANITARIOS CONESA"
+            style="display:block;border:0;outline:none;text-decoration:none;width:200px;max-width:200px;height:auto;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;letter-spacing:.5px;color:#111">
         </td></tr>
         <tr><td style="padding:24px">${contenido}</td></tr>
         <tr><td style="background:#fafafa;padding:16px 24px;font-size:12px;color:#666;border-top:1px solid #eee">
