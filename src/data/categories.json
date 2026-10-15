@@ -74,13 +74,16 @@
   },
   {
     "id": "calefones",
-    "label": "Calefones y termotanques",
+    "label": "Termotanques y calefones",
     "keywords": [
-      "calefon",
       "termotanque",
-      "calefactor",
+      "calefon",
+      "calefón",
       "boiler",
-      "caldera"
+      "caldera",
+      "agua caliente",
+      "electrico",
+      "gas natural"
     ]
   },
   {

@@ -62,7 +62,7 @@ const CAT_LABELS: Record<string, string> = {
   banera: "Bañeras",
   accesorios: "Accesorios",
   salamandras: "Salamandras",
-  calefones: "Calefones",
+  calefones: "Termotanques y calefones",
   materiales: "Tanques",
   piletas: "Piletas",
   herramientas: "Herramientas",

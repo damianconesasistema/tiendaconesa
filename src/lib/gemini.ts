@@ -40,7 +40,7 @@ const CATEGORIA_LABEL: Record<string, string> = {
   banera: "bañeras",
   accesorios: "accesorios de baño",
   salamandras: "salamandras / calefacción a leña",
-  calefones: "calefones y termotanques",
+  calefones: "termotanques y calefones",
   materiales: "tanques de agua y cámaras sépticas",
   piletas: "piletas y bachas",
   herramientas: "herramientas electricas y de mano",

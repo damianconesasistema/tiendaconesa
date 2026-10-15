@@ -14,7 +14,7 @@ const CATEGORIES = [
   { id: "banera", label: "Bañeras" },
   { id: "accesorios", label: "Accesorios" },
   { id: "salamandras", label: "Salamandras" },
-  { id: "calefones", label: "Calefones" },
+  { id: "calefones", label: "Termotanques y calefones" },
   { id: "materiales", label: "Tanques" },
   { id: "piletas", label: "Piletas" },
   { id: "herramientas", label: "Herramientas" },
