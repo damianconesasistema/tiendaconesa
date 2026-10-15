@@ -50,7 +50,7 @@ export function ProductsFilters({
           type="search"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Buscar por nombre…"
+          placeholder="Buscar por nombre, SKU, código o marca…"
           className="h-11 w-full rounded-full border border-[var(--border)] bg-white pl-11 pr-4 text-sm outline-none focus:border-[var(--brand-red)] focus:ring-2 focus:ring-[var(--brand-red)]/20"
         />
       </div>

@@ -20,7 +20,25 @@ export async function GET(req: NextRequest) {
   const where: Prisma.ProductWhereInput = {
     itemId: { not: "__RESET_PRICES_MARKER__" },
   };
-  if (q) where.title = { contains: q, mode: "insensitive" };
+  // El buscador mira todo lo que sirve para encontrar un producto: el titulo,
+  // el SKU, el codigo, la marca, la descripcion y la nota interna (que es donde
+  // queda anotado el codigo del proveedor). Antes solo miraba el titulo, asi que
+  // buscar por SKU no devolvia nada.
+  if (q)
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { sku: { contains: q, mode: "insensitive" } },
+      { itemId: { contains: q, mode: "insensitive" } },
+      { brand: { contains: q, mode: "insensitive" } },
+      { category: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { memo: { contains: q, mode: "insensitive" } },
+      // Si escribis un numero, tambien busca por precio: sirve para
+      // encontrar el articulo cuando te acordas cuanto sale y no el nombre.
+      ...(/^[0-9]+$/.test(q) && Number(q) < 2147483647
+        ? [{ price: Number(q) }, { salePrice: Number(q) }]
+        : []),
+    ];
   if (cat) where.category = cat;
   if (filter === "low-stock") {
     where.active = true;

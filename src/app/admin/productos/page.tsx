@@ -95,7 +95,25 @@ export default async function ProductosAdmin({
   const dir: "asc" | "desc" = sp.dir === "asc" ? "asc" : "desc";
 
   const where: Prisma.ProductWhereInput = {};
-  if (q) where.title = { contains: q, mode: "insensitive" };
+  // El buscador mira todo lo que sirve para encontrar un producto: el titulo,
+  // el SKU, el codigo, la marca, la categoria, la descripcion, la nota interna (donde
+  // queda el codigo del proveedor) y el precio. Antes solo miraba el titulo, asi que
+  // buscar por SKU no devolvia nada.
+  if (q)
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { sku: { contains: q, mode: "insensitive" } },
+      { itemId: { contains: q, mode: "insensitive" } },
+      { brand: { contains: q, mode: "insensitive" } },
+      { category: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { memo: { contains: q, mode: "insensitive" } },
+      // Si escribis un numero, tambien busca por precio: sirve para
+      // encontrar el articulo cuando te acordas cuanto sale y no el nombre.
+      ...(/^[0-9]+$/.test(q) && Number(q) < 2147483647
+        ? [{ price: Number(q) }, { salePrice: Number(q) }]
+        : []),
+    ];
   if (cat) where.category = cat;
   // "sin-marca" encuentra lo que todavia falta etiquetar
   if (marca) where.brand = marca === "sin-marca" ? null : marca;
