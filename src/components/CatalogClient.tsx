@@ -309,7 +309,7 @@ function CatButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 font-display text-sm font-bold uppercase tracking-wider transition-colors ${
+      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 font-display text-sm font-bold tracking-wide transition-colors ${
         active
           ? "bg-[var(--brand-red)] text-white shadow-sm"
           : "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
@@ -383,7 +383,7 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
             strokeWidth={1.2}
           />
         )}
-        <span className="absolute bottom-3 right-3 z-10 inline-flex max-w-[calc(100%-1.5rem)] items-center truncate rounded-full bg-black/80 px-2.5 py-1 font-display text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm sm:text-[10px]">
+        <span className="absolute bottom-3 right-3 z-10 inline-flex max-w-[calc(100%-1.5rem)] items-center truncate rounded-full bg-black/80 px-2.5 py-1 font-display text-[9px] font-bold tracking-wide text-white backdrop-blur-sm sm:text-[10px]">
           {CAT_LABELS[p.category] || p.category}
         </span>
         {hasDiscount && !outOfStock && (

@@ -214,7 +214,7 @@ export function ProductDetail({
                 <ZoomIn className="h-3.5 w-3.5" />
                 Ampliar
               </span>
-              <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-black/80 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+              <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-black/80 px-3 py-1.5 font-display text-xs font-bold tracking-wide text-white backdrop-blur-sm">
                 {CAT_LABELS[product.category] || product.category}
               </span>
               {hasDiscount && (

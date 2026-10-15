@@ -154,7 +154,7 @@ function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: numbe
             strokeWidth={1.2}
           />
         )}
-        <span className="absolute bottom-3 right-3 z-10 inline-flex max-w-[calc(100%-1.5rem)] items-center truncate rounded-full bg-black/80 px-2.5 py-1 font-display text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm sm:text-[10px]">
+        <span className="absolute bottom-3 right-3 z-10 inline-flex max-w-[calc(100%-1.5rem)] items-center truncate rounded-full bg-black/80 px-2.5 py-1 font-display text-[9px] font-bold tracking-wide text-white backdrop-blur-sm sm:text-[10px]">
           {CAT_LABELS[p.category] || p.category}
         </span>
         {hasSale && !outOfStock && (
