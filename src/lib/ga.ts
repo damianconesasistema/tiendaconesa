@@ -1,6 +1,11 @@
 "use client";
 
-// Eventos de comercio electronico para Google Analytics.
+// Eventos de comercio electronico de la tienda.
+//
+// Este archivo es el unico punto de salida de analitica: manda cada evento
+// a Google Analytics y, en el mismo lugar, al pixel de Meta (ver meta.ts).
+// Los componentes llaman solo a estas funciones, asi agregar o sacar una
+// herramienta se hace en un solo archivo.
 //
 // El embudo completo: ver un producto, agregarlo al carrito, arrancar el
 // checkout y comprar. Con los cuatro Analytics puede decir DONDE se cae la
@@ -9,6 +14,13 @@
 // Todo pasa por `evento()`, que no hace nada si no hay Analytics cargado:
 // asi el sitio funciona igual sin NEXT_PUBLIC_GA_ID y una falla de la
 // analitica nunca rompe una compra.
+
+import {
+  metaVerProducto,
+  metaAgregarAlCarrito,
+  metaArrancarCheckout,
+  metaCompra,
+} from "@/lib/meta";
 
 declare global {
   interface Window {
@@ -52,6 +64,7 @@ function suma(items: GaItem[]) {
 /** Alguien abrio la ficha de un producto. */
 export function gaVerProducto(item: GaItem) {
   evento("view_item", { value: item.price ?? 0, items: [aItem(item, 0)] });
+  metaVerProducto(item);
 }
 
 /** Alguien toco "Agregar". Se dispara desde el carrito, asi cubre todos
@@ -61,12 +74,14 @@ export function gaAgregarAlCarrito(item: GaItem) {
     value: (item.price ?? 0) * (item.qty ?? 1),
     items: [aItem(item, 0)],
   });
+  metaAgregarAlCarrito(item);
 }
 
 /** Alguien entro al checkout con el carrito cargado. */
 export function gaArrancarCheckout(items: GaItem[]) {
   if (items.length === 0) return;
   evento("begin_checkout", { value: suma(items), items: items.map(aItem) });
+  metaArrancarCheckout(items);
 }
 
 /** Se concreto la venta. Ojo: mandarlo una sola vez por pedido. */
@@ -76,4 +91,5 @@ export function gaCompra(orderNumber: number, total: number, items: GaItem[]) {
     value: total,
     items: items.map(aItem),
   });
+  metaCompra(orderNumber, total, items);
 }

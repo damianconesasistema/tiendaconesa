@@ -43,7 +43,7 @@ export const business = {
     { name: "Grifería", slug: "griferia", description: "Piazza, Hydros y más marcas" },
     { name: "Equipamiento de baño", slug: "banera", description: "Vanitorys, espejos, accesorios" },
     { name: "Salamandras", slug: "salamandras", description: "Calefactores a leña para tu hogar" },
-    { name: "Materiales de obra", slug: "materiales", description: "Caños, uniones, accesorios de instalación" },
+    { name: "Tanques", slug: "materiales", description: "Tanques de agua y cámaras sépticas" },
     { name: "Accesorios", slug: "accesorios", description: "Grifos, flexibles, repuestos" },
     { name: "Herramientas", slug: "herramientas", description: "Taladros, amoladoras y herramientas electricas" },
   ],

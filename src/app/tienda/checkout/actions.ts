@@ -121,8 +121,19 @@ export async function createOrder(
       },
     });
 
-    // Mail de confirmación. Va en try/catch y NO bloquea la respuesta: si
-    // Resend está caído o sin configurar, el pedido igual se tomó.
+    // Mails. Van en try/catch y NO bloquean la respuesta: si Resend está
+    // caído o sin configurar, el pedido igual se tomó.
+    //
+    // Son dos: la confirmación al cliente y el aviso de venta al negocio.
+    // Cada uno con su try propio, así si falla el del cliente igual sale el
+    // del negocio, que es el que hace falta para preparar el pedido.
+    const itemsMail = validItems.map((it) => ({
+      title: it.product.title,
+      qty: it.qty,
+      price: it.price,
+      codigo: it.product.sku || it.product.itemId,
+    }));
+
     try {
       const { mailPedidoRecibido, emailConfigurado } = await import(
         "@/lib/email"
@@ -132,11 +143,7 @@ export async function createOrder(
           to: customer.email.trim().toLowerCase(),
           nombre: customer.firstName.trim(),
           orderNumber: order.number,
-          items: validItems.map((it) => ({
-            title: it.product.title,
-            qty: it.qty,
-            price: it.price,
-          })),
+          items: itemsMail,
           total,
           retira: customer.shipping === "retiro",
         });
@@ -144,6 +151,48 @@ export async function createOrder(
       }
     } catch (e) {
       console.error("mail pedido (excepción):", (e as Error).message);
+    }
+
+    try {
+      const { mailVentaInterna, emailConfigurado } = await import(
+        "@/lib/email"
+      );
+      if (emailConfigurado()) {
+        const comoPaga =
+          paymentMethod === "mp_1pago"
+            ? "MercadoPago · débito o 1 pago"
+            : paymentMethod === "mp_cuotas"
+              ? `MercadoPago · ${plan ? plan.cuotas : cuotasElegidas} cuotas`
+              : "A coordinar por WhatsApp (efectivo o transferencia)";
+
+        const r = await mailVentaInterna({
+          orderNumber: order.number,
+          comprador: {
+            nombre: customer.firstName.trim(),
+            apellido: customer.lastName.trim(),
+            dni: customer.dni.replace(/\D/g, ""),
+            email: customer.email.trim().toLowerCase(),
+            telefono: customer.phone.trim(),
+          },
+          envio: {
+            retira: customer.shipping === "retiro",
+            localidad: customer.locality,
+            calle: customer.street,
+            numero: customer.streetNumber,
+            referencia: customer.reference,
+            notas: customer.notes,
+          },
+          items: itemsMail,
+          subtotal,
+          costoEnvio: shippingCost,
+          recargo,
+          total,
+          formaDePago: comoPaga,
+        });
+        if (!r.ok) console.error("mail venta interna:", r.error);
+      }
+    } catch (e) {
+      console.error("mail venta interna (excepción):", (e as Error).message);
     }
 
     return { ok: true, orderId: order.id, orderNumber: order.number };

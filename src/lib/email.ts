@@ -159,3 +159,121 @@ ${business.name} - ${SITE_URL}`;
     text,
   });
 }
+
+/** Aviso interno de venta: le llega al negocio, no al cliente.
+ *
+ *  Trae TODO lo que hace falta para preparar el pedido y facturar sin tener
+ *  que entrar al panel: quién compró, cómo contactarlo, qué se lleva, cómo
+ *  paga y a dónde va. Si el cliente puso una referencia o una aclaración,
+ *  también viaja acá.
+ *
+ *  Va al mail del negocio (business.email). */
+export async function mailVentaInterna(opts: {
+  orderNumber: number;
+  comprador: {
+    nombre: string;
+    apellido: string;
+    dni: string;
+    email: string;
+    telefono: string;
+  };
+  envio: {
+    retira: boolean;
+    localidad?: string;
+    calle?: string;
+    numero?: string;
+    referencia?: string;
+    notas?: string;
+  };
+  items: (ItemMail & { codigo?: string })[];
+  subtotal: number;
+  costoEnvio: number;
+  recargo: number;
+  total: number;
+  formaDePago: string;
+}): Promise<EnvioResultado> {
+  const c = opts.comprador;
+  const e = opts.envio;
+  const nombreCompleto = `${c.nombre} ${c.apellido}`.trim();
+
+  const fila = (etiqueta: string, valor: string) =>
+    `<tr>
+      <td style="padding:4px 12px 4px 0;font-size:14px;color:#666;white-space:nowrap">${etiqueta}</td>
+      <td style="padding:4px 0;font-size:14px;color:#111"><strong>${valor}</strong></td>
+    </tr>`;
+
+  const domicilio = e.retira
+    ? `Retira en el local (${business.address.city})`
+    : [
+        [e.calle, e.numero].filter(Boolean).join(" "),
+        e.localidad,
+      ]
+        .filter(Boolean)
+        .join(", ") || "Envío (sin domicilio cargado)";
+
+  const html = layout(`
+    <h1 style="margin:0 0 4px;font-size:22px">Nueva venta · Pedido #${opts.orderNumber}</h1>
+    <p style="margin:0 0 20px;font-size:14px;color:#555">
+      ${nombreCompleto} compró por ${formatPrice(opts.total)}.
+    </p>
+
+    <h2 style="margin:0 0 8px;font-size:16px">Comprador</h2>
+    <table style="width:100%;border-collapse:collapse;margin:0 0 20px">
+      ${fila("Nombre", nombreCompleto)}
+      ${fila("DNI", c.dni || "-")}
+      ${fila("Teléfono", `<a href="tel:${c.telefono}" style="color:#E63020">${c.telefono}</a>`)}
+      ${fila("Email", `<a href="mailto:${c.email}" style="color:#E63020">${c.email}</a>`)}
+    </table>
+
+    <h2 style="margin:0 0 8px;font-size:16px">Entrega y pago</h2>
+    <table style="width:100%;border-collapse:collapse;margin:0 0 20px">
+      ${fila("Entrega", domicilio)}
+      ${e.referencia ? fila("Referencia", e.referencia) : ""}
+      ${e.notas ? fila("Aclaraciones", e.notas) : ""}
+      ${fila("Forma de pago", opts.formaDePago)}
+    </table>
+
+    <h2 style="margin:0 0 8px;font-size:16px">Productos</h2>
+    ${tablaItems(opts.items, opts.total)}
+
+    <table style="width:100%;border-collapse:collapse;margin:0 0 20px">
+      ${fila("Subtotal", formatPrice(opts.subtotal))}
+      ${opts.costoEnvio ? fila("Envío", formatPrice(opts.costoEnvio)) : ""}
+      ${opts.recargo ? fila("Recargo", formatPrice(opts.recargo)) : ""}
+      ${fila("TOTAL", formatPrice(opts.total))}
+    </table>
+
+    ${boton(`${SITE_URL}/admin/pedidos`, "Ver el pedido en el panel")}
+  `);
+
+  const text = `NUEVA VENTA - Pedido #${opts.orderNumber}
+
+COMPRADOR
+${nombreCompleto}
+DNI: ${c.dni || "-"}
+Tel: ${c.telefono}
+Mail: ${c.email}
+
+ENTREGA
+${domicilio}${e.referencia ? `
+Referencia: ${e.referencia}` : ""}${e.notas ? `
+Aclaraciones: ${e.notas}` : ""}
+Pago: ${opts.formaDePago}
+
+PRODUCTOS
+${opts.items.map((i) => `${i.qty} x ${i.title}${i.codigo ? ` (${i.codigo})` : ""} - ${formatPrice(i.price * i.qty)}`).join("\n")}
+
+Subtotal: ${formatPrice(opts.subtotal)}${opts.costoEnvio ? `
+Envio: ${formatPrice(opts.costoEnvio)}` : ""}${opts.recargo ? `
+Recargo: ${formatPrice(opts.recargo)}` : ""}
+TOTAL: ${formatPrice(opts.total)}
+
+Panel: ${SITE_URL}/admin/pedidos`;
+
+  return enviarEmail({
+    to: business.email,
+    subject: `VENTA #${opts.orderNumber} · ${formatPrice(opts.total)} · ${nombreCompleto}`,
+    html,
+    text,
+  });
+}

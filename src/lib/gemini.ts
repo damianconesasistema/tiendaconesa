@@ -41,7 +41,7 @@ const CATEGORIA_LABEL: Record<string, string> = {
   accesorios: "accesorios de baño",
   salamandras: "salamandras / calefacción a leña",
   calefones: "calefones y termotanques",
-  materiales: "materiales de obra",
+  materiales: "tanques de agua y cámaras sépticas",
   piletas: "piletas y bachas",
   herramientas: "herramientas electricas y de mano",
   otros: "artículos de ferretería y sanitarios",

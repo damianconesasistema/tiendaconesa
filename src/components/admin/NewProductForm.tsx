@@ -15,7 +15,7 @@ const CATEGORIES = [
   { id: "accesorios", label: "Accesorios" },
   { id: "salamandras", label: "Salamandras" },
   { id: "calefones", label: "Calefones" },
-  { id: "materiales", label: "Materiales" },
+  { id: "materiales", label: "Tanques" },
   { id: "piletas", label: "Piletas" },
   { id: "herramientas", label: "Herramientas" },
   { id: "otros", label: "Otros" },

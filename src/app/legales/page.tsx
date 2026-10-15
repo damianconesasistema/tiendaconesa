@@ -141,8 +141,10 @@ export default function LegalesPage() {
               a terceros con fines comerciales.
             </p>
             <p>
-              Usamos Google Analytics para entender cómo se navega el sitio. Esa
-              herramienta utiliza cookies y recoge datos de uso de forma agregada.
+              Usamos Google Analytics y el pixel de Meta (Facebook e Instagram) para
+              entender cómo se navega el sitio y medir el resultado de nuestra
+              publicidad. Esas herramientas utilizan cookies y recogen datos de uso
+              de forma agregada.
             </p>
             <p>
               Conforme a la <strong>Ley 25.326</strong> de Protección de Datos
