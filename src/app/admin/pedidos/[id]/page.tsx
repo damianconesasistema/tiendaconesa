@@ -124,10 +124,17 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
 
           <div className="mt-5 space-y-2 border-t border-[var(--border)] pt-5 text-sm">
             <Row label="Subtotal" value={formatPrice(order.subtotal)} />
+            {/* Si retira, no hay envío: poner "Gratis" hace creer que se le
+                bonificó un envío que nunca existió. Y un envío sin costo
+                cargado está a coordinar, tampoco es gratis. */}
             <Row
-              label="Envío"
+              label="Entrega"
               value={
-                order.shippingCost > 0 ? formatPrice(order.shippingCost) : "Gratis"
+                order.shipping === "retiro"
+                  ? "Retiro en tienda"
+                  : order.shippingCost > 0
+                    ? formatPrice(order.shippingCost)
+                    : "Envío a coordinar"
               }
             />
             <div className="flex justify-between border-t border-[var(--border)] pt-3 font-display text-lg font-black">

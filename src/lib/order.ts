@@ -47,13 +47,15 @@ export function buildOrderMessage(
   lines.push("");
 
   lines.push(`*Subtotal:* ${hasUnpriced ? "a consultar" : formatPrice(subtotal)}`);
+  // Retirar no es un envío gratis: es no tener envío. Decir "Gratis" hace
+  // creer que se bonificó algo.
   if (c.shipping === "envio") {
-    lines.push(`*Envío:* a consultar`);
+    lines.push(`*Entrega:* Envío a coordinar`);
   } else {
-    lines.push(`*Envío:* Gratis (retiro en tienda)`);
+    lines.push(`*Entrega:* Retiro en tienda`);
   }
   if (!hasUnpriced) {
-    lines.push(`*TOTAL (sin envío):* ${formatPrice(total)}`);
+    lines.push(`*TOTAL:* ${formatPrice(total)}`);
   }
   lines.push("");
 

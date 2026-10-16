@@ -298,7 +298,7 @@ export function CheckoutPage({
                   icon={Store}
                   title="Retiro en tienda"
                   desc="Villa Cura Brochero · sin costo"
-                  badge="Gratis"
+                  badge="Sin cargo"
                 />
                 <ShippingOption
                   active={customer.shipping === "envio"}
