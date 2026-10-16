@@ -137,6 +137,14 @@ ${comun}
     let conBusqueda = Date.now() > busquedaCortadaHasta;
     let { r, data } = await llamar(conBusqueda);
 
+    // El modelo se satura seguido y contesta 503. Es pasajero: esperando un
+    // par de segundos suele salir, asi que se reintenta antes de molestar al
+    // admin con un error.
+    for (let intento = 1; intento <= 2 && (r.status === 503 || r.status === 500); intento++) {
+      await new Promise((res) => setTimeout(res, intento * 2000));
+      ({ r, data } = await llamar(conBusqueda));
+    }
+
     if (conBusqueda && (r.status === 429 || r.status === 403)) {
       busquedaCortadaHasta = Date.now() + VENTANA_SIN_BUSQUEDA;
       conBusqueda = false;
@@ -153,6 +161,15 @@ ${comun}
             "La clave de Google no es válida. Fijate que sea la de AI Studio (empieza con AIza) y que esté bien pegada en Railway.",
         };
       }
+      if (r.status === 503 || /overloaded|high demand/i.test(msg)) {
+        return {
+          error:
+            "Google tiene el modelo de IA saturado en este momento. No es un " +
+            "problema de la tienda ni de tu cuenta: probá de nuevo en un " +
+            "minuto, o escribí la descripción a mano.",
+        };
+      }
+
       if (r.status === 429) {
         return {
           error:
