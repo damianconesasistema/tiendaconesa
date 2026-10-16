@@ -57,3 +57,27 @@ export async function deleteOrder(
   revalidatePath("/admin/pedidos");
   return { ok: true };
 }
+
+// Emite la factura electronica del pedido contra ARCA.
+//
+// El trabajo pesado esta en src/lib/afip/emitir.ts; aca solo se chequea la
+// sesion y se refrescan las pantallas del panel.
+export async function facturarPedido(
+  orderId: string,
+): Promise<{ ok?: true; cbteNro?: number; cae?: string; aviso?: string; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+
+  const { emitirFactura } = await import("@/lib/afip/emitir");
+  const r = await emitirFactura(orderId);
+  if (!r.ok) return { error: r.error };
+
+  revalidatePath("/admin/pedidos");
+  revalidatePath(`/admin/pedidos/${orderId}`);
+  return {
+    ok: true,
+    cbteNro: r.cbteNro,
+    cae: r.cae,
+    aviso: r.observaciones.length ? r.observaciones.join(" · ") : undefined,
+  };
+}

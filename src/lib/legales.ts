@@ -20,6 +20,10 @@ export const legales = {
   cuit: process.env.NEXT_PUBLIC_CUIT ?? "",
   /** Codigo del QR de Data Fiscal (lo que va despues de ?qr= ). */
   afipQr: process.env.NEXT_PUBLIC_AFIP_QR ?? "",
+  /** Numero de inscripcion en Ingresos Brutos (Cordoba). Va en la factura. */
+  ingresosBrutos: process.env.NEXT_PUBLIC_IIBB ?? "",
+  /** Inicio de actividades, formato dd/mm/aaaa. Va en la factura. */
+  inicioActividades: process.env.NEXT_PUBLIC_INICIO_ACTIVIDADES ?? "",
   /** Dias corridos para arrepentirse. Ley 24.240, art. 34. */
   diasArrepentimiento: 10,
 } as const;

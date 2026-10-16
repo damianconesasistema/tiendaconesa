@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Tag,
 } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -20,6 +21,10 @@ import { formatPrice } from "@/lib/order";
 import { OrderStatusSelect } from "@/components/admin/OrderStatusSelect";
 import { DeleteOrderButton } from "@/components/admin/DeleteOrderButton";
 import { updateOrderStatus } from "@/app/admin/pedidos/actions";
+import { FacturarButton } from "@/components/admin/FacturarButton";
+import { DetalleMercadoPago } from "@/components/admin/DetalleMercadoPago";
+import { nombreMedioDePago } from "@/lib/mp-detalle";
+import { numeroFormateado } from "@/lib/afip/factura";
 
 export const metadata: Metadata = {
   title: "Pedido · Panel Admin",
@@ -73,6 +78,24 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             current={order.status}
             action={updateOrderStatus}
           />
+          <FacturarButton
+            orderId={order.id}
+            cae={order.cae}
+            numero={
+              order.ptoVta && order.cbteNro
+                ? numeroFormateado(order.ptoVta, order.cbteNro)
+                : null
+            }
+          />
+          <a
+            href={`/api/admin/pedidos/${order.id}/etiqueta`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-[var(--brand-black)]"
+          >
+            <Tag className="h-4 w-4" />
+            Etiqueta de envío
+          </a>
           <DeleteOrderButton orderId={order.id} orderNumber={order.number} />
         </div>
       </div>
@@ -181,12 +204,12 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             </h2>
             <div className="mt-3 space-y-2 text-sm">
               <InfoRow icon={CreditCard}>
-                {order.paymentMethod === "tarjeta"
-                  ? "Tarjeta (Payway)"
-                  : order.paymentMethod === "efectivo_local"
-                    ? "Efectivo en el local"
-                    : "Transferencia / a coordinar"}
+                {nombreMedioDePago(order.paymentMethod)}
               </InfoRow>
+
+              {/* MercadoPago: todo lo que haga falta para controlar la venta
+                  sin tener que entrar al panel de MercadoPago. */}
+              {order.mpPaymentId && <DetalleMercadoPago order={order} />}
 
               {order.paymentMethod === "tarjeta" ? (
                 <>

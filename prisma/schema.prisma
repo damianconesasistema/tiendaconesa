@@ -140,6 +140,19 @@ model Order {
   mpPaymentType   String?  // credit_card, debit_card, ticket, account_money, etc.
   mpRawResponse   String?  // JSON crudo (debug/soporte)
 
+  // --- Facturacion electronica (ARCA / AFIP) ---
+  // Se completan cuando el admin aprieta "Facturar" y ARCA devuelve el CAE.
+  // Si cbteNro esta cargado, el pedido ya esta facturado y no se vuelve a emitir.
+  cbteTipo      Int?      // 1 = Factura A, 6 = Factura B, 11 = Factura C
+  ptoVta        Int?      // punto de venta usado (6 = TIENDA ONLINE)
+  cbteNro       Int?      // numero de comprobante que asigno ARCA
+  cae           String?   // codigo de autorizacion electronico
+  caeVto        DateTime? // vencimiento del CAE
+  facturadoAt   DateTime? // cuando se emitio
+  facturaNeto   Int?      // neto gravado en pesos (sin IVA)
+  facturaIva    Int?      // IVA 21% en pesos
+  afipRaw       String?   // respuesta cruda de ARCA (debug y respaldo)
+
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
