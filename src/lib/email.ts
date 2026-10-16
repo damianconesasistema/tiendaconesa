@@ -32,6 +32,8 @@ export async function enviarEmail(opts: {
   html: string;
   /** Texto plano. Mejora la entregabilidad: sin esto más mails caen en spam. */
   text?: string;
+  /** Archivos adjuntos. El contenido va en base64. */
+  attachments?: { filename: string; content: string }[];
 }): Promise<EnvioResultado> {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.MAIL_FROM;
@@ -51,6 +53,7 @@ export async function enviarEmail(opts: {
         subject: opts.subject,
         html: opts.html,
         text: opts.text,
+        ...(opts.attachments?.length ? { attachments: opts.attachments } : {}),
       }),
     });
     const data = await r.json();
@@ -281,5 +284,63 @@ Panel: ${SITE_URL}/admin/pedidos`;
     subject: `VENTA #${opts.orderNumber} · ${formatPrice(opts.total)} · ${nombreCompleto}`,
     html,
     text,
+  });
+}
+
+/** Le manda al cliente su comprobante, con el PDF adjunto y el link. */
+export async function mailComprobante(opts: {
+  to: string;
+  nombre: string;
+  orderNumber: number;
+  /** "FACTURA B", "NOTA DE CRÉDITO B", etc. */
+  tipo: string;
+  numero: string;
+  total: number;
+  link: string;
+  pdf: Buffer;
+  nombreArchivo: string;
+}): Promise<EnvioResultado> {
+  const esNc = opts.tipo.toUpperCase().includes("CRÉDITO");
+
+  const html = layout(`
+    <h1 style="margin:0 0 8px;font-size:22px">
+      ${esNc ? "Nota de crédito" : "Tu factura"} del pedido #${opts.orderNumber}
+    </h1>
+    <p style="margin:0 0 16px;font-size:14px;color:#555">
+      Hola ${opts.nombre}, te adjuntamos ${
+        esNc
+          ? "la nota de crédito que anula la factura de tu compra"
+          : "la factura de tu compra"
+      }.
+    </p>
+    <table style="width:100%;border-collapse:collapse;margin:0 0 20px">
+      <tr>
+        <td style="padding:4px 12px 4px 0;font-size:14px;color:#666">Comprobante</td>
+        <td style="padding:4px 0;font-size:14px"><strong>${opts.tipo} Nº ${opts.numero}</strong></td>
+      </tr>
+      <tr>
+        <td style="padding:4px 12px 4px 0;font-size:14px;color:#666">Importe</td>
+        <td style="padding:4px 0;font-size:14px"><strong>${formatPrice(opts.total)}</strong></td>
+      </tr>
+    </table>
+    <p style="margin:0 0 16px;font-size:14px;color:#555">
+      Va adjunta en PDF. Si no la ves, también podés abrirla desde acá:
+    </p>
+    ${boton(opts.link, "Ver el comprobante")}
+  `);
+
+  const text = `${opts.tipo} Nº ${opts.numero} - Pedido #${opts.orderNumber}
+Importe: ${formatPrice(opts.total)}
+Verla online: ${opts.link}
+${business.name} - ${SITE_URL}`;
+
+  return enviarEmail({
+    to: opts.to,
+    subject: `${opts.tipo} Nº ${opts.numero} · ${business.name}`,
+    html,
+    text,
+    attachments: [
+      { filename: opts.nombreArchivo, content: opts.pdf.toString("base64") },
+    ],
   });
 }

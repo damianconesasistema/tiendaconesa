@@ -8,21 +8,45 @@ import { deleteOrder } from "@/app/admin/pedidos/actions";
 export function DeleteOrderButton({
   orderId,
   orderNumber,
+  confirmacionDoble = false,
+  facturado = false,
 }: {
   orderId: string;
   orderNumber: number;
+  /** Pide dos confirmaciones: para pedidos que ya no son un borrador. */
+  confirmacionDoble?: boolean;
+  facturado?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   function onDelete() {
+    // Un pedido confirmado ya es una venta: borrarlo de un clic es muy
+    // facil de hacer sin querer, asi que se pregunta dos veces.
     if (
       !confirm(
         `¿Eliminar el pedido #${orderNumber}? Esta acción no se puede deshacer.`,
       )
     )
       return;
+
+    if (facturado) {
+      alert(
+        "Este pedido tiene una factura emitida en ARCA. Borrarlo del panel NO anula la factura: para eso hay que emitir una nota de crédito.",
+      );
+    }
+
+    if (confirmacionDoble) {
+      const escrito = prompt(
+        `Para confirmar que querés borrar el pedido #${orderNumber}, escribí el número: ${orderNumber}`,
+      );
+      if (escrito === null) return;
+      if (escrito.trim() !== String(orderNumber)) {
+        setError("El número no coincide. No se borró nada.");
+        return;
+      }
+    }
     startTransition(async () => {
       const r = await deleteOrder(orderId);
       if (r.ok) {

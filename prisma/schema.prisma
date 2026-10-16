@@ -153,6 +153,15 @@ model Order {
   facturaIva    Int?      // IVA 21% en pesos
   afipRaw       String?   // respuesta cruda de ARCA (debug y respaldo)
 
+  // --- Nota de credito (anulacion de la factura de arriba) ---
+  ncTipo        Int?      // 3 = NC A, 8 = NC B
+  ncNro         Int?
+  ncCae         String?
+  ncCaeVto      DateTime?
+  ncAt          DateTime?
+  ncMotivo      String?   // lo escribe el admin al anular
+  ncRaw         String?
+
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 

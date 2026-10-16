@@ -106,6 +106,9 @@ export type Comprobante = {
   neto: number;
   iva: number;
   total: number;
+  /** Solo para notas de credito: la factura que se esta anulando.
+   *  ARCA la exige, si no rechaza el comprobante. */
+  asociado?: { cbteTipo: number; ptoVta: number; cbteNro: number; cuit: string; fecha: Date };
 };
 
 export type Autorizacion = {
@@ -142,6 +145,16 @@ export async function solicitarCae(c: Comprobante): Promise<Autorizacion> {
   const nro = ultimo + 1;
   const fecha = yyyymmdd(c.fecha ?? new Date());
 
+  const asoc = c.asociado
+    ? `<ar:CbtesAsoc><ar:CbteAsoc>` +
+      `<ar:Tipo>${c.asociado.cbteTipo}</ar:Tipo>` +
+      `<ar:PtoVta>${c.asociado.ptoVta}</ar:PtoVta>` +
+      `<ar:Nro>${c.asociado.cbteNro}</ar:Nro>` +
+      `<ar:Cuit>${c.asociado.cuit}</ar:Cuit>` +
+      `<ar:CbteFch>${yyyymmdd(c.asociado.fecha)}</ar:CbteFch>` +
+      `</ar:CbteAsoc></ar:CbtesAsoc>`
+    : "";
+
   const detalle =
     `<ar:FECAEDetRequest>` +
     `<ar:Concepto>1</ar:Concepto>` + // 1 = productos
@@ -150,6 +163,7 @@ export async function solicitarCae(c: Comprobante): Promise<Autorizacion> {
     `<ar:CbteDesde>${nro}</ar:CbteDesde>` +
     `<ar:CbteHasta>${nro}</ar:CbteHasta>` +
     `<ar:CbteFch>${fecha}</ar:CbteFch>` +
+    asoc +
     `<ar:ImpTotal>${dosDecimales(c.total)}</ar:ImpTotal>` +
     `<ar:ImpTotConc>0</ar:ImpTotConc>` +
     `<ar:ImpNeto>${dosDecimales(c.neto)}</ar:ImpNeto>` +

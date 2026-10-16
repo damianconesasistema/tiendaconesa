@@ -35,6 +35,16 @@ export function DetalleMercadoPago({ order }: { order: OrderPago }) {
 
   return (
     <div className="space-y-2">
+      {/* El logo identifica el medio de un vistazo, mejor que la palabra
+          "mercadopago" en minuscula que venia del dato crudo. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/brand/mercadopago.png"
+        alt="MercadoPago"
+        width={113}
+        height={30}
+        className="h-[26px] w-auto"
+      />
       <div>
         <span
           className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${TONOS[estado.tono]}`}

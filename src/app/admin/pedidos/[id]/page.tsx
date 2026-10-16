@@ -23,6 +23,7 @@ import { DeleteOrderButton } from "@/components/admin/DeleteOrderButton";
 import { updateOrderStatus } from "@/app/admin/pedidos/actions";
 import { FacturarButton } from "@/components/admin/FacturarButton";
 import { DetalleMercadoPago } from "@/components/admin/DetalleMercadoPago";
+import { EditarDatosButton } from "@/components/admin/EditarDatosButton";
 import { nombreMedioDePago } from "@/lib/mp-detalle";
 import { numeroFormateado } from "@/lib/afip/factura";
 
@@ -72,31 +73,67 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             })}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        {/* Barra de acciones. El orden es el del trabajo real: primero el
+            estado, despues facturar (lo mas usado), despues lo auxiliar, y
+            al final —separado— lo destructivo. */}
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:items-end">
           <OrderStatusSelect
             orderId={order.id}
             current={order.status}
             action={updateOrderStatus}
           />
-          <FacturarButton
-            orderId={order.id}
-            cae={order.cae}
-            numero={
-              order.ptoVta && order.cbteNro
-                ? numeroFormateado(order.ptoVta, order.cbteNro)
-                : null
-            }
-          />
-          <a
-            href={`/api/admin/pedidos/${order.id}/etiqueta`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-[var(--brand-black)]"
-          >
-            <Tag className="h-4 w-4" />
-            Etiqueta de envío
-          </a>
-          <DeleteOrderButton orderId={order.id} orderNumber={order.number} />
+
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <FacturarButton
+              orderId={order.id}
+              cae={order.cae}
+              numero={
+                order.ptoVta && order.cbteNro
+                  ? numeroFormateado(order.ptoVta, order.cbteNro)
+                  : null
+              }
+              ncCae={order.ncCae}
+              telefono={order.customer.phone}
+              ncNumero={
+                order.ptoVta && order.ncNro
+                  ? numeroFormateado(order.ptoVta, order.ncNro)
+                  : null
+              }
+            />
+            <EditarDatosButton
+              orderId={order.id}
+              facturado={!!order.cae}
+              datos={{
+                firstName: order.customer.firstName,
+                lastName: order.customer.lastName,
+                dni: order.customer.dni,
+                email: order.customer.email,
+                phone: order.customer.phone,
+                locality: order.locality,
+                street: order.street,
+                streetNumber: order.streetNumber,
+                reference: order.reference,
+              }}
+            />
+            <a
+              href={`/api/admin/pedidos/${order.id}/etiqueta`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-[var(--brand-black)]"
+            >
+              <Tag className="h-4 w-4" />
+              Etiqueta
+            </a>
+          </div>
+
+          <div className="border-t border-[var(--border)] pt-2 sm:w-auto">
+            <DeleteOrderButton
+              orderId={order.id}
+              orderNumber={order.number}
+              confirmacionDoble={order.status !== "pendiente" || !!order.cae}
+              facturado={!!order.cae}
+            />
+          </div>
         </div>
       </div>
 

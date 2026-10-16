@@ -53,6 +53,8 @@ export type DatosFactura = {
   items: ItemFactura[];
   /** Número de pedido de la tienda, para poder cruzarlo. */
   orderNumber: number;
+  /** Solo en notas de crédito: la factura que se está anulando. */
+  asociado?: { tipo: number; numero: string; fecha: Date };
 };
 
 function pesos(n: number): string {
@@ -208,6 +210,23 @@ export async function generarFacturaPdf(f: DatosFactura): Promise<Buffer> {
       width: anchoUtil - 12,
       align: "right",
     });
+
+  // En una nota de credito hay que decir que factura anula, si no el
+  // cliente (y el contador) no saben a que corresponde.
+  if (f.asociado) {
+    y += 30;
+    doc
+      .fillColor(GRIS)
+      .font("Helvetica")
+      .fontSize(8)
+      .text(
+        `Anula el comprobante ${nombreComprobante(f.asociado.tipo)} Nº ${f.asociado.numero} del ${fechaCorta(f.asociado.fecha)}`,
+        M,
+        y,
+        { width: anchoUtil },
+      );
+    y -= 22;
+  }
 
   // ---------------------------------------------------------------- COMPRADOR
   y += 38;
