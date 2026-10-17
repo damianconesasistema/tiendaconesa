@@ -4,7 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ShoppingCart, Check, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
+import { opcionesDe } from "@/lib/etiquetas";
 import { formatPrice } from "@/lib/order";
 
 // "Completá tu compra": le ofrece lo que combina con lo que ya tiene.
@@ -22,6 +24,7 @@ type Rec = {
 
 export function CartRecomendados() {
   const { items, add } = useCart();
+  const router = useRouter();
   const [recs, setRecs] = useState<Rec[]>([]);
   const [agregado, setAgregado] = useState<string | null>(null);
 
@@ -100,6 +103,12 @@ export function CartRecomendados() {
                 <button
                   type="button"
                   onClick={() => {
+                    // Los que piden elegir algo (tipo de gas) van a la
+                    // ficha: desde aca no hay donde elegirlo.
+                    if (opcionesDe(r.title)) {
+                      router.push(`/tienda/${r.itemId}`);
+                      return;
+                    }
                     add({
                       itemId: r.itemId,
                       title: r.title,

@@ -8,7 +8,7 @@ import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice as fmtPrice } from "@/lib/order";
 import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
-import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
+import { etiquetasDe, TONOS_ETIQUETA, opcionesDe } from "@/lib/etiquetas";
 
 type Product = {
   itemId: string;
@@ -390,6 +390,9 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
   const outOfStock = p.stock <= 0;
 
   const handleAdd = (e: React.MouseEvent) => {
+    // Si el producto pide elegir algo (el tipo de gas), no se agrega de
+    // una: dejamos que el Link siga a la ficha, que es donde se elige.
+    if (opcionesDe(p.title)) return;
     e.preventDefault();
     e.stopPropagation();
     add({

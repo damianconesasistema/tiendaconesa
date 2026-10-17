@@ -5,6 +5,7 @@ import type { CartItem } from "@/lib/cart";
 import type { Customer } from "@/lib/customer";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { precioVitrina, precioCuotas } from "@/lib/precios";
+import { opcionValida } from "@/lib/etiquetas";
 
 type Result =
   | { ok: true; orderId: string; orderNumber: number }
@@ -57,9 +58,27 @@ export async function createOrder(
         if (!p) return null;
         const contado = p.salePrice ?? p.price;
         const price = precioSegunPago(contado);
-        return { product: p, price, qty: Math.max(1, Math.floor(it.qty)) };
+        // La variante se valida contra el titulo que esta en la base, no
+        // contra el que mando el navegador: lo elegido termina impreso en
+        // la factura y en la etiqueta de envio.
+        const opcion = opcionValida(p.title, it.opcion);
+        return {
+          product: p,
+          price,
+          qty: Math.max(1, Math.floor(it.qty)),
+          opcion,
+        };
       })
-      .filter((x): x is { product: typeof dbProducts[number]; price: number; qty: number } => x !== null);
+      .filter(
+        (
+          x,
+        ): x is {
+          product: (typeof dbProducts)[number];
+          price: number;
+          qty: number;
+          opcion: string | null;
+        } => x !== null,
+      );
 
     if (validItems.length === 0)
       return { ok: false, error: "No se encontraron productos válidos" };
@@ -113,7 +132,7 @@ export async function createOrder(
         items: {
           create: validItems.map((it) => ({
             productId: it.product.id,
-            title: it.product.title,
+            title: tituloVendido(it),
             price: it.price,
             qty: it.qty,
           })),
@@ -128,7 +147,7 @@ export async function createOrder(
     // Cada uno con su try propio, así si falla el del cliente igual sale el
     // del negocio, que es el que hace falta para preparar el pedido.
     const itemsMail = validItems.map((it) => ({
-      title: it.product.title,
+      title: tituloVendido(it),
       qty: it.qty,
       price: it.price,
       codigo: it.product.sku || it.product.itemId,
@@ -200,4 +219,17 @@ export async function createOrder(
     console.error("createOrder error", e);
     return { ok: false, error: `Error al crear el pedido: ${(e as Error).message}` };
   }
+}
+
+/** Titulo que queda guardado en el pedido.
+ *
+ *  Le pega la variante elegida al titulo del producto. Es un snapshot: el
+ *  panel, el mail, la factura y la etiqueta de envio leen todos de aca, asi
+ *  que escribiendolo una vez aparece en los cuatro lados y no hay forma de
+ *  preparar un termotanque con el gas equivocado. */
+function tituloVendido(it: {
+  product: { title: string };
+  opcion: string | null;
+}) {
+  return it.opcion ? `${it.product.title} · ${it.opcion}` : it.product.title;
 }

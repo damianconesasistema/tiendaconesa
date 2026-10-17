@@ -14,7 +14,7 @@ import {
   Truck,
   ImageIcon,
 } from "lucide-react";
-import { useCart } from "@/lib/cart";
+import { useCart, lineaDe } from "@/lib/cart";
 import { formatPrice, cartTotal } from "@/lib/order";
 import { CartRecomendados } from "@/components/CartRecomendados";
 
@@ -75,7 +75,7 @@ export function CartPage() {
             <div className="divide-y divide-[var(--border)]">
               {items.map((it) => (
                 <div
-                  key={it.itemId}
+                  key={lineaDe(it)}
                   className="flex gap-4 py-5 first:pt-0 last:pb-0"
                 >
                   <Link
@@ -95,13 +95,18 @@ export function CartPage() {
                     >
                       {it.title}
                     </Link>
+                    {it.opcion && (
+                      <span className="mt-1 inline-flex w-fit items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-bold text-sky-700">
+                        {it.opcion}
+                      </span>
+                    )}
                     <div className="mt-1 text-xs text-[var(--muted)]">
                       {formatPrice(it.price)} c/u
                     </div>
                     <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-2">
                       <div className="inline-flex items-center rounded-full border border-[var(--border)]">
                         <button
-                          onClick={() => setQty(it.itemId, it.qty - 1)}
+                          onClick={() => setQty(lineaDe(it), it.qty - 1)}
                           className="flex h-8 w-8 items-center justify-center text-foreground hover:text-[var(--brand-red)]"
                           aria-label="Restar"
                         >
@@ -111,7 +116,7 @@ export function CartPage() {
                           {it.qty}
                         </span>
                         <button
-                          onClick={() => setQty(it.itemId, it.qty + 1)}
+                          onClick={() => setQty(lineaDe(it), it.qty + 1)}
                           className="flex h-8 w-8 items-center justify-center text-foreground hover:text-[var(--brand-red)]"
                           aria-label="Sumar"
                         >
@@ -125,7 +130,7 @@ export function CartPage() {
                             : formatPrice(it.price * it.qty)}
                         </div>
                         <button
-                          onClick={() => remove(it.itemId)}
+                          onClick={() => remove(lineaDe(it))}
                           className="text-[var(--muted)] hover:text-[var(--brand-red)]"
                           aria-label="Eliminar"
                         >

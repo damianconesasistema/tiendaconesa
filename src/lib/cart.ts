@@ -9,14 +9,24 @@ export type CartItem = {
   qty: number;
   price: number | null; // null = "a consultar"
   category: string;
+  /** Variante elegida en la ficha, ej "Gas envasado". Ver opcionesDe(). */
+  opcion?: string | null;
 };
+
+/** Clave de la linea del carrito.
+ *
+ *  Dos termotanques iguales, uno a gas natural y otro envasado, son dos
+ *  lineas distintas: el itemId solo no alcanza para distinguirlas. */
+export function lineaDe(item: { itemId: string; opcion?: string | null }) {
+  return item.opcion ? `${item.itemId}::${item.opcion}` : item.itemId;
+}
 
 type CartContextValue = {
   items: CartItem[];
   count: number;
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
-  remove: (itemId: string) => void;
-  setQty: (itemId: string, qty: number) => void;
+  remove: (linea: string) => void;
+  setQty: (linea: string, qty: number) => void;
   clear: () => void;
 };
 
@@ -59,7 +69,8 @@ export function useCartState() {
     // "Agregar" de la tienda terminan aca.
     gaAgregarAlCarrito({ ...item, qty });
     setItems((prev) => {
-      const idx = prev.findIndex((p) => p.itemId === item.itemId);
+      const linea = lineaDe(item);
+      const idx = prev.findIndex((p) => lineaDe(p) === linea);
       if (idx >= 0) {
         const copy = [...prev];
         copy[idx] = { ...copy[idx], qty: copy[idx].qty + qty };
@@ -69,14 +80,14 @@ export function useCartState() {
     });
   }, []);
 
-  const remove = useCallback((itemId: string) => {
-    setItems((prev) => prev.filter((p) => p.itemId !== itemId));
+  const remove = useCallback((linea: string) => {
+    setItems((prev) => prev.filter((p) => lineaDe(p) !== linea));
   }, []);
 
-  const setQty = useCallback((itemId: string, qty: number) => {
+  const setQty = useCallback((linea: string, qty: number) => {
     setItems((prev) => {
-      if (qty <= 0) return prev.filter((p) => p.itemId !== itemId);
-      return prev.map((p) => (p.itemId === itemId ? { ...p, qty } : p));
+      if (qty <= 0) return prev.filter((p) => lineaDe(p) !== linea);
+      return prev.map((p) => (lineaDe(p) === linea ? { ...p, qty } : p));
     });
   }, []);
 

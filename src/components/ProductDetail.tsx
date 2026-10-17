@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
+import { etiquetasDe, TONOS_ETIQUETA, opcionesDe } from "@/lib/etiquetas";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { nombreMarca } from "@/lib/marcas";
@@ -80,6 +80,13 @@ export function ProductDetail({
   const { add } = useCart();
   const router = useRouter();
   const [qty, setQty] = useState(1);
+  // Variante a elegir antes de comprar (hoy: el tipo de gas).
+  const opciones = opcionesDe(product.title);
+  const [opcion, setOpcion] = useState<string | null>(null);
+  const [faltaOpcion, setFaltaOpcion] = useState(false);
+  const chapitas = etiquetasDe(product.title).filter(
+    (e) => !(opciones && e.tono === "gas"),
+  );
   const [added, setAdded] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
   const [zoom, setZoom] = useState(false);
@@ -179,30 +186,34 @@ export function ProductDetail({
     };
   }, [zoom, prevImg, nextImg]);
 
-  const handleAdd = () => {
+  /** Si el producto pide elegir algo, no se puede agregar sin elegirlo:
+   *  un pedido sin el tipo de gas no se puede preparar. */
+  const alCarrito = () => {
+    if (opciones && !opcion) {
+      setFaltaOpcion(true);
+      return false;
+    }
     add(
       {
         itemId: product.itemId,
         title: product.title,
         price: effectivePrice,
         category: product.category,
+        opcion,
       },
       qty,
     );
+    return true;
+  };
+
+  const handleAdd = () => {
+    if (!alCarrito()) return;
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
-    add(
-      {
-        itemId: product.itemId,
-        title: product.title,
-        price: effectivePrice,
-        category: product.category,
-      },
-      qty,
-    );
+    if (!alCarrito()) return;
     router.push("/tienda/checkout");
   };
 
@@ -292,11 +303,11 @@ export function ProductDetail({
             <h1 className="uppercase mt-2 font-display text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">
               {product.title}
             </h1>
-            {/* Las dos opciones de gas bien arriba: es la primera pregunta
-                del cliente cuando compra un termotanque. */}
-            {etiquetasDe(product.title).length > 0 && (
+            {/* Si hay selector mas abajo, las chapitas de gas sobran:
+                diria dos veces lo mismo. Quedan las informativas. */}
+            {chapitas.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {etiquetasDe(product.title).map((e) => (
+                {chapitas.map((e) => (
                   <span
                     key={e.texto}
                     className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold ${TONOS_ETIQUETA[e.tono]}`}
@@ -435,6 +446,50 @@ export function ProductDetail({
               </div>
             ) : (
               <>
+                {/* Eleccion obligatoria (tipo de gas) */}
+                {opciones && (
+                  <div className="mt-6 rounded-2xl border border-[var(--border)] bg-white p-4">
+                    <span className="font-display text-sm font-bold text-foreground">
+                      {opciones.label}
+                    </span>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {opciones.valores.map((v) => {
+                        const elegida = opcion === v;
+                        return (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => {
+                              setOpcion(v);
+                              setFaltaOpcion(false);
+                            }}
+                            aria-pressed={elegida}
+                            className={`flex items-center justify-center gap-2 rounded-full border-2 px-4 py-3 text-sm font-bold transition-colors ${
+                              elegida
+                                ? "border-[var(--brand-red)] bg-[var(--brand-red)] text-white"
+                                : "border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)]"
+                            }`}
+                          >
+                            {elegida && <Check className="h-4 w-4" />}
+                            {v}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p
+                      className={`mt-3 text-xs ${
+                        faltaOpcion
+                          ? "font-bold text-[var(--brand-red)]"
+                          : "text-[var(--muted)]"
+                      }`}
+                    >
+                      {faltaOpcion
+                        ? "Elegí con qué gas lo vas a usar para seguir."
+                        : "Es el mismo termotanque: lo preparamos con el inyector que elijas, sin costo."}
+                    </p>
+                  </div>
+                )}
+
                 {/* Cantidad */}
                 <div className="mt-6 flex items-center gap-4">
                   <span className="text-sm font-medium text-foreground">
@@ -748,6 +803,9 @@ function RelatedCard({
   const sinStock = p.stock <= 0;
 
   function agregar(e: React.MouseEvent) {
+    // Si el producto pide elegir algo (el tipo de gas), no se agrega de
+    // una: dejamos que el Link siga a la ficha, que es donde se elige.
+    if (opcionesDe(p.title)) return;
     e.preventDefault();
     e.stopPropagation();
     add({ itemId: p.itemId, title: p.title, price: precio, category: p.category });

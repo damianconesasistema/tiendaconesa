@@ -43,6 +43,9 @@ export function buildOrderMessage(
     const sub =
       it.price === null ? "" : `  = ${formatPrice(it.price * it.qty)}`;
     lines.push(`• ${it.qty}× ${it.title}  —  ${price}${sub}`);
+    // La variante elegida va en su propio renglon: es lo que define como
+    // se prepara el pedido, no puede perderse en el titulo.
+    if (it.opcion) lines.push(`   ↳ ${it.opcion}`);
   }
   lines.push("");
 

@@ -12,7 +12,7 @@ import {
   MessageCircle,
   CreditCard,
 } from "lucide-react";
-import { useCart } from "@/lib/cart";
+import { useCart, lineaDe } from "@/lib/cart";
 import { gaArrancarCheckout } from "@/lib/ga";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
 import { localidadesTraslasierra } from "@/lib/traslasierra";
@@ -475,7 +475,7 @@ export function CheckoutPage({
               </h2>
               <div className="mt-4 max-h-60 space-y-3 overflow-y-auto">
                 {items.map((it) => (
-                  <div key={it.itemId} className="flex gap-3 text-sm">
+                  <div key={lineaDe(it)} className="flex gap-3 text-sm">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface)] font-display text-xs font-bold">
                       {it.qty}
                     </div>
@@ -483,6 +483,11 @@ export function CheckoutPage({
                       <div className="uppercase text-xs font-medium leading-snug">
                         {it.title}
                       </div>
+                      {it.opcion && (
+                        <div className="text-[11px] font-bold text-sky-700">
+                          {it.opcion}
+                        </div>
+                      )}
                     </div>
                     <div className="shrink-0 font-display text-xs font-bold">
                       {it.price === null

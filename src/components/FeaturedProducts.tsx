@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { opcionesDe } from "@/lib/etiquetas";
 import Image from "next/image";
 import { useState } from "react";
 import { Package, ArrowRight, ShoppingCart, Check, Tag } from "lucide-react";
@@ -116,6 +117,9 @@ function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: numbe
   const outOfStock = p.stock <= 0;
 
   const handleAdd = (e: React.MouseEvent) => {
+    // Si el producto pide elegir algo (el tipo de gas), no se agrega de
+    // una: dejamos que el Link siga a la ficha, que es donde se elige.
+    if (opcionesDe(p.title)) return;
     e.preventDefault();
     e.stopPropagation();
     add({
