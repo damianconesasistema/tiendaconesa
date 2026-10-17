@@ -427,13 +427,18 @@ export async function importExcel(
 
       // Al ACTUALIZAR: NO tocamos active/featured si el Excel no traía
       // esas columnas (para no re-activar productos pausados sin querer).
+      //
+      // La descripción va igual que el sku y el memo: celda vacía NO borra.
+      // Son textos largos, escritos a mano o con la IA, y un Excel armado
+      // para corregir precios no tiene por qué llevárselos puestos. Para
+      // vaciar una descripción está la ficha del producto.
       const updateData: Record<string, unknown> = {
         title: row.title,
         category: row.category,
         price: Math.round(row.price),
         salePrice: row.salePrice,
         stock: row.stock,
-        description: row.description,
+        ...(row.description !== null ? { description: row.description } : {}),
         ...(row.__traeMarca && row.brand ? { brand: row.brand } : {}),
         ...(row.sku !== null ? { sku: row.sku } : {}),
         ...(row.memo !== null ? { memo: row.memo } : {}),
