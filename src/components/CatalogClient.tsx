@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MARCAS_BASE, nombreMarca, type Marca } from "@/lib/marcas";
-import { Search, Package, ShoppingCart, Check, Tag } from "lucide-react";
+import { Search, Package, ShoppingCart, Check, Tag, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
@@ -161,12 +161,24 @@ export function CatalogClient({
       window.history.replaceState(null, "", url);
   }, [activeCat, activeMarca, query, orden, visibles]);
 
+  // En el celular la columna de filtros arranca plegada.
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
+
   // Cambiar de filtro tiene que volver a la primera tanda: si no, con un
   // filtro de 3 productos seguirias viendo el boton de mostrar mas.
   const resetear = (fn: () => void) => {
     fn();
     setVisibles(POR_TANDA);
   };
+
+  // Lo que dice el boton de Filtrar cuando esta plegado: si no, en el
+  // celular no hay forma de saber que hay un filtro puesto.
+  const resumenFiltros = [
+    activeCat !== "all" ? CAT_LABELS[activeCat] || activeCat : null,
+    activeMarca !== "all" ? nombreMarca(activeMarca, marcas) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ") || "Todos";
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -227,60 +239,77 @@ export function CatalogClient({
         </div>
       </section>
 
-      {/* CATEGORY TABS */}
-      {/* Fija solo de tablet para arriba. En el celular los chips ocupan
-          varios renglones (mas de media pantalla) y clavados arriba no
-          dejarian lugar para los productos; ahi se van con el scroll. */}
-      <section className="z-30 border-b border-[var(--border)] bg-white sm:sticky sm:top-24">
-        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
-          {/* Los chips se parten en varios renglones en vez de deslizarse.
-              En una sola fila las ultimas categorias quedaban fuera de
-              pantalla y habia que adivinar que estaban ahi. */}
-          <div className="flex flex-wrap items-center justify-center gap-2 px-1">
-            <CatButton
-              active={activeCat === "all"}
-              onClick={() => resetear(() => setActiveCat("all"))}
-              label="Todos"
-              count={counts.all}
-            />
-            {/* Solo las categorias que tienen algo. Una categoria en 0 no
-                lleva a ningun lado y ocupa una fila entera de la pantalla. */}
-            {categories
-              .filter((c) => (counts[c.id] || 0) > 0)
-              .map((c) => (
-                <CatButton
-                  key={c.id}
-                  active={activeCat === c.id}
-                  onClick={() => resetear(() => setActiveCat(c.id))}
-                  label={CAT_LABELS[c.id] || c.label}
-                  count={counts[c.id] || 0}
-                />
-              ))}
-            {(counts.otros || 0) > 0 && (
-              <CatButton
-                active={activeCat === "otros"}
-                onClick={() => resetear(() => setActiveCat("otros"))}
-                label="Otros"
-                count={counts.otros || 0}
+      {/* FILTROS A LA IZQUIERDA + GRILLA A LA DERECHA */}
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 pb-24 pt-6 sm:px-6 lg:flex-row lg:items-start">
+        {/* En el celular la columna no entra al costado, asi que se
+            pliega detras de un boton y no se come la pantalla. */}
+        <button
+          type="button"
+          onClick={() => setFiltrosAbiertos((v) => !v)}
+          className="flex items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white px-4 py-3 font-display text-sm font-bold uppercase tracking-wider lg:hidden"
+        >
+          <span className="inline-flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtrar
+          </span>
+          <span className="text-xs font-medium normal-case tracking-normal text-[var(--muted)]">
+            {resumenFiltros}
+          </span>
+        </button>
+
+        <aside
+          className={`${
+            filtrosAbiertos ? "block" : "hidden"
+          } w-full shrink-0 lg:sticky lg:top-24 lg:block lg:w-60`}
+        >
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-4">
+            <h2 className="font-display text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--muted)]">
+              Categorías
+            </h2>
+            <ul className="mt-2 space-y-0.5">
+              <FiltroItem
+                active={activeCat === "all"}
+                onClick={() => resetear(() => setActiveCat("all"))}
+                label="Todos"
+                count={counts.all}
               />
-            )}
+              {/* Solo las categorias que tienen algo. Una categoria en 0
+                  no lleva a ningun lado. */}
+              {categories
+                .filter((c) => (counts[c.id] || 0) > 0)
+                .map((c) => (
+                  <FiltroItem
+                    key={c.id}
+                    active={activeCat === c.id}
+                    onClick={() => resetear(() => setActiveCat(c.id))}
+                    label={CAT_LABELS[c.id] || c.label}
+                    count={counts[c.id] || 0}
+                  />
+                ))}
+              {(counts.otros || 0) > 0 && (
+                <FiltroItem
+                  active={activeCat === "otros"}
+                  onClick={() => resetear(() => setActiveCat("otros"))}
+                  label="Otros"
+                  count={counts.otros || 0}
+                />
+              )}
+            </ul>
           </div>
 
-          {/* MARCAS: segunda fila de filtros. Solo las que tienen productos,
-              asi no mostramos marcas vacias. */}
           {marcasConProductos.length > 0 && (
-            <div className="mt-3 border-t border-[var(--border)] pt-3">
-              <div className="mb-2 font-display text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--muted)]">
-                Filtrar por marca
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-2 px-1">
-                <MarcaButton
+            <div className="mt-4 rounded-2xl border border-[var(--border)] bg-white p-4">
+              <h2 className="font-display text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--muted)]">
+                Marcas
+              </h2>
+              <ul className="mt-2 space-y-0.5">
+                <FiltroItem
                   active={activeMarca === "all"}
                   onClick={() => resetear(() => setActiveMarca("all"))}
                   label="Todas"
                 />
                 {marcasConProductos.map((m) => (
-                  <MarcaButton
+                  <FiltroItem
                     key={m.id}
                     active={activeMarca === m.id}
                     onClick={() => resetear(() => setActiveMarca(m.id))}
@@ -288,14 +317,15 @@ export function CatalogClient({
                     count={marcaCounts[m.id]}
                   />
                 ))}
-              </div>
+              </ul>
             </div>
           )}
-        </div>
-      </section>
+        </aside>
 
-      {/* RESULTADOS + ORDEN */}
-      <section className="mx-auto flex max-w-6xl flex-col gap-3 px-4 pb-6 pt-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        {/* COLUMNA DE LA DERECHA: resultados y grilla */}
+        <div className="min-w-0 flex-1">
+        {/* RESULTADOS + ORDEN */}
+        <section className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[var(--muted)]">
           <strong className="text-foreground">{filtered.length}</strong>{" "}
           {filtered.length === 1 ? "producto" : "productos"}
@@ -321,8 +351,8 @@ export function CatalogClient({
         </label>
       </section>
 
-      {/* GRID */}
-      <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
+        {/* GRID */}
+        <section>
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-[var(--border)] bg-white p-12 text-center">
             <Package className="mx-auto h-10 w-10 text-[var(--muted)]" />
@@ -359,13 +389,16 @@ export function CatalogClient({
           </div>
         )}
       </section>
+        </div>
+      </div>
     </main>
   );
 }
 
-// Chip de marca. Mas chico que el de categoria: son 20 y si fueran del mismo
-// tamano la fila de marcas le comeria protagonismo a la de categorias.
-function MarcaButton({
+// Una linea de la columna de filtros: el nombre a la izquierda y cuantos
+// productos hay a la derecha, como en cualquier tienda grande. Vertical no
+// se corta nunca, por mas marcas que se sumen.
+function FiltroItem({
   active,
   onClick,
   label,
@@ -377,59 +410,28 @@ function MarcaButton({
   count?: number;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
-        active
-          ? "bg-[var(--brand-black)] text-white shadow-sm"
-          : "border border-[var(--border)] bg-white text-[var(--muted)] hover:border-[var(--brand-black)] hover:text-foreground"
-      }`}
-    >
-      {label}
-      {count !== undefined && (
-        <span
-          className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-            active ? "bg-white/20" : "bg-[var(--surface)]"
-          }`}
-        >
-          {count}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function CatButton({
-  active,
-  onClick,
-  label,
-  count,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  count: number;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[13px] font-bold tracking-wide transition-colors ${
-        active
-          ? "bg-[var(--brand-red)] text-white shadow-sm"
-          : "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
-      }`}
-    >
-      {label}
-      <span
-        className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-          active ? "bg-white/20" : "bg-[var(--surface)] text-[var(--muted)]"
+    <li>
+      <button
+        type="button"
+        onClick={onClick}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors ${
+          active
+            ? "bg-[var(--brand-red)]/10 font-bold text-[var(--brand-red)]"
+            : "text-foreground hover:bg-[var(--surface)]"
         }`}
       >
-        {count}
-      </span>
-    </button>
+        <span className="min-w-0 flex-1">{label}</span>
+        {count !== undefined && (
+          <span
+            className={`shrink-0 text-xs tabular-nums ${
+              active ? "text-[var(--brand-red)]" : "text-[var(--muted)]"
+            }`}
+          >
+            {count}
+          </span>
+        )}
+      </button>
+    </li>
   );
 }
 
