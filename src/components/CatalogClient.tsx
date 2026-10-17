@@ -109,6 +109,24 @@ export function CatalogClient({
       : "recomendados",
   );
 
+  // Al volver con "atras", Next puede servir la pagina desde su cache con
+  // las props del primer pedido, que no tenian los parametros que escribimos
+  // despues con replaceState: la direccion decia ver=48 y la grilla mostraba
+  // 24 igual. Asi que al montar se lee la direccion de verdad y se reponen.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const cat = p.get("cat");
+    if (cat) setActiveCat(cat);
+    const marca = p.get("marca");
+    if (marca) setActiveMarca(marca);
+    const q = p.get("q");
+    if (q) setQuery(q);
+    const ord = p.get("orden");
+    if (ord && ORDENES.some((x) => x.id === ord)) setOrden(ord as Orden);
+    const ver = Number(p.get("ver"));
+    if (ver > POR_TANDA) setVisibles(Math.min(ver, 600));
+  }, []);
+
   // Los filtros se escriben en la URL.
   //
   // Sin esto, entrar a un producto y volver con el boton "atras" devolvia
