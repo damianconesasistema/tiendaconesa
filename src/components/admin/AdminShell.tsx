@@ -10,12 +10,17 @@ export function AdminShell({
   active,
   children,
   ancho = "normal",
+  verTienda = "/",
 }: {
   username: string;
   /** "full" usa todo el monitor. Lo pide la tabla de productos, que tiene
    *  diez columnas y encajonada en 1280px obliga a scrollear. El resto del
    *  panel sigue angosto, que se lee mejor. */
   ancho?: "normal" | "full";
+  /** A donde lleva "Ver tienda". Editando un producto conviene que vaya a
+   *  la ficha de ESE producto, para ver como le queda al cliente, y no a
+   *  la home. */
+  verTienda?: string;
   active:
     | "dashboard"
     | "productos"
@@ -89,7 +94,7 @@ export function AdminShell({
             active={active === "clientes"}
           />
           <a
-            href="/"
+            href={verTienda}
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto inline-flex items-center gap-1.5 border-b-2 border-transparent px-3 py-3 text-xs font-medium uppercase tracking-wider text-[var(--muted)] hover:text-[var(--brand-red)]"

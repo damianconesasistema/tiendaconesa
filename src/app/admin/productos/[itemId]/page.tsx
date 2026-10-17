@@ -45,7 +45,11 @@ export default async function EditProductPage({ params }: RouteProps) {
   });
 
   return (
-    <AdminShell username={session.username} active="productos">
+    <AdminShell
+      username={session.username}
+      active="productos"
+      verTienda={`/tienda/${product.itemId}`}
+    >
       <Link
         href="/admin/productos"
         className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--brand-red)]"
