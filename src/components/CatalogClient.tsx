@@ -228,7 +228,10 @@ export function CatalogClient({
       </section>
 
       {/* CATEGORY TABS */}
-      <section className="sticky top-20 z-30 border-b border-[var(--border)] bg-white sm:top-24">
+      {/* Fija solo de tablet para arriba. En el celular los chips ocupan
+          varios renglones (mas de media pantalla) y clavados arriba no
+          dejarian lugar para los productos; ahi se van con el scroll. */}
+      <section className="z-30 border-b border-[var(--border)] bg-white sm:sticky sm:top-24">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
           {/* Los chips se parten en varios renglones en vez de deslizarse.
               En una sola fila las ultimas categorias quedaban fuera de
