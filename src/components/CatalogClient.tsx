@@ -151,7 +151,11 @@ export function CatalogClient({
           {/* Una sola fila que se desliza. Partidas en varios renglones y
               centradas quedaban desparejas, con huecos distintos en cada
               linea. */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:justify-center [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {/* w-max + mx-auto: la fila se centra cuando entra y se corre a la
+                izquierda cuando no. Centrar el flex directamente recorta los
+                primeros chips y no deja llegar a ellos ni con el scroll. */}
+            <div className="mx-auto flex w-max items-center gap-2 px-1">
             <CatButton
               active={activeCat === "all"}
               onClick={() => setActiveCat("all")}
@@ -179,6 +183,7 @@ export function CatalogClient({
                 count={counts.otros || 0}
               />
             )}
+            </div>
           </div>
 
           {/* MARCAS: segunda fila de filtros. Solo las que tienen productos,
@@ -188,7 +193,8 @@ export function CatalogClient({
               <div className="mb-2 font-display text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--muted)]">
                 Filtrar por marca
               </div>
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:justify-center [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="mx-auto flex w-max items-center gap-2 px-1">
                 <MarcaButton
                   active={activeMarca === "all"}
                   onClick={() => setActiveMarca("all")}
@@ -203,6 +209,7 @@ export function CatalogClient({
                     count={marcaCounts[m.id]}
                   />
                 ))}
+                </div>
               </div>
             </div>
           )}
