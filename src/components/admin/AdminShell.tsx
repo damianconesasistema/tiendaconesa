@@ -9,8 +9,13 @@ export function AdminShell({
   username,
   active,
   children,
+  ancho = "normal",
 }: {
   username: string;
+  /** "full" usa todo el monitor. Lo pide la tabla de productos, que tiene
+   *  diez columnas y encajonada en 1280px obliga a scrollear. El resto del
+   *  panel sigue angosto, que se lee mejor. */
+  ancho?: "normal" | "full";
   active:
     | "dashboard"
     | "productos"
@@ -95,7 +100,13 @@ export function AdminShell({
         </nav>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">{children}</div>
+      <div
+        className={`mx-auto px-4 py-8 sm:px-6 ${
+          ancho === "full" ? "max-w-none" : "max-w-7xl"
+        }`}
+      >
+        {children}
+      </div>
       <AlertaVentas />
     </div>
   );

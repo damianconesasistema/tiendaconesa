@@ -144,7 +144,7 @@ export default async function ProductosAdmin({
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <AdminShell username={session.username} active="productos">
+    <AdminShell username={session.username} active="productos" ancho="full">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-black uppercase leading-tight sm:text-4xl">

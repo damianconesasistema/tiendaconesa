@@ -466,7 +466,7 @@ export function ProductsTable({
       )}
 
       <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-        <table className="w-full min-w-[64rem] table-auto">
+        <table className="w-full min-w-[58rem] table-auto">
           <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
             <tr>
               <th className="w-10 px-3 py-3 md:sticky md:left-0 md:z-10 md:bg-[var(--surface)]">
@@ -483,7 +483,7 @@ export function ProductsTable({
               {/* La columna del producto pide ancho explicito: con table-auto
                   las columnas de numeros se lo comian y el nombre quedaba
                   cortado a la mitad. */}
-              <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[34%] min-w-[17rem] md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] md:bg-[var(--surface)]" />
+              <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[30%] min-w-[14rem] md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] md:bg-[var(--surface)]" />
               <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
               <SortHeader label="Precio base" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
               <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
@@ -527,7 +527,7 @@ export function ProductsTable({
                     />
                   </td>
                   <td
-                    className={`w-[34%] min-w-[17rem] px-2 py-3 md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] ${stickyBg}`}
+                    className={`w-[30%] min-w-[14rem] px-2 py-3 md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] ${stickyBg}`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-white">
@@ -907,7 +907,7 @@ function SortHeader({
         // Mismo contenedor que InlineNumber: 7.5rem, gap-1, + espaciador w-11.
         <span
           className="inline-flex items-center justify-end gap-1 align-middle"
-          style={{ width: "8.5rem" }}
+          style={{ width: "7.75rem" }}
         >
           {link}
           <span className="w-9 shrink-0" aria-hidden />
