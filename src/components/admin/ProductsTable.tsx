@@ -469,7 +469,7 @@ export function ProductsTable({
         <table className="w-full min-w-[64rem] table-auto">
           <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
             <tr>
-              <th className="px-3 py-3">
+              <th className="w-10 px-3 py-3 md:sticky md:left-0 md:z-10 md:bg-[var(--surface)]">
                 <input
                   type="checkbox"
                   checked={allSelected}
@@ -483,7 +483,7 @@ export function ProductsTable({
               {/* La columna del producto pide ancho explicito: con table-auto
                   las columnas de numeros se lo comian y el nombre quedaba
                   cortado a la mitad. */}
-              <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[34%] min-w-[17rem]" />
+              <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[34%] min-w-[17rem] md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] md:bg-[var(--surface)]" />
               <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
               <SortHeader label="Precio base" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
               <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
@@ -501,16 +501,24 @@ export function ProductsTable({
                 ? !excluded.has(p.itemId)
                 : selected.has(p.itemId);
               const hasSale = p.salePrice !== null && p.salePrice < p.price;
+              // Las dos primeras columnas quedan fijas al correr la tabla,
+              // asi que necesitan fondo propio: el del <tr> queda abajo y
+              // se les transparentaria el resto de la fila por encima.
+              const stickyBg = isSelected
+                ? "bg-[#fef5f4]"
+                : "bg-white group-hover:bg-[#faf9f8]";
               return (
                 <tr
                   key={p.id}
-                  className={`text-sm transition-colors ${
+                  className={`group text-sm transition-colors ${
                     isSelected
                       ? "bg-[var(--brand-red)]/5"
                       : "hover:bg-[var(--surface)]/60"
                   }`}
                 >
-                  <td className="px-3 py-3">
+                  <td
+                    className={`w-10 px-3 py-3 md:sticky md:left-0 md:z-10 ${stickyBg}`}
+                  >
                     <input
                       type="checkbox"
                       checked={isSelected}
@@ -518,7 +526,9 @@ export function ProductsTable({
                       className="h-4 w-4 accent-[var(--brand-red)]"
                     />
                   </td>
-                  <td className="w-[34%] min-w-[17rem] px-2 py-3">
+                  <td
+                    className={`w-[34%] min-w-[17rem] px-2 py-3 md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] ${stickyBg}`}
+                  >
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-white">
                         <Image
