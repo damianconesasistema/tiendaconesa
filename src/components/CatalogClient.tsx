@@ -148,7 +148,10 @@ export function CatalogClient({
       {/* CATEGORY TABS */}
       <section className="sticky top-20 z-30 border-b border-[var(--border)] bg-white sm:top-24">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          {/* Una sola fila que se desliza. Partidas en varios renglones y
+              centradas quedaban desparejas, con huecos distintos en cada
+              linea. */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:justify-center [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <CatButton
               active={activeCat === "all"}
               onClick={() => setActiveCat("all")}
@@ -185,7 +188,7 @@ export function CatalogClient({
               <div className="mb-2 font-display text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--muted)]">
                 Filtrar por marca
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:justify-center [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <MarcaButton
                   active={activeMarca === "all"}
                   onClick={() => setActiveMarca("all")}
@@ -280,7 +283,7 @@ function MarcaButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
         active
           ? "bg-[var(--brand-black)] text-white shadow-sm"
           : "border border-[var(--border)] bg-white text-[var(--muted)] hover:border-[var(--brand-black)] hover:text-foreground"
@@ -315,7 +318,7 @@ function CatButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[13px] font-bold tracking-wide transition-colors ${
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[13px] font-bold tracking-wide transition-colors ${
         active
           ? "bg-[var(--brand-red)] text-white shadow-sm"
           : "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
@@ -389,9 +392,6 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
             strokeWidth={1.2}
           />
         )}
-        <span className="absolute bottom-3 right-3 z-10 inline-flex max-w-[calc(100%-1.5rem)] items-center truncate rounded-full bg-black/80 px-2.5 py-1 font-display text-[9px] font-bold tracking-wide text-white backdrop-blur-sm sm:text-[10px]">
-          {CAT_LABELS[p.category] || p.category}
-        </span>
         {hasDiscount && !outOfStock && (
           <span
             className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-3 py-1.5 font-display text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-red-500/40"
@@ -409,7 +409,12 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
 
       {/* Info */}
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="uppercase text-sm font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)]">
+        {/* La categoria arriba del titulo y no encima de la foto: adentro de
+            la imagen se cortaba con los nombres largos y tapaba el producto. */}
+        <span className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+          {CAT_LABELS[p.category] || p.category}
+        </span>
+        <h3 className="mt-1 uppercase text-sm font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)]">
           {p.title}
         </h3>
         {/* mt-auto empuja precio+boton al fondo para que queden alineados
