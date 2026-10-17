@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MARCAS_BASE, nombreMarca, type Marca } from "@/lib/marcas";
 import { Search, Package, ShoppingCart, Check, Tag } from "lucide-react";
 import Link from "next/link";
@@ -35,6 +35,9 @@ type Props = {
   categories: Category[];
   initialCat?: string;
   initialMarca?: string;
+  initialQuery?: string;
+  initialOrden?: string;
+  initialVer?: number;
   marcas?: readonly Marca[];
   // Comisión de MercadoPago en 1 pago: define el precio de vitrina.
   comisionUnPago?: number;
@@ -86,16 +89,59 @@ export function CatalogClient({
   categories,
   initialCat = "all",
   initialMarca = "all",
+  initialQuery = "",
+  initialOrden = "",
+  initialVer = 0,
   marcas = MARCAS_BASE,
   comisionUnPago = 10,
 }: Props) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [activeCat, setActiveCat] = useState<string>(initialCat);
   const [activeMarca, setActiveMarca] = useState<string>(initialMarca);
   // Cuantos productos se muestran. Arranca en una tanda y crece con el boton
   // "Mostrar mas".
-  const [visibles, setVisibles] = useState(POR_TANDA);
-  const [orden, setOrden] = useState<Orden>("recomendados");
+  const [visibles, setVisibles] = useState(
+    Math.max(POR_TANDA, Math.min(initialVer, 600)),
+  );
+  const [orden, setOrden] = useState<Orden>(
+    ORDENES.some((o) => o.id === initialOrden)
+      ? (initialOrden as Orden)
+      : "recomendados",
+  );
+
+  // Los filtros se escriben en la URL.
+  //
+  // Sin esto, entrar a un producto y volver con el boton "atras" devolvia
+  // el catalogo de cero: sin el filtro, sin la busqueda y de nuevo en la
+  // primera tanda, aunque hubieras cargado seis.
+  //
+  // Va con replaceState y no con el router a proposito: solo cambia la
+  // direccion, sin volver a pedirle la pagina al servidor en cada tecla.
+  // Al entrar a un producto, la entrada del historial ya tiene los
+  // parametros, y al volver la pagina los lee y rearma todo.
+  const montado = useRef(false);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const poner = (clave: string, valor: string) => {
+      if (valor) p.set(clave, valor);
+      else p.delete(clave);
+    };
+    poner("cat", activeCat === "all" ? "" : activeCat);
+    poner("marca", activeMarca === "all" ? "" : activeMarca);
+    poner("q", query.trim());
+    poner("orden", orden === "recomendados" ? "" : orden);
+    poner("ver", visibles > POR_TANDA ? String(visibles) : "");
+    const qs = p.toString();
+    const url = window.location.pathname + (qs ? `?${qs}` : "");
+    // En el primer render no se toca: si no, se pisaria el historial al
+    // volver justo cuando hay que respetarlo.
+    if (!montado.current) {
+      montado.current = true;
+      return;
+    }
+    if (url !== window.location.pathname + window.location.search)
+      window.history.replaceState(null, "", url);
+  }, [activeCat, activeMarca, query, orden, visibles]);
 
   // Cambiar de filtro tiene que volver a la primera tanda: si no, con un
   // filtro de 3 productos seguirias viendo el boton de mostrar mas.

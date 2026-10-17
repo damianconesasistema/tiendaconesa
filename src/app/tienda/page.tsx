@@ -19,7 +19,16 @@ type Category = {
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ filter?: string; cat?: string; marca?: string }>;
+type SearchParams = Promise<{
+  filter?: string;
+  cat?: string;
+  marca?: string;
+  // Los pone el propio catalogo al filtrar, para que el boton "atras" del
+  // navegador devuelva la grilla como estaba.
+  q?: string;
+  orden?: string;
+  ver?: string;
+}>;
 
 export default async function Catalogo({
   searchParams,
@@ -30,6 +39,9 @@ export default async function Catalogo({
   const onlySale = sp.filter === "on-sale";
   const initialCat = sp.cat ?? "all";
   const initialMarca = sp.marca ?? "all";
+  const initialQuery = sp.q ?? "";
+  const initialOrden = sp.orden ?? "";
+  const initialVer = Number(sp.ver) || 0;
 
   const products = await prisma.product.findMany({
     where: {
@@ -72,6 +84,9 @@ export default async function Catalogo({
       categories={categories}
       initialCat={initialCat}
       initialMarca={initialMarca}
+      initialQuery={initialQuery}
+      initialOrden={initialOrden}
+      initialVer={initialVer}
       marcas={marcas}
       comisionUnPago={recargos.unPago}
     />
