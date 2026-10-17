@@ -480,7 +480,10 @@ export function ProductsTable({
                   className="h-4 w-4 accent-[var(--brand-red)]"
                 />
               </th>
-              <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} />
+              {/* La columna del producto pide ancho explicito: con table-auto
+                  las columnas de numeros se lo comian y el nombre quedaba
+                  cortado a la mitad. */}
+              <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[34%] min-w-[17rem]" />
               <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
               <SortHeader label="Precio base" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
               <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
@@ -515,7 +518,7 @@ export function ProductsTable({
                       className="h-4 w-4 accent-[var(--brand-red)]"
                     />
                   </td>
-                  <td className="px-2 py-3">
+                  <td className="w-[34%] min-w-[17rem] px-2 py-3">
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-white">
                         <Image
@@ -536,7 +539,7 @@ export function ProductsTable({
                         >
                           {p.title}
                         </Link>
-                        <div className="text-xs text-[var(--muted)]">
+                        <div className="whitespace-nowrap text-xs text-[var(--muted)]">
                           {p.locked && (
                             <span
                               title="Bloqueado: protegido contra cambios y borrado"
