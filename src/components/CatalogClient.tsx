@@ -118,21 +118,21 @@ export function CatalogClient({
   return (
     <main className="flex-1 bg-[var(--surface)]">
       {/* HERO */}
-      <section className="border-b border-[var(--border)] bg-white px-6 py-16">
+      <section className="border-b border-[var(--border)] bg-white px-6 py-10">
         <div className="mx-auto max-w-6xl text-center">
           <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
             Tienda online
           </span>
-          <h1 className="mt-3 font-display text-4xl font-black uppercase leading-tight sm:text-5xl md:text-6xl">
+          <h1 className="mt-2 font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
             {products.length}+ productos
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-[var(--muted)]">
+          <p className="mx-auto mt-3 max-w-xl text-sm text-[var(--muted)]">
             Explorá nuestro catálogo completo de sanitarios, grifería,
             calefactores y materiales de obra. Precios actualizados.
           </p>
 
           {/* SEARCH */}
-          <div className="mx-auto mt-10 flex max-w-xl items-center gap-2 rounded-full border border-[var(--border)] bg-white px-5 py-3 shadow-sm">
+          <div className="mx-auto mt-6 flex max-w-xl items-center gap-2 rounded-full border border-[var(--border)] bg-white px-5 py-2.5 shadow-sm">
             <Search className="h-5 w-5 shrink-0 text-[var(--muted)]" />
             <input
               type="search"
@@ -155,28 +155,34 @@ export function CatalogClient({
               label="Todos"
               count={counts.all}
             />
-            {categories.map((c) => (
+            {/* Solo las categorias que tienen algo. Una categoria en 0 no
+                lleva a ningun lado y ocupa una fila entera de la pantalla. */}
+            {categories
+              .filter((c) => (counts[c.id] || 0) > 0)
+              .map((c) => (
+                <CatButton
+                  key={c.id}
+                  active={activeCat === c.id}
+                  onClick={() => setActiveCat(c.id)}
+                  label={CAT_LABELS[c.id] || c.label}
+                  count={counts[c.id] || 0}
+                />
+              ))}
+            {(counts.otros || 0) > 0 && (
               <CatButton
-                key={c.id}
-                active={activeCat === c.id}
-                onClick={() => setActiveCat(c.id)}
-                label={CAT_LABELS[c.id] || c.label}
-                count={counts[c.id] || 0}
+                active={activeCat === "otros"}
+                onClick={() => setActiveCat("otros")}
+                label="Otros"
+                count={counts.otros || 0}
               />
-            ))}
-            <CatButton
-              active={activeCat === "otros"}
-              onClick={() => setActiveCat("otros")}
-              label="Otros"
-              count={counts.otros || 0}
-            />
+            )}
           </div>
 
           {/* MARCAS: segunda fila de filtros. Solo las que tienen productos,
               asi no mostramos marcas vacias. */}
           {marcasConProductos.length > 0 && (
-            <div className="mt-6 border-t border-[var(--border)] pt-6">
-              <div className="mb-3 font-display text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--muted)]">
+            <div className="mt-3 border-t border-[var(--border)] pt-3">
+              <div className="mb-2 font-display text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--muted)]">
                 Filtrar por marca
               </div>
               <div className="flex flex-wrap items-center justify-center gap-2">
@@ -309,7 +315,7 @@ function CatButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 font-display text-sm font-bold tracking-wide transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-[13px] font-bold tracking-wide transition-colors ${
         active
           ? "bg-[var(--brand-red)] text-white shadow-sm"
           : "border border-[var(--border)] bg-white text-foreground hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
