@@ -39,6 +39,10 @@ type Props = {
   comisionUnPago?: number;
 };
 
+// Cuantos productos entran por tanda. 24 llena varias filas en cualquier
+// pantalla sin hacer esperar de mas en un celular.
+const POR_TANDA = 24;
+
 const CAT_LABELS: Record<string, string> = {
   sanitarios: "Sanitarios",
   griferia: "Grifería",
@@ -87,7 +91,17 @@ export function CatalogClient({
   const [query, setQuery] = useState("");
   const [activeCat, setActiveCat] = useState<string>(initialCat);
   const [activeMarca, setActiveMarca] = useState<string>(initialMarca);
+  // Cuantos productos se muestran. Arranca en una tanda y crece con el boton
+  // "Mostrar mas".
+  const [visibles, setVisibles] = useState(POR_TANDA);
   const [orden, setOrden] = useState<Orden>("recomendados");
+
+  // Cambiar de filtro tiene que volver a la primera tanda: si no, con un
+  // filtro de 3 productos seguirias viendo el boton de mostrar mas.
+  const resetear = (fn: () => void) => {
+    fn();
+    setVisibles(POR_TANDA);
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -137,7 +151,10 @@ export function CatalogClient({
             <input
               type="search"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setVisibles(POR_TANDA);
+              }}
               placeholder="Buscar inodoro, grifería, salamandra..."
               className="w-full border-none bg-transparent outline-none placeholder:text-[var(--muted)]"
             />
@@ -158,7 +175,7 @@ export function CatalogClient({
             <div className="mx-auto flex w-max items-center gap-2 px-1">
             <CatButton
               active={activeCat === "all"}
-              onClick={() => setActiveCat("all")}
+              onClick={() => resetear(() => setActiveCat("all"))}
               label="Todos"
               count={counts.all}
             />
@@ -170,7 +187,7 @@ export function CatalogClient({
                 <CatButton
                   key={c.id}
                   active={activeCat === c.id}
-                  onClick={() => setActiveCat(c.id)}
+                  onClick={() => resetear(() => setActiveCat(c.id))}
                   label={CAT_LABELS[c.id] || c.label}
                   count={counts[c.id] || 0}
                 />
@@ -178,7 +195,7 @@ export function CatalogClient({
             {(counts.otros || 0) > 0 && (
               <CatButton
                 active={activeCat === "otros"}
-                onClick={() => setActiveCat("otros")}
+                onClick={() => resetear(() => setActiveCat("otros"))}
                 label="Otros"
                 count={counts.otros || 0}
               />
@@ -197,14 +214,14 @@ export function CatalogClient({
                 <div className="mx-auto flex w-max items-center gap-2 px-1">
                 <MarcaButton
                   active={activeMarca === "all"}
-                  onClick={() => setActiveMarca("all")}
+                  onClick={() => resetear(() => setActiveMarca("all"))}
                   label="Todas"
                 />
                 {marcasConProductos.map((m) => (
                   <MarcaButton
                     key={m.id}
                     active={activeMarca === m.id}
-                    onClick={() => setActiveMarca(m.id)}
+                    onClick={() => resetear(() => setActiveMarca(m.id))}
                     label={m.name}
                     count={marcaCounts[m.id]}
                   />
@@ -257,16 +274,28 @@ export function CatalogClient({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filtered.slice(0, 60).map((p) => (
+            {filtered.slice(0, visibles).map((p) => (
               <ProductCard key={p.itemId} p={p} comisionUnPago={comisionUnPago} />
             ))}
           </div>
         )}
-        {filtered.length > 60 && (
-          <p className="mt-6 text-center text-sm text-[var(--muted)]">
-            Mostrando los primeros 60 de {filtered.length}. Ajustá los filtros
-            para ver más específicos.
-          </p>
+
+        {/* "Mostrar más" en vez de paginar: el cliente no pierde el scroll ni
+            los filtros, y el pie del sitio sigue siendo alcanzable (que es lo
+            que rompe el scroll infinito). */}
+        {filtered.length > visibles && (
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setVisibles((v) => v + POR_TANDA)}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-black)] px-8 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-[var(--brand-red)]"
+            >
+              Mostrar más productos
+            </button>
+            <p className="text-xs text-[var(--muted)]">
+              Viendo {visibles} de {filtered.length}
+            </p>
+          </div>
         )}
       </section>
     </main>
