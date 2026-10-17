@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { nombreMarca } from "@/lib/marcas";
@@ -291,6 +292,20 @@ export function ProductDetail({
             <h1 className="uppercase mt-2 font-display text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">
               {product.title}
             </h1>
+            {/* Las dos opciones de gas bien arriba: es la primera pregunta
+                del cliente cuando compra un termotanque. */}
+            {etiquetasDe(product.title).length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {etiquetasDe(product.title).map((e) => (
+                  <span
+                    key={e.texto}
+                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold ${TONOS_ETIQUETA[e.tono]}`}
+                  >
+                    {e.texto}
+                  </span>
+                ))}
+              </div>
+            )}
             {product.brand && (
               <Link
                 href={`/tienda?marca=${product.brand}`}

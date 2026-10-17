@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatPrice as fmtPrice } from "@/lib/order";
 import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
+import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
 
 type Product = {
   itemId: string;
@@ -453,6 +454,20 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
         <h3 className="mt-1 uppercase text-sm font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)]">
           {p.title}
         </h3>
+        {/* Etiquetas del producto: en los termotanques a gas, las dos opciones
+            (natural y envasado) son lo primero que pregunta el cliente. */}
+        {etiquetasDe(p.title).length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {etiquetasDe(p.title).map((e) => (
+              <span
+                key={e.texto}
+                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold ${TONOS_ETIQUETA[e.tono]}`}
+              >
+                {e.texto}
+              </span>
+            ))}
+          </div>
+        )}
         {/* mt-auto empuja precio+boton al fondo para que queden alineados
             entre todas las cards de la fila, aunque los titulos tengan
             distinto largo. */}
