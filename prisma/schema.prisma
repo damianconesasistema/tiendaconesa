@@ -37,6 +37,7 @@ model Product {
   memo          String?  // Ayuda memoria del admin (proveedor, remito, cotizacion, etc.)
   shippingType  String?  @default("ambos") // ambos | retiro | envio | gratis
   locked        Boolean  @default(false) // Candado: bloquea edicion y borrado
+  views         Int      @default(0) // Visitas a la ficha. Las cuenta el navegador, una por sesion.
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   orderItems    OrderItem[]
@@ -47,6 +48,7 @@ model Product {
   @@index([brand])
   @@index([active])
   @@index([featured])
+  @@index([views])
 }
 
 // Imagenes del producto guardadas en la DB (bytes). Hasta N por producto

@@ -50,6 +50,8 @@ function buildOrderBy(
       return [{ salePrice: { sort: dir, nulls: "last" } }, titleTiebreak];
     case "stock":
       return [{ stock: dir }, titleTiebreak];
+    case "views":
+      return [{ views: dir }, titleTiebreak];
     case "estado":
       return [{ active: dir }, titleTiebreak];
     case "featured":

@@ -139,6 +139,29 @@ export function ProductDetail({
     });
   }, [product.itemId, product.title, product.category, effectivePrice]);
 
+  // Visitas para el panel. Van aparte de Analytics porque el admin las
+  // quiere ver en su propia tabla, al lado del stock y el precio.
+  //
+  // Una por sesion y por producto: si cuenta cada render, un refresh o
+  // volver con el boton atras inflan el numero y deja de servir para
+  // comparar productos entre si.
+  useEffect(() => {
+    const clave = `conesa:visto:${product.itemId}`;
+    try {
+      if (sessionStorage.getItem(clave)) return;
+      sessionStorage.setItem(clave, "1");
+    } catch {
+      // Sin sessionStorage preferimos no contar antes que contar de mas
+      return;
+    }
+    fetch(`/api/productos/${product.itemId}/visita`, {
+      method: "POST",
+      keepalive: true,
+    }).catch(() => {
+      /* un contador que falla no es motivo para molestar a nadie */
+    });
+  }, [product.itemId]);
+
   // Teclado en el zoom: Esc cierra, flechas pasan fotos.
   useEffect(() => {
     if (!zoom) return;

@@ -54,6 +54,7 @@ type Product = {
   active: boolean;
   featured: boolean;
   locked: boolean;
+  views: number;
 };
 
 const CAT_LABELS: Record<string, string> = {
@@ -484,6 +485,7 @@ export function ProductsTable({
               <SortHeader label="Precio base" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
               <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
               <SortHeader label="Stock" href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
+              <SortHeader label="Visitas" href={sortHref("views")} active={sort === "views"} dir={dir} align="right" className="hidden sm:table-cell" />
               <SortHeader label="Estado" href={sortHref("estado")} active={sort === "estado"} dir={dir} align="center" />
               <SortHeader label="Destacado" href={sortHref("featured")} active={sort === "featured"} dir={dir} align="center" />
               <th className="px-2 py-3"></th>
@@ -576,6 +578,14 @@ export function ProductsTable({
                   </td>
                   <td className="px-2 py-3 text-right">
                     <InlineNumber itemId={p.itemId} field="stock" initial={p.stock} disabled={p.locked} />
+                  </td>
+                  {/* Solo lectura: lo cuenta la tienda, no se edita a mano */}
+                  <td className="hidden px-2 py-3 text-right tabular-nums sm:table-cell">
+                    {p.views > 0 ? (
+                      <span className="font-medium">{p.views.toLocaleString("es-AR")}</span>
+                    ) : (
+                      <span className="text-[var(--border)]">—</span>
+                    )}
                   </td>
                   <td className="px-2 py-3 text-center">
                     <InlineSegmented
