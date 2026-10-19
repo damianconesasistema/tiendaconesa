@@ -44,6 +44,8 @@ function buildOrderBy(
       return [{ title: dir }];
     case "category":
       return [{ category: dir }, titleTiebreak];
+    case "brand":
+      return [{ brand: { sort: dir, nulls: "last" } }, titleTiebreak];
     case "price":
       return [{ price: dir }, titleTiebreak];
     case "sale":
@@ -240,6 +242,7 @@ export default async function ProductosAdmin({
           products={products}
           total={total}
           volver={volver}
+          marcas={await getMarcas()}
           filter={{ q, cat, marca, filter }}
           sort={sort}
           dir={dir}

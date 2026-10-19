@@ -47,6 +47,7 @@ type Product = {
   itemId: string;
   title: string;
   category: string;
+  brand: string | null;
   imageUrl: string | null;
   price: number;
   salePrice: number | null;
@@ -76,6 +77,7 @@ export function ProductsTable({
   total = products.length,
   filter,
   volver = "",
+  marcas = [],
   sort = "",
   dir = "desc",
 }: {
@@ -84,6 +86,8 @@ export function ProductsTable({
   filter?: { q?: string; cat?: string; marca?: string; filter?: string };
   /** Query string de la lista, para que la ficha sepa a donde volver. */
   volver?: string;
+  /** Para mostrar el nombre lindo de la marca, no el slug. */
+  marcas?: readonly { id: string; name: string }[];
   sort?: string;
   dir?: "asc" | "desc";
 }) {
@@ -494,6 +498,7 @@ export function ProductsTable({
                   cortado a la mitad. */}
               <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[30%] min-w-[14rem] md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] md:bg-[var(--surface)]" />
               <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
+              <SortHeader label="Marca" href={sortHref("brand")} active={sort === "brand"} dir={dir} className="hidden lg:table-cell" />
               <SortHeader label="Precio base" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
               <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
               <SortHeader label="Stock" href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
@@ -585,6 +590,16 @@ export function ProductsTable({
                   </td>
                   <td className="px-2 py-3 hidden lg:table-cell text-xs text-[var(--muted)]">
                     {CAT_LABELS[p.category] || p.category}
+                  </td>
+                  <td className="px-2 py-3 hidden lg:table-cell text-xs">
+                    {p.brand ? (
+                      <span className="text-[var(--muted)]">
+                        {marcas.find((m) => m.id === p.brand)?.name ?? p.brand}
+                      </span>
+                    ) : (
+                      // Sin marca es accionable: es lo que falta etiquetar.
+                      <span className="text-[var(--brand-red)]/60">sin marca</span>
+                    )}
                   </td>
                   <td className="px-2 py-3 text-right">
                     <InlineNumber itemId={p.itemId} field="price" initial={p.price} disabled={p.locked} />
