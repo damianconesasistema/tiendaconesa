@@ -18,6 +18,7 @@ const CATEGORIES = [
   { id: "materiales", label: "Tanques" },
   { id: "piletas", label: "Piletas" },
   { id: "herramientas", label: "Herramientas" },
+  { id: "cocina", label: "Cocina y Ventilación" },
   { id: "otros", label: "Otros" },
 ];
 

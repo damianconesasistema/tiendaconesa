@@ -129,5 +129,20 @@
       "percutor",
       "dogo"
     ]
+  },
+  {
+    "id": "cocina",
+    "label": "Cocina y Ventilación",
+    "keywords": [
+      "campana",
+      "extractor",
+      "anafe",
+      "hornalla",
+      "cocina",
+      "ventilacion",
+      "ventilación",
+      "filtro de carbon",
+      "purificador"
+    ]
   }
 ]

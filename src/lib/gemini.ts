@@ -44,6 +44,7 @@ const CATEGORIA_LABEL: Record<string, string> = {
   materiales: "tanques de agua y cámaras sépticas",
   piletas: "piletas y bachas",
   herramientas: "herramientas electricas y de mano",
+  cocina: "campanas de cocina, extractores de aire y anafes",
   otros: "artículos de ferretería y sanitarios",
 };
 

@@ -46,6 +46,7 @@ export const business = {
     { name: "Tanques", slug: "materiales", description: "Tanques de agua y cámaras sépticas" },
     { name: "Accesorios", slug: "accesorios", description: "Grifos, flexibles, repuestos" },
     { name: "Herramientas", slug: "herramientas", description: "Taladros, amoladoras y herramientas electricas" },
+    { name: "Cocina y Ventilación", slug: "cocina", description: "Campanas, extractores y anafes" },
   ],
   // Las marcas viven en src/lib/marcas.ts: ahi van el logo, los alias para
   // detectarlas en los titulos y el slug que se guarda en Product.brand.

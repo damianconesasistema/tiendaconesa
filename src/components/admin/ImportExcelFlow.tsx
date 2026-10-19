@@ -315,7 +315,7 @@ export function ImportExcelFlow() {
               <TemplateCol col="sku / codigo_interno" field="Tu código interno (opcional). Sirve para sincronizar stock y matchear fotos." ex="GRI-001" />
               <TemplateCol col="oferta / precio_oferta" field="Precio oferta (opcional, menor al precio)" ex="135000" />
               <TemplateCol col="stock" field="Unidades disponibles" ex="12" />
-              <TemplateCol col="categoria" field="sanitarios, griferia, banera, salamandras, calefones, accesorios, piletas, materiales, herramientas, otros" ex="sanitarios" />
+              <TemplateCol col="categoria" field="sanitarios, griferia, banera, salamandras, calefones, accesorios, piletas, materiales, herramientas, cocina, otros" ex="sanitarios" />
               <TemplateCol col="activo" field="Publicado (SI/NO)" ex="SI" />
               <TemplateCol col="destacado" field="Aparece en home (SI/NO)" ex="SI" />
               <TemplateCol col="descripcion" field="Detalle" ex="Taza + depósito" />

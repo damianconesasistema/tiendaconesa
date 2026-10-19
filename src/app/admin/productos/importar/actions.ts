@@ -131,6 +131,7 @@ const VALID_CATEGORIES = new Set([
   "materiales",
   "piletas",
   "herramientas",
+  "cocina",
   "otros",
 ]);
 
@@ -184,6 +185,12 @@ function normalizeCategory(v: unknown): string {
     raw.includes("amolad")
   )
     return "herramientas";
+  if (
+    raw.includes("campana") ||
+    raw.includes("extractor") ||
+    raw.includes("anafe")
+  )
+    return "cocina";
   if (raw.includes("mat") || raw.includes("ceme") || raw.includes("hierro"))
     return "materiales";
   return "otros";
