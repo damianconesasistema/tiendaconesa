@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useRef, useTransition } from "react";
+import { useActionState, useEffect, useState, useRef, useTransition } from "react";
 import { Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import { MARCAS_BASE, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
@@ -56,6 +56,105 @@ export function ProductForm({
     null,
   );
 
+  // --- Borrador local mientras se edita ---
+  //
+  // La ficha es larga y se carga a mano. Si la pagina se recarga en el
+  // medio (subir fotos con la IA de fondo come bastante memoria, un toque
+  // sin querer, una caida), todo lo escrito y no guardado se pierde y hay
+  // que empezar de cero. Se guarda una copia en el navegador, solo en esta
+  // pestaña, y se borra al guardar de verdad.
+  //
+  // Las casillas de envio comparten el name (shippingType), asi que la
+  // clave lleva tambien el value para no pisarse entre ellas.
+  const CLAVE_BORRADOR = `conesa.borrador.${product.itemId}`;
+  const VIDA_BORRADOR = 6 * 60 * 60 * 1000;
+  const [borradorRecuperado, setBorradorRecuperado] = useState(false);
+
+  function claveDe(campo: HTMLInputElement) {
+    return campo.type === "checkbox" ? `${campo.name}::${campo.value}` : campo.name;
+  }
+
+  function camposDelForm(form: HTMLFormElement) {
+    return Array.from(form.elements).filter((el): el is HTMLInputElement => {
+      const campo = el as HTMLInputElement;
+      return (
+        !!campo.name &&
+        campo.type !== "hidden" &&
+        campo.type !== "file" &&
+        campo.type !== "submit" &&
+        campo.type !== "button"
+      );
+    });
+  }
+
+  function guardarBorrador() {
+    const form = formRef.current;
+    if (!form) return;
+    const datos: Record<string, string | boolean> = {};
+    for (const campo of camposDelForm(form))
+      datos[claveDe(campo)] =
+        campo.type === "checkbox" ? campo.checked : campo.value;
+    try {
+      sessionStorage.setItem(
+        CLAVE_BORRADOR,
+        JSON.stringify({ en: Date.now(), datos }),
+      );
+    } catch {}
+  }
+
+  function descartarBorrador() {
+    try {
+      sessionStorage.removeItem(CLAVE_BORRADOR);
+    } catch {}
+    setBorradorRecuperado(false);
+  }
+
+  // Al montar: si quedo un borrador, se repone sobre los campos.
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    let guardado: string | null = null;
+    try {
+      guardado = sessionStorage.getItem(CLAVE_BORRADOR);
+    } catch {}
+    if (!guardado) return;
+    try {
+      const { en, datos } = JSON.parse(guardado) as {
+        en: number;
+        datos: Record<string, string | boolean>;
+      };
+      // Un borrador de ayer confunde mas de lo que ayuda.
+      if (Date.now() - en > VIDA_BORRADOR) {
+        sessionStorage.removeItem(CLAVE_BORRADOR);
+        return;
+      }
+      let cambio = false;
+      for (const campo of camposDelForm(form)) {
+        const valor = datos[claveDe(campo)];
+        if (valor === undefined) continue;
+        if (typeof valor === "boolean") {
+          if (campo.checked !== valor) {
+            campo.checked = valor;
+            cambio = true;
+          }
+        } else if (campo.value !== valor) {
+          campo.value = valor;
+          cambio = true;
+        }
+      }
+      if (cambio) setBorradorRecuperado(true);
+      else sessionStorage.removeItem(CLAVE_BORRADOR);
+    } catch {}
+    // Solo al montar: despues lo maneja el onChange del form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Guardado de verdad: el borrador ya no hace falta.
+  useEffect(() => {
+    if (state && "ok" in state && state.ok) descartarBorrador();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
   // --- Descripcion con IA ---
   const formRef = useRef<HTMLFormElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
@@ -98,7 +197,12 @@ export function ProductForm({
   }
 
   return (
-    <form ref={formRef} action={formAction} className="mt-6 space-y-5">
+    <form
+      ref={formRef}
+      action={formAction}
+      onChange={guardarBorrador}
+      className="mt-6 space-y-5"
+    >
       <input type="hidden" name="itemId" value={product.itemId} />
 
       {/* Guardar tambien arriba. La ficha es larga y con la descripcion
@@ -107,6 +211,26 @@ export function ProductForm({
 
           Sin sticky a proposito: el <body> del sitio tiene su propio
           scroll y ahi position:sticky no agarra. */}
+      {borradorRecuperado && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span className="flex-1">
+            Recuperamos lo que estabas editando y todavía no habías guardado.
+            Revisalo y apretá Guardar cambios.
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              descartarBorrador();
+              window.location.reload();
+            }}
+            className="shrink-0 font-bold underline hover:no-underline"
+          >
+            Descartar y volver a lo guardado
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-end gap-3 border-b border-[var(--border)] pb-4">
         {state && "ok" in state && state.ok && (
           <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700">
