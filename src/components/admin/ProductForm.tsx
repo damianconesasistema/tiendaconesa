@@ -103,8 +103,11 @@ export function ProductForm({
 
       {/* Guardar tambien arriba. La ficha es larga y con la descripcion
           cargada el boton de abajo queda a varias pantallas de scroll.
-          Es el mismo submit del form, asi que comparten el pendiente. */}
-      <div className="sticky top-0 z-20 -mt-2 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-white/95 py-3 backdrop-blur">
+          Es el mismo submit del form, asi que comparten el pendiente.
+
+          Sin sticky a proposito: el <body> del sitio tiene su propio
+          scroll y ahi position:sticky no agarra. */}
+      <div className="flex items-center justify-end gap-3 border-b border-[var(--border)] pb-4">
         {state && "ok" in state && state.ok && (
           <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700">
             <Check className="h-3.5 w-3.5" />
