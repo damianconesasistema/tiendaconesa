@@ -75,16 +75,23 @@ export function ProductsTable({
   products,
   total = products.length,
   filter,
+  volver = "",
   sort = "",
   dir = "desc",
 }: {
   products: Product[];
   total?: number;
   filter?: { q?: string; cat?: string; marca?: string; filter?: string };
+  /** Query string de la lista, para que la ficha sepa a donde volver. */
+  volver?: string;
   sort?: string;
   dir?: "asc" | "desc";
 }) {
   const router = useRouter();
+  // La ficha recibe por donde volver; si no hay filtros, es la lista pelada.
+  const fichaDe = (itemId: string) =>
+    `/admin/productos/${itemId}` +
+    (volver ? `?volver=${encodeURIComponent(volver)}` : "");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -149,7 +156,7 @@ export function ProductsTable({
     startTransition(async () => {
       const r = await duplicateProduct(itemId);
       if (r.ok && r.itemId) {
-        router.push(`/admin/productos/${r.itemId}`);
+        router.push(fichaDe(r.itemId));
       } else {
         setFeedback(`Error: ${r.error}`);
         setTimeout(() => setFeedback(null), 3000);
@@ -247,6 +254,7 @@ export function ProductsTable({
     const params = new URLSearchParams();
     if (filter?.q) params.set("q", filter.q);
     if (filter?.cat) params.set("cat", filter.cat);
+    if (filter?.marca) params.set("marca", filter.marca);
     if (filter?.filter) params.set("filter", filter.filter);
     const nextDir =
       sort === col ? (dir === "asc" ? "desc" : "asc") : DEFAULT_DIR[col] ?? "asc";
@@ -545,7 +553,7 @@ export function ProductsTable({
                       </div>
                       <div className="min-w-0">
                         <Link
-                          href={`/admin/productos/${p.itemId}`}
+                          href={fichaDe(p.itemId)}
                           className="line-clamp-2 font-medium uppercase hover:text-[var(--brand-red)]"
                         >
                           {p.title}
@@ -635,7 +643,7 @@ export function ProductsTable({
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                       <Link
-                        href={`/admin/productos/${p.itemId}`}
+                        href={fichaDe(p.itemId)}
                         title="Editar ficha completa"
                         className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
                       >

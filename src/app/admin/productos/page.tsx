@@ -97,6 +97,22 @@ export default async function ProductosAdmin({
   const sort = sp.sort || "";
   const dir: "asc" | "desc" = sp.dir === "asc" ? "asc" : "desc";
 
+  // Como volver a ESTA pantalla desde la ficha de un producto. Sin esto,
+  // editar uno y volver te dejaba en la lista sin filtros: trabajando sobre
+  // los inactivos, cada producto que tocabas te mandaba de nuevo al principio.
+  const volver = (() => {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (cat) p.set("cat", cat);
+    if (marca) p.set("marca", marca);
+    if (filter) p.set("filter", filter);
+    if (page > 1) p.set("page", String(page));
+    if (sp.sort) p.set("sort", sort);
+    if (sp.sort) p.set("dir", dir);
+    const qs = p.toString();
+    return qs ? `?${qs}` : "";
+  })();
+
   const where: Prisma.ProductWhereInput = {};
   // El buscador mira todo lo que sirve para encontrar un producto: el titulo,
   // el SKU, el codigo, la marca, la categoria, la descripcion, la nota interna (donde
@@ -223,6 +239,7 @@ export default async function ProductosAdmin({
         <ProductsTable
           products={products}
           total={total}
+          volver={volver}
           filter={{ q, cat, marca, filter }}
           sort={sort}
           dir={dir}

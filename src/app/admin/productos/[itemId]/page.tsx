@@ -20,11 +20,25 @@ export const metadata: Metadata = {
 
 type RouteProps = {
   params: Promise<{ itemId: string }>;
+  // `volver` lo cuelga la lista: trae sus filtros para poder regresar a la
+  // misma pantalla y no al catalogo entero.
+  searchParams: Promise<{ volver?: string }>;
 };
 
-export default async function EditProductPage({ params }: RouteProps) {
+export default async function EditProductPage({
+  params,
+  searchParams,
+}: RouteProps) {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
+
+  // Solo se acepta una query string relativa: si no, un link preparado
+  // podria usar este boton para mandar al admin a otro sitio.
+  const { volver } = await searchParams;
+  const hrefVolver =
+    volver && volver.startsWith("?") && !volver.includes("//")
+      ? `/admin/productos${volver}`
+      : "/admin/productos";
 
   const { itemId } = await params;
   const product = await prisma.product.findUnique({
@@ -51,7 +65,7 @@ export default async function EditProductPage({ params }: RouteProps) {
       verTienda={`/tienda/${product.itemId}`}
     >
       <Link
-        href="/admin/productos"
+        href={hrefVolver}
         className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--brand-red)]"
       >
         <ArrowLeft className="h-4 w-4" />
