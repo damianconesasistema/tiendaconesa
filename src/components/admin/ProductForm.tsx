@@ -101,6 +101,25 @@ export function ProductForm({
     <form ref={formRef} action={formAction} className="mt-6 space-y-5">
       <input type="hidden" name="itemId" value={product.itemId} />
 
+      {/* Guardar tambien arriba. La ficha es larga y con la descripcion
+          cargada el boton de abajo queda a varias pantallas de scroll.
+          Es el mismo submit del form, asi que comparten el pendiente. */}
+      <div className="sticky top-0 z-20 -mt-2 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-white/95 py-3 backdrop-blur">
+        {state && "ok" in state && state.ok && (
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700">
+            <Check className="h-3.5 w-3.5" />
+            Guardado
+          </span>
+        )}
+        <button
+          type="submit"
+          disabled={isPending}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-[var(--brand-red-hover)] disabled:opacity-50"
+        >
+          {isPending ? "Guardando…" : "Guardar cambios"}
+        </button>
+      </div>
+
       <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
         <div>
           <Label>Título</Label>
