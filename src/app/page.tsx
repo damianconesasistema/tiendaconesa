@@ -6,6 +6,7 @@ import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { CuotasBanner } from "@/components/CuotasBanner";
+import { OfertasBanner } from "@/components/OfertasBanner";
 import { prisma } from "@/lib/db";
 import { getMarcasConLogo } from "@/lib/marcas-server";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
@@ -52,6 +53,33 @@ export default async function Home() {
   const dctoContadoPct = Math.round(
     (1 - 1 / (1 + recargos.unPago / 100)) * 100,
   );
+  // Para el banner de arriba: todas las que tienen descuento, para poder
+  // contarlas y quedarse con las de mayor rebaja. El descuento no se puede
+  // ordenar en la base (es una cuenta entre dos columnas), asi que se
+  // traen livianas y se ordenan aca.
+  const todasEnOferta = await prisma.product.findMany({
+    where: {
+      active: true,
+      salePrice: { not: null },
+      itemId: { not: "__RESET_PRICES_MARKER__" },
+    },
+    select: {
+      itemId: true,
+      title: true,
+      price: true,
+      salePrice: true,
+      category: true,
+      imageUrl: true,
+    },
+  });
+  const mejoresOfertas = [...todasEnOferta]
+    .filter((p) => p.salePrice !== null && p.salePrice < p.price)
+    .sort(
+      (a, b) =>
+        (b.price - b.salePrice!) / b.price - (a.price - a.salePrice!) / a.price,
+    )
+    .slice(0, 4);
+
   // Ofertas: productos con salePrice < price
   const onSale = await prisma.product.findMany({
     where: {
@@ -126,6 +154,17 @@ export default async function Home() {
 
       {/* HERO */}
       <HeroCarousel />
+
+      {/* Las ofertas, arriba de todo: la seccion completa queda mas abajo,
+          pero recien a los 3.500px de scroll y nadie llegaba. */}
+      <OfertasBanner
+        ofertas={mejoresOfertas}
+        total={
+          todasEnOferta.filter((p) => p.salePrice !== null && p.salePrice < p.price)
+            .length
+        }
+        comisionUnPago={recargos.unPago}
+      />
 
       {/* FINANCIACIÓN: apenas termina el hero, es el primer gancho */}
       <CuotasBanner cuotasMax={cuotasMax} dctoContadoPct={dctoContadoPct} />
