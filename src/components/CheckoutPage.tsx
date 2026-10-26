@@ -15,7 +15,7 @@ import {
 import { useCart, lineaDe } from "@/lib/cart";
 import { gaArrancarCheckout } from "@/lib/ga";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
-import { localidadesTraslasierra } from "@/lib/traslasierra";
+import { localidadesPorZona } from "@/lib/traslasierra";
 import { formatPrice, cartTotal, buildOrderMessage, whatsappOrderLink } from "@/lib/order";
 import { business } from "@/lib/business";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
@@ -331,11 +331,22 @@ export function CheckoutPage({
                       }`}
                     >
                       <option value="">— Elegí una localidad —</option>
-                      {localidadesTraslasierra.map((l) => (
-                        <option key={l.name} value={l.name}>
-                          {l.name}
-                        </option>
-                      ))}
+                      {/* Separadas por zona: el noroeste esta bastante mas
+                          lejos y conviene que se note al elegir. */}
+                      <optgroup label="Valle de Traslasierra">
+                        {localidadesPorZona().valle.map((l) => (
+                          <option key={l.name} value={l.name}>
+                            {l.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Área Noroeste">
+                        {localidadesPorZona().noroeste.map((l) => (
+                          <option key={l.name} value={l.name}>
+                            {l.name}
+                          </option>
+                        ))}
+                      </optgroup>
                     </select>
                     {errors.locality && (
                       <p className="mt-1 text-xs text-red-500">
