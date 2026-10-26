@@ -11,30 +11,36 @@ export const SHIPPING_TYPES = [
   {
     id: "envio",
     label: "Envío a Traslasierra",
-    desc: "Mina Clavero, Nono, Villa Dolores y más",
-  },
-  {
-    id: "gratis",
-    label: "Envío gratis",
-    desc: "A todo el Valle de Traslasierra",
+    desc: "Costo a coordinar por WhatsApp",
   },
 ] as const;
 
-const VALID = ["retiro", "envio", "gratis"];
+// "gratis" ya no es una opcion: ningun envio va sin cargo, se coordina
+// siempre. Los productos que lo tengan guardado de antes se leen como
+// "envio", asi no hay que migrar nada ni queda uno prometiendo algo que
+// no cumplimos.
+const VALID = ["retiro", "envio"];
 
 // Convierte el valor guardado a una lista de ids.
 // "ambos" (legacy) => retiro + envio. Vacío => retiro + envio (default).
 export function parseShipping(s: string | null | undefined): string[] {
   if (!s || s === "ambos") return ["retiro", "envio"];
-  const arr = s
-    .split(",")
-    .map((x) => x.trim())
-    .filter((x) => VALID.includes(x));
+  const arr = [
+    ...new Set(
+      s
+        .split(",")
+        .map((x) => x.trim())
+        .map((x) => (x === "gratis" ? "envio" : x))
+        .filter((x) => VALID.includes(x)),
+    ),
+  ];
   return arr.length ? arr : ["retiro", "envio"];
 }
 
 // Convierte una lista de ids al string que guardamos.
 export function formatShipping(ids: string[]): string {
-  const clean = ids.filter((x) => VALID.includes(x));
+  const clean = [
+    ...new Set(ids.map((x) => (x === "gratis" ? "envio" : x))),
+  ].filter((x) => VALID.includes(x));
   return (clean.length ? clean : ["retiro", "envio"]).join(",");
 }

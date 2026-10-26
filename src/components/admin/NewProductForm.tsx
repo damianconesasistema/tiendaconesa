@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import { SHIPPING_TYPES } from "@/lib/shipping";
 import { useRouter } from "next/navigation";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import { MARCAS_BASE, type Marca } from "@/lib/marcas";
@@ -87,11 +88,7 @@ export function NewProductForm({
         <div>
           <Label>Tipo de envío (podés elegir más de uno)</Label>
           <div className="mt-1.5 flex flex-wrap gap-2">
-            {[
-              { id: "retiro", label: "Retiro en tienda" },
-              { id: "envio", label: "Envío a Traslasierra" },
-              { id: "gratis", label: "Envío gratis" },
-            ].map((s) => (
+            {SHIPPING_TYPES.map((s) => (
               <label
                 key={s.id}
                 className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm hover:border-[var(--brand-red)]/40 has-[:checked]:border-[var(--brand-red)] has-[:checked]:bg-[var(--brand-red)]/5"
@@ -100,7 +97,7 @@ export function NewProductForm({
                   type="checkbox"
                   name="shippingType"
                   value={s.id}
-                  defaultChecked={s.id !== "gratis"}
+                  defaultChecked
                   className="h-4 w-4 accent-[var(--brand-red)]"
                 />
                 {s.label}

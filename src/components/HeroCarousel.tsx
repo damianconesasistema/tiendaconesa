@@ -137,7 +137,7 @@ export function HeroCarousel() {
           <BenefitChip
             icon={Truck}
             title="Envíos a Traslasierra"
-            desc="Mina Clavero, Nono, Villa Dolores y más"
+            desc="Costo a coordinar por WhatsApp"
           />
           <BenefitChip
             icon={CreditCard}

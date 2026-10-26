@@ -580,18 +580,11 @@ export function ProductDetail({
                   desc="Villa Cura Brochero · sin costo"
                 />
               )}
-              {shippingList.includes("gratis") && (
-                <Benefit
-                  icon={Truck}
-                  title="Envío gratis"
-                  desc="A todo el Valle de Traslasierra"
-                />
-              )}
               {shippingList.includes("envio") && (
                 <Benefit
                   icon={Truck}
                   title="Envío a Traslasierra"
-                  desc="Mina Clavero, Nono, Villa Dolores y más"
+                  desc="Costo a coordinar por WhatsApp"
                 />
               )}
               <Benefit
