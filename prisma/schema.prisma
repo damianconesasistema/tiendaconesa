@@ -21,28 +21,29 @@ model Setting {
 }
 
 model Product {
-  id            String   @id @default(cuid())
-  itemId        String   @unique // ID original interno (MLA12345...)
-  sku           String?  @unique // Codigo que el admin usa para identificar el articulo
-  title         String
-  description   String?  // Opcional, para la ficha
-  category      String   // sanitarios, griferia, banera, etc.
-  brand         String?  // slug de marca (fv, ferrum, piazza...). Ver src/lib/marcas.ts
-  price         Int      // en pesos argentinos (sin decimales)
-  salePrice     Int?     // precio con descuento (opcional)
-  stock         Int      @default(0)
-  active        Boolean  @default(true)
-  featured      Boolean  @default(false) // Aparece en destacados del home
-  imageUrl      String?  // Override: por defecto usa /categories/{category}.jpg
-  memo          String?  // Ayuda memoria del admin (proveedor, remito, cotizacion, etc.)
-  shippingType  String?  @default("ambos") // ambos | retiro | envio | gratis
-  locked        Boolean  @default(false) // Candado: bloquea edicion y borrado
-  views         Int      @default(0) // Visitas a la ficha. Las cuenta el navegador, una por sesion.
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  orderItems    OrderItem[]
-  priceHistory  PriceHistory[]
-  images        ProductImage[]
+  id           String          @id @default(cuid())
+  itemId       String          @unique // ID original interno (MLA12345...)
+  sku          String?         @unique // Codigo que el admin usa para identificar el articulo
+  title        String
+  description  String? // Opcional, para la ficha
+  category     String // sanitarios, griferia, banera, etc.
+  brand        String? // slug de marca (fv, ferrum, piazza...). Ver src/lib/marcas.ts
+  price        Int // en pesos argentinos (sin decimales)
+  salePrice    Int? // precio con descuento (opcional)
+  stock        Int             @default(0)
+  active       Boolean         @default(true)
+  featured     Boolean         @default(false) // Aparece en destacados del home
+  imageUrl     String? // Override: por defecto usa /categories/{category}.jpg
+  memo         String? // Ayuda memoria del admin (proveedor, remito, cotizacion, etc.)
+  shippingType String?         @default("ambos") // ambos | retiro | envio | gratis
+  locked       Boolean         @default(false) // Candado: bloquea edicion y borrado
+  views        Int             @default(0) // Visitas a la ficha. Las cuenta el navegador, una por sesion.
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  orderItems   OrderItem[]
+  priceHistory PriceHistory[]
+  sucursales   BranchProduct[]
+  images       ProductImage[]
 
   @@index([category])
   @@index([brand])
@@ -60,8 +61,8 @@ model ProductImage {
   id          String   @id @default(cuid())
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId   String
-  data        Bytes    // contenido binario de la imagen
-  contentType String   // image/jpeg, image/png, image/webp
+  data        Bytes // contenido binario de la imagen
+  contentType String // image/jpeg, image/png, image/webp
   position    Int      @default(0) // orden en la galeria; menor = principal
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -72,14 +73,14 @@ model ProductImage {
 // Historial de precios: se registra cada vez que cambia price o salePrice.
 // Permite ver a cuanto se vendio antes y detectar subas del proveedor.
 model PriceHistory {
-  id         String   @id @default(cuid())
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId  String
-  price      Int      // precio normal al momento del cambio
-  salePrice  Int?     // oferta al momento del cambio (si existia)
-  note       String?  // etiqueta opcional ("suba proveedor", "liquidacion", etc.)
-  source     String?  // de donde vino el cambio: manual, excel, bulk, seed
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  price     Int // precio normal al momento del cambio
+  salePrice Int? // oferta al momento del cambio (si existia)
+  note      String? // etiqueta opcional ("suba proveedor", "liquidacion", etc.)
+  source    String? // de donde vino el cambio: manual, excel, bulk, seed
+  createdAt DateTime @default(now())
 
   @@index([productId, createdAt])
 }
@@ -107,65 +108,65 @@ model Order {
   customer     Customer    @relation(fields: [customerId], references: [id])
   customerId   String
   items        OrderItem[]
-  shipping     String      // "retiro" | "envio"
-  locality     String?     // solo si shipping = envio
+  shipping     String // "retiro" | "envio"
+  locality     String? // solo si shipping = envio
   street       String?
   streetNumber String?
   reference    String?
   notes        String?
-  subtotal     Int         // suma de items
+  subtotal     Int // suma de items
   shippingCost Int         @default(0)
   surcharge    Int         @default(0) // recargo por pagar con tarjeta
-  total        Int         // subtotal + shippingCost + surcharge
-  paidAt       DateTime?   // marca manual cuando el admin confirma pago
+  total        Int // subtotal + shippingCost + surcharge
+  paidAt       DateTime? // marca manual cuando el admin confirma pago
 
   // --- Pago online (Payway / Decidir) ---
   // paymentMethod: "transferencia" | "efectivo_local" | "tarjeta"
-  paymentMethod       String?
+  paymentMethod          String?
   // Estado especifico de Payway: approved | rejected | pending | error | null
-  paywayStatus        String?
-  paywayPaymentId     String?  // id devuelto por Payway (para refunds / tracking)
-  paywaySiteTxId      String?  // site_transaction_id que mandamos
-  paywayAuthCode      String?  // codigo de autorizacion (POS)
-  paywayCardBrand     String?  // visa, master, amex, etc.
-  paywayCardLast4     String?  // ultimos 4 digitos
-  paywayCardInstallments Int?  // cuotas elegidas
-  paywayErrorCode     String?  // codigo de error en caso de rechazo
-  paywayErrorMessage  String?  // mensaje de error en caso de rechazo
-  paywayRawResponse   String?  // JSON crudo de la respuesta (para debug/soporte)
+  paywayStatus           String?
+  paywayPaymentId        String? // id devuelto por Payway (para refunds / tracking)
+  paywaySiteTxId         String? // site_transaction_id que mandamos
+  paywayAuthCode         String? // codigo de autorizacion (POS)
+  paywayCardBrand        String? // visa, master, amex, etc.
+  paywayCardLast4        String? // ultimos 4 digitos
+  paywayCardInstallments Int? // cuotas elegidas
+  paywayErrorCode        String? // codigo de error en caso de rechazo
+  paywayErrorMessage     String? // mensaje de error en caso de rechazo
+  paywayRawResponse      String? // JSON crudo de la respuesta (para debug/soporte)
 
   // --- Pago online (MercadoPago - Checkout Pro) ---
-  mpPreferenceId  String?  // id de la preferencia creada
-  mpPaymentId     String?  // id del pago en MercadoPago
-  mpStatus        String?  // approved | pending | in_process | rejected | refunded | cancelled
-  mpStatusDetail  String?  // detalle (accredited, cc_rejected_*, etc.)
-  mpPaymentType   String?  // credit_card, debit_card, ticket, account_money, etc.
-  mpRawResponse   String?  // JSON crudo (debug/soporte)
+  mpPreferenceId String? // id de la preferencia creada
+  mpPaymentId    String? // id del pago en MercadoPago
+  mpStatus       String? // approved | pending | in_process | rejected | refunded | cancelled
+  mpStatusDetail String? // detalle (accredited, cc_rejected_*, etc.)
+  mpPaymentType  String? // credit_card, debit_card, ticket, account_money, etc.
+  mpRawResponse  String? // JSON crudo (debug/soporte)
 
   // --- Facturacion electronica (ARCA / AFIP) ---
   // Se completan cuando el admin aprieta "Facturar" y ARCA devuelve el CAE.
   // Si cbteNro esta cargado, el pedido ya esta facturado y no se vuelve a emitir.
-  cbteTipo      Int?      // 1 = Factura A, 6 = Factura B, 11 = Factura C
-  ptoVta        Int?      // punto de venta usado (6 = TIENDA ONLINE)
-  cbteNro       Int?      // numero de comprobante que asigno ARCA
-  cae           String?   // codigo de autorizacion electronico
-  caeVto        DateTime? // vencimiento del CAE
-  facturadoAt   DateTime? // cuando se emitio
-  facturaNeto   Int?      // neto gravado en pesos (sin IVA)
-  facturaIva    Int?      // IVA 21% en pesos
-  afipRaw       String?   // respuesta cruda de ARCA (debug y respaldo)
+  cbteTipo    Int? // 1 = Factura A, 6 = Factura B, 11 = Factura C
+  ptoVta      Int? // punto de venta usado (6 = TIENDA ONLINE)
+  cbteNro     Int? // numero de comprobante que asigno ARCA
+  cae         String? // codigo de autorizacion electronico
+  caeVto      DateTime? // vencimiento del CAE
+  facturadoAt DateTime? // cuando se emitio
+  facturaNeto Int? // neto gravado en pesos (sin IVA)
+  facturaIva  Int? // IVA 21% en pesos
+  afipRaw     String? // respuesta cruda de ARCA (debug y respaldo)
 
   // --- Nota de credito (anulacion de la factura de arriba) ---
-  ncTipo        Int?      // 3 = NC A, 8 = NC B
-  ncNro         Int?
-  ncCae         String?
-  ncCaeVto      DateTime?
-  ncAt          DateTime?
-  ncMotivo      String?   // lo escribe el admin al anular
-  ncRaw         String?
+  ncTipo   Int? // 3 = NC A, 8 = NC B
+  ncNro    Int?
+  ncCae    String?
+  ncCaeVto DateTime?
+  ncAt     DateTime?
+  ncMotivo String? // lo escribe el admin al anular
+  ncRaw    String?
 
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])
@@ -177,9 +178,79 @@ model OrderItem {
   orderId   String
   product   Product @relation(fields: [productId], references: [id])
   productId String
-  title     String  // snapshot al momento de la venta
-  price     Int     // snapshot (en caso que cambie despues)
+  title     String // snapshot al momento de la venta
+  price     Int // snapshot (en caso que cambie despues)
   qty       Int
 
   @@index([orderId])
+}
+
+// Sucursal: cada local que vende, con su propio titular.
+//
+// Traslasierra y Buenos Aires facturan con CUIT distinto, asi que cada una
+// tiene sus datos fiscales. Las claves de ARCA y MercadoPago NO viven aca:
+// quedan en variables de entorno separadas por `slug`, para no guardar una
+// clave privada en la base.
+model Branch {
+  id     String  @id @default(cuid())
+  slug   String  @unique // traslasierra | bsas. Es la clave de las credenciales.
+  name   String // Como se muestra: "Traslasierra"
+  active Boolean @default(true)
+  orden  Int     @default(0) // En que orden se listan
+
+  // Datos del titular: van en la factura, el pie del sitio y los mails.
+  razonSocial String?
+  cuit        String?
+  iibb        String?
+  inicioAct   String?
+
+  // Contacto y domicilio del local
+  address    String?
+  city       String?
+  province   String?
+  postalCode String?
+  phone      String?
+  whatsapp   String?
+  email      String?
+
+  // Zona de reparto. El cliente escribe su codigo postal y con esto se
+  // decide que sucursal lo atiende; por IP no sirve, en el valle la
+  // conexion sale por Buenos Aires y miente.
+  //
+  // `codigosPostales` es una lista separada por comas, editable desde el
+  // panel para poder sumar pueblos sin tocar codigo.
+  codigosPostales String?
+  // La que cubre el resto del pais: atiende cualquier CP que no matchee
+  // con ninguna zona. Tiene que haber exactamente una.
+  cubreTodoElPais Boolean @default(false)
+
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  productos BranchProduct[]
+
+  @@index([active])
+}
+
+// Precio, oferta y stock de un producto EN una sucursal.
+//
+// El producto (titulo, fotos, descripcion, categoria) es uno solo y se
+// carga una vez; lo que cambia por local es esto. Asi una lista de precios
+// nueva no hay que cargarla dos veces.
+model BranchProduct {
+  id        String   @id @default(cuid())
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branchId  String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  price     Int
+  salePrice Int?
+  stock     Int      @default(0)
+  // Se puede apagar en una sucursal y dejarlo prendido en la otra.
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, productId])
+  @@index([branchId])
+  @@index([productId])
 }
