@@ -20,6 +20,7 @@ CREATE TABLE "Branch" (
     "phone" TEXT,
     "whatsapp" TEXT,
     "email" TEXT,
+    "hours" TEXT,
     "codigosPostales" TEXT,
     "cubreTodoElPais" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -7,6 +7,7 @@ import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { CuotasBanner } from "@/components/CuotasBanner";
 import { OfertasBanner } from "@/components/OfertasBanner";
+import { Sucursales } from "@/components/Sucursales";
 import { prisma } from "@/lib/db";
 import { getMarcasConLogo } from "@/lib/marcas-server";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
@@ -54,6 +55,26 @@ export default async function Home() {
   const dctoContadoPct = Math.round(
     (1 - 1 / (1 + recargos.unPago / 100)) * 100,
   );
+  // Las sucursales para el bloque de abajo. En try porque si la migracion
+  // todavia no corrio, la tabla no existe: preferimos que la home salga
+  // sin esa seccion antes que no salga.
+  const sucursales = await prisma.branch
+    .findMany({
+      where: { active: true },
+      orderBy: { orden: "asc" },
+      select: {
+        slug: true,
+        name: true,
+        address: true,
+        city: true,
+        province: true,
+        phone: true,
+        hours: true,
+        cubreTodoElPais: true,
+      },
+    })
+    .catch(() => []);
+
   // Para el banner de arriba: todas las que tienen descuento, para poder
   // contarlas y quedarse con las de mayor rebaja. El descuento no se puede
   // ordenar en la base (es una cuenta entre dos columnas), asi que se
@@ -238,6 +259,9 @@ export default async function Home() {
       {featured.length > 0 && (
         <FeaturedProducts comisionUnPago={recargos.unPago} featured={featured} />
       )}
+
+      {/* SUCURSALES: la home habla del comercio y desde aca reparte */}
+      <Sucursales sucursales={sucursales} />
 
       {/* CATEGORIES */}
       <section className="border-b border-[var(--border)] px-6 py-24">

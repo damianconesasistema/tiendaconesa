@@ -31,6 +31,7 @@ const SUCURSALES = [
     phone: "03544 40-0979",
     whatsapp: "5493544430522",
     email: "sanitariosconesatraslasierra@gmail.com",
+    hours: "Lunes a viernes de 8:30 a 17 · Sábados de 9 a 14",
     // Arranca con los codigos del valle de los que estoy seguro. El resto
     // los completa Damian desde el panel: inventar codigos postales seria
     // peor que dejarlos faltando, porque mandaria pedidos a la sucursal
@@ -42,8 +43,17 @@ const SUCURSALES = [
     slug: "bsas",
     name: "Buenos Aires",
     orden: 2,
-    // Los datos del titular los carga Damian desde el panel: es otro CUIT.
+    // Los datos FISCALES (razon social, CUIT, IIBB) los carga Damian: es
+    // otro titular y no los tengo. Sin ellos no se puede facturar desde
+    // esta sucursal, que es justamente lo que queremos: mejor que no
+    // facture a que facture con el CUIT equivocado.
+    address: "Rincón 43/51",
+    city: "Ciudad Autónoma de Buenos Aires",
     province: "Buenos Aires",
+    postalCode: "1081",
+    phone: "011 4951-4297",
+    email: null,
+    hours: "Lunes a viernes de 8:30 a 17 · Sábados de 8 a 13:30",
     // Es la que llega a cualquier lado, asi que atiende todo CP que no
     // caiga en la zona de otra sucursal.
     cubreTodoElPais: true,

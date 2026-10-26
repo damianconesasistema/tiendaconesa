@@ -213,6 +213,10 @@ model Branch {
   whatsapp   String?
   email      String?
 
+  // Horarios tal cual se muestran. Texto libre porque cada local tiene su
+  // propia vuelta (corrido, cortado, sabados a la mañana).
+  hours      String?
+
   // Zona de reparto. El cliente escribe su codigo postal y con esto se
   // decide que sucursal lo atiende; por IP no sirve, en el valle la
   // conexion sale por Buenos Aires y miente.
