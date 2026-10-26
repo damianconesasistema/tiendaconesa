@@ -27,6 +27,7 @@ import { useCart } from "@/lib/cart";
 import { gaVerProducto } from "@/lib/ga";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { parseShipping } from "@/lib/shipping";
 import { ShareButton } from "@/components/ShareButton";
 import { precioVitrina, precioCuotas, descuentoContadoPct } from "@/lib/precios";
@@ -432,17 +433,17 @@ export function ProductDetail({
                   <p className="mt-1 text-sm text-[var(--muted)]">
                     Consultanos disponibilidad y tiempo de reposición.
                   </p>
-                  <Link
+                  <WhatsAppLink
                     href={whatsappLink(
                       `Hola! Quería consultar disponibilidad de: ${product.title} (ID ${product.itemId})`,
                     )}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    origen="ficha-sin-stock"
+                    producto={product.itemId}
                     className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
                   >
                     <MessageCircle className="h-4 w-4" />
                     Consultar por WhatsApp
-                  </Link>
+                  </WhatsAppLink>
                 </div>
               </div>
             ) : (
@@ -551,17 +552,17 @@ export function ProductDetail({
             )}
 
             {/* WhatsApp alternativo */}
-            <Link
+            <WhatsAppLink
               href={whatsappLink(
                 `Hola! Quería consultar por: ${product.title} (ID ${product.itemId})`,
               )}
-              target="_blank"
-              rel="noopener noreferrer"
+              origen="ficha"
+              producto={product.itemId}
               className="mt-3 inline-flex items-center justify-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[#25D366]"
             >
               <MessageCircle className="h-4 w-4" />
               O consultá por WhatsApp
-            </Link>
+            </WhatsAppLink>
 
             <div className="mt-4 flex justify-center">
               <ShareButton

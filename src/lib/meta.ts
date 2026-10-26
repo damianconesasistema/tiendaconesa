@@ -52,6 +52,14 @@ function evento(nombre: string, params: Record<string, unknown>) {
   }
 }
 
+/** Alguien se fue a WhatsApp a preguntar.
+ *
+ *  "Contact" es el evento estandar de Meta para un contacto iniciado, asi
+ *  que se puede usar para optimizar campanas sin configurar nada aparte. */
+export function metaContacto(origen: string) {
+  evento("Contact", { content_name: origen });
+}
+
 /** Se cargó una pantalla. El script base ya manda la primera; esta es para
  *  las navegaciones internas, que no recargan la página. */
 export function metaPageView() {

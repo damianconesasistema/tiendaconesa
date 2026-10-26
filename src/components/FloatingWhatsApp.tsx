@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { whatsappLink } from "@/lib/business";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { useScrollDirection } from "@/lib/use-scroll-direction";
 
 // Boton flotante de WhatsApp global. Se sube cuando aparece el CartFab
@@ -30,10 +31,9 @@ export function FloatingWhatsApp() {
     pathname !== "/tienda/checkout";
 
   return (
-    <Link
+    <WhatsAppLink
       href={whatsappLink()}
-      target="_blank"
-      rel="noopener noreferrer"
+      origen="flotante"
       aria-label="Escribinos por WhatsApp"
       className={`fixed right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-green-500/30 transition-all hover:scale-110 sm:right-8 ${
         liftForCart ? "bottom-24 sm:bottom-28" : "bottom-5 sm:bottom-8"
@@ -44,6 +44,6 @@ export function FloatingWhatsApp() {
       }`}
     >
       <WhatsAppIcon className="h-7 w-7" />
-    </Link>
+    </WhatsAppLink>
   );
 }

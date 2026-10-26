@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Store, Truck, CreditCard } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { whatsappLink } from "@/lib/business";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import blurs from "@/data/hero-blur.json";
 
 // Fotos del hero — carrusel con crossfade + Ken Burns.
@@ -115,15 +116,14 @@ export function HeroCarousel() {
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
 
-            <Link
+            <WhatsAppLink
               href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
-              target="_blank"
-              rel="noopener noreferrer"
+              origen="hero"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-7 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-[#25D366]/90"
             >
               <WhatsAppIcon className="h-5 w-5" />
               WhatsApp
-            </Link>
+            </WhatsAppLink>
           </div>
         </div>
 

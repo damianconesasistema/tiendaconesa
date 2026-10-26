@@ -20,6 +20,7 @@ import {
   metaAgregarAlCarrito,
   metaArrancarCheckout,
   metaCompra,
+  metaContacto,
 } from "@/lib/meta";
 
 declare global {
@@ -65,6 +66,23 @@ function suma(items: GaItem[]) {
 export function gaVerProducto(item: GaItem) {
   evento("view_item", { value: item.price ?? 0, items: [aItem(item, 0)] });
   metaVerProducto(item);
+}
+
+/** Alguien toco un boton de WhatsApp para preguntar.
+ *
+ *  `origen` dice DE DONDE salio (el boton de arriba, el flotante, la ficha
+ *  de un producto, el checkout...). Sin eso el numero total no sirve para
+ *  decidir nada; con eso se ve que parte del sitio genera consultas y cual
+ *  deja a la gente con dudas.
+ *
+ *  No se puede saber si despues escribieron de verdad: WhatsApp es otra
+ *  app y no devuelve nada. Esto mide la intencion, no la conversacion. */
+export function gaWhatsApp(origen: string, producto?: string) {
+  evento("contacto_whatsapp", {
+    origen,
+    ...(producto ? { producto } : {}),
+  });
+  metaContacto(origen);
 }
 
 /** Alguien toco "Agregar". Se dispara desde el carrito, asi cubre todos

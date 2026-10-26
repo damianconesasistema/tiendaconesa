@@ -10,6 +10,7 @@ import { Clock, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 export const metadata: Metadata = {
   title: "Pago pendiente",
@@ -75,19 +76,18 @@ export default async function PendientePage({
           >
             Seguir comprando
           </Link>
-          <Link
+          <WhatsAppLink
             href={whatsappLink(
               order
                 ? `Hola! Hice el pedido #${order.number} y el pago quedó pendiente. Quería consultar.`
                 : "Hola! Hice un pedido y el pago quedó pendiente.",
             )}
-            target="_blank"
-            rel="noopener noreferrer"
+            origen="checkout-pago-pendiente"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-foreground"
           >
             <MessageCircle className="h-4 w-4" />
             Consultar
-          </Link>
+          </WhatsAppLink>
         </div>
       </div>
     </main>

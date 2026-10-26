@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { XCircle, RefreshCw, MessageCircle } from "lucide-react";
 import { whatsappLink } from "@/lib/business";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 export const metadata: Metadata = {
   title: "Pago rechazado",
@@ -46,19 +47,18 @@ export default async function ErrorPage({
               Reintentar pago
             </Link>
           )}
-          <Link
+          <WhatsAppLink
             href={whatsappLink(
               orderNumber
                 ? `Hola! Tuve un problema para pagar el pedido #${orderNumber} con tarjeta.`
                 : "Hola! Tuve un problema para pagar con tarjeta.",
             )}
-            target="_blank"
-            rel="noopener noreferrer"
+            origen="checkout-pago-rechazado"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-foreground"
           >
             <MessageCircle className="h-4 w-4" />
             Coordinar por WhatsApp
-          </Link>
+          </WhatsAppLink>
         </div>
       </div>
     </main>

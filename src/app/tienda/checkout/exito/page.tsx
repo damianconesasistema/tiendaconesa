@@ -4,6 +4,7 @@ import { Check, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
 import { whatsappLink } from "@/lib/business";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { GaCompra } from "@/components/GaCompra";
 
 export const metadata: Metadata = {
@@ -96,19 +97,18 @@ export default async function ExitoPage({
           >
             Seguir comprando
           </Link>
-          <Link
+          <WhatsAppLink
             href={whatsappLink(
               order
                 ? `Hola! Acabo de pagar el pedido #${order.number} con MercadoPago.`
                 : "Hola! Acabo de hacer una compra.",
             )}
-            target="_blank"
-            rel="noopener noreferrer"
+            origen="checkout-pago-aprobado"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-foreground"
           >
             <MessageCircle className="h-4 w-4" />
             Escribinos
-          </Link>
+          </WhatsAppLink>
         </div>
       </div>
     </main>

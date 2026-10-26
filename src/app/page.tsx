@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { ConesaLogo } from "@/components/ConesaLogo";
 import { business, whatsappLink } from "@/lib/business";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const categoryIcons = [
   ShowerHead,
@@ -380,15 +381,14 @@ export default async function Home() {
                 <Feature text="Atención personalizada por WhatsApp" />
               </div>
 
-              <Link
+              <WhatsAppLink
                 href={whatsappLink()}
-                target="_blank"
-                rel="noopener noreferrer"
+                origen="home-pedido"
                 className="mt-10 inline-flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-[var(--brand-red)] hover:gap-3"
               >
                 Hacé tu pedido ya por WhatsApp
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </WhatsAppLink>
             </div>
           </div>
         </div>
