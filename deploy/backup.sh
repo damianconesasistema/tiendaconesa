@@ -25,8 +25,28 @@ su postgres -c "pg_dump conesa" | gzip > "$ARCHIVO"
 echo "$(date '+%F %T')  $ARCHIVO  $(du -h "$ARCHIVO" | cut -f1)"
 
 # Copia afuera de la maquina. Sin esto, si se pierde la VM se pierde todo.
-if [ -n "${BUCKET:-}" ] && command -v gsutil >/dev/null; then
-  gsutil -q cp "$ARCHIVO" "gs://$BUCKET/" && echo "  subido a gs://$BUCKET/"
+#
+# Si hay deposito configurado pero no hay con que subir, avisa fuerte en vez
+# de saltear el paso callado: un respaldo que vive solo en el disco de la
+# maquina que respalda no es un respaldo, y lo peor seria enterarse el dia
+# que haga falta.
+if [ -n "${BUCKET:-}" ]; then
+  if command -v gcloud >/dev/null; then
+    SUBIR=(gcloud storage cp "$ARCHIVO" "gs://$BUCKET/")
+  elif command -v gsutil >/dev/null; then
+    SUBIR=(gsutil -q cp "$ARCHIVO" "gs://$BUCKET/")
+  else
+    SUBIR=()
+    echo "  AVISO: hay BUCKET configurado pero no hay gcloud ni gsutil."
+    echo "         La copia quedo SOLO en el disco de la VM."
+  fi
+  if [ ${#SUBIR[@]} -gt 0 ]; then
+    if "${SUBIR[@]}" >/dev/null 2>&1; then
+      echo "  subido a gs://$BUCKET/"
+    else
+      echo "  AVISO: fallo la subida a gs://$BUCKET/"
+    fi
+  fi
 fi
 
 # Se borran los viejos para que el disco de 30 GB no se llene.
