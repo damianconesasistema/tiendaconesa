@@ -7,6 +7,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
 import { letraComprobante, numeroFormateado } from "@/lib/afip/factura";
+import { MarcarEntregado } from "@/components/admin/MarcarEntregado";
 
 export const metadata: Metadata = {
   title: "Pedidos · Panel Admin",
@@ -103,6 +104,7 @@ export default async function PedidosAdmin({
                 <th className="px-4 py-3 text-center">Estado</th>
                 <th className="px-4 py-3 text-center">Factura</th>
                 <th className="px-4 py-3"></th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
@@ -138,6 +140,14 @@ export default async function PedidosAdmin({
                   </td>
                   <td className="px-4 py-3 text-center">
                     <FacturaBadge pedido={o} />
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {o.status !== "entregado" && o.status !== "cancelado" && (
+                      <MarcarEntregado
+                        orderId={o.id}
+                        cliente={`${o.customer.firstName} ${o.customer.lastName}`}
+                      />
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
