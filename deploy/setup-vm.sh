@@ -35,7 +35,14 @@ fi
 echo "==> 2/7 Paquetes base"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq git nginx curl ca-certificates gnupg postgresql postgresql-client
+apt-get install -y -qq git nginx curl ca-certificates gnupg postgresql-common
+
+# Postgres 18, del repositorio oficial. Debian 12 trae el 15, pero la base que
+# hay que recibir corre 18 y Postgres no sabe restaurar hacia atras: un respaldo
+# hecho con 18 no entra en un 15. Instalar la misma version evita toda esa
+# clase de problema, ahora y en la proxima mudanza.
+/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+apt-get install -y -qq postgresql-18 postgresql-client-18
 
 echo "==> 3/7 Node 22"
 if ! command -v node >/dev/null; then
@@ -47,7 +54,7 @@ echo "    node $(node --version)"
 echo "==> 4/7 Base de datos"
 # Postgres por defecto asume una maquina grande. Con 1 GB hay que bajarlo o
 # se pelea por memoria con la pagina.
-CONF=$(ls -d /etc/postgresql/*/main | head -1)
+CONF=/etc/postgresql/18/main
 mkdir -p "$CONF/conf.d"
 cat > "$CONF/conf.d/conesa.conf" <<'PG'
 # Afinado para una maquina de 1 GB compartida con la aplicacion.
