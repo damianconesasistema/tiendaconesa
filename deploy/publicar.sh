@@ -82,6 +82,22 @@ en_la_vm "sudo bash -c '
 '"
 rm -f /tmp/next.tgz /tmp/mods.tgz
 
-sleep 8
-en_la_vm 'systemctl is-active conesa; curl -s -o /dev/null -w "respuesta local: %{http_code}\n" localhost:3000'
-echo "==> Listo. La tienda no se apago en ningun momento."
+# Espera a que conteste en vez de preguntar una sola vez. Arrancar en la
+# maquina chica tarda unos segundos, y preguntar antes de tiempo hacia que
+# una publicacion buena pareciera fallada.
+echo -n "    esperando a que la tienda conteste"
+for i in $(seq 1 30); do
+  CODIGO=$(en_la_vm 'curl -s -o /dev/null -w "%{http_code}" localhost:3000' 2>/dev/null | tr -d '\r\n ')
+  if [ "$CODIGO" = "200" ]; then
+    echo " OK"
+    echo "==> Listo. La tienda no se apago: solo se reinicio el programa."
+    exit 0
+  fi
+  echo -n "."
+  sleep 4
+done
+
+echo
+echo "La tienda no contesto despues de dos minutos. Mira que paso:"
+echo "  gcloud compute ssh conesa --zone us-central1-a --command 'journalctl -u conesa -n 50'"
+exit 1
