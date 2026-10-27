@@ -1,0 +1,24 @@
+[Unit]
+# La tienda como servicio: arranca sola al prender la maquina y se levanta
+# de nuevo si se cae.
+Description=Tienda Conesa
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/conesa
+EnvironmentFile=/etc/conesa.env
+# npm start corre prisma/pre-start.mjs (migraciones + seed) y despues next start
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=5
+# En una maquina de 1 GB, un pico de la pagina no se tiene que llevar puesta
+# la base de datos.
+MemoryMax=700M
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=conesa
+
+[Install]
+WantedBy=multi-user.target
