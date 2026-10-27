@@ -21,7 +21,12 @@ echo "==> Codigo nuevo"
 git pull --ff-only
 
 echo "==> Dependencias"
-npm ci --no-audit --fund=false
+# --include=dev a proposito. /etc/conesa.env trae NODE_ENV=production, y con
+# eso npm se saltea las dependencias de desarrollo. Pero compilar Next.js
+# necesita Tailwind y TypeScript, que son justamente de desarrollo: sin
+# ellas la compilacion falla con "module not found" y cuesta entender por que,
+# porque el codigo esta bien y el error apunta a un archivo cualquiera.
+npm ci --include=dev --no-audit --fund=false
 
 echo "==> Compilando (tarda varios minutos en esta maquina)"
 # La compilacion es lo que mas memoria come. Se le pone un techo para que no

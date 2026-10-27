@@ -26,7 +26,8 @@
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -41,7 +42,6 @@
     "eslint-config-next": "16.3.8",
     "pngjs": "^7.0.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "xlsx": "^0.18.5"
+    "typescript": "^5"
   }
 }
