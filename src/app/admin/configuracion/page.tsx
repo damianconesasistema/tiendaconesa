@@ -6,6 +6,8 @@ import { RecargosForm } from "@/components/admin/RecargosForm";
 import { getRecargosMp } from "@/lib/settings";
 import { MP_CONFIGURED, MP_IS_TEST } from "@/lib/mercadopago";
 import { emailConfigurado } from "@/lib/email";
+import { ProbarArca } from "@/components/admin/ProbarArca";
+import { afipConfigurado, esProduccion, puntoVenta } from "@/lib/afip/config";
 
 export const metadata: Metadata = {
   title: "Configuración · Panel Admin",
@@ -43,14 +45,14 @@ export default async function ConfiguracionPage() {
           {!MP_CONFIGURED ? (
             <>
               <strong>MercadoPago está apagado.</strong> Falta cargar
-              MP_ACCESS_TOKEN en Railway. Los clientes solo pueden coordinar por
-              WhatsApp.
+              MP_ACCESS_TOKEN en el servidor. Los clientes solo pueden
+              coordinar por WhatsApp.
             </>
           ) : MP_IS_TEST ? (
             <>
               <strong>MercadoPago en modo PRUEBA.</strong> Los pagos no son
-              reales. Para cobrar de verdad, cambiá MP_ACCESS_TOKEN en Railway
-              por el de producción (empieza con APP_USR-).
+              reales. Para cobrar de verdad, cambiá MP_ACCESS_TOKEN en el
+              servidor por el de producción (empieza con APP_USR-).
             </>
           ) : (
             <>
@@ -76,7 +78,40 @@ export default async function ConfiguracionPage() {
           ) : (
             <>
               <strong>Mails apagados.</strong> La tienda no envía ninguna
-              confirmación. Falta cargar RESEND_API_KEY y MAIL_FROM en Railway.
+              confirmación. Falta cargar RESEND_API_KEY y MAIL_FROM en el
+              servidor.
+            </>
+          )}
+        </div>
+
+        {/* Estado de la facturacion electronica */}
+        <div
+          className={`rounded-2xl border p-4 text-sm ${
+            !afipConfigurado()
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : esProduccion()
+                ? "border-green-200 bg-green-50 text-green-900"
+                : "border-amber-200 bg-amber-50 text-amber-900"
+          }`}
+        >
+          {!afipConfigurado() ? (
+            <>
+              <strong>Facturación electrónica apagada.</strong> El botón
+              Facturar de cada pedido no va a emitir nada. Falta cargar el
+              certificado de ARCA en el servidor.
+            </>
+          ) : (
+            <>
+              <strong>
+                {esProduccion()
+                  ? "Facturación electrónica en PRODUCCIÓN."
+                  : "Facturación electrónica en PRUEBA."}
+              </strong>{" "}
+              {esProduccion()
+                ? "Las facturas que emitas tienen validez fiscal."
+                : "Los comprobantes NO tienen validez fiscal: sirven para probar."}{" "}
+              Punto de venta {puntoVenta()}.
+              <ProbarArca />
             </>
           )}
         </div>

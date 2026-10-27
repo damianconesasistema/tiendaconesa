@@ -6,6 +6,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
+import { letraComprobante, numeroFormateado } from "@/lib/afip/factura";
 
 export const metadata: Metadata = {
   title: "Pedidos · Panel Admin",
@@ -100,6 +101,7 @@ export default async function PedidosAdmin({
                 <th className="px-4 py-3 hidden md:table-cell">Entrega</th>
                 <th className="px-4 py-3 text-right">Total</th>
                 <th className="px-4 py-3 text-center">Estado</th>
+                <th className="px-4 py-3 text-center">Factura</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -133,6 +135,9 @@ export default async function PedidosAdmin({
                   </td>
                   <td className="px-4 py-3 text-center">
                     <StatusBadge status={o.status} />
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <FacturaBadge pedido={o} />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
@@ -169,5 +174,48 @@ function StatusBadge({ status }: { status: string }) {
     >
       {status.replace("_", " ")}
     </span>
+  );
+}
+
+// Si el pedido ya tiene comprobante, muestra cual. Si no, lo dice.
+//
+// Importa que se vea de un vistazo y desde la lista: antes habia que entrar
+// pedido por pedido para saber si faltaba facturar, y lo que se factura
+// tarde es un problema con ARCA, no un olvido sin consecuencias.
+//
+// La nota de credito gana sobre la factura a proposito: un pedido anulado
+// que se muestra como "facturado" es peor que no mostrar nada.
+function FacturaBadge({
+  pedido,
+}: {
+  pedido: {
+    cbteTipo: number | null;
+    ptoVta: number | null;
+    cbteNro: number | null;
+    ncTipo: number | null;
+    ncNro: number | null;
+  };
+}) {
+  const base =
+    "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold";
+
+  if (pedido.ncNro && pedido.ncTipo && pedido.ptoVta)
+    return (
+      <span className={`${base} bg-red-100 text-red-700`}>
+        anulada {letraComprobante(pedido.ncTipo)}{" "}
+        {numeroFormateado(pedido.ptoVta, pedido.ncNro)}
+      </span>
+    );
+
+  if (pedido.cbteNro && pedido.cbteTipo && pedido.ptoVta)
+    return (
+      <span className={`${base} bg-green-100 text-green-800`}>
+        {letraComprobante(pedido.cbteTipo)}{" "}
+        {numeroFormateado(pedido.ptoVta, pedido.cbteNro)}
+      </span>
+    );
+
+  return (
+    <span className={`${base} bg-amber-100 text-amber-800`}>sin facturar</span>
   );
 }
