@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Check, Ban, Clock } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
@@ -197,11 +197,12 @@ function FacturaBadge({
   };
 }) {
   const base =
-    "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold";
+    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold";
 
   if (pedido.ncNro && pedido.ncTipo && pedido.ptoVta)
     return (
-      <span className={`${base} bg-red-100 text-red-700`}>
+      <span className={`${base} bg-red-100 text-red-700`} title="Anulada con nota de crédito">
+        <Ban className="h-3.5 w-3.5 shrink-0" />
         anulada {letraComprobante(pedido.ncTipo)}{" "}
         {numeroFormateado(pedido.ptoVta, pedido.ncNro)}
       </span>
@@ -209,13 +210,23 @@ function FacturaBadge({
 
   if (pedido.cbteNro && pedido.cbteTipo && pedido.ptoVta)
     return (
-      <span className={`${base} bg-green-100 text-green-800`}>
+      <span
+        className={`${base} bg-green-100 text-green-800`}
+        title="Facturada en ARCA"
+      >
+        <Check className="h-3.5 w-3.5 shrink-0" />
         {letraComprobante(pedido.cbteTipo)}{" "}
         {numeroFormateado(pedido.ptoVta, pedido.cbteNro)}
       </span>
     );
 
   return (
-    <span className={`${base} bg-amber-100 text-amber-800`}>sin facturar</span>
+    <span
+      className={`${base} bg-amber-100 text-amber-800`}
+      title="Todavía no se emitió el comprobante"
+    >
+      <Clock className="h-3.5 w-3.5 shrink-0" />
+      sin facturar
+    </span>
   );
 }
