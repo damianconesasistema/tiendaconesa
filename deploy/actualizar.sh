@@ -18,7 +18,21 @@ echo "==> Respaldo antes de tocar nada"
 /usr/local/bin/conesa-backup || echo "    (sin respaldo: la base todavia esta vacia)"
 
 echo "==> Codigo nuevo"
+# Bash lee el script a medida que lo ejecuta, no entero de una. Si el git
+# pull cambia este mismo archivo, lo que corre despues sale del archivo nuevo
+# pero leido desde la posicion vieja: ejecuta lineas partidas o se saltea
+# otras, y el error que aparece no tiene nada que ver con la causa. Nos paso
+# el 27/10: la linea de npm ci quedo en la version vieja y la compilacion
+# fallo por dependencias que el script nuevo si instalaba.
+#
+# Por eso: si el archivo cambio, se arranca de nuevo con la version nueva.
+# No se cicla, porque en la segunda vuelta el pull ya no cambia nada.
+ANTES=$(sha1sum "$0")
 git pull --ff-only
+if [ "$ANTES" != "$(sha1sum "$0")" ]; then
+  echo "    el script cambio: se reinicia con la version nueva"
+  exec bash "$0" "$@"
+fi
 
 echo "==> Dependencias"
 # --include=dev a proposito. /etc/conesa.env trae NODE_ENV=production, y con
