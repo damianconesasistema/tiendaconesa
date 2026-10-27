@@ -29,7 +29,13 @@ run("node", ["prisma/seed.mjs"]);
 
 // Sucursales. Idempotente: crea las dos si faltan y copia el catalogo a
 // Traslasierra una sola vez. Nunca pisa lo que haya cargado el admin.
-run("node", ["prisma/sucursales.mjs"]);
+//
+// Fallible a proposito: la tienda vende igual sin la tabla de sucursales (la
+// home ya la consulta dentro de un try y se saltea la seccion si no esta).
+// El 27/10 este paso fallo por una columna que faltaba y dejo el sitio entero
+// en 502. Un paso accesorio no puede tirar abajo la tienda: si falla, queda
+// el error en el log y el servicio arranca igual.
+run("node", ["prisma/sucursales.mjs"], { allowFailure: true });
 
 // Reset de precios one-shot: setea todos los productos activos a 1_000_000
 // para evitar compras mientras el admin actualiza precios reales.
