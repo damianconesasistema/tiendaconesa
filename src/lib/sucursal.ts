@@ -38,21 +38,37 @@ async function buscarSucursal() {
     // mirar. Se sigue de largo y cae en la sucursal principal.
   }
 
-  if (subdominio) {
-    const porDominio = await prisma.branch.findFirst({
-      where: { subdominio, active: true },
-    });
-    if (porDominio) return porDominio;
+  // La base se consulta adentro de un try a proposito. Esto lo llama el pie
+  // de pagina, que esta en TODAS las pantallas: si la consulta falla y se
+  // propaga, no se cae el pie, se cae la tienda entera. Ya nos paso con el
+  // arranque el 27/10. Si no se puede averiguar, se sigue sin sucursal y los
+  // datos salen de las variables de entorno, que es como funcionaba antes.
+  //
+  // Tambien pasa al compilar: la pagina de "no encontrado" se arma en ese
+  // momento y ahi no hay base a la que preguntarle.
+  try {
+    if (subdominio) {
+      const porDominio = await prisma.branch.findFirst({
+        where: { subdominio, active: true },
+      });
+      if (porDominio) return porDominio;
+    }
+  } catch {
+    return null;
   }
 
   // conesa.com.ar sin subdominio, www, o un subdominio que no es de nadie:
   // se atiende con la principal, que es la de menor orden. Mientras no
   // exista la portada general, eso es Traslasierra, que es lo que hay hoy
   // en esa direccion.
-  return prisma.branch.findFirst({
-    where: { active: true },
-    orderBy: { orden: "asc" },
-  });
+  try {
+    return await prisma.branch.findFirst({
+      where: { active: true },
+      orderBy: { orden: "asc" },
+    });
+  } catch {
+    return null;
+  }
 }
 
 export const sucursalActual = cache(buscarSucursal);
