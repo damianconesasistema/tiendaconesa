@@ -104,6 +104,31 @@ export const subdominioActual = cache(async (): Promise<string | null> => {
   }
 });
 
+/** Si esta visita entro por el subdominio de una tienda que todavia no
+ *  esta habilitada para vender.
+ *
+ *  Una sucursal puede estar publicada en el sitio y no tener la tienda
+ *  abierta. Mientras no tenga su propio MercadoPago y su propio
+ *  certificado de ARCA, una venta ahi cobraria en la cuenta del otro
+ *  contribuyente y se facturaria con el CUIT del otro. Eso no se arregla
+ *  despues: la plata entro donde no iba y el comprobante salio mal.
+ *
+ *  Si la base no contesta devuelve false: ahi la tienda no funciona igual,
+ *  y dejar el sitio entero redirigiendo seria peor. */
+export const tiendaSinHabilitar = cache(async (): Promise<boolean> => {
+  const sub = await subdominioActual();
+  if (!sub) return false;
+  try {
+    const s = await prisma.branch.findFirst({
+      where: { subdominio: sub, active: true },
+      select: { tiendaActiva: true },
+    });
+    return s ? !s.tiendaActiva : false;
+  } catch {
+    return false;
+  }
+});
+
 /** Telefono y WhatsApp de la sucursal de esta visita.
  *
  *  Es lo que ve y toca el cliente: el numero de la cabecera y el boton verde.

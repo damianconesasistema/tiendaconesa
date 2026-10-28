@@ -11,6 +11,7 @@ export type Sucursal = {
   orden: number;
   name: string;
   active: boolean;
+  tiendaActiva: boolean;
   razonSocial: string | null;
   cuit: string | null;
   iibb: string | null;
@@ -215,6 +216,28 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="active" defaultChecked={sucursal.active} />
           <strong>Sucursal activa</strong>
+          <span className="text-[var(--muted)]">
+            Se muestra en el sitio: dirección, mapa, teléfono y horarios.
+          </span>
+        </label>
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="tiendaActiva"
+            defaultChecked={sucursal.tiendaActiva}
+            className="mt-1"
+          />
+          <span>
+            <strong>Tienda abierta.</strong>{" "}
+            <span className="text-[var(--muted)]">
+              Si está destildada, el local se sigue mostrando en el sitio
+              pero en su subdominio no se puede comprar: el que entra va a
+              la página general. Destildala mientras la sucursal no tenga
+              su propio MercadoPago y su propio certificado de ARCA, porque
+              hasta entonces una venta ahí cobra y factura a nombre de la
+              otra.
+            </span>
+          </span>
         </label>
       </div>
 

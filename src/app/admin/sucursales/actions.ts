@@ -96,6 +96,7 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
         subdominio,
         orden,
         active: formData.get("active") === "on",
+        tiendaActiva: formData.get("tiendaActiva") === "on",
         razonSocial: texto(formData, "razonSocial"),
         cuit,
         iibb: texto(formData, "iibb"),

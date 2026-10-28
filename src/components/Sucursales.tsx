@@ -16,7 +16,9 @@ export type SucursalInfo = {
   city: string | null;
   province: string | null;
   phone: string | null;
+  whatsapp: string | null;
   hours: string | null;
+  tiendaActiva: boolean;
   instagram: string | null;
   cubreTodoElPais: boolean;
   zonaEnvio: string | null;
@@ -100,12 +102,35 @@ export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
                 )}
               </div>
 
-              <Link
-                href={`/tienda?sucursal=${s.slug}`}
-                className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brand-black)] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-[var(--brand-red)]"
-              >
-                Ver la tienda de {s.name}
-              </Link>
+              {/* Un local puede estar publicado sin tener la tienda
+                  abierta. Mandar a comprar a una tienda que todavia no
+                  cobra ni factura con lo suyo es peor que no ofrecerla:
+                  el pedido entraria en la cuenta del otro local. */}
+              {s.tiendaActiva ? (
+                <Link
+                  href={`/tienda?sucursal=${s.slug}`}
+                  className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brand-black)] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-[var(--brand-red)]"
+                >
+                  Ver la tienda de {s.name}
+                </Link>
+              ) : (
+                <div className="mt-7">
+                  <p className="text-sm text-[var(--muted)]">
+                    La tienda online de este local abre pronto. Mientras
+                    tanto, el pedido se toma por WhatsApp.
+                  </p>
+                  {s.whatsapp && (
+                    <a
+                      href={`https://api.whatsapp.com/send?phone=${s.whatsapp.replace(/D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#1DA851]"
+                    >
+                      Consultar por WhatsApp
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

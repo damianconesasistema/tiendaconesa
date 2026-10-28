@@ -11,7 +11,8 @@ import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { BackToTop } from "@/components/BackToTop";
 import { business } from "@/lib/business";
-import { subdominioActual, contactoActual } from "@/lib/sucursal";
+import { redirect } from "next/navigation";
+import { subdominioActual, contactoActual, tiendaSinHabilitar } from "@/lib/sucursal";
 import { datosEstructurados } from "@/lib/datos-estructurados";
 import "./globals.css";
 
@@ -156,6 +157,14 @@ export const viewport: Viewport = {
 // Traslasierra escritos a mano.
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Una tienda que todavia no esta habilitada no atiende: el que llega a
+  // su subdominio va a la pagina general. El local igual se publica ahi,
+  // con su direccion, su telefono y su WhatsApp.
+  //
+  // Va aca y no en cada pagina para que no quede ningun camino abierto:
+  // el carrito, el checkout y el pago cuelgan de este mismo layout.
+  if (await tiendaSinHabilitar()) redirect("https://conesa.com.ar");
+
   // null en conesa.com.ar: ahi se publican las dos sucursales.
   const ficha = await datosEstructurados(await subdominioActual());
   const contacto = await contactoActual();

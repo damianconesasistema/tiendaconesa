@@ -50,6 +50,7 @@ export default async function SucursalesPage() {
                 orden: s.orden,
                 name: s.name,
                 active: s.active,
+                tiendaActiva: s.tiendaActiva,
                 razonSocial: s.razonSocial,
                 cuit: s.cuit,
                 iibb: s.iibb,

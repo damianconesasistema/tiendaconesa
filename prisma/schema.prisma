@@ -200,6 +200,12 @@ model Branch {
   subdominio String? @unique // traslasierra | balvanera
   name   String // Como se muestra: "Traslasierra"
   active Boolean @default(true)
+  // Si en su subdominio se puede comprar. Es distinto de active: una
+  // sucursal puede estar publicada en el sitio (direccion, mapa, telefono)
+  // sin tener la tienda abierta. Mientras no tenga su propio MercadoPago y
+  // su propio certificado de ARCA, vender ahi seria cobrar y facturar a
+  // nombre del otro contribuyente.
+  tiendaActiva Boolean @default(true)
   orden  Int     @default(0) // En que orden se listan
 
   // Datos del titular: van en la factura, el pie del sitio y los mails.
