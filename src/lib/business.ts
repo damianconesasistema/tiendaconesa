@@ -2,6 +2,10 @@ export const business = {
   name: "Sanitarios Conesa Traslasierra",
   shortName: "Sanitarios Conesa",
   tagline: "Sanitarios · Grifería · Materiales para la construcción",
+  // Año en que abrio el primer local. Se guarda el año y no la cantidad de
+  // años a proposito: escrito "41 años" queda viejo solo en enero y nadie se
+  // acuerda de corregirlo. Calculado, nunca miente.
+  desde: 1985,
   address: {
     street: "Av. Belgrano 758",
     city: "Villa Cura Brochero",
@@ -61,4 +65,9 @@ export function whatsappLink(message?: string) {
   const base = `https://api.whatsapp.com/send?phone=${business.whatsapp.number}`;
   if (!message) return `${base}&text=${encodeURIComponent("Hola! Vi su web y quería consultar por...")}`;
   return `${base}&text=${encodeURIComponent(message)}`;
+}
+
+/** Cuantos años lleva el negocio. Se calcula para que no quede viejo. */
+export function aniosDeOficio(): number {
+  return new Date().getFullYear() - business.desde;
 }

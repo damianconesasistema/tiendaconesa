@@ -26,11 +26,13 @@ import {
   Flame,
   Hammer,
   Wrench,
-  ArrowRight,
+  ArrowRight,
   Undo2,
+  Store,
+  Truck,
 } from "lucide-react";
 import { ConesaLogo } from "@/components/ConesaLogo";
-import { business, whatsappLink } from "@/lib/business";
+import { business, whatsappLink, aniosDeOficio } from "@/lib/business";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const categoryIcons = [
@@ -69,6 +71,7 @@ export default async function Home() {
         province: true,
         phone: true,
         hours: true,
+        instagram: true,
         cubreTodoElPais: true,
       },
     })
@@ -320,36 +323,36 @@ export default async function Home() {
       <section id="local" className="border-b border-[var(--border)] px-6 py-24">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
           <div>
+            {/* Esta columna habla del negocio, no de un local.
+                La direccion, los horarios y el telefono de cada sucursal van
+                en la seccion "Nuestras sucursales", que los saca de la base y
+                los muestra para las dos. Repetirlos aca solo para una era lo
+                que hacia que la portada pareciera de Traslasierra. */}
             <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
-              Visitanos
+              Quiénes somos
             </span>
             <h2 className="mt-3 font-display text-3xl font-black uppercase leading-tight sm:text-5xl">
-              En el corazón
+              {aniosDeOficio()} años
               <br />
-              <span className="text-[var(--brand-red)]">de Traslasierra.</span>
+              <span className="text-[var(--brand-red)]">en el rubro.</span>
             </h2>
             <p className="mt-6 max-w-md text-balance text-base text-[var(--muted)]">
-              Salón de ventas en Villa Cura Brochero. Vení a verlo o escribinos.
+              Desde {business.desde} vendemos sanitarios, grifería y materiales
+              para la construcción. Hoy somos dos locales: uno en Traslasierra y
+              otro en Capital Federal, con el mismo catálogo y la misma forma de
+              atender.
             </p>
 
             <div className="mt-10 space-y-6">
-              <InfoRow icon={MapPin} title="Dirección">
-                {business.address.street}
+              <InfoRow icon={Store} title="Dos salones de venta">
+                Villa Cura Brochero, Córdoba
                 <br />
-                {business.address.city}, {business.address.province}
+                Balvanera, Ciudad Autónoma de Buenos Aires
               </InfoRow>
-              <InfoRow icon={Clock} title="Horarios">
-                {business.hours.weekdays}
+              <InfoRow icon={Truck} title="Entregas">
+                Retiro en cualquiera de los dos locales
                 <br />
-                {business.hours.saturday}
-              </InfoRow>
-              <InfoRow icon={Phone} title="Teléfono">
-                <a
-                  href={`tel:${business.phone.international.replace(/\s/g, "")}`}
-                  className="hover:text-[var(--brand-red)]"
-                >
-                  {business.phone.display}
-                </a>
+                Envíos a todo el país
               </InfoRow>
               <InfoRow icon={Mail} title="Email">
                 <a
@@ -387,20 +390,26 @@ export default async function Home() {
               <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
                 Tienda online
               </span>
+              {/* Decia "Estamos armando algo muy grande. Pronto en
+                  conesa.com.ar" cuando la tienda ya estaba online hace meses.
+                  Un cartel de "proximamente" en un sitio que ya vende es peor
+                  que no tener cartel: el que entra no se da cuenta de que
+                  puede comprar. */}
               <h3 className="mt-3 font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
-                Estamos armando algo
+                Comprá online
                 <br />
-                <span className="text-[var(--brand-red)]">muy grande.</span>
+                <span className="text-[var(--brand-red)]">cuando quieras.</span>
               </h3>
               <p className="mt-5 text-balance text-base text-[var(--muted)]">
-                Catálogo online, pagos y entrega en Traslasierra. Pronto en{" "}
+                El catálogo completo, con precios al día, en{" "}
                 <span className="font-semibold text-foreground">conesa.com.ar</span>.
+                Elegís el local que te queda cómodo y listo.
               </p>
 
               <div className="mt-10 space-y-3">
                 <Feature text="Catálogo completo con fotos y precios actualizados" />
                 <Feature text="Pagá con tarjeta, débito o transferencia" />
-                <Feature text="Retiro en el local o envío en Traslasierra" />
+                <Feature text="Retirá en el local o recibilo en tu casa" />
                 <Feature text="Atención personalizada por WhatsApp" />
               </div>
 

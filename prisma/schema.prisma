@@ -219,6 +219,8 @@ model Branch {
   phone      String?
   whatsapp   String?
   email      String?
+  // Cada local tiene su Instagram y es por donde le escribe la gente.
+  instagram  String?
 
   // Horarios tal cual se muestran. Texto libre porque cada local tiene su
   // propia vuelta (corrido, cortado, sabados a la mañana).

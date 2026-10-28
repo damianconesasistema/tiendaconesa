@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPin, Clock, Phone, Truck, Store } from "lucide-react";
+import { InstagramIcon } from "@/components/SocialIcons";
 
 // Las dos sucursales en la home.
 //
@@ -16,6 +17,7 @@ export type SucursalInfo = {
   province: string | null;
   phone: string | null;
   hours: string | null;
+  instagram: string | null;
   cubreTodoElPais: boolean;
 };
 
@@ -75,6 +77,20 @@ export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
                     ? "Envíos a todo el país"
                     : "Envíos en la zona · costo a coordinar"}
                 </Dato>
+                {s.instagram && (
+                  <Dato icon={InstagramIcon}>
+                    <a
+                      href={s.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-[var(--brand-red)]"
+                    >
+                      {/* Se muestra el arroba y no la direccion entera:
+                          es como la gente lo busca y lo dice. */}
+                      @{s.instagram.replace(/\/+$/, "").split("/").pop()}
+                    </a>
+                  </Dato>
+                )}
               </div>
 
               <Link
@@ -95,7 +111,9 @@ function Dato({
   icon: Icon,
   children,
 }: {
-  icon: typeof MapPin;
+  // Cualquier componente que acepte className: los de lucide y los propios
+  // (lucide saco los iconos de marcas, asi que Instagram es nuestro).
+  icon: React.ComponentType<{ className?: string }>;
   children: React.ReactNode;
 }) {
   return (
