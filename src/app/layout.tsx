@@ -50,6 +50,7 @@ export const metadata: Metadata = {
     "sanitarios capital federal",
     "sanitarios caba",
     "sanitarios buenos aires",
+    "sanitarios gran buenos aires",
     "corralón balvanera",
     "materiales de construcción caba",
     "grifería capital federal",

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 // De que sucursal es esta visita.
 //
 // Lo decide el subdominio: traslasierra.conesa.com.ar es una tienda y
-// balvanera.conesa.com.ar es otra. De ahi sale todo lo que las diferencia:
+// buenosaires.conesa.com.ar es otra. De ahi sale todo lo que las diferencia:
 // con que CUIT se factura, que QR de Data Fiscal se muestra, a que cuenta
 // entra la plata, que precios y que stock se ven.
 //

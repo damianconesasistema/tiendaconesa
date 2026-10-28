@@ -79,3 +79,36 @@ export async function titularesDeLasSucursales() {
     return [];
   }
 }
+
+// Los datos de contacto y ubicacion de cada sucursal, para el pie.
+//
+// En conesa.com.ar van las dos: el pie mostraba el telefono, el horario y el
+// mapa de Traslasierra nada mas, asi que alguien que entraba desde Capital
+// veia un telefono de Cordoba y un mapa de un pueblo a 800 km.
+export async function sucursalesParaElPie(soloEsta?: string | null) {
+  const { prisma } = await import("@/lib/db");
+  try {
+    return await prisma.branch.findMany({
+      where: {
+        active: true,
+        ...(soloEsta ? { subdominio: soloEsta } : {}),
+      },
+      orderBy: { orden: "asc" },
+      select: {
+        slug: true,
+        name: true,
+        address: true,
+        city: true,
+        province: true,
+        postalCode: true,
+        phone: true,
+        whatsapp: true,
+        email: true,
+        hours: true,
+        zonaEnvio: true,
+      },
+    });
+  } catch {
+    return [];
+  }
+}

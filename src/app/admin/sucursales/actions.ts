@@ -34,7 +34,7 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
   if (subdominio && !/^[a-z0-9-]+$/.test(subdominio))
     return {
       error:
-        "El subdominio va sin puntos y en minúsculas: solo letras, números y guiones (por ejemplo: balvanera).",
+        "El subdominio va sin puntos y en minúsculas: solo letras, números y guiones (por ejemplo: buenosaires).",
     };
 
   const cuit = texto(formData, "cuit");

@@ -1,18 +1,12 @@
 import Link from "next/link";
-import {
-  Phone,
-  Mail,
-  Clock,
-  MapPin,
-  ArrowRight,
-  Undo2,
-} from "lucide-react";
+import { Undo2 } from "lucide-react";
 import { ConesaLogo } from "@/components/ConesaLogo";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { DataFiscal } from "@/components/DataFiscal";
 import { SocialIcon, InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
 import { business, whatsappLink } from "@/lib/business";
-import { getLegales, titularesDeLasSucursales } from "@/lib/legales";
+import { getLegales, titularesDeLasSucursales, sucursalesParaElPie } from "@/lib/legales";
+import { SucursalEnPie } from "@/components/SucursalEnPie";
 import { subdominioActual } from "@/lib/sucursal";
 
 // Pie del sitio. Vive aparte y se monta en el layout porque los links
@@ -25,19 +19,28 @@ export async function Footer() {
   // los dos venden. En el subdominio de cada tienda va la suya sola.
   const sub = await subdominioActual();
   const titulares = sub ? [] : await titularesDeLasSucursales();
+  // En la pagina general van los datos de las dos; en cada tienda, los suyos.
+  const sucursales = await sucursalesParaElPie(sub);
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-16">
       <div className="mx-auto max-w-6xl">
-        <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr_1fr_1.2fr]">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr]">
           {/* Marca + redes */}
           <div>
             <ConesaLogo
               variant="horizontal"
               className="h-10 w-auto mix-blend-multiply sm:h-12"
             />
+            {/* Decia "en Villa Cura Brochero, al servicio del Valle de
+                Traslasierra". En la pagina general eso deja a Capital
+                afuera; los dos locales se nombran abajo, cada uno con lo
+                suyo. */}
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--muted)]">
-              Sanitarios, grifería y materiales en Villa Cura Brochero.
-              Al servicio del Valle de Traslasierra.
+              Sanitarios, grifería y materiales para la construcción.
+              {" "}
+              {sucursales.length > 1
+                ? "Dos locales: Traslasierra y Buenos Aires."
+                : ""}
             </p>
             <div className="mt-4 flex gap-2">
               <SocialIcon href={business.social.instagram.url} icon={InstagramIcon} label="Instagram" />
@@ -62,93 +65,22 @@ export async function Footer() {
             </ul>
           </div>
 
-          {/* Contacto */}
-          <div>
-            <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-[var(--brand-red)]">
-              Contacto
-            </div>
-            <ul className="mt-4 space-y-3 text-sm">
-              <li className="flex items-start gap-2">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
-                <a
-                  href={`tel:${business.phone.international.replace(/\s/g, "")}`}
-                  className="text-foreground hover:text-[var(--brand-red)]"
-                >
-                  {business.phone.display}
-                </a>
-              </li>
-              <li className="flex items-start gap-2">
-                <WhatsAppIcon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
-                <a
-                  href={whatsappLink()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground hover:text-[var(--brand-red)]"
-                >
-                  {business.whatsapp.display}
-                </a>
-              </li>
-              <li className="flex items-start gap-2">
-                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
-                <a
-                  href={`mailto:${business.email}`}
-                  className="break-all text-foreground hover:text-[var(--brand-red)]"
-                >
-                  {business.email}
-                </a>
-              </li>
-              <li className="flex items-start gap-2 pt-2">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
-                <div className="text-xs text-[var(--muted)]">
-                  {business.hours.weekdays}
-                  <br />
-                  {business.hours.saturday}
-                  <br />
-                  {business.hours.sunday}
-                </div>
-              </li>
-            </ul>
-          </div>
-
-          {/* Ubicación */}
-          <div>
-            <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-[var(--brand-red)]">
-              Dónde estamos
-            </div>
-            <div className="mt-4 flex items-start gap-2 text-sm">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
-              <div>
-                <div className="font-semibold text-foreground">
-                  {business.address.street}
-                </div>
-                <div className="text-xs text-[var(--muted)]">
-                  {business.address.city}, {business.address.province}
-                  <br />
-                  CP {business.address.postalCode}
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)]">
-              <iframe
-                src="https://maps.google.com/maps?q=Av+Belgrano+758+Villa+Cura+Brochero+Cordoba&hl=es&z=15&output=embed"
-                width="100%"
-                height="180"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Ubicación de Sanitarios Conesa"
-                className="block"
-              />
-            </div>
-            <a
-              href="https://maps.google.com/?q=Av+Belgrano+758+Villa+Cura+Brochero+Cordoba"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[var(--brand-red)] hover:gap-2"
-            >
-              Cómo llegar <ArrowRight className="h-3 w-3" />
-            </a>
-          </div>
         </div>
+
+        {/* Cada local con lo suyo: direccion, telefono, WhatsApp, mail,
+            horarios y mapa. En conesa.com.ar van los dos, uno al lado del
+            otro; en el subdominio de una tienda va solo el de ella. */}
+        {sucursales.length > 0 && (
+          <div className="mt-12 grid gap-10 border-t border-[var(--border)] pt-10 sm:grid-cols-2">
+            {sucursales.map((s) => (
+              <SucursalEnPie
+                key={s.slug}
+                sucursal={s}
+                conTitulo={sucursales.length > 1}
+              />
+            ))}
+          </div>
+        )}
 
         {/* LEGALES: el boton de arrepentimiento tiene que estar visible en
             el inicio (Res. 424/2020) y el QR de Data Fiscal es obligatorio
