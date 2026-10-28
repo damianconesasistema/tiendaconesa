@@ -78,6 +78,16 @@ en_la_vm "sudo bash -c '
   git fetch -q origin && git reset -q --hard origin/main
   if [ -f /tmp/mods.tgz ]; then rm -rf node_modules && tar xzf /tmp/mods.tgz && rm -f /tmp/mods.tgz; fi
   rm -rf .next && tar xzf /tmp/next.tgz && rm -f /tmp/next.tgz
+  # Regenerar SIEMPRE el cliente de Prisma, no solo cuando cambian las
+  # dependencias. Ese cliente se arma a partir de prisma/schema.prisma: si el
+  # esquema sumo una columna y el cliente quedo viejo, el codigo nuevo le pide
+  # a la base un campo que su cliente no conoce y la consulta falla.
+  #
+  # Paso de verdad: el sitio quedo pidiendo Branch.subdominio contra un
+  # cliente generado antes de que esa columna existiera. Como la consulta esta
+  # dentro de un try, no se vio ningun error: las dos tiendas mostraban el
+  # mismo CUIT y nada en los registros.
+  npx prisma generate >/dev/null
   systemctl restart conesa
 '"
 rm -f /tmp/next.tgz /tmp/mods.tgz
