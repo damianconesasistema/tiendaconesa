@@ -81,6 +81,25 @@ export default async function Home() {
     })
     .catch(() => []);
 
+  // Lo que promete la portada arriba de todo. En conesa.com.ar no se puede
+  // decir "retiralo en Villa Cura Brochero" ni "envios a Traslasierra": son
+  // dos locales y el que entra desde Capital leeria una promesa que no es
+  // para el. En la tienda de una sucursal si, porque ahi se vende esa.
+  const unica = sucursales.length === 1 ? sucursales[0] : null;
+  const promesas = unica
+    ? {
+        dondeRetirar: unica.city ?? unica.name,
+        retiroDesc: `${unica.city ?? unica.name} · gratis`,
+        envioTitulo: `Envíos a ${unica.name}`,
+        envioDesc: "Costo a coordinar por WhatsApp",
+      }
+    : {
+        dondeRetirar: "cualquiera de los dos locales",
+        retiroDesc: "En los dos locales · gratis",
+        envioTitulo: "Envíos",
+        envioDesc: "Según la zona de cada local",
+      };
+
   // Para el banner de arriba: todas las que tienen descuento, para poder
   // contarlas y quedarse con las de mayor rebaja. El descuento no se puede
   // ordenar en la base (es una cuenta entre dos columnas), asi que se
@@ -181,7 +200,13 @@ export default async function Home() {
 
 
       {/* HERO */}
-      <HeroCarousel whatsappHref={contacto.linkWhatsapp("Hola! Vi la web y quería hacer una consulta.")} />
+      <HeroCarousel
+        whatsappHref={contacto.linkWhatsapp("Hola! Vi la web y quería hacer una consulta.")}
+        dondeRetirar={promesas.dondeRetirar}
+        retiroDesc={promesas.retiroDesc}
+        envioTitulo={promesas.envioTitulo}
+        envioDesc={promesas.envioDesc}
+      />
 
       {/* Las ofertas, arriba de todo: la seccion completa queda mas abajo,
           pero recien a los 3.500px de scroll y nadie llegaba. */}

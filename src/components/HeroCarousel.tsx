@@ -24,7 +24,24 @@ const ROTATION_MS = 5500; // crossfade cada 5.5s
 // Hero "Dark Luxe" — fondo oscuro + glow rojo + stats laterales
 // El link de WhatsApp llega del servidor: este componente corre en el
 // navegador y no puede saber de que sucursal es la visita.
-export function HeroCarousel({ whatsappHref }: { whatsappHref: string }) {
+// Lo que promete la portada cambia segun donde se este parado: en
+// conesa.com.ar hay dos locales y no se puede decir "retiralo en Villa
+// Cura Brochero", que es a 800 km del otro. En la tienda de una sucursal
+// si, porque ahi se vende esa.
+export function HeroCarousel({
+  whatsappHref,
+  dondeRetirar,
+  retiroDesc,
+  envioTitulo,
+  envioDesc,
+}: {
+  whatsappHref: string;
+  /** Como se nombra el lugar de retiro en el parrafo. */
+  dondeRetirar: string;
+  retiroDesc: string;
+  envioTitulo: string;
+  envioDesc: string;
+}) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -104,7 +121,7 @@ export function HeroCarousel({ whatsappHref }: { whatsappHref: string }) {
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}
           >
             <strong className="text-white">Ofertas vigentes</strong> en las
-            mejores marcas, listas para comprar o retirar en Villa Cura Brochero.
+            mejores marcas, listas para comprar o retirar en {dondeRetirar}.
           </p>
 
           <div className="animate-fade-up-delay-3 mt-9 flex flex-col gap-3 sm:flex-row">
@@ -130,16 +147,8 @@ export function HeroCarousel({ whatsappHref }: { whatsappHref: string }) {
 
         {/* Beneficios laterales (desktop) */}
         <aside className="pointer-events-none absolute bottom-16 right-10 hidden flex-col gap-3 lg:flex">
-          <BenefitChip
-            icon={Store}
-            title="Retiro en tienda"
-            desc="Villa Cura Brochero · gratis"
-          />
-          <BenefitChip
-            icon={Truck}
-            title="Envíos a Traslasierra"
-            desc="Costo a coordinar por WhatsApp"
-          />
+          <BenefitChip icon={Store} title="Retiro en tienda" desc={retiroDesc} />
+          <BenefitChip icon={Truck} title={envioTitulo} desc={envioDesc} />
           <BenefitChip
             icon={CreditCard}
             title="Pagá en cuotas"
