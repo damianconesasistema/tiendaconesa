@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { TikTokCollage } from "@/components/TikTokCollage";
-import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { CuotasBanner } from "@/components/CuotasBanner";
@@ -11,14 +10,11 @@ import { Sucursales } from "@/components/Sucursales";
 import { prisma } from "@/lib/db";
 import { getMarcasConLogo } from "@/lib/marcas-server";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
-import { DataFiscal } from "@/components/DataFiscal";
 
 // En runtime hay DB (Railway). En build no la tenemos → forzar dynamic
 export const dynamic = "force-dynamic";
 import {
   MapPin,
-  Clock,
-  Phone,
   Mail,
   ShowerHead,
   Droplets,
@@ -27,12 +23,11 @@ import {
   Hammer,
   Wrench,
   ArrowRight,
-  Undo2,
   Store,
   Truck,
 } from "lucide-react";
-import { ConesaLogo } from "@/components/ConesaLogo";
-import { business, whatsappLink, aniosDeOficio } from "@/lib/business";
+import { business, aniosDeOficio } from "@/lib/business";
+import { contactoActual, subdominioActual } from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const categoryIcons = [
@@ -56,12 +51,18 @@ export default async function Home() {
   const dctoContadoPct = Math.round(
     (1 - 1 / (1 + recargos.unPago / 100)) * 100,
   );
+  const contacto = await contactoActual();
+  // En el subdominio de una tienda se muestra solo esa sucursal: la de
+  // Buenos Aires no tiene por que publicar el telefono de Cordoba. En
+  // conesa.com.ar van las dos, que es de lo que habla esa pagina.
+  const sub = await subdominioActual();
+
   // Las sucursales para el bloque de abajo. En try porque si la migracion
   // todavia no corrio, la tabla no existe: preferimos que la home salga
   // sin esa seccion antes que no salga.
   const sucursales = await prisma.branch
     .findMany({
-      where: { active: true },
+      where: { active: true, ...(sub ? { subdominio: sub } : {}) },
       orderBy: { orden: "asc" },
       select: {
         slug: true,
@@ -178,7 +179,7 @@ export default async function Home() {
 
 
       {/* HERO */}
-      <HeroCarousel />
+      <HeroCarousel whatsappHref={contacto.linkWhatsapp("Hola! Vi la web y quería hacer una consulta.")} />
 
       {/* Las ofertas, arriba de todo: la seccion completa queda mas abajo,
           pero recien a los 3.500px de scroll y nadie llegaba. */}
@@ -420,7 +421,7 @@ export default async function Home() {
               </div>
 
               <WhatsAppLink
-                href={whatsappLink()}
+                href={contacto.linkWhatsapp()}
                 origen="home-pedido"
                 className="mt-10 inline-flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-[var(--brand-red)] hover:gap-3"
               >

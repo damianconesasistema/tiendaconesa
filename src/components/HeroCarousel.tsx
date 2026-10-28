@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ArrowRight, Store, Truck, CreditCard } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
-import { whatsappLink } from "@/lib/business";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import blurs from "@/data/hero-blur.json";
 
@@ -23,7 +22,9 @@ const photos: readonly { src: string; alt: string; key: keyof typeof blurs }[] =
 const ROTATION_MS = 5500; // crossfade cada 5.5s
 
 // Hero "Dark Luxe" — fondo oscuro + glow rojo + stats laterales
-export function HeroCarousel() {
+// El link de WhatsApp llega del servidor: este componente corre en el
+// navegador y no puede saber de que sucursal es la visita.
+export function HeroCarousel({ whatsappHref }: { whatsappHref: string }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -117,7 +118,7 @@ export function HeroCarousel() {
             </Link>
 
             <WhatsAppLink
-              href={whatsappLink("Hola! Vi la web y quería hacer una consulta.")}
+              href={whatsappHref}
               origen="hero"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-7 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-[#25D366]/90"
             >
