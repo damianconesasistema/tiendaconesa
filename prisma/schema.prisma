@@ -216,6 +216,10 @@ model Branch {
   city       String?
   province   String?
   postalCode String?
+  // Para el punto en el mapa de la ficha de Google. Vacias si no se saben:
+  // un punto mal puesto manda al cliente a otra cuadra.
+  lat        Float?
+  lng        Float?
   phone      String?
   whatsapp   String?
   email      String?

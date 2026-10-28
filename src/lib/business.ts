@@ -1,5 +1,9 @@
 export const business = {
-  name: "Sanitarios Conesa Traslasierra",
+  // El nombre de la MARCA, no el de un local. Decia "Sanitarios Conesa
+  // Traslasierra" y se usaba en 19 lugares: el titulo del sitio, el pie, la
+  // etiqueta de envio y hasta el encabezado de la factura. Con dos
+  // sucursales eso dejaba a Balvanera facturando con el nombre de la otra.
+  name: "Sanitarios Conesa",
   shortName: "Sanitarios Conesa",
   tagline: "Sanitarios · Grifería · Materiales para la construcción",
   // Año en que abrio el primer local. Se guarda el año y no la cantidad de

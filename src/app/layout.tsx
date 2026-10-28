@@ -11,6 +11,8 @@ import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { BackToTop } from "@/components/BackToTop";
 import { business } from "@/lib/business";
+import { sucursalActual } from "@/lib/sucursal";
+import { datosEstructurados } from "@/lib/datos-estructurados";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,11 +34,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default:
-      "Sanitarios Conesa Traslasierra · Tienda online de sanitarios, grifería y materiales en Villa Cura Brochero",
-    template: "%s · Sanitarios Conesa Traslasierra",
+      "Sanitarios Conesa · Sanitarios, grifería y materiales en Traslasierra y Capital Federal",
+    template: "%s · Sanitarios Conesa",
   },
   description:
-    "Comprá online sanitarios, grifería, bañeras, salamandras, calefones y materiales de construcción. Ofertas en las mejores marcas (FV, Piazza, Hydros, Johnson). Envío a todo el Valle de Traslasierra o retiro en Villa Cura Brochero.",
+    "Comprá online sanitarios, grifería, bañeras, salamandras, calefones y materiales de construcción. Las mejores marcas (FV, Piazza, Hydros, Johnson). Dos locales: Villa Cura Brochero, Córdoba y Balvanera, Ciudad de Buenos Aires. Retiro en el local o envío a coordinar.",
   keywords: [
     "sanitarios conesa",
     "sanitarios villa cura brochero",
@@ -44,6 +46,16 @@ export const metadata: Metadata = {
     "sanitarios cordoba",
     "corralón traslasierra",
     "materiales de construcción cura brochero",
+    "sanitarios balvanera",
+    "sanitarios capital federal",
+    "sanitarios caba",
+    "sanitarios buenos aires",
+    "corralón balvanera",
+    "materiales de construcción caba",
+    "grifería capital federal",
+    "sanitarios once",
+    "sanitarios almagro",
+    "sanitarios congreso",
     "grifería fv",
     "grifería piazza",
     "grifería hydros",
@@ -78,9 +90,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title:
-      "Sanitarios Conesa Traslasierra · Tienda online en Villa Cura Brochero",
+      "Sanitarios Conesa · Tienda online de sanitarios y materiales",
     description:
-      "Ofertas en sanitarios, grifería, salamandras y materiales. Las mejores marcas con envío a todo Traslasierra o retiro en el local.",
+      "Ofertas en sanitarios, grifería, salamandras y materiales. Dos locales: Traslasierra y Capital Federal. Retiro en el local o envío a coordinar.",
     url: SITE_URL,
     siteName: business.name,
     locale: "es_AR",
@@ -90,15 +102,15 @@ export const metadata: Metadata = {
         url: "/opengraph-image.png",
         width: 1200,
         height: 630,
-        alt: "Sanitarios Conesa Traslasierra · Tienda online",
+        alt: "Sanitarios Conesa · Tienda online",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sanitarios Conesa Traslasierra · Tienda online",
+    title: "Sanitarios Conesa · Tienda online",
     description:
-      "Sanitarios, grifería y materiales en Villa Cura Brochero. Envíos a todo el Valle de Traslasierra.",
+      "Sanitarios, grifería y materiales. Locales en Villa Cura Brochero y Balvanera.",
     images: ["/opengraph-image.png"],
   },
   robots: {
@@ -137,77 +149,29 @@ export const viewport: Viewport = {
 };
 
 // JSON-LD global: LocalBusiness + Store + sameAs sociales
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": ["Store", "LocalBusiness"],
-  "@id": `${SITE_URL}/#store`,
-  name: business.name,
-  alternateName: business.shortName,
-  description:
-    "Tienda de sanitarios, grifería y materiales de construcción en Villa Cura Brochero, Traslasierra, Córdoba.",
-  url: SITE_URL,
-  logo: `${SITE_URL}/icon.png`,
-  image: `${SITE_URL}/opengraph-image.png`,
-  telephone: business.phone.international.replace(/\s/g, ""),
-  email: business.email,
-  priceRange: "$$",
-  currenciesAccepted: "ARS",
-  paymentAccepted: "Cash, Credit Card, Debit Card, Bank Transfer",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: business.address.street,
-    addressLocality: business.address.city,
-    addressRegion: business.address.province,
-    postalCode: business.address.postalCode,
-    addressCountry: "AR",
-  },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: -31.8431,
-    longitude: -65.0206,
-  },
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      opens: "08:30",
-      closes: "17:00",
-    },
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: "Saturday",
-      opens: "09:00",
-      closes: "14:00",
-    },
-  ],
-  areaServed: [
-    { "@type": "City", name: "Villa Cura Brochero" },
-    { "@type": "City", name: "Mina Clavero" },
-    { "@type": "City", name: "Nono" },
-    { "@type": "City", name: "Villa Dolores" },
-    { "@type": "City", name: "San Javier" },
-    { "@type": "AdministrativeArea", name: "Valle de Traslasierra, Córdoba" },
-  ],
-  sameAs: [
-    business.social.instagram.url,
-    business.social.facebook.url,
-    business.social.tiktok.url,
-  ],
-};
+// La ficha para Google ya no se escribe aca: se arma desde la base, con la
+// marca y las dos sucursales, en src/lib/datos-estructurados.ts. La version
+// que estaba aca describia un solo local, con la direccion y el horario de
+// Traslasierra escritos a mano.
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const sucursal = await sucursalActual();
+  const ficha = await datosEstructurados(sucursal?.subdominio ?? null);
+
   return (
     <html
       lang="es-AR"
       className={`${inter.variable} ${montserrat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Script
-          id="ld-store"
-          type="application/ld+json"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        {ficha && (
+          <Script
+            id="ld-store"
+            type="application/ld+json"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(ficha) }}
+          />
+        )}
         <CartProvider>
           <CuotasStrip />
           <Header />
