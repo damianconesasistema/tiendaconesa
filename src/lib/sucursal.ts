@@ -127,7 +127,7 @@ export const contactosParaMostrar = cache(async () => {
         slug: s.slug,
         nombre: s.name,
         telefono: s.phone ?? "",
-        telefonoLimpio: (s.phone ?? "").replace(/[^d+]/g, ""),
+        telefonoLimpio: (s.phone ?? "").replace(/[^\d+]/g, ""),
         linkWhatsapp: linkWa(s.whatsapp ?? ""),
       }));
   } catch {
