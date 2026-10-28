@@ -40,14 +40,17 @@ export function SucursalEnPie({
   const busqueda = encodeURIComponent(paraElMapa);
 
   return (
-    <div>
+    // La columna ocupa todo el alto de la fila y la lista crece para
+    // llenarlo: asi los dos mapas arrancan a la misma altura aunque un
+    // local tenga un dato mas que el otro (Buenos Aires no tiene mail).
+    <div className="flex h-full flex-col">
       {conTitulo && (
         <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-[var(--brand-red)]">
           {s.name}
         </div>
       )}
 
-      <ul className={`${conTitulo ? "mt-4" : ""} space-y-3 text-sm`}>
+      <ul className={`${conTitulo ? "mt-4" : ""} flex-1 space-y-3 text-sm`}>
         {s.address && (
           <li className="flex items-start gap-2">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted)]" />
@@ -129,7 +132,7 @@ export function SucursalEnPie({
             href={`https://maps.google.com/?q=${busqueda}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[var(--brand-red)] hover:gap-2"
+            className="mt-3 inline-flex self-start items-center gap-1 text-xs font-bold text-[var(--brand-red)] hover:gap-2"
           >
             Cómo llegar <ArrowRight className="h-3 w-3" />
           </a>
