@@ -12,7 +12,8 @@ import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { DataFiscal } from "@/components/DataFiscal";
 import { SocialIcon, InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
 import { business, whatsappLink } from "@/lib/business";
-import { getLegales } from "@/lib/legales";
+import { getLegales, titularesDeLasSucursales } from "@/lib/legales";
+import { subdominioActual } from "@/lib/sucursal";
 
 // Pie del sitio. Vive aparte y se monta en el layout porque los links
 // legales (arrepentimiento, terminos) y el QR de Data Fiscal tienen que
@@ -20,6 +21,10 @@ import { getLegales } from "@/lib/legales";
 
 export async function Footer() {
   const legales = await getLegales();
+  // En conesa.com.ar no hay una sola razon social: son dos contribuyentes y
+  // los dos venden. En el subdominio de cada tienda va la suya sola.
+  const sub = await subdominioActual();
+  const titulares = sub ? [] : await titularesDeLasSucursales();
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-16">
       <div className="mx-auto max-w-6xl">
@@ -167,12 +172,25 @@ export async function Footer() {
                 Defensa del Consumidor
               </a>
             </div>
-            {(legales.razonSocial || legales.cuit) && (
-              <p className="mt-3 text-xs text-[var(--muted)]">
-                {legales.razonSocial}
-                {legales.razonSocial && legales.cuit && " · "}
-                {legales.cuit && <>CUIT {legales.cuit}</>}
-              </p>
+            {titulares.length > 0 ? (
+              <div className="mt-3 space-y-1 text-xs text-[var(--muted)]">
+                {titulares.map((t) => (
+                  <p key={t.cuit ?? t.name}>
+                    <span className="font-semibold">{t.name}:</span>{" "}
+                    {t.razonSocial}
+                    {t.razonSocial && t.cuit && " · "}
+                    {t.cuit && <>CUIT {t.cuit}</>}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              (legales.razonSocial || legales.cuit) && (
+                <p className="mt-3 text-xs text-[var(--muted)]">
+                  {legales.razonSocial}
+                  {legales.razonSocial && legales.cuit && " · "}
+                  {legales.cuit && <>CUIT {legales.cuit}</>}
+                </p>
+              )
             )}
           </div>
           <DataFiscal className="shrink-0" />

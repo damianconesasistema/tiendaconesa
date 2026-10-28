@@ -11,7 +11,7 @@ import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { BackToTop } from "@/components/BackToTop";
 import { business } from "@/lib/business";
-import { sucursalActual } from "@/lib/sucursal";
+import { subdominioActual } from "@/lib/sucursal";
 import { datosEstructurados } from "@/lib/datos-estructurados";
 import "./globals.css";
 
@@ -155,8 +155,8 @@ export const viewport: Viewport = {
 // Traslasierra escritos a mano.
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const sucursal = await sucursalActual();
-  const ficha = await datosEstructurados(sucursal?.subdominio ?? null);
+  // null en conesa.com.ar: ahi se publican las dos sucursales.
+  const ficha = await datosEstructurados(await subdominioActual());
 
   return (
     <html

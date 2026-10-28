@@ -75,3 +75,27 @@ async function buscarSucursal() {
 }
 
 export const sucursalActual = cache(buscarSucursal);
+
+/** El subdominio de esta visita, o null si se entro por conesa.com.ar. */
+export const subdominioActual = cache(async (): Promise<string | null> => {
+  const h = await headers();
+  const host = (h.get("x-forwarded-host") ?? h.get("host") ?? "")
+    .toLowerCase()
+    .split(":")[0];
+  const partes = host.split(".");
+  if (partes.length <= 2) return null;
+
+  const primero = partes[0];
+  // "www" no es una sucursal, y cualquier otro subdominio que no este en la
+  // base tampoco: los dos tienen que caer en la pagina general.
+  if (primero === "www") return null;
+  try {
+    const existe = await prisma.branch.findFirst({
+      where: { subdominio: primero, active: true },
+      select: { subdominio: true },
+    });
+    return existe?.subdominio ?? null;
+  } catch {
+    return null;
+  }
+});

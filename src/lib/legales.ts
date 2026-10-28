@@ -57,3 +57,25 @@ export async function getLegales() {
 }
 
 export type Legales = Awaited<ReturnType<typeof getLegales>>;
+
+// Los titulares de las dos sucursales, para el pie de conesa.com.ar.
+//
+// En la pagina general no hay una sola razon social que mostrar: son dos
+// contribuyentes distintos y los dos venden. Mostrar uno solo seria decir
+// que el otro no existe, y en el pie de un sitio que vende eso no es un
+// detalle de diseno.
+//
+// En el subdominio de una sucursal esto no se usa: ahi va la suya sola.
+export async function titularesDeLasSucursales() {
+  const { prisma } = await import("@/lib/db");
+  try {
+    const sucursales = await prisma.branch.findMany({
+      where: { active: true },
+      orderBy: { orden: "asc" },
+      select: { name: true, razonSocial: true, cuit: true },
+    });
+    return sucursales.filter((s) => s.razonSocial || s.cuit);
+  } catch {
+    return [];
+  }
+}
