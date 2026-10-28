@@ -25,18 +25,21 @@ export type Sucursal = NonNullable<
 async function buscarSucursal() {
   let subdominio = "";
 
-  try {
-    const h = await headers();
-    // nginx pasa el Host original; x-forwarded-host lo pone Cloudflare.
-    const host = (h.get("x-forwarded-host") ?? h.get("host") ?? "")
-      .toLowerCase()
-      .split(":")[0];
-    const partes = host.split(".");
-    if (partes.length > 2) subdominio = partes[0];
-  } catch {
-    // Fuera de una visita (al compilar, o en un script) no hay dominio que
-    // mirar. Se sigue de largo y cae en la sucursal principal.
-  }
+  // Preguntar por el dominio NO va dentro de un try.
+  //
+  // Es la unica forma que tiene Next de enterarse de que esta pagina depende
+  // de quien la pide: al compilar, headers() lanza un error a proposito y Next
+  // lo usa como senal para armarla en cada visita en vez de una sola vez.
+  // Atrapar ese error se come la senal: Next cree que la pagina es fija, la
+  // genera sin dominio, y despues todas las visitas ven la misma sucursal.
+  // Nos paso: las dos tiendas mostraban el CUIT de Traslasierra.
+  const h = await headers();
+  // nginx pasa el Host original; x-forwarded-host lo pone Cloudflare.
+  const host = (h.get("x-forwarded-host") ?? h.get("host") ?? "")
+    .toLowerCase()
+    .split(":")[0];
+  const partes = host.split(".");
+  if (partes.length > 2) subdominio = partes[0];
 
   // La base se consulta adentro de un try a proposito. Esto lo llama el pie
   // de pagina, que esta en TODAS las pantallas: si la consulta falla y se
