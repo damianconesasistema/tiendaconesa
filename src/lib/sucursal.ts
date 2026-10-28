@@ -104,6 +104,57 @@ export const subdominioActual = cache(async (): Promise<string | null> => {
   }
 });
 
+/** Los contactos que hay que mostrar en esta visita.
+ *
+ *  En la tienda de una sucursal es uno solo: el suyo. En conesa.com.ar son
+ *  los dos, cada uno con el nombre del local adelante. La pagina general
+ *  habla de los dos negocios: mostrar un telefono solo, sin decir de cual
+ *  es, hace que el que entra desde Capital marque a Cordoba.
+ *
+ *  Devuelve texto armado y no funciones porque esto lo usan componentes que
+ *  corren en el navegador, y una funcion no cruza esa frontera. */
+export const contactosParaMostrar = cache(async () => {
+  const sub = await subdominioActual();
+  try {
+    const sucursales = await prisma.branch.findMany({
+      where: { active: true, ...(sub ? { subdominio: sub } : {}) },
+      orderBy: { orden: "asc" },
+      select: { slug: true, name: true, phone: true, whatsapp: true },
+    });
+    const utiles = sucursales.filter((s) => s.phone || s.whatsapp);
+    if (utiles.length > 0)
+      return utiles.map((s) => ({
+        slug: s.slug,
+        nombre: s.name,
+        telefono: s.phone ?? "",
+        telefonoLimpio: (s.phone ?? "").replace(/[^d+]/g, ""),
+        linkWhatsapp: linkWa(s.whatsapp ?? ""),
+      }));
+  } catch {
+    // sigue abajo: el encabezado tiene que salir igual
+  }
+
+  // Sin base o sin datos cargados: lo de siempre, para no dejar la cabecera
+  // sin telefono.
+  const c = await contactoActual();
+  return [
+    {
+      slug: "",
+      nombre: "",
+      telefono: c.telefono,
+      telefonoLimpio: c.telefonoLimpio,
+      linkWhatsapp: c.linkWhatsapp(),
+    },
+  ];
+});
+
+/** El link de WhatsApp con el mensaje de siempre. */
+function linkWa(numero: string) {
+  const limpio = numero.replace(/D/g, "");
+  const texto = encodeURIComponent("Hola! Vi su web y quería consultar por...");
+  return `https://api.whatsapp.com/send?phone=${limpio}&text=${texto}`;
+}
+
 /** Si esta visita entro por el subdominio de una tienda que todavia no
  *  esta habilitada para vender.
  *
