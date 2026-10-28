@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { business } from "@/lib/business";
-import { legales } from "@/lib/legales";
+import { legales, getLegales } from "@/lib/legales";
 
 export const metadata: Metadata = {
   title: "Términos y condiciones",
@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 
 const DIAS = legales.diasArrepentimiento;
 
-export default function LegalesPage() {
+export default async function LegalesPage() {
+  const legales = await getLegales();
   const domicilio = `${business.address.street}, ${business.address.city}, ${business.address.province} (${business.address.postalCode})`;
 
   return (

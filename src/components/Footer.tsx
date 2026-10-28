@@ -12,13 +12,14 @@ import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { DataFiscal } from "@/components/DataFiscal";
 import { SocialIcon, InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
 import { business, whatsappLink } from "@/lib/business";
-import { legales } from "@/lib/legales";
+import { getLegales } from "@/lib/legales";
 
 // Pie del sitio. Vive aparte y se monta en el layout porque los links
 // legales (arrepentimiento, terminos) y el QR de Data Fiscal tienen que
 // estar en todas las pantallas, no solo en el inicio.
 
-export function Footer() {
+export async function Footer() {
+  const legales = await getLegales();
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-16">
       <div className="mx-auto max-w-6xl">

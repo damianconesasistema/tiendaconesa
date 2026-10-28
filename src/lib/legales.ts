@@ -31,3 +31,29 @@ export const legales = {
 export function tieneDatosFiscales() {
   return legales.cuit !== "" || legales.razonSocial !== "";
 }
+
+// Los mismos datos, pero de la sucursal que corresponde al dominio por el
+// que entro la visita. Es lo que hay que usar en la tienda.
+//
+// Las variables de entorno de arriba quedan como respaldo: si la sucursal
+// todavia no tiene cargado un dato, se muestra el que habia antes en vez de
+// un hueco. Un CUIT equivocado es peor que ninguno, pero ninguno tambien es
+// un problema: la tienda esta obligada a publicarlo.
+export async function getLegales() {
+  const { sucursalActual } = await import("@/lib/sucursal");
+  const s = await sucursalActual();
+
+  const o = (deLaSucursal: string | null | undefined, deAntes: string) =>
+    deLaSucursal && deLaSucursal.trim() !== "" ? deLaSucursal : deAntes;
+
+  return {
+    razonSocial: o(s?.razonSocial, legales.razonSocial),
+    cuit: o(s?.cuit, legales.cuit),
+    afipQr: o(s?.afipQr, legales.afipQr),
+    ingresosBrutos: o(s?.iibb, legales.ingresosBrutos),
+    inicioActividades: o(s?.inicioAct, legales.inicioActividades),
+    diasArrepentimiento: legales.diasArrepentimiento,
+  };
+}
+
+export type Legales = Awaited<ReturnType<typeof getLegales>>;

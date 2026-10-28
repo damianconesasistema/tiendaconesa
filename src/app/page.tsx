@@ -11,7 +11,6 @@ import { Sucursales } from "@/components/Sucursales";
 import { prisma } from "@/lib/db";
 import { getMarcasConLogo } from "@/lib/marcas-server";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
-import { legales } from "@/lib/legales";
 import { DataFiscal } from "@/components/DataFiscal";
 
 // En runtime hay DB (Railway). En build no la tenemos → forzar dynamic
