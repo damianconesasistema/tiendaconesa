@@ -58,6 +58,8 @@ export default async function SucursalesPage() {
                 city: s.city,
                 province: s.province,
                 postalCode: s.postalCode,
+                lat: s.lat,
+                lng: s.lng,
                 phone: s.phone,
                 whatsapp: s.whatsapp,
                 email: s.email,

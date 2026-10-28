@@ -19,6 +19,8 @@ export type Sucursal = {
   city: string | null;
   province: string | null;
   postalCode: string | null;
+  lat: number | null;
+  lng: number | null;
   phone: string | null;
   whatsapp: string | null;
   email: string | null;
@@ -141,6 +143,17 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
         <Campo etiqueta="Localidad" nombre="city" valor={sucursal.city} />
         <Campo etiqueta="Provincia" nombre="province" valor={sucursal.province} />
         <Campo etiqueta="Código postal" nombre="postalCode" valor={sucursal.postalCode} />
+        <Campo
+          etiqueta="Coordenadas del local"
+          nombre="coordenadas"
+          valor={
+            sucursal.lat != null && sucursal.lng != null
+              ? `${sucursal.lat}, ${sucursal.lng}`
+              : null
+          }
+          ancho="sm:col-span-2"
+          ayuda="Para el punto en el mapa de Google. Se sacan de Google Maps: botón derecho sobre el local y copiar coordenadas. Se pegan tal cual, separadas por coma. Si no las sabés, dejá vacío: un punto mal puesto manda al cliente a otra cuadra."
+        />
         <Campo etiqueta="Teléfono" nombre="phone" valor={sucursal.phone} />
         <Campo
           etiqueta="WhatsApp"

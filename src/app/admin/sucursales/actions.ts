@@ -41,6 +41,27 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
   if (cuit && (cuit.replace(/\D/g, "") || "").length !== 11)
     return { error: "El CUIT tiene que tener 11 dígitos." };
 
+  // Las coordenadas se pegan tal cual vienen de Google Maps: "-34.61, -58.39".
+  // Se piden juntas y en un solo campo porque asi es como las copia uno; dos
+  // casillas separadas invitan a pegar las dos en la primera.
+  //
+  // O van las dos o no va ninguna: media coordenada pone el punto en el
+  // oceano, que es peor que no tener punto.
+  let lat: number | null = null;
+  let lng: number | null = null;
+  const crudas = texto(formData, "coordenadas");
+  if (crudas) {
+    const partes = crudas.split(",").map((t) => Number(t.trim()));
+    if (partes.length !== 2 || partes.some((n) => !Number.isFinite(n)))
+      return {
+        error:
+          "Las coordenadas van como las copia Google Maps: dos números separados por coma. Por ejemplo: -34.6100578, -58.3963736",
+      };
+    [lat, lng] = partes;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180)
+      return { error: "Esas coordenadas están fuera del mapa. Revisá que no estén al revés." };
+  }
+
   const cubreTodoElPais = formData.get("cubreTodoElPais") === "on";
   if (cubreTodoElPais) {
     // Solo una puede cubrir el resto del pais: si quedan dos, el pedido de
@@ -76,6 +97,8 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
         city: texto(formData, "city"),
         province: texto(formData, "province"),
         postalCode: texto(formData, "postalCode"),
+        lat,
+        lng,
         phone: texto(formData, "phone"),
         whatsapp: texto(formData, "whatsapp"),
         email: texto(formData, "email"),
