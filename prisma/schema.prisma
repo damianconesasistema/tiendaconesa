@@ -194,6 +194,10 @@ model OrderItem {
 model Branch {
   id     String  @id @default(cuid())
   slug   String  @unique // traslasierra | bsas. Es la clave de las credenciales.
+  // La tienda de cada sucursal vive en su propio subdominio y de ahi sale
+  // todo: que CUIT factura, a que cuenta entra la plata, que precios se
+  // muestran. El dominio no se equivoca; preguntarselo al cliente si.
+  subdominio String? @unique // traslasierra | balvanera
   name   String // Como se muestra: "Traslasierra"
   active Boolean @default(true)
   orden  Int     @default(0) // En que orden se listan
@@ -203,6 +207,9 @@ model Branch {
   cuit        String?
   iibb        String?
   inicioAct   String?
+  // Codigo del QR de Data Fiscal (F960/D). Es propio de cada CUIT y
+  // domicilio, y mostrarlo en la tienda es obligatorio.
+  afipQr      String?
 
   // Contacto y domicilio del local
   address    String?

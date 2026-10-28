@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 
@@ -27,6 +27,7 @@ export function AdminShell({
     | "marcas"
     | "pedidos"
     | "clientes"
+    | "sucursales"
     | "configuracion"
     | "version";
   children: React.ReactNode;
@@ -92,6 +93,12 @@ export function AdminShell({
             icon={Users}
             label="Clientes"
             active={active === "clientes"}
+          />
+          <Tab
+            href="/admin/sucursales"
+            icon={Store}
+            label="Sucursales"
+            active={active === "sucursales"}
           />
           <a
             href={verTienda}
