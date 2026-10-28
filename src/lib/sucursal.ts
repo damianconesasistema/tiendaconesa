@@ -61,9 +61,13 @@ async function buscarSucursal() {
   }
 
   // conesa.com.ar sin subdominio, www, o un subdominio que no es de nadie:
-  // se atiende con la principal, que es la de menor orden. Mientras no
-  // exista la portada general, eso es Traslasierra, que es lo que hay hoy
-  // en esa direccion.
+  // se atiende con la principal, que es la de menor orden. El orden se
+  // cambia desde el panel, en Sucursales; hoy la primera es Buenos Aires.
+  //
+  // De aca sale solo lo que se muestra en la portada general (el telefono
+  // de la cabecera, el boton de WhatsApp, el QR de Data Fiscal). No decide
+  // con que CUIT se factura ni a que cuenta entra la plata: eso lo decide
+  // el subdominio y nada mas.
   try {
     return await prisma.branch.findFirst({
       where: { active: true },

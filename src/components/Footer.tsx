@@ -39,8 +39,12 @@ export async function Footer() {
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--muted)]">
               Sanitarios, grifería y materiales para la construcción.
               {" "}
+              {/* Los nombres salen de la lista, asi respetan el orden
+                  que esta puesto en el panel en vez de uno fijo aca. */}
               {sucursales.length > 1
-                ? "Dos locales: Traslasierra y Buenos Aires."
+                ? `${sucursales.length} locales: ${sucursales
+                    .map((s) => s.name)
+                    .join(" y ")}.`
                 : ""}
             </p>
             <div className="mt-4 flex gap-2">

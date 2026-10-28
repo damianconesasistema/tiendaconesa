@@ -8,6 +8,7 @@ export type Sucursal = {
   id: string;
   slug: string;
   subdominio: string | null;
+  orden: number;
   name: string;
   active: boolean;
   razonSocial: string | null;
@@ -102,6 +103,13 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <Campo etiqueta="Nombre" nombre="name" valor={sucursal.name} />
+        <Campo
+          etiqueta="Orden en la lista"
+          nombre="orden"
+          tipo="number"
+          valor={String(sucursal.orden)}
+          ayuda="La de número más chico va primero en el pie, en la portada y es la que atiende conesa.com.ar."
+        />
         <Campo
           etiqueta="Subdominio"
           nombre="subdominio"

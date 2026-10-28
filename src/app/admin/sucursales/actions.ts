@@ -30,6 +30,13 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
   const nombre = String(formData.get("name") ?? "").trim();
   if (!nombre) return { error: "El nombre no puede quedar vacío." };
 
+  // En que orden se listan las sucursales. El menor va primero, y es
+  // tambien la que atiende conesa.com.ar cuando no hay subdominio.
+  const ordenCrudo = texto(formData, "orden");
+  const orden = ordenCrudo === null ? 0 : Number(ordenCrudo);
+  if (!Number.isInteger(orden))
+    return { error: "El orden va en número entero: 1, 2, 3..." };
+
   const subdominio = texto(formData, "subdominio");
   if (subdominio && !/^[a-z0-9-]+$/.test(subdominio))
     return {
@@ -87,6 +94,7 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
       data: {
         name: nombre,
         subdominio,
+        orden,
         active: formData.get("active") === "on",
         razonSocial: texto(formData, "razonSocial"),
         cuit,

@@ -47,6 +47,7 @@ export default async function SucursalesPage() {
                 id: s.id,
                 slug: s.slug,
                 subdominio: s.subdominio,
+                orden: s.orden,
                 name: s.name,
                 active: s.active,
                 razonSocial: s.razonSocial,
