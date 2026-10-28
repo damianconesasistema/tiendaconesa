@@ -11,7 +11,7 @@ import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { BackToTop } from "@/components/BackToTop";
 import { business } from "@/lib/business";
-import { subdominioActual } from "@/lib/sucursal";
+import { subdominioActual, contactoActual } from "@/lib/sucursal";
 import { datosEstructurados } from "@/lib/datos-estructurados";
 import "./globals.css";
 
@@ -158,6 +158,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // null en conesa.com.ar: ahi se publican las dos sucursales.
   const ficha = await datosEstructurados(await subdominioActual());
+  const contacto = await contactoActual();
 
   return (
     <html
@@ -180,7 +181,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <FooterGate>
             <Footer />
           </FooterGate>
-          <FloatingWhatsApp />
+          <FloatingWhatsApp href={contacto.linkWhatsapp()} />
           <BackToTop />
           <CartFab />
         </CartProvider>

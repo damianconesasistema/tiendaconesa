@@ -3,10 +3,15 @@ import { MapPin } from "lucide-react";
 import { ConesaLogo } from "@/components/ConesaLogo";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { CartButton } from "@/components/CartButton";
-import { business, whatsappLink } from "@/lib/business";
+import { business } from "@/lib/business";
+import { contactoActual } from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
-export function Header() {
+// El telefono y el WhatsApp salen de la sucursal del subdominio. Estaban
+// fijos con los de Traslasierra, asi que un cliente de Buenos Aires le
+// escribia a Cordoba.
+export async function Header() {
+  const contacto = await contactoActual();
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/40 bg-white/70 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-4 sm:h-24 sm:px-6">
@@ -30,15 +35,15 @@ export function Header() {
             ¡COMPRA AHORA!
           </Link>
           <a
-            href={`tel:${business.phone.international.replace(/\s/g, "")}`}
+            href={`tel:${contacto.telefonoLimpio}`}
             className="hidden items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] lg:inline-flex"
           >
             <MapPin className="h-4 w-4" />
-            {business.phone.display}
+            {contacto.telefono}
           </a>
           <CartButton />
           <WhatsAppLink
-            href={whatsappLink()}
+            href={contacto.linkWhatsapp()}
             origen="header"
             className="hidden items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-white shadow-sm transition-all hover:scale-[1.02] hover:bg-[#1DA851] sm:inline-flex sm:px-5"
           >

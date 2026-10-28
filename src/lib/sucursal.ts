@@ -99,3 +99,32 @@ export const subdominioActual = cache(async (): Promise<string | null> => {
     return null;
   }
 });
+
+/** Telefono y WhatsApp de la sucursal de esta visita.
+ *
+ *  Es lo que ve y toca el cliente: el numero de la cabecera y el boton verde.
+ *  Estaba fijo en el codigo con los datos de Traslasierra, asi que alguien
+ *  que entraba a la tienda de Buenos Aires le escribia a Cordoba. Eso no es
+ *  un detalle: es una venta que se pierde o un cliente que piensa que se
+ *  equivoco de lugar.
+ *
+ *  Si la sucursal no tiene cargado el dato, cae en el de business.ts, que es
+ *  como funcionaba hasta ahora. */
+export async function contactoActual() {
+  const { business } = await import("@/lib/business");
+  const s = await sucursalActual();
+
+  const whatsapp = s?.whatsapp?.replace(/\D/g, "") || business.whatsapp.number;
+  const telefono = s?.phone || business.phone.display;
+
+  return {
+    telefono,
+    /** Para el href del tel:, sin espacios ni guiones. */
+    telefonoLimpio: telefono.replace(/[^\d+]/g, ""),
+    whatsapp,
+    linkWhatsapp(mensaje?: string) {
+      const texto = mensaje ?? "Hola! Vi su web y quería consultar por...";
+      return `https://api.whatsapp.com/send?phone=${whatsapp}&text=${encodeURIComponent(texto)}`;
+    },
+  };
+}
