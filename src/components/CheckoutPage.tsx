@@ -17,7 +17,6 @@ import { gaArrancarCheckout } from "@/lib/ga";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
 import { localidadesPorZona } from "@/lib/traslasierra";
 import { formatPrice, cartTotal, buildOrderMessage, whatsappOrderLink } from "@/lib/order";
-import { business } from "@/lib/business";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { createOrder } from "@/app/tienda/checkout/actions";
 
@@ -28,11 +27,16 @@ export function CheckoutPage({
   recargos = { unPago: 10, cuotas: 26, cuotasMax: 6 },
   mpDisponible = false,
   planes = [],
+  // El WhatsApp de la sucursal por la que esta comprando. Llega del
+  // servidor porque este componente corre en el navegador. Si fuera fijo,
+  // un pedido de Buenos Aires le entraria al local de Cordoba.
+  whatsappSucursal,
 }: {
   recargos?: Recargos;
   mpDisponible?: boolean;
   // Planes de cuotas con su recargo ya calculado
   planes?: Plan[];
+  whatsappSucursal: string;
 }) {
   const router = useRouter();
   const { items, clear } = useCart();
@@ -173,7 +177,7 @@ export function CheckoutPage({
     // Camino WhatsApp (default): abrimos el chat con el pedido cargado.
     setSubmitting(false);
     const msg = buildOrderMessage(items, customer, result.orderNumber);
-    const url = whatsappOrderLink(msg, business.whatsapp.number);
+    const url = whatsappOrderLink(msg, whatsappSucursal);
     setOrderNumber(result.orderNumber);
     setSent(true);
     clear();

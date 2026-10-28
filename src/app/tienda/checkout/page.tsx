@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { contactoActual } from "@/lib/sucursal";
 import { CheckoutPage } from "@/components/CheckoutPage";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { MP_CONFIGURED } from "@/lib/mercadopago";
@@ -17,8 +18,11 @@ export default async function Checkout() {
     getRecargosMp(),
     getPlanesCuotas(),
   ]);
+  const contacto = await contactoActual();
+
   return (
     <CheckoutPage
+      whatsappSucursal={contacto.whatsapp}
       recargos={recargos}
       mpDisponible={MP_CONFIGURED}
       planes={planes}

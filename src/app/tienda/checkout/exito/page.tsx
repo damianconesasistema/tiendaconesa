@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Check, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
-import { whatsappLink } from "@/lib/business";
+import { contactoActual } from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { GaCompra } from "@/components/GaCompra";
 
@@ -22,6 +22,9 @@ export default async function ExitoPage({
   searchParams: SearchParams;
 }) {
   const sp = await searchParams;
+  // El WhatsApp de la sucursal por la que compro, no uno fijo: si el pago
+  // fallo, el cliente escribe al local que le tiene que resolver.
+  const contacto = await contactoActual();
   const orderNumber = Number(sp.orden);
   const order = Number.isFinite(orderNumber)
     ? await prisma.order.findUnique({
@@ -98,7 +101,7 @@ export default async function ExitoPage({
             Seguir comprando
           </Link>
           <WhatsAppLink
-            href={whatsappLink(
+            href={contacto.linkWhatsapp(
               order
                 ? `Hola! Acabo de pagar el pedido #${order.number} con MercadoPago.`
                 : "Hola! Acabo de hacer una compra.",

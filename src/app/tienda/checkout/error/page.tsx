@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { XCircle, RefreshCw, MessageCircle } from "lucide-react";
-import { whatsappLink } from "@/lib/business";
+import { contactoActual } from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 export const metadata: Metadata = {
@@ -19,6 +19,9 @@ export default async function ErrorPage({
   searchParams: SearchParams;
 }) {
   const sp = await searchParams;
+  // El WhatsApp de la sucursal por la que compro, no uno fijo: si el pago
+  // fallo, el cliente escribe al local que le tiene que resolver.
+  const contacto = await contactoActual();
   const orderNumber = sp.orden;
   const motivo = sp.motivo || "El pago no pudo procesarse.";
 
@@ -48,7 +51,7 @@ export default async function ErrorPage({
             </Link>
           )}
           <WhatsAppLink
-            href={whatsappLink(
+            href={contacto.linkWhatsapp(
               orderNumber
                 ? `Hola! Tuve un problema para pagar el pedido #${orderNumber} con tarjeta.`
                 : "Hola! Tuve un problema para pagar con tarjeta.",

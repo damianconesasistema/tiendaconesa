@@ -26,7 +26,6 @@ import {
 import { useCart } from "@/lib/cart";
 import { gaVerProducto } from "@/lib/ga";
 import { formatPrice } from "@/lib/order";
-import { whatsappLink } from "@/lib/business";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { parseShipping } from "@/lib/shipping";
 import { ShareButton } from "@/components/ShareButton";
@@ -65,17 +64,25 @@ const CAT_LABELS: Record<string, string> = {
   otros: "Otros",
 };
 
+const linkWa = (numero: string, mensaje: string) =>
+  `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensaje)}`;
+
 export function ProductDetail({
   product,
   related,
   bestSellers = [],
   comisionUnPago = 10,
   planes = [],
+  whatsappSucursal,
 }: {
   product: Product;
   related: Product[];
   bestSellers?: Product[];
   comisionUnPago?: number;
+  /** WhatsApp de la sucursal por la que se esta comprando. Viaja como
+   *  texto y no como funcion: una funcion no cruza del servidor al
+   *  navegador. */
+  whatsappSucursal: string;
   // Planes de cuotas con su recargo ya calculado
   planes?: Array<{ cuotas: number; recargoPct: number }>;
 }) {
@@ -434,7 +441,8 @@ export function ProductDetail({
                     Consultanos disponibilidad y tiempo de reposición.
                   </p>
                   <WhatsAppLink
-                    href={whatsappLink(
+                    href={linkWa(
+                      whatsappSucursal,
                       `Hola! Quería consultar disponibilidad de: ${product.title} (ID ${product.itemId})`,
                     )}
                     origen="ficha-sin-stock"
@@ -553,7 +561,8 @@ export function ProductDetail({
 
             {/* WhatsApp alternativo */}
             <WhatsAppLink
-              href={whatsappLink(
+              href={linkWa(
+                whatsappSucursal,
                 `Hola! Quería consultar por: ${product.title} (ID ${product.itemId})`,
               )}
               origen="ficha"

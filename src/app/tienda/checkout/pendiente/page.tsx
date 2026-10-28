@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Clock, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
-import { whatsappLink } from "@/lib/business";
+import { contactoActual } from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 export const metadata: Metadata = {
@@ -27,6 +27,9 @@ export default async function PendientePage({
   searchParams: SearchParams;
 }) {
   const sp = await searchParams;
+  // El WhatsApp de la sucursal por la que compro, no uno fijo: si el pago
+  // fallo, el cliente escribe al local que le tiene que resolver.
+  const contacto = await contactoActual();
   const orderNumber = Number(sp.orden);
   const order = Number.isFinite(orderNumber)
     ? await prisma.order.findUnique({
@@ -77,7 +80,7 @@ export default async function PendientePage({
             Seguir comprando
           </Link>
           <WhatsAppLink
-            href={whatsappLink(
+            href={contacto.linkWhatsapp(
               order
                 ? `Hola! Hice el pedido #${order.number} y el pago quedó pendiente. Quería consultar.`
                 : "Hola! Hice un pedido y el pago quedó pendiente.",

@@ -4,10 +4,10 @@ import { ConesaLogo } from "@/components/ConesaLogo";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { DataFiscal } from "@/components/DataFiscal";
 import { SocialIcon, InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
-import { business, whatsappLink } from "@/lib/business";
+import { business } from "@/lib/business";
 import { getLegales, titularesDeLasSucursales, sucursalesParaElPie } from "@/lib/legales";
 import { SucursalEnPie } from "@/components/SucursalEnPie";
-import { subdominioActual } from "@/lib/sucursal";
+import { subdominioActual, contactoActual } from "@/lib/sucursal";
 
 // Pie del sitio. Vive aparte y se monta en el layout porque los links
 // legales (arrepentimiento, terminos) y el QR de Data Fiscal tienen que
@@ -21,6 +21,7 @@ export async function Footer() {
   const titulares = sub ? [] : await titularesDeLasSucursales();
   // En la pagina general van los datos de las dos; en cada tienda, los suyos.
   const sucursales = await sucursalesParaElPie(sub);
+  const contacto = await contactoActual();
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-16">
       <div className="mx-auto max-w-6xl">
@@ -46,7 +47,7 @@ export async function Footer() {
               <SocialIcon href={business.social.instagram.url} icon={InstagramIcon} label="Instagram" />
               <SocialIcon href={business.social.facebook.url} icon={FacebookIcon} label="Facebook" />
               <SocialIcon href={business.social.tiktok.url} icon={TikTokIcon} label="TikTok" />
-              <SocialIcon href={whatsappLink()} icon={WhatsAppIcon} label="WhatsApp" external />
+              <SocialIcon href={contacto.linkWhatsapp()} icon={WhatsAppIcon} label="WhatsApp" external />
             </div>
           </div>
 

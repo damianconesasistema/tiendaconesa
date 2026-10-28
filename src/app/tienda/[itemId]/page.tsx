@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { contactoActual } from "@/lib/sucursal";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { nombreMarca } from "@/lib/marcas";
@@ -162,8 +163,11 @@ export default async function ProductoPage({ params }: RouteProps) {
     getPlanesCuotas(),
   ]);
 
+  const contacto = await contactoActual();
+
   return (
     <ProductDetail
+      whatsappSucursal={contacto.whatsapp}
       product={compat}
       related={related.map(toCompat)}
       bestSellers={masVendidos.map(toCompat)}
