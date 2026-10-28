@@ -34,11 +34,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default:
-      "Sanitarios Conesa · Sanitarios, grifería y materiales en Traslasierra y Capital Federal",
+      "Sanitarios Conesa · Sanitarios, grifería y materiales en Buenos Aires y Traslasierra",
     template: "%s · Sanitarios Conesa",
   },
   description:
-    "Comprá online sanitarios, grifería, bañeras, salamandras, calefones y materiales de construcción. Las mejores marcas (FV, Piazza, Hydros, Johnson). Dos locales: Villa Cura Brochero, Córdoba y Balvanera, Ciudad de Buenos Aires. Retiro en el local o envío a coordinar.",
+    "Comprá online sanitarios, grifería, bañeras, salamandras, calefones y materiales de construcción. Las mejores marcas (FV, Piazza, Hydros, Johnson). Dos locales: Balvanera, Ciudad de Buenos Aires y Villa Cura Brochero, Córdoba. Retiro en el local o envío a coordinar.",
   keywords: [
     "sanitarios conesa",
     "sanitarios villa cura brochero",
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
     title:
       "Sanitarios Conesa · Tienda online de sanitarios y materiales",
     description:
-      "Ofertas en sanitarios, grifería, salamandras y materiales. Dos locales: Traslasierra y Capital Federal. Retiro en el local o envío a coordinar.",
+      "Ofertas en sanitarios, grifería, salamandras y materiales. Dos locales: Buenos Aires y Traslasierra. Retiro en el local o envío a coordinar.",
     url: SITE_URL,
     siteName: business.name,
     locale: "es_AR",

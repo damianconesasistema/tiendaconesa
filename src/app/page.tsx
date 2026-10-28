@@ -340,16 +340,15 @@ export default async function Home() {
             </h2>
             <p className="mt-6 max-w-md text-balance text-base text-[var(--muted)]">
               Desde {business.desde} vendemos sanitarios, grifería y materiales
-              para la construcción. Hoy somos dos locales: uno en Traslasierra y
-              otro en Capital Federal, con el mismo catálogo y la misma forma de
-              atender.
+              para la construcción. Hoy somos dos locales: uno en Buenos Aires y
+              otro en Traslasierra, con la misma forma de atender.
             </p>
 
             <div className="mt-10 space-y-6">
               <InfoRow icon={Store} title="Dos salones de venta">
-                Villa Cura Brochero, Córdoba
-                <br />
                 Balvanera, Ciudad Autónoma de Buenos Aires
+                <br />
+                Villa Cura Brochero, Córdoba
               </InfoRow>
               {/* Decia "Envios a todo el pais", que hoy no es cierto:
                   Traslasierra cubre el valle y Balvanera por ahora AMBA. En

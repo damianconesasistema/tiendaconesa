@@ -36,8 +36,11 @@ export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
             Nuestras sucursales
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-[var(--muted)]">
-            Dos locales, el mismo catálogo. Comprás online en cualquiera de los
-            dos o pasás a retirar.
+            {/* Decia "el mismo catalogo", y no es cierto: cada local lleva
+                lo suyo y los precios no son los mismos. Prometer un
+                catalogo igual es prometer un producto que capaz no esta. */}
+            Dos locales. Comprás online en cualquiera de los dos o pasás a
+            retirar.
           </p>
         </div>
 

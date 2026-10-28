@@ -97,7 +97,12 @@ rm -f /tmp/next.tgz /tmp/mods.tgz
 # una publicacion buena pareciera fallada.
 echo -n "    esperando a que la tienda conteste"
 for i in $(seq 1 30); do
-  CODIGO=$(en_la_vm 'curl -s -o /dev/null -w "%{http_code}" localhost:3000' 2>/dev/null | tr -d '\r\n ')
+  # El "|| true" no es adorno: arriba hay pipefail, asi que mientras el
+  # programa todavia no contesta, el curl devuelve error, el error viaja por
+  # la tuberia y la asignacion falla. Con set -e eso corta el script entero
+  # en el primer intento, sin un solo punto en pantalla: una publicacion que
+  # salio bien parecia fallada. Paso el 28/10.
+  CODIGO=$(en_la_vm 'curl -s -o /dev/null -w "%{http_code}" localhost:3000' 2>/dev/null | tr -d '\r\n ' || true)
   if [ "$CODIGO" = "200" ]; then
     echo " OK"
     echo "==> Listo. La tienda no se apago: solo se reinicio el programa."
