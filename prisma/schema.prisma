@@ -237,6 +237,12 @@ model Branch {
   // con ninguna zona. Tiene que haber exactamente una.
   cubreTodoElPais Boolean @default(false)
 
+  // Que envia esta sucursal, escrito por el que vende. Es distinto de
+  // cubreTodoElPais: esa casilla decide a quien le entra el pedido, esto es
+  // lo que se le promete al cliente. Mezclarlos hizo que Balvanera publicara
+  // "Envios a todo el pais" cuando por ahora solo cubre AMBA.
+  zonaEnvio       String?
+
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   productos BranchProduct[]

@@ -73,6 +73,7 @@ export default async function Home() {
         hours: true,
         instagram: true,
         cubreTodoElPais: true,
+        zonaEnvio: true,
       },
     })
     .catch(() => []);
@@ -349,10 +350,15 @@ export default async function Home() {
                 <br />
                 Balvanera, Ciudad Autónoma de Buenos Aires
               </InfoRow>
+              {/* Decia "Envios a todo el pais", que hoy no es cierto:
+                  Traslasierra cubre el valle y Balvanera por ahora AMBA. En
+                  una tienda una promesa de envio que no se cumple no es un
+                  detalle de texto, es un reclamo. Lo concreto de cada local
+                  esta en su tarjeta, escrito por el que vende. */}
               <InfoRow icon={Truck} title="Entregas">
                 Retiro en cualquiera de los dos locales
                 <br />
-                Envíos a todo el país
+                Envíos según la zona · fuera de ella, a coordinar
               </InfoRow>
               <InfoRow icon={Mail} title="Email">
                 <a

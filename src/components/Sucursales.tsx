@@ -19,6 +19,7 @@ export type SucursalInfo = {
   hours: string | null;
   instagram: string | null;
   cubreTodoElPais: boolean;
+  zonaEnvio: string | null;
 };
 
 export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
@@ -72,10 +73,13 @@ export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
                   </Dato>
                 )}
                 <Dato icon={Truck}>
-                  {/* Lo que de verdad le importa al que mira: si le llega. */}
-                  {s.cubreTodoElPais
-                    ? "Envíos a todo el país"
-                    : "Envíos en la zona · costo a coordinar"}
+                  {/* Lo que de verdad le importa al que mira: si le llega.
+                      Sale del texto que escribio el que vende, no de la
+                      casilla de reparto: esa decide a quien le entra el
+                      pedido, no que se le promete al cliente. Mezclarlas
+                      hacia que Balvanera publicara "Envios a todo el pais"
+                      cuando por ahora solo cubre AMBA. */}
+                  {s.zonaEnvio ?? "Envíos a coordinar"}
                 </Dato>
                 {s.instagram && (
                   <Dato icon={InstagramIcon}>

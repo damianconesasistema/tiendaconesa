@@ -25,6 +25,7 @@ export type Sucursal = {
   hours: string | null;
   codigosPostales: string | null;
   cubreTodoElPais: boolean;
+  zonaEnvio: string | null;
   productos: number;
 };
 
@@ -167,6 +168,13 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
           valor={sucursal.codigosPostales}
           area
           ayuda="Separados por coma. Por ejemplo: 5111, 5113, 5887"
+        />
+        <Campo
+          etiqueta="Qué envía esta sucursal"
+          nombre="zonaEnvio"
+          valor={sucursal.zonaEnvio}
+          area
+          ayuda="Es lo que lee el cliente en la tarjeta de la sucursal. Escribí lo que de verdad se cumple: prometer un envío que no llega es un reclamo."
         />
         <label className="flex items-start gap-2 text-sm">
           <input

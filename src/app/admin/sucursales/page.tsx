@@ -64,6 +64,7 @@ export default async function SucursalesPage() {
                 hours: s.hours,
                 codigosPostales: s.codigosPostales,
                 cubreTodoElPais: s.cubreTodoElPais,
+                zonaEnvio: s.zonaEnvio,
                 productos: s._count.productos,
               }}
             />

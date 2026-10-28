@@ -81,6 +81,7 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
         email: texto(formData, "email"),
         hours: texto(formData, "hours"),
         codigosPostales: texto(formData, "codigosPostales"),
+        zonaEnvio: texto(formData, "zonaEnvio"),
         cubreTodoElPais,
       },
     });
