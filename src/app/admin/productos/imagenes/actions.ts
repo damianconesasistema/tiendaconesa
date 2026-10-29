@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { processProductImage } from "@/lib/image-processing";
+import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 
 export type ImageMatch = {
   key: string; // nombre de archivo sin extension (normalizado)
@@ -103,6 +104,10 @@ export async function uploadOneImage(
 
 // Revalida las paginas una vez terminada la carga masiva.
 export async function finishImageBulk(): Promise<{ ok: true }> {
+  // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
   revalidatePath("/tienda");
   revalidatePath("/");

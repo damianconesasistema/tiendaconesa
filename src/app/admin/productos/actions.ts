@@ -12,6 +12,7 @@ import { processProductImage } from "@/lib/image-processing";
 import { formatShipping } from "@/lib/shipping";
 import { detectarMarca } from "@/lib/marcas";
 import { getMarcas, detectarMarcaDB, marcaValidaDB } from "@/lib/marcas-server";
+import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -131,6 +132,10 @@ export async function createProduct(
     return { error: `Error al crear: ${msg}` };
   }
 
+  // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
   revalidatePath("/tienda");
   revalidatePath("/");
@@ -255,6 +260,10 @@ export async function updateProduct(
     return { error: `Error al guardar: ${msg}` };
   }
 
+  // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
   revalidatePath(`/admin/productos/${itemId}`);
   revalidatePath("/tienda");
@@ -339,6 +348,10 @@ export async function quickUpdate(
     return { error: `Error al guardar: ${(e as Error).message}` };
   }
 
+  // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
   revalidatePath(`/admin/productos/${itemId}`);
   revalidatePath("/tienda");
@@ -421,7 +434,11 @@ export async function bulkUpdate(
       where: { itemId: { in: itemIds }, locked: false },
       data,
     });
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     revalidatePath("/");
     return { ok: true, count: r.count };
@@ -486,7 +503,11 @@ export async function bulkUpdateAll(
       where: { ...buildProductWhere(filter, excluir), locked: false },
       data,
     });
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     revalidatePath("/");
     return { ok: true, count: r.count };
@@ -611,7 +632,11 @@ export async function restoreMissingProducts(): Promise<RestoreStats> {
       skipDuplicates: true,
     });
 
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     revalidatePath("/");
     return {
@@ -757,7 +782,11 @@ export async function restoreFromBackup(
       }
     }
 
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     revalidatePath("/");
     return {
@@ -837,7 +866,11 @@ export async function duplicateProduct(
       });
     }
 
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     return { ok: true, itemId: nuevoItemId };
   } catch (e) {
     return { error: `Error al duplicar: ${(e as Error).message}` };
@@ -870,7 +903,11 @@ export async function setProductLocked(
   if (!itemId) return { error: "itemId requerido" };
   try {
     await prisma.product.update({ where: { itemId }, data: { locked } });
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     return { ok: true };
   } catch (e) {
     return { error: `Error: ${(e as Error).message}` };
@@ -890,7 +927,11 @@ export async function bulkSetLocked(
       where: { itemId: { in: itemIds } },
       data: { locked },
     });
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     return { ok: true, count: r.count };
   } catch (e) {
     return { error: `Error: ${(e as Error).message}` };
@@ -909,7 +950,11 @@ export async function bulkSetLockedAll(
       where: buildProductWhere(filter, excluir),
       data: { locked },
     });
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     return { ok: true, count: r.count };
   } catch (e) {
     return { error: `Error: ${(e as Error).message}` };
@@ -952,7 +997,11 @@ export async function deleteProduct(
     }
 
     await prisma.product.delete({ where: { itemId } });
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     revalidatePath("/");
     return { ok: true };
@@ -972,7 +1021,11 @@ async function deleteWhere(
     const r = await prisma.product.deleteMany({
       where: { ...where, locked: false, orderItems: { none: {} } },
     });
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     revalidatePath("/");
     return { ok: true, count: r.count, skipped: total - r.count };
@@ -1017,7 +1070,11 @@ async function applyStockWhere(
     if (mode === "set") {
       const stock = Math.max(0, v);
       const r = await prisma.product.updateMany({ where, data: { stock } });
-      revalidatePath("/admin/productos");
+      // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
       revalidatePath("/tienda");
       revalidatePath("/");
       return { ok: true, count: r.count };
@@ -1037,7 +1094,11 @@ async function applyStockWhere(
       });
       count++;
     }
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     revalidatePath("/");
     return { ok: true, count };
@@ -1122,7 +1183,11 @@ async function applyPriceWhere(
       });
       count++;
     }
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     revalidatePath("/");
     return { ok: true, count };
@@ -1173,7 +1238,11 @@ async function syncMainImageUrl(itemId: string, productId: string) {
   });
 }
 
-function revalidateProduct(itemId: string) {
+async function revalidateProduct(itemId: string) {
+  // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
   revalidatePath(`/admin/productos/${itemId}`);
   revalidatePath("/tienda");
@@ -1235,7 +1304,7 @@ export async function uploadProductImage(
     }
 
     await syncMainImageUrl(itemId, product.id);
-    revalidateProduct(itemId);
+    await revalidateProduct(itemId);
 
     const imageUrl = `/api/productos/${itemId}/imagen?v=${Date.now()}`;
     return { ok: true, imageUrl, count: toAdd.length };
@@ -1295,7 +1364,7 @@ export async function deleteProductImageById(
     }
 
     await syncMainImageUrl(itemId, product.id);
-    revalidateProduct(itemId);
+    await revalidateProduct(itemId);
     return { ok: true };
   } catch (e) {
     return { error: `No se pudo eliminar: ${(e as Error).message}` };
@@ -1334,7 +1403,7 @@ export async function reorderProductImages(
     }
 
     await syncMainImageUrl(itemId, product.id);
-    revalidateProduct(itemId);
+    await revalidateProduct(itemId);
     return { ok: true };
   } catch (e) {
     return { error: `No se pudo reordenar: ${(e as Error).message}` };
@@ -1372,7 +1441,7 @@ export async function setMainProductImage(
     }
 
     await syncMainImageUrl(itemId, product.id);
-    revalidateProduct(itemId);
+    await revalidateProduct(itemId);
     return { ok: true };
   } catch (e) {
     return { error: `No se pudo actualizar: ${(e as Error).message}` };
@@ -1397,7 +1466,7 @@ export async function removeProductImage(itemId: string): Promise<UpdateResult> 
       where: { itemId },
       data: { imageUrl: null },
     });
-    revalidateProduct(itemId);
+    await revalidateProduct(itemId);
     return { ok: true };
   } catch (e) {
     return { error: `No se pudo eliminar: ${(e as Error).message}` };
@@ -1447,7 +1516,11 @@ export async function asignarMarcasAuto(
       etiquetados += r.count;
     }
 
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath("/tienda");
     return { ok: true, etiquetados, sinMarca };
   } catch (e) {
@@ -1472,7 +1545,11 @@ export async function setProductBrand(
       where: { itemId },
       data: { brand: limpio || null },
     });
-    revalidatePath("/admin/productos");
+    // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
     revalidatePath(`/tienda/${itemId}`);
     return { ok: true };
   } catch (e) {

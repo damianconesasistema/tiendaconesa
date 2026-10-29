@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 
 export type SyncRow = {
   sku: string;
@@ -159,6 +160,10 @@ export async function applyStockSync(
     }
   }
 
+  // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
   revalidatePath("/tienda");
   revalidatePath("/");

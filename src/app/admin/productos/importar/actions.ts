@@ -8,6 +8,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { detectarMarca, marcaPorId } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
+import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 
 export type ParsedRow = {
   itemId: string;
@@ -469,6 +470,10 @@ export async function importExcel(
     }
   }
 
+  // El panel lee los precios de la tabla de la sucursal, asi que despues
+  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
+  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
+  await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
   revalidatePath("/tienda");
   revalidatePath("/");

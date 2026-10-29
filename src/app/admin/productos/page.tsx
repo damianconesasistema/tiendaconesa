@@ -10,11 +10,7 @@ import { ProductsFilters } from "@/components/admin/ProductsFilters";
 import { MarcasAuto } from "@/components/admin/MarcasAuto";
 import { getMarcas } from "@/lib/marcas-server";
 import { ProductsTable } from "@/components/admin/ProductsTable";
-
-export const metadata: Metadata = {
-  title: "Productos · Panel Admin",
-  robots: { index: false, follow: false },
-};
+import { sucursalDelPanel, tituloConSucursal } from "@/lib/sucursal-panel";
 
 // Siempre fresco: el admin debe reflejar el estado real de la DB
 // (nada de caché que muestre estados viejos de activo/pausado).
@@ -28,42 +24,63 @@ type SearchParams = Promise<{
   page?: string;
   sort?: string;
   dir?: string;
+  sucursal?: string;
 }>;
+
+// El local va en el titulo de la pestaña. Con los dos paneles abiertos en dos
+// pestañas, el titulo es lo unico que los distingue en la barra del navegador.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const sp = await searchParams;
+  return {
+    title: await tituloConSucursal("Productos", sp.sucursal),
+    robots: { index: false, follow: false },
+  };
+}
 
 const PAGE_SIZE = 50;
 
 // Columnas por las que se puede ordenar (click en el titulo de la tabla).
 // El orden se aplica en la DB => ordena TODOS los productos, no solo la pagina.
+//
+// Ojo cuales son de cada lado: el precio, la oferta, el stock y si se muestra
+// son de la SUCURSAL; el titulo, la categoria, la marca, las visitas y si esta
+// destacado son del ARTICULO y valen para los dos locales.
 function buildOrderBy(
   sort: string,
   dir: "asc" | "desc",
-): Prisma.ProductOrderByWithRelationInput[] {
-  const titleTiebreak: Prisma.ProductOrderByWithRelationInput = { title: "asc" };
+): Prisma.BranchProductOrderByWithRelationInput[] {
+  const desempate: Prisma.BranchProductOrderByWithRelationInput = {
+    product: { title: "asc" },
+  };
   switch (sort) {
     case "title":
-      return [{ title: dir }];
+      return [{ product: { title: dir } }];
     case "category":
-      return [{ category: dir }, titleTiebreak];
+      return [{ product: { category: dir } }, desempate];
     case "brand":
-      return [{ brand: { sort: dir, nulls: "last" } }, titleTiebreak];
+      return [{ product: { brand: { sort: dir, nulls: "last" } } }, desempate];
     case "price":
-      return [{ price: dir }, titleTiebreak];
+      return [{ price: dir }, desempate];
     case "sale":
-      return [{ salePrice: { sort: dir, nulls: "last" } }, titleTiebreak];
+      return [{ salePrice: { sort: dir, nulls: "last" } }, desempate];
     case "stock":
-      return [{ stock: dir }, titleTiebreak];
+      return [{ stock: dir }, desempate];
     case "views":
-      return [{ views: dir }, titleTiebreak];
+      return [{ product: { views: dir } }, desempate];
     case "estado":
-      return [{ active: dir }, titleTiebreak];
+      return [{ active: dir }, desempate];
     case "featured":
-      return [{ featured: dir }, titleTiebreak];
+      return [{ product: { featured: dir } }, desempate];
     default:
       // Orden por defecto: ofertas primero, luego destacados, luego A-Z
       return [
         { salePrice: { sort: "desc", nulls: "last" } },
-        { featured: "desc" },
-        { title: "asc" },
+        { product: { featured: "desc" } },
+        { product: { title: "asc" } },
       ];
   }
 }
@@ -99,6 +116,10 @@ export default async function ProductosAdmin({
   const sort = sp.sort || "";
   const dir: "asc" | "desc" = sp.dir === "asc" ? "asc" : "desc";
 
+  // De que local son los precios que se ven y se tocan en esta pantalla.
+  const suc = await sucursalDelPanel(sp.sucursal);
+  if (!suc) redirect("/admin/sucursales");
+
   // Como volver a ESTA pantalla desde la ficha de un producto. Sin esto,
   // editar uno y volver te dejaba en la lista sin filtros: trabajando sobre
   // los inactivos, cada producto que tocabas te mandaba de nuevo al principio.
@@ -111,59 +132,106 @@ export default async function ProductosAdmin({
     if (page > 1) p.set("page", String(page));
     if (sp.sort) p.set("sort", sort);
     if (sp.sort) p.set("dir", dir);
-    const qs = p.toString();
-    return qs ? `?${qs}` : "";
+    p.set("sucursal", suc.slug);
+    return `?${p.toString()}`;
   })();
 
-  const where: Prisma.ProductWhereInput = {};
+  // La consulta sale de la tabla de la sucursal, no de la de articulos: un
+  // producto que no esta cargado en este local no aparece en su panel, igual
+  // que no aparece en su tienda.
+  const where: Prisma.BranchProductWhereInput = { branchId: suc.id };
+
   // El buscador mira todo lo que sirve para encontrar un producto: el titulo,
-  // el SKU, el codigo, la marca, la categoria, la descripcion, la nota interna (donde
-  // queda el codigo del proveedor) y el precio. Antes solo miraba el titulo, asi que
-  // buscar por SKU no devolvia nada.
-  if (q)
+  // el SKU, el codigo, la marca, la categoria, la descripcion, la nota interna
+  // (donde queda el codigo del proveedor) y el precio de ESTE local.
+  if (q) {
+    const esNumero = /^[0-9]+$/.test(q) && Number(q) < 2147483647;
     where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { sku: { contains: q, mode: "insensitive" } },
-      { itemId: { contains: q, mode: "insensitive" } },
-      { brand: { contains: q, mode: "insensitive" } },
-      { category: { contains: q, mode: "insensitive" } },
-      { description: { contains: q, mode: "insensitive" } },
-      { memo: { contains: q, mode: "insensitive" } },
+      {
+        product: {
+          is: {
+            OR: [
+              { title: { contains: q, mode: "insensitive" } },
+              { sku: { contains: q, mode: "insensitive" } },
+              { itemId: { contains: q, mode: "insensitive" } },
+              { brand: { contains: q, mode: "insensitive" } },
+              { category: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+              { memo: { contains: q, mode: "insensitive" } },
+            ],
+          },
+        },
+      },
       // Si escribis un numero, tambien busca por precio: sirve para
       // encontrar el articulo cuando te acordas cuanto sale y no el nombre.
-      ...(/^[0-9]+$/.test(q) && Number(q) < 2147483647
-        ? [{ price: Number(q) }, { salePrice: Number(q) }]
-        : []),
+      ...(esNumero ? [{ price: Number(q) }, { salePrice: Number(q) }] : []),
     ];
-  if (cat) where.category = cat;
+  }
+
+  const filtrosDelArticulo: Prisma.ProductWhereInput = {};
+  if (cat) filtrosDelArticulo.category = cat;
   // "sin-marca" encuentra lo que todavia falta etiquetar
-  if (marca) where.brand = marca === "sin-marca" ? null : marca;
+  if (marca) filtrosDelArticulo.brand = marca === "sin-marca" ? null : marca;
+  if (filter === "featured") filtrosDelArticulo.featured = true;
+  if (Object.keys(filtrosDelArticulo).length > 0)
+    where.product = { is: filtrosDelArticulo };
+
   if (filter === "low-stock") {
     where.active = true;
     where.stock = { lt: 5 };
   } else if (filter === "inactive") where.active = false;
-  else if (filter === "featured") where.featured = true;
   else if (filter === "on-sale") where.salePrice = { not: null };
 
-  const [products, total, categories] = await Promise.all([
-    prisma.product.findMany({
+  const [filas, total, deLaSucursal, enLaSucursal] = await Promise.all([
+    prisma.branchProduct.findMany({
       where,
       orderBy: buildOrderBy(sort, dir),
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
+      include: { product: true },
     }),
-    prisma.product.count({ where }),
-    prisma.product.groupBy({
-      by: ["category"],
-      _count: true,
-      orderBy: { category: "asc" },
+    prisma.branchProduct.count({ where }),
+    // Para los contadores por categoria. Son pocos productos, asi que se
+    // cuentan aca y no en la base: agrupar por un campo del articulo desde la
+    // tabla de la sucursal no entra en una sola consulta.
+    prisma.branchProduct.findMany({
+      where: { branchId: suc.id },
+      select: { product: { select: { category: true } } },
     }),
+    prisma.branchProduct.count({ where: { branchId: suc.id } }),
   ]);
 
+  // El precio, la oferta, el stock y si se muestra salen de la sucursal y
+  // pisan los del articulo. De aca para abajo la tabla trabaja igual que
+  // antes: ve un producto con un precio, sin enterarse de donde salio.
+  const products = filas.map((f) => ({
+    ...f.product,
+    price: f.price,
+    salePrice: f.salePrice,
+    stock: f.stock,
+    active: f.active,
+  }));
+
+  const porCategoria = new Map<string, number>();
+  for (const f of deLaSucursal)
+    porCategoria.set(
+      f.product.category,
+      (porCategoria.get(f.product.category) ?? 0) + 1,
+    );
+  const categories = [...porCategoria.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([id, count]) => ({ id, label: CAT_LABELS[id] || id, count }));
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
+  const conSucursal = (base: string) => `${base}?sucursal=${suc.slug}`;
 
   return (
-    <AdminShell username={session.username} active="productos" ancho="full">
+    <AdminShell
+      username={session.username}
+      active="productos"
+      ancho="full"
+      sucursal={suc.slug}
+    >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
@@ -172,6 +240,10 @@ export default async function ProductosAdmin({
           <p className="mt-1 text-sm text-[var(--muted)]">
             {total.toLocaleString("es-AR")} resultados
             {q && ` para "${q}"`}
+            {" · "}
+            <span style={{ color: suc.color.fondo }} className="font-bold">
+              {suc.nombre}
+            </span>
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -183,28 +255,28 @@ export default async function ProductosAdmin({
             Exportar
           </a>
           <Link
-            href="/admin/productos/restaurar"
+            href={conSucursal("/admin/productos/restaurar")}
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <RotateCcw className="h-4 w-4" />
             Restaurar
           </Link>
           <Link
-            href="/admin/productos/sync-stock"
+            href={conSucursal("/admin/productos/sync-stock")}
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <RefreshCw className="h-4 w-4" />
             Sync stock
           </Link>
           <Link
-            href="/admin/productos/importar"
+            href={conSucursal("/admin/productos/importar")}
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <Upload className="h-4 w-4" />
             Importar Excel
           </Link>
           <Link
-            href="/admin/productos/nuevo"
+            href={conSucursal("/admin/productos/nuevo")}
             className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
           >
             <PackagePlus className="h-4 w-4" />
@@ -223,19 +295,36 @@ export default async function ProductosAdmin({
         marca={marca}
         marcas={await getMarcas()}
         filter={filter}
-        categories={categories.map((c) => ({
-          id: c.category,
-          label: CAT_LABELS[c.category] || c.category,
-          count: c._count,
-        }))}
+        categories={categories}
       />
 
       {products.length === 0 ? (
         <div className="mt-8 rounded-2xl border-2 border-dashed border-[var(--border)] bg-white p-10 text-center">
           <Package className="mx-auto h-10 w-10 text-[var(--muted)]" strokeWidth={1.5} />
-          <p className="mt-4 font-display text-sm font-bold uppercase tracking-wider text-[var(--muted)]">
-            Sin resultados
-          </p>
+          {enLaSucursal === 0 ? (
+            // La sucursal todavia no tiene nada cargado. No es "no hay
+            // resultados": es que este local no arranco.
+            <>
+              <p className="mt-4 font-display text-sm font-bold uppercase tracking-wider">
+                {suc.nombre} todavía no tiene productos
+              </p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-[var(--muted)]">
+                El precio, el stock y qué se muestra son de cada local. Este
+                arranca vacío: se carga subiendo la lista del sistema.
+              </p>
+              <Link
+                href={conSucursal("/admin/productos/importar")}
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white"
+              >
+                <Upload className="h-4 w-4" />
+                Importar Excel
+              </Link>
+            </>
+          ) : (
+            <p className="mt-4 font-display text-sm font-bold uppercase tracking-wider text-[var(--muted)]">
+              Sin resultados
+            </p>
+          )}
         </div>
       ) : (
         <ProductsTable
@@ -263,6 +352,7 @@ export default async function ProductosAdmin({
               filter={filter}
               sort={sort}
               dir={dir}
+              sucursal={suc.slug}
               label="← Anterior"
             />
             <PageLink
@@ -273,6 +363,7 @@ export default async function ProductosAdmin({
               filter={filter}
               sort={sort}
               dir={dir}
+              sucursal={suc.slug}
               label="Siguiente →"
             />
           </div>
@@ -299,6 +390,7 @@ function PageLink({
   filter,
   sort,
   dir,
+  sucursal,
   label,
 }: {
   page: number;
@@ -308,6 +400,7 @@ function PageLink({
   filter: string;
   sort: string;
   dir: string;
+  sucursal: string;
   label: string;
 }) {
   if (disabled) {
@@ -326,6 +419,7 @@ function PageLink({
     params.set("dir", dir);
   }
   if (page > 1) params.set("page", String(page));
+  params.set("sucursal", sucursal);
   return (
     <Link
       href={`/admin/productos?${params.toString()}`}

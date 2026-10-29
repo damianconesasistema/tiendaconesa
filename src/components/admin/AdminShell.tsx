@@ -4,15 +4,24 @@ import { LiveClock } from "@/components/admin/LiveClock";
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
+import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
+import { SelectorSucursal } from "@/components/admin/SelectorSucursal";
 
-export function AdminShell({
+export async function AdminShell({
   username,
   active,
   children,
   ancho = "normal",
   verTienda = "/",
+  sucursal,
 }: {
   username: string;
+  /** El slug de la sucursal que se esta editando, para la banda de
+   *  arriba. Solo lo mandan las pantallas donde la sucursal CAMBIA lo que
+   *  se guarda (productos, precios, stock). En las que no --marcas,
+   *  configuracion-- no va banda: ponerla ahi diria que esos datos son de
+   *  un local y son de los dos. */
+  sucursal?: string;
   /** "full" usa todo el monitor. Lo pide la tabla de productos, que tiene
    *  diez columnas y encajonada en 1280px obliga a scrollear. El resto del
    *  panel sigue angosto, que se lee mejor. */
@@ -32,6 +41,10 @@ export function AdminShell({
     | "version";
   children: React.ReactNode;
 }) {
+  // Solo se consulta cuando la pantalla la pide.
+  const listaDeSucursales = sucursal ? await sucursalesDelPanel() : [];
+  const banda = sucursal ? await sucursalDelPanel(sucursal) : null;
+
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Top bar */}
@@ -110,6 +123,41 @@ export function AdminShell({
             <ExternalLink className="h-3 w-3" />
           </a>
         </nav>
+
+        {/* La sucursal que se esta editando. Franja ancha, de color y con
+            el nombre escrito: el color ayuda a darse cuenta de un vistazo,
+            pero el que manda es el nombre, porque los colores se reparten
+            por el orden de las sucursales y ese orden se puede cambiar. */}
+        {banda && (
+          <div
+            style={{ backgroundColor: banda.color.fondo, color: banda.color.texto }}
+            className="border-t border-black/10"
+          >
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-6">
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-[10px] font-bold uppercase tracking-[0.3em] opacity-80">
+                  Estás editando
+                </span>
+                <strong className="font-display text-base font-black uppercase tracking-wider">
+                  {banda.nombre}
+                </strong>
+                {!banda.tiendaActiva && (
+                  <span className="rounded-full bg-black/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                    tienda cerrada
+                  </span>
+                )}
+              </div>
+              <SelectorSucursal
+                sucursales={listaDeSucursales.map((s) => ({
+                  slug: s.slug,
+                  nombre: s.nombre,
+                  tiendaActiva: s.tiendaActiva,
+                }))}
+                actual={banda.slug}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div
