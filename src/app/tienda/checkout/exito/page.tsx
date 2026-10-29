@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Check, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
-import { contactoActual } from "@/lib/sucursal";
+import { contactoDeLaVenta } from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { GaCompra } from "@/components/GaCompra";
 
@@ -24,7 +24,7 @@ export default async function ExitoPage({
   const sp = await searchParams;
   // El WhatsApp de la sucursal por la que compro, no uno fijo: si el pago
   // fallo, el cliente escribe al local que le tiene que resolver.
-  const contacto = await contactoActual();
+  const contacto = await contactoDeLaVenta();
   const orderNumber = Number(sp.orden);
   const order = Number.isFinite(orderNumber)
     ? await prisma.order.findUnique({

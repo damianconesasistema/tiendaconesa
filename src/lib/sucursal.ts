@@ -80,6 +80,44 @@ async function buscarSucursal() {
 
 export const sucursalActual = cache(buscarSucursal);
 
+/** La sucursal que atiende la VENTA en esta visita.
+ *
+ *  Casi siempre es la misma que `sucursalActual`, pero no cuando se entra
+ *  por conesa.com.ar: ahi la primera de la lista puede ser una que todavia
+ *  no vende. Paso el 29/10: Buenos Aires quedo primera para que se vea
+ *  primero en el sitio, y el checkout del dominio general empezo a decir
+ *  "retiro en Balvanera" y a mandar el pedido al WhatsApp de Buenos Aires,
+ *  cuando el local que tiene el stock, cobra y factura es Traslasierra.
+ *
+ *  Regla: en el subdominio de una tienda, esa; en el dominio general, la
+ *  primera CON LA TIENDA ABIERTA. Todo lo que termina en una venta —el
+ *  lugar de retiro, el WhatsApp del pedido— tiene que salir de aca y no de
+ *  `sucursalActual`, que es para lo que se muestra.
+ *
+ *  El dia que las dos vendan, el dominio general va a tener que preguntarle
+ *  al cliente por su codigo postal en vez de elegir por el. */
+export const sucursalQueVende = cache(async () => {
+  const s = await sucursalActual();
+  if (s?.tiendaActiva) return s;
+  try {
+    const vende = await prisma.branch.findFirst({
+      where: { active: true, tiendaActiva: true },
+      orderBy: { orden: "asc" },
+    });
+    return vende ?? s;
+  } catch {
+    return s;
+  }
+});
+
+/** El contacto del local que atiende la VENTA. Mismo contenido que
+ *  `contactoActual`, pero del local que puede vender. Es el que va en el
+ *  boton de la ficha de un producto y en el del checkout: una consulta por
+ *  un producto tiene que entrarle a quien lo tiene y lo factura. */
+export async function contactoDeLaVenta() {
+  return armarContacto(await sucursalQueVende());
+}
+
 /** El subdominio de esta visita, o null si se entro por conesa.com.ar. */
 export const subdominioActual = cache(async (): Promise<string | null> => {
   const h = await headers();
@@ -191,8 +229,14 @@ export const tiendaSinHabilitar = cache(async (): Promise<boolean> => {
  *  Si la sucursal no tiene cargado el dato, cae en el de business.ts, que es
  *  como funcionaba hasta ahora. */
 export async function contactoActual() {
+  return armarContacto(await sucursalActual());
+}
+
+/** Arma el telefono, el WhatsApp y el link a partir de una sucursal. Si a la
+ *  sucursal le falta el dato, cae en el de business.ts, que es como
+ *  funcionaba antes de que hubiera dos locales. */
+async function armarContacto(s: Sucursal | null) {
   const { business } = await import("@/lib/business");
-  const s = await sucursalActual();
 
   const whatsapp = s?.whatsapp?.replace(/\D/g, "") || business.whatsapp.number;
   const telefono = s?.phone || business.phone.display;

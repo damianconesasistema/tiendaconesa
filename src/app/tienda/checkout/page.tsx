@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { contactoActual, sucursalActual } from "@/lib/sucursal";
+import { contactoDeLaVenta, sucursalQueVende } from "@/lib/sucursal";
 import { CheckoutPage } from "@/components/CheckoutPage";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { MP_CONFIGURED } from "@/lib/mercadopago";
@@ -18,11 +18,12 @@ export default async function Checkout() {
     getRecargosMp(),
     getPlanesCuotas(),
   ]);
-  const contacto = await contactoActual();
-  // Donde se retira y que envia el local que esta vendiendo. Estaba escrito en
-  // el codigo con los datos de Traslasierra, asi que alguien que compraba desde
-  // Capital leia que tenia que retirar en Villa Cura Brochero.
-  const s = await sucursalActual();
+  // OJO: el local que VENDE, no el primero de la lista. En conesa.com.ar la
+  // primera es Buenos Aires porque asi se muestra en el sitio, pero esa
+  // tienda todavia no vende: el pedido tiene que entrar en el local que
+  // tiene el stock y factura.
+  const contacto = await contactoDeLaVenta();
+  const s = await sucursalQueVende();
   const dondeSeRetira = s?.city || s?.address || "el local";
 
   return (

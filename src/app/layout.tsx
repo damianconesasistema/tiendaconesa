@@ -13,7 +13,12 @@ import { BackToTop } from "@/components/BackToTop";
 import { business } from "@/lib/business";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { subdominioActual, contactoActual, tiendaSinHabilitar } from "@/lib/sucursal";
+import {
+  subdominioActual,
+  contactoActual,
+  contactoDeLaVenta,
+  tiendaSinHabilitar,
+} from "@/lib/sucursal";
 import { datosEstructurados } from "@/lib/datos-estructurados";
 import "./globals.css";
 
@@ -176,7 +181,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   // null en conesa.com.ar: ahi se publican las dos sucursales.
   const ficha = await datosEstructurados(await subdominioActual());
-  const contacto = await contactoActual();
+  // Adentro de la tienda, el WhatsApp del local que VENDE: una consulta por
+  // un producto tiene que entrarle a quien lo tiene y lo factura. Afuera, el
+  // que se muestra en la pagina general.
+  const enLaTienda = ruta.startsWith("/tienda");
+  const contacto = enLaTienda
+    ? await contactoDeLaVenta()
+    : await contactoActual();
 
   return (
     <html

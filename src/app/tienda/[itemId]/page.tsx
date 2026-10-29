@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { contactoActual } from "@/lib/sucursal";
+import { contactoDeLaVenta } from "@/lib/sucursal";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { nombreMarca } from "@/lib/marcas";
@@ -163,7 +163,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     getPlanesCuotas(),
   ]);
 
-  const contacto = await contactoActual();
+  const contacto = await contactoDeLaVenta();
 
   return (
     <ProductDetail
