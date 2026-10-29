@@ -11,6 +11,7 @@ import { CartFab } from "@/components/CartFab";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { BackToTop } from "@/components/BackToTop";
 import { business } from "@/lib/business";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { subdominioActual, contactoActual, tiendaSinHabilitar } from "@/lib/sucursal";
 import { datosEstructurados } from "@/lib/datos-estructurados";
@@ -163,7 +164,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   //
   // Va aca y no en cada pagina para que no quede ningun camino abierto:
   // el carrito, el checkout y el pago cuelgan de este mismo layout.
-  if (await tiendaSinHabilitar()) redirect("https://conesa.com.ar");
+  //
+  // El PANEL de esa sucursal es la excepcion: ahi se cargan justamente los
+  // productos y los precios que faltan para poder abrirla. Si tambien lo
+  // mandaramos a la pagina general, la tienda cerrada no se podria preparar
+  // nunca. La ruta la deja el middleware en una cabecera, porque un layout
+  // no tiene otra forma de saber que le pidieron.
+  const ruta = (await headers()).get("x-ruta") ?? "";
+  if (!ruta.startsWith("/admin") && (await tiendaSinHabilitar()))
+    redirect("https://conesa.com.ar");
 
   // null en conesa.com.ar: ahi se publican las dos sucursales.
   const ficha = await datosEstructurados(await subdominioActual());

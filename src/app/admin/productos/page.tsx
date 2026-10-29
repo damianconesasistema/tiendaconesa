@@ -11,6 +11,7 @@ import { MarcasAuto } from "@/components/admin/MarcasAuto";
 import { getMarcas } from "@/lib/marcas-server";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 import { sucursalDelPanel, tituloConSucursal } from "@/lib/sucursal-panel";
+import { ElegirSucursal } from "@/components/admin/ElegirSucursal";
 
 // Siempre fresco: el admin debe reflejar el estado real de la DB
 // (nada de caché que muestre estados viejos de activo/pausado).
@@ -24,19 +25,13 @@ type SearchParams = Promise<{
   page?: string;
   sort?: string;
   dir?: string;
-  sucursal?: string;
 }>;
 
 // El local va en el titulo de la pestaña. Con los dos paneles abiertos en dos
 // pestañas, el titulo es lo unico que los distingue en la barra del navegador.
-export async function generateMetadata({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}): Promise<Metadata> {
-  const sp = await searchParams;
+export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: await tituloConSucursal("Productos", sp.sucursal),
+    title: await tituloConSucursal("Productos"),
     robots: { index: false, follow: false },
   };
 }
@@ -116,9 +111,19 @@ export default async function ProductosAdmin({
   const sort = sp.sort || "";
   const dir: "asc" | "desc" = sp.dir === "asc" ? "asc" : "desc";
 
-  // De que local son los precios que se ven y se tocan en esta pantalla.
-  const suc = await sucursalDelPanel(sp.sucursal);
-  if (!suc) redirect("/admin/sucursales");
+  // De que local son los precios que se ven y se tocan en esta pantalla. Lo
+  // decide el dominio: en conesa.com.ar no hay uno solo, asi que se pregunta
+  // en vez de elegir por nuestra cuenta.
+  const suc = await sucursalDelPanel();
+  if (!suc)
+    return (
+      <AdminShell username={session.username} active="productos">
+        <ElegirSucursal
+          pantalla="/admin/productos"
+          titulo="¿De qué local querés ver los productos?"
+        />
+      </AdminShell>
+    );
 
   // Como volver a ESTA pantalla desde la ficha de un producto. Sin esto,
   // editar uno y volver te dejaba en la lista sin filtros: trabajando sobre
@@ -132,8 +137,8 @@ export default async function ProductosAdmin({
     if (page > 1) p.set("page", String(page));
     if (sp.sort) p.set("sort", sort);
     if (sp.sort) p.set("dir", dir);
-    p.set("sucursal", suc.slug);
-    return `?${p.toString()}`;
+    const qs = p.toString();
+    return qs ? `?${qs}` : "";
   })();
 
   // La consulta sale de la tabla de la sucursal, no de la de articulos: un
@@ -223,14 +228,14 @@ export default async function ProductosAdmin({
     .map(([id, count]) => ({ id, label: CAT_LABELS[id] || id, count }));
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const conSucursal = (base: string) => `${base}?sucursal=${suc.slug}`;
+
 
   return (
     <AdminShell
       username={session.username}
       active="productos"
       ancho="full"
-      sucursal={suc.slug}
+      sucursal
     >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -255,28 +260,28 @@ export default async function ProductosAdmin({
             Exportar
           </a>
           <Link
-            href={conSucursal("/admin/productos/restaurar")}
+            href="/admin/productos/restaurar"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <RotateCcw className="h-4 w-4" />
             Restaurar
           </Link>
           <Link
-            href={conSucursal("/admin/productos/sync-stock")}
+            href="/admin/productos/sync-stock"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <RefreshCw className="h-4 w-4" />
             Sync stock
           </Link>
           <Link
-            href={conSucursal("/admin/productos/importar")}
+            href="/admin/productos/importar"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <Upload className="h-4 w-4" />
             Importar Excel
           </Link>
           <Link
-            href={conSucursal("/admin/productos/nuevo")}
+            href="/admin/productos/nuevo"
             className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
           >
             <PackagePlus className="h-4 w-4" />
@@ -313,7 +318,7 @@ export default async function ProductosAdmin({
                 arranca vacío: se carga subiendo la lista del sistema.
               </p>
               <Link
-                href={conSucursal("/admin/productos/importar")}
+                href="/admin/productos/importar"
                 className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white"
               >
                 <Upload className="h-4 w-4" />
@@ -352,7 +357,6 @@ export default async function ProductosAdmin({
               filter={filter}
               sort={sort}
               dir={dir}
-              sucursal={suc.slug}
               label="← Anterior"
             />
             <PageLink
@@ -363,7 +367,6 @@ export default async function ProductosAdmin({
               filter={filter}
               sort={sort}
               dir={dir}
-              sucursal={suc.slug}
               label="Siguiente →"
             />
           </div>
@@ -390,7 +393,6 @@ function PageLink({
   filter,
   sort,
   dir,
-  sucursal,
   label,
 }: {
   page: number;
@@ -400,7 +402,6 @@ function PageLink({
   filter: string;
   sort: string;
   dir: string;
-  sucursal: string;
   label: string;
 }) {
   if (disabled) {
@@ -419,7 +420,6 @@ function PageLink({
     params.set("dir", dir);
   }
   if (page > 1) params.set("page", String(page));
-  params.set("sucursal", sucursal);
   return (
     <Link
       href={`/admin/productos?${params.toString()}`}

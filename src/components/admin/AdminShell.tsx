@@ -1,11 +1,11 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
-import { SelectorSucursal } from "@/components/admin/SelectorSucursal";
 
 export async function AdminShell({
   username,
@@ -16,12 +16,13 @@ export async function AdminShell({
   sucursal,
 }: {
   username: string;
-  /** El slug de la sucursal que se esta editando, para la banda de
-   *  arriba. Solo lo mandan las pantallas donde la sucursal CAMBIA lo que
-   *  se guarda (productos, precios, stock). En las que no --marcas,
-   *  configuracion-- no va banda: ponerla ahi diria que esos datos son de
-   *  un local y son de los dos. */
-  sucursal?: string;
+  /** Si esta pantalla trabaja sobre UNA sucursal, para mostrar la banda de
+   *  arriba. Cual es no se elige aca: sale del dominio por el que se entro.
+   *  Solo lo mandan las pantallas donde la sucursal CAMBIA lo que se guarda
+   *  (productos, precios, stock). En las que no --marcas, configuracion--
+   *  no va banda: ponerla ahi diria que esos datos son de un local y son de
+   *  los dos. */
+  sucursal?: boolean;
   /** "full" usa todo el monitor. Lo pide la tabla de productos, que tiene
    *  diez columnas y encajonada en 1280px obliga a scrollear. El resto del
    *  panel sigue angosto, que se lee mejor. */
@@ -42,8 +43,15 @@ export async function AdminShell({
   children: React.ReactNode;
 }) {
   // Solo se consulta cuando la pantalla la pide.
-  const listaDeSucursales = sucursal ? await sucursalesDelPanel() : [];
-  const banda = sucursal ? await sucursalDelPanel(sucursal) : null;
+  const banda = sucursal ? await sucursalDelPanel() : null;
+  // La misma pantalla en el otro panel: si estas mirando los productos de un
+  // local, el link te deja en los productos del otro y no en su tapa.
+  const rutaDeLaPantalla = banda
+    ? ((await headers()).get("x-ruta") ?? "/admin")
+    : "/admin";
+  const otras = banda
+    ? (await sucursalesDelPanel()).filter((s) => s.id !== banda.id)
+    : [];
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
@@ -147,14 +155,20 @@ export async function AdminShell({
                   </span>
                 )}
               </div>
-              <SelectorSucursal
-                sucursales={listaDeSucursales.map((s) => ({
-                  slug: s.slug,
-                  nombre: s.nombre,
-                  tiendaActiva: s.tiendaActiva,
-                }))}
-                actual={banda.slug}
-              />
+              {/* El otro panel vive en otra direccion: el link sale del
+                  subdominio de esa sucursal. No es una perilla que cambia
+                  lo que estas editando, es irse al otro panel. */}
+              <div className="flex items-center gap-2">
+                {otras.map((s) => (
+                  <a
+                    key={s.slug}
+                    href={`${s.base}${rutaDeLaPantalla}`}
+                    className="rounded-full bg-black/20 px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider text-white/90 transition-colors hover:bg-black/35 hover:text-white"
+                  >
+                    Ir al panel de {s.nombre} →
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
         )}

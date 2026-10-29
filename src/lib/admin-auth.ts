@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 const COOKIE_NAME = "conesa_admin";
@@ -49,6 +49,30 @@ function parseToken(token: string): AdminSession | null {
   return { username, expiresAt };
 }
 
+/** En que dominio vale la sesion.
+ *
+ *  Cada panel vive en el subdominio de su sucursal, y una galleta puesta en
+ *  traslasierra.conesa.com.ar no viaja a buenosaires.conesa.com.ar: habria
+ *  que entrar dos veces. Guardandola en ".conesa.com.ar" una entrada vale
+ *  para los dos.
+ *
+ *  Hoy el panel tiene UNA sola contraseña, asi que compartirla no abre nada
+ *  que el que ya entro no pudiera abrir igual escribiendo la otra direccion.
+ *  Cuando haya usuarios, la separacion entre locales la tienen que hacer los
+ *  permisos de cada uno, no el hecho de que la galleta no viaje. */
+async function dominioDeLaSesion(): Promise<string | undefined> {
+  try {
+    const host = ((await headers()).get("host") ?? "").split(":")[0];
+    const partes = host.split(".");
+    // Solo si de verdad es un subdominio de un dominio propio. En una
+    // prueba local (localhost) no se pone dominio: el navegador la rechaza.
+    if (partes.length < 3) return undefined;
+    return `.${partes.slice(-3).join(".")}`;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function createAdminSession(username: string) {
   const expiresAt = Date.now() + SESSION_HOURS * 60 * 60 * 1000;
   const token = makeToken(username, expiresAt);
@@ -58,12 +82,23 @@ export async function createAdminSession(username: string) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
+    domain: await dominioDeLaSesion(),
     expires: new Date(expiresAt),
   });
 }
 
 export async function destroyAdminSession() {
   const jar = await cookies();
+  // Con el mismo dominio con el que se puso: si no, el navegador borra otra
+  // galleta y la sesion sigue viva en el otro panel.
+  jar.set(COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    domain: await dominioDeLaSesion(),
+    maxAge: 0,
+  });
   jar.delete(COOKIE_NAME);
 }
 
