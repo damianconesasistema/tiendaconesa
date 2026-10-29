@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { detectarMarca, marcaPorId } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
+import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 
 export type ParsedRow = {
   itemId: string;
@@ -370,6 +371,10 @@ export async function importExcel(
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
 
+  // Sobre que local se importa. Sale del dominio del panel: importar desde
+  // buenosaires.conesa.com.ar carga los precios de Buenos Aires.
+  const suc = await sucursalDeEdicion();
+
   const valid = rows.filter((r) => r.__errors.length === 0);
   let created = 0;
   let updated = 0;
@@ -426,7 +431,12 @@ export async function importExcel(
         price: Math.round(row.price),
         salePrice: row.salePrice,
         stock: row.stock,
-        active: row.active,
+        // Un articulo nuevo que se carga para OTRO local nace pausado: la
+        // tienda que vende hoy lee el catalogo del articulo, asi que si
+        // naciera activo se publicaria en la tienda equivocada, con el
+        // precio del otro local. En su propio local se muestra igual,
+        // porque eso lo dice su fila, no el articulo.
+        active: suc?.esPrincipal === false ? false : row.active,
         featured: row.featured,
         description: row.description,
         memo: row.memo,
@@ -443,14 +453,10 @@ export async function importExcel(
       const updateData: Record<string, unknown> = {
         title: row.title,
         category: row.category,
-        price: Math.round(row.price),
-        salePrice: row.salePrice,
-        stock: row.stock,
         ...(row.description !== null ? { description: row.description } : {}),
         ...(row.__traeMarca && row.brand ? { brand: row.brand } : {}),
         ...(row.sku !== null ? { sku: row.sku } : {}),
         ...(row.memo !== null ? { memo: row.memo } : {}),
-        ...(row.__hasActive ? { active: row.active } : {}),
         ...(row.__hasFeatured ? { featured: row.featured } : {}),
         ...(finalImageUrl ? { imageUrl: finalImageUrl } : {}),
       };
@@ -460,6 +466,16 @@ export async function importExcel(
         create: createData,
         update: updateData,
       });
+      // El precio, la oferta, el stock y si se muestra son del LOCAL, no del
+      // articulo: van a su fila. Si el local todavia no lo tenia, esta es la
+      // linea que se lo agrega al catalogo.
+      await guardarComercial([row.itemId], {
+        price: Math.round(row.price),
+        salePrice: row.salePrice,
+        stock: row.stock,
+        ...(row.__hasActive ? { active: row.active } : {}),
+      });
+
       // En updates `createdAt === updatedAt` ya no es cierto, uso otra heurística:
       // chequeo si existía
       if (row.__exists) updated++;

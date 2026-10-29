@@ -40,32 +40,11 @@ export async function sincronizarSucursalPrincipal(): Promise<void> {
       WHERE bp."productId" = p.id
         AND bp."branchId" = b.id
     `;
-    // Un articulo que no esta en NINGUNA sucursal es uno recien creado
-    // (publicar, duplicar, importar): sin fila no aparece en ningun panel y
-    // seria invisible. Se le da de alta en la principal.
-    //
-    // La condicion es "en ninguna", no "en la principal": uno que se saco a
-    // proposito de Traslasierra pero vive en Buenos Aires tiene fila en la
-    // otra, asi que esto no lo trae de vuelta. Cuando el importador de la
-    // segunda sucursal este hecho, va a crear la fila el mismo antes de que
-    // esto corra.
-    await prisma.$executeRaw`
-      INSERT INTO "BranchProduct" (
-        id, "branchId", "productId", price, "salePrice", stock, active,
-        "createdAt", "updatedAt"
-      )
-      SELECT gen_random_uuid()::text, b.id, p.id, p.price, p."salePrice",
-             p.stock, p.active, now(), now()
-      FROM "Product" p,
-           (SELECT id FROM "Branch"
-             WHERE active AND "tiendaActiva"
-             ORDER BY orden ASC
-             LIMIT 1) b
-      WHERE NOT EXISTS (
-        SELECT 1 FROM "BranchProduct" x WHERE x."productId" = p.id
-      )
-      ON CONFLICT ("branchId", "productId") DO NOTHING
-    `;
+    // Antes esto tambien daba de alta en la principal los articulos que no
+    // estaban en ninguna sucursal. Se saco: ahora el alta y la importacion
+    // crean la fila en el local que se esta editando (precios-sucursal.ts),
+    // y dejar esta regla significaba que un producto cargado para Buenos
+    // Aires terminara en Traslasierra si algo fallaba en el medio.
   } catch (e) {
     // Que no voltee el guardado: el cambio del articulo ya se grabo y es lo
     // que ve el cliente. Si esto falla, el panel muestra un precio viejo

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
+import { todaviaNoPorSucursal } from "@/lib/precios-sucursal";
 
 export type SyncRow = {
   sku: string;
@@ -144,6 +145,10 @@ export async function applyStockSync(
 ): Promise<{ ok: boolean; error?: string; updated?: number; unmatched?: number }> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
+  // El stock es de cada local y esta pantalla todavia escribe sobre el
+  // articulo. Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Sincronizar stock");
+  if (noPorAhora) return { ok: false, error: noPorAhora };
 
   const valid = rows.filter((r) => r.__errors.length === 0 && r.__matched);
   let updated = 0;

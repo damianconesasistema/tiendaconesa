@@ -17,7 +17,7 @@ export default async function NuevoProductoPage() {
   if (!session) redirect("/admin/login");
 
   return (
-    <AdminShell username={session.username} active="productos">
+    <AdminShell username={session.username} active="productos" sucursal>
       <Link
         href="/admin/productos"
         className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--brand-red)]"

@@ -13,6 +13,11 @@ import { formatShipping } from "@/lib/shipping";
 import { detectarMarca } from "@/lib/marcas";
 import { getMarcas, detectarMarcaDB, marcaValidaDB } from "@/lib/marcas-server";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
+import {
+  guardarComercial,
+  agregarALaSucursal,
+  todaviaNoPorSucursal,
+} from "@/lib/precios-sucursal";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -110,6 +115,10 @@ export async function createProduct(
         shippingType,
       },
     });
+    // El articulo queda dado de alta en el local que se esta editando: sin
+    // fila no aparece ni en su panel ni en su tienda.
+    await agregarALaSucursal([itemId]);
+
     // Primer registro en el historial de precios
     await prisma.priceHistory.create({
       data: {
@@ -236,6 +245,7 @@ export async function updateProduct(
       newSalePrice,
       source: "manual",
     });
+    // El articulo: lo que vale para los dos locales.
     await prisma.product.update({
       where: { itemId },
       data: {
@@ -244,14 +254,18 @@ export async function updateProduct(
         category,
         brand,
         description,
-        price: newPrice,
-        salePrice: newSalePrice,
-        stock,
-        active,
         featured,
         memo,
         shippingType,
       },
+    });
+    // El precio, la oferta, el stock y si se muestra: del local que se
+    // esta editando. Ver src/lib/precios-sucursal.ts.
+    await guardarComercial([itemId], {
+      price: newPrice,
+      salePrice: newSalePrice,
+      stock,
+      active,
     });
   } catch (e) {
     const msg = (e as Error).message;
@@ -343,7 +357,12 @@ export async function quickUpdate(
         });
       }
     }
-    await prisma.product.update({ where: { itemId }, data });
+    if (field === "featured") {
+      // Destacado es del articulo: aparece en la portada, que es una sola.
+      await prisma.product.update({ where: { itemId }, data });
+    } else {
+      await guardarComercial([itemId], data);
+    }
   } catch (e) {
     return { error: `Error al guardar: ${(e as Error).message}` };
   }
@@ -419,6 +438,10 @@ export async function bulkUpdate(
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Editar en lote");
+  if (noPorAhora) return { error: noPorAhora };
   if (!itemIds.length) return { error: "Ningún producto seleccionado" };
 
   const data: Record<string, boolean> = {};
@@ -490,6 +513,10 @@ export async function bulkUpdateAll(
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Editar en lote");
+  if (noPorAhora) return { error: noPorAhora };
 
   const data: Record<string, boolean> = {};
   if (action === "activate") data.active = true;
@@ -595,6 +622,10 @@ export async function previewRestore(): Promise<RestoreStats> {
 export async function restoreMissingProducts(): Promise<RestoreStats> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Restaurar productos");
+  if (noPorAhora) return { error: noPorAhora };
   try {
     const catalogo = await leerCatalogoOriginal();
     const ids = catalogo.map((p) => p.itemId);
@@ -691,6 +722,10 @@ export async function restoreFromBackup(
 }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Restaurar desde un respaldo");
+  if (noPorAhora) return { error: noPorAhora };
 
   let parsed: { formato?: string; productos?: BackupProducto[] };
   try {
@@ -810,6 +845,10 @@ export async function duplicateProduct(
 ): Promise<{ ok?: true; error?: string; itemId?: string }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Duplicar un producto");
+  if (noPorAhora) return { error: noPorAhora };
 
   try {
     const orig = await prisma.product.findUnique({
@@ -1114,6 +1153,10 @@ export async function bulkSetStock(
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Cambiar el stock en lote");
+  if (noPorAhora) return { error: noPorAhora };
   if (!itemIds.length) return { error: "Ningún producto seleccionado" };
   return applyStockWhere({ itemId: { in: itemIds } }, mode, value);
 }
@@ -1128,6 +1171,10 @@ export async function bulkSetStockAll(
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Cambiar el stock en lote");
+  if (noPorAhora) return { error: noPorAhora };
   return applyStockWhere(buildProductWhere(filter, excluir), mode, value);
 }
 
@@ -1203,6 +1250,10 @@ export async function bulkAdjustPrice(
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Cambiar precios en lote");
+  if (noPorAhora) return { error: noPorAhora };
   if (!itemIds.length) return { error: "Ningún producto seleccionado" };
   return applyPriceWhere({ itemId: { in: itemIds } }, mode, value);
 }
@@ -1216,6 +1267,10 @@ export async function bulkAdjustPriceAll(
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
+  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
+  // Ver src/lib/precios-sucursal.ts.
+  const noPorAhora = await todaviaNoPorSucursal("Cambiar precios en lote");
+  if (noPorAhora) return { error: noPorAhora };
   return applyPriceWhere(buildProductWhere(filter, excluir), mode, value);
 }
 

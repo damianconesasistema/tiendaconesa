@@ -62,6 +62,7 @@ export default async function EditProductPage({
     <AdminShell
       username={session.username}
       active="productos"
+      sucursal
       verTienda={`/tienda/${product.itemId}`}
     >
       <Link

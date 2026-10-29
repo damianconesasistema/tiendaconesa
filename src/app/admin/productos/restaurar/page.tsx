@@ -21,7 +21,7 @@ export default async function RestaurarPage() {
   if (!session) redirect("/admin/login");
 
   return (
-    <AdminShell username={session.username} active="productos">
+    <AdminShell username={session.username} active="productos" sucursal>
       <Link
         href="/admin/productos"
         className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-foreground"
