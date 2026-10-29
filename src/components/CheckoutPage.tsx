@@ -31,12 +31,23 @@ export function CheckoutPage({
   // servidor porque este componente corre en el navegador. Si fuera fijo,
   // un pedido de Buenos Aires le entraria al local de Cordoba.
   whatsappSucursal,
+  // Donde se retira y que envia ESTE local. Tambien venian fijos con los
+  // datos de Traslasierra: el que compraba desde Capital leia que tenia que
+  // retirar en Villa Cura Brochero.
+  retiroDesc,
+  envioTitulo,
+  envioDesc,
 }: {
   recargos?: Recargos;
   mpDisponible?: boolean;
   // Planes de cuotas con su recargo ya calculado
   planes?: Plan[];
   whatsappSucursal: string;
+  /** Donde se retira en este local: "Rincón 43 · sin costo". */
+  retiroDesc: string;
+  /** El titulo y el detalle del envio de este local. */
+  envioTitulo: string;
+  envioDesc: string;
 }) {
   const router = useRouter();
   const { items, clear } = useCart();
@@ -114,15 +125,27 @@ export function CheckoutPage({
     const e: Record<string, string> = {};
     if (!customer.firstName.trim()) e.firstName = "Requerido";
     if (!customer.lastName.trim()) e.lastName = "Requerido";
-    if (!customer.dni.trim()) e.dni = "Requerido";
-    if (!/^\d{7,8}$/.test(customer.dni.replace(/\D/g, "")))
+    // El DNI quedo OPCIONAL. Hace falta para la factura, no para tomar el
+    // pedido, y pedir el documento antes de la primera compra espanta. Si lo
+    // escriben se valida; si no, se sigue igual.
+    const dniEscrito = customer.dni.trim() !== "";
+    if (dniEscrito && !/^\d{7,8}$/.test(customer.dni.replace(/\D/g, "")))
       e.dni = "DNI inválido (7 u 8 dígitos)";
     if (!customer.email.trim()) e.email = "Requerido";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email))
       e.email = "Email inválido";
     if (!customer.phone.trim()) e.phone = "Requerido";
     if (customer.shipping === "envio") {
-      if (!customer.locality) e.locality = "Elegí una localidad";
+      if (!customer.locality.trim())
+        e.locality = customer.otraZona
+          ? "Escribí tu localidad"
+          : "Elegí una localidad";
+      if (customer.otraZona && !customer.province.trim())
+        e.province = "Requerido";
+      // El codigo postal se pide siempre en los envios: es con lo que se
+      // cotiza el flete y, mas adelante, con lo que se decide que local
+      // atiende el pedido.
+      if (!esCP(customer.postalCode)) e.postalCode = "4 números";
       if (!customer.street.trim()) e.street = "Requerido";
       if (!customer.streetNumber.trim()) e.streetNumber = "Requerido";
     }
@@ -258,12 +281,12 @@ export function CheckoutPage({
                   autoComplete="family-name"
                 />
                 <Field
-                  label="DNI"
+                  label="DNI (opcional)"
                   value={customer.dni}
                   onChange={(v) => setCustomer({ ...customer, dni: v })}
                   error={errors.dni}
                   inputMode="numeric"
-                  placeholder="Sin puntos ni espacios"
+                  placeholder="Solo si querés factura a tu nombre"
                 />
                 <Field
                   label="Teléfono"
@@ -301,7 +324,7 @@ export function CheckoutPage({
                   }
                   icon={Store}
                   title="Retiro en tienda"
-                  desc="Villa Cura Brochero · sin costo"
+                  desc={retiroDesc}
                   badge="Sin cargo"
                 />
                 <ShippingOption
@@ -310,8 +333,8 @@ export function CheckoutPage({
                     setCustomer({ ...customer, shipping: "envio" })
                   }
                   icon={Truck}
-                  title="Envío a Traslasierra"
-                  desc="Mina Clavero, Nono, Villa Dolores y más"
+                  title={envioTitulo}
+                  desc={envioDesc}
                   badge="A coordinar"
                 />
               </div>
@@ -323,10 +346,21 @@ export function CheckoutPage({
                       Localidad
                     </label>
                     <select
-                      value={customer.locality}
-                      onChange={(e) =>
-                        setCustomer({ ...customer, locality: e.target.value })
-                      }
+                      value={customer.otraZona ? "__otra" : customer.locality}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        // "Otra localidad" no es una localidad: es decir que la
+                        // suya no esta en la lista. Ahi se escribe a mano.
+                        if (v === "__otra")
+                          setCustomer({ ...customer, otraZona: true, locality: "" });
+                        else
+                          setCustomer({
+                            ...customer,
+                            otraZona: false,
+                            locality: v,
+                            province: "",
+                          });
+                      }}
                       data-error={!!errors.locality}
                       className={`mt-1.5 h-11 w-full rounded-xl border bg-white px-3 text-sm text-foreground outline-none ring-[var(--brand-red)]/20 focus:border-[var(--brand-red)] focus:ring-2 ${
                         errors.locality
@@ -351,12 +385,57 @@ export function CheckoutPage({
                           </option>
                         ))}
                       </optgroup>
+                      {/* Sin esto, el que entraba desde cualquier otro lado no
+                          tenia su localidad en la lista y no podia comprar.
+                          Entraba gente y no compraba nadie. */}
+                      <option value="__otra">
+                        Otra localidad · envío a coordinar
+                      </option>
                     </select>
                     {errors.locality && (
                       <p className="mt-1 text-xs text-red-500">
                         {errors.locality}
                       </p>
                     )}
+                  </div>
+
+                  {/* Si la localidad no esta en la lista se escribe a mano.
+                      Antes no habia como: el que vivia en cualquier otro lado
+                      no podia terminar la compra. */}
+                  {customer.otraZona && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field
+                        label="Tu localidad"
+                        value={customer.locality}
+                        onChange={(v) =>
+                          setCustomer({ ...customer, locality: v })
+                        }
+                        error={errors.locality}
+                        placeholder="Ej: Villa Carlos Paz"
+                      />
+                      <Field
+                        label="Provincia"
+                        value={customer.province}
+                        onChange={(v) =>
+                          setCustomer({ ...customer, province: v })
+                        }
+                        error={errors.province}
+                        placeholder="Ej: Córdoba"
+                      />
+                    </div>
+                  )}
+
+                  <div className="sm:w-40">
+                    <Field
+                      label="Código postal"
+                      value={customer.postalCode}
+                      onChange={(v) =>
+                        setCustomer({ ...customer, postalCode: v })
+                      }
+                      error={errors.postalCode}
+                      inputMode="numeric"
+                      placeholder="Ej: 5891"
+                    />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
                     <Field
@@ -617,6 +696,12 @@ export function CheckoutPage({
       </div>
     </main>
   );
+}
+
+/** Codigo postal argentino: los cuatro numeros de siempre. Alcanza para
+ *  cotizar el flete y para saber mas adelante que local atiende. */
+function esCP(v: string) {
+  return /^[0-9]{4}$/.test(v.replace(/\D/g, ""));
 }
 
 function Field({

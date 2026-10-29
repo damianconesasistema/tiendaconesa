@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CartPage } from "@/components/CartPage";
 
 export const metadata: Metadata = {
-  title: "Carrito · Sanitarios Conesa Traslasierra",
+  title: "Carrito",
   description: "Revisá tus productos antes de finalizar la compra.",
 };
 

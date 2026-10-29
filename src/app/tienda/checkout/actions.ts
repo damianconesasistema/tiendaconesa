@@ -105,6 +105,13 @@ export async function createOrder(
         status: "pendiente",
         shipping: customer.shipping,
         locality: customer.shipping === "envio" ? customer.locality : null,
+        // La provincia solo viene cuando la localidad se escribio a mano. El
+        // codigo postal va siempre que haya envio: con eso se cotiza el flete
+        // y, mas adelante, se decide que sucursal atiende.
+        province:
+          customer.shipping === "envio" ? customer.province || null : null,
+        postalCode:
+          customer.shipping === "envio" ? customer.postalCode || null : null,
         street: customer.shipping === "envio" ? customer.street : null,
         streetNumber: customer.shipping === "envio" ? customer.streetNumber : null,
         reference: customer.reference || null,
@@ -195,7 +202,10 @@ export async function createOrder(
           },
           envio: {
             retira: customer.shipping === "retiro",
-            localidad: customer.locality,
+            localidad: [customer.locality, customer.province]
+              .filter(Boolean)
+              .join(", ") +
+              (customer.postalCode ? ` (CP ${customer.postalCode})` : ""),
             calle: customer.street,
             numero: customer.streetNumber,
             referencia: customer.reference,

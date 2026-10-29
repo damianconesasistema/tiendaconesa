@@ -7,7 +7,7 @@ import { legales, getLegales } from "@/lib/legales";
 export const metadata: Metadata = {
   title: "Términos y condiciones",
   description:
-    "Términos y condiciones de venta, política de devoluciones, garantía legal y protección de datos de Sanitarios Conesa Traslasierra.",
+    "Términos y condiciones de venta, política de devoluciones, garantía legal y protección de datos de Sanitarios Conesa.",
 };
 
 const DIAS = legales.diasArrepentimiento;

@@ -6,11 +6,13 @@ export const SHIPPING_TYPES = [
   {
     id: "retiro",
     label: "Retiro en tienda",
-    desc: "Villa Cura Brochero · sin costo",
+    // Sin el nombre del pueblo: el mismo texto lo lee el que compra en
+    // Buenos Aires. Donde se retira sale de la sucursal, en el checkout.
+    desc: "Sin costo",
   },
   {
     id: "envio",
-    label: "Envío a Traslasierra",
+    label: "Envío a domicilio",
     desc: "Costo a coordinar por WhatsApp",
   },
 ] as const;

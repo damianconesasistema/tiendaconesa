@@ -12,6 +12,11 @@ export type Customer = {
   phone: string;
   shipping: ShippingMode;
   locality: string;
+  /** Cuando la localidad no esta en la lista del local. Ahi `locality` pasa a
+   *  ser texto libre y se piden tambien provincia y codigo postal. */
+  otraZona: boolean;
+  province: string;
+  postalCode: string;
   street: string;
   streetNumber: string;
   reference: string;
@@ -26,6 +31,9 @@ export const emptyCustomer: Customer = {
   phone: "",
   shipping: "retiro",
   locality: "",
+  otraZona: false,
+  province: "",
+  postalCode: "",
   street: "",
   streetNumber: "",
   reference: "",

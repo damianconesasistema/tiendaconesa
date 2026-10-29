@@ -64,16 +64,18 @@ export function buildOrderMessage(
 
   lines.push("*Datos del comprador:*");
   lines.push(`• Nombre: ${c.firstName} ${c.lastName}`);
-  lines.push(`• DNI: ${c.dni}`);
+  if (c.dni.trim()) lines.push(`• DNI: ${c.dni}`);
   lines.push(`• Email: ${c.email}`);
   lines.push(`• Teléfono: ${c.phone}`);
   lines.push("");
 
   if (c.shipping === "retiro") {
-    lines.push("*Entrega:* Retiro en el local (Villa Cura Brochero)");
+    lines.push("*Entrega:* Retiro en el local");
   } else {
-    lines.push("*Entrega:* A domicilio en Traslasierra");
+    lines.push("*Entrega:* A domicilio");
     lines.push(`• Localidad: ${c.locality}`);
+    if (c.province) lines.push(`• Provincia: ${c.province}`);
+    if (c.postalCode) lines.push(`• Código postal: ${c.postalCode}`);
     lines.push(`• Dirección: ${c.street} ${c.streetNumber}`);
     if (c.reference) lines.push(`• Referencia: ${c.reference}`);
   }

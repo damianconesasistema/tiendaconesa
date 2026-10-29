@@ -110,6 +110,11 @@ model Order {
   items        OrderItem[]
   shipping     String // "retiro" | "envio"
   locality     String? // solo si shipping = envio
+  // La provincia y el codigo postal se piden cuando el envio es fuera de
+  // la zona del local. El CP ademas es lo que mas adelante decide que
+  // sucursal atiende el pedido: por localidad escrita a mano no se puede.
+  province     String?
+  postalCode   String?
   street       String?
   streetNumber String?
   reference    String?

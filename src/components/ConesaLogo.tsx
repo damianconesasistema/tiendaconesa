@@ -30,7 +30,7 @@ export function ConesaLogo({
   return (
     <Image
       src={asset.src}
-      alt="Sanitarios Conesa Traslasierra"
+      alt="Sanitarios Conesa"
       width={asset.width}
       height={asset.height}
       quality={100}

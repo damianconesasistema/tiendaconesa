@@ -6,7 +6,7 @@ import { getMarcas } from "@/lib/marcas-server";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "Tienda · Sanitarios Conesa Traslasierra",
+  title: "Tienda",
   description:
     "Ofertas en sanitarios, grifería, salamandras, calefones y materiales de obra. Las mejores marcas de Argentina.",
 };

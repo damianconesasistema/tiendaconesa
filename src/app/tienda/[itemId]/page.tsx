@@ -40,16 +40,16 @@ export async function generateMetadata(
     : `${base}/categories/${p.category}.jpg`;
 
   const titulo = `${p.title} · Sanitarios Conesa`;
-  const desc = `${formatPrice(vitrina)} · ${formatPrice(contado)} en efectivo o transferencia. Retiralo en Villa Cura Brochero o te lo enviamos a Traslasierra.`;
+  const desc = `${formatPrice(vitrina)} · ${formatPrice(contado)} en efectivo o transferencia. Retiralo en el local o te lo enviamos a tu domicilio.`;
 
   return {
-    title: `${p.title} · Sanitarios Conesa Traslasierra`,
+    title: p.title,
     description: desc,
     openGraph: {
       title: titulo,
       description: desc,
       url: `${base}/tienda/${itemId}`,
-      siteName: "Sanitarios Conesa Traslasierra",
+      siteName: "Sanitarios Conesa",
       type: "website",
       locale: "es_AR",
       images: [{ url: img, width: 1200, height: 1200, alt: p.title }],
