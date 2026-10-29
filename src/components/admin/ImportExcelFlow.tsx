@@ -158,6 +158,31 @@ export function ImportExcelFlow() {
               color="amber"
             />
           </div>
+
+          {/* Lo que se entendio del archivo del sistema. Va ANTES del boton
+              de importar a proposito: si la columna del precio se leyo mal,
+              se ve aca y no despues en la tienda. */}
+          {parse.delSistema && (
+            <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="font-display text-xs font-black uppercase tracking-wider text-blue-900">
+                Leído del Excel del sistema
+              </div>
+              <p className="mt-2 text-sm text-blue-900">{parse.delSistema.regla}</p>
+              {parse.delSistema.avisos.map((a) => (
+                <p key={a} className="mt-2 text-xs text-blue-800">
+                  · {a}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {(stats.suben > 0 || stats.bajan > 0) && (
+            <p className="mt-4 text-sm text-[var(--muted)]">
+              Cambian de precio: <strong className="text-foreground">{stats.suben}</strong>{" "}
+              para arriba y{" "}
+              <strong className="text-foreground">{stats.bajan}</strong> para abajo.
+            </p>
+          )}
         </div>
 
         {/* Opciones + confirmar */}
@@ -222,6 +247,7 @@ export function ImportExcelFlow() {
                 <th className="px-4 py-2">Título</th>
                 <th className="px-4 py-2">Cat.</th>
                 <th className="px-4 py-2 text-right">Precio</th>
+                <th className="px-4 py-2 text-right">Antes</th>
                 <th className="px-4 py-2 text-right">Oferta</th>
                 <th className="px-4 py-2 text-right">Stock</th>
                 <th className="px-4 py-2">Foto</th>
@@ -395,6 +421,12 @@ function PreviewRow({ r }: { r: ParsedRow }) {
       <td className="px-4 py-2 text-[11px] text-[var(--muted)]">{r.category}</td>
       <td className="px-4 py-2 text-right font-display font-bold">
         {r.price ? formatPrice(r.price) : "—"}
+      </td>
+      {/* El precio de antes, al lado. Es la forma mas rapida de ver que la
+          columna se leyo bien: si estaba 666.100 y pasa a 69.546, algo se
+          entendio mal y se ve de un vistazo. */}
+      <td className="px-4 py-2 text-right text-xs text-[var(--muted)]">
+        {r.__precioAnterior !== null ? formatPrice(r.__precioAnterior) : "—"}
       </td>
       <td className="px-4 py-2 text-right text-xs">
         {r.salePrice ? formatPrice(r.salePrice) : "—"}

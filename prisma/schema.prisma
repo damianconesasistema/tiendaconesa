@@ -28,6 +28,10 @@ model Product {
   description  String? // Opcional, para la ficha
   category     String // sanitarios, griferia, banera, etc.
   brand        String? // slug de marca (fv, ferrum, piazza...). Ver src/lib/marcas.ts
+  // Como lo llama el sistema de Conesa ("3674"). Sirve para importar la
+  // lista tal cual sale de ahi sin tener que adivinar por el prefijo del
+  // codigo del sitio.
+  codigoSistema String?
   price        Int // en pesos argentinos (sin decimales)
   salePrice    Int? // precio con descuento (opcional)
   stock        Int             @default(0)
@@ -49,6 +53,7 @@ model Product {
   @@index([brand])
   @@index([active])
   @@index([featured])
+  @@index([codigoSistema])
   @@index([views])
 }
 

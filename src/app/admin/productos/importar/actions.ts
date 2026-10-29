@@ -10,6 +10,7 @@ import { detectarMarca, marcaPorId } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
+import { leerExportDelSistema } from "@/lib/excel-sistema";
 
 export type ParsedRow = {
   itemId: string;
@@ -25,6 +26,13 @@ export type ParsedRow = {
   description: string | null;
   memo: string | null;
   imageUrl: string | null;
+  /** Como lo llama el sistema de Conesa. Queda guardado en el articulo
+   *  para que la proxima importacion enganche exacto. */
+  codigoSistema: string | null;
+  /** Lo que vale hoy en este local. Null si el producto es nuevo. Es para
+   *  mostrar "antes -> ahora" antes de tocar nada: una columna leida mal
+   *  se ve ahi y no despues, en la tienda. */
+  __precioAnterior: number | null;
   // Metadata del parseo
   __rowNumber: number;
   __errors: string[];
@@ -38,6 +46,10 @@ export type ParseResult = {
   ok: boolean;
   error?: string;
   rows?: ParsedRow[];
+  /** Cuando el archivo es un export del sistema, que se entendio de el.
+   *  Va a la pantalla para que se pueda revisar antes de aplicar: si la
+   *  columna del precio se leyo mal, se ve ahi y no en la tienda. */
+  delSistema?: { regla: string; avisos: string[] };
   stats?: {
     total: number;
     valid: number;
@@ -45,6 +57,9 @@ export type ParseResult = {
     toCreate: number;
     toUpdate: number;
     withImage: number;
+    /** Cuantos productos cambian de precio, para arriba y para abajo. */
+    suben: number;
+    bajan: number;
   };
 };
 
@@ -100,6 +115,9 @@ const COL_ALIASES: Record<string, string> = {
 
   marca: "brand",
   brand: "brand",
+  codigo_sistema: "codigoSistema",
+  "codigo del sistema": "codigoSistema",
+  item_code: "codigoSistema",
 
   categoria: "category",
   cat: "category",
@@ -215,7 +233,7 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
     const sheetName = wb.SheetNames[0];
     if (!sheetName) return { ok: false, error: "Excel sin hojas" };
     const sheet = wb.Sheets[sheetName];
-    const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+    let raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
       defval: null,
       raw: true,
     });
@@ -225,7 +243,7 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
 
     // Mapear nombres de columnas a canónicos
     const originalKeys = Object.keys(raw[0]);
-    const keyMap: Record<string, string> = {};
+    let keyMap: Record<string, string> = {};
     for (const k of originalKeys) {
       const canonical = COL_ALIASES[norm(k)];
       if (canonical) keyMap[k] = canonical;
@@ -237,11 +255,79 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
     if (!canonicals.has("itemId")) missing.push("código");
     if (!canonicals.has("title")) missing.push("título");
     if (!canonicals.has("price")) missing.push("precio");
+    // Si no tiene las columnas del importador, puede ser el Excel tal cual
+    // sale del sistema. Esos vienen con item_code / item_desc y la columna
+    // del precio cambia de nombre segun el proveedor: eso se reconoce solo.
+    let delSistema: { regla: string; avisos: string[] } | undefined;
     if (missing.length) {
-      return {
-        ok: false,
-        error: `Faltan columnas obligatorias: ${missing.join(", ")}. Usá la plantilla.`,
+      const lectura = leerExportDelSistema(wb);
+      if (!lectura) {
+        return {
+          ok: false,
+          error: `Faltan columnas obligatorias: ${missing.join(", ")}. Usá la plantilla, o subí el Excel tal cual sale del sistema.`,
+        };
+      }
+
+      // Para no pisar lo que ya esta cargado. El archivo del sistema trae el
+      // precio y el stock; el titulo, la categoria y la marca del sitio son
+      // trabajo hecho a mano y NO se tocan si el producto ya existe.
+      const yaCargados = await prisma.product.findMany({
+        select: {
+          itemId: true,
+          sku: true,
+          title: true,
+          category: true,
+          brand: true,
+          stock: true,
+          codigoSistema: true,
+        },
+      });
+      const porCodigoSistema = new Map<string, (typeof yaCargados)[number]>();
+      for (const p of yaCargados) {
+        if (p.codigoSistema) porCodigoSistema.set(p.codigoSistema, p);
+        if (p.sku) porCodigoSistema.set(p.sku.trim(), p);
+        // Los codigos del sitio se armaron como MARCA-1234: el numero de
+        // atras es el del sistema. Asi enganchan los que se cargaron antes
+        // de que existiera la columna.
+        const cola = p.itemId.split("-").pop();
+        if (cola && !porCodigoSistema.has(cola)) porCodigoSistema.set(cola, p);
+      }
+
+      const marcasParaDetectar = await getMarcas();
+      raw = lectura.filas.map((f) => {
+        const ya = porCodigoSistema.get(f.itemCode);
+        // La marca se guarda por su id ("bosca"), no por como la escribe el
+        // sistema. Se deduce del titulo, que es de donde sale en el resto del
+        // panel; la columna brand_desc del sistema solo se usa para armar el
+        // codigo de un producto nuevo.
+        const marcaDetectada = detectarMarca(f.descripcion, marcasParaDetectar);
+        const prefijo =
+          f.marca || marcaPorId(marcaDetectada, marcasParaDetectar)?.name || "ERP";
+        return {
+          codigo:
+            ya?.itemId ??
+            `${prefijo.toUpperCase().replace(/[^A-Z0-9]+/g, "")}-${f.itemCode}`,
+          titulo: ya?.title ?? f.descripcion,
+          categoria: ya?.category ?? "otros",
+          marca: ya?.brand ?? marcaDetectada,
+          precio: f.precio,
+          oferta: f.oferta,
+          stock: f.stock ?? ya?.stock ?? 0,
+          codigo_sistema: f.itemCode,
+        } as Record<string, unknown>;
+      });
+
+      keyMap = {
+        codigo: "itemId",
+        codigo_sistema: "codigoSistema",
+        titulo: "title",
+        categoria: "category",
+        marca: "brand",
+        precio: "price",
+        oferta: "salePrice",
+        stock: "stock",
       };
+      delSistema = { regla: lectura.regla, avisos: lectura.avisos };
     }
 
     // Obtener itemIds existentes en DB en una query
@@ -315,6 +401,8 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
         description,
         memo,
         imageUrl,
+        codigoSistema: parsed.codigoSistema != null ? String(parsed.codigoSistema).trim() || null : null,
+        __precioAnterior: null,
         __rowNumber: i + 2, // +2 porque Excel es 1-indexed y hay header
         __errors: errors,
         __exists: false,
@@ -327,17 +415,32 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
     const ids = normalized.map((r) => r.itemId).filter(Boolean);
     const existing = await prisma.product.findMany({
       where: { itemId: { in: ids } },
-      select: { itemId: true },
+      select: { id: true, itemId: true },
     });
-    const existingSet = new Set(existing.map((e) => e.itemId));
+    const existe = new Set(existing.map((e) => e.itemId));
+
+    // El "antes" es el precio que tiene hoy EN ESTE LOCAL, no el del articulo.
+    // Si se mira el del articulo, importando para Buenos Aires se compararia
+    // contra el precio de Traslasierra y la columna mentiria.
+    const suc = await sucursalDeEdicion();
+    const precioDeHoy = new Map<string, number>();
+    if (suc) {
+      const filas = await prisma.branchProduct.findMany({
+        where: { branchId: suc.id, productId: { in: existing.map((e) => e.id) } },
+        select: { price: true, product: { select: { itemId: true } } },
+      });
+      for (const f of filas) precioDeHoy.set(f.product.itemId, f.price);
+    }
     for (const r of normalized) {
-      r.__exists = existingSet.has(r.itemId);
+      r.__exists = existe.has(r.itemId);
+      r.__precioAnterior = precioDeHoy.get(r.itemId) ?? null;
     }
 
     const valid = normalized.filter((r) => r.__errors.length === 0);
     return {
       ok: true,
       rows: normalized,
+      delSistema,
       stats: {
         total: normalized.length,
         valid: valid.length,
@@ -345,6 +448,12 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
         toCreate: valid.filter((r) => !r.__exists).length,
         toUpdate: valid.filter((r) => r.__exists).length,
         withImage: valid.filter((r) => r.imageUrl).length,
+        suben: valid.filter(
+          (r) => r.__precioAnterior !== null && r.price > r.__precioAnterior,
+        ).length,
+        bajan: valid.filter(
+          (r) => r.__precioAnterior !== null && r.price < r.__precioAnterior,
+        ).length,
       },
     };
   } catch (e) {
@@ -424,6 +533,7 @@ export async function importExcel(
       // Al CREAR: usamos los valores (con defaults).
       const createData = {
         itemId: row.itemId,
+        codigoSistema: row.codigoSistema,
         sku: row.sku,
         title: row.title,
         category: row.category,
@@ -453,6 +563,9 @@ export async function importExcel(
       const updateData: Record<string, unknown> = {
         title: row.title,
         category: row.category,
+        // Se completa la primera vez que se importa desde el sistema; de ahi
+        // en adelante el enganche es exacto y no depende del prefijo.
+        ...(row.codigoSistema ? { codigoSistema: row.codigoSistema } : {}),
         ...(row.description !== null ? { description: row.description } : {}),
         ...(row.__traeMarca && row.brand ? { brand: row.brand } : {}),
         ...(row.sku !== null ? { sku: row.sku } : {}),
