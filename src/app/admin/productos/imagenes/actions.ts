@@ -5,6 +5,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { processProductImage } from "@/lib/image-processing";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
+import { codigoDeAhora } from "@/lib/codigo-viejo";
 
 export type ImageMatch = {
   key: string; // nombre de archivo sin extension (normalizado)
@@ -40,6 +41,28 @@ export async function matchImageFilenames(
     select: { itemId: true, title: true },
   });
   const itemMap = new Map(byItem.map((p) => [p.itemId, p]));
+
+  // Las fotos viejas estan guardadas con el nombre de antes
+  // (HEINEKEN-8354.jpg) y el codigo ahora es el numero solo. Para las que
+  // no engancharon, se prueba traduciendo el nombre del archivo: si no,
+  // una carpeta entera de fotos aparece como que no corresponde a nada.
+  const traducidas = new Map<string, string>();
+  for (const k of remaining) {
+    if (itemMap.has(k)) continue;
+    const n = codigoDeAhora(k);
+    if (n) traducidas.set(k, n);
+  }
+  if (traducidas.size) {
+    const porNumero = await prisma.product.findMany({
+      where: { itemId: { in: Array.from(new Set(traducidas.values())) } },
+      select: { itemId: true, title: true },
+    });
+    const mapa = new Map(porNumero.map((p) => [p.itemId, p]));
+    for (const [viejo, numero] of traducidas) {
+      const p = mapa.get(numero);
+      if (p) itemMap.set(viejo, p);
+    }
+  }
 
   const matches: ImageMatch[] = uniqueKeys.map((key) => {
     const s = skuMap.get(key);

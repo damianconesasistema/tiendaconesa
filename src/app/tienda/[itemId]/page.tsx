@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { contactoDeLaVenta } from "@/lib/sucursal";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { nombreMarca } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
@@ -8,6 +8,7 @@ import { ProductDetail } from "@/components/ProductDetail";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
 import { formatPrice } from "@/lib/order";
+import { codigoDeAhora } from "@/lib/codigo-viejo";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,17 @@ export default async function ProductoPage({ params }: RouteProps) {
   const { itemId } = await params;
   const product = await prisma.product.findUnique({ where: { itemId } });
   if (!product || !product.active || product.itemId === "__RESET_PRICES_MARKER__") {
+    // Los codigos eran MARCA-numero y ahora son el numero solo. Los links
+    // viejos siguen circulando por WhatsApp y estan en Google: antes de
+    // contestar que no existe, se prueba con el numero.
+    const nuevo = product ? null : codigoDeAhora(itemId);
+    if (nuevo) {
+      const otro = await prisma.product.findUnique({
+        where: { itemId: nuevo },
+        select: { active: true },
+      });
+      if (otro?.active) redirect(`/tienda/${nuevo}`);
+    }
     notFound();
   }
 
