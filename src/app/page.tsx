@@ -72,6 +72,7 @@ export default async function Home() {
         province: true,
         phone: true,
         whatsapp: true,
+        email: true,
         hours: true,
         instagram: true,
         tiendaActiva: true,
@@ -387,23 +388,63 @@ export default async function Home() {
                 <br />
                 Envíos según la zona · fuera de ella, a coordinar
               </InfoRow>
+              {/* Un mail solo, sin decir de que local era, hacia que el que
+                  escribia desde Capital le mandara el mail a Cordoba. Van
+                  los dos, cada uno con el nombre adelante. */}
               <InfoRow icon={Mail} title="Email">
-                <a
-                  href={`mailto:${business.email}`}
-                  className="hover:text-[var(--brand-red)]"
-                >
-                  {business.email}
-                </a>
+                {sucursales.filter((s) => s.email).length > 1 ? (
+                  sucursales
+                    .filter((s) => s.email)
+                    .map((s) => (
+                      <span key={s.slug} className="block">
+                        <span className="text-[var(--muted)]">{s.name}: </span>
+                        <a
+                          href={`mailto:${s.email}`}
+                          className="hover:text-[var(--brand-red)]"
+                        >
+                          {s.email}
+                        </a>
+                      </span>
+                    ))
+                ) : (
+                  <a
+                    href={`mailto:${sucursales.find((s) => s.email)?.email ?? business.email}`}
+                    className="hover:text-[var(--brand-red)]"
+                  >
+                    {sucursales.find((s) => s.email)?.email ?? business.email}
+                  </a>
+                )}
               </InfoRow>
             </div>
 
             <div className="mt-10 flex flex-wrap gap-3">
-              <SocialPill
-                href={business.social.instagram.url}
-                icon={InstagramIcon}
-                label="Instagram"
-                detail={business.social.instagram.followers}
-              />
+              {/* Cada local tiene su Instagram y es por donde le escribe la
+                  gente. Si hay mas de uno, cada pastilla lleva el nombre del
+                  local: "Instagram" a secas no dice a cual entrar. */}
+              {sucursales.filter((s) => s.instagram).length > 1 ? (
+                sucursales
+                  .filter((s) => s.instagram)
+                  .map((s) => (
+                    <SocialPill
+                      key={s.slug}
+                      href={s.instagram!}
+                      icon={InstagramIcon}
+                      label={s.name}
+                      detail={
+                        s.instagram === business.social.instagram.url
+                          ? business.social.instagram.followers
+                          : undefined
+                      }
+                    />
+                  ))
+              ) : (
+                <SocialPill
+                  href={business.social.instagram.url}
+                  icon={InstagramIcon}
+                  label="Instagram"
+                  detail={business.social.instagram.followers}
+                />
+              )}
               <SocialPill
                 href={business.social.facebook.url}
                 icon={FacebookIcon}
