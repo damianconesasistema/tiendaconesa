@@ -28,6 +28,7 @@ import {
   type ModoImport,
   type PrecioDelArchivo,
 } from "@/app/admin/productos/importar/actions";
+import type { ComboCalculado } from "@/lib/combos";
 import { formatPrice } from "@/lib/order";
 
 export function ImportExcelFlow() {
@@ -47,19 +48,38 @@ export function ImportExcelFlow() {
   // tienda guarda el de contado; si el archivo trae el de 1 pago hay que
   // sacarle el recargo antes de guardarlo.
   const [precioEs, setPrecioEs] = useState<PrecioDelArchivo>("contado");
+  // Recalcular los combos con las piezas del archivo, y con que descuento.
+  // El archivo se guarda para poder rehacer la cuenta con otro porcentaje
+  // sin tener que volver a subirlo.
+  const [recalcCombos, setRecalcCombos] = useState(true);
+  const [descuento, setDescuento] = useState<string>("");
+  const [archivo, setArchivo] = useState<File | null>(null);
   const [filename, setFilename] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleFile(file: File) {
+  function handleFile(file: File, descPct?: number) {
     setFilename(file.name);
+    setArchivo(file);
     startTransition(async () => {
       const fd = new FormData();
       fd.append("file", file);
-      const r = await previewExcel(fd, modo, precioEs);
+      const r = await previewExcel(fd, modo, precioEs, descPct);
       setParse(r);
-      if (r.ok) setStage("preview");
+      if (r.ok) {
+        setStage("preview");
+        if (r.descuentoCombo !== undefined)
+          setDescuento(String(r.descuentoCombo));
+      }
     });
+  }
+
+  // Rehace la cuenta de los combos con otro descuento, sobre el mismo
+  // archivo. Nada se guarda hasta que se aplica.
+  function recalcular() {
+    const n = Number(descuento);
+    if (!archivo || !Number.isFinite(n) || n < 0 || n > 90) return;
+    handleFile(archivo, n);
   }
 
   function doImport() {
@@ -69,6 +89,8 @@ export function ImportExcelFlow() {
         downloadImages: modo === "ambos" && downloadImages,
         modo,
         altas,
+        combos: recalcCombos,
+        descuentoCombo: Number(descuento) || undefined,
       });
       setImportResult(r);
       if (r.ok) setStage("done");
@@ -164,6 +186,21 @@ export function ImportExcelFlow() {
                 {importResult.ejemplos.sinCargar.join(" · ")}
               </p>
             ) : null}
+          </div>
+        )}
+
+        {(s.combosActualizados > 0 || s.combosIncompletos > 0) && (
+          <div className="mx-auto mt-4 max-w-2xl rounded-xl border border-blue-200 bg-blue-50 p-4 text-left">
+            <div className="font-display text-xs font-black uppercase tracking-wider text-blue-900">
+              {s.combosActualizados} combos recalculados
+            </div>
+            {s.combosIncompletos > 0 && (
+              <p className="mt-2 text-sm text-blue-900">
+                Otros {s.combosIncompletos} quedaron como estaban: les falta
+                alguna pieza en este archivo. Sumar solo las que vinieron
+                daría un precio más barato que el real.
+              </p>
+            )}
           </div>
         )}
 
@@ -398,6 +435,64 @@ export function ImportExcelFlow() {
             )}
           </div>
         </div>
+
+        {/* Los combos. No vienen en el archivo: salen de cruzarlo con lo que
+            ya esta armado en la tienda, sumando las piezas. Va antes de la
+            tabla de filas porque es lo que de verdad se vende. */}
+        {parse.combos && parse.combos.length > 0 && (
+          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-6 py-3">
+              <div className="font-display text-xs font-black uppercase tracking-wider text-[var(--muted)]">
+                Combos que toca esta lista
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={recalcCombos}
+                    onChange={(e) => setRecalcCombos(e.target.checked)}
+                    className="h-4 w-4 accent-[var(--brand-red)]"
+                  />
+                  Recalcular
+                </label>
+                <span className="text-xs text-[var(--muted)]">· descuento</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={90}
+                  step={0.5}
+                  value={descuento}
+                  onChange={(e) => setDescuento(e.target.value)}
+                  className="w-16 rounded-lg border border-[var(--border)] px-2 py-1 text-right text-xs"
+                />
+                <span className="text-xs text-[var(--muted)]">%</span>
+                <button
+                  onClick={recalcular}
+                  disabled={pending}
+                  className="rounded-full border border-[var(--border)] px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:opacity-50"
+                >
+                  Rehacer cuenta
+                </button>
+              </div>
+            </div>
+            <table className="w-full min-w-[800px] text-sm">
+              <thead className="bg-[var(--surface)] text-left text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                <tr>
+                  <th className="px-4 py-2">Combo</th>
+                  <th className="px-4 py-2">Piezas</th>
+                  <th className="px-4 py-2 text-right">1 pago hoy</th>
+                  <th className="px-4 py-2 text-right">1 pago nuevo</th>
+                  <th className="px-4 py-2 text-right">Cambio</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {parse.combos.map((c) => (
+                  <FilaCombo key={c.itemId} c={c} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Preview tabla */}
         <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
@@ -713,6 +808,71 @@ function PreviewRow({
           </span>
         ) : (
           <span className="text-[10px] text-[var(--muted)]">—</span>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+function FilaCombo({ c }: { c: ComboCalculado }) {
+  const incompleto = c.faltan.length > 0;
+  const dif =
+    c.unPagoAntes !== null && c.unPagoAntes > 0
+      ? Math.round(((c.unPagoAhora - c.unPagoAntes) / c.unPagoAntes) * 100)
+      : null;
+  return (
+    <tr className={incompleto ? "bg-amber-50/60" : undefined}>
+      <td className="px-4 py-2">
+        <div className="font-mono text-[11px]">{c.itemId}</div>
+        <div className="max-w-xs truncate text-xs text-[var(--muted)]">
+          {c.title}
+        </div>
+      </td>
+      <td className="px-4 py-2 text-[11px]">
+        {c.piezas.map((p) => (
+          <span
+            key={p}
+            className={`mr-1 inline-block rounded px-1.5 py-0.5 font-mono ${
+              c.faltan.includes(p)
+                ? "bg-amber-200 text-amber-900"
+                : "bg-[var(--surface)] text-[var(--muted)]"
+            }`}
+          >
+            {p}
+          </span>
+        ))}
+        {incompleto && (
+          <div className="mt-1 text-[10px] font-semibold text-amber-800">
+            Falta{c.faltan.length > 1 ? "n" : ""} en el archivo: no se toca
+          </div>
+        )}
+      </td>
+      <td className="px-4 py-2 text-right text-xs text-[var(--muted)]">
+        {c.unPagoAntes !== null ? formatPrice(c.unPagoAntes) : "—"}
+      </td>
+      <td
+        className={`px-4 py-2 text-right font-display font-bold${
+          incompleto ? " opacity-40" : ""
+        }`}
+      >
+        {formatPrice(c.unPagoAhora)}
+      </td>
+      <td className="px-4 py-2 text-right text-xs">
+        {dif === null ? (
+          "—"
+        ) : (
+          <span
+            className={
+              dif > 0
+                ? "font-bold text-red-700"
+                : dif < 0
+                  ? "font-bold text-green-700"
+                  : "text-[var(--muted)]"
+            }
+          >
+            {dif > 0 ? "+" : ""}
+            {dif}%
+          </span>
         )}
       </td>
     </tr>

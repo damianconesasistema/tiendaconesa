@@ -22,6 +22,7 @@ import { prisma } from "@/lib/db";
 export const SETTING_RECARGO_1PAGO = "recargo_mp_1pago_pct";
 export const SETTING_RECARGO_CUOTAS = "recargo_mp_cuotas_pct";
 export const SETTING_CUOTAS_MAX = "mp_cuotas_max";
+export const SETTING_COMBO_DESC = "combo_descuento_pct";
 
 // Valores por defecto, del simulador de MercadoPago (oct 2026).
 // Se editan desde el panel: Configuración.
@@ -31,6 +32,11 @@ export const SETTING_CUOTAS_MAX = "mp_cuotas_max";
 const DEFAULT_1PAGO = 11.11;
 const DEFAULT_CUOTAS_PCT = 25.71;
 const DEFAULT_CUOTAS = 6;
+
+// Lo que se le descuenta a un combo sobre la suma de sus piezas sueltas.
+// Es la razon de ser del combo: llevarlo armado sale menos que juntar las
+// partes. Queda guardado para que la proxima importacion lo recuerde.
+const DEFAULT_COMBO_DESC = 12;
 
 // Tope de cordura: un error de tipeo (ej. 1000) no puede generar un cobro
 // disparatado al cliente. A 18 cuotas el recargo real ronda 65%, asi que el
@@ -142,6 +148,11 @@ function parsePct(raw: string | null, fallback: number): number {
   const n = Number(raw);
   if (!Number.isFinite(n) || n < 0) return fallback;
   return Math.min(n, RECARGO_MAX);
+}
+
+/** El descuento del combo sobre la suma de sus piezas. */
+export async function getDescuentoCombo(): Promise<number> {
+  return parsePct(await getSetting(SETTING_COMBO_DESC), DEFAULT_COMBO_DESC);
 }
 
 export type RecargosMp = {

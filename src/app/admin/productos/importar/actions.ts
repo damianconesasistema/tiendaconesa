@@ -11,8 +11,14 @@ import { getMarcas } from "@/lib/marcas-server";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { leerExportDelSistema } from "@/lib/excel-sistema";
-import { getRecargosMp } from "@/lib/settings";
+import {
+  getRecargosMp,
+  getDescuentoCombo,
+  setSetting,
+  SETTING_COMBO_DESC,
+} from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
+import { calcularCombos, type ComboCalculado } from "@/lib/combos";
 
 // Que se vino a cambiar. Lo elige el que importa, antes de subir el
 // archivo, y de ahi en adelante manda: una lista de precios de una marca no
@@ -116,6 +122,12 @@ export type ParseResult = {
   recargoUnPago?: number;
   /** Que se interpreto que trae la columna de precio. */
   precioEs?: PrecioDelArchivo;
+  /** Los combos que toca esta lista, con la cuenta hecha. Va aparte de las
+   *  filas porque no salen del archivo: salen de cruzar el archivo con lo
+   *  que ya esta armado en la tienda. */
+  combos?: ComboCalculado[];
+  /** El descuento con el que se calcularon. */
+  descuentoCombo?: number;
 };
 
 // Normaliza nombres de columnas: trim, lowercase, saca acentos
@@ -271,10 +283,26 @@ function normalizeCategory(v: unknown): string {
   return "otros";
 }
 
+/** El precio de 1 pago de cada codigo del archivo, para calcular combos.
+ *
+ *  Se indexa por el codigo del sistema Y por el del sitio: el combo nombra
+ *  a sus piezas con el numero del sistema, y hasta que corra la migracion 25
+ *  hay articulos con el codigo viejo, con la marca adelante. */
+function preciosParaCombos(filas: ParsedRow[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const r of filas) {
+    if (r.__precioUnPago === null) continue;
+    if (r.codigoSistema) m.set(r.codigoSistema, r.__precioUnPago);
+    if (!m.has(r.itemId)) m.set(r.itemId, r.__precioUnPago);
+  }
+  return m;
+}
+
 export async function previewExcel(
   formData: FormData,
   modo: ModoImport = "ambos",
   precioEs: PrecioDelArchivo = "contado",
+  descuentoCombo?: number,
 ): Promise<ParseResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
@@ -545,9 +573,26 @@ export async function previewExcel(
     }
 
     const valid = normalized.filter((r) => r.__errors.length === 0);
+
+    // Los combos. El codigo del combo dice de que piezas esta hecho, asi que
+    // con los precios de este archivo se recalculan solos en vez de sumarlos
+    // a mano. Solo cuando se vino a tocar precios: en un recuento de stock no
+    // hay precios con los que hacer la cuenta.
+    const desc = descuentoCombo ?? (await getDescuentoCombo());
+    const combos = tocaPrecios
+      ? await calcularCombos({
+          precios1Pago: preciosParaCombos(valid),
+          descuentoPct: desc,
+          recargoUnPago: recargo,
+          branchId: suc?.id,
+        })
+      : [];
+
     return {
       ok: true,
       rows: normalized,
+      combos,
+      descuentoCombo: desc,
       delSistema,
       local: suc?.nombre,
       recargoUnPago: recargo,
@@ -607,6 +652,11 @@ export type ImportResult = {
     /** Articulos que existen pero que este local no lleva. No se les toco
      *  nada: sin precio propio de este local no hay de donde partir. */
     sinCargarEnLocal: number;
+    /** Combos recalculados a partir de sus piezas. */
+    combosActualizados: number;
+    /** Combos que esta lista toca pero a los que les falta alguna pieza:
+     *  quedaron como estaban. */
+    combosIncompletos: number;
   };
   /** Los primeros codigos que quedaron afuera, para poder revisarlos sin
    *  tener que adivinar cuales fueron. */
@@ -615,7 +665,15 @@ export type ImportResult = {
 
 export async function importExcel(
   rows: ParsedRow[],
-  options: { downloadImages: boolean; modo?: ModoImport; altas?: boolean },
+  options: {
+    downloadImages: boolean;
+    modo?: ModoImport;
+    altas?: boolean;
+    /** Recalcular los combos con las piezas de este archivo. */
+    combos?: boolean;
+    /** El descuento del combo. Si viene, queda guardado para la proxima. */
+    descuentoCombo?: number;
+  },
 ): Promise<ImportResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
@@ -800,6 +858,62 @@ export async function importExcel(
     }
   }
 
+  // Los combos, despues de las piezas. El combo no viene en el archivo: se
+  // recalcula sumando sus piezas y aplicandole el descuento por llevarlo
+  // armado. Se guarda el tachado (las piezas sueltas) y el real (con el
+  // descuento), los dos de contado, que es lo que la tienda guarda.
+  let combosActualizados = 0;
+  let combosIncompletos = 0;
+  if (tocaPrecios && (options.combos ?? true)) {
+    const recargo = (await getRecargosMp()).unPago;
+    const desc = options.descuentoCombo ?? (await getDescuentoCombo());
+    const combos = await calcularCombos({
+      precios1Pago: preciosParaCombos(valid),
+      descuentoPct: desc,
+      recargoUnPago: recargo,
+      branchId: suc?.id,
+    });
+    for (const c of combos) {
+      // Con una sola pieza que falte no se toca: la suma de las que si
+      // vinieron daria un precio mas barato que el real y se publicaria asi.
+      if (c.faltan.length > 0) {
+        combosIncompletos++;
+        continue;
+      }
+      const g = await guardarComercial(
+        [c.itemId],
+        { price: c.precio, salePrice: c.oferta },
+        { crearSiFalta: false },
+      );
+      if (g.guardados.length === 0) continue;
+      combosActualizados++;
+      if (suc?.esPrincipal) {
+        try {
+          const p = await prisma.product.findUnique({
+            where: { itemId: c.itemId },
+            select: { id: true },
+          });
+          if (p)
+            await prisma.priceHistory.create({
+              data: {
+                productId: p.id,
+                price: c.precio,
+                salePrice: c.oferta,
+                source: "excel",
+                note: `Combo recalculado (-${desc}% sobre las piezas)`,
+              },
+            });
+        } catch {
+          // El historial no puede voltear la actualizacion.
+        }
+      }
+    }
+    // Queda guardado el descuento con el que se trabajo, asi la proxima
+    // importacion arranca con el mismo y no hay que acordarse.
+    if (options.descuentoCombo !== undefined)
+      await setSetting(SETTING_COMBO_DESC, String(desc));
+  }
+
   // El panel lee los precios de la tabla de la sucursal, asi que despues
   // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
   // el precio viejo. Ver src/lib/espejo-sucursal.ts.
@@ -818,6 +932,8 @@ export async function importExcel(
       rowsSkipped: rows.length - valid.length,
       nuevosOmitidos,
       sinCargarEnLocal,
+      combosActualizados,
+      combosIncompletos,
     },
     ejemplos: { nuevos: ejemploNuevos, sinCargar: ejemploSinCargar },
   };
