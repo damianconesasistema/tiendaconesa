@@ -47,7 +47,7 @@ export function ImportExcelFlow() {
   // Si la columna del archivo es el precio de contado o el de 1 pago. La
   // tienda guarda el de contado; si el archivo trae el de 1 pago hay que
   // sacarle el recargo antes de guardarlo.
-  const [precioEs, setPrecioEs] = useState<PrecioDelArchivo>("contado");
+  const [precioEs, setPrecioEs] = useState<PrecioDelArchivo>("lista2");
   // Recalcular los combos con las piezas del archivo, y con que descuento.
   // El archivo se guarda para poder rehacer la cuenta con otro porcentaje
   // sin tener que volver a subirlo.
@@ -68,8 +68,8 @@ export function ImportExcelFlow() {
       setParse(r);
       if (r.ok) {
         setStage("preview");
-        if (r.descuentoCombo !== undefined)
-          setDescuento(String(r.descuentoCombo));
+        if (r.descuentoLista !== undefined)
+          setDescuento(String(r.descuentoLista));
       }
     });
   }
@@ -90,7 +90,7 @@ export function ImportExcelFlow() {
         modo,
         altas,
         combos: recalcCombos,
-        descuentoCombo: Number(descuento) || undefined,
+        descuentoLista: Number(descuento) || undefined,
       });
       setImportResult(r);
       if (r.ok) setStage("done");
@@ -245,12 +245,36 @@ export function ImportExcelFlow() {
             Vas a cambiar {queCambia}
             {parse.local ? ` en ${parse.local}` : ""}
           </div>
+          {parse.precioEs === "lista2" && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-white/70 p-3 text-sm">
+              <span>
+                Lista 2 menos <strong>{parse.descuentoLista}%</strong> = precio de
+                1 pago. El contado sale 10% menos.
+              </span>
+              <input
+                type="number"
+                min={0}
+                max={90}
+                step={0.5}
+                value={descuento}
+                onChange={(e) => setDescuento(e.target.value)}
+                className="w-16 rounded-lg border border-[var(--border)] px-2 py-1 text-right"
+              />
+              <span>%</span>
+              <button
+                onClick={recalcular}
+                disabled={pending}
+                className="rounded-full border border-[var(--border)] px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:opacity-50"
+              >
+                Rehacer cuenta
+              </button>
+            </div>
+          )}
           {parse.precioEs === "unpago" && (
             <p className="mt-2 rounded-lg bg-white/70 p-3 text-sm">
-              La columna del archivo es el <strong>precio de 1 pago</strong>, así
-              que le saqué el recargo de {parse.recargoUnPago}% y guardo el de
-              contado. Mirá la columna “1 pago” de la tabla: tiene que dar
-              parecido a lo que dice tu Excel.
+              La columna del archivo ya es el <strong>precio de 1 pago</strong>,
+              así que le saqué el recargo de {parse.recargoUnPago}% y guardo el
+              de contado.
             </p>
           )}
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -455,24 +479,9 @@ export function ImportExcelFlow() {
                   />
                   Recalcular
                 </label>
-                <span className="text-xs text-[var(--muted)]">· descuento</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={90}
-                  step={0.5}
-                  value={descuento}
-                  onChange={(e) => setDescuento(e.target.value)}
-                  className="w-16 rounded-lg border border-[var(--border)] px-2 py-1 text-right text-xs"
-                />
-                <span className="text-xs text-[var(--muted)]">%</span>
-                <button
-                  onClick={recalcular}
-                  disabled={pending}
-                  className="rounded-full border border-[var(--border)] px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:opacity-50"
-                >
-                  Rehacer cuenta
-                </button>
+                <span className="text-xs text-[var(--muted)]">
+                  · el precio del combo es la suma de sus piezas
+                </span>
               </div>
             </div>
             <table className="w-full min-w-[800px] text-sm">
@@ -577,22 +586,52 @@ export function ImportExcelFlow() {
             <h3 className="font-display text-sm font-black uppercase tracking-wider">
               ¿Qué precio trae la columna?
             </h3>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <OpcionModo
-                icon={Wallet}
-                titulo="Contado"
-                detalle="Efectivo o transferencia. Es el que la tienda guarda y el que le queda al negocio."
-                activo={precioEs === "contado"}
-                onClick={() => setPrecioEs("contado")}
+                icon={Tag}
+                titulo="Lista 2 del sistema"
+                detalle="Tal cual sale de GBP. Le hago el descuento y eso da el precio de 1 pago."
+                activo={precioEs === "lista2"}
+                onClick={() => setPrecioEs("lista2")}
               />
               <OpcionModo
                 icon={CreditCard}
                 titulo="Precio de 1 pago"
-                detalle="El que muestra la tienda con tarjeta. Le saco el recargo para guardar el de contado."
+                detalle="La columna ya es el precio con tarjeta en un pago, sin descuento que hacerle."
                 activo={precioEs === "unpago"}
                 onClick={() => setPrecioEs("unpago")}
               />
+              <OpcionModo
+                icon={Wallet}
+                titulo="Contado"
+                detalle="Efectivo o transferencia. Se guarda tal cual, sin cuentas."
+                activo={precioEs === "contado"}
+                onClick={() => setPrecioEs("contado")}
+              />
             </div>
+
+            {/* El descuento se elige antes de subir, porque afecta TODOS los
+                precios del archivo y no solo los combos. */}
+            {precioEs === "lista2" && (
+              <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-[var(--surface)] p-4 text-sm">
+                <span>Descuento sobre Lista 2:</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={90}
+                  step={0.5}
+                  value={descuento}
+                  placeholder="12"
+                  onChange={(e) => setDescuento(e.target.value)}
+                  className="w-16 rounded-lg border border-[var(--border)] px-2 py-1 text-right"
+                />
+                <span>%</span>
+                <span className="text-[var(--muted)]">
+                  · eso da el precio de 1 pago; el contado sale 10% menos y las
+                  cuotas las calcula MercadoPago sobre el contado
+                </span>
+              </div>
+            )}
           </div>
         )}
 

@@ -13,9 +13,9 @@ for (const hoja of wb.SheetNames) {
     raw: true,
   });
   console.log(`${filas.length} filas`);
-  for (const [i, f] of filas.slice(0, 14).entries()) {
+  for (const [i, f] of filas.slice(0, Number(process.argv[3]) || 14).entries()) {
     const celdas = f.map((c) => (c === null ? "·" : String(c).slice(0, 34)));
     console.log(`  ${String(i + 1).padStart(3)} | ${celdas.join(" | ")}`);
   }
-  if (filas.length > 14) console.log(`  ... (${filas.length - 14} filas más)`);
+  if (filas.length > (Number(process.argv[3]) || 14)) console.log(`  ... (${filas.length - (Number(process.argv[3]) || 14)} filas más)`);
 }

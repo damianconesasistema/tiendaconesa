@@ -13,9 +13,9 @@ import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { leerExportDelSistema } from "@/lib/excel-sistema";
 import {
   getRecargosMp,
-  getDescuentoCombo,
+  getDescuentoLista,
   setSetting,
-  SETTING_COMBO_DESC,
+  SETTING_DESC_LISTA,
 } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
 import { calcularCombos, type ComboCalculado } from "@/lib/combos";
@@ -30,13 +30,22 @@ export type ModoImport = "precios" | "stock" | "ambos";
 
 // Que precio trae la columna del archivo.
 //
-// La tienda guarda SIEMPRE el de contado (ver src/lib/precios.ts) y le suma
-// el recargo para mostrar el de 1 pago. Las listas de proveedor y las del
-// sistema a veces vienen con el precio de 1 pago ya calculado: cargarlo tal
-// cual hace que la tienda le sume el recargo DE NUEVO y el articulo queda un
-// 11% mas caro de lo que se quiso poner. Al revés, cargar un contado como si
-// fuera de 1 pago lo deja barato. Por eso se elige, no se adivina.
-export type PrecioDelArchivo = "contado" | "unpago";
+// La tienda guarda SIEMPRE el de contado (ver src/lib/precios.ts) y de ahi
+// deriva los demas. Lo que trae el archivo cambia segun de donde salga, y
+// confundirse mueve todos los precios de la tienda sin que nada avise:
+//
+//   lista2   la Lista 2 del sistema, tal cual sale de GBP. Se le hace el
+//            descuento y eso da el precio de 1 pago.
+//   unpago   la columna YA es el precio de 1 pago: no hay descuento que
+//            hacerle, solo sacarle el recargo para guardar el contado.
+//   contado  la columna ya es el precio de contado: se guarda tal cual.
+//
+// La cadena completa, que es la regla del negocio:
+//   Lista 2  -12%  ->  precio de 1 pago (debito o credito en un pago)
+//                  -10%  ->  contado (efectivo o transferencia)
+// Las cuotas las calcula MercadoPago sobre el contado, que es lo que al
+// negocio le queda neto en cualquier forma de pago.
+export type PrecioDelArchivo = "lista2" | "unpago" | "contado";
 
 export type ParsedRow = {
   itemId: string;
@@ -126,8 +135,8 @@ export type ParseResult = {
    *  filas porque no salen del archivo: salen de cruzar el archivo con lo
    *  que ya esta armado en la tienda. */
   combos?: ComboCalculado[];
-  /** El descuento con el que se calcularon. */
-  descuentoCombo?: number;
+  /** El descuento que se le hizo a la Lista 2. */
+  descuentoLista?: number;
 };
 
 // Normaliza nombres de columnas: trim, lowercase, saca acentos
@@ -301,8 +310,8 @@ function preciosParaCombos(filas: ParsedRow[]): Map<string, number> {
 export async function previewExcel(
   formData: FormData,
   modo: ModoImport = "ambos",
-  precioEs: PrecioDelArchivo = "contado",
-  descuentoCombo?: number,
+  precioEs: PrecioDelArchivo = "lista2",
+  descuentoLista?: number,
 ): Promise<ParseResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
@@ -433,14 +442,24 @@ export async function previewExcel(
         };
     }
 
-    // El recargo de 1 pago sale de la configuracion del panel, no de una
-    // constante: si cambia ahi, la conversion tiene que cambiar con el.
+    // El recargo de 1 pago y el descuento salen de la configuracion del
+    // panel, no de constantes: si cambian ahi, la cuenta cambia con ellos.
     const recargo = (await getRecargosMp()).unPago;
-    // De lo que trae el archivo a lo que guarda la tienda.
+    const descLista = descuentoLista ?? (await getDescuentoLista());
+
+    // El precio de 1 pago: el que la tienda muestra con tarjeta.
+    const aUnPago = (n: number | null): number | null => {
+      if (n === null) return null;
+      if (precioEs === "lista2") return Math.round(n * (1 - descLista / 100));
+      if (precioEs === "unpago") return Math.round(n);
+      // Ya es de contado: su precio de 1 pago es el que armara la tienda.
+      return precioVitrina(Math.round(n), recargo);
+    };
+    // Y el de contado, que es el que se guarda.
     const aContado = (n: number | null): number | null => {
       if (n === null) return null;
       if (precioEs === "contado") return n;
-      return n / (1 + recargo / 100);
+      return aUnPago(n)! / (1 + recargo / 100);
     };
 
     // Obtener itemIds existentes en DB en una query
@@ -523,8 +542,7 @@ export async function previewExcel(
         __precioAnterior: null,
         __stockAnterior: null,
         __precioArchivo: precioArchivo,
-        __precioUnPago:
-          price !== null ? precioVitrina(Math.round(price), recargo) : null,
+        __precioUnPago: aUnPago(precioArchivo),
         __traePrecio: traePrecio,
         __traeStock: traeStock,
         __puedeCrearse: title !== "" && price !== null && price > 0,
@@ -578,11 +596,12 @@ export async function previewExcel(
     // con los precios de este archivo se recalculan solos en vez de sumarlos
     // a mano. Solo cuando se vino a tocar precios: en un recuento de stock no
     // hay precios con los que hacer la cuenta.
-    const desc = descuentoCombo ?? (await getDescuentoCombo());
+    // El precio del combo es la suma de sus piezas. Sin otro descuento
+    // encima: cada pieza ya viene con el de Lista 2 hecho, y aplicarlo de
+    // nuevo seria descontar dos veces.
     const combos = tocaPrecios
       ? await calcularCombos({
           precios1Pago: preciosParaCombos(valid),
-          descuentoPct: desc,
           recargoUnPago: recargo,
           branchId: suc?.id,
         })
@@ -592,7 +611,7 @@ export async function previewExcel(
       ok: true,
       rows: normalized,
       combos,
-      descuentoCombo: desc,
+      descuentoLista: descLista,
       delSistema,
       local: suc?.nombre,
       recargoUnPago: recargo,
@@ -671,8 +690,8 @@ export async function importExcel(
     altas?: boolean;
     /** Recalcular los combos con las piezas de este archivo. */
     combos?: boolean;
-    /** El descuento del combo. Si viene, queda guardado para la proxima. */
-    descuentoCombo?: number;
+    /** El descuento sobre Lista 2. Si viene, queda guardado para la proxima. */
+    descuentoLista?: number;
   },
 ): Promise<ImportResult> {
   const session = await getAdminSession();
@@ -866,10 +885,8 @@ export async function importExcel(
   let combosIncompletos = 0;
   if (tocaPrecios && (options.combos ?? true)) {
     const recargo = (await getRecargosMp()).unPago;
-    const desc = options.descuentoCombo ?? (await getDescuentoCombo());
     const combos = await calcularCombos({
       precios1Pago: preciosParaCombos(valid),
-      descuentoPct: desc,
       recargoUnPago: recargo,
       branchId: suc?.id,
     });
@@ -900,7 +917,7 @@ export async function importExcel(
                 price: c.precio,
                 salePrice: c.oferta,
                 source: "excel",
-                note: `Combo recalculado (-${desc}% sobre las piezas)`,
+                note: "Combo recalculado: suma de sus piezas",
               },
             });
         } catch {
@@ -910,8 +927,8 @@ export async function importExcel(
     }
     // Queda guardado el descuento con el que se trabajo, asi la proxima
     // importacion arranca con el mismo y no hay que acordarse.
-    if (options.descuentoCombo !== undefined)
-      await setSetting(SETTING_COMBO_DESC, String(desc));
+    if (options.descuentoLista !== undefined)
+      await setSetting(SETTING_DESC_LISTA, String(options.descuentoLista));
   }
 
   // El panel lee los precios de la tabla de la sucursal, asi que despues

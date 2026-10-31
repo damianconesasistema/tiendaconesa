@@ -8,16 +8,14 @@ import { precioVitrina } from "@/lib/precios";
 // cuando llega una lista de precios nueva el combo se puede recalcular solo en
 // vez de ponerlo a mano y que quede viejo.
 //
-// LA REGLA (la puso Damian): se suma el precio de lista de las piezas y se le
-// hace un descuento por llevarlo armado. Eso da el precio de 1 pago, el que
-// muestra la tienda con tarjeta. De ahi para abajo sale todo lo demas, porque
-// la tienda guarda el de contado (ver src/lib/precios.ts).
+// LA REGLA (la puso Damian): el precio de 1 pago del combo es la suma del
+// precio de 1 pago de sus piezas. Y el de cada pieza es su Lista 2 del
+// sistema menos el 12%. El descuento esta una sola vez, en las piezas:
+// sumar y volver a descontar seria descontar dos veces.
 //
-// DONDE VA CADA NUMERO
-//   precio tachado  = lo que cuestan las piezas sueltas
-//   precio real     = eso menos el descuento del combo
-// Asi el ahorro de llevarlo armado se ve en la vitrina, y es cierto: es
-// exactamente lo que costaria comprar las piezas una por una.
+// De ahi para abajo sale todo lo demas, porque la tienda guarda el precio de
+// contado (ver src/lib/precios.ts): el contado es un 10% menos que el de 1
+// pago, y las cuotas las calcula MercadoPago sobre el contado.
 
 /** Las piezas de un combo, leidas de su propio codigo.
  *
@@ -38,11 +36,14 @@ export function piezasDelCombo(itemId: string): string[] | null {
   return cuerpo ? cuerpo.split("-") : null;
 }
 
-/** El precio de 1 pago del combo: lo que suman sus piezas menos el descuento
- *  por llevarlo armado. */
+/** El precio de 1 pago del combo: lo que suman sus piezas.
+ *
+ *  El descuento por defecto es 0 y casi siempre va asi: las piezas ya
+ *  vienen con el de Lista 2 hecho. Esta el parametro para cuando el combo
+ *  tenga una rebaja propia, ademas de la de la lista. */
 export function unPagoDelCombo(
   piezasUnPago: number[],
-  descuentoPct: number,
+  descuentoPct = 0,
 ): number {
   const suma = piezasUnPago.reduce((a, b) => a + b, 0);
   return Math.round(suma * (1 - descuentoPct / 100));
@@ -73,13 +74,15 @@ export type ComboCalculado = {
 export async function calcularCombos(opciones: {
   /** Codigo de la pieza -> su precio de 1 pago, salido del archivo. */
   precios1Pago: Map<string, number>;
-  descuentoPct: number;
+  /** Rebaja propia del combo, ademas de la de la lista. Normalmente 0. */
+  descuentoPct?: number;
   recargoUnPago: number;
   /** Para leer el precio de hoy EN ESE LOCAL. Sin esto el "antes" seria el
    *  del otro local y la comparacion mentiria. */
   branchId?: string;
 }): Promise<ComboCalculado[]> {
-  const { precios1Pago, descuentoPct, recargoUnPago, branchId } = opciones;
+  const { precios1Pago, recargoUnPago, branchId } = opciones;
+  const descuentoPct = opciones.descuentoPct ?? 0;
   if (precios1Pago.size === 0) return [];
 
   // Los combos tienen guion en el codigo. Se filtra fino en JS porque el
