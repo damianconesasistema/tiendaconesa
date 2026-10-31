@@ -68,7 +68,13 @@ const RENOMBRADOS: Record<string, string> = {
 export function codigoDeAhora(viejo: string): string | null {
   const v = viejo.trim();
 
-  const aMano = RENOMBRADOS[v.toUpperCase()];
+  // Se buscan las dos formas: la que llego y la que tiene los espacios
+  // vueltos +. Un codigo de combo que viaja como parametro de una PAGINA
+  // llega con espacios (ver codigoDeLaUrl), asi que buscar solo el crudo
+  // dejaria afuera justo a los combos, que son los unicos de esta lista.
+  const aMano =
+    RENOMBRADOS[v.toUpperCase()] ??
+    RENOMBRADOS[v.replace(/ /g, "+").toUpperCase()];
   if (aMano) return aMano;
 
   // Los combos primero: el patron completo, no el numero de atras. Mirar solo
