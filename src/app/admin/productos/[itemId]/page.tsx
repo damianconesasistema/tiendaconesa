@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
+import { codigoDeLaUrl } from "@/lib/codigo-viejo";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { getMarcas } from "@/lib/marcas-server";
 import { ProductImageUpload } from "@/components/admin/ProductImageUpload";
@@ -41,8 +42,11 @@ export default async function EditProductPage({
       : "/admin/productos";
 
   const { itemId } = await params;
-  const product = await prisma.product.findUnique({
-    where: { itemId },
+  // in() y no findUnique: los combos llevan + en el codigo y Next lo
+  // entrega como espacio en los parametros de una pagina. Ver
+  // codigoDeLaUrl.
+  const product = await prisma.product.findFirst({
+    where: { itemId: { in: codigoDeLaUrl(itemId) } },
   });
   if (!product) notFound();
 

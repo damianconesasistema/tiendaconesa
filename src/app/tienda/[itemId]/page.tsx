@@ -8,7 +8,7 @@ import { ProductDetail } from "@/components/ProductDetail";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
 import { formatPrice } from "@/lib/order";
-import { codigoDeAhora } from "@/lib/codigo-viejo";
+import { codigoDeAhora, codigoDeLaUrl } from "@/lib/codigo-viejo";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +23,8 @@ export async function generateMetadata(
   { params }: RouteProps,
 ): Promise<Metadata> {
   const { itemId } = await params;
-  const p = await prisma.product.findUnique({
-    where: { itemId },
+  const p = await prisma.product.findFirst({
+    where: { itemId: { in: codigoDeLaUrl(itemId) } },
     select: { title: true, price: true, salePrice: true, imageUrl: true, category: true },
   });
   if (!p) return { title: "Producto no encontrado · Sanitarios Conesa" };
@@ -66,7 +66,9 @@ export async function generateMetadata(
 
 export default async function ProductoPage({ params }: RouteProps) {
   const { itemId } = await params;
-  const product = await prisma.product.findUnique({ where: { itemId } });
+  const product = await prisma.product.findFirst({
+    where: { itemId: { in: codigoDeLaUrl(itemId) } },
+  });
   if (!product || !product.active || product.itemId === "__RESET_PRICES_MARKER__") {
     // Los codigos eran MARCA-numero y ahora son el numero solo. Los links
     // viejos siguen circulando por WhatsApp y estan en Google: antes de

@@ -14,6 +14,34 @@
 // numero pelado, o uno cargado a mano que no sigue ninguno de los dos
 // formatos. Si no se encontro con ese codigo, volver a buscar lo mismo no
 // cambia nada.
+/** El codigo tal como lo guarda la base, a partir del pedazo de URL.
+ *
+ *  Los combos llevan + entre las piezas (3440+3443+3442). Next entrega los
+ *  parametros de una PAGINA ya decodificados y en esa decodificacion el +
+ *  se vuelve un espacio: a la ficha le llega "3440 3443 3442" y no encuentra
+ *  nada. En las rutas de /api no pasa, que es por que la foto del combo
+ *  cargaba bien y la ficha contestaba que no existia.
+ *
+ *  Paso el 31/10, apenas se renombraron los codigos: los 21 combos quedaron
+ *  sin ficha, con el link saliendo del propio catalogo.
+ *
+ *  Devuelve TODAS las formas que puede tener el mismo codigo, para buscarlas
+ *  de una. El codigo crudo va siempre incluido, asi uno cargado a mano que de
+ *  verdad tenga un espacio adentro sigue andando. Son dos o tres opciones
+ *  sobre una columna unica: no cuesta nada y no se depende de adivinar cual
+ *  de todas las capas decodifica que. */
+export function codigoDeLaUrl(crudo: string): string[] {
+  const v = crudo.trim();
+  const formas = new Set<string>([v]);
+  formas.add(v.replace(/ /g, "+"));
+  try {
+    formas.add(decodeURIComponent(v));
+  } catch {
+    // Porcentajes sueltos en la URL: no es un codigo, se ignora.
+  }
+  return [...formas];
+}
+
 export function codigoDeAhora(viejo: string): string | null {
   const v = viejo.trim();
 
