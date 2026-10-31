@@ -1,0 +1,137 @@
+# Publica la tienda sola, en cada cambio que llega a main.
+#
+# Es el mismo trabajo que hace deploy/publicar.sh a mano desde Cloud Shell:
+# compilar en una maquina con procesador de verdad y mandarle al servidor solo
+# el resultado ya hecho. La e2-micro del nivel gratuito no llega a compilar
+# Next.js, y agrandarla cada vez apaga la tienda ocho minutos.
+#
+# POR QUE SE COMPILA EN /opt/conesa
+# La compilacion de Next guarda rutas absolutas adentro (.next/required-
+# server-files.json dice en que carpeta se hizo). Si se compilara en la
+# carpeta del runner, el resultado apuntaria a una carpeta que en el servidor
+# no existe. Por eso aca se clona en /opt/conesa, el mismo camino que alla.
+#
+# POR QUE SOLO EN push A main
+# El repositorio es publico, asi que cualquiera puede mandar un cambio
+# propuesto. Si esto corriera tambien con esos cambios, el que los mandara
+# podria hacerle leer la llave del servidor. Con push a main, el unico que lo
+# dispara es quien ya puede escribir en el repositorio.
+
+name: Publicar
+
+on:
+  push:
+    branches: [main]
+  # El boton para publicar a mano desde GitHub, por si hace falta repetirla.
+  workflow_dispatch:
+
+# Dos publicaciones a la vez se pisarian los archivos en el servidor. La
+# segunda espera a que termine la primera en vez de cancelarla: cancelar a
+# mitad dejaria el .next a medio desempaquetar.
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Llave y huella del servidor
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # La huella va guardada y no se acepta la que venga: asi nadie puede
+          # hacerse pasar por el servidor y quedarse con la llave.
+          printf '%s\n' "${{ vars.VM_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Saludar al servidor
+        run: |
+          echo "SSH=ssh -o BatchMode=yes ${{ vars.VM_USER }}@${{ vars.VM_HOST }}" >> "$GITHUB_ENV"
+          ssh -o BatchMode=yes "${{ vars.VM_USER }}@${{ vars.VM_HOST }}" 'hostname'
+
+      - name: Codigo, en el mismo camino que el servidor
+        run: |
+          sudo mkdir -p /opt/conesa
+          sudo chown "$USER":"$USER" /opt/conesa
+          git clone -q --no-checkout "https://github.com/${{ github.repository }}.git" /opt/conesa
+          git -C /opt/conesa checkout -q "${{ github.sha }}"
+          git -C /opt/conesa log --oneline -1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: /opt/conesa/package-lock.json
+
+      - name: Dependencias
+        working-directory: /opt/conesa
+        run: npm ci --include=dev --no-audit --fund=false
+
+      - name: Compilar
+        working-directory: /opt/conesa
+        run: |
+          # Las NEXT_PUBLIC_ se graban DENTRO de la pagina al compilar, asi que
+          # tienen que ser las mismas que usa el servidor o la tienda sale con
+          # los datos de otro lado (Analytics, pixel, CUIT). No son secretas:
+          # se ven en la pagina. Se leen del servidor para que haya una sola
+          # fuente y no una copia que se desactualice.
+          $SSH 'sudo grep -E "^(NEXT_PUBLIC_|NODE_ENV=)" /etc/conesa.env' > /tmp/publicas.env
+          echo "    $(grep -c . /tmp/publicas.env) variables tomadas del servidor"
+          set -a; . /tmp/publicas.env; set +a
+          rm -f /tmp/publicas.env
+          npm run build
+
+      - name: Respaldo antes de pisar nada
+        run: $SSH 'sudo /usr/local/bin/conesa-backup' || echo "    (el respaldo fallo, seguimos)"
+
+      - name: Al servidor
+        working-directory: /opt/conesa
+        run: |
+          # node_modules solo viaja cuando cambiaron las dependencias:
+          # instalarlas en la maquina chica, con la tienda andando al lado, es
+          # justo lo que la deja sin memoria.
+          LOCAL=$(sha1sum package-lock.json | cut -c1-40)
+          REMOTO=$($SSH 'sha1sum /opt/conesa/package-lock.json 2>/dev/null | cut -c1-40' | tr -d '\r\n ')
+
+          tar czf /tmp/next.tgz .next
+          scp -o BatchMode=yes /tmp/next.tgz "${{ vars.VM_USER }}@${{ vars.VM_HOST }}":/tmp/
+          if [ "$LOCAL" != "$REMOTO" ]; then
+            echo "    cambiaron las dependencias: tambien viajan"
+            tar czf /tmp/mods.tgz node_modules
+            scp -o BatchMode=yes /tmp/mods.tgz "${{ vars.VM_USER }}@${{ vars.VM_HOST }}":/tmp/
+          fi
+
+          $SSH "sudo bash -c '
+            cd /opt/conesa
+            git fetch -q origin && git reset -q --hard ${{ github.sha }}
+            if [ -f /tmp/mods.tgz ]; then rm -rf node_modules && tar xzf /tmp/mods.tgz && rm -f /tmp/mods.tgz; fi
+            rm -rf .next && tar xzf /tmp/next.tgz && rm -f /tmp/next.tgz
+            # Regenerar SIEMPRE el cliente de Prisma, no solo cuando cambian
+            # las dependencias: si el esquema sumo una columna y el cliente
+            # quedo viejo, el codigo le pide a la base un campo que su cliente
+            # no conoce y la consulta falla sin decir nada.
+            npx prisma generate >/dev/null
+            systemctl restart conesa
+          '"
+
+      - name: Esperar a que la tienda conteste
+        run: |
+          # Arrancar en la maquina chica tarda unos segundos. Preguntar una
+          # sola vez hacia que una publicacion buena pareciera fallada.
+          for i in $(seq 1 30); do
+            CODIGO=$($SSH 'curl -s -o /dev/null -w "%{http_code}" localhost:3000' 2>/dev/null | tr -d '\r\n ' || true)
+            if [ "$CODIGO" = "200" ]; then
+              echo "La tienda contesta. Lista."
+              exit 0
+            fi
+            printf '.'
+            sleep 4
+          done
+          echo
+          echo "No contesto despues de dos minutos. Para ver que paso:"
+          echo "  gcloud compute ssh conesa --zone us-central1-a --command 'journalctl -u conesa -n 50'"
+          exit 1
