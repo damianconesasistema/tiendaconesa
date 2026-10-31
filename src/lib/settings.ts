@@ -36,7 +36,14 @@ export const SETTING_DESC_COMBO = "descuento_combo_pct";
 //   recargo = 1 / (1 - descuento) - 1
 //
 //   descuento 10%  ->  recargo 11,11%
-//   descuento 12%  ->  recargo 13,64%   <- el de ahora
+//   descuento 12%  ->  recargo 13,63636%   <- el de ahora
+//
+// Los decimales no son capricho. El recargo exacto es 100/0,88 - 100 =
+// 13,6363... Con 13,64 redondeado el descuento da 12,003% -el cartel dice
+// 12% igual-, pero los precios salen unos pesos por debajo de hacer la
+// cuenta a mano: una Lista 2 de 913.504 daria 803.858 en vez de 803.884.
+// Esa diferencia no se nota en la tienda pero si cuando alguien revisa el
+// Excel con la calculadora, y ahi uno duda de todo el resto.
 //
 // Damian lo subio a 12% el 31/10/2026. Esta puesto a pedido del comercio y
 // no es el costo real de MercadoPago (8,68%): la diferencia queda a favor
@@ -45,7 +52,7 @@ export const SETTING_DESC_COMBO = "descuento_combo_pct";
 // El cartel NO dice 12% escrito a mano en ningun lado: sale de
 // descuentoContadoPct(), que lo calcula con este numero. Asi, el dia que
 // cambie, cambia solo en toda la tienda.
-const DEFAULT_1PAGO = 13.64;
+const DEFAULT_1PAGO = 13.63636;
 const DEFAULT_CUOTAS_PCT = 25.71;
 const DEFAULT_CUOTAS = 6;
 

@@ -8,8 +8,12 @@
 --
 --   recargo = 1 / (1 - descuento) - 1
 --
---   descuento 10%  ->  recargo 11,11%   (el que habia)
---   descuento 12%  ->  recargo 13,64%   (el nuevo)
+--   descuento 10%  ->  recargo 11,11%      (el que habia)
+--   descuento 12%  ->  recargo 13,63636%   (el nuevo)
+--
+-- Los decimales importan: el recargo exacto es 100/0,88 - 100. Redondeado a
+-- 13,64 los precios quedan unos pesos por debajo de hacer la cuenta a mano,
+-- y eso se nota cuando alguien revisa el Excel con la calculadora.
 --
 -- Por que hace falta esta migracion y no alcanza con cambiar el valor por
 -- defecto del codigo: si el panel ya tiene el recargo guardado, ese gana
@@ -19,7 +23,7 @@
 -- numero a mano desde el panel, ese se respeta: no es trabajo de una
 -- migracion deshacer una decision que se tomo despues.
 INSERT INTO "Setting" ("key", "value", "updatedAt")
-VALUES ('recargo_mp_1pago_pct', '13.64', now())
+VALUES ('recargo_mp_1pago_pct', '13.63636', now())
 ON CONFLICT ("key") DO UPDATE
-  SET "value" = '13.64', "updatedAt" = now()
+  SET "value" = '13.63636', "updatedAt" = now()
   WHERE "Setting"."value" IN ('11.11', '11,11');

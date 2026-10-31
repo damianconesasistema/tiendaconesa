@@ -39,9 +39,9 @@ if (!Number.isFinite(DESCUENTO) || DESCUENTO < 0 || DESCUENTO > 90) {
 
 // Los mismos numeros que usa la tienda. Si algun dia cambian en el panel,
 // cambian aca tambien: estan sacados de la configuracion, no inventados.
-// 13,64% de recargo = 12% de descuento. No son el mismo numero porque se
-// miden sobre bases distintas. Ver src/lib/precios.ts.
-const RECARGO_1PAGO = 13.64;
+// 13,63636% de recargo = 12% de descuento exacto (100/0,88 - 100). No son
+// el mismo numero porque se miden sobre bases distintas. Ver precios.ts.
+const RECARGO_1PAGO = 13.63636;
 const PLANES = [
   { cuotas: 3, recargoPct: 18.33 },
   { cuotas: 6, recargoPct: 25.71 },
