@@ -14,12 +14,45 @@ function run(cmd, args, { allowFailure = false } = {}) {
   }
 }
 
-// Si existe una migration "0_init" en estado fallido en _prisma_migrations,
-// marcarla como rolled back para que migrate deploy pueda reintentar.
-// Fallible: no hay DB o no existe migration -> ignoramos.
-run("npx", ["prisma", "migrate", "resolve", "--rolled-back", "0_init"], {
-  allowFailure: true,
-});
+// Una migracion que falla deja TODAS las demas bloqueadas: migrate deploy
+// contesta P3009 y se niega a aplicar nada mas. Como esto corre al arrancar,
+// el servicio no levanta, systemd lo reintenta, vuelve a fallar, y la tienda
+// queda caida hasta que alguien entre al servidor a mano. Paso el 31/10 con
+// la migracion 25: un error de sintaxis en el SQL tuvo el sitio abajo.
+//
+// Antes esto estaba escrito a mano para "0_init", una sola migracion. Ahora
+// se busca cualquiera que haya quedado a medias y se la marca como vuelta
+// atras, que es lo que Prisma pide para poder reintentarla. No se pierde
+// nada: cada migracion corre dentro de una transaccion, asi que una que
+// fallo no dejo cambios a medio hacer.
+//
+// Esto NO tapa el problema. Si el SQL sigue roto, migrate deploy vuelve a
+// fallar y el servicio no arranca igual. Lo que cambia es que para
+// arreglarlo alcanza con subir el SQL corregido.
+async function migracionesAMedias() {
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+    // Empezada, sin terminar y sin estar ya marcada como vuelta atras. Al
+    // arrancar no hay otra corriendo, asi que "sin terminar" es "fallo".
+    const filas = await prisma.$queryRawUnsafe(
+      `SELECT migration_name FROM "_prisma_migrations"
+        WHERE finished_at IS NULL AND rolled_back_at IS NULL`,
+    );
+    await prisma.$disconnect();
+    return filas.map((f) => f.migration_name);
+  } catch {
+    // Sin base todavia, o sin tabla de migraciones: no hay nada que resolver.
+    return [];
+  }
+}
+
+for (const nombre of await migracionesAMedias()) {
+  console.log(`\n! La migracion "${nombre}" quedo a medias. La marco para reintentar.`);
+  run("npx", ["prisma", "migrate", "resolve", "--rolled-back", nombre], {
+    allowFailure: true,
+  });
+}
 
 // Aplicar migrations pendientes (ahora si -- debe pasar)
 run("npx", ["prisma", "migrate", "deploy"]);
