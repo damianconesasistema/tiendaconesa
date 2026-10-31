@@ -56,8 +56,13 @@ export function codigoDeLaUrl(crudo: string): string[] {
  *  Es una lista a mano a proposito. Son casos sueltos, de a uno, y una tabla
  *  en la base para esto seria mas de lo que el problema necesita. */
 const RENOMBRADOS: Record<string, string> = {
-  // COMBO PRINGLES JADE 3 PIEZAS: inodoro + deposito a codo + bidet 3 ag.
-  "MAN-MUY8KPEI-CQDW": "9898+9815+9577",
+  // COMBO PRINGLES JADE 3 PIEZAS: inodoro + deposito de apoyo + bidet 3 ag.
+  "MAN-MUY8KPEI-CQDW": "9898+22100+9577",
+  // Primero le puse 9815, el deposito A CODO, que va colgado de la pared.
+  // El combo lleva el de APOYO, que va sentado sobre el inodoro: 22100.
+  // Estuvo publicado con el codigo equivocado un rato, asi que puede haber
+  // quedado algun link dando vueltas.
+  "9898+9815+9577": "9898+22100+9577",
 };
 
 export function codigoDeAhora(viejo: string): string | null {
