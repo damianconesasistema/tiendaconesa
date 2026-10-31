@@ -53,33 +53,43 @@ export function ImportExcelFlow() {
   // sin tener que volver a subirlo.
   const [recalcCombos, setRecalcCombos] = useState(true);
   const [descuento, setDescuento] = useState<string>("");
+  // La rebaja por llevarse el combo armado. Es OTRA cosa que la de la
+  // lista: esta es la unica que le deja precio tachado al combo.
+  const [descCombo, setDescCombo] = useState<string>("");
   const [archivo, setArchivo] = useState<File | null>(null);
   const [filename, setFilename] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleFile(file: File, descPct?: number) {
+  function handleFile(file: File, descPct?: number, descComboPct?: number) {
     setFilename(file.name);
     setArchivo(file);
     startTransition(async () => {
       const fd = new FormData();
       fd.append("file", file);
-      const r = await previewExcel(fd, modo, precioEs, descPct);
+      const r = await previewExcel(fd, modo, precioEs, descPct, descComboPct);
       setParse(r);
       if (r.ok) {
         setStage("preview");
         if (r.descuentoLista !== undefined)
           setDescuento(String(r.descuentoLista));
+        if (r.descuentoCombo !== undefined)
+          setDescCombo(String(r.descuentoCombo));
       }
     });
   }
 
-  // Rehace la cuenta de los combos con otro descuento, sobre el mismo
-  // archivo. Nada se guarda hasta que se aplica.
+  // Rehace la cuenta sobre el mismo archivo, sin volver a subirlo. Nada se
+  // guarda hasta que se aplica.
+  const pct = (v: string) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 0 && n <= 90 ? n : null;
+  };
   function recalcular() {
-    const n = Number(descuento);
-    if (!archivo || !Number.isFinite(n) || n < 0 || n > 90) return;
-    handleFile(archivo, n);
+    const lista = pct(descuento);
+    const combo = pct(descCombo);
+    if (!archivo || lista === null || combo === null) return;
+    handleFile(archivo, lista, combo);
   }
 
   function doImport() {
@@ -91,6 +101,9 @@ export function ImportExcelFlow() {
         altas,
         combos: recalcCombos,
         descuentoLista: Number(descuento) || undefined,
+        // El 0 es un valor valido (combo sin rebaja), asi que no se puede
+        // usar || : convertiria el 0 en undefined y se guardaria el de antes.
+        descuentoCombo: pct(descCombo) ?? undefined,
       });
       setImportResult(r);
       if (r.ok) setStage("done");
@@ -480,10 +493,45 @@ export function ImportExcelFlow() {
                   />
                   Recalcular
                 </label>
-                <span className="text-xs text-[var(--muted)]">
-                  · el precio del combo es la suma de sus piezas
-                </span>
               </div>
+            </div>
+
+            {/* La rebaja del combo. Va aca y no en la pantalla de antes
+                porque solo se puede decidir mirando esta tabla: cuanto
+                queda tachado y cuanto termina pagando el cliente. */}
+            <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border)] bg-amber-50 px-6 py-3 text-sm">
+              <span className="font-semibold">Rebaja por llevarlo armado:</span>
+              <input
+                type="number"
+                min={0}
+                max={90}
+                step={0.5}
+                value={descCombo}
+                placeholder="0"
+                onChange={(e) => setDescCombo(e.target.value)}
+                className="w-16 rounded-lg border border-[var(--border)] px-2 py-1 text-right"
+              />
+              <span>%</span>
+              <button
+                onClick={recalcular}
+                disabled={pending}
+                className="rounded-full border border-[var(--border)] bg-white px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:opacity-50"
+              >
+                Rehacer cuenta
+              </button>
+              <span className="text-[var(--muted)]">
+                {pct(descCombo) ? (
+                  <>
+                    tachado = lo que cuestan las piezas sueltas · precio real ={" "}
+                    {pct(descCombo)}% menos
+                  </>
+                ) : (
+                  <>
+                    en 0 el combo sale igual que comprar las piezas una por
+                    una, asi que no lleva precio tachado
+                  </>
+                )}
+              </span>
             </div>
             <table className="w-full min-w-[800px] text-sm">
               <thead className="bg-[var(--surface)] text-left text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
@@ -491,13 +539,18 @@ export function ImportExcelFlow() {
                   <th className="px-4 py-2">Combo</th>
                   <th className="px-4 py-2">Piezas</th>
                   <th className="px-4 py-2 text-right">1 pago hoy</th>
+                  <th className="px-4 py-2 text-right">Tachado</th>
                   <th className="px-4 py-2 text-right">1 pago nuevo</th>
                   <th className="px-4 py-2 text-right">Cambio</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
                 {parse.combos.map((c) => (
-                  <FilaCombo key={c.itemId} c={c} />
+                  <FilaCombo
+                    key={c.itemId}
+                    c={c}
+                    recargo={parse.recargoUnPago ?? 0}
+                  />
                 ))}
               </tbody>
             </table>
@@ -854,8 +907,19 @@ function PreviewRow({
   );
 }
 
-function FilaCombo({ c }: { c: ComboCalculado }) {
+function FilaCombo({
+  c,
+  recargo,
+}: {
+  c: ComboCalculado;
+  recargo: number;
+}) {
   const incompleto = c.faltan.length > 0;
+  // c.precio y c.oferta son de contado, que es lo que guarda la base. En la
+  // vitrina el cliente ve el de 1 pago, asi que el tachado se muestra en esa
+  // moneda: es el numero que va a estar cruzado en la pagina.
+  const tachado = Math.round(c.precio * (1 + recargo / 100));
+  const hayTachado = tachado > c.unPagoAhora;
   const dif =
     c.unPagoAntes !== null && c.unPagoAntes > 0
       ? Math.round(((c.unPagoAhora - c.unPagoAntes) / c.unPagoAntes) * 100)
@@ -889,6 +953,15 @@ function FilaCombo({ c }: { c: ComboCalculado }) {
       </td>
       <td className="px-4 py-2 text-right text-xs text-[var(--muted)]">
         {c.unPagoAntes !== null ? formatPrice(c.unPagoAntes) : "—"}
+      </td>
+      <td className="px-4 py-2 text-right text-xs">
+        {hayTachado ? (
+          <span className="text-[var(--muted)] line-through">
+            {formatPrice(tachado)}
+          </span>
+        ) : (
+          <span className="text-[var(--muted)]">sin tachado</span>
+        )}
       </td>
       <td
         className={`px-4 py-2 text-right font-display font-bold${

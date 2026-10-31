@@ -23,6 +23,7 @@ export const SETTING_RECARGO_1PAGO = "recargo_mp_1pago_pct";
 export const SETTING_RECARGO_CUOTAS = "recargo_mp_cuotas_pct";
 export const SETTING_CUOTAS_MAX = "mp_cuotas_max";
 export const SETTING_DESC_LISTA = "descuento_lista_pct";
+export const SETTING_DESC_COMBO = "descuento_combo_pct";
 
 // Valores por defecto, del simulador de MercadoPago (oct 2026).
 // Se editan desde el panel: Configuración.
@@ -42,6 +43,15 @@ const DEFAULT_CUOTAS = 6;
 // un combo es la suma de sus piezas, y cada pieza ya viene con el descuento
 // hecho. No se aplica dos veces.
 const DEFAULT_DESC_LISTA = 12;
+
+// La rebaja por llevarse el combo armado, ADEMAS de lo que ya traiga la
+// lista. Es lo unico que hace aparecer el precio tachado: sin esto el combo
+// sale igual que comprar las piezas una por una y no hay ahorro que mostrar.
+//
+// Arranca en 0 a proposito. Un tachado que no corresponde a una rebaja de
+// verdad es publicidad enganosa, asi que el numero lo pone Damian cada vez
+// que sube una lista, mirando la tabla.
+const DEFAULT_DESC_COMBO = 0;
 
 // Tope de cordura: un error de tipeo (ej. 1000) no puede generar un cobro
 // disparatado al cliente. A 18 cuotas el recargo real ronda 65%, asi que el
@@ -158,6 +168,11 @@ function parsePct(raw: string | null, fallback: number): number {
 /** El descuento sobre la Lista 2 del sistema. */
 export async function getDescuentoLista(): Promise<number> {
   return parsePct(await getSetting(SETTING_DESC_LISTA), DEFAULT_DESC_LISTA);
+}
+
+/** La rebaja propia del combo, la que le pone el precio tachado. */
+export async function getDescuentoCombo(): Promise<number> {
+  return parsePct(await getSetting(SETTING_DESC_COMBO), DEFAULT_DESC_COMBO);
 }
 
 export type RecargosMp = {

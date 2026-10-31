@@ -14,8 +14,10 @@ import { leerExportDelSistema } from "@/lib/excel-sistema";
 import {
   getRecargosMp,
   getDescuentoLista,
+  getDescuentoCombo,
   setSetting,
   SETTING_DESC_LISTA,
+  SETTING_DESC_COMBO,
 } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
 import { calcularCombos, type ComboCalculado } from "@/lib/combos";
@@ -140,6 +142,8 @@ export type ParseResult = {
   combos?: ComboCalculado[];
   /** El descuento que se le hizo a la Lista 2. */
   descuentoLista?: number;
+  /** La rebaja propia del combo, la que le deja precio tachado. */
+  descuentoCombo?: number;
 };
 
 // Normaliza nombres de columnas: trim, lowercase, saca acentos
@@ -315,6 +319,7 @@ export async function previewExcel(
   modo: ModoImport = "ambos",
   precioEs: PrecioDelArchivo = "unpago",
   descuentoLista?: number,
+  descuentoCombo?: number,
 ): Promise<ParseResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
@@ -599,12 +604,18 @@ export async function previewExcel(
     // con los precios de este archivo se recalculan solos en vez de sumarlos
     // a mano. Solo cuando se vino a tocar precios: en un recuento de stock no
     // hay precios con los que hacer la cuenta.
-    // El precio del combo es la suma de sus piezas. Sin otro descuento
-    // encima: cada pieza ya viene con el de Lista 2 hecho, y aplicarlo de
-    // nuevo seria descontar dos veces.
+    // El precio del combo es la suma de sus piezas. El descuento de la
+    // lista NO se vuelve a aplicar aca: cada pieza ya viene con el suyo y
+    // seria descontar dos veces.
+    //
+    // descCombo es otra cosa: la rebaja por llevarselo armado. Es lo unico
+    // que hace aparecer el precio tachado, porque el tachado es lo que
+    // costarian las piezas sueltas y el real es eso menos esta rebaja.
+    const descCombo = descuentoCombo ?? (await getDescuentoCombo());
     const combos = tocaPrecios
       ? await calcularCombos({
           precios1Pago: preciosParaCombos(valid),
+          descuentoPct: descCombo,
           recargoUnPago: recargo,
           branchId: suc?.id,
         })
@@ -615,6 +626,7 @@ export async function previewExcel(
       rows: normalized,
       combos,
       descuentoLista: descLista,
+      descuentoCombo: descCombo,
       delSistema,
       local: suc?.nombre,
       recargoUnPago: recargo,
@@ -695,6 +707,8 @@ export async function importExcel(
     combos?: boolean;
     /** El descuento sobre Lista 2. Si viene, queda guardado para la proxima. */
     descuentoLista?: number;
+    /** La rebaja propia del combo. Tambien queda guardada. */
+    descuentoCombo?: number;
   },
 ): Promise<ImportResult> {
   const session = await getAdminSession();
@@ -888,8 +902,11 @@ export async function importExcel(
   let combosIncompletos = 0;
   if (tocaPrecios && (options.combos ?? true)) {
     const recargo = (await getRecargosMp()).unPago;
+    const descCombo =
+      options.descuentoCombo ?? (await getDescuentoCombo());
     const combos = await calcularCombos({
       precios1Pago: preciosParaCombos(valid),
+      descuentoPct: descCombo,
       recargoUnPago: recargo,
       branchId: suc?.id,
     });
@@ -920,7 +937,10 @@ export async function importExcel(
                 price: c.precio,
                 salePrice: c.oferta,
                 source: "excel",
-                note: "Combo recalculado: suma de sus piezas",
+                note:
+                  descCombo > 0
+                    ? `Combo recalculado: suma de sus piezas -${descCombo}%`
+                    : "Combo recalculado: suma de sus piezas",
               },
             });
         } catch {
@@ -932,6 +952,8 @@ export async function importExcel(
     // importacion arranca con el mismo y no hay que acordarse.
     if (options.descuentoLista !== undefined)
       await setSetting(SETTING_DESC_LISTA, String(options.descuentoLista));
+    if (options.descuentoCombo !== undefined)
+      await setSetting(SETTING_DESC_COMBO, String(options.descuentoCombo));
   }
 
   // El panel lee los precios de la tabla de la sucursal, asi que despues
