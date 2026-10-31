@@ -356,6 +356,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
               label="Con errores"
               value={stats.withErrors}
               color="amber"
+              detalle={motivosDeError(parse.rows)}
             />
           </div>
 
@@ -793,16 +794,36 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   );
 }
 
+/** Los motivos por los que se rechazaron filas, contados.
+ *
+ *  "3 con errores" no le dice nada a nadie: hay que bajar hasta la tabla y
+ *  mirar fila por fila para enterarse de que paso. Esto lo resume arriba,
+ *  que es donde se mira antes de decidir si aplicar o frenar. */
+function motivosDeError(filas: ParsedRow[] | undefined): string | undefined {
+  if (!filas) return undefined;
+  const cuenta = new Map<string, number>();
+  for (const f of filas)
+    for (const e of f.__errors) cuenta.set(e, (cuenta.get(e) ?? 0) + 1);
+  if (cuenta.size === 0) return undefined;
+  return [...cuenta.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([motivo, n]) => (n > 1 ? `${n}: ${motivo}` : motivo))
+    .join(" · ");
+}
+
 function SummaryBox({
   icon: Icon,
   label,
   value,
   color,
+  detalle,
 }: {
   icon: typeof Plus;
   label: string;
   value: number;
   color: "green" | "blue" | "purple" | "amber" | "red";
+  /** Por que. Un numero sin el motivo no le sirve a nadie. */
+  detalle?: string;
 }) {
   const palette = {
     green: "bg-green-50 text-green-700 border-green-200",
@@ -818,6 +839,11 @@ function SummaryBox({
         {label}
       </div>
       <div className="mt-1 font-display text-2xl font-black">{value}</div>
+      {detalle && (
+        <div className="mt-0.5 text-[11px] leading-snug opacity-90">
+          {detalle}
+        </div>
+      )}
     </div>
   );
 }

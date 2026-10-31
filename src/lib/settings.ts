@@ -24,6 +24,7 @@ export const SETTING_RECARGO_CUOTAS = "recargo_mp_cuotas_pct";
 export const SETTING_CUOTAS_MAX = "mp_cuotas_max";
 export const SETTING_DESC_LISTA = "descuento_lista_pct";
 export const SETTING_DESC_COMBO = "descuento_combo_pct";
+export const SETTING_MOSTRAR_DCTO = "mostrar_dcto_combo_pct";
 
 // Valores por defecto, del simulador de MercadoPago (oct 2026).
 // Se editan desde el panel: Configuración.
@@ -74,6 +75,12 @@ const DEFAULT_DESC_LISTA = 12;
 // verdad es publicidad enganosa, asi que el numero lo pone Damian cada vez
 // que sube una lista, mirando la tabla.
 const DEFAULT_DESC_COMBO = 0;
+
+// El descuento que se quiere MOSTRAR, inflando el precio tachado. No baja
+// nada: el cliente paga lo mismo y el cartel dice mas. Tambien arranca en 0,
+// y por el mismo motivo: un tachado que nunca fue precio real puede caer en
+// publicidad enganosa, asi que el numero lo pone una persona a proposito.
+const DEFAULT_MOSTRAR_DCTO = 0;
 
 // Tope de cordura: un error de tipeo (ej. 1000) no puede generar un cobro
 // disparatado al cliente. A 18 cuotas el recargo real ronda 65%, asi que el
@@ -195,6 +202,11 @@ export async function getDescuentoLista(): Promise<number> {
 /** La rebaja propia del combo, la que le pone el precio tachado. */
 export async function getDescuentoCombo(): Promise<number> {
   return parsePct(await getSetting(SETTING_DESC_COMBO), DEFAULT_DESC_COMBO);
+}
+
+/** El descuento que se quiere mostrar, inflando el tachado. */
+export async function getMostrarDcto(): Promise<number> {
+  return parsePct(await getSetting(SETTING_MOSTRAR_DCTO), DEFAULT_MOSTRAR_DCTO);
 }
 
 export type RecargosMp = {

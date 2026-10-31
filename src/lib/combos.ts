@@ -69,7 +69,8 @@ export type ComboCalculado = {
   unPagoAntes: number | null;
   /** Lo que mostraria con esta lista. */
   unPagoAhora: number;
-  /** Lo que se guarda: el tachado y el real, los dos de contado. */
+  /** Lo que se guarda: el tachado y el real, los dos de contado.
+   *  Iguales cuando no hay ninguna rebaja: ahi no va tachado. */
   precio: number;
   oferta: number;
 };
@@ -84,6 +85,15 @@ export async function calcularCombos(opciones: {
   precios1Pago: Map<string, number>;
   /** Rebaja propia del combo, ademas de la de la lista. Normalmente 0. */
   descuentoPct?: number;
+  /** Descuento que se quiere MOSTRAR en la vitrina.
+   *
+   *  No baja el precio: infla el tachado hasta que la cuenta de ese
+   *  porcentaje. El cliente paga lo mismo y el cartel dice mas.
+   *
+   *  Es marketing y Damian lo sabe. Queda aparte de descuentoPct a
+   *  proposito: uno es una rebaja de verdad y el otro es un cartel, y
+   *  mezclarlos haria imposible saber despues cual era cual. */
+  mostrarDctoPct?: number;
   recargoUnPago: number;
   /** Para leer el precio de hoy EN ESE LOCAL. Sin esto el "antes" seria el
    *  del otro local y la comparacion mentiria. */
@@ -91,6 +101,8 @@ export async function calcularCombos(opciones: {
 }): Promise<ComboCalculado[]> {
   const { precios1Pago, recargoUnPago, branchId } = opciones;
   const descuentoPct = opciones.descuentoPct ?? 0;
+  // Tope de cordura: con 90% el tachado seria diez veces el precio.
+  const mostrarDctoPct = Math.min(Math.max(opciones.mostrarDctoPct ?? 0, 0), 80);
   if (precios1Pago.size === 0) return [];
 
   // Los combos llevan + o - en el codigo, segun de cuando sean. Se filtra
@@ -138,6 +150,16 @@ export async function calcularCombos(opciones: {
     const aContado = (n: number) => Math.round(n / (1 + recargoUnPago / 100));
     const contadoDeHoy = deHoy.get(p.itemId) ?? p.salePrice ?? p.price;
 
+    const real = aContado(unPagoAhora);
+    // El tachado: lo que cuestan las piezas sueltas, o uno inflado si se
+    // pidio mostrar un descuento mayor. Se toma el mas alto de los dos,
+    // porque un tachado por debajo del precio real no es un tachado.
+    const porPiezas = aContado(sumaUnPago);
+    const inflado =
+      mostrarDctoPct > 0
+        ? Math.round(real / (1 - mostrarDctoPct / 100))
+        : 0;
+
     salida.push({
       itemId: p.itemId,
       title: p.title,
@@ -148,8 +170,8 @@ export async function calcularCombos(opciones: {
           ? precioVitrina(contadoDeHoy, recargoUnPago)
           : null,
       unPagoAhora,
-      precio: aContado(sumaUnPago),
-      oferta: aContado(unPagoAhora),
+      precio: Math.max(porPiezas, inflado),
+      oferta: real,
     });
   }
 

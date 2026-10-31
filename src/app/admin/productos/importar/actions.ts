@@ -15,9 +15,11 @@ import {
   getRecargosMp,
   getDescuentoLista,
   getDescuentoCombo,
+  getMostrarDcto,
   setSetting,
   SETTING_DESC_LISTA,
   SETTING_DESC_COMBO,
+  SETTING_MOSTRAR_DCTO,
 } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
 import { calcularCombos, type ComboCalculado } from "@/lib/combos";
@@ -144,6 +146,8 @@ export type ParseResult = {
   descuentoLista?: number;
   /** La rebaja propia del combo, la que le deja precio tachado. */
   descuentoCombo?: number;
+  /** El descuento que se quiere mostrar, inflando el tachado. */
+  mostrarDcto?: number;
 };
 
 // Normaliza nombres de columnas: trim, lowercase, saca acentos
@@ -320,6 +324,7 @@ export async function previewExcel(
   precioEs: PrecioDelArchivo = "unpago",
   descuentoLista?: number,
   descuentoCombo?: number,
+  mostrarDcto?: number,
 ): Promise<ParseResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
@@ -482,7 +487,7 @@ export async function previewExcel(
       }
       const errors: string[] = [];
       const itemId = String(parsed.itemId ?? "").trim();
-      if (!itemId) errors.push("itemId vacío");
+      if (!itemId) errors.push("la fila no trae código: no se sabe qué artículo es");
 
       const title = String(parsed.title ?? "").trim();
 
@@ -492,11 +497,11 @@ export async function previewExcel(
       const price = aContado(precioArchivo);
       const traePrecio = price !== null;
       if (tocaPrecios && price !== null && price <= 0)
-        errors.push("precio en cero");
+        errors.push("el archivo lo trae con precio 0: no se publica gratis");
 
       const salePrice = aContado(toNumber(parsed.salePrice));
       if (salePrice !== null && price !== null && salePrice >= price)
-        errors.push("oferta >= precio");
+        errors.push("la oferta no es más barata que el precio");
 
       const stockRaw = toNumber(parsed.stock);
       const traeStock = stockRaw !== null;
@@ -594,8 +599,10 @@ export async function previewExcel(
       // Recien aca se sabe que le falta a cada fila. Un articulo que ya
       // esta en la tienda no necesita titulo ni precio si no se vino a
       // cambiarlos; uno que no esta, no se puede crear sin los dos.
-      if (tocaPrecios && !r.__traePrecio) r.__errors.push("sin precio");
-      if (tocaStock && !r.__traeStock) r.__errors.push("sin stock");
+      if (tocaPrecios && !r.__traePrecio)
+        r.__errors.push("el archivo no trae precio para este código");
+      if (tocaStock && !r.__traeStock)
+        r.__errors.push("el archivo no trae stock para este código");
     }
 
     const valid = normalized.filter((r) => r.__errors.length === 0);
@@ -612,10 +619,12 @@ export async function previewExcel(
     // que hace aparecer el precio tachado, porque el tachado es lo que
     // costarian las piezas sueltas y el real es eso menos esta rebaja.
     const descCombo = descuentoCombo ?? (await getDescuentoCombo());
+    const mostrar = mostrarDcto ?? (await getMostrarDcto());
     const combos = tocaPrecios
       ? await calcularCombos({
           precios1Pago: preciosParaCombos(valid),
           descuentoPct: descCombo,
+          mostrarDctoPct: mostrar,
           recargoUnPago: recargo,
           branchId: suc?.id,
         })
@@ -627,6 +636,7 @@ export async function previewExcel(
       combos,
       descuentoLista: descLista,
       descuentoCombo: descCombo,
+      mostrarDcto: mostrar,
       delSistema,
       local: suc?.nombre,
       recargoUnPago: recargo,
@@ -709,6 +719,8 @@ export async function importExcel(
     descuentoLista?: number;
     /** La rebaja propia del combo. Tambien queda guardada. */
     descuentoCombo?: number;
+    /** El descuento a mostrar, que infla el tachado. */
+    mostrarDcto?: number;
   },
 ): Promise<ImportResult> {
   const session = await getAdminSession();
@@ -904,9 +916,11 @@ export async function importExcel(
     const recargo = (await getRecargosMp()).unPago;
     const descCombo =
       options.descuentoCombo ?? (await getDescuentoCombo());
+    const mostrar = options.mostrarDcto ?? (await getMostrarDcto());
     const combos = await calcularCombos({
       precios1Pago: preciosParaCombos(valid),
       descuentoPct: descCombo,
+      mostrarDctoPct: mostrar,
       recargoUnPago: recargo,
       branchId: suc?.id,
     });
@@ -957,6 +971,8 @@ export async function importExcel(
       await setSetting(SETTING_DESC_LISTA, String(options.descuentoLista));
     if (options.descuentoCombo !== undefined)
       await setSetting(SETTING_DESC_COMBO, String(options.descuentoCombo));
+    if (options.mostrarDcto !== undefined)
+      await setSetting(SETTING_MOSTRAR_DCTO, String(options.mostrarDcto));
   }
 
   // El panel lee los precios de la tabla de la sucursal, asi que despues

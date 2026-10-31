@@ -42,8 +42,29 @@ export function codigoDeLaUrl(crudo: string): string[] {
   return [...formas];
 }
 
+/** Codigos que se renombraron a mano, uno por uno.
+ *
+ *  Los combos cargados desde el panel reciben un codigo inventado (MAN- y
+ *  letras al azar) porque no hay de donde sacarle uno. Ese codigo no dice de
+ *  que piezas esta hecho el combo, asi que al subir una lista de precios el
+ *  combo no se recalcula y queda con el precio viejo mientras los demas se
+ *  actualizan. Por eso se les pone el codigo de las piezas.
+ *
+ *  Van aca para que los links que ya estan dando vueltas no se rompan: el de
+ *  abajo tenia 935 visitas cuando se cambio, o sea que esta compartido.
+ *
+ *  Es una lista a mano a proposito. Son casos sueltos, de a uno, y una tabla
+ *  en la base para esto seria mas de lo que el problema necesita. */
+const RENOMBRADOS: Record<string, string> = {
+  // COMBO PRINGLES JADE 3 PIEZAS: inodoro + deposito a codo + bidet 3 ag.
+  "MAN-MUY8KPEI-CQDW": "9898+9815+9577",
+};
+
 export function codigoDeAhora(viejo: string): string | null {
   const v = viejo.trim();
+
+  const aMano = RENOMBRADOS[v.toUpperCase()];
+  if (aMano) return aMano;
 
   // Los combos primero: el patron completo, no el numero de atras. Mirar solo
   // el ultimo numero mandaria al cliente a una pieza sola en vez del combo.
