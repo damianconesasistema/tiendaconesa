@@ -63,6 +63,19 @@ export function conLogo(lista: readonly Marca[] = MARCAS_BASE) {
 
 export const MARCAS_CON_LOGO = conLogo(MARCAS_BASE);
 
+/** La misma lista, de la A a la Z.
+ *
+ *  El orden de MARCAS_BASE esta puesto a mano y es el del grid del home: ahi
+ *  las primeras son las que mas se venden, y eso no se toca. Pero en una lista
+ *  para elegir (el filtro del panel, el select de la ficha) ese orden no le
+ *  dice nada a nadie: hay que recorrerla entera para encontrar una marca.
+ *
+ *  Ordena con localeCompare en es, no con el < de siempre, para que los
+ *  acentos y la enie caigan donde uno los busca y no al final de todo. */
+export function porNombre(lista: readonly Marca[]): Marca[] {
+  return [...lista].sort((a, b) => a.name.localeCompare(b.name, "es"));
+}
+
 export function marcaPorId(
   id: string | null | undefined,
   lista: readonly Marca[] = MARCAS_BASE,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MARCAS_BASE, nombreMarca, type Marca } from "@/lib/marcas";
+import { MARCAS_BASE, nombreMarca, porNombre, type Marca } from "@/lib/marcas";
 import { Search, Package, ShoppingCart, Check, Tag, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -205,7 +205,7 @@ export function CatalogClient({
   for (const p of products) {
     if (p.brand) marcaCounts[p.brand] = (marcaCounts[p.brand] || 0) + 1;
   }
-  const marcasConProductos = marcas.filter((m) => marcaCounts[m.id] > 0);
+  const marcasConProductos = porNombre(marcas).filter((m) => marcaCounts[m.id] > 0);
 
   return (
     <main className="flex-1 bg-[var(--surface)]">

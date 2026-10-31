@@ -20,6 +20,10 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
   const [ok, setOk] = useState<string | null>(null);
   const form = useRef<HTMLFormElement>(null);
 
+  // De la A a la Z: la lista llega en el orden del codigo, que aca no le
+  // sirve a nadie para encontrar una marca.
+  const ordenadas = [...marcas].sort((a, b) => a.name.localeCompare(b.name, "es"));
+
   function agregar(fd: FormData) {
     setError(null);
     setOk(null);
@@ -107,7 +111,7 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
             </tr>
           </thead>
           <tbody>
-            {marcas.map((m) => (
+            {ordenadas.map((m) => (
               <tr key={m.id} className="border-t border-[var(--border)]">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">

@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState, useRef, useTransition } from "react";
 import { Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
-import { MARCAS_BASE, type Marca } from "@/lib/marcas";
+import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
 import { redactarDescripcionIA } from "@/app/admin/productos/actions";
 
@@ -287,7 +287,7 @@ export function ProductForm({
           <Label>Marca</Label>
           <select name="brand" defaultValue={product.brand ?? ""} className="input">
             <option value="">— Sin marca —</option>
-            {marcas.map((m) => (
+            {porNombre(marcas).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>

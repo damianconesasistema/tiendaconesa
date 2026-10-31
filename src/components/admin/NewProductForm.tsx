@@ -4,7 +4,7 @@ import { useActionState, useEffect } from "react";
 import { SHIPPING_TYPES } from "@/lib/shipping";
 import { useRouter } from "next/navigation";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
-import { MARCAS_BASE, type Marca } from "@/lib/marcas";
+import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { createProduct } from "@/app/admin/productos/actions";
 
 type State = { ok?: true; itemId?: string; error?: string } | null;
@@ -74,7 +74,7 @@ export function NewProductForm({
           <Label>Marca</Label>
           <select name="brand" defaultValue="" className="input">
             <option value="">Detectar del título</option>
-            {marcas.map((m) => (
+            {porNombre(marcas).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>
