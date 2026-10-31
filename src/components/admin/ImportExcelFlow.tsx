@@ -13,6 +13,9 @@ import {
   RefreshCw,
   Image as ImageIcon,
   AlertTriangle,
+  Tag,
+  Boxes,
+  SkipForward,
 } from "lucide-react";
 import {
   previewExcel,
@@ -20,6 +23,7 @@ import {
   type ParsedRow,
   type ParseResult,
   type ImportResult,
+  type ModoImport,
 } from "@/app/admin/productos/importar/actions";
 import { formatPrice } from "@/lib/order";
 
@@ -28,6 +32,14 @@ export function ImportExcelFlow() {
   const [parse, setParse] = useState<ParseResult | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [downloadImages, setDownloadImages] = useState(true);
+  // Que se vino a cambiar. Se elige ANTES de subir el archivo porque de eso
+  // depende que columnas son obligatorias: una lista de precios no trae
+  // stock y antes el archivo se rechazaba entero por eso.
+  const [modo, setModo] = useState<ModoImport>("ambos");
+  // Dar de alta lo que el archivo traiga y la tienda no tenga. En la carga
+  // completa es lo esperado; en una lista de precios, un codigo que no esta
+  // casi siempre es algo que no vendemos.
+  const [altas, setAltas] = useState(true);
   const [filename, setFilename] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
@@ -37,7 +49,7 @@ export function ImportExcelFlow() {
     startTransition(async () => {
       const fd = new FormData();
       fd.append("file", file);
-      const r = await previewExcel(fd);
+      const r = await previewExcel(fd, modo);
       setParse(r);
       if (r.ok) setStage("preview");
     });
@@ -46,11 +58,29 @@ export function ImportExcelFlow() {
   function doImport() {
     if (!parse?.rows) return;
     startTransition(async () => {
-      const r = await importExcel(parse.rows!, { downloadImages });
+      const r = await importExcel(parse.rows!, {
+        downloadImages: modo === "ambos" && downloadImages,
+        modo,
+        altas,
+      });
       setImportResult(r);
       if (r.ok) setStage("done");
     });
   }
+
+  function elegirModo(m: ModoImport) {
+    setModo(m);
+    setAltas(m === "ambos");
+  }
+
+  const tocaPrecios = modo !== "stock";
+  const tocaStock = modo !== "precios";
+  const queCambia =
+    modo === "precios"
+      ? "precios"
+      : modo === "stock"
+        ? "stock"
+        : "precios y stock";
 
   function reset() {
     setStage("upload");
@@ -71,23 +101,70 @@ export function ImportExcelFlow() {
         </h2>
         <p className="mt-2 text-sm text-[var(--muted)]">{filename}</p>
 
-        <div className="mx-auto mt-8 grid max-w-xl grid-cols-2 gap-3 text-left sm:grid-cols-5">
-          <SummaryBox icon={Plus} label="Creados" value={s.created} color="green" />
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Se cambiaron {queCambia}
+          {parse?.local ? ` en ${parse.local}` : ""}.
+        </p>
+
+        <div className="mx-auto mt-8 grid max-w-2xl grid-cols-2 gap-3 text-left sm:grid-cols-4">
           <SummaryBox icon={RefreshCw} label="Actualizados" value={s.updated} color="blue" />
-          <SummaryBox icon={ImageIcon} label="Fotos OK" value={s.imagesDownloaded} color="purple" />
+          <SummaryBox icon={Plus} label="Creados" value={s.created} color="green" />
           <SummaryBox
-            icon={AlertCircle}
-            label="Fotos fallidas"
-            value={s.imagesFailed}
+            icon={SkipForward}
+            label="No están en la tienda"
+            value={s.nuevosOmitidos}
             color="amber"
           />
           <SummaryBox
             icon={AlertCircle}
-            label="Filas omitidas"
+            label="Filas con error"
             value={s.rowsSkipped}
             color="red"
           />
         </div>
+
+        {/* Lo que quedo afuera, con los codigos a la vista. Un numero solo
+            obliga a adivinar cuales fueron; con los codigos se revisa. */}
+        {s.nuevosOmitidos > 0 && (
+          <div className="mx-auto mt-6 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 p-4 text-left">
+            <div className="font-display text-xs font-black uppercase tracking-wider text-amber-900">
+              {s.nuevosOmitidos} códigos del archivo no están en la tienda
+            </div>
+            <p className="mt-2 text-sm text-amber-900">
+              No se tocaron. Si son artículos que querés publicar, volvé a
+              importar con la carga completa y tildá “dar de alta”.
+            </p>
+            {importResult.ejemplos?.nuevos.length ? (
+              <p className="mt-2 font-mono text-[11px] text-amber-800">
+                {importResult.ejemplos.nuevos.join(" · ")}
+                {s.nuevosOmitidos > importResult.ejemplos.nuevos.length && " …"}
+              </p>
+            ) : null}
+          </div>
+        )}
+
+        {s.sinCargarEnLocal > 0 && (
+          <div className="mx-auto mt-4 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 p-4 text-left">
+            <div className="font-display text-xs font-black uppercase tracking-wider text-amber-900">
+              {s.sinCargarEnLocal} no los lleva este local
+            </div>
+            <p className="mt-2 text-sm text-amber-900">
+              Están en la tienda pero no cargados acá, así que no tienen precio
+              propio de este local. Para que los lleve, cargalos primero.
+            </p>
+            {importResult.ejemplos?.sinCargar.length ? (
+              <p className="mt-2 font-mono text-[11px] text-amber-800">
+                {importResult.ejemplos.sinCargar.join(" · ")}
+              </p>
+            ) : null}
+          </div>
+        )}
+
+        {(s.imagesDownloaded > 0 || s.imagesFailed > 0) && (
+          <p className="mt-4 text-xs text-[var(--muted)]">
+            Fotos: {s.imagesDownloaded} bajadas, {s.imagesFailed} fallidas.
+          </p>
+        )}
 
         <div className="mt-8 flex items-center justify-center gap-3">
           <Link
@@ -115,6 +192,25 @@ export function ImportExcelFlow() {
 
     return (
       <div className="mt-8 space-y-6">
+        {/* Que se va a cambiar y en que local, antes que cualquier otra cosa.
+            El precio es de cada local: entrar por el panel equivocado es
+            cambiarle el precio al otro, y eso no se ve hasta que alguien
+            compra. */}
+        <div className="rounded-2xl border-2 border-[var(--brand-red)]/30 bg-[var(--brand-red)]/5 p-5">
+          <div className="font-display text-sm font-black uppercase tracking-wider">
+            Vas a cambiar {queCambia}
+            {parse.local ? ` en ${parse.local}` : ""}
+          </div>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            {modo === "precios" &&
+              "Precio y oferta. El stock, el título y la categoría no se tocan."}
+            {modo === "stock" &&
+              "Solo las unidades. Los precios no se tocan."}
+            {modo === "ambos" &&
+              "Precio, oferta, stock y los datos del artículo que traiga el archivo."}
+          </p>
+        </div>
+
         <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -138,7 +234,6 @@ export function ImportExcelFlow() {
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <SummaryBox icon={Plus} label="A crear" value={stats.toCreate} color="green" />
             <SummaryBox
               icon={RefreshCw}
               label="A actualizar"
@@ -146,11 +241,26 @@ export function ImportExcelFlow() {
               color="blue"
             />
             <SummaryBox
-              icon={ImageIcon}
-              label="Con foto URL"
-              value={stats.withImage}
-              color="purple"
+              icon={Plus}
+              label={altas ? "A crear" : "No están"}
+              value={stats.toCreate}
+              color={altas ? "green" : "amber"}
             />
+            {modo === "ambos" ? (
+              <SummaryBox
+                icon={ImageIcon}
+                label="Con foto URL"
+                value={stats.withImage}
+                color="purple"
+              />
+            ) : (
+              <SummaryBox
+                icon={SkipForward}
+                label="Sin datos para alta"
+                value={stats.sinDatosParaAlta}
+                color="purple"
+              />
+            )}
             <SummaryBox
               icon={AlertTriangle}
               label="Con errores"
@@ -176,11 +286,32 @@ export function ImportExcelFlow() {
             </div>
           )}
 
-          {(stats.suben > 0 || stats.bajan > 0) && (
+          {tocaPrecios && (stats.suben > 0 || stats.bajan > 0) && (
             <p className="mt-4 text-sm text-[var(--muted)]">
               Cambian de precio: <strong className="text-foreground">{stats.suben}</strong>{" "}
               para arriba y{" "}
               <strong className="text-foreground">{stats.bajan}</strong> para abajo.
+            </p>
+          )}
+          {tocaStock && stats.stockCambia > 0 && (
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Cambian de stock:{" "}
+              <strong className="text-foreground">{stats.stockCambia}</strong>.
+            </p>
+          )}
+          {stats.enOtroLocal > 0 && (
+            <p className="mt-3 text-sm text-amber-700">
+              {stats.enOtroLocal} de estos artículos existen en la tienda pero
+              este local no los lleva, así que no tienen precio propio acá y no
+              se les va a tocar nada. Para que los lleve hay que cargarlos
+              primero con la carga completa.
+            </p>
+          )}
+          {stats.sinDatosParaAlta > 0 && (
+            <p className="mt-3 text-sm text-amber-700">
+              {stats.sinDatosParaAlta} códigos no están en la tienda y el archivo
+              no alcanza para darlos de alta (hace falta título y precio). Esos
+              quedan afuera y los vas a ver listados al final.
             </p>
           )}
         </div>
@@ -190,20 +321,42 @@ export function ImportExcelFlow() {
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
-              checked={downloadImages}
-              onChange={(e) => setDownloadImages(e.target.checked)}
+              checked={altas}
+              onChange={(e) => setAltas(e.target.checked)}
               className="mt-1 h-4 w-4 accent-[var(--brand-red)]"
             />
             <div className="flex-1">
               <div className="font-display text-sm font-bold">
-                Descargar fotos desde la columna de imagen
+                Dar de alta los códigos que no estén en la tienda
               </div>
               <div className="mt-0.5 text-xs text-[var(--muted)]">
-                Para cada producto con URL de imagen, bajamos la foto y la
-                asociamos. Puede tardar varios segundos según cantidad.
+                Sin esto, lo que el archivo traiga y la tienda no tenga se
+                saltea y queda listado al final. Para una lista de precios
+                suele ser lo que querés: un código que no está casi siempre es
+                un artículo que no vendemos.
               </div>
             </div>
           </label>
+
+          {modo === "ambos" && (
+            <label className="mt-4 flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={downloadImages}
+                onChange={(e) => setDownloadImages(e.target.checked)}
+                className="mt-1 h-4 w-4 accent-[var(--brand-red)]"
+              />
+              <div className="flex-1">
+                <div className="font-display text-sm font-bold">
+                  Descargar fotos desde la columna de imagen
+                </div>
+                <div className="mt-0.5 text-xs text-[var(--muted)]">
+                  Para cada producto con URL de imagen, bajamos la foto y la
+                  asociamos. Puede tardar varios segundos según cantidad.
+                </div>
+              </div>
+            </label>
+          )}
 
           <div className="mt-6 flex items-center gap-3">
             <button
@@ -219,7 +372,7 @@ export function ImportExcelFlow() {
               ) : (
                 <>
                   <Check className="h-4 w-4" />
-                  Importar {stats.valid} productos
+                  Cambiar {queCambia} de {stats.valid}
                 </>
               )}
             </button>
@@ -246,16 +399,17 @@ export function ImportExcelFlow() {
                 <th className="px-4 py-2">Código</th>
                 <th className="px-4 py-2">Título</th>
                 <th className="px-4 py-2">Cat.</th>
-                <th className="px-4 py-2 text-right">Precio</th>
-                <th className="px-4 py-2 text-right">Antes</th>
-                <th className="px-4 py-2 text-right">Oferta</th>
-                <th className="px-4 py-2 text-right">Stock</th>
+                <th className={`px-4 py-2 text-right${tocaPrecios ? "" : " opacity-40"}`}>Precio</th>
+                <th className={`px-4 py-2 text-right${tocaPrecios ? "" : " opacity-40"}`}>Antes</th>
+                <th className={`px-4 py-2 text-right${tocaPrecios ? "" : " opacity-40"}`}>Oferta</th>
+                <th className={`px-4 py-2 text-right${tocaStock ? "" : " opacity-40"}`}>Stock</th>
+                <th className={`px-4 py-2 text-right${tocaStock ? "" : " opacity-40"}`}>Antes</th>
                 <th className="px-4 py-2">Foto</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
               {sample.map((r) => (
-                <PreviewRow key={r.__rowNumber} r={r} />
+                <PreviewRow key={r.__rowNumber} r={r} modo={modo} altas={altas} />
               ))}
             </tbody>
           </table>
@@ -272,6 +426,47 @@ export function ImportExcelFlow() {
   // Stage upload
   return (
     <div className="mt-8">
+      {/* Primero QUE se viene a cambiar, despues el archivo. En ese orden a
+          proposito: de esto depende que columnas son obligatorias, asi que
+          elegir despues de subir obligaria a volver a subir. */}
+      <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+        <h3 className="font-display text-sm font-black uppercase tracking-wider">
+          ¿Qué vas a cambiar?
+        </h3>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <OpcionModo
+            icon={Tag}
+            titulo="Solo precios"
+            detalle="Precio y oferta. No toca el stock ni los datos del artículo."
+            activo={modo === "precios"}
+            onClick={() => elegirModo("precios")}
+          />
+          <OpcionModo
+            icon={Boxes}
+            titulo="Solo stock"
+            detalle="Las unidades. No toca ningún precio."
+            activo={modo === "stock"}
+            onClick={() => elegirModo("stock")}
+          />
+          <OpcionModo
+            icon={RefreshCw}
+            titulo="Precios y stock"
+            detalle="Carga completa: también da de alta lo que no esté."
+            activo={modo === "ambos"}
+            onClick={() => elegirModo("ambos")}
+          />
+        </div>
+        <p className="mt-4 text-xs text-[var(--muted)]">
+          El archivo necesita la columna del código y la de{" "}
+          {modo === "stock"
+            ? "stock"
+            : modo === "precios"
+              ? "precio"
+              : "precio y stock"}
+          . Lo demás es opcional. Sirve el Excel tal cual sale del sistema.
+        </p>
+      </div>
+
       <div
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
@@ -280,7 +475,7 @@ export function ImportExcelFlow() {
           const f = e.dataTransfer.files[0];
           if (f) handleFile(f);
         }}
-        className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--border)] bg-white px-6 py-14 text-center transition-colors hover:border-[var(--brand-red)] hover:bg-[var(--brand-red)]/5"
+        className="group mt-6 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--border)] bg-white px-6 py-14 text-center transition-colors hover:border-[var(--brand-red)] hover:bg-[var(--brand-red)]/5"
       >
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--brand-red)] group-hover:bg-[var(--brand-red)] group-hover:text-white">
           {pending ? (
@@ -290,7 +485,9 @@ export function ImportExcelFlow() {
           )}
         </div>
         <h3 className="mt-4 font-display text-lg font-black uppercase">
-          {pending ? "Leyendo Excel…" : "Soltá tu Excel acá o hacé click"}
+          {pending
+            ? "Leyendo Excel…"
+            : `Soltá acá el Excel con ${queCambia}`}
         </h3>
         <p className="mt-1 text-sm text-[var(--muted)]">.xlsx o .xls hasta 10 MB</p>
         <input
@@ -322,8 +519,9 @@ export function ImportExcelFlow() {
         </h3>
         <p className="mt-2 text-xs text-[var(--muted)]">
           Primera fila con nombres de columna. Aceptamos variantes en español e
-          inglés. Columnas obligatorias:{" "}
-          <strong>código, título, precio</strong>.
+          inglés, y también el Excel tal cual sale del sistema de Conesa (con
+          item_code, item_desc y la columna de precio como venga). El título
+          solo hace falta para dar de alta algo que la tienda todavía no tenga.
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[600px] text-xs">
@@ -336,7 +534,7 @@ export function ImportExcelFlow() {
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
               <TemplateCol col="codigo / code / id / mla" field="Código único del producto. No puede quedar vacío." ex="MLA123456" req />
-              <TemplateCol col="titulo / nombre" field="Nombre del producto" ex="Inodoro Ferrum" req />
+              <TemplateCol col="titulo / nombre" field="Nombre del producto. Solo obligatorio para dar de alta uno nuevo." ex="Inodoro Ferrum" />
               <TemplateCol col="precio" field="Precio base ARS" ex="150000" req />
               <TemplateCol col="sku / codigo_interno" field="Tu código interno (opcional). Sirve para sincronizar stock y matchear fotos." ex="GRI-001" />
               <TemplateCol col="oferta / precio_oferta" field="Precio oferta (opcional, menor al precio)" ex="135000" />
@@ -391,8 +589,21 @@ function SummaryBox({
   );
 }
 
-function PreviewRow({ r }: { r: ParsedRow }) {
+function PreviewRow({
+  r,
+  modo,
+  altas,
+}: {
+  r: ParsedRow;
+  modo: ModoImport;
+  altas: boolean;
+}) {
   const hasError = r.__errors.length > 0;
+  // Lo que este modo no toca va en gris: asi se ve de un vistazo que la
+  // columna esta en el archivo pero no se va a escribir.
+  const gP = modo === "stock" ? " opacity-40" : "";
+  const gS = modo === "precios" ? " opacity-40" : "";
+  const seCrea = !r.__exists && altas && r.__puedeCrearse;
   return (
     <tr className={hasError ? "bg-red-50/50" : undefined}>
       <td className="px-4 py-2 text-xs text-[var(--muted)]">{r.__rowNumber}</td>
@@ -405,9 +616,13 @@ function PreviewRow({ r }: { r: ParsedRow }) {
           <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">
             Actualizar
           </span>
-        ) : (
+        ) : seCrea ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
             Crear
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+            No está
           </span>
         )}
         {hasError && (
@@ -419,19 +634,24 @@ function PreviewRow({ r }: { r: ParsedRow }) {
       <td className="px-4 py-2 font-mono text-[11px]">{r.itemId || "—"}</td>
       <td className="px-4 py-2 max-w-xs truncate">{r.title || "—"}</td>
       <td className="px-4 py-2 text-[11px] text-[var(--muted)]">{r.category}</td>
-      <td className="px-4 py-2 text-right font-display font-bold">
-        {r.price ? formatPrice(r.price) : "—"}
+      <td className={`px-4 py-2 text-right font-display font-bold${gP}`}>
+        {r.__traePrecio ? formatPrice(r.price) : "—"}
       </td>
-      {/* El precio de antes, al lado. Es la forma mas rapida de ver que la
-          columna se leyo bien: si estaba 666.100 y pasa a 69.546, algo se
-          entendio mal y se ve de un vistazo. */}
-      <td className="px-4 py-2 text-right text-xs text-[var(--muted)]">
+      {/* El de antes, al lado. Es la forma mas rapida de ver que la columna se
+          leyo bien: si estaba 666.100 y pasa a 69.546, algo se entendio mal y
+          se ve de un vistazo. */}
+      <td className={`px-4 py-2 text-right text-xs text-[var(--muted)]${gP}`}>
         {r.__precioAnterior !== null ? formatPrice(r.__precioAnterior) : "—"}
       </td>
-      <td className="px-4 py-2 text-right text-xs">
+      <td className={`px-4 py-2 text-right text-xs${gP}`}>
         {r.salePrice ? formatPrice(r.salePrice) : "—"}
       </td>
-      <td className="px-4 py-2 text-right">{r.stock}</td>
+      <td className={`px-4 py-2 text-right${gS}`}>
+        {r.__traeStock ? r.stock : "—"}
+      </td>
+      <td className={`px-4 py-2 text-right text-xs text-[var(--muted)]${gS}`}>
+        {r.__stockAnterior !== null ? r.__stockAnterior : "—"}
+      </td>
       <td className="px-4 py-2">
         {r.imageUrl ? (
           <span
@@ -446,6 +666,40 @@ function PreviewRow({ r }: { r: ParsedRow }) {
         )}
       </td>
     </tr>
+  );
+}
+
+function OpcionModo({
+  icon: Icon,
+  titulo,
+  detalle,
+  activo,
+  onClick,
+}: {
+  icon: typeof Plus;
+  titulo: string;
+  detalle: string;
+  activo: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl border-2 p-4 text-left transition-colors ${
+        activo
+          ? "border-[var(--brand-red)] bg-[var(--brand-red)]/5"
+          : "border-[var(--border)] bg-white hover:border-[var(--brand-red)]/40"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <Icon
+          className={`h-4 w-4 ${activo ? "text-[var(--brand-red)]" : "text-[var(--muted)]"}`}
+        />
+        <span className="font-display text-sm font-bold">{titulo}</span>
+      </div>
+      <p className="mt-1 text-xs text-[var(--muted)]">{detalle}</p>
+    </button>
   );
 }
 

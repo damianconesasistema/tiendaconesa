@@ -45,23 +45,57 @@ export async function sucursalDeEdicion(): Promise<SucursalDeEdicion | null> {
 
 /** Guarda los datos comerciales de estos articulos en el local del panel.
  *
- *  Crea la fila si no estaba: es lo que significa "este local ahora lo lleva".
- *  Para crearla hace falta un precio, asi que cuando no viene se toma el del
- *  articulo. */
+ *  Por defecto crea la fila si no estaba: es lo que significa "este local
+ *  ahora lo lleva". Para crearla hace falta un precio, asi que cuando no
+ *  viene se toma el del articulo.
+ *
+ *  Con `crearSiFalta: false` toca solo lo que el local ya tiene cargado y
+ *  devuelve el resto en `sinFila`. Eso es para actualizar precios o stock de
+ *  una lista: si el local no lleva ese articulo, no hay precio de este local
+ *  del cual partir, y crear la fila con el precio del otro local seria
+ *  publicarlo aca al precio de alla. Mejor avisar que son N y no tocarlos. */
 export async function guardarComercial(
   itemIds: string[],
   datos: DatosComerciales,
-): Promise<void> {
-  if (itemIds.length === 0) return;
+  opciones?: { crearSiFalta?: boolean },
+): Promise<{ guardados: string[]; sinFila: string[] }> {
+  const vacio = { guardados: [], sinFila: [] };
+  if (itemIds.length === 0) return vacio;
   const s = await sucursalDeEdicion();
-  if (!s) return;
+  if (!s) return vacio;
+  const crearSiFalta = opciones?.crearSiFalta ?? true;
 
   const productos = await prisma.product.findMany({
     where: { itemId: { in: itemIds } },
-    select: { id: true, price: true, salePrice: true, stock: true, active: true },
+    select: {
+      id: true,
+      itemId: true,
+      price: true,
+      salePrice: true,
+      stock: true,
+      active: true,
+    },
   });
 
+  const yaCargados = crearSiFalta
+    ? null
+    : new Set(
+        (
+          await prisma.branchProduct.findMany({
+            where: { branchId: s.id, productId: { in: productos.map((p) => p.id) } },
+            select: { productId: true },
+          })
+        ).map((f) => f.productId),
+      );
+
+  const guardados: string[] = [];
+  const sinFila: string[] = [];
+
   for (const p of productos) {
+    if (yaCargados && !yaCargados.has(p.id)) {
+      sinFila.push(p.itemId);
+      continue;
+    }
     await prisma.branchProduct.upsert({
       where: { branchId_productId: { branchId: s.id, productId: p.id } },
       update: datos,
@@ -74,15 +108,19 @@ export async function guardarComercial(
         active: datos.active ?? p.active,
       },
     });
+    guardados.push(p.itemId);
   }
 
-  // El puente: la tienda todavia lee el precio del articulo.
-  if (s.esPrincipal && Object.keys(datos).length > 0) {
+  // El puente: la tienda todavia lee el precio del articulo. Solo por lo que
+  // de verdad se guardo, no por lo que se saltea.
+  if (s.esPrincipal && guardados.length > 0 && Object.keys(datos).length > 0) {
     await prisma.product.updateMany({
-      where: { itemId: { in: itemIds } },
+      where: { itemId: { in: guardados } },
       data: datos,
     });
   }
+
+  return { guardados, sinFila };
 }
 
 /** Da de alta estos articulos en el local del panel, copiando lo que tenga el

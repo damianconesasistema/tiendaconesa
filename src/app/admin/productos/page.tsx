@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Package, Upload, Download, RefreshCw, PackagePlus, RotateCcw } from "lucide-react";
+import { Package, Upload, Download, PackagePlus, RotateCcw } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -266,19 +266,16 @@ export default async function ProductosAdmin({
             <RotateCcw className="h-4 w-4" />
             Restaurar
           </Link>
-          <Link
-            href="/admin/productos/sync-stock"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Sync stock
-          </Link>
+          {/* Un solo lugar para los dos. Antes habia "Sync stock" aparte, que
+              escribia el stock del articulo sin mirar de que local era el
+              panel: en Buenos Aires tenia que avisar "todavia no". El
+              importador hace las dos cosas y por local. */}
           <Link
             href="/admin/productos/importar"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <Upload className="h-4 w-4" />
-            Importar Excel
+            Precios y stock
           </Link>
           <Link
             href="/admin/productos/nuevo"

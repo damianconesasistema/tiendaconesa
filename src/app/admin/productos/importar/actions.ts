@@ -12,6 +12,14 @@ import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { leerExportDelSistema } from "@/lib/excel-sistema";
 
+// Que se vino a cambiar. Lo elige el que importa, antes de subir el
+// archivo, y de ahi en adelante manda: una lista de precios de una marca no
+// tiene por que tocar el stock, y un recuento de stock no tiene por que
+// tocar los precios. Antes se escribia todo siempre, asi que para corregir
+// el precio de diez articulos habia que armar un archivo con el stock de
+// esos diez tambien, o se iba a cero.
+export type ModoImport = "precios" | "stock" | "ambos";
+
 export type ParsedRow = {
   itemId: string;
   sku: string | null;
@@ -33,6 +41,18 @@ export type ParsedRow = {
    *  mostrar "antes -> ahora" antes de tocar nada: una columna leida mal
    *  se ve ahi y no despues, en la tienda. */
   __precioAnterior: number | null;
+  /** Lo mismo con el stock de este local. */
+  __stockAnterior: number | null;
+  /** Si la fila trajo de verdad esas columnas. Una celda vacia no es un
+   *  cero: es "de esto no se habla". Sin esta distincion, importar una
+   *  lista de precios pondria todo el stock en cero. */
+  __traePrecio: boolean;
+  __traeStock: boolean;
+  /** Si alcanza para darlo de alta (titulo y precio). Un codigo que no
+   *  esta en la tienda y viene en una lista de precios no se puede crear:
+   *  no hay titulo ni categoria. No es un error del archivo, es que ese
+   *  articulo todavia no existe aca. */
+  __puedeCrearse: boolean;
   // Metadata del parseo
   __rowNumber: number;
   __errors: string[];
@@ -60,7 +80,20 @@ export type ParseResult = {
     /** Cuantos productos cambian de precio, para arriba y para abajo. */
     suben: number;
     bajan: number;
+    /** Codigos del archivo que no estan en la tienda y que ademas no se
+     *  pueden dar de alta con lo que trae el archivo. */
+    sinDatosParaAlta: number;
+    /** Cuantos cambian de stock. */
+    stockCambia: number;
+    /** Estan en la tienda pero este local no los lleva. Se ve ANTES de
+     *  aplicar: es la explicacion de "importe y no cambio nada" cuando se
+     *  importa en el panel de un local que todavia no tiene el catalogo. */
+    enOtroLocal: number;
   };
+  /** El local sobre el que se va a importar, para que se vea en pantalla
+   *  antes de aplicar: el precio es de cada local y equivocarse de panel
+   *  es cambiarle el precio al otro. */
+  local?: string;
 };
 
 // Normaliza nombres de columnas: trim, lowercase, saca acentos
@@ -216,7 +249,10 @@ function normalizeCategory(v: unknown): string {
   return "otros";
 }
 
-export async function previewExcel(formData: FormData): Promise<ParseResult> {
+export async function previewExcel(
+  formData: FormData,
+  modo: ModoImport = "ambos",
+): Promise<ParseResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
 
@@ -249,12 +285,18 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
       if (canonical) keyMap[k] = canonical;
     }
 
-    // Pre-chequeo: columnas mínimas
+    const tocaPrecios = modo !== "stock";
+    const tocaStock = modo !== "precios";
+
+    // Pre-chequeo: que esten las columnas de lo que se vino a cambiar.
+    // El titulo NO es obligatorio: hace falta solo para dar de alta algo que
+    // no esta en la tienda, y eso se avisa fila por fila. Exigirlo rechazaba
+    // el archivo entero, que es lo que impedia subir una lista de precios.
     const canonicals = new Set(Object.values(keyMap));
     const missing: string[] = [];
     if (!canonicals.has("itemId")) missing.push("código");
-    if (!canonicals.has("title")) missing.push("título");
-    if (!canonicals.has("price")) missing.push("precio");
+    if (tocaPrecios && !canonicals.has("price")) missing.push("precio");
+    if (tocaStock && !canonicals.has("stock")) missing.push("stock");
     // Si no tiene las columnas del importador, puede ser el Excel tal cual
     // sale del sistema. Esos vienen con item_code / item_desc y la columna
     // del precio cambia de nombre segun el proveedor: eso se reconoce solo.
@@ -301,12 +343,12 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
         // panel; la columna brand_desc del sistema solo se usa para armar el
         // codigo de un producto nuevo.
         const marcaDetectada = detectarMarca(f.descripcion, marcasParaDetectar);
-        const prefijo =
-          f.marca || marcaPorId(marcaDetectada, marcasParaDetectar)?.name || "ERP";
         return {
-          codigo:
-            ya?.itemId ??
-            `${prefijo.toUpperCase().replace(/[^A-Z0-9]+/g, "")}-${f.itemCode}`,
+          // El codigo del articulo nuevo es el del sistema, pelado. Antes se
+          // le pegaba la marca adelante (HEINEKEN-8354) y eso obligaba a
+          // traducir a mano cada vez que se comparaba el panel con el
+          // sistema. Ver la migracion 25.
+          codigo: ya?.itemId ?? f.itemCode,
           titulo: ya?.title ?? f.descripcion,
           categoria: ya?.category ?? "otros",
           marca: ya?.brand ?? marcaDetectada,
@@ -328,6 +370,16 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
         stock: "stock",
       };
       delSistema = { regla: lectura.regla, avisos: lectura.avisos };
+
+      // El sistema exporta el stock solo en algunos listados. Si se eligio
+      // actualizarlo y no vino, mejor frenar aca: dejarlo pasar pondria en
+      // cero el stock de todo lo que entre.
+      if (tocaStock && !lectura.traeStock)
+        return {
+          ok: false,
+          error:
+            "Elegiste actualizar el stock, pero este archivo del sistema no trae columna de stock. Exportá el listado con stock, o importá solo los precios.",
+        };
     }
 
     // Obtener itemIds existentes en DB en una query
@@ -345,16 +397,20 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
       if (!itemId) errors.push("itemId vacío");
 
       const title = String(parsed.title ?? "").trim();
-      if (!title) errors.push("título vacío");
 
+      // Lo obligatorio depende de lo que se vino a hacer; se decide mas
+      // abajo, cuando ya se sabe si el articulo esta en la tienda.
       const price = toNumber(parsed.price);
-      if (price === null || price < 0) errors.push("precio inválido");
+      const traePrecio = price !== null;
+      if (tocaPrecios && price !== null && price <= 0)
+        errors.push("precio en cero");
 
       const salePrice = toNumber(parsed.salePrice);
       if (salePrice !== null && price !== null && salePrice >= price)
         errors.push("oferta >= precio");
 
       const stockRaw = toNumber(parsed.stock);
+      const traeStock = stockRaw !== null;
       const stock = stockRaw !== null ? Math.max(0, Math.floor(stockRaw)) : 0;
 
       const category = normalizeCategory(parsed.category);
@@ -403,6 +459,10 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
         imageUrl,
         codigoSistema: parsed.codigoSistema != null ? String(parsed.codigoSistema).trim() || null : null,
         __precioAnterior: null,
+        __stockAnterior: null,
+        __traePrecio: traePrecio,
+        __traeStock: traeStock,
+        __puedeCrearse: title !== "" && price !== null && price > 0,
         __rowNumber: i + 2, // +2 porque Excel es 1-indexed y hay header
         __errors: errors,
         __exists: false,
@@ -424,16 +484,27 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
     // contra el precio de Traslasierra y la columna mentiria.
     const suc = await sucursalDeEdicion();
     const precioDeHoy = new Map<string, number>();
+    const stockDeHoy = new Map<string, number>();
     if (suc) {
       const filas = await prisma.branchProduct.findMany({
         where: { branchId: suc.id, productId: { in: existing.map((e) => e.id) } },
-        select: { price: true, product: { select: { itemId: true } } },
+        select: { price: true, stock: true, product: { select: { itemId: true } } },
       });
-      for (const f of filas) precioDeHoy.set(f.product.itemId, f.price);
+      for (const f of filas) {
+        precioDeHoy.set(f.product.itemId, f.price);
+        stockDeHoy.set(f.product.itemId, f.stock);
+      }
     }
     for (const r of normalized) {
       r.__exists = existe.has(r.itemId);
       r.__precioAnterior = precioDeHoy.get(r.itemId) ?? null;
+      r.__stockAnterior = stockDeHoy.get(r.itemId) ?? null;
+
+      // Recien aca se sabe que le falta a cada fila. Un articulo que ya
+      // esta en la tienda no necesita titulo ni precio si no se vino a
+      // cambiarlos; uno que no esta, no se puede crear sin los dos.
+      if (tocaPrecios && !r.__traePrecio) r.__errors.push("sin precio");
+      if (tocaStock && !r.__traeStock) r.__errors.push("sin stock");
     }
 
     const valid = normalized.filter((r) => r.__errors.length === 0);
@@ -441,18 +512,39 @@ export async function previewExcel(formData: FormData): Promise<ParseResult> {
       ok: true,
       rows: normalized,
       delSistema,
+      local: suc?.nombre,
       stats: {
         total: normalized.length,
         valid: valid.length,
         withErrors: normalized.length - valid.length,
-        toCreate: valid.filter((r) => !r.__exists).length,
+        toCreate: valid.filter((r) => !r.__exists && r.__puedeCrearse).length,
         toUpdate: valid.filter((r) => r.__exists).length,
         withImage: valid.filter((r) => r.imageUrl).length,
         suben: valid.filter(
-          (r) => r.__precioAnterior !== null && r.price > r.__precioAnterior,
+          (r) =>
+            tocaPrecios &&
+            r.__precioAnterior !== null &&
+            r.price > r.__precioAnterior,
         ).length,
         bajan: valid.filter(
-          (r) => r.__precioAnterior !== null && r.price < r.__precioAnterior,
+          (r) =>
+            tocaPrecios &&
+            r.__precioAnterior !== null &&
+            r.price < r.__precioAnterior,
+        ).length,
+        sinDatosParaAlta: valid.filter(
+          (r) => !r.__exists && !r.__puedeCrearse,
+        ).length,
+        stockCambia: valid.filter(
+          (r) =>
+            tocaStock &&
+            r.__stockAnterior !== null &&
+            r.stock !== r.__stockAnterior,
+        ).length,
+        // Existe el articulo pero no tiene fila en este local: no aparece
+        // en el "antes" porque ese precio no existe todavia aca.
+        enOtroLocal: valid.filter(
+          (r) => r.__exists && r.__precioAnterior === null,
         ).length,
       },
     };
@@ -470,12 +562,21 @@ export type ImportResult = {
     imagesDownloaded: number;
     imagesFailed: number;
     rowsSkipped: number;
+    /** Codigos del archivo que no estan en la tienda y que no se dieron de
+     *  alta, porque no se pidio o porque el archivo no alcanzaba. */
+    nuevosOmitidos: number;
+    /** Articulos que existen pero que este local no lleva. No se les toco
+     *  nada: sin precio propio de este local no hay de donde partir. */
+    sinCargarEnLocal: number;
   };
+  /** Los primeros codigos que quedaron afuera, para poder revisarlos sin
+   *  tener que adivinar cuales fueron. */
+  ejemplos?: { nuevos: string[]; sinCargar: string[] };
 };
 
 export async function importExcel(
   rows: ParsedRow[],
-  options: { downloadImages: boolean },
+  options: { downloadImages: boolean; modo?: ModoImport; altas?: boolean },
 ): Promise<ImportResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
@@ -484,17 +585,37 @@ export async function importExcel(
   // buenosaires.conesa.com.ar carga los precios de Buenos Aires.
   const suc = await sucursalDeEdicion();
 
+  const modo = options.modo ?? "ambos";
+  const tocaPrecios = modo !== "stock";
+  const tocaStock = modo !== "precios";
+  // Dar de alta lo que no este: crea el articulo y lo agrega a este local.
+  // Por defecto solo en la carga completa; en una lista de precios o de
+  // stock, un codigo que no esta en la tienda casi siempre es un articulo
+  // que no vendemos, no uno para publicar.
+  const altas = options.altas ?? modo === "ambos";
+
   const valid = rows.filter((r) => r.__errors.length === 0);
   let created = 0;
   let updated = 0;
   let imagesDownloaded = 0;
   let imagesFailed = 0;
+  let nuevosOmitidos = 0;
+  let sinCargarEnLocal = 0;
+  const ejemploNuevos: string[] = [];
+  const ejemploSinCargar: string[] = [];
 
   for (const row of valid) {
     try {
+      const esNuevo = !row.__exists;
+      if (esNuevo && (!altas || !row.__puedeCrearse)) {
+        nuevosOmitidos++;
+        if (ejemploNuevos.length < 20) ejemploNuevos.push(row.itemId);
+        continue;
+      }
+
       let finalImageUrl: string | null = null;
 
-      // Descargar imagen si hay URL y se pidió
+      // Descargar imagen si hay URL y se pidio
       if (options.downloadImages && row.imageUrl) {
         try {
           const r = await fetch(row.imageUrl, {
@@ -530,70 +651,111 @@ export async function importExcel(
         }
       }
 
-      // Al CREAR: usamos los valores (con defaults).
-      const createData = {
-        itemId: row.itemId,
-        codigoSistema: row.codigoSistema,
-        sku: row.sku,
-        title: row.title,
-        category: row.category,
-        brand: row.brand,
-        price: Math.round(row.price),
-        salePrice: row.salePrice,
-        stock: row.stock,
-        // Un articulo nuevo que se carga para OTRO local nace pausado: la
-        // tienda que vende hoy lee el catalogo del articulo, asi que si
-        // naciera activo se publicaria en la tienda equivocada, con el
-        // precio del otro local. En su propio local se muestra igual,
-        // porque eso lo dice su fila, no el articulo.
-        active: suc?.esPrincipal === false ? false : row.active,
-        featured: row.featured,
-        description: row.description,
-        memo: row.memo,
-        ...(finalImageUrl ? { imageUrl: finalImageUrl } : {}),
-      };
+      if (esNuevo) {
+        await prisma.product.create({
+          data: {
+            itemId: row.itemId,
+            codigoSistema: row.codigoSistema,
+            sku: row.sku,
+            title: row.title,
+            category: row.category,
+            brand: row.brand,
+            price: Math.round(row.price),
+            salePrice: row.salePrice,
+            stock: row.stock,
+            // Un articulo nuevo que se carga para OTRO local nace pausado: la
+            // tienda que vende hoy lee el catalogo del articulo, asi que si
+            // naciera activo se publicaria en la tienda equivocada, con el
+            // precio del otro local. En su propio local se muestra igual,
+            // porque eso lo dice su fila, no el articulo.
+            active: suc?.esPrincipal === false ? false : row.active,
+            featured: row.featured,
+            description: row.description,
+            memo: row.memo,
+            ...(finalImageUrl ? { imageUrl: finalImageUrl } : {}),
+          },
+        });
+      } else {
+        // Los textos del articulo (titulo, categoria, descripcion) son trabajo
+        // hecho a mano y se tocan SOLO en la carga completa. En una lista de
+        // precios o de stock no se mira nada de eso: se vino a cambiar un
+        // numero, no a reescribir la ficha.
+        //
+        // Lo unico que se completa siempre es el codigo del sistema: es el
+        // enganche para la proxima vez y no se ve en ningun lado.
+        const updateData: Record<string, unknown> =
+          modo === "ambos"
+            ? {
+                title: row.title,
+                category: row.category,
+                ...(row.codigoSistema ? { codigoSistema: row.codigoSistema } : {}),
+                ...(row.description !== null ? { description: row.description } : {}),
+                ...(row.__traeMarca && row.brand ? { brand: row.brand } : {}),
+                ...(row.sku !== null ? { sku: row.sku } : {}),
+                ...(row.memo !== null ? { memo: row.memo } : {}),
+                ...(row.__hasFeatured ? { featured: row.featured } : {}),
+                ...(finalImageUrl ? { imageUrl: finalImageUrl } : {}),
+              }
+            : {
+                ...(row.codigoSistema ? { codigoSistema: row.codigoSistema } : {}),
+                ...(finalImageUrl ? { imageUrl: finalImageUrl } : {}),
+              };
+        if (Object.keys(updateData).length > 0)
+          await prisma.product.update({
+            where: { itemId: row.itemId },
+            data: updateData,
+          });
+      }
 
-      // Al ACTUALIZAR: NO tocamos active/featured si el Excel no traía
-      // esas columnas (para no re-activar productos pausados sin querer).
-      //
-      // La descripción va igual que el sku y el memo: celda vacía NO borra.
-      // Son textos largos, escritos a mano o con la IA, y un Excel armado
-      // para corregir precios no tiene por qué llevárselos puestos. Para
-      // vaciar una descripción está la ficha del producto.
-      const updateData: Record<string, unknown> = {
-        title: row.title,
-        category: row.category,
-        // Se completa la primera vez que se importa desde el sistema; de ahi
-        // en adelante el enganche es exacto y no depende del prefijo.
-        ...(row.codigoSistema ? { codigoSistema: row.codigoSistema } : {}),
-        ...(row.description !== null ? { description: row.description } : {}),
-        ...(row.__traeMarca && row.brand ? { brand: row.brand } : {}),
-        ...(row.sku !== null ? { sku: row.sku } : {}),
-        ...(row.memo !== null ? { memo: row.memo } : {}),
-        ...(row.__hasFeatured ? { featured: row.featured } : {}),
-        ...(finalImageUrl ? { imageUrl: finalImageUrl } : {}),
-      };
-
-      const result = await prisma.product.upsert({
-        where: { itemId: row.itemId },
-        create: createData,
-        update: updateData,
-      });
       // El precio, la oferta, el stock y si se muestra son del LOCAL, no del
-      // articulo: van a su fila. Si el local todavia no lo tenia, esta es la
-      // linea que se lo agrega al catalogo.
-      await guardarComercial([row.itemId], {
-        price: Math.round(row.price),
-        salePrice: row.salePrice,
-        stock: row.stock,
-        ...(row.__hasActive ? { active: row.active } : {}),
+      // articulo: van a su fila. Se escribe solo lo que se vino a cambiar.
+      const datos = {
+        ...(tocaPrecios
+          ? { price: Math.round(row.price), salePrice: row.salePrice }
+          : {}),
+        ...(tocaStock ? { stock: row.stock } : {}),
+        ...(modo === "ambos" && row.__hasActive ? { active: row.active } : {}),
+      };
+      const guardado = await guardarComercial([row.itemId], datos, {
+        crearSiFalta: altas,
       });
+      if (guardado.sinFila.length > 0) {
+        sinCargarEnLocal++;
+        if (ejemploSinCargar.length < 20) ejemploSinCargar.push(row.itemId);
+        continue;
+      }
 
-      // En updates `createdAt === updatedAt` ya no es cierto, uso otra heurística:
-      // chequeo si existía
+      // El historial de precios es lo que despues contesta cuanto salia antes.
+      // Se anota solo cuando se edita el local que vende, porque el historial
+      // es del articulo y es ese precio el que guarda.
+      if (tocaPrecios && suc?.esPrincipal && row.__exists) {
+        const cambio =
+          row.__precioAnterior === null ||
+          Math.round(row.price) !== row.__precioAnterior;
+        if (cambio) {
+          try {
+            const p = await prisma.product.findUnique({
+              where: { itemId: row.itemId },
+              select: { id: true },
+            });
+            if (p)
+              await prisma.priceHistory.create({
+                data: {
+                  productId: p.id,
+                  price: Math.round(row.price),
+                  salePrice: row.salePrice,
+                  source: "excel",
+                  note: null,
+                },
+              });
+          } catch {
+            // Que falle el historial no puede voltear la actualizacion.
+          }
+        }
+      }
+
       if (row.__exists) updated++;
       else created++;
-      void result;
     } catch {
       // skip row con error de DB
     }
@@ -615,6 +777,9 @@ export async function importExcel(
       imagesDownloaded,
       imagesFailed,
       rowsSkipped: rows.length - valid.length,
+      nuevosOmitidos,
+      sinCargarEnLocal,
     },
+    ejemplos: { nuevos: ejemploNuevos, sinCargar: ejemploSinCargar },
   };
 }

@@ -7,7 +7,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { ImportExcelFlow } from "@/components/admin/ImportExcelFlow";
 
 export const metadata: Metadata = {
-  title: "Importar desde Excel · Panel Admin",
+  title: "Precios y stock por Excel · Panel Admin",
   robots: { index: false, follow: false },
 };
 
@@ -26,11 +26,12 @@ export default async function ImportarPage() {
       </Link>
 
       <h1 className="mt-6 font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
-        Importar desde Excel
+        Precios y stock por Excel
       </h1>
       <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
-        Subí un .xlsx con tus productos. Si el código ya existe en la base,
-        actualizamos; si no, lo creamos nuevo.
+        Elegí si vas a cambiar los precios, el stock o las dos cosas, y subí
+        el Excel. Antes de aplicar nada se ve el “antes y ahora” de cada
+        artículo.
       </p>
 
       <div className="mt-5 flex flex-wrap gap-3">
