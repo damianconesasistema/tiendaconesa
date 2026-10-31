@@ -11,6 +11,8 @@ import { getMarcas } from "@/lib/marcas-server";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { leerExportDelSistema } from "@/lib/excel-sistema";
+import { getRecargosMp } from "@/lib/settings";
+import { precioVitrina } from "@/lib/precios";
 
 // Que se vino a cambiar. Lo elige el que importa, antes de subir el
 // archivo, y de ahi en adelante manda: una lista de precios de una marca no
@@ -19,6 +21,16 @@ import { leerExportDelSistema } from "@/lib/excel-sistema";
 // el precio de diez articulos habia que armar un archivo con el stock de
 // esos diez tambien, o se iba a cero.
 export type ModoImport = "precios" | "stock" | "ambos";
+
+// Que precio trae la columna del archivo.
+//
+// La tienda guarda SIEMPRE el de contado (ver src/lib/precios.ts) y le suma
+// el recargo para mostrar el de 1 pago. Las listas de proveedor y las del
+// sistema a veces vienen con el precio de 1 pago ya calculado: cargarlo tal
+// cual hace que la tienda le sume el recargo DE NUEVO y el articulo queda un
+// 11% mas caro de lo que se quiso poner. Al revés, cargar un contado como si
+// fuera de 1 pago lo deja barato. Por eso se elige, no se adivina.
+export type PrecioDelArchivo = "contado" | "unpago";
 
 export type ParsedRow = {
   itemId: string;
@@ -43,6 +55,12 @@ export type ParsedRow = {
   __precioAnterior: number | null;
   /** Lo mismo con el stock de este local. */
   __stockAnterior: number | null;
+  /** El numero tal cual estaba en el archivo, antes de convertirlo. Es
+   *  para poder comparar contra el Excel sin hacer cuentas. */
+  __precioArchivo: number | null;
+  /** Lo que va a mostrar la tienda como precio de 1 pago. Es la columna
+   *  que se compara contra una lista de 1 pago. */
+  __precioUnPago: number | null;
   /** Si la fila trajo de verdad esas columnas. Una celda vacia no es un
    *  cero: es "de esto no se habla". Sin esta distincion, importar una
    *  lista de precios pondria todo el stock en cero. */
@@ -94,6 +112,10 @@ export type ParseResult = {
    *  antes de aplicar: el precio es de cada local y equivocarse de panel
    *  es cambiarle el precio al otro. */
   local?: string;
+  /** El recargo de 1 pago con el que se hizo la cuenta. */
+  recargoUnPago?: number;
+  /** Que se interpreto que trae la columna de precio. */
+  precioEs?: PrecioDelArchivo;
 };
 
 // Normaliza nombres de columnas: trim, lowercase, saca acentos
@@ -252,6 +274,7 @@ function normalizeCategory(v: unknown): string {
 export async function previewExcel(
   formData: FormData,
   modo: ModoImport = "ambos",
+  precioEs: PrecioDelArchivo = "contado",
 ): Promise<ParseResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
@@ -382,6 +405,16 @@ export async function previewExcel(
         };
     }
 
+    // El recargo de 1 pago sale de la configuracion del panel, no de una
+    // constante: si cambia ahi, la conversion tiene que cambiar con el.
+    const recargo = (await getRecargosMp()).unPago;
+    // De lo que trae el archivo a lo que guarda la tienda.
+    const aContado = (n: number | null): number | null => {
+      if (n === null) return null;
+      if (precioEs === "contado") return n;
+      return n / (1 + recargo / 100);
+    };
+
     // Obtener itemIds existentes en DB en una query
     const normalized: ParsedRow[] = [];
     // Una sola lectura de la lista para todo el archivo.
@@ -400,12 +433,13 @@ export async function previewExcel(
 
       // Lo obligatorio depende de lo que se vino a hacer; se decide mas
       // abajo, cuando ya se sabe si el articulo esta en la tienda.
-      const price = toNumber(parsed.price);
+      const precioArchivo = toNumber(parsed.price);
+      const price = aContado(precioArchivo);
       const traePrecio = price !== null;
       if (tocaPrecios && price !== null && price <= 0)
         errors.push("precio en cero");
 
-      const salePrice = toNumber(parsed.salePrice);
+      const salePrice = aContado(toNumber(parsed.salePrice));
       if (salePrice !== null && price !== null && salePrice >= price)
         errors.push("oferta >= precio");
 
@@ -460,6 +494,9 @@ export async function previewExcel(
         codigoSistema: parsed.codigoSistema != null ? String(parsed.codigoSistema).trim() || null : null,
         __precioAnterior: null,
         __stockAnterior: null,
+        __precioArchivo: precioArchivo,
+        __precioUnPago:
+          price !== null ? precioVitrina(Math.round(price), recargo) : null,
         __traePrecio: traePrecio,
         __traeStock: traeStock,
         __puedeCrearse: title !== "" && price !== null && price > 0,
@@ -513,6 +550,8 @@ export async function previewExcel(
       rows: normalized,
       delSistema,
       local: suc?.nombre,
+      recargoUnPago: recargo,
+      precioEs,
       stats: {
         total: normalized.length,
         valid: valid.length,

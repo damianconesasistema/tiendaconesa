@@ -16,6 +16,8 @@ import {
   Tag,
   Boxes,
   SkipForward,
+  Wallet,
+  CreditCard,
 } from "lucide-react";
 import {
   previewExcel,
@@ -24,6 +26,7 @@ import {
   type ParseResult,
   type ImportResult,
   type ModoImport,
+  type PrecioDelArchivo,
 } from "@/app/admin/productos/importar/actions";
 import { formatPrice } from "@/lib/order";
 
@@ -40,6 +43,10 @@ export function ImportExcelFlow() {
   // completa es lo esperado; en una lista de precios, un codigo que no esta
   // casi siempre es algo que no vendemos.
   const [altas, setAltas] = useState(true);
+  // Si la columna del archivo es el precio de contado o el de 1 pago. La
+  // tienda guarda el de contado; si el archivo trae el de 1 pago hay que
+  // sacarle el recargo antes de guardarlo.
+  const [precioEs, setPrecioEs] = useState<PrecioDelArchivo>("contado");
   const [filename, setFilename] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
@@ -49,7 +56,7 @@ export function ImportExcelFlow() {
     startTransition(async () => {
       const fd = new FormData();
       fd.append("file", file);
-      const r = await previewExcel(fd, modo);
+      const r = await previewExcel(fd, modo, precioEs);
       setParse(r);
       if (r.ok) setStage("preview");
     });
@@ -201,6 +208,14 @@ export function ImportExcelFlow() {
             Vas a cambiar {queCambia}
             {parse.local ? ` en ${parse.local}` : ""}
           </div>
+          {parse.precioEs === "unpago" && (
+            <p className="mt-2 rounded-lg bg-white/70 p-3 text-sm">
+              La columna del archivo es el <strong>precio de 1 pago</strong>, así
+              que le saqué el recargo de {parse.recargoUnPago}% y guardo el de
+              contado. Mirá la columna “1 pago” de la tabla: tiene que dar
+              parecido a lo que dice tu Excel.
+            </p>
+          )}
           <p className="mt-1 text-sm text-[var(--muted)]">
             {modo === "precios" &&
               "Precio y oferta. El stock, el título y la categoría no se tocan."}
@@ -401,6 +416,7 @@ export function ImportExcelFlow() {
                 <th className="px-4 py-2">Cat.</th>
                 <th className={`px-4 py-2 text-right${tocaPrecios ? "" : " opacity-40"}`}>Precio</th>
                 <th className={`px-4 py-2 text-right${tocaPrecios ? "" : " opacity-40"}`}>Antes</th>
+                <th className={`px-4 py-2 text-right${tocaPrecios ? "" : " opacity-40"}`}>1 pago</th>
                 <th className={`px-4 py-2 text-right${tocaPrecios ? "" : " opacity-40"}`}>Oferta</th>
                 <th className={`px-4 py-2 text-right${tocaStock ? "" : " opacity-40"}`}>Stock</th>
                 <th className={`px-4 py-2 text-right${tocaStock ? "" : " opacity-40"}`}>Antes</th>
@@ -456,6 +472,35 @@ export function ImportExcelFlow() {
             onClick={() => elegirModo("ambos")}
           />
         </div>
+        {/* De que precio habla el archivo. La tienda guarda el de contado y
+            le suma el recargo para mostrar el de 1 pago, asi que cargar una
+            lista de 1 pago como si fuera contado deja todo un 11% mas caro
+            de lo que se quiso poner. No se puede adivinar: las listas de
+            proveedor vienen de las dos formas. */}
+        {tocaPrecios && (
+          <div className="mt-6 border-t border-[var(--border)] pt-5">
+            <h3 className="font-display text-sm font-black uppercase tracking-wider">
+              ¿Qué precio trae la columna?
+            </h3>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <OpcionModo
+                icon={Wallet}
+                titulo="Contado"
+                detalle="Efectivo o transferencia. Es el que la tienda guarda y el que le queda al negocio."
+                activo={precioEs === "contado"}
+                onClick={() => setPrecioEs("contado")}
+              />
+              <OpcionModo
+                icon={CreditCard}
+                titulo="Precio de 1 pago"
+                detalle="El que muestra la tienda con tarjeta. Le saco el recargo para guardar el de contado."
+                activo={precioEs === "unpago"}
+                onClick={() => setPrecioEs("unpago")}
+              />
+            </div>
+          </div>
+        )}
+
         <p className="mt-4 text-xs text-[var(--muted)]">
           El archivo necesita la columna del código y la de{" "}
           {modo === "stock"
@@ -642,6 +687,11 @@ function PreviewRow({
           se ve de un vistazo. */}
       <td className={`px-4 py-2 text-right text-xs text-[var(--muted)]${gP}`}>
         {r.__precioAnterior !== null ? formatPrice(r.__precioAnterior) : "—"}
+      </td>
+      {/* Lo que va a mostrar la tienda. Es la columna que se compara contra
+          una lista de 1 pago, sin tener que hacer la cuenta a mano. */}
+      <td className={`px-4 py-2 text-right text-xs${gP}`}>
+        {r.__precioUnPago !== null ? formatPrice(r.__precioUnPago) : "—"}
       </td>
       <td className={`px-4 py-2 text-right text-xs${gP}`}>
         {r.salePrice ? formatPrice(r.salePrice) : "—"}
