@@ -2,7 +2,11 @@
 # Publica los cambios compilando en Cloud Shell y mandando al servidor solo
 # el resultado ya hecho.
 #
-#   bash publicar.sh
+#   curl -fsSL <url-de-este-archivo> -o publicar.sh && bash publicar.sh
+#
+# Bajarlo y DESPUES correrlo, no "curl | bash": asi el script conserva el
+# teclado y, si algo pregunta, lo pregunta de verdad en vez de comerse las
+# lineas que le faltaban.
 #
 # Por que: la e2-micro del nivel gratuito tiene un cuarto de procesador y no
 # llega a compilar Next.js. La alternativa era agrandarla cada vez
@@ -32,8 +36,14 @@ PROYECTO=${PROYECTO:-project-a811114e-91a9-4933-b92}
 
 gcloud config set project "$PROYECTO" --quiet >/dev/null 2>&1 || true
 
+# El </dev/null no es adorno. Si esto se corre con "curl ... | bash", lo que
+# el script tiene como teclado ES EL PROPIO SCRIPT. La primera conexion a la
+# maquina genera una llave y pregunta; esa pregunta se come las lineas que
+# faltaban y el script termina mudo, a mitad de camino y sin publicar nada.
+# Paso el 31/10: llegaba a "2/5 Variables publicas" y volvia al prompt.
 en_la_vm() {
-  gcloud compute ssh "$VM" --zone "$ZONA" --project "$PROYECTO" --quiet --command "$1"
+  gcloud compute ssh "$VM" --zone "$ZONA" --project "$PROYECTO" --quiet \
+    --command "$1" </dev/null
 }
 
 echo "==> 1/5 Codigo"
@@ -55,9 +65,17 @@ echo "==> 2/5 Variables publicas"
 # que ser las mismas que usa el servidor o la tienda sale con los datos de
 # otro lado (Analytics, pixel, CUIT). No son secretas: se ven en la pagina.
 en_la_vm 'sudo grep -E "^(NEXT_PUBLIC_|NODE_ENV=)" /etc/conesa.env' > /tmp/publicas.env
+# Sin estas variables la tienda compila igual, pero sale con el CUIT, el
+# pixel y Analytics vacios. Mejor frenar aca que publicarla asi.
+if [ ! -s /tmp/publicas.env ]; then
+  echo "No pude leer las variables del servidor. No sigo: la tienda saldria"
+  echo "sin CUIT ni Analytics. Probar la conexion a mano con:"
+  echo "  gcloud compute ssh $VM --zone $ZONA --project $PROYECTO"
+  exit 1
+fi
 set -a; . /tmp/publicas.env; set +a
 rm -f /tmp/publicas.env
-echo "    $(grep -c . <<<"$(env | grep ^NEXT_PUBLIC_)") variables tomadas del servidor"
+echo "    $(env | grep -c ^NEXT_PUBLIC_) variables tomadas del servidor"
 
 echo "==> 3/5 Dependencias"
 npm ci --include=dev --no-audit --fund=false >/dev/null
