@@ -484,6 +484,23 @@ export function ProductsTable({
         </div>
       )}
 
+      {/* Que es cada numero. Hizo falta: "Precio" y "Oferta" son los dos de
+          transferencia y el que ve el cliente como precio no es ninguno de
+          los dos, es la cuenta del medio. Sin esto hay que deducirlo. */}
+      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-xs text-[var(--muted)]">
+        <span className="font-bold uppercase tracking-wider">Los precios</span>
+        <span>
+          <strong className="text-foreground">Precio</strong> y{" "}
+          <strong className="text-foreground">Oferta</strong> son de
+          transferencia. Si hay oferta, el precio sale tachado.
+        </span>
+        <span>
+          <strong className="text-foreground">Lista 2 · 1 pago</strong> es lo
+          que paga el cliente con tarjeta, y tiene que dar igual que la Lista 2
+          de GBP.
+        </span>
+      </div>
+
       <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
         <table className="w-full min-w-[58rem] table-auto">
           <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
@@ -505,11 +522,14 @@ export function ProductsTable({
               <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[30%] min-w-[14rem] md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] md:bg-[var(--surface)]" />
               <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
               <SortHeader label="Marca" href={sortHref("brand")} active={sort === "brand"} dir={dir} className="hidden lg:table-cell" />
-              <SortHeader label="Tachado" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
-              <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
-                1 pago
+              <SortHeader label="Precio" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
+              {/* No se ordena por esta: no es una columna de la base, es una
+                  cuenta. El ancho minimo y el nowrap no son adorno: sin
+                  ellos el titulo se monta sobre el de al lado. */}
+              <th className="min-w-[7rem] whitespace-nowrap px-2 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                Lista 2 · 1 pago
               </th>
-              <SortHeader label="Transferencia" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
+              <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
               <SortHeader label="Stock" href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
               <SortHeader label="Visitas" href={sortHref("views")} active={sort === "views"} dir={dir} align="right" className="hidden sm:table-cell" />
               <SortHeader label="Estado" href={sortHref("estado")} active={sort === "estado"} dir={dir} align="center" />
@@ -616,7 +636,7 @@ export function ProductsTable({
                   {/* El unico que ve el cliente como precio. No se edita:
                       sale de la transferencia mas el recargo, y escribirlo
                       a mano crearia dos fuentes para el mismo numero. */}
-                  <td className="px-2 py-3 text-right tabular-nums font-semibold">
+                  <td className="whitespace-nowrap px-2 py-3 text-right font-semibold tabular-nums">
                     {formatPrice(
                       precioVitrina(p.salePrice ?? p.price, recargoUnPago),
                     )}
@@ -629,6 +649,7 @@ export function ProductsTable({
                       allowNull
                       disabled={p.locked}
                     />
+
                   </td>
                   <td className="px-2 py-3 text-right">
                     <InlineNumber itemId={p.itemId} field="stock" initial={p.stock} disabled={p.locked} />
