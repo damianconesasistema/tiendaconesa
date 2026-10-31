@@ -64,15 +64,13 @@ FROM (
     id,
     replace(regexp_replace("itemId", '^COMBO-[A-Za-z]+-', ''), '-', '+') AS nuevo
   FROM "Product"
-  WHERE "itemId" ~ '^COMBO-[A-Za-z]+-([0-9]+-)*[0-9]+
-
+  WHERE "itemId" ~ '^COMBO-[A-Za-z]+-([0-9]+-)*[0-9]+$'
 ) n
 WHERE p.id = n.id
   AND NOT EXISTS (SELECT 1 FROM "Product" o WHERE o."itemId" = n.nuevo)
   AND (
     SELECT count(*) FROM "Product" q
-    WHERE q."itemId" ~ '^COMBO-[A-Za-z]+-([0-9]+-)*[0-9]+
-
+    WHERE q."itemId" ~ '^COMBO-[A-Za-z]+-([0-9]+-)*[0-9]+$'
       AND replace(regexp_replace(q."itemId", '^COMBO-[A-Za-z]+-', ''), '-', '+')
           = n.nuevo
   ) = 1;
