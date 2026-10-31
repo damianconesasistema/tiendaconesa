@@ -65,16 +65,9 @@ const RENOMBRADOS: Record<string, string> = {
   "9898+9815+9577": "9898+22100+9577",
 };
 
-export function codigoDeAhora(viejo: string): string | null {
-  const v = viejo.trim();
-
-  // Se buscan las dos formas: la que llego y la que tiene los espacios
-  // vueltos +. Un codigo de combo que viaja como parametro de una PAGINA
-  // llega con espacios (ver codigoDeLaUrl), asi que buscar solo el crudo
-  // dejaria afuera justo a los combos, que son los unicos de esta lista.
-  const aMano =
-    RENOMBRADOS[v.toUpperCase()] ??
-    RENOMBRADOS[v.replace(/ /g, "+").toUpperCase()];
+/** La traduccion de UNA forma concreta del codigo. */
+function traducir(v: string): string | null {
+  const aMano = RENOMBRADOS[v.toUpperCase()];
   if (aMano) return aMano;
 
   // Los combos primero: el patron completo, no el numero de atras. Mirar solo
@@ -89,4 +82,21 @@ export function codigoDeAhora(viejo: string): string | null {
 
   const simple = /^[A-Za-z]+-([0-9]+)$/.exec(v);
   return simple ? simple[1] : null;
+}
+
+export function codigoDeAhora(viejo: string): string | null {
+  // Se prueban TODAS las formas del codigo, no solo la que llego.
+  //
+  // El mismo codigo llega escrito distinto segun por donde entre: una ruta de
+  // /api lo entrega crudo (9898+9815+9577), una pagina lo entrega decodificado
+  // y con el + vuelto espacio, y a veces llega todavia con el %2B puesto.
+  // Buscar una sola forma hacia que el link viejo de un combo contestara "no
+  // existe" aunque la traduccion estuviera bien escrita: el 31/10 el codigo
+  // intermedio del combo Jade daba 404 por esto, mientras el de la foto
+  // -que es una ruta de /api, y recibe la forma cruda- andaba bien.
+  for (const forma of codigoDeLaUrl(viejo)) {
+    const nuevo = traducir(forma);
+    if (nuevo) return nuevo;
+  }
+  return null;
 }
