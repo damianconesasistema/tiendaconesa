@@ -919,7 +919,10 @@ export async function importExcel(
       }
       const g = await guardarComercial(
         [c.itemId],
-        { price: c.precio, salePrice: c.oferta },
+        // salePrice en null cuando no hay rebaja: con los dos numeros
+        // iguales la tienda mostraria un precio cruzado identico al que se
+        // paga, que no es una oferta sino ruido.
+        { price: c.precio, salePrice: c.oferta < c.precio ? c.oferta : null },
         { crearSiFalta: false },
       );
       if (g.guardados.length === 0) continue;
@@ -935,7 +938,7 @@ export async function importExcel(
               data: {
                 productId: p.id,
                 price: c.precio,
-                salePrice: c.oferta,
+                salePrice: c.oferta < c.precio ? c.oferta : null,
                 source: "excel",
                 note:
                   descCombo > 0

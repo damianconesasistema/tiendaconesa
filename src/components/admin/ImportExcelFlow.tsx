@@ -919,7 +919,12 @@ function FilaCombo({
   // vitrina el cliente ve el de 1 pago, asi que el tachado se muestra en esa
   // moneda: es el numero que va a estar cruzado en la pagina.
   const tachado = Math.round(c.precio * (1 + recargo / 100));
-  const hayTachado = tachado > c.unPagoAhora;
+  // Si hay tachado o no se decide con los numeros que se van a guardar, no
+  // con el de vitrina: ese se arma redondeando dos veces y puede quedar un
+  // peso por encima del real. Con la rebaja en 0 eso mostraba un tachado
+  // de 913.505 contra un precio de 913.504: un ahorro de un peso, que es
+  // peor que no mostrar nada.
+  const hayTachado = c.precio > c.oferta;
   const dif =
     c.unPagoAntes !== null && c.unPagoAntes > 0
       ? Math.round(((c.unPagoAhora - c.unPagoAntes) / c.unPagoAntes) * 100)
