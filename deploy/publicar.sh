@@ -25,8 +25,16 @@ VM=${VM:-conesa}
 ZONA=${ZONA:-us-central1-a}
 REPO=${REPO:-https://github.com/damianconesasistema/tiendaconesa.git}
 DIR=/opt/conesa
+# Cloud Shell arranca sin proyecto elegido y gcloud corta con "The required
+# property [project] is not currently set" a mitad de la publicacion, con el
+# codigo ya bajado. Por eso va escrito y no se da por sentado.
+PROYECTO=${PROYECTO:-project-a811114e-91a9-4933-b92}
 
-en_la_vm() { gcloud compute ssh "$VM" --zone "$ZONA" --quiet --command "$1"; }
+gcloud config set project "$PROYECTO" --quiet >/dev/null 2>&1 || true
+
+en_la_vm() {
+  gcloud compute ssh "$VM" --zone "$ZONA" --project "$PROYECTO" --quiet --command "$1"
+}
 
 echo "==> 1/5 Codigo"
 if [ ! -d "$DIR" ]; then
@@ -69,9 +77,9 @@ tar czf /tmp/next.tgz .next
 if [ "$LOCAL" != "$REMOTO" ]; then
   echo "    cambiaron las dependencias: tambien viajan"
   tar czf /tmp/mods.tgz node_modules
-  gcloud compute scp /tmp/mods.tgz "$VM":/tmp/ --zone "$ZONA" --quiet
+  gcloud compute scp /tmp/mods.tgz "$VM":/tmp/ --zone "$ZONA" --project "$PROYECTO" --quiet
 fi
-gcloud compute scp /tmp/next.tgz "$VM":/tmp/ --zone "$ZONA" --quiet
+gcloud compute scp /tmp/next.tgz "$VM":/tmp/ --zone "$ZONA" --project "$PROYECTO" --quiet
 
 en_la_vm "sudo bash -c '
   cd $DIR
