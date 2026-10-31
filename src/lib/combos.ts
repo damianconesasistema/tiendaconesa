@@ -20,7 +20,8 @@ import { precioVitrina } from "@/lib/precios";
 //
 // De ahi para abajo sale todo lo demas, porque la tienda guarda el precio de
 // contado (ver src/lib/precios.ts): el contado es un 10% menos que el de 1
-// pago, y las cuotas las calcula MercadoPago sobre el contado.
+// pago -solo por transferencia-, y las cuotas las calcula MercadoPago sobre
+// ese contado.
 
 /** Las piezas de un combo, leidas de su propio codigo.
  *

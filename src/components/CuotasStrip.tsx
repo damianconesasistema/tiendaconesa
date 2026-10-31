@@ -60,7 +60,7 @@ export function CuotasStrip() {
             <span className="animate-cuotas-blink">
               {datos!.cuotasMax} cuotas fijas
             </span>
-            {dcto > 0 && <span className="opacity-90"> · {dcto}% OFF efectivo</span>}
+            {dcto > 0 && <span className="opacity-90"> · {dcto}% OFF transferencia</span>}
           </span>
           {/* Desktop: el texto completo */}
           <span className="hidden text-sm sm:inline">
@@ -70,7 +70,7 @@ export function CuotasStrip() {
             {dcto > 0 && (
               <span className="opacity-90">
                 {" "}
-                · {dcto}% OFF en efectivo o transferencia
+                · {dcto}% OFF por transferencia
               </span>
             )}
           </span>

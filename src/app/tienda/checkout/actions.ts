@@ -49,7 +49,7 @@ export async function createOrder(
         return precioVitrina(contado, recargos.unPago);
       if (paymentMethod === "mp_cuotas")
         return precioCuotas(contado, plan ? plan.recargoPct : recargos.cuotas);
-      return contado; // efectivo / transferencia (WhatsApp)
+      return contado; // transferencia (WhatsApp)
     };
 
     const validItems = items
@@ -189,7 +189,7 @@ export async function createOrder(
             ? "MercadoPago · débito o 1 pago"
             : paymentMethod === "mp_cuotas"
               ? `MercadoPago · ${plan ? plan.cuotas : cuotasElegidas} cuotas`
-              : "A coordinar por WhatsApp (efectivo o transferencia)";
+              : "A coordinar por WhatsApp (transferencia)";
 
         const r = await mailVentaInterna({
           orderNumber: order.number,

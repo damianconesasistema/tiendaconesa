@@ -94,7 +94,7 @@ export function RecargosForm({
         </div>
         <div className="mt-2 space-y-1">
           <div className="flex justify-between">
-            <span>Efectivo o transferencia</span>
+            <span>Transferencia</span>
             <strong>{formatPrice(EJEMPLO)}</strong>
           </div>
           <div className="flex justify-between">

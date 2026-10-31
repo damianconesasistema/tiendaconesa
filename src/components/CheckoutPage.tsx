@@ -495,7 +495,7 @@ export function CheckoutPage({
                   active={payMethod === "whatsapp"}
                   onClick={() => setPayMethod("whatsapp")}
                   icon={MessageCircle}
-                  title="Efectivo o transferencia"
+                  title="Transferencia"
                   desc="Coordinás con nosotros por WhatsApp."
                   badge={`${dctoRealPct}% OFF`}
                 />
@@ -615,7 +615,7 @@ export function CheckoutPage({
                 {!hasUnpriced && payMethod === "whatsapp" && ahorroContado > 0 && (
                   <div className="flex justify-between text-emerald-700">
                     <span className="font-semibold">
-                      Descuento efectivo/transferencia ({dctoRealPct}%)
+                      Descuento por transferencia ({dctoRealPct}%)
                     </span>
                     <span className="font-bold">
                       −{formatPrice(ahorroContado)}
@@ -679,7 +679,7 @@ export function CheckoutPage({
                   ? `${planSel} cuotas fijas. Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda.`
                   : payMethod === "mp_1pago"
                     ? "Te llevamos al sitio seguro de MercadoPago: tus datos de tarjeta no pasan por nuestra tienda."
-                    : `Pagando en efectivo o por transferencia tenés ${dctoRealPct}% de descuento. Te abrimos WhatsApp con el pedido cargado para coordinar pago y entrega.`}
+                    : `Pagando por transferencia tenés ${dctoRealPct}% de descuento. Te abrimos WhatsApp con el pedido cargado para coordinar pago y entrega.`}
               </p>
             </div>
 

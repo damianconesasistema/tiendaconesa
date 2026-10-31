@@ -208,7 +208,7 @@ function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: numbe
             {/* Contado destacado en celeste */}
             {dctoPct > 0 && (
               <span className="mt-1 inline-flex w-fit items-center justify-center gap-1 rounded-full bg-sky-600 px-2.5 py-1 text-center text-[10px] font-black uppercase leading-[1.25] tracking-wider text-white">
-                {dctoPct}% OFF efectivo o transferencia
+                {dctoPct}% OFF por transferencia
               </span>
             )}
             {dctoPct > 0 && (

@@ -1,7 +1,8 @@
 // Cálculo de precios según la forma de pago.
 //
 // REGLA DE NEGOCIO
-// En la base guardamos SIEMPRE el precio de contado (efectivo/transferencia).
+// En la base guardamos SIEMPRE el precio de contado, que desde el 31/10/2026
+// es el de TRANSFERENCIA y solo ese: Damian saco el efectivo del descuento.
 // Ese es el que le queda neto al negocio. Los demás se derivan.
 //
 // POR QUÉ SE DIVIDE Y NO SE MULTIPLICA
@@ -12,7 +13,7 @@
 //
 // EFECTO BUSCADO
 // Con la vitrina en 111.111, el contado (100.000) es exactamente un 10% menos.
-// Por eso el cartel "10% de descuento en efectivo o transferencia" es
+// Por eso el cartel "10% de descuento por transferencia" es
 // literalmente cierto y no publicidad engañosa.
 
 /**

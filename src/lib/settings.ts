@@ -1,7 +1,7 @@
 // Configuracion de la tienda, editable desde el panel (tabla Setting).
 //
 // RECARGOS DE MERCADOPAGO
-// El precio que se muestra en la tienda es "efectivo o transferencia" mas un
+// El precio que se muestra en la tienda es el de transferencia mas un
 // recargo, porque MercadoPago cobra por cobrar y por financiar.
 //
 // DE DONDE SALEN LOS NUMEROS

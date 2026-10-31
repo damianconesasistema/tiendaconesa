@@ -13,7 +13,7 @@ export function CuotasBanner({
   variant = "hero",
 }: {
   cuotasMax: number;
-  /** Descuento real de pagar en efectivo/transferencia. */
+  /** Descuento real de pagar por transferencia. */
   dctoContadoPct?: number;
   variant?: "hero" | "full" | "strip";
 }) {
@@ -30,7 +30,7 @@ export function CuotasBanner({
           </span>
           {dctoContadoPct > 0 && (
             <span className="opacity-90">
-              · {dctoContadoPct}% OFF en efectivo o transferencia
+              · {dctoContadoPct}% OFF por transferencia
             </span>
           )}
         </span>
@@ -97,7 +97,7 @@ export function CuotasBanner({
                   {dctoContadoPct}% OFF
                 </div>
                 <div className="mt-1 text-sm font-bold uppercase tracking-wide">
-                  Efectivo o transferencia
+                  Por transferencia
                 </div>
               </div>
             </div>

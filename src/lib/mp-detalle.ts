@@ -87,7 +87,7 @@ export function nombreMedioDePago(paymentMethod: string | null): string {
   }
   if (paymentMethod === "tarjeta") return "Tarjeta (Payway)";
   if (paymentMethod === "efectivo_local") return "Efectivo en el local";
-  if (paymentMethod === "whatsapp") return "Efectivo o transferencia · a coordinar";
+  if (paymentMethod === "whatsapp") return "Transferencia · a coordinar";
   return paymentMethod;
 }
 

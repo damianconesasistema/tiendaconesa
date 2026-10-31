@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.55.0";
+export const APP_VERSION = "V.0.56.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,18 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.56.0",
+    date: "2026-10-31",
+    changes: [
+      "EL DESCUENTO ES SOLO POR TRANSFERENCIA: en toda la tienda los carteles decían \"10% OFF efectivo o transferencia\". Ahora dicen solo transferencia, y lo mismo en el checkout, en los legales y en el texto que ve Google. El efectivo ya no entra en el descuento.",
+      "PRECIOS DESDE EL EXCEL DE GBP (Productos → Precios y stock): subís el archivo tal cual sale del sistema y la tienda hace sola el cambio. Elegís si tocás precios, stock o las dos cosas, y antes de aplicar ves en pantalla qué cambia y qué no.",
+      "La Lista 2 de GBP ES el precio de 1 pago (débito o crédito en una cuota). El contado sale 10% menos y las cuotas las calcula MercadoPago sobre ese contado.",
+      "COMBOS AL DÍA SOLOS: el precio de un combo es la suma de sus piezas, así que cuando subís la lista se recalcula solo. Si falta alguna pieza en el archivo, ese combo no se toca y te avisa.",
+      "CÓDIGOS COMO EN GBP: los artículos pasan a ser el número pelado (HEINEKEN-8354 → 8354) y los combos, las piezas sumadas (3440+3443+3442). Los links viejos que andan por WhatsApp e Instagram siguen funcionando.",
+      "Las marcas aparecen de la A a la Z en el filtro del panel, en el de la tienda y en los selectores de la ficha.",
+    ],
+  },
   {
     version: "V.0.24.0",
     date: "2026-10-07",

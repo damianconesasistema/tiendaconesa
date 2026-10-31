@@ -53,9 +53,8 @@ export default async function LegalesPage() {
             <p>
               Los precios están expresados en <strong>pesos argentinos</strong> e
               incluyen IVA. El precio destacado de cada publicación corresponde al
-              pago con tarjeta de débito o crédito en un pago. El precio de
-              efectivo o transferencia, menor, figura aclarado en la misma
-              publicación.
+              pago con tarjeta de débito o crédito en un pago. El precio por
+              transferencia, menor, figura aclarado en la misma publicación.
             </p>
             <p>
               Los pagos con tarjeta se procesan a través de MercadoPago. Nosotros

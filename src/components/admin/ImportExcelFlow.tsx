@@ -605,7 +605,7 @@ export function ImportExcelFlow() {
               <OpcionModo
                 icon={Wallet}
                 titulo="Contado"
-                detalle="Efectivo o transferencia. Se guarda tal cual, sin cuentas."
+                detalle="Transferencia. Se guarda tal cual, sin cuentas."
                 activo={precioEs === "contado"}
                 onClick={() => setPrecioEs("contado")}
               />

@@ -45,7 +45,7 @@ export type ModoImport = "precios" | "stock" | "ambos";
 // 31/10/2026, despues de corregir que a la Lista 2 habia que descontarle un
 // 12%; no hay que descontarle nada):
 //   Lista 2 de GBP  =  precio de 1 pago (debito o credito en un pago)
-//            -10%   ->  contado (efectivo o transferencia)
+//            -10%   ->  contado (transferencia)
 // Las cuotas las calcula MercadoPago sobre el contado, que es lo que al
 // negocio le queda neto en cualquier forma de pago.
 export type PrecioDelArchivo = "lista2" | "unpago" | "contado";

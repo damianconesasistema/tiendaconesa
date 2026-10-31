@@ -369,7 +369,7 @@ export function ProductDetail({
                   que el cartel es literalmente cierto. */}
               <div className="mt-3 rounded-xl border-2 border-sky-300 bg-sky-50 p-3">
                 <div className="inline-flex items-center rounded-full bg-sky-600 px-2.5 py-1 font-display text-[11px] font-black uppercase tracking-wider text-white">
-                  {dctoPct}% OFF en efectivo o transferencia
+                  {dctoPct}% OFF por transferencia
                 </div>
                 <div className="mt-1.5 font-display text-3xl font-black text-sky-700">
                   {formatPrice(contado)}

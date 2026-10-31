@@ -41,7 +41,7 @@ export async function generateMetadata(
     : `${base}/categories/${p.category}.jpg`;
 
   const titulo = `${p.title} · Sanitarios Conesa`;
-  const desc = `${formatPrice(vitrina)} · ${formatPrice(contado)} en efectivo o transferencia. Retiralo en el local o te lo enviamos a tu domicilio.`;
+  const desc = `${formatPrice(vitrina)} · ${formatPrice(contado)} por transferencia. Retiralo en el local o te lo enviamos a tu domicilio.`;
 
   return {
     title: p.title,
