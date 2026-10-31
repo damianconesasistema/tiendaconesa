@@ -117,6 +117,13 @@ jobs:
             # quedo viejo, el codigo le pide a la base un campo que su cliente
             # no conoce y la consulta falla sin decir nada.
             npx prisma generate >/dev/null
+            # La preparacion de la base ANTES de reiniciar, con la tienda
+            # todavia atendiendo con la version vieja. Si corriera recien al
+            # arrancar -que es lo que hacia-, cada migracion sumaria su
+            # tiempo al corte. Si algo falla aca, el restart no pasa y la
+            # tienda se queda con lo viejo, que es lo que se quiere.
+            set -a; . /etc/conesa.env; set +a
+            node prisma/pre-start.mjs
             systemctl restart conesa
           '"
 

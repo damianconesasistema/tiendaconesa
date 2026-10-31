@@ -56,18 +56,33 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   // La rebaja por llevarse el combo armado. Es OTRA cosa que la de la
   // lista: esta es la unica que le deja precio tachado al combo.
   const [descCombo, setDescCombo] = useState<string>("");
+  // El descuento que se quiere MOSTRAR. No baja el precio: infla el
+  // tachado hasta que la cuenta de ese numero. Es cartel, no rebaja.
+  const [mostrarDcto, setMostrarDcto] = useState<string>("");
   const [archivo, setArchivo] = useState<File | null>(null);
   const [filename, setFilename] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleFile(file: File, descPct?: number, descComboPct?: number) {
+  function handleFile(
+    file: File,
+    descPct?: number,
+    descComboPct?: number,
+    mostrarPct?: number,
+  ) {
     setFilename(file.name);
     setArchivo(file);
     startTransition(async () => {
       const fd = new FormData();
       fd.append("file", file);
-      const r = await previewExcel(fd, modo, precioEs, descPct, descComboPct);
+      const r = await previewExcel(
+        fd,
+        modo,
+        precioEs,
+        descPct,
+        descComboPct,
+        mostrarPct,
+      );
       setParse(r);
       if (r.ok) {
         setStage("preview");
@@ -75,6 +90,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
           setDescuento(String(r.descuentoLista));
         if (r.descuentoCombo !== undefined)
           setDescCombo(String(r.descuentoCombo));
+        if (r.mostrarDcto !== undefined) setMostrarDcto(String(r.mostrarDcto));
       }
     });
   }
@@ -88,8 +104,10 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   function recalcular() {
     const lista = pct(descuento);
     const combo = pct(descCombo);
-    if (!archivo || lista === null || combo === null) return;
-    handleFile(archivo, lista, combo);
+    const mostrar = pct(mostrarDcto);
+    if (!archivo || lista === null || combo === null || mostrar === null)
+      return;
+    handleFile(archivo, lista, combo, mostrar);
   }
 
   function doImport() {
@@ -104,6 +122,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
         // El 0 es un valor valido (combo sin rebaja), asi que no se puede
         // usar || : convertiria el 0 en undefined y se guardaria el de antes.
         descuentoCombo: pct(descCombo) ?? undefined,
+        mostrarDcto: pct(mostrarDcto) ?? undefined,
       });
       setImportResult(r);
       if (r.ok) setStage("done");
@@ -521,16 +540,36 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
                 Rehacer cuenta
               </button>
               <span className="text-[var(--muted)]">
-                {pct(descCombo) ? (
+                baja el precio de verdad · el tachado es lo que cuestan las
+                piezas sueltas
+              </span>
+            </div>
+
+            {/* El otro numero. Va separado del de arriba a proposito: uno
+                baja el precio y el otro es un cartel, y si estuvieran
+                juntos dentro de un mes nadie sabria cual era cual. */}
+            <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border)] bg-white px-6 py-3 text-sm">
+              <span className="font-semibold">Descuento a mostrar:</span>
+              <input
+                type="number"
+                min={0}
+                max={80}
+                step={1}
+                value={mostrarDcto}
+                placeholder="0"
+                onChange={(e) => setMostrarDcto(e.target.value)}
+                className="w-16 rounded-lg border border-[var(--border)] px-2 py-1 text-right"
+              />
+              <span>%</span>
+              <span className="text-[var(--muted)]">
+                {pct(mostrarDcto) ? (
                   <>
-                    tachado = lo que cuestan las piezas sueltas · precio real ={" "}
-                    {pct(descCombo)}% menos
+                    <strong className="text-amber-700">no baja el precio</strong>:
+                    infla el tachado para que el cartel diga{" "}
+                    {pct(mostrarDcto)}%. El cliente paga lo mismo.
                   </>
                 ) : (
-                  <>
-                    en 0 el combo sale igual que comprar las piezas una por
-                    una, asi que no lleva precio tachado
-                  </>
+                  <>en 0 el tachado es el de arriba, sin inflar</>
                 )}
               </span>
             </div>
