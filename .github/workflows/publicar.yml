@@ -61,11 +61,13 @@ jobs:
           git -C /opt/conesa checkout -q "${{ github.sha }}"
           git -C /opt/conesa log --oneline -1
 
+      # Sin cache de npm: el cache busca el package-lock DENTRO de la carpeta
+      # del runner y el nuestro esta en /opt/conesa, que es a proposito (ver
+      # arriba). Pedirselo igual hace fallar el paso entero. Bajar las
+      # dependencias de nuevo cuesta menos de un minuto.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: /opt/conesa/package-lock.json
+          node-version: 22
 
       - name: Dependencias
         working-directory: /opt/conesa
