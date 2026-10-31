@@ -5,6 +5,7 @@ import type { CartItem } from "@/lib/cart";
 import type { Customer } from "@/lib/customer";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { precioVitrina, precioCuotas } from "@/lib/precios";
+import { codigoDeAhora } from "@/lib/codigo-viejo";
 import { opcionValida } from "@/lib/etiquetas";
 
 type Result =
@@ -28,11 +29,29 @@ export async function createOrder(
 
   try {
     // Validar productos y precios contra la DB (no confiar en client)
+    //
+    // El carrito vive en el navegador del cliente y guarda el codigo del
+    // articulo. La migracion 25 renombro todos los codigos, asi que el que
+    // tenia algo en el carrito de antes lo tiene guardado con el codigo
+    // viejo: si se busca solo por ese, no se encuentra, el item se descarta
+    // y la compra se pierde sin que nadie se entere. Por eso se busca
+    // tambien por el codigo nuevo.
     const itemIds = items.map((i) => i.itemId);
+    const equivalente = new Map<string, string>();
+    for (const id of itemIds) {
+      const nuevo = codigoDeAhora(id);
+      if (nuevo) equivalente.set(id, nuevo);
+    }
     const dbProducts = await prisma.product.findMany({
-      where: { itemId: { in: itemIds } },
+      where: {
+        itemId: { in: [...new Set([...itemIds, ...equivalente.values()])] },
+      },
     });
-    const byItemId = new Map(dbProducts.map((p) => [p.itemId, p]));
+    const porCodigo = new Map(dbProducts.map((p) => [p.itemId, p]));
+    const byItemId = {
+      get: (id: string) =>
+        porCodigo.get(id) ?? porCodigo.get(equivalente.get(id) ?? ""),
+    };
 
     // El precio guardado es el de CONTADO. Según cómo pague, se le aplica la
     // comisión correspondiente. Se calcula acá (server) y no se confía en lo

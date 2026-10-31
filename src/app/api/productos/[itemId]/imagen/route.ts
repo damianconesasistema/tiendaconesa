@@ -2,6 +2,7 @@
 // Sirve la imagen del producto guardada en la DB (tabla ProductImage).
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { codigoDeAhora, codigoDeLaUrl } from "@/lib/codigo-viejo";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,17 @@ export async function GET(
 ) {
   const { itemId } = await params;
 
-  const product = await prisma.product.findUnique({
-    where: { itemId },
+  // Se prueban todas las formas del mismo codigo, y despues la traduccion
+  // del codigo viejo. Hace falta por el carrito: vive en el navegador del
+  // cliente y guarda el codigo que tenia el articulo cuando lo agrego. La
+  // migracion 25 los renombro a todos, asi que el que tenia algo en el
+  // carrito de antes ve el casillero de la foto vacio.
+  const posibles = codigoDeLaUrl(itemId);
+  const nuevo = codigoDeAhora(itemId);
+  if (nuevo) posibles.push(nuevo);
+
+  const product = await prisma.product.findFirst({
+    where: { itemId: { in: posibles } },
     select: { id: true },
   });
   if (!product) {
