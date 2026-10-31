@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { formatPrice } from "@/lib/order";
+import { precioVitrina } from "@/lib/precios";
 import {
   Tag,
   Check,
@@ -80,6 +82,7 @@ export function ProductsTable({
   marcas = [],
   sort = "",
   dir = "desc",
+  recargoUnPago = 0,
 }: {
   products: Product[];
   total?: number;
@@ -90,6 +93,9 @@ export function ProductsTable({
   marcas?: readonly { id: string; name: string }[];
   sort?: string;
   dir?: "asc" | "desc";
+  /** Para mostrar el precio de 1 pago, que es el que ve el cliente.
+   *  La tabla guarda el de transferencia y de ahi sale todo lo demas. */
+  recargoUnPago?: number;
 }) {
   const router = useRouter();
   // La ficha recibe por donde volver; si no hay filtros, es la lista pelada.
@@ -499,8 +505,11 @@ export function ProductsTable({
               <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[30%] min-w-[14rem] md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] md:bg-[var(--surface)]" />
               <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
               <SortHeader label="Marca" href={sortHref("brand")} active={sort === "brand"} dir={dir} className="hidden lg:table-cell" />
-              <SortHeader label="Precio base" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
-              <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
+              <SortHeader label="Tachado" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
+              <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                1 pago
+              </th>
+              <SortHeader label="Transferencia" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
               <SortHeader label="Stock" href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
               <SortHeader label="Visitas" href={sortHref("views")} active={sort === "views"} dir={dir} align="right" className="hidden sm:table-cell" />
               <SortHeader label="Estado" href={sortHref("estado")} active={sort === "estado"} dir={dir} align="center" />
@@ -603,6 +612,14 @@ export function ProductsTable({
                   </td>
                   <td className="px-2 py-3 text-right">
                     <InlineNumber itemId={p.itemId} field="price" initial={p.price} disabled={p.locked} />
+                  </td>
+                  {/* El unico que ve el cliente como precio. No se edita:
+                      sale de la transferencia mas el recargo, y escribirlo
+                      a mano crearia dos fuentes para el mismo numero. */}
+                  <td className="px-2 py-3 text-right tabular-nums font-semibold">
+                    {formatPrice(
+                      precioVitrina(p.salePrice ?? p.price, recargoUnPago),
+                    )}
                   </td>
                   <td className="px-2 py-3 text-right">
                     <InlineNumber

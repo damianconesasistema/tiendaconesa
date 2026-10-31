@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { ProductsFilters } from "@/components/admin/ProductsFilters";
 import { MarcasAuto } from "@/components/admin/MarcasAuto";
 import { getMarcas } from "@/lib/marcas-server";
+import { getRecargosMp } from "@/lib/settings";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 import { sucursalDelPanel, tituloConSucursal } from "@/lib/sucursal-panel";
 import { ElegirSucursal } from "@/components/admin/ElegirSucursal";
@@ -337,6 +338,7 @@ export default async function ProductosAdmin({
           filter={{ q, cat, marca, filter }}
           sort={sort}
           dir={dir}
+          recargoUnPago={(await getRecargosMp()).unPago}
         />
       )}
 
