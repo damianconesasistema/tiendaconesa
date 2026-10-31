@@ -34,15 +34,18 @@ export type ModoImport = "precios" | "stock" | "ambos";
 // deriva los demas. Lo que trae el archivo cambia segun de donde salga, y
 // confundirse mueve todos los precios de la tienda sin que nada avise:
 //
-//   lista2   la Lista 2 del sistema, tal cual sale de GBP. Se le hace el
-//            descuento y eso da el precio de 1 pago.
 //   unpago   la columna YA es el precio de 1 pago: no hay descuento que
 //            hacerle, solo sacarle el recargo para guardar el contado.
+//            ES EL CASO DE GBP y por eso es el que viene elegido.
+//   lista2   una lista de proveedor a la que hay que bajarle un % antes de
+//            publicarla. Ese % da el precio de 1 pago.
 //   contado  la columna ya es el precio de contado: se guarda tal cual.
 //
-// La cadena completa, que es la regla del negocio:
-//   Lista 2  -12%  ->  precio de 1 pago (debito o credito en un pago)
-//                  -10%  ->  contado (efectivo o transferencia)
+// La cadena completa, que es la regla del negocio (la fijo Damian el
+// 31/10/2026, despues de corregir que a la Lista 2 habia que descontarle un
+// 12%; no hay que descontarle nada):
+//   Lista 2 de GBP  =  precio de 1 pago (debito o credito en un pago)
+//            -10%   ->  contado (efectivo o transferencia)
 // Las cuotas las calcula MercadoPago sobre el contado, que es lo que al
 // negocio le queda neto en cualquier forma de pago.
 export type PrecioDelArchivo = "lista2" | "unpago" | "contado";
@@ -310,7 +313,7 @@ function preciosParaCombos(filas: ParsedRow[]): Map<string, number> {
 export async function previewExcel(
   formData: FormData,
   modo: ModoImport = "ambos",
-  precioEs: PrecioDelArchivo = "lista2",
+  precioEs: PrecioDelArchivo = "unpago",
   descuentoLista?: number,
 ): Promise<ParseResult> {
   const session = await getAdminSession();

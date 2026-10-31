@@ -9,9 +9,14 @@ import { precioVitrina } from "@/lib/precios";
 // vez de ponerlo a mano y que quede viejo.
 //
 // LA REGLA (la puso Damian): el precio de 1 pago del combo es la suma del
-// precio de 1 pago de sus piezas. Y el de cada pieza es su Lista 2 del
-// sistema menos el 12%. El descuento esta una sola vez, en las piezas:
-// sumar y volver a descontar seria descontar dos veces.
+// precio de 1 pago de sus piezas, que en un archivo de GBP es su Lista 2.
+// Sin ningun descuento encima.
+//
+// OJO CON EL TACHADO: si las piezas se venden sueltas a ese mismo precio,
+// el combo sale igual que comprarlas una por una y no hay ahorro que
+// mostrar. Ahi el tachado queda igual que el precio real, que es lo honesto.
+// Para que el combo muestre una rebaja hay que darsela de verdad, con
+// descuentoPct: es una decision de negocio, no algo que se derive solo.
 //
 // De ahi para abajo sale todo lo demas, porque la tienda guarda el precio de
 // contado (ver src/lib/precios.ts): el contado es un 10% menos que el de 1
@@ -19,14 +24,16 @@ import { precioVitrina } from "@/lib/precios";
 
 /** Las piezas de un combo, leidas de su propio codigo.
  *
- *  Devuelve null si no es un combo. Hace falta al menos un guion: un codigo
- *  de un solo numero es un articulo suelto.
+ *  Devuelve null si no es un combo. Hace falta al menos un separador: un
+ *  codigo de un solo numero es un articulo suelto.
  *
- *  Entiende las dos formas, porque los links y los archivos viejos siguen
- *  dando vueltas: COMBO-BOSCA-3672-3688 (antes de la migracion 25) y
- *  3672-3688 (ahora). */
+ *  Entiende las tres formas, porque los links viejos siguen dando vueltas:
+ *  3672+3688 (la de ahora), COMBO-BOSCA-3672-3688 (antes de la migracion
+ *  25) y 3672-3688 (el separador que se penso en el medio). */
 export function piezasDelCombo(itemId: string): string[] | null {
   const v = itemId.trim();
+  if (/^(?:[0-9]+\+)+[0-9]+$/.test(v)) return v.split("+");
+
   const viejo = /^COMBO-[A-Za-z]+-((?:[0-9]+-)+[0-9]+)$/i.exec(v);
   const cuerpo = viejo
     ? viejo[1]
@@ -85,10 +92,11 @@ export async function calcularCombos(opciones: {
   const descuentoPct = opciones.descuentoPct ?? 0;
   if (precios1Pago.size === 0) return [];
 
-  // Los combos tienen guion en el codigo. Se filtra fino en JS porque el
-  // patron no se puede expresar en la consulta, y son pocos.
+  // Los combos llevan + o - en el codigo, segun de cuando sean. Se filtra
+  // fino en JS porque el patron no se puede expresar en la consulta, y son
+  // pocos; aca solo se descartan los codigos de un numero solo.
   const candidatos = await prisma.product.findMany({
-    where: { itemId: { contains: "-" } },
+    where: { OR: [{ itemId: { contains: "+" } }, { itemId: { contains: "-" } }] },
     select: { id: true, itemId: true, title: true, price: true, salePrice: true },
   });
 

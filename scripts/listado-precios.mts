@@ -8,12 +8,13 @@
 // cuenta antes de aplicar nada.
 //
 // LA CADENA (la regla del negocio)
-//   Lista 2  -desc%  ->  precio de 1 pago (debito o credito en un pago)
-//                  -10%  ->  contado (efectivo o transferencia)
+//   Lista 2 de GBP  =  precio de 1 pago (debito o credito en un pago)
+//            -10%   ->  contado (efectivo o transferencia)
 //   Las cuotas las calcula MercadoPago sobre el contado.
 //
-// El descuento es un argumento y no una constante porque es LA decision del
-// negocio, no un dato tecnico: con 0 la Lista 2 ya es el precio de 1 pago.
+// A la Lista 2 de GBP no se le descuenta nada: por eso el descuento va en 0
+// salvo que se pida otra cosa. Queda como argumento para una lista de otro
+// proveedor que si lo necesite.
 //
 // Los combos no existen en el sistema: su precio de 1 pago es la suma del de
 // sus piezas, que ya vienen con el descuento hecho.
@@ -30,7 +31,7 @@ if (!entrada || !salida) {
   process.exit(1);
 }
 const BASE = urlArg ?? "https://traslasierra.conesa.com.ar";
-const DESCUENTO = descArg === undefined ? 12 : Number(descArg);
+const DESCUENTO = descArg === undefined ? 0 : Number(descArg);
 if (!Number.isFinite(DESCUENTO) || DESCUENTO < 0 || DESCUENTO > 90) {
   console.error("El descuento tiene que ser un numero entre 0 y 90.");
   process.exit(1);
@@ -195,20 +196,29 @@ const filasArt = lista.filas.map((f) => {
 
   const uno = unPagoDe(lista2);
   const contado = contadoDe(uno);
+  const contadoHoy = publicado ? (publicado.salePrice ?? publicado.price) : null;
+  const movio = contadoHoy !== null && contadoHoy !== contado;
   return {
     Código: codigo,
     Descripción: f.descripcion,
     "Lista 2": lista2,
     "1 pago": uno,
     Contado: contado,
+    "Contado HOY": contadoHoy ?? "—",
+    "Dif %":
+      contadoHoy !== null && contadoHoy > 0
+        ? Math.round(((contado - contadoHoy) / contadoHoy) * 100)
+        : "—",
     ...cuotasDe(contado),
     "¿Publicado suelto?": publicado ? publicado.itemId : "no",
     "Entra en el combo": enCombos.join(" · "),
-    "Qué pasa": publicado
-      ? "se le cambia el precio"
-      : enCombos.length
+    "Qué pasa": !publicado
+      ? enCombos.length
         ? "no esta publicado solo; su precio alimenta el combo"
-        : "no esta publicado ni entra en ningun combo",
+        : "no esta publicado ni entra en ningun combo"
+      : movio
+        ? "CAMBIA de precio"
+        : "mismo precio que hoy: no se mueve",
   };
 });
 
@@ -279,7 +289,7 @@ XLSX.utils.book_append_sheet(
 );
 XLSX.utils.book_append_sheet(
   libro,
-  hoja(filasArt, [10, 44, 12, 12, 12, 12, 12, 12, 12, 12, 20, 34, 46]),
+  hoja(filasArt, [10, 44, 12, 12, 12, 13, 8, 12, 12, 12, 12, 12, 20, 34, 46]),
   "Artículo por artículo",
 );
 

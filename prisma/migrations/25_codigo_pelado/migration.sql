@@ -47,23 +47,32 @@ WHERE p.id = n.id
   ) = 1;
 
 -- 3) Los combos. Tambien se les saca el prefijo, y quedan los numeros de las
---    piezas separados por guion: COMBO-BOSCA-3672-3688 -> 3672-3688. No
---    existen en el sistema como un codigo solo, asi que el codigo sigue
---    diciendo de que esta hecho el combo; lo que se va es la palabra COMBO y
---    la marca, que no agregan nada y obligan a leer de mas.
+--    piezas sumados: COMBO-BOSCA-3672-3688 -> 3672+3688. No existen en el
+--    sistema como un codigo solo, asi que el codigo sigue diciendo de que
+--    esta hecho el combo; lo que se va es la palabra COMBO y la marca, que
+--    no agregan nada y obligan a leer de mas.
+--
+--    El signo + y no un guion: lo pidio Damian y ademas se lee como lo que
+--    es, una suma de piezas, y no se confunde con el guion que separaba la
+--    marca del numero en los codigos viejos.
 --
 --    No se les completa el codigo del sistema, a proposito: no tienen uno.
 UPDATE "Product" p
 SET "itemId" = n.nuevo
 FROM (
-  SELECT id, regexp_replace("itemId", '^COMBO-[A-Za-z]+-', '') AS nuevo
+  SELECT
+    id,
+    replace(regexp_replace("itemId", '^COMBO-[A-Za-z]+-', ''), '-', '+') AS nuevo
   FROM "Product"
-  WHERE "itemId" ~ '^COMBO-[A-Za-z]+-([0-9]+-)*[0-9]+$'
+  WHERE "itemId" ~ '^COMBO-[A-Za-z]+-([0-9]+-)*[0-9]+
+
 ) n
 WHERE p.id = n.id
   AND NOT EXISTS (SELECT 1 FROM "Product" o WHERE o."itemId" = n.nuevo)
   AND (
     SELECT count(*) FROM "Product" q
-    WHERE q."itemId" ~ '^COMBO-[A-Za-z]+-([0-9]+-)*[0-9]+$'
-      AND regexp_replace(q."itemId", '^COMBO-[A-Za-z]+-', '') = n.nuevo
+    WHERE q."itemId" ~ '^COMBO-[A-Za-z]+-([0-9]+-)*[0-9]+
+
+      AND replace(regexp_replace(q."itemId", '^COMBO-[A-Za-z]+-', ''), '-', '+')
+          = n.nuevo
   ) = 1;

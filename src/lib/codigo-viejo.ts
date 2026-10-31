@@ -3,7 +3,7 @@
 // Hasta la migracion 25 los articulos se llamaban MARCA-numero
 // (HEINEKEN-8354) y los combos COMBO-MARCA-numeros
 // (COMBO-BOSCA-3672-3688). Hoy son el numero pelado y, en los combos, los
-// numeros de las piezas separados por guion: 8354 y 3672-3688.
+// numeros de las piezas sumados: 8354 y 3672+3688.
 //
 // Los links con el codigo viejo siguen vivos: estan mandados por WhatsApp,
 // puestos en Instagram y cargados en Google. Sin esto contestarian "no
@@ -20,7 +20,12 @@ export function codigoDeAhora(viejo: string): string | null {
   // Los combos primero: el patron completo, no el numero de atras. Mirar solo
   // el ultimo numero mandaria al cliente a una pieza sola en vez del combo.
   const combo = /^COMBO-[A-Za-z]+-((?:[0-9]+-)*[0-9]+)$/i.exec(v);
-  if (combo) return combo[1];
+  if (combo) return combo[1].replace(/-/g, "+");
+
+  // Combos que alcanzaron a quedar con guion entre las piezas, de cuando el
+  // separador iba a ser ese. Nunca llegaron a produccion, pero si alguno
+  // quedo en una base de prueba el link tiene que seguir funcionando.
+  if (/^(?:[0-9]+-)+[0-9]+$/.test(v)) return v.replace(/-/g, "+");
 
   const simple = /^[A-Za-z]+-([0-9]+)$/.exec(v);
   return simple ? simple[1] : null;

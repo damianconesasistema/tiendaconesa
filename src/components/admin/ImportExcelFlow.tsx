@@ -47,7 +47,7 @@ export function ImportExcelFlow() {
   // Si la columna del archivo es el precio de contado o el de 1 pago. La
   // tienda guarda el de contado; si el archivo trae el de 1 pago hay que
   // sacarle el recargo antes de guardarlo.
-  const [precioEs, setPrecioEs] = useState<PrecioDelArchivo>("lista2");
+  const [precioEs, setPrecioEs] = useState<PrecioDelArchivo>("unpago");
   // Recalcular los combos con las piezas del archivo, y con que descuento.
   // El archivo se guarda para poder rehacer la cuenta con otro porcentaje
   // sin tener que volver a subirlo.
@@ -272,9 +272,10 @@ export function ImportExcelFlow() {
           )}
           {parse.precioEs === "unpago" && (
             <p className="mt-2 rounded-lg bg-white/70 p-3 text-sm">
-              La columna del archivo ya es el <strong>precio de 1 pago</strong>,
-              así que le saqué el recargo de {parse.recargoUnPago}% y guardo el
-              de contado.
+              La <strong>Lista 2</strong> del archivo es el precio de{" "}
+              <strong>1 pago</strong> (débito o crédito en una cuota). El contado
+              sale 10% menos y es el que se guarda; las cuotas las calcula
+              MercadoPago sobre ese contado.
             </p>
           )}
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -588,18 +589,18 @@ export function ImportExcelFlow() {
             </h3>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <OpcionModo
-                icon={Tag}
-                titulo="Lista 2 del sistema"
-                detalle="Tal cual sale de GBP. Le hago el descuento y eso da el precio de 1 pago."
-                activo={precioEs === "lista2"}
-                onClick={() => setPrecioEs("lista2")}
-              />
-              <OpcionModo
                 icon={CreditCard}
-                titulo="Precio de 1 pago"
-                detalle="La columna ya es el precio con tarjeta en un pago, sin descuento que hacerle."
+                titulo="Lista 2 de GBP"
+                detalle="Lo normal. Esa columna ya es el precio de 1 pago: el contado sale 10% menos."
                 activo={precioEs === "unpago"}
                 onClick={() => setPrecioEs("unpago")}
+              />
+              <OpcionModo
+                icon={Tag}
+                titulo="Lista con descuento"
+                detalle="Para una lista de proveedor a la que hay que bajarle un % antes de publicarla."
+                activo={precioEs === "lista2"}
+                onClick={() => setPrecioEs("lista2")}
               />
               <OpcionModo
                 icon={Wallet}
