@@ -27,16 +27,31 @@ export const SETTING_DESC_COMBO = "descuento_combo_pct";
 
 // Valores por defecto, del simulador de MercadoPago (oct 2026).
 // Se editan desde el panel: Configuración.
-// 11,11% y no 8,68% (el costo real) a pedido del comercio: con 11,11% el
-// descuento del contado da exactamente 10%, asi que el cartel "10% OFF"
-// es cierto y pega mas fuerte. La diferencia queda a favor del negocio.
-const DEFAULT_1PAGO = 11.11;
+//
+// EL RECARGO DE 1 PAGO NO ES EL DESCUENTO. Es el numero que, aplicado al
+// precio de contado, da el de vitrina; y recien la diferencia ENTRE LOS DOS
+// es el descuento que ve el cliente. Son distintos porque se miden sobre
+// bases distintas:
+//
+//   recargo = 1 / (1 - descuento) - 1
+//
+//   descuento 10%  ->  recargo 11,11%
+//   descuento 12%  ->  recargo 13,64%   <- el de ahora
+//
+// Damian lo subio a 12% el 31/10/2026. Esta puesto a pedido del comercio y
+// no es el costo real de MercadoPago (8,68%): la diferencia queda a favor
+// del negocio y permite que el cartel sea un numero redondo y cierto.
+//
+// El cartel NO dice 12% escrito a mano en ningun lado: sale de
+// descuentoContadoPct(), que lo calcula con este numero. Asi, el dia que
+// cambie, cambia solo en toda la tienda.
+const DEFAULT_1PAGO = 13.64;
 const DEFAULT_CUOTAS_PCT = 25.71;
 const DEFAULT_CUOTAS = 6;
 
 // Lo que se le descuenta a la Lista 2 del sistema para llegar al precio de
 // 1 pago, el que muestra la tienda con tarjeta. De ahi para abajo sale todo
-// lo demas: el contado es un 10% menos y las cuotas las calcula
+// lo demas: el contado es un 12% menos y las cuotas las calcula
 // MercadoPago sobre el contado.
 //
 // Vale para todo lo que entra por el Excel, articulos y combos: el precio de

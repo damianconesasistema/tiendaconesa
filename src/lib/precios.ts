@@ -2,19 +2,21 @@
 //
 // REGLA DE NEGOCIO
 // En la base guardamos SIEMPRE el precio de contado, que desde el 31/10/2026
-// es el de TRANSFERENCIA y solo ese: Damian saco el efectivo del descuento.
+// es el de TRANSFERENCIA y solo ese: Damian saco el efectivo del descuento,
+// y el mismo dia subio ese descuento de 10% a 12%.
 // Ese es el que le queda neto al negocio. Los demás se derivan.
 //
 // POR QUÉ SE DIVIDE Y NO SE MULTIPLICA
 // MercadoPago cobra su comisión sobre el TOTAL de la transacción. Si el precio
-// de contado es 100.000 y la comisión es 10%, cobrar 110.000 deja 99.000, no
-// 100.000. Hay que cobrar 100.000 / 0,90 = 111.111, que menos el 10% da
-// exactamente 100.000.
+// de contado es 100.000 y el descuento es 12%, cobrar 112.000 y descontar el
+// 12% deja 98.560, no 100.000. Hay que cobrar 100.000 / 0,88 = 113.640, que
+// menos el 12% da exactamente 100.000.
 //
 // EFECTO BUSCADO
-// Con la vitrina en 111.111, el contado (100.000) es exactamente un 10% menos.
-// Por eso el cartel "10% de descuento por transferencia" es
-// literalmente cierto y no publicidad engañosa.
+// Con la vitrina en 113.640, el contado (100.000) es exactamente un 12% menos.
+// Por eso el cartel "12% de descuento por transferencia" es literalmente
+// cierto y no publicidad engañosa. Y ese porcentaje no esta escrito a mano
+// en ningun cartel: sale de descuentoContadoPct().
 
 /**
  * Recargo DIRECTO sobre el precio de contado.
@@ -45,11 +47,24 @@ export function precioCuotas(contado: number, recargoPct: number): number {
 }
 
 /**
- * Descuento real del contado respecto de la vitrina. Con la fórmula de arriba
- * da exactamente la comisión (10% => 10%), pero lo calculamos en vez de
- * asumirlo: si alguien cambia la fórmula, el cartel sigue diciendo la verdad.
+ * Descuento real del contado respecto de la vitrina. Se calcula en vez de
+ * asumirlo: si alguien cambia el recargo desde el panel, el cartel sigue
+ * diciendo la verdad sin que nadie tenga que acordarse de tocarlo.
  */
 export function descuentoContadoPct(vitrina: number, contado: number): number {
   if (vitrina <= 0 || contado >= vitrina) return 0;
   return Math.round(((vitrina - contado) / vitrina) * 100);
+}
+
+/**
+ * Lo mismo, pero a partir del recargo solo, sin necesitar un precio.
+ *
+ * Sirve para los textos que explican la cuenta ("el contado sale X% menos")
+ * antes de tener un producto delante. El recargo y el descuento NO son el
+ * mismo numero porque se miden sobre bases distintas: 13,64% de recargo es
+ * 12% de descuento.
+ */
+export function descuentoDelRecargo(recargoPct: number): number {
+  if (recargoPct <= 0) return 0;
+  return Math.round((recargoPct / (100 + recargoPct)) * 100);
 }

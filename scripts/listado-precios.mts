@@ -9,7 +9,7 @@
 //
 // LA CADENA (la regla del negocio)
 //   Lista 2 de GBP  =  precio de 1 pago (debito o credito en un pago)
-//            -10%   ->  contado (efectivo o transferencia)
+//            -12%   ->  contado (solo por transferencia)
 //   Las cuotas las calcula MercadoPago sobre el contado.
 //
 // A la Lista 2 de GBP no se le descuenta nada: por eso el descuento va en 0
@@ -39,7 +39,9 @@ if (!Number.isFinite(DESCUENTO) || DESCUENTO < 0 || DESCUENTO > 90) {
 
 // Los mismos numeros que usa la tienda. Si algun dia cambian en el panel,
 // cambian aca tambien: estan sacados de la configuracion, no inventados.
-const RECARGO_1PAGO = 11.11;
+// 13,64% de recargo = 12% de descuento. No son el mismo numero porque se
+// miden sobre bases distintas. Ver src/lib/precios.ts.
+const RECARGO_1PAGO = 13.64;
 const PLANES = [
   { cuotas: 3, recargoPct: 18.33 },
   { cuotas: 6, recargoPct: 25.71 },
@@ -242,7 +244,7 @@ const explicacion = [
       : "Lista 2 YA es el precio de 1 pago (débito o crédito en un pago): no se le descuenta nada",
     Valor: ejUno,
   },
-  { Paso: "3", Qué: "menos 10% = contado (efectivo o transferencia)", Valor: ejContado },
+  { Paso: "3", Qué: "menos 12% = contado (solo por transferencia)", Valor: ejContado },
   { Paso: "", Qué: "", Valor: "" },
   ...PLANES.map((pl) => ({
     Paso: "4",
@@ -257,7 +259,7 @@ const explicacion = [
   { Paso: "", Qué: "", Valor: "" },
   { Paso: "Ojo", Qué: "la tienda guarda el CONTADO; los demás precios los arma sola", Valor: "" },
   { Paso: "", Qué: `para volver del contado al de 1 pago el recargo es ${RECARGO_1PAGO}%,`, Valor: "" },
-  { Paso: "", Qué: "no 10%: sacar 10% y sumar 10% no vuelve al mismo número", Valor: "" },
+  { Paso: "", Qué: "no 12%: sacar 12% y sumar 12% no vuelve al mismo número", Valor: "" },
 ];
 
 // --- Armado del archivo -------------------------------------------------

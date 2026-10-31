@@ -47,7 +47,7 @@ export default async function Home() {
   ]);
   const cuotasMax = planes.length ? planes[planes.length - 1].cuotas : 0;
   // Descuento REAL del contado respecto del precio de vitrina. Se calcula,
-  // no se asume: con 11,11% de recargo el descuento es 10%, no 11,11%.
+  // no se asume: con 13,64% de recargo el descuento es 12%, no 13,64%.
   const dctoContadoPct = Math.round(
     (1 - 1 / (1 + recargos.unPago / 100)) * 100,
   );

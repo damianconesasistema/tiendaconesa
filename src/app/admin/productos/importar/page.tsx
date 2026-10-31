@@ -5,6 +5,8 @@ import { ArrowLeft, Download, Images } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ImportExcelFlow } from "@/components/admin/ImportExcelFlow";
+import { getRecargosMp } from "@/lib/settings";
+import { descuentoDelRecargo } from "@/lib/precios";
 
 export const metadata: Metadata = {
   title: "Precios y stock por Excel · Panel Admin",
@@ -14,6 +16,10 @@ export const metadata: Metadata = {
 export default async function ImportarPage() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
+
+  // El descuento que explican los textos sale del recargo configurado, no
+  // escrito a mano: el dia que cambie, cambian solos.
+  const dctoContado = descuentoDelRecargo((await getRecargosMp()).unPago);
 
   return (
     <AdminShell username={session.username} active="productos" sucursal>
@@ -51,7 +57,7 @@ export default async function ImportarPage() {
         </Link>
       </div>
 
-      <ImportExcelFlow />
+      <ImportExcelFlow dctoContado={dctoContado} />
     </AdminShell>
   );
 }

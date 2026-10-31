@@ -31,7 +31,7 @@ import {
 import type { ComboCalculado } from "@/lib/combos";
 import { formatPrice } from "@/lib/order";
 
-export function ImportExcelFlow() {
+export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   const [stage, setStage] = useState<"upload" | "preview" | "done">("upload");
   const [parse, setParse] = useState<ParseResult | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
@@ -262,7 +262,7 @@ export function ImportExcelFlow() {
             <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-white/70 p-3 text-sm">
               <span>
                 Lista 2 menos <strong>{parse.descuentoLista}%</strong> = precio de
-                1 pago. El contado sale 10% menos.
+                1 pago. El contado sale {dctoContado}% menos.
               </span>
               <input
                 type="number"
@@ -287,8 +287,8 @@ export function ImportExcelFlow() {
             <p className="mt-2 rounded-lg bg-white/70 p-3 text-sm">
               La <strong>Lista 2</strong> del archivo es el precio de{" "}
               <strong>1 pago</strong> (débito o crédito en una cuota). El contado
-              sale 10% menos y es el que se guarda; las cuotas las calcula
-              MercadoPago sobre ese contado.
+              sale {dctoContado}% menos y es el que se guarda; las cuotas las
+              calcula MercadoPago sobre ese contado.
             </p>
           )}
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -644,7 +644,7 @@ export function ImportExcelFlow() {
               <OpcionModo
                 icon={CreditCard}
                 titulo="Lista 2 de GBP"
-                detalle="Lo normal. Esa columna ya es el precio de 1 pago: el contado sale 10% menos."
+                detalle={`Lo normal. Esa columna ya es el precio de 1 pago: el contado sale ${dctoContado}% menos.`}
                 activo={precioEs === "unpago"}
                 onClick={() => setPrecioEs("unpago")}
               />
@@ -681,8 +681,8 @@ export function ImportExcelFlow() {
                 />
                 <span>%</span>
                 <span className="text-[var(--muted)]">
-                  · eso da el precio de 1 pago; el contado sale 10% menos y las
-                  cuotas las calcula MercadoPago sobre el contado
+                  · eso da el precio de 1 pago; el contado sale {dctoContado}%
+                  menos y las cuotas las calcula MercadoPago sobre el contado
                 </span>
               </div>
             )}

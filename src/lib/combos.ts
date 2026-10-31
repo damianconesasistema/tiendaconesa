@@ -19,7 +19,7 @@ import { precioVitrina } from "@/lib/precios";
 // descuentoPct: es una decision de negocio, no algo que se derive solo.
 //
 // De ahi para abajo sale todo lo demas, porque la tienda guarda el precio de
-// contado (ver src/lib/precios.ts): el contado es un 10% menos que el de 1
+// contado (ver src/lib/precios.ts): el contado es un 12% menos que el de 1
 // pago -solo por transferencia-, y las cuotas las calcula MercadoPago sobre
 // ese contado.
 

@@ -559,7 +559,7 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
               </span>
             )}
             {/* El precio de arriba es el de vitrina (incluye la comisión de
-                1 pago). El contado es exactamente un 10% menos, por eso el
+                1 pago). El contado es exactamente un 12% menos, por eso el
                 cartel dice la verdad. */}
             <span className="text-[10px] uppercase tracking-wider text-[var(--muted)]">
               Débito o 1 pago

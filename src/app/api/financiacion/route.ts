@@ -20,8 +20,8 @@ export async function GET() {
     ]);
     return NextResponse.json({
       cuotasMax: planes.length ? planes[planes.length - 1].cuotas : 0,
-      // El descuento real, no el recargo: con 11,11% de recargo el
-      // descuento es 10%.
+      // El descuento real, no el recargo: con 13,64% de recargo el
+      // descuento es 12%.
       dctoContadoPct: Math.round((1 - 1 / (1 + recargos.unPago / 100)) * 100),
     });
   } catch {
