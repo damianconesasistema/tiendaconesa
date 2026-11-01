@@ -1,0 +1,122 @@
+# Mira la tienda cada 10 minutos y avisa si algo anda mal.
+#
+# POR QUE
+# Hasta ahora, la unica forma de enterarse de que la tienda estaba caida era
+# que un cliente escribiera por WhatsApp. El 31/10 estuvo abajo un rato por
+# una migracion rota y nadie se entero hasta que Damian entro a mirar.
+#
+# COMO AVISA
+# Si algo falla, este trabajo falla, y GitHub manda un mail solo a la cuenta
+# duena del repositorio. No hace falta configurar nada ni guardar ninguna
+# clave: es el mismo mail que ya llega cuando una publicacion sale mal.
+# Tambien queda la marca roja en la pestana Actions.
+#
+# QUE MIRA
+# No alcanza con que el servidor conteste: puede contestar y tener el
+# catalogo vacio, o los precios en cero. Por eso mira cosas que solo estan
+# bien si la tienda de verdad funciona.
+#
+# POR QUE REINTENTA
+# Una publicacion reinicia el programa unos segundos. Sin reintentos, cada
+# publicacion mandaria un mail de alarma y en una semana nadie los leeria.
+
+name: Vigilar
+
+on:
+  schedule:
+    # Cada 10 minutos. GitHub no garantiza el horario exacto y a veces se
+    # atrasa unos minutos; para esto alcanza.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: vigilar
+  cancel-in-progress: true
+
+jobs:
+  mirar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: La tienda esta sana
+        env:
+          SITIO: https://traslasierra.conesa.com.ar
+        run: |
+          set -u
+
+          # Una prueba: nombre, y un comando que tiene que terminar bien.
+          problemas=""
+
+          revisar() {
+            local nombre="$1"; shift
+            if "$@" >/dev/null 2>&1; then
+              echo "  ok    $nombre"
+            else
+              echo "  FALLA $nombre"
+              problemas="$problemas - $nombre"$'\n'
+            fi
+          }
+
+          contesta() {
+            local url="$1" esperado="${2:-200}"
+            local code
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 25 "$url")
+            [ "$code" = "$esperado" ]
+          }
+
+          # El catalogo tiene productos de verdad. Si esto falla con el resto
+          # en verde, la tienda esta andando pero no tiene nada para vender:
+          # pasa si una importacion sale mal.
+          hay_productos() {
+            local n
+            n=$(curl -s --max-time 30 "$SITIO/tienda?porPagina=500" \
+                | grep -o 'itemId' | wc -l)
+            [ "$n" -ge 40 ]
+          }
+
+          # Los precios no estan en cero ni rotos.
+          precios_sanos() {
+            curl -s --max-time 30 "$SITIO/api/financiacion" \
+              | grep -q '"dctoContadoPct":[1-9]'
+          }
+
+          intento=1
+          while [ $intento -le 3 ]; do
+            problemas=""
+            echo "== intento $intento =="
+            revisar "la portada"            contesta "$SITIO/"
+            revisar "el catalogo"           contesta "$SITIO/tienda"
+            revisar "el carrito"            contesta "$SITIO/tienda/carrito"
+            revisar "el catalogo tiene productos" hay_productos
+            revisar "los precios"           precios_sanos
+            revisar "el panel"              contesta "$SITIO/admin/login"
+
+            [ -z "$problemas" ] && { echo; echo "Todo bien."; exit 0; }
+
+            # Puede ser una publicacion en curso: se reintenta antes de
+            # molestar a nadie.
+            if [ $intento -lt 3 ]; then
+              echo "  (reintento en 30s por si es una publicacion)"
+              sleep 30
+            fi
+            intento=$((intento + 1))
+          done
+
+          echo
+          echo "=============================================="
+          echo "LA TIENDA TIENE UN PROBLEMA"
+          echo "=============================================="
+          echo
+          echo "Falla despues de 3 intentos en un minuto:"
+          echo
+          printf '%s' "$problemas"
+          echo
+          echo "Que hacer:"
+          echo "  1. Abrir $SITIO y ver que pasa."
+          echo "  2. Si no abre, mirar el registro del servidor:"
+          echo "     gcloud compute ssh conesa --zone us-central1-a \\"
+          echo "       --command 'journalctl -u conesa -n 50'"
+          echo "  3. Casi siempre alcanza con volver a publicar:"
+          echo "     la pestana Actions -> Publicar -> Run workflow."
+          exit 1
