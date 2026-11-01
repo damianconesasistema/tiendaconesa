@@ -701,6 +701,8 @@ export type ImportResult = {
     /** Combos que esta lista toca pero a los que les falta alguna pieza:
      *  quedaron como estaban. */
     combosIncompletos: number;
+    /** Articulos y combos con candado. No se tocaron. */
+    bloqueados: number;
   };
   /** Los primeros codigos que quedaron afuera, para poder revisarlos sin
    *  tener que adivinar cuales fueron. */
@@ -741,6 +743,21 @@ export async function importExcel(
 
   const valid = rows.filter((r) => r.__errors.length === 0);
   let created = 0;
+  // El candado tiene que valer tambien aca. Existia solo para la edicion a
+  // mano, asi que un producto con candado se dejaba pisar igual por una
+  // lista de precios: justo el cambio masivo del que el candado deberia
+  // protegerlo. Lo pidio Damian para un combo descontinuado que esta
+  // liquidando al 50%: si se recalcula, pierde el precio de liquidacion.
+  const conCandado = new Set(
+    (
+      await prisma.product.findMany({
+        where: { locked: true },
+        select: { itemId: true },
+      })
+    ).map((p) => p.itemId),
+  );
+  let bloqueados = 0;
+
   let updated = 0;
   let imagesDownloaded = 0;
   let imagesFailed = 0;
@@ -751,6 +768,10 @@ export async function importExcel(
 
   for (const row of valid) {
     try {
+      if (conCandado.has(row.itemId)) {
+        bloqueados++;
+        continue;
+      }
       const esNuevo = !row.__exists;
       if (esNuevo && (!altas || !row.__puedeCrearse)) {
         nuevosOmitidos++;
@@ -925,6 +946,10 @@ export async function importExcel(
       branchId: suc?.id,
     });
     for (const c of combos) {
+      if (conCandado.has(c.itemId)) {
+        bloqueados++;
+        continue;
+      }
       // Con una sola pieza que falte no se toca: la suma de las que si
       // vinieron daria un precio mas barato que el real y se publicaria asi.
       if (c.faltan.length > 0) {
@@ -995,6 +1020,7 @@ export async function importExcel(
       sinCargarEnLocal,
       combosActualizados,
       combosIncompletos,
+      bloqueados,
     },
     ejemplos: { nuevos: ejemploNuevos, sinCargar: ejemploSinCargar },
   };

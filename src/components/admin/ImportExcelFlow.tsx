@@ -186,6 +186,20 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
 
         {/* Lo que quedo afuera, con los codigos a la vista. Un numero solo
             obliga a adivinar cuales fueron; con los codigos se revisa. */}
+        {s.bloqueados > 0 && (
+          <div className="mx-auto mt-6 max-w-2xl rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-left">
+            <div className="font-display text-xs font-black uppercase tracking-wider">
+              🔒 {s.bloqueados} con candado: no se tocaron
+            </div>
+            <p className="mt-2 text-sm">
+              Quedaron con el precio que tenían. Es lo que hace el candado: si
+              alguno tiene un precio puesto a mano que no querés que la lista
+              pise, dejalo bloqueado. Para que entre en la próxima importación,
+              sacale el candado desde la lista de productos.
+            </p>
+          </div>
+        )}
+
         {s.nuevosOmitidos > 0 && (
           <div className="mx-auto mt-6 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 p-4 text-left">
             <div className="font-display text-xs font-black uppercase tracking-wider text-amber-900">
