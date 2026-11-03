@@ -271,6 +271,16 @@ export type TituloSugerido = {
 const MEDIDAS =
   /\b(\d+(?:[.,]\d+)?)\s*[xX]\s*(\d+(?:[.,]\d+)?)(?:\s*[xX]\s*(\d+(?:[.,]\d+)?))?\b/;
 
+/** Una palabra del sistema, ya desabreviada. Devuelve varias porque el
+ *  sistema pega el "con" y el "sin" a la palabra que sigue, sin espacio:
+ *  "C/DEP" es "CON DEPOSITO" y "S/PIE" es "SIN PIE". */
+function expandir(p: string): string[] {
+  const limpia = p.replace(/[.,;]+$/, "");
+  const barra = limpia.match(/^([CS])\/(.+)$/);
+  if (barra) return [barra[1] === "C" ? "CON" : "SIN", ...expandir(barra[2])];
+  return [ABREVIATURAS[limpia] ?? ACENTOS[limpia] ?? limpia];
+}
+
 /** El codigo del fabricante del final: mezcla letras y numeros ("JT103-BD"). */
 function esCodigoFabricante(t: string): boolean {
   if (t.length < 4) return false;
@@ -315,10 +325,7 @@ export function tituloSugerido(
 
   texto = texto
     .split(" ")
-    .map((p) => {
-      const limpia = p.replace(/[.,;]+$/, "");
-      return ABREVIATURAS[limpia] ?? ACENTOS[limpia] ?? limpia;
-    })
+    .flatMap(expandir)
     .filter((p) => p !== "")
     .join(" ");
 

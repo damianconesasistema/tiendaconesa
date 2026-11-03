@@ -170,7 +170,10 @@ export async function previsualizarAlta(
       ? (marcas.find((m) => m.id === marca)?.name ?? null)
       : null;
     const t = tituloSugerido(f.descripcion, nombreMarca);
-    const r = rubroSugerido(f.descripcion, f.subcategoria, f.categoria);
+    // El rubro se busca sobre el titulo YA desabreviado, no sobre lo que vino
+    // del sistema: "TERMOT ELECTRICO 80 LTS" no tiene ninguna palabra que se
+    // reconozca, y "TERMOTANQUE ELÉCTRICO 80 LTS" si.
+    const r = rubroSugerido(t.titulo, f.subcategoria, f.categoria);
 
     const unPago = Math.round(f.precio);
     const contado = Math.round(unPago / (1 + recargo / 100));
