@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.56.0";
+export const APP_VERSION = "V.0.57.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,19 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.57.0",
+    date: "2026-11-03",
+    changes: [
+      "CREAR ARTÍCULOS POR EXCEL (Productos → Crear por Excel): subís el Excel de GBP tal cual sale del sistema y el panel arma una ficha por cada artículo que todavía no tengas, con el título, la marca, el rubro, el precio de 1 pago, el de transferencia y el stock ya puestos. Revisás, corregís lo que quieras y recién ahí se crean.",
+      "El título se arma solo a partir de la descripción de GBP: le saca las abreviaturas (PTA → PUERTA, LAVAT → LAVATORIO, AG → AGUJERO), le pone los acentos, le pasa las medidas al final (50X35X45 → · 50 X 35 X 45 CM) y le pone la marca adelante. No le cambia el orden a las palabras.",
+      "El rubro sale de la SUBCATEGORÍA del sistema, que es la que de verdad dice qué es el artículo. La categoría de GBP no sirve para esto: trae el nombre del proveedor.",
+      "La descripción original de GBP queda guardada en el ayuda memoria, así el buscador del panel sigue encontrando el artículo como se lo nombra en el mostrador (\"PTA LAVAT\", \"JT103-BD\").",
+      "AVISA SI EL MARGEN ESTÁ FLOJO: compara el costo del Excel contra el precio de transferencia y marca en rojo los artículos que dejan menos del 10%. No frena nada, avisa antes de que los publiques.",
+      "Los artículos nacen OCULTOS: se ven en el panel pero el cliente no, hasta que les cargues la foto y los publiques. Se cambia con un tilde antes de crearlos.",
+      "Los códigos que YA están cargados no se tocan: para cambiarles precio o stock sigue estando Productos → Precios y stock.",
+    ],
+  },
   {
     version: "V.0.56.0",
     date: "2026-10-31",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Download, Images } from "lucide-react";
+import { ArrowLeft, Download, Images, PackagePlus } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ImportExcelFlow } from "@/components/admin/ImportExcelFlow";
@@ -48,6 +48,13 @@ export default async function ImportarPage() {
           <Download className="h-4 w-4" />
           Descargar plantilla Excel
         </a>
+        <Link
+          href="/admin/productos/alta"
+          className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+        >
+          <PackagePlus className="h-4 w-4" />
+          Crear artículos por Excel
+        </Link>
         <Link
           href="/admin/productos/imagenes"
           className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"

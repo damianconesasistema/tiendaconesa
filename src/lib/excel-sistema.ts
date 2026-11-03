@@ -39,6 +39,13 @@ export type FilaDelSistema = {
   stock: number | null;
   marca: string | null;
   categoria: string | null;
+  /** La subcategoria del sistema ("FERRUM VANITORIS/MUEBLES"). Es la que de
+   *  verdad dice que es el articulo: la categoria de la grilla suele traer
+   *  el proveedor ("FERRUM SA CERAMICA Y METALURGICA"). */
+  subcategoria: string | null;
+  /** Lo que costo. Es para mirarlo contra el precio antes de publicar; la
+   *  tienda no lo guarda. */
+  costo: number | null;
   fila: number;
 };
 
@@ -89,6 +96,8 @@ type Mapa = {
   nombreContado: string | null;
   marca: number | null;
   categoria: number | null;
+  subcategoria: number | null;
+  costo: number | null;
 };
 
 function mapearHoja(filas: unknown[][]): Mapa | null {
@@ -140,6 +149,8 @@ function mapearHoja(filas: unknown[][]): Mapa | null {
       nombreContado,
       marca: buscar("brand_desc", "marca"),
       categoria: buscar("cat_desc", "categoria", "rubro"),
+      subcategoria: buscar("subcat_desc", "subcategoria", "subrubro"),
+      costo: buscar("costo", "cost"),
     };
   }
   return null;
@@ -177,6 +188,8 @@ export function leerExportDelSistema(
       stock: number | null;
       marca: string | null;
       categoria: string | null;
+      subcategoria: string | null;
+      costo: number | null;
       fila: number;
     }
   >();
@@ -227,6 +240,16 @@ export function leerExportDelSistema(
             : "") ||
           anterior?.categoria ||
           null,
+        subcategoria:
+          (mapa.subcategoria !== null
+            ? String(f[mapa.subcategoria] ?? "").trim()
+            : "") ||
+          anterior?.subcategoria ||
+          null,
+        costo:
+          (mapa.costo !== null ? numeroDelSistema(f[mapa.costo]) : null) ??
+          anterior?.costo ??
+          null,
         fila: anterior?.fila ?? i + 1,
       });
     }
@@ -256,6 +279,8 @@ export function leerExportDelSistema(
       stock: d.stock !== null ? Math.max(0, Math.floor(d.stock)) : null,
       marca: d.marca,
       categoria: d.categoria,
+      subcategoria: d.subcategoria,
+      costo: d.costo !== null ? Math.round(d.costo) : null,
       fila: d.fila,
     });
   }

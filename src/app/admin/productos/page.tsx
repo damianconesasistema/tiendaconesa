@@ -278,6 +278,17 @@ export default async function ProductosAdmin({
             <Upload className="h-4 w-4" />
             Precios y stock
           </Link>
+          {/* Dar de alta es otra cosa que actualizar: el articulo nuevo no
+              tiene con que compararse y hay que decidirle el titulo, la marca
+              y el rubro. Mezclarlo con el importador de precios hacia que
+              naciera en "otros" y sin marca. */}
+          <Link
+            href="/admin/productos/alta"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+          >
+            <PackagePlus className="h-4 w-4" />
+            Crear por Excel
+          </Link>
           <Link
             href="/admin/productos/nuevo"
             className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
