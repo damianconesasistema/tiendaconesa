@@ -89,7 +89,16 @@ header{
   text-transform:uppercase; letter-spacing:.05em; color:var(--ink);
 }
 .salir:hover{border-color:var(--accent); color:var(--accent)}
-@media (max-width:820px){ .org,.relo,.user,.ocultable{display:none} }
+/* En pantalla angosta se va lo decorativo (el reloj, el nombre largo),
+   pero el usuario y la sucursal se quedan: sin eso no se sabe con qué
+   razón social se está vendiendo. */
+@media (max-width:980px){ .org,.relo{display:none} }
+@media (max-width:820px){
+  .bar{gap:8px 10px; padding:9px 14px}
+  .bar-sep{display:none}
+  .user{font-size:13px}
+  .marca{height:26px; width:auto}
+}
 
 /* La franja de contexto, como la verde de "Estás editando Traslasierra". */
 .banda{
@@ -368,8 +377,19 @@ td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500;
 .siempre button:hover{filter:brightness(.96)}
 
 /* la grilla densa de renglones */
-table.densa td{padding:6px 10px; font-size:13px; font-weight:500}
-table.densa th{padding:8px 10px}
+table.densa td{padding:8px 10px; font-size:14px; font-weight:500}
+/* Los dos listados que el vendedor mira todo el día, más grandes. */
+.res-t td, .lin-t td{font-size:14.5px; padding:9px 10px}
+.res-t td.nom, .lin-t td.nom{font-size:14.5px; font-weight:600}
+.res-t td.nom small, .lin-t td.nom small{font-size:12.5px; font-weight:500}
+.res-t td.num, .lin-t td.num{font-size:13.5px !important; font-weight:600}
+.res-t th, .lin-t th{font-size:11.5px}
+.res-t .stk{font-size:13.5px; min-width:38px; padding:3px 9px}
+.res-t input.cant, .lin-t input{font-size:14.5px; font-weight:600}
+.res-t button.sumar{font-size:12.5px; padding:5px 14px}
+.por-rubro{margin:0 0 8px; padding:9px 12px; background:var(--warn-soft);
+  color:var(--warn); border-radius:10px; font-size:13px; font-weight:500}
+table.densa th{padding:8px 10px; font-size:11.5px}
 .cant{
   width:62px; padding:4px 6px; text-align:right; font-family:var(--font-m);
   background:var(--surface-2); border:1px solid var(--line-2); border-radius:6px;
@@ -517,6 +537,41 @@ table.densa th{padding:8px 10px}
 .mic:hover{border-color:var(--accent); color:var(--accent)}
 .mic.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); animation:late 1.1s ease-in-out infinite}
 @keyframes late{0%,100%{box-shadow:0 0 0 0 rgba(230,48,32,.45)} 50%{box-shadow:0 0 0 7px rgba(230,48,32,0)}}
+
+/* El segundo botón grande: igual de claro, pero no es el principal. */
+.tk-acc .b1.suave{
+  background:var(--surface); color:var(--accent); border:2px solid var(--accent);
+}
+.tk-acc .b1.suave:hover{background:var(--accent-soft)}
+
+/* Los borradores que quedaron a medio hacer. */
+.borradores{display:flex; flex-wrap:wrap; gap:7px}
+.borradores:empty{display:none}
+.borradores .et{
+  width:100%; font-family:var(--font-d); font-size:10.5px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.09em; color:var(--ink-2); margin-top:4px;
+}
+.borradores .bo{
+  display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line-2);
+  background:var(--surface-2); border-radius:999px; padding:5px 6px 5px 13px; font-size:12.5px;
+}
+.borradores .bo b{font-weight:600}
+.borradores .bo button{border:0; background:none; color:var(--ink-3); font-size:16px; line-height:1; padding:0 4px}
+.borradores .bo button:hover{color:var(--accent)}
+.borradores .bo .ret{
+  border:1px solid var(--accent); color:var(--accent); background:var(--surface);
+  border-radius:999px; padding:2px 10px; font-size:11.5px; font-weight:700;
+}
+.borradores .bo .ret:hover{background:var(--accent); color:var(--accent-ink)}
+
+.filtro-vend{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:-4px 0 14px}
+.filtro-vend label{font-family:var(--font-d); font-size:10.5px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.09em; color:var(--ink-2)}
+.filtro-vend select{border:1px solid var(--line-2); background:var(--surface);
+  border-radius:999px; padding:6px 13px; font-family:var(--font-b);
+  font-size:13.5px; font-weight:600; color:var(--ink)}
+.filtro-vend select:focus{border-color:var(--accent); outline:none}
+.filtro-vend .n{font-size:13px; font-weight:500; color:var(--ink-2)}
 
 .bajadas{display:grid; gap:10px; padding:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
 .bajadas button{
@@ -730,12 +785,18 @@ footer{
       </div>
       <div class="tk-tot" id="tkTot"></div>
       <div class="tk-acc">
-        <button class="b1" id="btnFactura">Guardar presupuesto</button>
+        <button class="b1" id="btnFactura">Emitir factura</button>
+        <button class="b1 suave" id="btnPresu">Emitir presupuesto</button>
+        <button class="b2" id="btnBorrador">Guardar como borrador</button>
         <button class="b2" id="btnSinFactura">Entregar sin comprobante</button>
         <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
         <button class="b3" id="btnVaciar">Vaciar</button>
+        <div class="borradores" id="borradores"></div>
       </div>
-      <p class="nota"><b>Un solo registro.</b> La venta sin factura queda anotada igual, marcada como tal. La franja de arriba y la gerencia muestran las dos columnas por separado: el total de verdad, y cuánto de eso salió con comprobante. No hay un segundo libro.</p>
+      <p class="nota"><b>Qué hace cada uno.</b> <i>Emitir factura</i> saca el comprobante y le pide el CAE a ARCA: gasta número, descuenta stock y entra en caja.
+        <i>Emitir presupuesto</i> numera y se lo podés mandar, pero no mueve nada.
+        <i>Guardar como borrador</i> ni siquiera numera: lo deja esperando.
+        <b>Un solo registro.</b> La venta sin factura queda anotada igual, marcada como tal. La franja de arriba y la gerencia muestran las dos columnas por separado: el total de verdad, y cuánto de eso salió con comprobante. No hay un segundo libro.</p>
     </div>
   </div>
 </section>
@@ -1171,6 +1232,11 @@ footer{
     <p>Cada razón social tiene su caja. Elegí cuál mirás; «Todas» suma las tres. Esta pantalla no la ve el mostrador.</p>
   </div>
   <div class="solapas" id="cajaSucs"></div>
+  <div class="filtro-vend">
+    <label for="cajaVend">Vendedor</label>
+    <select id="cajaVend"></select>
+    <span class="n" id="cajaVendN"></span>
+  </div>
   <div class="hoy" id="hoyTira"></div>
   <div class="tiles" id="cajaTiles"></div>
   <div class="dos">
@@ -1178,7 +1244,7 @@ footer{
       <div class="card-h"><h3>Movimientos</h3><span class="sub" id="cajaCount"></span></div>
       <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto">
         <table>
-          <thead><tr><th>Hora</th><th>Sucursal</th><th>Puesto</th><th>Artículos</th><th>Pago</th><th>Comprobante</th><th class="r">Total</th></tr></thead>
+          <thead><tr><th>Hora</th><th>Sucursal</th><th>Vendedor</th><th>Puesto</th><th>Artículos</th><th>Pago</th><th>Comprobante</th><th class="r">Total</th></tr></thead>
           <tbody id="tbCaja"></tbody>
         </table>
       </div>
@@ -1191,6 +1257,10 @@ footer{
       <div class="card" style="margin-bottom:16px">
         <div class="card-h"><h3>Por forma de pago</h3></div>
         <div class="barras" id="porPago"></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Por vendedor</h3><span class="sub">lo que cobró cada uno</span></div>
+        <div class="barras" id="cajaPorVend"></div>
       </div>
       <div class="card">
         <div class="card-h"><h3>Por mostrador</h3></div>
@@ -1248,6 +1318,47 @@ footer{
   <p><b>Qué es de verdad y qué es la idea.</b> Las solapas de Mostrador, Productos, Listas, Caja y Gerencia muestran cosas que se pueden construir con lo que ya existe. <b>La Red es la apuesta:</b> hoy no existe, y sus números están inventados. Lo que sí es real es el problema que resuelve — el proveedor sabe qué descuento le da a cada comercio y ningún comercio sabe nada del resto. Si se construye, hay que resolver antes la parte legal: se pueden compartir costos, nunca precios de venta.</p>
   <p>Nada de lo que se aprieta acá toca la tienda, el facturador ni el sistema que usan hoy. Se puede probar sin miedo.</p>
 </footer>
+
+<!-- Alta de cliente en el momento, sin salir de la venta. -->
+<div class="envio" id="cliNuevo" hidden>
+  <div class="envio-caja">
+    <div class="envio-h">
+      <h3>Cliente nuevo</h3>
+      <button class="x" id="cliX" aria-label="cerrar">×</button>
+    </div>
+    <p class="envio-n">Poné el CUIT y tocá <b>Traer los datos</b>: la razón social, la condición de IVA y el domicilio vienen solos. Si no aparece, se carga a mano.</p>
+    <div class="campos" id="cliCampos">
+      <div class="campo ancho">
+        <label for="cnDoc">CUIT o DNI</label>
+        <div class="con-mic">
+          <input id="cnDoc" type="text" inputmode="numeric" placeholder="30-71044821-9 o 20144523018" autocomplete="off">
+        </div>
+        <span class="por" id="cnAviso">Sin guiones también vale. El sistema controla que el número cierre.</span>
+      </div>
+      <div class="campo ancho"><label for="cnNom">Razón social o nombre</label>
+        <input id="cnNom" type="text" placeholder="Como figura en la factura" autocomplete="off"></div>
+      <div class="campo"><label for="cnIva">Condición frente al IVA</label>
+        <select id="cnIva">
+          <option>Responsable Inscripto</option>
+          <option>Monotributo</option>
+          <option>IVA Exento</option>
+          <option selected>Consumidor Final</option>
+        </select></div>
+      <div class="campo"><label for="cnLim">Límite de cuenta corriente</label>
+        <input id="cnLim" type="number" min="0" step="100000" value="0">
+        <span class="por">en cero no se le fía</span></div>
+      <div class="campo ancho"><label for="cnDir">Domicilio</label>
+        <input id="cnDir" type="text" placeholder="Calle, localidad" autocomplete="off"></div>
+      <div class="campo ancho"><label for="cnTel">Teléfono</label>
+        <input id="cnTel" type="text" placeholder="3544 ..." autocomplete="off"></div>
+    </div>
+    <div class="envio-acc">
+      <button class="b2" id="cnBuscar">Traer los datos</button>
+      <button class="b1" id="cnGuardar">Guardar y usarlo en esta venta</button>
+    </div>
+    <p class="nota" style="padding:0 16px 16px">Acá los datos salen de un padrón de prueba. En el sistema de verdad esto se lo pregunta al <b>padrón de ARCA</b> con el mismo certificado con el que ya se factura: ponés el CUIT y el resto viene solo, sin tipear ni equivocarse.</p>
+  </div>
+</div>
 
 <!-- El texto listo para pegar en WhatsApp, con el link al comprobante. -->
 <div class="envio" id="envio" hidden>
@@ -1395,6 +1506,37 @@ const ALIAS = {
 
 const plano = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 
+/* ------------------------------------------------- buscar un articulo
+   Primero con lo que el articulo dice de verdad: codigo, nombre, marca
+   y rubro. Recien si eso no da nada se usan los sinonimos del rubro, y
+   la pantalla avisa que esta mostrando el rubro entero. Asi "deposito"
+   no trae las ocho bachas solo porque comparten el rubro SANITARIOS. */
+function encontrar(toks){
+  if(!toks.length) return {hits:[], porRubro:false};
+  const puntuar = (lista, campo) => lista
+    .filter(p=>toks.every(t=>p[campo].includes(t)))
+    .map(p=>{
+      const q = toks.join(" ");
+      const tit = plano(p.tit);
+      let s = 0;
+      if(plano(p.cod) === q) s += 1000;              // el código, cantado
+      if(plano(p.cod).startsWith(toks[0])) s += 300;
+      if(plano(p.prov) === q) s += 200;              // la marca sola
+      if(tit.startsWith(toks[0])) s += 120;
+      for(const t of toks){
+        if(tit.includes(t)) s += 40;                 // la palabra en el nombre
+        if(new RegExp("(^|[ ·(])"+t.replace(/[.*+?^\${}()|[\\]\\\\]/g,"\\\\$&")).test(tit)) s += 25;
+        if(plano(p.prov).includes(t)) s += 15;
+      }
+      return {p, s};
+    })
+    .sort((a,b)=>b.s-a.s || a.p.contado-b.p.contado);
+
+  const propios = puntuar(PRODUCTOS, "propio");
+  if(propios.length) return {hits:propios, porRubro:false};
+  return {hits:puntuar(PRODUCTOS, "blob"), porRubro:true};
+}
+
 /* Azar repetible, para que los costos y las ventas simuladas sean siempre
    los mismos y la demo no cambie entre una visita y otra. */
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967296;}
@@ -1433,6 +1575,10 @@ const PRODUCTOS = CRUDO.map(([cod,tit,rub,unPago,contado],i)=>{
     unPago, contado,
     costo, costoBase:costo,
     stock: 1 + Math.floor(hash(tit+cod)*16),
+    // Lo que de verdad dice el articulo. Es con esto con lo que se busca.
+    propio: plano(cod+" "+tit+" "+rub+" "+prov),
+    // Los sinonimos del rubro van aparte: solo se usan si lo de arriba
+    // no encontro nada, porque si no "deposito" trae todo SANITARIOS.
     blob: plano(cod+" "+tit+" "+rub+" "+prov+" "+(ALIAS[rub]||""))
   };
 });
@@ -1446,6 +1592,7 @@ PRODUCTOS.push({
   rub:"ACCESORIOS", prov:"FERRUM",
   unPago:114657, contado:100898,
   costo:109044, costoBase:109044, stock:20, real:true,
+  propio:plano("5135 FERRUM MUEBLE COLGAR 1 PUERTA LAVATORIO 1 AGUJERO TRAFUL 50 X 35 X 45 CM ACCESORIOS FERRUM"),
   blob:plano("5135 mueble colgar puerta lavatorio traful ferrum jt103-bd pta lavat vanitory accesorios bano espejo mueble")
 });
 
@@ -1487,6 +1634,7 @@ const pct = n => (n>=0?"":"−") + Math.abs(n).toFixed(1).replace(".",",") + "%"
 const S = {
   suc:"srl",           // en que razon social se esta vendiendo
   cajaSuc:"",          // que caja se esta mirando ("" = todas)
+  cajaVend:"",         // y de que vendedor ("" = todos)
   puesto:"Mostrador 1",
   cliente:"",          // vacio = consumidor final, que es lo normal en mostrador
   usuario:"Mauro",    // con quien se entro: de ahi sale el vendedor
@@ -1502,6 +1650,8 @@ const S = {
   // La demo abre con una venta ya empezada: si abre vacia, el que la mira
   // no ve nada y hay que explicarle que toque algo primero.
   linea:[{cod:"11114",cant:1},{cod:"3719",cant:2},{cod:"00677",cant:4}],
+  borradores:[],       // lo que quedo a medio armar, sin emitir
+  presuDe:{},          // cuantos presupuestos hizo cada uno
   ventas:[],           // lo del día
   presupuestos:0,
   objetivo:35,
@@ -1668,7 +1818,8 @@ function pintarCamposVenta(){
   const cond = S.cond || sCond[0];
   if(!S.cond) S.forma = cond;
   const opcCli = '<option value=""'+(S.cliente?"":" selected")+'>Consumidor final</option>' +
-    CLIENTES.map(x=>'<option value="'+x.id+'"'+(x.id===S.cliente?" selected":"")+'>'+x.n+'</option>').join("");
+    CLIENTES.map(x=>'<option value="'+x.id+'"'+(x.id===S.cliente?" selected":"")+'>'+x.n+'</option>').join("") +
+    '<option value="__nuevo">+ Agregar un cliente nuevo…</option>';
 
   let info;
   if(!c){
@@ -1685,7 +1836,9 @@ function pintarCamposVenta(){
   const su = sucAct();
   document.getElementById("camposVta").innerHTML =
     '<div class="campo"><label for="vtaSuc">Sucursal</label>'+
-      '<input id="vtaSuc" type="text" readonly value="'+su.n+'" style="background:var(--surface-2);color:var(--ink-2);font-weight:600">'+
+      '<select id="vtaSuc" style="font-weight:600">'+
+        SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
+      '</select>'+
       '<span class="por">punto de venta '+su.pv+'; la mercadería sale del depósito de <b>'+DEPOSITOS[su.dep]+'</b></span></div>'+
     '<div class="campo ancho"><label for="vtaCliente">Cliente</label>'+
       '<select id="vtaCliente" data-k="cli">'+opcCli+'</select>'+
@@ -1704,18 +1857,39 @@ function pintarCamposVenta(){
 
 document.getElementById("camposVta").addEventListener("change",e=>{
   const id = e.target.id;
-  if(id==="vtaCliente"){ S.cliente = e.target.value; S.comp = null; S.cond = null; }
+  if(id==="vtaSuc"){
+    S.suc = e.target.value; S.comp = null;
+    document.getElementById("selSuc").value = S.suc;
+    buscar();   // el stock que se ve es el del otro depósito
+    toast("Estás vendiendo como "+sucAct().n+". La mercadería sale del depósito de "+DEPOSITOS[depAct()]+".");
+  }
+  if(id==="vtaCliente"){
+    if(e.target.value==="__nuevo"){ e.target.value = S.cliente; abrirCliente(); return; }
+    S.cliente = e.target.value; S.comp = null; S.cond = null;
+  }
   if(id==="vtaComp") S.comp = e.target.value;
   if(id==="vtaCond"){ S.cond = e.target.value; S.forma = e.target.value; }
   pintarCamposVenta(); pintarTicket();
 });
 
 /** El botón grande dice lo que va a pasar al tocarlo, no "emitir" a secas. */
+/** La factura que le toca a este cliente: A si es responsable inscripto,
+    B en los demás casos. Es a lo que apunta el botón principal, aunque
+    arriba todavía diga presupuesto. */
+function facturaDe(){
+  const c = clienteVta(), comp = compAct();
+  if(!esPresu(comp) && comp.indexOf("Factura")>=0) return comp;   // ya eligió una
+  return (c && c.t==="Responsable Inscripto") ? "01.Factura A" : "02.Factura B";
+}
 function pintarAcciones(){
   const comp = compAct();
+  const fc = facturaDe();
+  // Si arriba eligió remito o pedido interno, el botón respeta eso.
+  const principal = (!esPresu(comp) && comp.indexOf("Factura")<0) ? comp : fc;
   document.getElementById("btnFactura").textContent =
-    esPresu(comp) ? "Guardar presupuesto " + nroDe(comp)
-                  : "Emitir " + comp.replace(/^\\d+\\./,"") + " " + nroDe(comp);
+    "Emitir " + principal.replace(/^\\d+\\./,"") + " · " + nroDe(principal).slice(2);
+  document.getElementById("btnPresu").textContent =
+    "Emitir presupuesto · " + nroDe("03.Presupuesto X cnc").slice(2);
 }
 
 /* Los descuentos de un toque, mas uno a medida. */
@@ -1736,6 +1910,97 @@ document.getElementById("selDto").addEventListener("change",e=>{
     S.desc = +e.target.value;
   }
   pintarDtos(); pintarTicket();
+});
+
+/* ------------------------------ clientes nuevos ------------------------
+   Un padron de prueba, para mostrar como seria con el de ARCA. */
+const PADRON = {
+  "30710448219":{n:"Corralón San Javier S.R.L.", t:"Responsable Inscripto", dir:"Ruta 14 km 42, San Javier"},
+  "30709981232":{n:"Constructora Las Rabonas S.A.", t:"Responsable Inscripto", dir:"Av. San Martín 1240, Las Rabonas"},
+  "30712996451":{n:"Obras del Oeste S.R.L.", t:"Responsable Inscripto", dir:"Belgrano 88, Villa Dolores"},
+  "20287654321":{n:"Juan Pablo Arrieta", t:"Monotributo", dir:"Sarmiento 310, Mina Clavero"},
+  "27351209886":{n:"Lucía Benítez", t:"Monotributo", dir:"Los Molles s/n, Nono"},
+  "30999034127":{n:"Municipalidad de Nono", t:"IVA Exento", dir:"Sarmiento 50, Nono"}
+};
+const soloNum = v => String(v||"").replace(/\\D/g,"");
+/** El digito verificador del CUIT, el mismo control que hace ARCA. */
+function cuitValido(d){
+  if(d.length !== 11) return false;
+  const p = [5,4,3,2,7,6,5,4,3,2];
+  let suma = 0;
+  for(let i=0;i<10;i++) suma += +d[i] * p[i];
+  let ver = 11 - (suma % 11);
+  if(ver === 11) ver = 0;
+  if(ver === 10) ver = 9;
+  return ver === +d[10];
+}
+const conGuiones = d => d.length===11 ? d.slice(0,2)+"-"+d.slice(2,10)+"-"+d.slice(10) : d;
+
+function abrirCliente(){
+  for(const id of ["cnDoc","cnNom","cnDir","cnTel"]) document.getElementById(id).value = "";
+  document.getElementById("cnIva").value = "Consumidor Final";
+  document.getElementById("cnLim").value = 0;
+  document.getElementById("cnAviso").innerHTML = "Sin guiones también vale. El sistema controla que el número cierre.";
+  document.getElementById("cliNuevo").hidden = false;
+  document.getElementById("cnDoc").focus();
+}
+function cerrarCliente(){ document.getElementById("cliNuevo").hidden = true; }
+document.getElementById("cliX").addEventListener("click", cerrarCliente);
+document.getElementById("cliNuevo").addEventListener("click",e=>{ if(e.target.id==="cliNuevo") cerrarCliente(); });
+
+function traerPadron(){
+  const d = soloNum(document.getElementById("cnDoc").value);
+  const av = document.getElementById("cnAviso");
+  if(d.length === 8){
+    av.innerHTML = '<b>Es un DNI.</b> Con DNI va Factura B y no hay padrón que consultar: poné el nombre a mano.';
+    document.getElementById("cnIva").value = "Consumidor Final";
+    return;
+  }
+  if(d.length !== 11){ av.innerHTML = '<b style="color:var(--bad)">El CUIT tiene 11 números.</b> Van '+d.length+'.'; return; }
+  if(!cuitValido(d)){ av.innerHTML = '<b style="color:var(--bad)">Ese CUIT no cierra.</b> Está mal copiado: fijate algún número.'; return; }
+  const p = PADRON[d];
+  if(!p){
+    av.innerHTML = '<b>No está en el padrón de prueba</b>, pero el número es válido. Cargalo a mano. '+
+      'En el sistema de verdad ARCA contesta con la razón social, la condición de IVA y el domicilio.';
+    return;
+  }
+  document.getElementById("cnNom").value = p.n;
+  document.getElementById("cnIva").value = p.t;
+  document.getElementById("cnDir").value = p.dir;
+  document.getElementById("cnDoc").value = conGuiones(d);
+  av.innerHTML = '<b style="color:var(--ok)">Listo.</b> Vino del padrón: '+p.n+' · '+p.t+'.';
+}
+document.getElementById("cnBuscar").addEventListener("click", traerPadron);
+document.getElementById("cnDoc").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); traerPadron(); } });
+// Con los 11 numeros puestos, lo busca solo: nadie quiere tocar otro botón.
+document.getElementById("cnDoc").addEventListener("input",e=>{
+  if(soloNum(e.target.value).length === 11) traerPadron();
+});
+
+document.getElementById("cnGuardar").addEventListener("click",()=>{
+  const d = soloNum(document.getElementById("cnDoc").value);
+  const nom = document.getElementById("cnNom").value.trim();
+  if(!nom){ toast("Falta el nombre o la razón social."); document.getElementById("cnNom").focus(); return; }
+  const t = document.getElementById("cnIva").value;
+  if(t==="Responsable Inscripto" && !cuitValido(d)){
+    toast("Para Factura A hace falta un CUIT válido.");
+    document.getElementById("cnDoc").focus(); return;
+  }
+  const id = "n"+(CLIENTES.length+1)+"-"+Date.now().toString(36);
+  CLIENTES.push({
+    id, n:nom, t, doc: d ? conGuiones(d) : "—",
+    saldo:0, lim: Math.max(0, +document.getElementById("cnLim").value||0),
+    dir: document.getElementById("cnDir").value.trim(),
+    tel: document.getElementById("cnTel").value.trim(),
+    siempre: []
+  });
+  S.cliente = id; S.comp = null; S.cond = null;
+  cerrarCliente();
+  pintarCamposVenta(); pintarTicket();
+  // el pedido usa la misma lista de clientes
+  const sc = document.getElementById("selCliente");
+  if(sc) sc.innerHTML = CLIENTES.map(c=>'<option value="'+c.id+'"'+(c.id===PED.cliente?" selected":"")+'>'+c.n+'</option>').join("");
+  toast(nom+" quedó cargado y puesto en esta venta.");
 });
 
 /* ------------------------- mandarselo al cliente -----------------------
@@ -1789,10 +2054,25 @@ document.getElementById("envioCopiarLink").addEventListener("click",()=>
 
 /* La franja del dia: el total de verdad y, adentro, cuanto salio con
    comprobante y cuanto no. Es un solo registro con la venta marcada. */
-/** Las ventas de la caja que se esta mirando. "" = las tres juntas. */
+/** Las ventas de la caja que se esta mirando: la sucursal elegida y,
+    si se eligio uno, el vendedor. "" en los dos = todo. */
 function ventasCaja(){
-  return S.cajaSuc ? S.ventas.filter(v=>v.suc===S.cajaSuc) : S.ventas;
+  let vs = S.cajaSuc ? S.ventas.filter(v=>v.suc===S.cajaSuc) : S.ventas;
+  if(S.cajaVend) vs = vs.filter(v=>v.vend===S.cajaVend);
+  return vs;
 }
+function pintarFiltroVend(){
+  const sel = document.getElementById("cajaVend");
+  sel.innerHTML = '<option value=""'+(S.cajaVend?"":" selected")+'>Todos</option>'+
+    VENDEDORES.map(v=>'<option'+(v===S.cajaVend?" selected":"")+'>'+v+'</option>').join("");
+  const vs = ventasCaja();
+  document.getElementById("cajaVendN").textContent = S.cajaVend
+    ? vs.length+" ventas de "+S.cajaVend+" · "+fmt(vs.reduce((a,v)=>a+ventaCobrado(v),0))
+    : "sin filtrar: se ven las de todos";
+}
+document.getElementById("cajaVend").addEventListener("change",e=>{
+  S.cajaVend = e.target.value; pintarCaja();
+});
 function pintarHoy(){
   const vs0 = ventasCaja();
   const conF = vs0.filter(v=>v.facturada);
@@ -1830,25 +2110,19 @@ function buscar(){
     return;
   }
   const toks = q.split(/\\s+/).filter(Boolean);
-  const hits = PRODUCTOS
-    .filter(p=>toks.every(t=>p.blob.includes(t)))
-    .map(p=>{
-      let s = 0;
-      if(plano(p.cod)===q) s += 1000;
-      if(plano(p.tit).startsWith(toks[0])) s += 50;
-      for(const t of toks) if(new RegExp("(^|[ ·(])"+t.replace(/[.*+?^\${}()|[\\]\\\\]/g,"\\\\$&")).test(p.blob)) s += 10;
-      return {p, s};
-    })
-    .sort((a,b)=>b.s-a.s || a.p.contado-b.p.contado)
-    .slice(0,8);
+  const r = encontrar(toks);
+  const hits = r.hits.slice(0,10);
 
   if(!hits.length){
-    caja.innerHTML = '<div class="vacio" style="padding:22px 14px">Nada con <b>“'+document.getElementById("q").value+'”</b>. Probá con menos palabras.</div>';
+    caja.innerHTML = '<div class="vacio" style="padding:22px 14px">Nada con <b>“'+document.getElementById("q").value+'”</b>. '+
+      'Probá con menos palabras, o con el código.</div>';
     return;
   }
   // Un listado con columnas, no tarjetas: se compara de un vistazo y cada
   // renglon lleva su cantidad, como en cualquier mostrador.
   caja.innerHTML =
+    (r.porRubro ? '<p class="por-rubro">Ninguno se llama <b>“'+document.getElementById("q").value+'”</b>. '+
+      'Te muestro lo que hay en ese rubro.</p>' : '')+
     '<div class="tabla-wrap"><table class="densa res-t"><thead><tr>'+
       '<th>Código</th><th>Artículo</th><th>Marca</th><th class="r">Stock</th>'+
       '<th class="r">Contado</th><th class="r">1 pago</th><th class="r">Cant.</th><th></th>'+
@@ -1882,9 +2156,14 @@ document.getElementById("q").addEventListener("keydown",e=>{
   if(primero) sumar(primero.dataset.cod, 1);
 });
 document.getElementById("res").addEventListener("click",e=>{
-  const b = e.target.closest("[data-add]"); if(!b) return;
-  const campo = document.querySelector('#res input[data-q="'+b.dataset.add+'"]');
-  sumar(b.dataset.add, campo ? +campo.value : 1);
+  // El botón Sumar, y también el renglón entero: es lo que uno espera
+  // tocar. Lo único que no suma es el casillero de la cantidad.
+  if(e.target.closest("input")) return;
+  const b = e.target.closest("[data-add]") || e.target.closest("tr[data-cod]");
+  if(!b) return;
+  const cod = b.dataset.add || b.dataset.cod;
+  const campo = document.querySelector('#res input[data-q="'+cod+'"]');
+  sumar(cod, campo ? +campo.value : 1);
 });
 // Enter adentro de la cantidad de un renglon lo suma sin tocar el botón.
 document.getElementById("res").addEventListener("keydown",e=>{
@@ -1974,9 +2253,43 @@ function pintarTicket(){
     '<div class="tr big"><span>Total</span><b>'+fmt(total)+'</b></div>';
 
   const vacio = S.linea.length===0;
-  document.getElementById("btnFactura").disabled = vacio;
-  document.getElementById("btnSinFactura").disabled = vacio;
+  for(const b of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnWhatsVta"])
+    document.getElementById(b).disabled = vacio;
+  pintarBorradores();
 }
+
+/* --------------------------------------------------- los borradores --
+   Lo que quedó a medio armar y no se emitió. No mueve stock, no mueve
+   caja y no gasta número: queda esperando a que el cliente vuelva. */
+function pintarBorradores(){
+  const c = document.getElementById("borradores");
+  if(!c) return;
+  if(!S.borradores.length){ c.innerHTML = ""; return; }
+  c.innerHTML = '<span class="et">Borradores guardados</span>' + S.borradores.map(b=>{
+    const cli = b.cliente ? (CLIENTES.find(x=>x.id===b.cliente)||{}).n : "Consumidor final";
+    const tot = b.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+    return '<span class="bo"><b>'+(cli||"Consumidor final").slice(0,22)+'</b> '+
+      b.linea.length+' art. · '+fmt(tot)+' · '+b.hora+
+      ' <button class="ret" data-ret="'+b.id+'">retomar</button>'+
+      '<button data-bx="'+b.id+'" aria-label="borrar" title="borrar">×</button></span>';
+  }).join("");
+}
+document.getElementById("borradores").addEventListener("click",e=>{
+  const r = e.target.closest("[data-ret]"), x = e.target.closest("[data-bx]");
+  if(x){
+    S.borradores = S.borradores.filter(b=>b.id !== x.dataset.bx);
+    pintarBorradores(); toast("Borrador tirado."); return;
+  }
+  if(!r) return;
+  const b = S.borradores.find(y=>y.id === r.dataset.ret); if(!b) return;
+  if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el borrador?")) return;
+  S.linea = b.linea.map(l=>({...l}));
+  S.cliente = b.cliente; S.desc = b.desc; S.forma = b.forma; S.cond = b.forma; S.comp = null; S.suc = b.suc;
+  S.borradores = S.borradores.filter(y=>y.id !== b.id);
+  document.getElementById("selSuc").value = S.suc;
+  pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
+  toast("Borrador retomado. Seguí donde habías quedado.");
+});
 
 document.getElementById("tkLineas").addEventListener("click",e=>{
   const b = e.target.closest("button[data-m]"); if(!b) return;
@@ -1996,7 +2309,7 @@ function cerrar(facturada){
   const su = sucAct();
   S.ventas.push({
     hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
-    suc: S.suc, puesto: S.puesto, forma: S.forma, facturada, web:false,
+    suc: S.suc, puesto: S.puesto, vend: S.usuario, forma: S.forma, facturada, web:false,
     linea: S.linea.map(l=>({...l}))
   });
   // Descuenta del deposito de ESTA sucursal, no de un stock unico.
@@ -2020,13 +2333,36 @@ function guardarPresu(){
   const total = (bruto - Math.round(bruto*S.desc/100)) * MULT[S.forma];
   S.nro[su.id].X++;
   S.presupuestos++;
+  S.presuDe[S.usuario] = (S.presuDe[S.usuario]||0) + 1;
   S.linea = []; S.desc = 0; S.comp = null;
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   toast("Presupuesto "+nro+" de "+su.n+" por "+fmt(total)+". No mueve stock ni caja: queda esperando al cliente.");
 }
 
 document.getElementById("btnFactura").addEventListener("click",()=>{
-  if(esPresu(compAct())) guardarPresu(); else cerrar(true);
+  // El botón principal emite siempre un comprobante de verdad: si arriba
+  // decía presupuesto, lo pasa a la factura que corresponde y la emite.
+  const comp = compAct();
+  if(esPresu(comp)) S.comp = facturaDe();
+  cerrar(true);
+});
+document.getElementById("btnPresu").addEventListener("click",()=>{
+  S.comp = "03.Presupuesto X cnc";
+  guardarPresu();
+});
+document.getElementById("btnBorrador").addEventListener("click",()=>{
+  if(!S.linea.length){ toast("No hay nada para guardar."); return; }
+  const h = new Date();
+  S.borradores.unshift({
+    id: "b"+Date.now().toString(36),
+    hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
+    suc: S.suc, cliente: S.cliente, desc: S.desc, forma: S.forma,
+    linea: S.linea.map(l=>({...l}))
+  });
+  if(S.borradores.length > 6) S.borradores.pop();
+  S.linea = []; S.desc = 0; S.comp = null;
+  pintarCamposVenta(); pintarDtos(); pintarTicket();
+  toast("Guardado como borrador. No gastó número ni movió stock: lo retomás cuando el cliente vuelva.");
 });
 document.getElementById("btnSinFactura").addEventListener("click",()=>cerrar(false));
 document.getElementById("btnWhatsVta").addEventListener("click",()=>{
@@ -2228,6 +2564,7 @@ document.getElementById("cajaSucs").addEventListener("click",e=>{
 
 function pintarCaja(){
   pintarCajaSucs();
+  pintarFiltroVend();
   pintarHoy();
   const vs = ventasCaja();
   const cobrado = vs.reduce((a,v)=>a+ventaCobrado(v),0);
@@ -2247,7 +2584,8 @@ function pintarCaja(){
     const n = v.linea.reduce((a,l)=>a+l.cant,0);
     const q = v.linea.map(l=>prod(l.cod).tit).join(" + ");
     return '<tr><td class="num" style="font-size:12.5px">'+v.hora+'</td>'+
-      '<td style="font-size:12px;color:var(--ink-2);white-space:nowrap">'+sucDe(v.suc).n+'</td>'+
+      '<td style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">'+sucDe(v.suc).n+'</td>'+
+      '<td style="font-weight:600;white-space:nowrap">'+(v.vend||"—")+'</td>'+
       '<td>'+(v.web?'<span class="pill p-n">web</span> ':'')+v.puesto.replace("Mostrador ","M")+'</td>'+
       '<td class="nom" style="min-width:260px">'+n+' art. <small>'+q.slice(0,72)+(q.length>72?"…":"")+'</small></td>'+
       '<td style="font-size:12.5px;color:var(--ink-2)">'+formaCorta(v.forma)+'</td>'+
@@ -2266,6 +2604,15 @@ function pintarCaja(){
   const mx2 = Math.max(...Object.values(pu));
   document.getElementById("porPuesto").innerHTML = Object.keys(pu).sort()
     .map(k=>barra(k, pu[k], mx2)).join("");
+
+  // Quien vendio cuanto. Sin el filtro de vendedor puesto, para poder
+  // comparar: si no, se veria una sola barra.
+  const sinV = S.cajaSuc ? S.ventas.filter(v=>v.suc===S.cajaSuc) : S.ventas;
+  const pvd = {};
+  for(const v of sinV) pvd[v.vend||"—"] = (pvd[v.vend||"—"]||0) + ventaCobrado(v);
+  const mxVd = Math.max(1, ...Object.values(pvd));
+  document.getElementById("cajaPorVend").innerHTML = Object.entries(pvd)
+    .sort((a,b)=>b[1]-a[1]).map(([k,n])=>barra(k, n, mxVd)).join("");
 
   // Las tres razones sociales, una al lado de la otra.
   const ps = {};
@@ -2540,23 +2887,8 @@ function buscarPed(){
   const caja = document.getElementById("resPed");
   if(!q){ caja.innerHTML = ""; return []; }
   const toks = q.split(/\\s+/).filter(Boolean);
-  const hits = PRODUCTOS
-    .filter(p=>toks.every(t=>p.blob.includes(t)))
-    .map(p=>{
-      // El mismo orden que en el mostrador: primero el codigo exacto,
-      // despues lo que empieza igual, despues lo que arranca una palabra.
-      let s = 0;
-      if(plano(p.cod)===q) s += 1000;
-      if(plano(p.prov)===q) s += 200;
-      if(plano(p.tit).startsWith(toks[0])) s += 50;
-      // La palabra en el nombre pesa mas que la misma palabra encontrada
-      // por el rubro: "inodoro" tiene que traer primero un inodoro, no
-      // una bacha que esta en el mismo rubro.
-      for(const t of toks) if(plano(p.tit).includes(t)) s += 30;
-      for(const t of toks) if(new RegExp("(^|[ ·(])"+t.replace(/[.*+?^\${}()|[\\]\\\\]/g,"\\\\$&")).test(p.blob)) s += 10;
-      return {p, s};
-    })
-    .sort((a,b)=>b.s-a.s || a.p.contado-b.p.contado)
+  const rr = encontrar(toks);
+  const hits = rr.hits
     .slice(0,8);
 
   if(!hits.length){
@@ -3301,7 +3633,7 @@ function pintarRenta(){
   }).join("");
 
   const pv = {};
-  for(const v of vs) pv[v.vend] = (pv[v.vend]||0) + ventaBase(v) -
+  for(const v of vs) pv[v.vend||"—"] = (pv[v.vend||"—"]||0) + ventaBase(v) -
     v.linea.reduce((a,l)=>a+prod(l.cod).costo*l.cant,0);
   const mxV = Math.max(1, ...Object.values(pv));
   document.getElementById("porVend").innerHTML = Object.entries(pv)

@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.58.7";
+export const APP_VERSION = "V.0.58.8";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,19 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.58.8",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\" — BOTONES QUE DICEN LO QUE HACEN: \"Emitir Factura B · 0003-00048214\", \"Emitir presupuesto · 0003-00003301\" y \"Guardar como borrador\". El borrador no gasta número ni mueve stock: queda en una fila abajo y se retoma de un toque.",
+      "CLIENTE NUEVO SIN SALIR DE LA VENTA: se pone el CUIT y vienen solos la razón social, la condición de IVA y el domicilio. Controla el dígito verificador y avisa si el CUIT no cierra. (Acá sale de un padrón de prueba; en el sistema real se lo pregunta a ARCA.)",
+      "LA BÚSQUEDA DEJÓ DE TRAER CUALQUIER COSA: antes \"depósito\" devolvía todas las bachas porque compartían rubro. Ahora busca por lo que dice el artículo — código, nombre, marca, rubro — y sólo si no encuentra nada se abre al rubro, avisando que lo hizo.",
+      "Tocar el renglón en cualquier lado lo suma, no hace falta apuntarle al botón.",
+      "LA VENTA QUEDA A NOMBRE DEL USUARIO que la hizo. En Caja hay columna de vendedor, barras por vendedor y un filtro para ver sólo las de uno.",
+      "La sucursal también se elige desde el panel de venta, y en pantalla angosta la barra ya no esconde el usuario ni la razón social.",
+      "Letra más grande y más gruesa en los dos listados que el vendedor mira todo el día.",
+    ],
+  },
   {
     version: "V.0.58.7",
     date: "2026-11-04",
