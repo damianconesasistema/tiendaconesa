@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.58.2";
+export const APP_VERSION = "V.0.58.3";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.58.3",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\": ahora tiene la imagen de Conesa. Usa el rojo de la marca, el negro y las dos tipografías de la tienda (Montserrat para los títulos y los números, Inter para el texto), y arriba a la izquierda está el logo SANITARIOS CONESA con la A en rojo.",
+      "El logo está dibujado con la tipografía y no con una imagen, así se ve nítido en cualquier pantalla y el nombre no desaparece cuando la pantalla está en modo oscuro.",
+      "El rojo de los avisos quedó más oscuro que el rojo de la marca, para que un \"pierde plata\" no se confunda con un botón de vender.",
+      "No cambia ningún número ni ninguna pantalla de la demo: es solo cómo se ve.",
+    ],
+  },
   {
     version: "V.0.58.2",
     date: "2026-11-04",

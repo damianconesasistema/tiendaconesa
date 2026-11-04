@@ -7,48 +7,54 @@ export const PUNTO_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Punto de Mostrador</title>
+<title>Punto — Sanitarios Conesa</title>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161617" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* Un sistema de mostrador: barra fija arriba, solapas, y cada modulo a dos
-   columnas que se apilan en el telefono. Paleta de ferreteria: papel, acero
-   y un verde petroleo de acento. */
+   columnas que se apilan en el telefono.
+   Los colores y las dos tipografias son los de Sanitarios Conesa, sacados de
+   globals.css de la tienda: el rojo #e63020, el negro, y Montserrat con
+   Inter. El unico cambio es el rojo de alerta, que va mas oscuro que el de
+   la marca para que un aviso no se confunda con un boton. */
 :root{
-  --bg:#f1efeb; --surface:#ffffff; --surface-2:#f7f5f2; --surface-3:#ebe8e2;
-  --line:#d9d4cc; --line-2:#c3bcb1;
-  --ink:#14181b; --ink-2:#5a646e; --ink-3:#8b939b;
-  --accent:#0b6457; --accent-ink:#ffffff; --accent-soft:#dfece9;
-  --ok:#1b7044; --ok-soft:#e0f0e6;
-  --warn:#9c5e08; --warn-soft:#f8ecd8;
-  --bad:#a93328; --bad-soft:#f8e3e0;
-  --font-d:"Barlow Condensed","Arial Narrow",Haettenschweiler,sans-serif;
-  --font-b:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
-  --font-m:"IBM Plex Mono",ui-monospace,"Courier New",monospace;
+  --bg:#f6f5f3; --surface:#ffffff; --surface-2:#faf9f8; --surface-3:#efedea;
+  --line:#e6e4e0; --line-2:#d6d2cc;
+  --ink:#0a0a0a; --ink-2:#6b6b6b; --ink-3:#9b9893;
+  --accent:#e63020; --accent-ink:#ffffff; --accent-soft:#fdeae7;
+  --ok:#0f7a3d; --ok-soft:#e6f3ec;
+  --warn:#a35a06; --warn-soft:#fbf0dd;
+  --bad:#8f1d12; --bad-soft:#fae4e1;
+  --font-d:"Montserrat",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-b:"Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-m:"Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-raw:ui-monospace,Consolas,"SF Mono",Menlo,"Courier New",monospace;
   --r:10px;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#101318; --surface:#181c23; --surface-2:#1f242d; --surface-3:#262c37;
-    --line:#2d343f; --line-2:#3c4451;
-    --ink:#e9ecf0; --ink-2:#9aa4b1; --ink-3:#6f7987;
-    --accent:#35bda6; --accent-ink:#06211d; --accent-soft:#14312c;
-    --ok:#4ec283; --ok-soft:#14301f;
-    --warn:#e0a53f; --warn-soft:#32260f;
-    --bad:#ef6d5e; --bad-soft:#361a17;
+    --bg:#0d0d0e; --surface:#161617; --surface-2:#1d1d1f; --surface-3:#262628;
+    --line:#2b2b2e; --line-2:#3a3a3e;
+    --ink:#f2f1ef; --ink-2:#a6a39e; --ink-3:#76736e;
+    --accent:#ff4a36; --accent-ink:#ffffff; --accent-soft:#3a120c;
+    --ok:#49bd7b; --ok-soft:#122b1c;
+    --warn:#e0a53f; --warn-soft:#2e2410;
+    --bad:#ff6a58; --bad-soft:#3a1410;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#101318; --surface:#181c23; --surface-2:#1f242d; --surface-3:#262c37;
-  --line:#2d343f; --line-2:#3c4451;
-  --ink:#e9ecf0; --ink-2:#9aa4b1; --ink-3:#6f7987;
-  --accent:#35bda6; --accent-ink:#06211d; --accent-soft:#14312c;
-  --ok:#4ec283; --ok-soft:#14301f;
-  --warn:#e0a53f; --warn-soft:#32260f;
-  --bad:#ef6d5e; --bad-soft:#361a17;
+  --bg:#0d0d0e; --surface:#161617; --surface-2:#1d1d1f; --surface-3:#262628;
+  --line:#2b2b2e; --line-2:#3a3a3e;
+  --ink:#f2f1ef; --ink-2:#a6a39e; --ink-3:#76736e;
+  --accent:#ff4a36; --accent-ink:#ffffff; --accent-soft:#3a120c;
+  --ok:#49bd7b; --ok-soft:#122b1c;
+  --warn:#e0a53f; --warn-soft:#2e2410;
+  --bad:#ff6a58; --bad-soft:#3a1410;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -58,7 +64,7 @@ body{
   font-family:var(--font-b); font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
 }
-h1,h2,h3,h4{font-family:var(--font-d); margin:0; line-height:1.08; text-wrap:balance; letter-spacing:.01em}
+h1,h2,h3,h4{font-family:var(--font-d); margin:0; line-height:1.1; text-wrap:balance; letter-spacing:-.012em}
 .num{font-family:var(--font-m); font-variant-numeric:tabular-nums}
 button{font-family:inherit; font-size:inherit; cursor:pointer}
 input,select{font-family:inherit; font-size:inherit; color:var(--ink)}
@@ -73,12 +79,29 @@ header{
   max-width:1240px; margin:0 auto; padding:10px 16px;
   display:flex; align-items:center; gap:14px; flex-wrap:wrap;
 }
-.logo{display:flex; align-items:baseline; gap:8px; margin-right:auto}
-.logo b{
-  font-family:var(--font-d); font-size:27px; font-weight:700;
-  letter-spacing:.055em; text-transform:uppercase;
+.logo{display:flex; align-items:center; gap:11px; margin-right:auto; flex-wrap:wrap}
+/* La marca se dibuja con la tipografia y el rojo de Conesa en vez de una
+   imagen, para que se vea igual de nitida en cualquier pantalla y para que
+   el nombre no desaparezca cuando la pantalla esta en modo oscuro. */
+.marca{display:flex; flex-direction:column; gap:3px; line-height:1}
+.marca-sup{
+  font-family:var(--font-d); font-size:8.5px; font-weight:600;
+  letter-spacing:.3em; text-transform:uppercase; color:var(--ink-2);
+  padding-left:.15em;
 }
-.logo span{font-size:12.5px; color:var(--ink-2); max-width:30ch}
+.marca-nom{
+  display:flex; align-items:baseline; gap:0;
+  font-family:var(--font-d); font-size:25px; font-weight:900;
+  letter-spacing:-.015em; text-transform:uppercase; color:var(--ink);
+  line-height:.8;
+}
+.marca-a{display:block; height:.70em; width:auto; fill:var(--accent); margin-left:.01em}
+.marca-sep{width:1px; align-self:stretch; background:var(--line-2); margin:3px 0}
+.logo b{
+  font-family:var(--font-d); font-size:18px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--ink-2);
+}
+.logo .lema{font-size:12.5px; color:var(--ink-2); max-width:30ch}
 .chip-demo{
   font-family:var(--font-d); font-size:12.5px; font-weight:600; letter-spacing:.14em;
   text-transform:uppercase; padding:3px 9px; border-radius:999px;
@@ -191,7 +214,7 @@ section[hidden]{display:none}
 .tr{display:flex; justify-content:space-between; font-size:13px; color:var(--ink-2)}
 .tr b{font-family:var(--font-m); color:var(--ink); font-variant-numeric:tabular-nums}
 .tr.big{font-size:15px; color:var(--ink); align-items:baseline; margin-top:3px; padding-top:8px; border-top:1px solid var(--line)}
-.tr.big b{font-size:24px; font-family:var(--font-d); font-weight:700}
+.tr.big b{font-size:21px; font-family:var(--font-d); font-weight:700}
 .tk-acc{padding:0 14px 14px; display:flex; flex-direction:column; gap:7px}
 .b1,.b2,.b3{border-radius:8px; padding:11px; font-weight:600; border:1px solid transparent; text-align:center}
 .b1{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
@@ -243,7 +266,7 @@ td.nom small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px
 .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(176px,1fr)); gap:12px; margin-bottom:16px}
 .tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:13px 15px}
 .tile .k{font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--ink-3); font-weight:600}
-.tile .v{font-family:var(--font-d); font-size:33px; font-weight:700; line-height:1.05; margin-top:5px; font-variant-numeric:tabular-nums}
+.tile .v{font-family:var(--font-d); font-size:28px; font-weight:700; line-height:1.05; margin-top:5px; font-variant-numeric:tabular-nums}
 .tile .d{font-size:12px; color:var(--ink-2); margin-top:3px}
 .tile.alerta{border-left:3px solid var(--bad)}
 .tile.alerta .v{color:var(--bad)}
@@ -301,7 +324,7 @@ td.nom small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px
   background:var(--surface-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);
 }
 .resumen-sim div{font-size:13px}
-.resumen-sim b{display:block; font-family:var(--font-d); font-size:26px; font-weight:700; line-height:1.1}
+.resumen-sim b{display:block; font-family:var(--font-d); font-size:23px; font-weight:700; line-height:1.1}
 .acc-sim{padding:14px; display:flex; gap:9px; flex-wrap:wrap; border-top:1px solid var(--line)}
 .acc-sim button{padding:10px 15px; border-radius:8px}
 
@@ -349,16 +372,16 @@ table.densa th{padding:8px 10px}
 .sobre:hover{border-color:var(--accent); background:var(--accent-soft)}
 .sobre[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft)}
 .sobre .via{display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--ink-3); font-weight:600; text-transform:uppercase; letter-spacing:.07em}
-.sobre .de{font-family:var(--font-d); font-size:21px; font-weight:700; line-height:1.05}
+.sobre .de{font-family:var(--font-d); font-size:19px; font-weight:700; line-height:1.05}
 .sobre .ar{font-family:var(--font-m); font-size:11.5px; color:var(--ink-2); word-break:break-all}
 .sobre .cuando{font-size:12px; color:var(--ink-3)}
 .lect{padding:14px; display:flex; flex-direction:column; gap:11px}
 .lect-fila{display:flex; gap:12px; flex-wrap:wrap}
 .lect-dato{background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:9px 13px; flex:1 1 128px}
 .lect-dato .k{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); font-weight:600}
-.lect-dato .v{font-family:var(--font-d); font-size:25px; font-weight:700; line-height:1.1}
+.lect-dato .v{font-family:var(--font-d); font-size:22px; font-weight:700; line-height:1.1}
 .lect-raw{
-  font-family:var(--font-m); font-size:11.5px; line-height:1.65; color:var(--ink-2);
+  font-family:var(--font-raw); font-size:11.5px; line-height:1.65; color:var(--ink-2);
   background:var(--surface-2); border:1px solid var(--line); border-left:3px solid var(--line-2);
   border-radius:8px; padding:11px 13px; overflow-x:auto; white-space:pre;
 }
@@ -401,8 +424,13 @@ footer{
 <header>
   <div class="bar">
     <div class="logo">
+      <div class="marca" aria-label="Sanitarios Conesa">
+        <span class="marca-sup">Sanitarios</span>
+        <span class="marca-nom">Cones<svg class="marca-a" viewBox="0 0 26 24" aria-hidden="true"><path d="M13 0 26 24h-7.3L13 12.6 7.3 24H0z"/></svg></span>
+      </div>
+      <span class="marca-sep"></span>
       <b>Punto</b>
-      <span>lee la lista de tu proveedor antes de que te rompa el margen</span>
+      <span class="lema">lee la lista de tu proveedor antes de que te rompa el margen</span>
     </div>
     <span class="chip-demo">Demo</span>
     <div class="puesto">
