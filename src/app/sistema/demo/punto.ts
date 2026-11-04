@@ -1,7 +1,7 @@
 // GENERADO AUTOMATICAMENTE - no editar a mano.
 // Sale de la demo 'Punto'. Para cambiarla, se regenera este archivo.
 //
-// Lo sirve src/app/sistema/demo/route.ts, que antes pide la clave DEMO_PASSWORD.
+// Lo sirve src/app/demo/route.ts, que antes pide la clave DEMO_PASSWORD.
 export const PUNTO_HTML = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -305,6 +305,41 @@ td.nom small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px
 .acc-sim{padding:14px; display:flex; gap:9px; flex-wrap:wrap; border-top:1px solid var(--line)}
 .acc-sim button{padding:10px 15px; border-radius:8px}
 
+/* pedidos: el cliente y su cuenta */
+.cli{padding:13px 14px; display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+.cli select{
+  flex:1 1 230px; background:var(--surface-2); border:1px solid var(--line-2);
+  border-radius:8px; padding:10px 11px; font-weight:600; font-size:15px;
+}
+.cli-datos{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-2)}
+.cli-datos div span{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); font-weight:600}
+.cli-datos div b{font-family:var(--font-m); font-size:14px; font-weight:600; color:var(--ink)}
+.siempre{padding:0 14px 13px; display:flex; gap:6px; flex-wrap:wrap; align-items:center}
+.siempre .et{font-size:11.5px; color:var(--ink-3); font-weight:600; text-transform:uppercase; letter-spacing:.07em; margin-right:3px}
+.siempre button{
+  background:var(--accent-soft); border:1px solid var(--accent); border-radius:999px;
+  padding:4px 11px; font-size:12.5px; color:var(--ink); font-weight:500;
+}
+.siempre button:hover{filter:brightness(.96)}
+
+/* la grilla densa de renglones */
+table.densa td{padding:6px 10px; font-size:13px}
+table.densa th{padding:8px 10px}
+.cant{
+  width:62px; padding:4px 6px; text-align:right; font-family:var(--font-m);
+  background:var(--surface-2); border:1px solid var(--line-2); border-radius:6px;
+}
+.cant:focus{border-color:var(--accent); outline:none}
+.quitar-fila{background:none; border:0; color:var(--ink-3); font-size:16px; line-height:1; padding:2px 5px}
+.quitar-fila:hover{color:var(--bad)}
+.entrega-datos{padding:12px 14px; display:flex; flex-direction:column; gap:6px}
+.entrega-datos label{font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--ink-3); font-weight:600}
+.entrega-datos input{
+  background:var(--surface-2); border:1px solid var(--line-2); border-radius:8px;
+  padding:9px 10px; width:100%;
+}
+.entrega-datos input:focus{border-color:var(--accent); outline:none}
+
 /* la bandeja de listas que llegaron */
 .bandeja{display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr)); gap:11px; padding:14px}
 .sobre{
@@ -380,6 +415,7 @@ footer{
   </div>
   <nav id="nav">
     <button data-v="mostrador" aria-current="true">Mostrador</button>
+    <button data-v="pedidos">Pedidos</button>
     <button data-v="web">Pedidos web</button>
     <button data-v="productos">Productos y costos</button>
     <button data-v="listas">Listas de proveedor</button>
@@ -427,6 +463,99 @@ footer{
         <button class="b3" id="btnVaciar">Vaciar</button>
       </div>
       <p class="nota">Una sola venta, un solo registro. <b>Facturada</b> es un dato de la venta, no un libro aparte: la gerencia ve el total real y, dentro, cuánto salió con factura.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= PEDIDOS -->
+<section id="v-pedidos" hidden>
+  <div class="head">
+    <h2>Pedidos</h2>
+    <p>El cliente pide, vos tomás. Lo que no hay se ve en el renglón, no cuando el camión llega sin la mercadería.</p>
+  </div>
+
+  <div class="dos">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Para quién</h3><span class="sub" id="pedNro"></span></div>
+        <div class="cli">
+          <select id="selCliente" aria-label="Cliente"></select>
+          <div class="cli-datos" id="cliDatos"></div>
+        </div>
+        <div class="siempre" id="siempre"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <h3>Renglones</h3>
+          <span class="sub" id="pedCuenta"></span>
+        </div>
+        <div style="padding:12px 14px 0">
+          <div class="buscar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <input id="qPed" type="text" placeholder="Agregá un artículo: escribí y apretá Enter" autocomplete="off">
+          </div>
+          <div class="res" id="resPed" style="margin-top:8px"></div>
+        </div>
+        <div class="tabla-wrap">
+          <table class="densa">
+            <thead><tr>
+              <th>Código</th><th>Artículo</th><th class="r">Cant.</th>
+              <th class="r">Precio</th><th class="r">Subtotal</th><th>Entrega</th><th></th>
+            </tr></thead>
+            <tbody id="tbPed"></tbody>
+          </table>
+        </div>
+        <div id="pedFaltan"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Cómo lo recibe</h3></div>
+        <div class="tk-pago">
+          <div class="formas" id="formaEntrega">
+            <button data-e="retira" aria-pressed="true">Retira en el local<span>sin costo</span></button>
+            <button data-e="envio" aria-pressed="false">Se lo llevamos<span>según zona</span></button>
+          </div>
+        </div>
+        <div class="entrega-datos">
+          <label for="fecha">Para cuándo</label>
+          <input id="fecha" type="date">
+          <div id="dirEnvio" hidden>
+            <label for="dir">Dónde</label>
+            <input id="dir" type="text" placeholder="Calle, localidad">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h3>Total</h3></div>
+        <div class="tk-tot" id="pedTot"></div>
+        <div class="entrega-datos" style="border-top:1px solid var(--line)">
+          <label for="senia">Seña que deja ahora</label>
+          <input id="senia" type="number" value="0" min="0" step="1000">
+        </div>
+        <div class="tk-acc">
+          <button class="b1" id="btnGuardarPed">Guardar el pedido</button>
+          <button class="b2" id="btnWhatsPed">Mandárselo por WhatsApp</button>
+          <button class="b3" id="btnVaciarPed">Vaciar</button>
+        </div>
+        <p class="nota">Guardar el pedido reserva el stock que hay y deja anotado lo que falta. No cobra nada todavía: eso pasa cuando el cliente lo retira.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-h"><h3>Pedidos abiertos</h3><span class="sub" id="pedAbiertos"></span></div>
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr>
+          <th>Nº</th><th>Cliente</th><th>Artículos</th><th>Entrega</th>
+          <th class="r">Total</th><th class="r">Seña</th><th>Estado</th>
+        </tr></thead>
+        <tbody id="tbPedidos"></tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -925,7 +1054,7 @@ function ventaCobrado(v){ return ventaBase(v) * MULT[v.forma]; }
 function ventaMargen(v){ return v.linea.reduce((a,l)=>{const p=prod(l.cod); return a+(p.contado-p.costo)*l.cant;},0); }
 
 /* ================================================== navegación */
-const vistas = ["mostrador","web","productos","listas","red","caja","gerencia","asistente"];
+const vistas = ["mostrador","pedidos","web","productos","listas","red","caja","gerencia","asistente"];
 document.getElementById("nav").addEventListener("click",e=>{
   const b = e.target.closest("button[data-v]"); if(!b) return;
   for(const v of vistas) document.getElementById("v-"+v).hidden = (v !== b.dataset.v);
@@ -937,6 +1066,7 @@ document.getElementById("nav").addEventListener("click",e=>{
   if(b.dataset.v==="web") pintarWeb();
   if(b.dataset.v==="red") pintarRed();
   if(b.dataset.v==="asistente") pintarAsistente();
+  if(b.dataset.v==="pedidos") pintarPedido();
 });
 
 let tt;
@@ -1380,6 +1510,243 @@ function pintarGerencia(){
   document.getElementById("gerTop").innerHTML = t5.map(([c,v])=>
     barra(prod(c).tit.split(/[·(]/)[0].slice(0,26), v, mxt)).join("");
 }
+
+/* ========================================================= PEDIDOS
+   Tomado de como lo resuelven los sistemas de distribuidores: grilla
+   densa con el teclado, el problema de entrega EN EL RENGLON (no al
+   final), y plantillas de lo que el cliente pide siempre. */
+const CLIENTES = [
+  {id:"c1", n:"Corralón San Javier", t:"Responsable Inscripto", doc:"30-71044821-9",
+   saldo:1842300, lim:4000000, siempre:["10955","10953","10951"]},
+  {id:"c3", n:"Constructora Las Rabonas", t:"Responsable Inscripto", doc:"30-70998123-2",
+   saldo:3610450, lim:3500000, siempre:["11114","3719","00677","3716"]},
+  {id:"c5", n:"Municipalidad de Nono", t:"IVA Exento", doc:"30-99903412-7",
+   saldo:0, lim:8000000, siempre:["10960","10949","10956"]},
+  {id:"c6", n:"Sanitarios del Valle", t:"Responsable Inscripto", doc:"30-71233456-8",
+   saldo:487200, lim:2000000, siempre:["11045","11046","11047","11118"]},
+  {id:"c2", n:"Rubén Ceballos", t:"Consumidor Final", doc:"20-14882310-4",
+   saldo:0, lim:0, siempre:["3674","3688"]},
+  {id:"c4", n:"Mariela Ferreyra", t:"Consumidor Final", doc:"27-30119847-1",
+   saldo:0, lim:0, siempre:["2120"]},
+];
+
+/** Lo que hay en el otro deposito. Inventado, pero fijo para cada articulo. */
+function stockOtro(p){ return Math.floor(hash("otro"+p.cod) * 9); }
+
+const PEDIDOS_ABIERTOS = [
+  {nro:"P-2841", cli:"c1", est:"preparando", ent:"envio", cuando:"mañana",
+   lin:[["10955",4],["10953",2]], senia:300000},
+  {nro:"P-2840", cli:"c5", est:"esperando mercadería", ent:"envio", cuando:"viernes",
+   lin:[["10960",1],["10949",2]], senia:0},
+  {nro:"P-2839", cli:"c6", est:"listo para retirar", ent:"retira", cuando:"hoy",
+   lin:[["11045",6],["11118",4]], senia:200000},
+  {nro:"P-2838", cli:"c2", est:"preparando", ent:"retira", cuando:"hoy",
+   lin:[["3674",1],["3688",1]], senia:500000},
+];
+
+const PED = { cliente:"c1", linea:[], entrega:"retira", senia:0, nro:2842 };
+
+function clienteDe(id){ return CLIENTES.find(c=>c.id===id); }
+
+/** Si el renglon se puede entregar, y de donde. */
+function entregaDe(p, cant){
+  if(cant <= p.stock) return {cls:"p-ok", txt:"hay", falta:0};
+  const falta = cant - p.stock;
+  const otro = stockOtro(p);
+  if(otro >= falta)
+    return {cls:"p-warn", txt:"faltan "+falta+", vienen del otro depósito", falta:0};
+  return {cls:"p-bad", txt:"faltan "+falta+", hay que pedirlos", falta:falta - otro};
+}
+
+document.getElementById("selCliente").innerHTML =
+  CLIENTES.map(c=>'<option value="'+c.id+'">'+c.n+'</option>').join("");
+
+function pintarCliente(){
+  const c = clienteDe(PED.cliente);
+  const pasado = c.lim > 0 && c.saldo > c.lim;
+  document.getElementById("cliDatos").innerHTML =
+    '<div><span>Condición</span><b style="font-size:12.5px;font-family:var(--font-b)">'+c.t+'</b></div>'+
+    '<div><span>CUIT</span><b>'+c.doc+'</b></div>'+
+    (c.lim > 0
+      ? '<div><span>Cuenta corriente</span><b style="color:'+(pasado?"var(--bad)":"var(--ink)")+'">'+
+        fmt(c.saldo)+' de '+fmt(c.lim)+'</b></div>'+
+        (pasado?'<div><span>&nbsp;</span><span class="pill p-bad">pasó el límite</span></div>':'')
+      : '<div><span>Cuenta corriente</span><b style="font-size:12.5px;font-family:var(--font-b)">no tiene</b></div>');
+
+  const siempre = c.siempre.map(prod).filter(Boolean);
+  document.getElementById("siempre").innerHTML =
+    '<span class="et">Siempre pide</span>' +
+    // Hasta 44: cortar antes dejaba dos tanques distintos con el mismo
+    // nombre, porque lo que los diferencia (los litros) va al final.
+    siempre.map(p=>'<button data-c="'+p.cod+'">'+p.tit.split("·")[0].slice(0,44).trim()+'</button>').join("") +
+    '<button data-c="__todos" style="background:var(--surface-3);border-color:var(--line-2)">Cargar todo</button>';
+}
+
+function pintarPedido(){
+  pintarCliente();
+  document.getElementById("pedNro").textContent = "Pedido P-" + PED.nro;
+
+  const filas = PED.linea.map(l=>{
+    const p = prod(l.cod);
+    const e = entregaDe(p, l.cant);
+    return {l, p, e, sub: p.contado * l.cant};
+  });
+
+  document.getElementById("tbPed").innerHTML = filas.length
+    ? filas.map(({l,p,e,sub})=>
+        '<tr><td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
+        '<td class="nom" style="min-width:210px">'+p.tit.slice(0,58)+(p.tit.length>58?"…":"")+'</td>'+
+        '<td class="r"><input class="cant" type="number" min="1" step="1" value="'+l.cant+'" data-c="'+l.cod+'" aria-label="cantidad"></td>'+
+        '<td class="r">'+fmt(p.contado)+'</td>'+
+        '<td class="r" style="font-weight:600">'+fmt(sub)+'</td>'+
+        '<td><span class="pill '+e.cls+'">'+e.txt+'</span></td>'+
+        '<td><button class="quitar-fila" data-x="'+l.cod+'" aria-label="quitar">×</button></td></tr>').join("")
+    : '<tr><td colspan="7" class="vacio">Todavía no hay renglones. Buscá arriba y apretá Enter.</td></tr>';
+
+  document.getElementById("pedCuenta").textContent =
+    filas.length ? filas.reduce((a,f)=>a+f.l.cant,0)+" unidades en "+filas.length+" renglones" : "";
+
+  // Lo que de verdad no se puede entregar: ni acá ni en el otro depósito.
+  const faltan = filas.filter(f=>f.e.falta > 0);
+  document.getElementById("pedFaltan").innerHTML = faltan.length
+    ? '<div class="aviso" style="margin:12px 14px;border-left-color:var(--bad)"><span>⚠</span><div>'+
+      '<b>'+faltan.length+(faltan.length===1?' renglón no se puede entregar':' renglones no se pueden entregar')+
+      ' con lo que hay.</b> Faltan '+faltan.reduce((a,f)=>a+f.e.falta,0)+' unidades entre todos. '+
+      'Decile al cliente ahora, no cuando venga a buscarlo.'+
+      '<div style="margin-top:8px"><button class="b2" id="btnAlProveedor" style="padding:6px 12px;font-size:12.5px;border-radius:7px">Sumarlos al pedido del proveedor</button></div>'+
+      '</div></div>'
+    : "";
+
+  const total = filas.reduce((a,f)=>a+f.sub,0);
+  const senia = Math.max(0, Math.min(PED.senia, total));
+  document.getElementById("pedTot").innerHTML =
+    '<div class="tr"><span>Mercadería</span><b>'+fmt(total)+'</b></div>'+
+    (senia>0 ? '<div class="tr"><span>Seña</span><b>−'+fmt(senia)+'</b></div>' : '')+
+    '<div class="tr big"><span>'+(senia>0?"Queda a pagar":"Total")+'</span><b>'+fmt(total-senia)+'</b></div>';
+
+  const vacio = filas.length === 0;
+  document.getElementById("btnGuardarPed").disabled = vacio;
+  document.getElementById("btnWhatsPed").disabled = vacio;
+
+  // Los pedidos ya tomados.
+  document.getElementById("pedAbiertos").textContent = PEDIDOS_ABIERTOS.length + " pedidos";
+  document.getElementById("tbPedidos").innerHTML = PEDIDOS_ABIERTOS.map(o=>{
+    const c = clienteDe(o.cli);
+    const tot = o.lin.reduce((a,[cod,n])=>a+prod(cod).contado*n,0);
+    const cls = o.est==="listo para retirar" ? "p-ok"
+      : o.est==="esperando mercadería" ? "p-bad" : "p-n";
+    return '<tr><td class="num" style="font-size:12.5px">'+o.nro+'</td>'+
+      '<td style="font-weight:500">'+(c?c.n:"—")+'</td>'+
+      '<td class="nom" style="min-width:220px">'+o.lin.reduce((a,[,n])=>a+n,0)+' un. '+
+        '<small>'+o.lin.map(([cod])=>prod(cod).tit.split("·")[0].slice(0,26)).join(" + ")+'</small></td>'+
+      '<td style="font-size:12.5px">'+(o.ent==="retira"?"retira":"envío")+', '+o.cuando+'</td>'+
+      '<td class="r">'+fmt(tot)+'</td>'+
+      '<td class="r" style="color:var(--ink-3)">'+(o.senia?fmt(o.senia):"—")+'</td>'+
+      '<td><span class="pill '+cls+'">'+o.est+'</span></td></tr>';
+  }).join("");
+}
+
+document.getElementById("selCliente").addEventListener("change",e=>{
+  PED.cliente = e.target.value; pintarPedido();
+});
+document.getElementById("siempre").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-c]"); if(!b) return;
+  const c = clienteDe(PED.cliente);
+  const cods = b.dataset.c === "__todos" ? c.siempre : [b.dataset.c];
+  for(const cod of cods){
+    const l = PED.linea.find(x=>x.cod===cod);
+    if(l) l.cant++; else PED.linea.push({cod, cant:1});
+  }
+  pintarPedido();
+});
+
+/** El buscador de renglones: Enter mete el primero que aparece. */
+function buscarPed(){
+  const q = plano(document.getElementById("qPed").value.trim());
+  const caja = document.getElementById("resPed");
+  if(!q){ caja.innerHTML = ""; return []; }
+  const toks = q.split(/\\s+/).filter(Boolean);
+  const hits = PRODUCTOS.filter(p=>toks.every(t=>p.blob.includes(t))).slice(0,5);
+  caja.innerHTML = hits.map(p=>{
+    const otro = stockOtro(p);
+    return '<button class="item" data-cod="'+p.cod+'">'+
+      '<span class="cod">'+p.cod.split("+")[0]+'</span>'+
+      '<span><span class="tit"><span>'+p.tit+'</span></span>'+
+      '<span class="meta"><span>'+p.prov+'</span><span>'+p.stock+' acá</span><span>'+otro+' en el otro depósito</span></span></span>'+
+      '<span class="pre"><b>'+fmt(p.contado)+'</b></span></button>';
+  }).join("");
+  return hits;
+}
+function agregarPed(cod){
+  const l = PED.linea.find(x=>x.cod===cod);
+  if(l) l.cant++; else PED.linea.push({cod, cant:1});
+  document.getElementById("qPed").value = "";
+  document.getElementById("resPed").innerHTML = "";
+  pintarPedido();
+}
+document.getElementById("qPed").addEventListener("input", buscarPed);
+document.getElementById("qPed").addEventListener("keydown",e=>{
+  if(e.key !== "Enter") return;
+  const hits = buscarPed();
+  if(hits.length) agregarPed(hits[0].cod);
+});
+document.getElementById("resPed").addEventListener("click",e=>{
+  const b = e.target.closest(".item"); if(!b) return;
+  agregarPed(b.dataset.cod);
+});
+document.getElementById("tbPed").addEventListener("input",e=>{
+  const i = e.target.closest("input[data-c]"); if(!i) return;
+  const l = PED.linea.find(x=>x.cod===i.dataset.c); if(!l) return;
+  l.cant = Math.max(1, Math.floor(+i.value || 1));
+  pintarPedido();
+});
+document.getElementById("tbPed").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-x]"); if(!b) return;
+  PED.linea = PED.linea.filter(x=>x.cod !== b.dataset.x);
+  pintarPedido();
+});
+document.getElementById("pedFaltan").addEventListener("click",e=>{
+  if(!e.target.closest("#btnAlProveedor")) return;
+  toast("Los faltantes quedaron anotados en el pedido al proveedor. Los vas a ver en Listas cuando llegue la lista nueva.");
+});
+document.getElementById("formaEntrega").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-e]"); if(!b) return;
+  PED.entrega = b.dataset.e;
+  for(const x of document.querySelectorAll("#formaEntrega button")) x.setAttribute("aria-pressed", String(x===b));
+  document.getElementById("dirEnvio").hidden = PED.entrega !== "envio";
+});
+document.getElementById("senia").addEventListener("input",e=>{
+  PED.senia = Math.max(0, +e.target.value || 0); pintarPedido();
+});
+document.getElementById("btnGuardarPed").addEventListener("click",()=>{
+  const c = clienteDe(PED.cliente);
+  const total = PED.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  const hayFalta = PED.linea.some(l=>entregaDe(prod(l.cod), l.cant).falta > 0);
+  PEDIDOS_ABIERTOS.unshift({
+    nro:"P-"+PED.nro, cli:PED.cliente,
+    est: hayFalta ? "esperando mercadería" : "preparando",
+    ent: PED.entrega, cuando: document.getElementById("fecha").value || "a confirmar",
+    lin: PED.linea.map(l=>[l.cod, l.cant]), senia: Math.min(PED.senia, total),
+  });
+  toast("Pedido P-"+PED.nro+" guardado para "+c.n+" por "+fmt(total)+
+    (hayFalta ? ". Queda esperando mercadería." : ". Ya se puede preparar."));
+  PED.nro++; PED.linea = []; PED.senia = 0;
+  document.getElementById("senia").value = 0;
+  pintarPedido();
+});
+document.getElementById("btnWhatsPed").addEventListener("click",()=>{
+  const c = clienteDe(PED.cliente);
+  const total = PED.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  toast("Presupuesto de "+fmt(total)+" listo para mandarle a "+c.n+" por WhatsApp. Cuando conteste, la respuesta vuelve acá.");
+});
+document.getElementById("btnVaciarPed").addEventListener("click",()=>{
+  PED.linea = []; PED.senia = 0;
+  document.getElementById("senia").value = 0; pintarPedido();
+});
+(function fechaPorDefecto(){
+  const d = new Date(); d.setDate(d.getDate() + 2);
+  document.getElementById("fecha").value = d.toISOString().slice(0,10);
+})();
 
 /* ============================================ LISTAS QUE LLEGARON
    El corazón del producto: la lista entra como la mandó el proveedor y
