@@ -1,7 +1,7 @@
 // GENERADO AUTOMATICAMENTE - no editar a mano.
 // Sale de la demo 'Punto'. Para cambiarla, se regenera este archivo.
 //
-// Lo sirve src/app/demo/route.ts, que antes pide la clave DEMO_PASSWORD.
+// Lo sirve src/app/sistema/demo/route.ts, que antes pide la clave DEMO_PASSWORD.
 export const PUNTO_HTML = `<!DOCTYPE html>
 <html lang="es">
 <head>

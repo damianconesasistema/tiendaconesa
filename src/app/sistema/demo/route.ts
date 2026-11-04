@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { PUNTO_HTML } from "./punto";
 
-// La demo "Punto", para mostrarla sin que ande dando vueltas.
+// La demo "Punto" (conesa.com.ar/sistema/demo), para mostrarla sin que ande dando vueltas.
 //
 // Vive adentro de la tienda porque es el unico servidor que ya esta andando,
 // pero no toca nada de ella: es una sola direccion que devuelve una pagina
