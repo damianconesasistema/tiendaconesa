@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.58.6";
+export const APP_VERSION = "V.0.58.7";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,22 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.58.7",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\" — TRES RAZONES SOCIALES: CONESA SRL, SANITARIOS CNC y TRASLASIERRA. Cada una con su punto de venta, su propia numeración y su caja. Se elige arriba, al lado del usuario.",
+      "DOS DEPÓSITOS DE VERDAD: Buenos Aires y Traslasierra. CONESA SRL y SANITARIOS CNC descuentan del de Buenos Aires; TRASLASIERRA del suyo. En el buscador se ve lo que hay acá y lo que queda en el otro.",
+      "El stock va con semáforo: verde si hay más de 10, amarillo si quedan 10 o menos, rojo si no hay. Igual se puede tocar cualquiera para ver el precio.",
+      "EL PRESUPUESTO ES EL DOCUMENTO POR DEFECTO: mientras el cliente mira, no se emite nada. El botón dice lo que va a pasar al tocarlo, con el número incluido.",
+      "CAJA POR SUCURSAL: solapas arriba para ver la de cada razón social o las tres juntas, con la parte facturada y la no facturada abierta por sucursal.",
+      "PANEL NUEVO — RENTABILIDAD: qué deja cada venta, abierto por rubro, marca, artículo, sucursal, vendedor y hora, con lo que se lleva la tarjeta a la vista.",
+      "PANEL NUEVO — CONTABLE: libro IVA ventas, notas de crédito, y cuatro archivos CSV para mandarle al contador. Lo no facturado se ve pero queda afuera del archivo, y la pantalla dice por qué.",
+      "MANDÁRSELO POR WHATSAPP: arma el texto con el link al presupuesto o a la factura y lo copia, listo para pegar en WhatsApp Web.",
+      "El asistente ahora escucha: se le puede preguntar hablando.",
+      "Toda la pantalla de punta a punta, recuadro rojo en lo que se está armando, el renglón recién agregado parpadea, y la letra chica gris más oscura y más gruesa para que se lea.",
+    ],
+  },
   {
     version: "V.0.58.6",
     date: "2026-11-04",

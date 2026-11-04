@@ -23,7 +23,7 @@ export const PUNTO_HTML = `<!DOCTYPE html>
 :root{
   --bg:#f6f5f3; --surface:#ffffff; --surface-2:#faf9f8; --surface-3:#efedea;
   --line:#e6e4e0; --line-2:#d6d2cc;
-  --ink:#0a0a0a; --ink-2:#6b6b6b; --ink-3:#9b9893;
+  --ink:#0a0a0a; --ink-2:#4a4845; --ink-3:#6e6b66;
   --accent:#e63020; --accent-ink:#ffffff; --accent-soft:#fdeae7;
   --accent-hover:#c82614;
   --ok:#0f7a3d; --ok-soft:#e6f3ec;
@@ -60,7 +60,7 @@ header{
   background:var(--surface); border-bottom:1px solid var(--line);
 }
 .bar{
-  max-width:1280px; margin:0 auto; padding:11px 24px;
+  max-width:none; margin:0; padding:11px 24px;
   display:flex; align-items:center; gap:12px; flex-wrap:wrap;
 }
 .marca{display:block; height:30px; width:auto}
@@ -78,6 +78,11 @@ header{
 .relo{margin-left:auto; font-size:11px; color:var(--ink-2); font-variant-numeric:tabular-nums}
 .user{font-size:14px; color:var(--ink-2)}
 .user b{color:var(--ink); font-weight:600}
+.user b::before{content:"· "; color:var(--ink-3); font-weight:400}
+.user select{
+  border:0; background:none; font-family:var(--font-b); font-size:14px;
+  font-weight:600; color:var(--ink); padding:0 2px;
+}
 .salir{
   border:1px solid var(--line); border-radius:999px; padding:7px 16px; background:none;
   font-family:var(--font-d); font-size:13px; font-weight:700;
@@ -126,7 +131,7 @@ header{
 .tk-cli-info{margin-top:8px; font-size:12px; color:var(--ink-2); display:flex; gap:7px 12px; flex-wrap:wrap; align-items:center}
 .tk-cli-info b{color:var(--ink); font-variant-numeric:tabular-nums}
 nav{
-  max-width:1280px; margin:0 auto; padding:0 24px;
+  max-width:none; margin:0; padding:0 24px;
   display:flex; gap:2px; overflow-x:auto; scrollbar-width:thin;
   border-top:1px solid var(--line);
 }
@@ -141,7 +146,7 @@ nav button svg{width:15px; height:15px; flex:0 0 15px}
 nav button[aria-current="true"]{color:var(--accent); border-bottom-color:var(--accent)}
 nav button:not([aria-current="true"]):hover{color:var(--ink)}
 
-main{max-width:1280px; margin:0 auto; padding:28px 24px 72px}
+main{max-width:none; margin:0; padding:28px 24px 72px}
 section[hidden]{display:none}
 .head{margin-bottom:16px}
 .head h2{font-size:30px; font-weight:700; text-transform:uppercase; letter-spacing:.02em}
@@ -162,9 +167,9 @@ section[hidden]{display:none}
   display:flex; align-items:center; gap:10px; flex-wrap:wrap;
 }
 .card-h h3{font-size:18px; font-weight:600; text-transform:uppercase; letter-spacing:.03em}
-.card-h .sub{font-size:12.5px; color:var(--ink-3); margin-left:auto}
+.card-h .sub{font-size:12.5px; font-weight:500; color:var(--ink-2); margin-left:auto}
 
-.dos{display:grid; grid-template-columns:1fr 390px; gap:16px; align-items:start}
+.dos{display:grid; grid-template-columns:minmax(0,1fr) 420px; gap:18px; align-items:start}
 @media (max-width:900px){.dos{grid-template-columns:1fr}}
 
 /* ------------------------------------------------------ mostrador */
@@ -257,7 +262,7 @@ tr:last-child td{border-bottom:0}
 tbody tr:hover{background:var(--surface-2)}
 td.r,th.r{text-align:right; font-family:var(--font-m); font-variant-numeric:tabular-nums; white-space:nowrap}
 td.nom{min-width:230px; line-height:1.3}
-td.nom small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px}
+td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500; margin-top:2px}
 .pill{
   display:inline-block; font-size:11px; font-weight:600; padding:2.5px 8px; border-radius:999px;
   white-space:nowrap;
@@ -284,7 +289,7 @@ td.nom small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px
 .tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:13px 15px}
 .tile .k{font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--ink-3); font-weight:600}
 .tile .v{font-family:var(--font-d); font-size:28px; font-weight:700; line-height:1.05; margin-top:5px; font-variant-numeric:tabular-nums}
-.tile .d{font-size:12px; color:var(--ink-2); margin-top:3px}
+.tile .d{font-size:12.5px; font-weight:500; color:var(--ink-2); margin-top:3px}
 .tile.alerta{border-left:3px solid var(--bad)}
 .tile.alerta .v{color:var(--bad)}
 .tile.bien{border-left:3px solid var(--ok)}
@@ -363,7 +368,7 @@ td.nom small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px
 .siempre button:hover{filter:brightness(.96)}
 
 /* la grilla densa de renglones */
-table.densa td{padding:6px 10px; font-size:13px}
+table.densa td{padding:6px 10px; font-size:13px; font-weight:500}
 table.densa th{padding:8px 10px}
 .cant{
   width:62px; padding:4px 6px; text-align:right; font-family:var(--font-m);
@@ -418,6 +423,134 @@ table.densa th{padding:8px 10px}
 
 /* La franja del dia: lo facturado y lo no facturado, uno al lado del otro.
    No son dos libros: es el mismo registro mirado por la marca de la venta. */
+.busca-pie{padding:12px 14px; border-top:1px solid var(--line); background:var(--surface-2)}
+.lin-t .c{display:inline-flex; align-items:center; gap:6px}
+.lin-t .c button{
+  width:24px; height:24px; border-radius:7px; border:1px solid var(--line-2);
+  background:var(--surface-2); color:var(--ink); font-size:15px; line-height:1;
+}
+.lin-t .c button:hover{border-color:var(--accent); color:var(--accent)}
+.lin-t .c b{min-width:20px; text-align:center; font-variant-numeric:tabular-nums}
+.lin-t td{vertical-align:middle}
+.res-t td{vertical-align:middle}
+.res-t .sem{margin-right:7px; vertical-align:middle}
+.res-t input.cant{width:58px}
+.res-t button.sumar{
+  background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent);
+  border-radius:999px; padding:4px 13px; font-size:12px; font-weight:700;
+  font-family:var(--font-d); text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
+}
+.res-t button.sumar:hover{background:var(--accent); color:var(--accent-ink)}
+.res-t tr:hover{background:var(--surface-2)}
+.tk-pago select{
+  width:100%; background:var(--surface); border:1px solid var(--line-2);
+  border-radius:10px; padding:9px 11px; font-size:14px; font-weight:600;
+  color:var(--ink); font-family:var(--font-b);
+}
+.tk-pago select:focus{border-color:var(--accent); outline:none}
+
+/* La tarjeta donde se arma la venta o el pedido va remarcada: es lo
+   unico de la pantalla que el vendedor esta tocando. */
+.card.armando{
+  border:2px solid var(--accent); box-shadow:0 2px 14px rgba(230,48,32,.10);
+}
+.card.armando>.card-h{
+  background:var(--accent-soft); border-bottom:1px solid var(--accent);
+}
+.card.armando>.card-h h3{color:var(--accent)}
+
+/* Se tiene que ver cual estoy por tocar. */
+.res-t tbody tr:hover{background:var(--accent-soft) !important; box-shadow:inset 3px 0 0 var(--accent)}
+.res-t tbody tr:hover .nom{color:var(--accent)}
+/* Y se tiene que ver lo que acabo de agregar. */
+@keyframes recien{from{background:var(--accent-soft)} to{background:transparent}}
+.lin-t tr.nuevo td, table.densa tr.nuevo td{animation:recien 1.4s ease-out}
+
+/* El cartel para mandar el presupuesto o la factura. */
+.envio{position:fixed; inset:0; z-index:95; background:rgba(10,10,10,.42);
+  display:flex; align-items:center; justify-content:center; padding:20px}
+.envio[hidden]{display:none}
+.envio-caja{background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r);
+  width:min(620px,100%); max-height:88vh; overflow:auto; box-shadow:0 18px 50px rgba(0,0,0,.22)}
+.envio-h{display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line)}
+.envio-h h3{margin:0; font-family:var(--font-d); font-size:14px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.06em}
+.envio-h .x{margin-left:auto; border:0; background:none; font-size:24px; line-height:1; color:var(--ink-2)}
+.envio-h .x:hover{color:var(--accent)}
+.envio-n{margin:0; padding:12px 16px 0; font-size:13px; color:var(--ink-2)}
+.envio textarea{display:block; width:calc(100% - 32px); margin:10px 16px 0;
+  border:1px solid var(--line-2); border-radius:10px; padding:11px 12px;
+  font-family:var(--font-b); font-size:13px; line-height:1.55; color:var(--ink);
+  background:var(--surface-2); resize:vertical}
+.envio-link{padding:12px 16px 0}
+.envio-link label{display:block; font-family:var(--font-d); font-size:10.5px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.09em; color:var(--ink-2); margin-bottom:5px}
+.envio-link input{width:100%; border:1px solid var(--line-2); border-radius:10px;
+  padding:9px 11px; font-family:var(--font-raw); font-size:12.5px; color:var(--ink); background:var(--surface-2)}
+.envio-acc{display:flex; flex-wrap:wrap; gap:8px; padding:14px 16px 16px}
+.envio-acc .b1,.envio-acc .b2{flex:1 1 auto; text-align:center; text-decoration:none; line-height:1.3}
+
+/* El semáforo del stock, el mismo en la venta y en el pedido.
+   Más de 10: tranquilo. De 1 a 10: se está por acabar. En cero: no hay. */
+.stk{
+  display:inline-block; min-width:34px; padding:2px 8px; border-radius:999px;
+  font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center;
+}
+.stk-ok{background:var(--ok-soft); color:var(--ok)}
+.stk-poco{background:var(--warn-soft); color:var(--warn)}
+.stk-no{background:var(--bad-soft); color:var(--bad)}
+.stk-otro{display:block; font-size:10.5px; font-weight:500; color:var(--ink-2); margin-top:2px}
+
+/* La barrita de los cuadros de rentabilidad. */
+.mini{display:block; height:7px; border-radius:999px; background:var(--surface-3); overflow:hidden}
+.mini i{display:block; height:100%; background:var(--accent); border-radius:999px}
+
+/* El botón de hablarle al asistente. */
+.con-mic{position:relative}
+.con-mic input{padding-right:46px !important}
+.mic{
+  position:absolute; right:7px; top:50%; transform:translateY(-50%);
+  width:32px; height:32px; border-radius:50%; border:1px solid var(--line-2);
+  background:var(--surface); color:var(--ink-2); display:flex;
+  align-items:center; justify-content:center;
+}
+.mic:hover{border-color:var(--accent); color:var(--accent)}
+.mic.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); animation:late 1.1s ease-in-out infinite}
+@keyframes late{0%,100%{box-shadow:0 0 0 0 rgba(230,48,32,.45)} 50%{box-shadow:0 0 0 7px rgba(230,48,32,0)}}
+
+.bajadas{display:grid; gap:10px; padding:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.bajadas button{
+  text-align:left; border:1px solid var(--line-2); background:var(--surface);
+  border-radius:12px; padding:12px 14px; color:var(--ink);
+}
+.bajadas button:hover{border-color:var(--accent); background:var(--accent-soft)}
+.bajadas .t{display:block; font-family:var(--font-d); font-size:12.5px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.05em; color:var(--accent)}
+.bajadas .d{display:block; font-size:12.5px; font-weight:500; color:var(--ink-2); margin-top:4px; line-height:1.45}
+
+.solapas{
+  display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;
+}
+.solapas button{
+  border:1px solid var(--line-2); background:var(--surface); color:var(--ink-2);
+  border-radius:999px; padding:7px 16px; font-family:var(--font-d);
+  font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+}
+.solapas button:hover{border-color:var(--accent); color:var(--accent)}
+.solapas button[aria-pressed="true"]{
+  background:var(--accent); border-color:var(--accent); color:var(--accent-ink);
+}
+
+.hoy-suc{ display:grid; gap:1px; background:var(--line);
+  border-top:1px solid var(--line); margin-top:2px;
+}
+.hoy-suc>div{background:var(--surface); padding:10px 14px}
+.hoy-suc .k{font-family:var(--font-d); font-size:10.5px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.08em; color:var(--accent)}
+.hoy-suc .v{font-size:18px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:2px}
+.hoy-suc .n{font-size:11.5px; color:var(--ink-2); margin-top:1px}
+@media(min-width:760px){.hoy-suc{grid-template-columns:repeat(3,1fr)}}
+
 .hoy{
   display:flex; gap:0; flex-wrap:wrap; margin-bottom:16px;
   background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
@@ -496,7 +629,7 @@ table.densa th{padding:8px 10px}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 
 footer{
-  max-width:1240px; margin:0 auto; padding:0 16px 40px;
+  max-width:none; margin:0; padding:0 24px 40px;
   color:var(--ink-3); font-size:12px; line-height:1.6;
 }
 </style>
@@ -512,7 +645,10 @@ footer{
     <span class="org">· Sanitarios Conesa</span>
     <span class="relo" id="relo"></span>
     <span class="bar-sep ocultable"></span>
-    <span class="user">Puesto: <b id="barPuesto">Mostrador 1</b></span>
+    <span class="user">Usuario: <select id="selUsuario" aria-label="Usuario"></select></span>
+    <span class="bar-sep ocultable"></span>
+    <span class="user">Vendés como: <select id="selSuc" aria-label="Sucursal"></select>
+      <b id="barPuesto">Mostrador 1</b></span>
     <button class="salir" type="button">Salir</button>
   </div>
   <nav id="nav">
@@ -523,6 +659,8 @@ footer{
     <button data-v="listas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>Listas</button>
     <button data-v="red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>La Red</button>
     <button data-v="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Caja</button>
+    <button data-v="renta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg>Rentabilidad</button>
+    <button data-v="contable"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>Contable</button>
     <button data-v="gerencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>Gerencia</button>
     <button data-v="asistente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</button>
     <button data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Todo el sistema</button>
@@ -551,32 +689,27 @@ footer{
     <p>Todo lo del comprobante ya viene puesto. Buscás, cobrás y emitís.</p>
   </div>
 
-  <div class="hoy" id="hoyTira"></div>
-
   <div class="dos">
     <div>
       <div class="card" style="margin-bottom:16px">
-        <div class="card-h"><h3>Comprobante</h3><span class="sub">viene completo; se cambia si hace falta</span></div>
+        <div class="card-h"><h3>Comprobante</h3></div>
         <div class="campos" id="camposVta"></div>
       </div>
 
-      <div class="card">
-        <div class="card-h"><h3>Artículos</h3><span class="sub" id="vtaCuenta"></span></div>
-        <div style="padding:12px 14px 0">
-          <div class="busca-fila">
-            <div class="buscar">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
-              <input id="q" type="text" placeholder="Marca, rubro, nombre o código: ferrum · inodoro · 11114 · termo 80" autocomplete="off" spellcheck="false">
-            </div>
-            <div class="campo cant-fija">
-              <label for="qCantV">Cantidad</label>
-              <input id="qCantV" type="number" min="1" step="1" value="1">
-            </div>
-          </div>
-          <p class="ayuda-busca">Las palabras entran en cualquier orden y no hace falta escribirlas enteras. <b>Enter</b> suma el primero.</p>
-          <div class="res" id="res"></div>
-        </div>
+      <div class="card armando">
+        <div class="card-h"><h3>Artículos de la venta</h3><span class="sub" id="vtaCuenta"></span>
+          <span class="sub" id="vtaDep" style="margin-left:auto"></span></div>
         <div class="tk-lineas" id="tkLineas"></div>
+        <div class="busca-pie">
+          <div class="buscar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+            <input id="q" type="text" placeholder="Agregar artículo: marca, rubro, nombre o código · ferrum · inodoro · 11114 · termo 80" autocomplete="off" spellcheck="false">
+          </div>
+          <p class="ayuda-busca">Las palabras entran en cualquier orden y no hace falta escribirlas enteras. <b>Enter</b> suma el primero.
+            El stock va en <b style="color:var(--ok)">verde</b> si hay más de 10, en <b style="color:var(--warn)">amarillo</b> si quedan 10 o menos y en <b style="color:var(--bad)">rojo</b> si no hay.
+            Igual se puede tocar cualquiera para ver el precio.</p>
+        </div>
+        <div class="res" id="res"></div>
       </div>
     </div>
 
@@ -592,21 +725,130 @@ footer{
         </div>
       </div>
       <div class="tk-pago">
-        <label>Cómo paga</label>
-        <div class="formas" id="formas"></div>
-      </div>
-      <div class="tk-pago" style="border-top:1px solid var(--line)">
-        <label>Descuento</label>
-        <div class="pistas dtos" id="dtos"></div>
+        <label for="selDto">Descuento</label>
+        <select id="selDto"></select>
       </div>
       <div class="tk-tot" id="tkTot"></div>
       <div class="tk-acc">
-        <button class="b1" id="btnFactura">Emitir comprobante</button>
-        <button class="b2" id="btnSinFactura">Vender sin factura</button>
-        <button class="b2" id="btnPresu">Guardar como presupuesto</button>
+        <button class="b1" id="btnFactura">Guardar presupuesto</button>
+        <button class="b2" id="btnSinFactura">Entregar sin comprobante</button>
+        <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
         <button class="b3" id="btnVaciar">Vaciar</button>
       </div>
       <p class="nota"><b>Un solo registro.</b> La venta sin factura queda anotada igual, marcada como tal. La franja de arriba y la gerencia muestran las dos columnas por separado: el total de verdad, y cuánto de eso salió con comprobante. No hay un segundo libro.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================== RENTABILIDAD -->
+<section id="v-renta" hidden>
+  <div class="head">
+    <h2>Rentabilidad</h2>
+    <p>Qué deja de verdad lo que se vendió hoy. El recargo de la tarjeta no cuenta como ganancia: lo paga la tarjeta, no el cliente. Esta pantalla no la ve el mostrador.</p>
+  </div>
+  <div class="solapas" id="rentaSucs"></div>
+  <div class="tiles" id="rentaTiles"></div>
+
+  <div class="aviso" id="rentaAviso"></div>
+
+  <div class="dos">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Por rubro</h3><span class="sub">ordenado por lo que deja</span></div>
+        <div class="tabla-wrap"><table class="densa">
+          <thead><tr><th>Rubro</th><th class="r">Vendido</th><th class="r">Costó</th><th class="r">Deja</th><th class="r">Margen</th><th>&nbsp;</th></tr></thead>
+          <tbody id="tbRubro"></tbody>
+        </table></div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Por marca</h3><span class="sub">las diez primeras</span></div>
+        <div class="tabla-wrap"><table class="densa">
+          <thead><tr><th>Marca</th><th class="r">Vendido</th><th class="r">Costó</th><th class="r">Deja</th><th class="r">Margen</th><th>&nbsp;</th></tr></thead>
+          <tbody id="tbMarca"></tbody>
+        </table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h3>Los que dejan y los que no</h3><span class="sub">artículo por artículo</span></div>
+        <div class="tabla-wrap" style="max-height:52vh; overflow-y:auto"><table class="densa">
+          <thead><tr><th>Código</th><th>Artículo</th><th class="r">Un.</th><th class="r">Vendido</th><th class="r">Deja</th><th class="r">Margen</th></tr></thead>
+          <tbody id="tbArt"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Por sucursal</h3></div>
+        <div class="tabla-wrap"><table class="densa">
+          <thead><tr><th>Sucursal</th><th class="r">Vendido</th><th class="r">Deja</th><th class="r">Margen</th></tr></thead>
+          <tbody id="tbRentaSuc"></tbody>
+        </table></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Por vendedor</h3></div>
+        <div class="barras" id="porVend"></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Lo que se lleva la tarjeta</h3></div>
+        <div class="tabla-wrap"><table class="densa">
+          <thead><tr><th>Cómo pagó</th><th class="r">Cobrado</th><th class="r">Recargo</th><th class="r">Ventas</th></tr></thead>
+          <tbody id="tbTarjeta"></tbody>
+        </table></div>
+        <p class="nota">El recargo entra por caja y vuelve a salir: es el costo de cobrar con tarjeta. Por eso el margen se mide contra el precio de contado.</p>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>A qué hora se vende</h3></div>
+        <div class="barras" id="porHora"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================== CONTABLE -->
+<section id="v-contable" hidden>
+  <div class="head">
+    <h2>Contable</h2>
+    <p>El libro IVA ventas de cada razón social, las notas de crédito, y los archivos para mandarle al contador. Esta pantalla no la ve el mostrador.</p>
+  </div>
+  <div class="solapas" id="contaSucs"></div>
+  <div class="tiles" id="contaTiles"></div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><h3>Para el contador</h3><span class="sub">se bajan como archivo y se adjuntan al mail</span></div>
+    <div class="bajadas" id="bajadas"></div>
+    <p class="nota" id="contaNota"></p>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><h3>Libro IVA Ventas</h3><span class="sub" id="ivaCount"></span></div>
+    <div class="tabla-wrap" style="max-height:58vh; overflow-y:auto"><table class="densa">
+      <thead><tr>
+        <th>Fecha</th><th>Tipo</th><th>Comprobante</th><th>Razón social</th><th>Cliente</th><th>CUIT / DNI</th>
+        <th class="r">Neto</th><th class="r">IVA 21%</th><th class="r">Total</th>
+      </tr></thead>
+      <tbody id="tbIva"></tbody>
+    </table></div>
+  </div>
+
+  <div class="dos">
+    <div>
+      <div class="card">
+        <div class="card-h"><h3>Notas de crédito</h3><span class="sub" id="ncCount"></span></div>
+        <div class="tabla-wrap"><table class="densa">
+          <thead><tr><th>Fecha</th><th>Comprobante</th><th>Anula</th><th>Motivo</th><th class="r">Neto</th><th class="r">IVA</th><th class="r">Total</th></tr></thead>
+          <tbody id="tbNC"></tbody>
+        </table></div>
+        <p class="nota">La nota de crédito no borra la factura: la descuenta. Las dos van al libro, y las dos se las mandás al contador.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-h"><h3>Lo que queda afuera</h3></div>
+        <div class="tk-tot" id="afueraTot"></div>
+        <p class="nota" id="afueraNota"></p>
+      </div>
     </div>
   </div>
 </section>
@@ -632,28 +874,21 @@ footer{
       <div class="card" style="margin-bottom:16px">
         <div class="card-h">
           <h3>Datos del pedido</h3>
-          <span class="sub">los mismos campos de GBP, ya completos</span>
         </div>
         <div class="campos" id="camposPed"></div>
       </div>
 
-      <div class="card">
+      <div class="card armando">
         <div class="card-h">
           <h3>Renglones</h3>
           <span class="sub" id="pedCuenta"></span>
         </div>
         <div style="padding:12px 14px 0">
-          <div class="busca-fila">
-            <div class="buscar">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
-              <input id="qPed" type="text" placeholder="Marca, rubro, nombre o código: ferrum · inodoro · 11114 · termo 80" autocomplete="off" spellcheck="false">
-            </div>
-            <div class="campo cant-fija">
-              <label for="qCant">Cantidad</label>
-              <input id="qCant" type="number" min="1" step="1" value="1">
-            </div>
+          <div class="buscar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+            <input id="qPed" type="text" placeholder="Agregar al pedido: marca, rubro, nombre o código · ferrum · inodoro · 11114 · termo 80" autocomplete="off" spellcheck="false">
           </div>
-          <p class="ayuda-busca">Marca, rubro, nombre o código. Las palabras entran en cualquier orden y no hace falta escribirlas enteras. <b>Enter</b> suma el primero.</p>
+          <p class="ayuda-busca">Las palabras entran en cualquier orden y no hace falta escribirlas enteras. Tocá el renglón, o <b>Sumar</b>, y entra al pedido. <b>Enter</b> suma el primero.</p>
           <div class="res" id="resPed" style="margin-top:8px"></div>
         </div>
         <div class="tabla-wrap">
@@ -911,13 +1146,16 @@ footer{
       <div class="card-h"><h3>Conversación</h3><span class="sub">sobre los datos de esta pantalla</span></div>
       <div class="chat" id="chat"></div>
       <div class="chat-pie">
-        <div class="buscar" style="margin-bottom:9px">
+        <div class="buscar con-mic" style="margin-bottom:9px">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg>
-          <input id="preg" type="text" placeholder="Preguntá lo que quieras" autocomplete="off" style="font-size:15px;padding:12px 12px 12px 42px">
+          <input id="preg" type="text" placeholder="Preguntá lo que quieras, o tocá el micrófono y hablá" autocomplete="off" style="font-size:15px;padding:12px 12px 12px 42px">
+          <button class="mic" id="mic" type="button" aria-label="Preguntar hablando" title="Preguntar hablando">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4M8 22h8"/></svg>
+          </button>
         </div>
         <div class="pistas" id="sugeridas"></div>
       </div>
-      <p class="nota">Las respuestas se calculan sobre los números que estás viendo en las otras solapas: si cambiás un costo, cambia la respuesta. No están escritas de antemano. En el sistema de verdad, esta parte la hago yo leyendo tus datos.</p>
+      <p class="nota"><b>También se le puede hablar.</b> Tocá el micrófono, preguntá en voz alta y la respuesta aparece sola: sirve cuando tenés las manos ocupadas o el cliente enfrente. Las respuestas se calculan sobre los números que estás viendo en las otras solapas: si cambiás un costo, cambia la respuesta. No están escritas de antemano. En el sistema de verdad, esta parte la hago yo leyendo tus datos.</p>
     </div>
     <div class="card">
       <div class="card-h"><h3>Lo que sabe hacer</h3></div>
@@ -930,20 +1168,26 @@ footer{
 <section id="v-caja" hidden>
   <div class="head">
     <h2>Caja del día</h2>
-    <p>Lo que entró, por dónde entró y en qué mostrador.</p>
+    <p>Cada razón social tiene su caja. Elegí cuál mirás; «Todas» suma las tres. Esta pantalla no la ve el mostrador.</p>
   </div>
+  <div class="solapas" id="cajaSucs"></div>
+  <div class="hoy" id="hoyTira"></div>
   <div class="tiles" id="cajaTiles"></div>
   <div class="dos">
     <div class="card">
       <div class="card-h"><h3>Movimientos</h3><span class="sub" id="cajaCount"></span></div>
       <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto">
         <table>
-          <thead><tr><th>Hora</th><th>Puesto</th><th>Artículos</th><th>Pago</th><th>Comprobante</th><th class="r">Total</th></tr></thead>
+          <thead><tr><th>Hora</th><th>Sucursal</th><th>Puesto</th><th>Artículos</th><th>Pago</th><th>Comprobante</th><th class="r">Total</th></tr></thead>
           <tbody id="tbCaja"></tbody>
         </table>
       </div>
     </div>
     <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Por sucursal</h3><span class="sub">siempre las tres</span></div>
+        <div class="barras" id="porSuc"></div>
+      </div>
       <div class="card" style="margin-bottom:16px">
         <div class="card-h"><h3>Por forma de pago</h3></div>
         <div class="barras" id="porPago"></div>
@@ -1004,6 +1248,27 @@ footer{
   <p><b>Qué es de verdad y qué es la idea.</b> Las solapas de Mostrador, Productos, Listas, Caja y Gerencia muestran cosas que se pueden construir con lo que ya existe. <b>La Red es la apuesta:</b> hoy no existe, y sus números están inventados. Lo que sí es real es el problema que resuelve — el proveedor sabe qué descuento le da a cada comercio y ningún comercio sabe nada del resto. Si se construye, hay que resolver antes la parte legal: se pueden compartir costos, nunca precios de venta.</p>
   <p>Nada de lo que se aprieta acá toca la tienda, el facturador ni el sistema que usan hoy. Se puede probar sin miedo.</p>
 </footer>
+
+<!-- El texto listo para pegar en WhatsApp, con el link al comprobante. -->
+<div class="envio" id="envio" hidden>
+  <div class="envio-caja">
+    <div class="envio-h">
+      <h3 id="envioTit">Mandárselo por WhatsApp</h3>
+      <button class="x" id="envioX" aria-label="cerrar">×</button>
+    </div>
+    <p class="envio-n">Esto es lo que se le manda. Tocá <b>Copiar</b> y pegalo en WhatsApp Web, o tocá <b>Abrir WhatsApp</b> y se abre con el texto ya puesto.</p>
+    <textarea id="envioTxt" rows="9" readonly spellcheck="false"></textarea>
+    <div class="envio-link">
+      <label>El link solo</label>
+      <input id="envioUrl" type="text" readonly>
+    </div>
+    <div class="envio-acc">
+      <button class="b1" id="envioCopiar">Copiar el texto</button>
+      <button class="b2" id="envioCopiarLink">Copiar solo el link</button>
+      <a class="b2" id="envioWa" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
+    </div>
+  </div>
+</div>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -1137,12 +1402,20 @@ let _sem=987654321;
 function az(){_sem=(Math.imul(_sem,1103515245)+12345)&0x7fffffff;return _sem/0x7fffffff;}
 
 const RECARGO_1PAGO = 1.1363636363636365;   // lo que agrega la tarjeta en 1 pago
+/* Como paga el cliente. El recargo es sobre el precio de contado: lo que
+   agrega la tarjeta no es ganancia, es lo que se lleva la tarjeta. */
 const MULT = {
-  "Transferencia o efectivo":1,
-  "Débito o 1 pago":RECARGO_1PAGO,
-  "3 cuotas":1.2273,
-  "6 cuotas":1.3636
+  "01-Efectivo":1,
+  "02-Transferencia":1,
+  "03-QR o billetera":1,
+  "04-Tarjeta de débito":RECARGO_1PAGO,
+  "05-Tarjeta de crédito 1 pago":RECARGO_1PAGO,
+  "06-Tarjeta de crédito 3 cuotas":1.2273,
+  "07-Tarjeta de crédito 6 cuotas":1.3636,
+  "08-Cuenta corriente 30 días":1
 };
+/** El nombre sin el numero de adelante, para mostrarlo en los informes. */
+const formaCorta = f => f.replace(/^\\d+-/,"");
 
 const PRODUCTOS = CRUDO.map(([cod,tit,rub,unPago,contado],i)=>{
   const prov = MARCAS.find(m=>tit.includes(m)) || "VARIOS";
@@ -1176,6 +1449,35 @@ PRODUCTOS.push({
   blob:plano("5135 mueble colgar puerta lavatorio traful ferrum jt103-bd pta lavat vanitory accesorios bano espejo mueble")
 });
 
+/* ---------------------------------------- sucursales y depositos ------
+   Tres razones sociales, cada una con su punto de venta y su numeracion.
+   El stock NO es uno solo: hay dos depositos. CONESA SRL y SANITARIOS CNC
+   descuentan del de Buenos Aires; TRASLASIERRA del suyo. */
+const DEPOSITOS = { BA:"Buenos Aires", TS:"Traslasierra" };
+const SUCURSALES = [
+  {id:"srl", n:"CONESA SRL",     dep:"BA", pv:"0003"},
+  {id:"cnc", n:"SANITARIOS CNC", dep:"BA", pv:"0004"},
+  {id:"tsl", n:"TRASLASIERRA",   dep:"TS", pv:"0005"}
+];
+const sucAct  = () => SUCURSALES.find(x=>x.id===S.suc) || SUCURSALES[0];
+const sucDe   = id => SUCURSALES.find(x=>x.id===id) || SUCURSALES[0];
+const depAct  = () => sucAct().dep;
+const otroDep = () => depAct()==="BA" ? "TS" : "BA";
+
+/* Cada articulo pasa a tener las dos cantidades. "p.stock" sigue
+   existiendo y sigue funcionando igual que antes, pero ahora contesta
+   por el deposito de la sucursal en la que estas parado. */
+for(const p of PRODUCTOS){
+  const n = p.stock;
+  p.dep = { BA:n, TS: Math.floor(hash("tsl"+p.cod) * (n*0.6 + 3)) };
+  delete p.stock;
+  Object.defineProperty(p,"stock",{
+    get(){ return this.dep[depAct()]; },
+    set(v){ this.dep[depAct()] = Math.max(0, Math.round(v)); },
+    enumerable:true, configurable:true
+  });
+}
+
 const margen = p => (p.contado - p.costo) / p.costo * 100;
 const fmt = n => "$" + Math.round(n).toLocaleString("es-AR");
 const fmt0 = n => Math.round(n).toLocaleString("es-AR");
@@ -1183,11 +1485,20 @@ const pct = n => (n>=0?"":"−") + Math.abs(n).toFixed(1).replace(".",",") + "%"
 
 /* ====================================================== estado */
 const S = {
+  suc:"srl",           // en que razon social se esta vendiendo
+  cajaSuc:"",          // que caja se esta mirando ("" = todas)
   puesto:"Mostrador 1",
   cliente:"",          // vacio = consumidor final, que es lo normal en mostrador
-  comp:null, cond:null, vend:"Gerencia", desc:0,
-  nro:{A:12847, B:48214},   // el numero que sigue, por letra
-  forma:"Transferencia o efectivo",
+  usuario:"Mauro",    // con quien se entro: de ahi sale el vendedor
+  comp:null, cond:null, desc:0,
+  // El numero que sigue, por sucursal y por tipo de comprobante. Cada
+  // razon social lleva su propia numeracion, como en ARCA.
+  nro:{
+    srl:{A:12847, B:48214, X:3301, R:9120, P:412},
+    cnc:{A:2184,  B:7760,  X:1145, R:3302, P:208},
+    tsl:{A:731,   B:5312,  X:908,  R:1477, P:96}
+  },
+  forma:"02-Transferencia",
   // La demo abre con una venta ya empezada: si abre vacia, el que la mira
   // no ve nada y hay que explicarle que toque algo primero.
   linea:[{cod:"11114",cant:1},{cod:"3719",cant:2},{cod:"00677",cant:4}],
@@ -1199,7 +1510,7 @@ const S = {
 
 /* ------------------------------------------- las ventas del día */
 (function sembrar(){
-  const pesos = ["Transferencia o efectivo","Transferencia o efectivo","Débito o 1 pago","Débito o 1 pago","3 cuotas","6 cuotas"];
+  const pesos = ["01-Efectivo","02-Transferencia","03-QR o billetera","04-Tarjeta de débito","05-Tarjeta de crédito 1 pago","06-Tarjeta de crédito 3 cuotas","07-Tarjeta de crédito 6 cuotas"];
   const horas = [];
   for(let i=0;i<46;i++) horas.push(8.5 + az()*10.2);
   horas.sort((a,b)=>a-b);
@@ -1215,6 +1526,7 @@ const S = {
     const h = horas[i];
     S.ventas.push({
       hora: String(Math.floor(h)).padStart(2,"0")+":"+String(Math.floor((h%1)*60)).padStart(2,"0"),
+      suc: ["srl","srl","cnc","cnc","tsl"][Math.floor(az()*5)],
       puesto: "Mostrador " + (1 + Math.floor(az()*5)),
       forma: pesos[Math.floor(az()*pesos.length)],
       facturada: az() < 0.63,
@@ -1232,7 +1544,7 @@ function ventaCobrado(v){ return ventaBase(v) * MULT[v.forma]; }
 function ventaMargen(v){ return v.linea.reduce((a,l)=>{const p=prod(l.cod); return a+(p.contado-p.costo)*l.cant;},0); }
 
 /* ================================================== navegación */
-const vistas = ["mostrador","inicio","pedidos","web","productos","listas","red","caja","gerencia","asistente"];
+const vistas = ["mostrador","inicio","pedidos","web","productos","listas","red","caja","renta","contable","gerencia","asistente"];
 document.getElementById("nav").addEventListener("click",e=>{
   const b = e.target.closest("button[data-v]"); if(!b) return;
   for(const v of vistas) document.getElementById("v-"+v).hidden = (v !== b.dataset.v);
@@ -1241,11 +1553,13 @@ document.getElementById("nav").addEventListener("click",e=>{
   if(b.dataset.v==="productos") pintarProd();
   if(b.dataset.v==="caja") pintarCaja();
   if(b.dataset.v==="gerencia") pintarGerencia();
+  if(b.dataset.v==="renta") pintarRenta();
+  if(b.dataset.v==="contable") pintarContable();
   if(b.dataset.v==="web") pintarWeb();
   if(b.dataset.v==="red") pintarRed();
   if(b.dataset.v==="asistente") pintarAsistente();
   if(b.dataset.v==="pedidos") pintarPedido();
-  if(b.dataset.v==="mostrador"){ pintarCamposVenta(); pintarDtos(); pintarHoy(); }
+  if(b.dataset.v==="mostrador"){ pintarCamposVenta(); pintarDtos(); }
 });
 
 /** Lleva a una solapa como si la hubieran tocado. */
@@ -1266,6 +1580,32 @@ document.getElementById("selPuesto").addEventListener("change",e=>{
   document.getElementById("barPuesto").textContent = S.puesto;
 });
 
+/* En que razon social se esta vendiendo. De aca salen tres cosas: el
+   punto de venta del comprobante, la numeracion, y de que deposito sale
+   la mercaderia. */
+function pintarSucs(){
+  document.getElementById("selSuc").innerHTML =
+    SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("");
+}
+document.getElementById("selSuc").addEventListener("change",e=>{
+  S.suc = e.target.value;
+  S.comp = null;                 // la numeracion es otra
+  pintarCamposVenta(); pintarTicket(); buscar();
+  toast("Estás vendiendo como "+sucAct().n+". La mercadería sale del depósito de "+DEPOSITOS[depAct()]+".");
+});
+
+/* Quien entro. En el sistema de verdad esto lo fija el login y no se
+   toca; aca se puede cambiar para poder mostrar como cambia la venta. */
+function pintarUsuarios(){
+  const sel = document.getElementById("selUsuario");
+  sel.innerHTML = VENDEDORES.map(v=>'<option'+(v===S.usuario?" selected":"")+'>'+v+'</option>').join("");
+}
+document.getElementById("selUsuario").addEventListener("change",e=>{
+  S.usuario = e.target.value;
+  pintarCamposVenta();
+  if(!document.getElementById("v-pedidos").hidden) pintarPedido();
+});
+
 /* El reloj de la barra, igual que el del panel. */
 (function reloj(){
   const el = document.getElementById("relo");
@@ -1282,28 +1622,43 @@ document.getElementById("selPuesto").addEventListener("change",e=>{
    comprobante sale de la condicion fiscal del cliente y el numero es el que
    sigue. Por defecto es consumidor final y contado, que es lo que pasa en
    el mostrador nueve de cada diez veces. */
-const PTOVTA = "0003";
-const COND_VTA = ["01-Contado","02-Cuenta corriente 30 días"];
 const DESCUENTOS = [0,5,10,12,20,25];
 
 function clienteVta(){ return CLIENTES.find(c=>c.id===S.cliente) || null; }
 
 /** Que comprobante corresponde segun a quien se le vende. */
 function compDe(c){
-  if(!c) return ["02.Factura B","no hay datos del cliente: va como consumidor final"];
-  if(c.t==="Responsable Inscripto") return ["01.Factura A","es responsable inscripto"];
-  if(c.t==="IVA Exento") return ["02.Factura B","está exento de IVA"];
-  return ["02.Factura B","es consumidor final"];
+  // Siempre arranca en presupuesto: mientras el cliente está mirando, no
+  // se emite nada. Cuando dice que se lo lleva, se cambia acá y recién
+  // ahí sale el comprobante. La ayuda ya dice cuál le corresponde.
+  const cual = !c ? "Factura B, porque va como consumidor final"
+    : c.t==="Responsable Inscripto" ? "Factura A, porque es responsable inscripto"
+    : c.t==="IVA Exento"            ? "Factura B, porque está exento de IVA"
+    :                                 "Factura B, porque es consumidor final";
+  return ["03.Presupuesto X cnc","arranca como presupuesto; si se lo lleva, cambialo a "+cual];
 }
+/** Que letra y que numeracion le toca a cada documento. */
+const LETRA = {"01.Factura A":"A","02.Factura B":"B","03.Presupuesto X cnc":"X",
+               "04.Remito":"R","05.Pedido interno":"P"};
+const letraDe = comp => LETRA[comp] || "X";
+const esPresu = comp => comp.indexOf("Presupuesto") >= 0;
+/** El documento que está puesto ahora mismo. */
+function compAct(){ return S.comp || compDe(clienteVta())[0]; }
 function condVtaDe(c){
-  if(!c || c.lim<=0) return ["01-Contado","no tiene cuenta corriente"];
-  if(c.saldo>c.lim) return ["01-Contado","se pasó del límite de su cuenta"];
-  return ["01-Contado","tiene cuenta, pero en mostrador se cobra al contado"];
+  if(c && c.lim>0 && c.saldo<=c.lim)
+    return ["08-Cuenta corriente 30 días","tiene cuenta y le queda "+fmt(c.lim-c.saldo)];
+  if(c && c.lim>0) return ["02-Transferencia","se pasó del límite de su cuenta"];
+  return ["02-Transferencia","es lo más común en mostrador"];
+}
+/** El recargo de la forma elegida, dicho en criollo. */
+function recargoDe(fo){
+  const m = MULT[fo];
+  return m===1 ? "sin recargo" : "recarga un "+((m-1)*100).toFixed(1).replace(".",",")+"% sobre el contado";
 }
 /** El numero que sigue, por letra. Sale solo, nadie lo escribe. */
 function nroDe(comp){
-  const letra = comp.indexOf("Factura A")>=0 ? "A" : "B";
-  return letra+" "+PTOVTA+"-"+String(S.nro[letra]).padStart(8,"0");
+  const su = sucAct(), l = letraDe(comp);
+  return l+" "+su.pv+"-"+String(S.nro[su.id][l]).padStart(8,"0");
 }
 
 function pintarCamposVenta(){
@@ -1311,6 +1666,7 @@ function pintarCamposVenta(){
   const sComp = compDe(c), sCond = condVtaDe(c);
   const comp = S.comp || sComp[0];
   const cond = S.cond || sCond[0];
+  if(!S.cond) S.forma = cond;
   const opcCli = '<option value=""'+(S.cliente?"":" selected")+'>Consumidor final</option>' +
     CLIENTES.map(x=>'<option value="'+x.id+'"'+(x.id===S.cliente?" selected":"")+'>'+x.n+'</option>').join("");
 
@@ -1326,61 +1682,143 @@ function pintarCamposVenta(){
       : ' · sin cuenta corriente');
   }
 
+  const su = sucAct();
   document.getElementById("camposVta").innerHTML =
+    '<div class="campo"><label for="vtaSuc">Sucursal</label>'+
+      '<input id="vtaSuc" type="text" readonly value="'+su.n+'" style="background:var(--surface-2);color:var(--ink-2);font-weight:600">'+
+      '<span class="por">punto de venta '+su.pv+'; la mercadería sale del depósito de <b>'+DEPOSITOS[su.dep]+'</b></span></div>'+
     '<div class="campo ancho"><label for="vtaCliente">Cliente</label>'+
       '<select id="vtaCliente" data-k="cli">'+opcCli+'</select>'+
       '<span class="por">'+info+'</span></div>'+
     campo("vtaComp","Documento a emitir",DOCUMENTOS,comp,sComp[1],!S.comp)+
     '<div class="campo"><label for="vtaNro">Número</label>'+
       '<input id="vtaNro" type="text" readonly value="'+nroDe(comp)+'" style="background:var(--surface-2);color:var(--ink-2);font-variant-numeric:tabular-nums">'+
-      '<span class="por">sale solo, es el que sigue</span></div>'+
-    campo("vtaCond","Condición de venta",COND_VTA,cond,sCond[1],!S.cond)+
-    campo("vtaVend","Vendedor",VENDEDORES,S.vend,"quién atendió",false);
+      '<span class="por">sale solo, es el que sigue en '+su.n+'</span></div>'+
+    campo("vtaCond","Condición de venta",Object.keys(MULT),cond,
+          sCond[1]+", y "+recargoDe(cond),!S.cond)+
+    '<div class="campo"><label for="vtaVend">Vendedor</label>'+
+      '<input id="vtaVend" type="text" readonly value="'+S.usuario+'" style="background:var(--surface-2);color:var(--ink-2)">'+
+      '<span class="por">sale de tu usuario; no se elige a mano</span></div>';
+  pintarAcciones();
 }
 
 document.getElementById("camposVta").addEventListener("change",e=>{
   const id = e.target.id;
   if(id==="vtaCliente"){ S.cliente = e.target.value; S.comp = null; S.cond = null; }
   if(id==="vtaComp") S.comp = e.target.value;
-  if(id==="vtaCond") S.cond = e.target.value;
-  if(id==="vtaVend") S.vend = e.target.value;
+  if(id==="vtaCond"){ S.cond = e.target.value; S.forma = e.target.value; }
   pintarCamposVenta(); pintarTicket();
 });
 
+/** El botón grande dice lo que va a pasar al tocarlo, no "emitir" a secas. */
+function pintarAcciones(){
+  const comp = compAct();
+  document.getElementById("btnFactura").textContent =
+    esPresu(comp) ? "Guardar presupuesto " + nroDe(comp)
+                  : "Emitir " + comp.replace(/^\\d+\\./,"") + " " + nroDe(comp);
+}
+
 /* Los descuentos de un toque, mas uno a medida. */
 function pintarDtos(){
-  document.getElementById("dtos").innerHTML =
-    DESCUENTOS.map(d=>'<button data-d="'+d+'" class="'+(S.desc===d?"on":"")+'">'+(d===0?"sin descuento":d+"%")+'</button>').join("")+
-    '<button data-d="otro" class="'+(DESCUENTOS.indexOf(S.desc)<0?"on":"")+'">'+
-      (DESCUENTOS.indexOf(S.desc)<0 ? S.desc+"% · otro" : "otro…")+'</button>';
+  const hechos = DESCUENTOS.slice();
+  if(hechos.indexOf(S.desc)<0) hechos.push(S.desc);
+  hechos.sort((a,b)=>a-b);
+  document.getElementById("selDto").innerHTML =
+    hechos.map(d=>'<option value="'+d+'"'+(d===S.desc?" selected":"")+'>'+
+      (d===0?"Sin descuento":d+"%")+'</option>').join("")+
+    '<option value="otro">Otro…</option>';
 }
-document.getElementById("dtos").addEventListener("click",e=>{
-  const b = e.target.closest("button[data-d]"); if(!b) return;
-  if(b.dataset.d==="otro"){
+document.getElementById("selDto").addEventListener("change",e=>{
+  if(e.target.value==="otro"){
     const v = prompt("¿Qué descuento le hacés? (en por ciento)", String(S.desc));
-    if(v===null) return;
-    S.desc = Math.max(0, Math.min(60, Math.round(+v||0)));
+    S.desc = v===null ? S.desc : Math.max(0, Math.min(60, Math.round(+v||0)));
   } else {
-    S.desc = +b.dataset.d;
+    S.desc = +e.target.value;
   }
   pintarDtos(); pintarTicket();
 });
 
+/* ------------------------- mandarselo al cliente -----------------------
+   El comprobante vive en una direccion propia. Lo que se manda por
+   WhatsApp es el texto con ese link: el cliente lo abre y ve el
+   presupuesto o la factura, sin adjuntos ni PDF dando vueltas. */
+const BASE_LINK = "https://conesa.com.ar/c/";
+function linkDe(nro){ return BASE_LINK + nro.replace(/[^A-Za-z0-9]/g,"").toLowerCase(); }
+
+function abrirEnvio(d){
+  if(!d.lineas.length){ toast("No hay nada para mandar."); return; }
+  const url = linkDe(d.nro);
+  const txt =
+    "Hola "+d.quien+"! Te paso de "+sucAct().n+" el detalle de tu "+
+      (esPresu(d.tit) ? "presupuesto" : "compra")+":\\n\\n"+
+    d.tit+" N° "+d.nro.slice(2)+"\\n\\n"+
+    d.lineas.map(x=>"• "+x.cant+" × "+x.p.tit+" — "+fmt(x.p.contado*x.cant)).join("\\n")+
+    (d.senia>0 ? "\\n\\nSeña entregada: "+fmt(d.senia) : "")+
+    "\\n\\nTotal: "+fmt(d.total)+"\\n"+
+    "Lo podés ver acá: "+url+"\\n\\n"+
+    "Cualquier cosa me escribís. Gracias!";
+  document.getElementById("envioTit").textContent = d.tit+" "+d.nro;
+  document.getElementById("envioTxt").value = txt;
+  document.getElementById("envioUrl").value = url;
+  document.getElementById("envioWa").href = "https://wa.me/?text=" + encodeURIComponent(txt);
+  document.getElementById("envio").hidden = false;
+}
+function copiar(valor, queCosa){
+  const ok = () => toast(queCosa+" copiado. Pegalo en WhatsApp con Ctrl+V.");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(valor).then(ok, ()=>copiarAMano(valor, ok));
+  } else copiarAMano(valor, ok);
+}
+/** Si el navegador no deja usar el portapapeles, lo seleccionamos igual. */
+function copiarAMano(valor, ok){
+  const t = document.createElement("textarea");
+  t.value = valor; t.style.position="fixed"; t.style.opacity="0";
+  document.body.appendChild(t); t.select();
+  try{ document.execCommand("copy"); ok(); }
+  catch(_){ toast("Seleccioná el texto y copialo con Ctrl+C."); }
+  document.body.removeChild(t);
+}
+document.getElementById("envioX").addEventListener("click",()=>{ document.getElementById("envio").hidden = true; });
+document.getElementById("envio").addEventListener("click",e=>{
+  if(e.target.id==="envio") document.getElementById("envio").hidden = true;
+});
+document.getElementById("envioCopiar").addEventListener("click",()=>
+  copiar(document.getElementById("envioTxt").value, "El texto"));
+document.getElementById("envioCopiarLink").addEventListener("click",()=>
+  copiar(document.getElementById("envioUrl").value, "El link"));
+
 /* La franja del dia: el total de verdad y, adentro, cuanto salio con
    comprobante y cuanto no. Es un solo registro con la venta marcada. */
+/** Las ventas de la caja que se esta mirando. "" = las tres juntas. */
+function ventasCaja(){
+  return S.cajaSuc ? S.ventas.filter(v=>v.suc===S.cajaSuc) : S.ventas;
+}
 function pintarHoy(){
-  const conF = S.ventas.filter(v=>v.facturada);
-  const sinF = S.ventas.filter(v=>!v.facturada);
+  const vs0 = ventasCaja();
+  const conF = vs0.filter(v=>v.facturada);
+  const sinF = vs0.filter(v=>!v.facturada);
   const suma = l => l.reduce((a,v)=>a+ventaCobrado(v),0);
-  const tot = suma(S.ventas), blanco = suma(conF), negro = suma(sinF);
+  const tot = suma(vs0), blanco = suma(conF), negro = suma(sinF);
   const pct0 = tot>0 ? Math.round(blanco/tot*100) : 0;
+  const quien = S.cajaSuc ? sucDe(S.cajaSuc).n : "las tres razones sociales";
   document.getElementById("hoyTira").innerHTML =
     '<div><div class="k">Entró hoy</div><div class="v">'+fmt(tot)+'</div>'+
-      '<div class="n">'+S.ventas.length+' ventas, todos los mostradores</div></div>'+
+      '<div class="n">'+vs0.length+' ventas · '+quien+'</div></div>'+
     '<div class="bl"><div class="k">Con comprobante</div><div class="v">'+fmt(blanco)+'</div>'+
       '<div class="n">'+conF.length+' ventas · '+pct0+'% del total</div></div>'+
     '<div class="ng"><div class="k">Sin comprobante</div><div class="v">'+fmt(negro)+'</div>'+
-      '<div class="n">'+sinF.length+' ventas · '+(100-pct0)+'% del total</div></div>';
+      '<div class="n">'+sinF.length+' ventas · '+(100-pct0)+'% del total</div></div>'+
+    // Las tres razones sociales, cada una con su parte facturada y su
+    // parte sin facturar. Es el mismo registro, abierto por sucursal.
+    (S.cajaSuc ? '' : '<div class="hoy-suc">'+SUCURSALES.map(su=>{
+      const mias = S.ventas.filter(v=>v.suc===su.id);
+      const b = suma(mias.filter(v=>v.facturada)), n = suma(mias.filter(v=>!v.facturada));
+      const t = b+n, p = t>0 ? Math.round(b/t*100) : 0;
+      return '<div><div class="k">'+su.n+'</div>'+
+        '<div class="v">'+fmt(t)+'</div>'+
+        '<div class="n"><b>'+fmt(b)+'</b> con comprobante ('+p+'%) · '+fmt(n)+' sin · '+
+        'depósito '+DEPOSITOS[su.dep]+'</div></div>';
+    }).join("")+'</div>');
 }
 
 /* =================================================== MOSTRADOR */
@@ -1388,7 +1826,7 @@ function buscar(){
   const q = plano(document.getElementById("q").value.trim());
   const caja = document.getElementById("res");
   if(!q){
-    caja.innerHTML = '<div class="vacio">Escribí lo que te están pidiendo. Entra en cualquier orden: <b>“electrico termo 80”</b> encuentra lo mismo que <b>“termo 80 electrico”</b>.</div>';
+    caja.innerHTML = '<div class="vacio" style="padding:22px 14px">Escribí lo que te están pidiendo. Entra en cualquier orden: <b>“electrico termo 80”</b> encuentra lo mismo que <b>“termo 80 electrico”</b>.</div>';
     return;
   }
   const toks = q.split(/\\s+/).filter(Boolean);
@@ -1402,77 +1840,112 @@ function buscar(){
       return {p, s};
     })
     .sort((a,b)=>b.s-a.s || a.p.contado-b.p.contado)
-    .slice(0,14);
+    .slice(0,8);
 
   if(!hits.length){
-    caja.innerHTML = '<div class="vacio">Nada con <b>“'+document.getElementById("q").value+'”</b>. Probá con menos palabras.</div>';
+    caja.innerHTML = '<div class="vacio" style="padding:22px 14px">Nada con <b>“'+document.getElementById("q").value+'”</b>. Probá con menos palabras.</div>';
     return;
   }
-  caja.innerHTML = hits.map(({p})=>{
-    const st = p.stock>0 ? p.stock+" en stock" : '<span class="sinstock">sin stock</span>';
-    // El semáforo: el del mostrador ve si deja plata, sin ver el costo.
-    const m = margen(p);
-    const sem = '<span class="sem '+(m>=S.objetivo?"sem-ok":(m>=10?"sem-med":"sem-mal"))+
-      '" title="'+(m>=S.objetivo?"deja bien":(m>=10?"deja poco":"no deja: avisá al encargado"))+'"></span>';
-    return '<button class="item" data-cod="'+p.cod+'">'+
-      '<span class="cod">'+p.cod.split("+")[0]+'</span>'+
-      '<span><span class="tit">'+sem+'<span>'+p.tit+'</span></span>'+
-        '<span class="meta"><span>'+p.rub+'</span><span>'+p.prov+'</span><span>'+st+'</span></span></span>'+
-      '<span class="pre"><b>'+fmt(p.contado)+'</b><small>'+fmt(p.unPago)+' en 1 pago</small></span>'+
-    '</button>';
-  }).join("");
+  // Un listado con columnas, no tarjetas: se compara de un vistazo y cada
+  // renglon lleva su cantidad, como en cualquier mostrador.
+  caja.innerHTML =
+    '<div class="tabla-wrap"><table class="densa res-t"><thead><tr>'+
+      '<th>Código</th><th>Artículo</th><th>Marca</th><th class="r">Stock</th>'+
+      '<th class="r">Contado</th><th class="r">1 pago</th><th class="r">Cant.</th><th></th>'+
+    '</tr></thead><tbody>'+
+    hits.map(({p})=>{
+      // El semaforo: el del mostrador ve si deja plata, sin ver el costo.
+      const m = margen(p);
+      const cls = m>=S.objetivo ? "sem-ok" : (m>=10 ? "sem-med" : "sem-mal");
+      const tit = m>=S.objetivo ? "deja bien" : (m>=10 ? "deja poco" : "no deja: avisá al encargado");
+      // Verde, amarillo o rojo. Igual se puede tocar: el precio se
+      // consulta aunque no haya, que es para lo que más se usa.
+      const st = stockPill(p);
+      return '<tr data-cod="'+p.cod+'">'+
+        '<td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
+        '<td class="nom" style="min-width:230px"><span class="sem '+cls+'" title="'+tit+'"></span>'+p.tit+
+          '<small>'+p.rub.toLowerCase()+'</small></td>'+
+        '<td style="font-size:12px;color:var(--ink-2)">'+p.prov+'</td>'+
+        '<td class="r">'+st+'</td>'+
+        '<td class="r" style="font-weight:600">'+fmt(p.contado)+'</td>'+
+        '<td class="r" style="color:var(--ink-3)">'+fmt(p.unPago)+'</td>'+
+        '<td class="r"><input class="cant" type="number" min="1" step="1" value="1" data-q="'+p.cod+'" aria-label="cantidad"></td>'+
+        '<td><button class="sumar" data-add="'+p.cod+'">Sumar</button></td>'+
+      '</tr>';
+    }).join("")+
+    '</tbody></table></div>';
 }
 document.getElementById("q").addEventListener("input", buscar);
 document.getElementById("q").addEventListener("keydown",e=>{
   if(e.key !== "Enter") return;
-  const primero = document.querySelector("#res .item");
-  if(primero) sumar(primero.dataset.cod);
+  const primero = document.querySelector("#res tbody tr[data-cod]");
+  if(primero) sumar(primero.dataset.cod, 1);
 });
 document.getElementById("res").addEventListener("click",e=>{
-  const b = e.target.closest(".item"); if(!b) return;
-  sumar(b.dataset.cod);
+  const b = e.target.closest("[data-add]"); if(!b) return;
+  const campo = document.querySelector('#res input[data-q="'+b.dataset.add+'"]');
+  sumar(b.dataset.add, campo ? +campo.value : 1);
+});
+// Enter adentro de la cantidad de un renglon lo suma sin tocar el botón.
+document.getElementById("res").addEventListener("keydown",e=>{
+  if(e.key!=="Enter") return;
+  const i = e.target.closest("input[data-q]"); if(!i) return;
+  e.preventDefault();
+  sumar(i.dataset.q, +i.value);
 });
 
-function sumar(cod){
-  const campo = document.getElementById("qCantV");
-  const cant = Math.max(1, Math.floor(+campo.value || 1));
+function sumar(cod, cuantos){
+  const cant = Math.max(1, Math.floor(+cuantos || 1));
   const l = S.linea.find(x=>x.cod===cod);
   if(l) l.cant += cant; else S.linea.push({cod, cant});
-  campo.value = 1;
   pintarTicket();
+  marcarNuevo(cod);
+  toast(cant+" × "+prod(cod).tit.slice(0,46)+" a la venta.");
 }
 
-document.getElementById("formas").innerHTML = Object.keys(MULT).map(f=>{
-  const m = MULT[f];
-  const et = m===1 ? "sin recargo" : "+"+((m-1)*100).toFixed(1).replace(".",",")+"%";
-  return '<button data-f="'+f+'" aria-pressed="'+(f===S.forma)+'">'+f+'<span>'+et+'</span></button>';
-}).join("");
-document.getElementById("formas").addEventListener("click",e=>{
-  const b = e.target.closest("button[data-f]"); if(!b) return;
-  S.forma = b.dataset.f;
-  for(const x of document.querySelectorAll("#formas button")) x.setAttribute("aria-pressed", String(x===b));
-  pintarTicket();
-});
+/** Pinta un segundo el renglon que acaba de entrar, para que se vea. */
+function marcarNuevo(cod){
+  requestAnimationFrame(()=>{
+    for(const tb of [document.getElementById("tkLineas"), document.getElementById("tbPed")]){
+      if(!tb) continue;
+      const tr = tb.querySelector('tr[data-cod="'+cod+'"]');
+      if(tr){ tr.classList.remove("nuevo"); void tr.offsetWidth; tr.classList.add("nuevo"); }
+    }
+  });
+}
 
 function pintarTicket(){
-  pintarHoy();
   const cont = document.getElementById("tkLineas");
   if(!S.linea.length){
-    cont.innerHTML = '<div class="vacio" style="padding:30px 14px">Buscá un artículo y tocalo.<br>La venta se arma acá.</div>';
+    cont.innerHTML = '<div class="vacio" style="padding:26px 14px">Todavía no hay nada en la venta. Buscá arriba y tocá <b>Sumar</b>.</div>';
   } else {
-    cont.innerHTML = S.linea.map(l=>{
-      const p = prod(l.cod);
-      const u = p.contado * MULT[S.forma];
-      return '<div class="tk-l"><div>'+
-        '<div class="n">'+p.tit+'</div>'+
-        '<div class="c"><button data-m="-" data-cod="'+l.cod+'">−</button><span>'+l.cant+'</span>'+
-        '<button data-m="+" data-cod="'+l.cod+'">+</button><span>× '+fmt(u)+'</span></div>'+
-        '<button class="quitar" data-m="x" data-cod="'+l.cod+'">quitar</button>'+
-      '</div><div class="m">'+fmt(u*l.cant)+'</div></div>';
-    }).join("");
+    // Las mismas columnas que el listado de arriba, para no tener que
+    // leer dos formatos distintos en la misma pantalla.
+    cont.innerHTML =
+      '<div class="tabla-wrap"><table class="densa lin-t"><thead><tr>'+
+        '<th>Código</th><th>Artículo</th><th class="r">Cantidad</th>'+
+        '<th class="r">Precio</th><th class="r">Subtotal</th><th></th>'+
+      '</tr></thead><tbody>'+
+      S.linea.map(l=>{
+        const p = prod(l.cod);
+        const u = p.contado * MULT[S.forma];
+        return '<tr>'+
+          '<td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
+          '<td class="nom" style="min-width:230px">'+p.tit+'<small>'+p.prov.toLowerCase()+'</small></td>'+
+          '<td class="r"><span class="c">'+
+            '<button data-m="-" data-cod="'+l.cod+'" aria-label="uno menos">−</button>'+
+            '<b>'+l.cant+'</b>'+
+            '<button data-m="+" data-cod="'+l.cod+'" aria-label="uno más">+</button></span></td>'+
+          '<td class="r" style="color:var(--ink-2)">'+fmt(u)+'</td>'+
+          '<td class="r" style="font-weight:600">'+fmt(u*l.cant)+'</td>'+
+          '<td><button class="quitar-fila" data-m="x" data-cod="'+l.cod+'" title="sacar de la venta" aria-label="sacar de la venta">×</button></td>'+
+        '</tr>';
+      }).join("")+
+      '</tbody></table></div>';
   }
 
   const unid = S.linea.reduce((a,l)=>a+l.cant,0);
+  document.getElementById("vtaDep").textContent = "Stock del depósito de " + DEPOSITOS[depAct()];
   document.getElementById("vtaCuenta").textContent =
     S.linea.length ? unid+" unidades en "+S.linea.length+" renglones" : "";
 
@@ -1493,14 +1966,16 @@ function pintarTicket(){
       (dto>0 ? '<div class="tr"><span>Descuento '+S.desc+'%</span><b>−'+fmt(dto)+'</b></div>' : '')+
       (MULT[S.forma]!==1 ? '<div class="tr"><span>Recargo '+S.forma.toLowerCase()+'</span><b>'+fmt(total-base)+'</b></div>' : '')+
       '<div class="tr"><span style="color:var(--ink-3)">IVA 21%, ya incluido</span><b style="color:var(--ink-3)">'+fmt(iva)+'</b></div>'+
-      '<div class="tr"><span>Deja de margen <span class="pill '+cls+'">'+pct(mp)+'</span></span><b>'+fmt(marg)+'</b></div>'
+      // Al mostrador no se le muestra el costo ni el margen en pesos: solo
+      // si la venta deja o no deja. El numero es de gerencia.
+      '<div class="tr"><span>Lo que deja</span><b><span class="pill '+cls+'">'+
+        (mp>=S.objetivo?"deja bien":(mp>=10?"deja poco":"no deja: avisá al encargado"))+'</span></b></div>'
       : '')+
     '<div class="tr big"><span>Total</span><b>'+fmt(total)+'</b></div>';
 
   const vacio = S.linea.length===0;
   document.getElementById("btnFactura").disabled = vacio;
   document.getElementById("btnSinFactura").disabled = vacio;
-  document.getElementById("btnPresu").disabled = vacio;
 }
 
 document.getElementById("tkLineas").addEventListener("click",e=>{
@@ -1518,26 +1993,52 @@ function cerrar(facturada){
   const comp = S.comp || compDe(clienteVta())[0];
   const nro = nroDe(comp);
   const h = new Date();
+  const su = sucAct();
   S.ventas.push({
     hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
-    puesto: S.puesto, forma: S.forma, facturada, web:false,
+    suc: S.suc, puesto: S.puesto, forma: S.forma, facturada, web:false,
     linea: S.linea.map(l=>({...l}))
   });
-  for(const l of S.linea){ const p = prod(l.cod); p.stock = Math.max(0, p.stock - l.cant); }
+  // Descuenta del deposito de ESTA sucursal, no de un stock unico.
+  for(const l of S.linea){ const p = prod(l.cod); p.stock = p.stock - l.cant; }
   // El numero solo avanza cuando de verdad se emitio un comprobante.
-  if(facturada) S.nro[comp.indexOf("Factura A")>=0 ? "A" : "B"]++;
+  if(facturada) S.nro[su.id][letraDe(comp)]++;
   S.linea = []; S.desc = 0; S.comp = null;
   pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
   toast(facturada
-    ? "Emitida "+comp.replace(/^\\d+\\./,"")+" N° "+nro.slice(2)+" por "+fmt(total)+". CAE pedido a ARCA. Ya está en caja y en gerencia."
-    : "Venta sin comprobante por "+fmt(total)+" en "+S.puesto+". Queda registrada y marcada como tal.");
+    ? "Emitida "+comp.replace(/^\\d+\\./,"")+" N° "+nro.slice(2)+" de "+su.n+" por "+fmt(total)+
+      ". CAE pedido a ARCA. Descontada del depósito de "+DEPOSITOS[su.dep]+"."
+    : "Entregado sin comprobante por "+fmt(total)+" en "+su.n+" ("+S.puesto+"). Queda registrado y marcado como tal, "+
+      "y descontado del depósito de "+DEPOSITOS[su.dep]+".");
 }
-document.getElementById("btnFactura").addEventListener("click",()=>cerrar(true));
+
+/** Guardar el presupuesto: numera, pero no mueve stock ni caja. */
+function guardarPresu(){
+  if(!S.linea.length){ toast("No hay nada para presupuestar."); return; }
+  const su = sucAct(), comp = compAct(), nro = nroDe(comp);
+  const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  const total = (bruto - Math.round(bruto*S.desc/100)) * MULT[S.forma];
+  S.nro[su.id].X++;
+  S.presupuestos++;
+  S.linea = []; S.desc = 0; S.comp = null;
+  pintarCamposVenta(); pintarDtos(); pintarTicket();
+  toast("Presupuesto "+nro+" de "+su.n+" por "+fmt(total)+". No mueve stock ni caja: queda esperando al cliente.");
+}
+
+document.getElementById("btnFactura").addEventListener("click",()=>{
+  if(esPresu(compAct())) guardarPresu(); else cerrar(true);
+});
 document.getElementById("btnSinFactura").addEventListener("click",()=>cerrar(false));
-document.getElementById("btnPresu").addEventListener("click",()=>{
-  const total = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0) * MULT[S.forma];
-  S.presupuestos++; S.linea = []; pintarTicket();
-  toast("Presupuesto guardado por "+fmt(total)+". No mueve stock ni caja: queda esperando al cliente.");
+document.getElementById("btnWhatsVta").addEventListener("click",()=>{
+  const c = clienteVta(), comp = compAct();
+  const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  const total = (bruto - Math.round(bruto*S.desc/100)) * MULT[S.forma];
+  abrirEnvio({
+    quien: c ? c.n : "el cliente",
+    tit: comp.replace(/^\\d+\\./,""), nro: nroDe(comp),
+    lineas: S.linea.map(l=>({p:prod(l.cod), cant:l.cant})),
+    total, senia:0
+  });
 });
 document.getElementById("btnVaciar").addEventListener("click",()=>{ S.linea=[]; pintarTicket(); });
 
@@ -1714,27 +2215,42 @@ function barra(et, v, max, f2){
     '<span class="pista"><span class="fill'+(f2?" f2":"")+'" style="width:'+(max>0?Math.max(2,v/max*100):0).toFixed(1)+'%"></span></span>'+
     '<span class="vl">'+fmt(v)+'</span></div>';
 }
+function pintarCajaSucs(){
+  document.getElementById("cajaSucs").innerHTML =
+    [["","Todas"]].concat(SUCURSALES.map(x=>[x.id,x.n]))
+      .map(([id,n])=>'<button data-cs="'+id+'" aria-pressed="'+(id===S.cajaSuc)+'">'+n+'</button>').join("");
+}
+document.getElementById("cajaSucs").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-cs]"); if(!b) return;
+  S.cajaSuc = b.dataset.cs;
+  pintarCaja();
+});
+
 function pintarCaja(){
-  const vs = S.ventas;
+  pintarCajaSucs();
+  pintarHoy();
+  const vs = ventasCaja();
   const cobrado = vs.reduce((a,v)=>a+ventaCobrado(v),0);
   const base = vs.reduce((a,v)=>a+ventaBase(v),0);
   const marg = vs.reduce((a,v)=>a+ventaMargen(v),0);
 
   document.getElementById("cajaTiles").innerHTML =
-    tile("Entró hoy", fmt(cobrado), vs.length+" ventas") +
+    tile("Entró hoy", fmt(cobrado), vs.length+" ventas en "+(S.cajaSuc?sucDe(S.cajaSuc).n:"las tres")) +
     tile("Valor de contado", fmt(base), "sin el recargo de tarjeta") +
     tile("Ticket promedio", fmt(cobrado/vs.length), "por venta") +
-    tile("Presupuestos abiertos", fmt0(S.presupuestos), "sin cobrar todavía") +
+    tile("Presupuestos abiertos", fmt0(S.presupuestos), "sin cobrar todavía, de las tres") +
     tile("Margen bruto", fmt(marg), pct(marg/(base-marg)*100)+" sobre el costo");
 
-  document.getElementById("cajaCount").textContent = vs.length + " ventas";
+  document.getElementById("cajaCount").textContent =
+    vs.length + " ventas" + (S.cajaSuc ? " de "+sucDe(S.cajaSuc).n : "");
   document.getElementById("tbCaja").innerHTML = vs.slice().reverse().map(v=>{
     const n = v.linea.reduce((a,l)=>a+l.cant,0);
     const q = v.linea.map(l=>prod(l.cod).tit).join(" + ");
     return '<tr><td class="num" style="font-size:12.5px">'+v.hora+'</td>'+
+      '<td style="font-size:12px;color:var(--ink-2);white-space:nowrap">'+sucDe(v.suc).n+'</td>'+
       '<td>'+(v.web?'<span class="pill p-n">web</span> ':'')+v.puesto.replace("Mostrador ","M")+'</td>'+
       '<td class="nom" style="min-width:260px">'+n+' art. <small>'+q.slice(0,72)+(q.length>72?"…":"")+'</small></td>'+
-      '<td style="font-size:12.5px;color:var(--ink-2)">'+v.forma+'</td>'+
+      '<td style="font-size:12.5px;color:var(--ink-2)">'+formaCorta(v.forma)+'</td>'+
       '<td>'+(v.facturada?'<span class="pill p-ok">factura</span>':'<span class="pill p-n">sin factura</span>')+'</td>'+
       '<td class="r">'+fmt(ventaCobrado(v))+'</td></tr>';
   }).join("");
@@ -1743,13 +2259,20 @@ function pintarCaja(){
   for(const v of vs) pagos[v.forma] = (pagos[v.forma]||0) + ventaCobrado(v);
   const mx1 = Math.max(...Object.values(pagos));
   document.getElementById("porPago").innerHTML = Object.entries(pagos)
-    .sort((a,b)=>b[1]-a[1]).map(([k,v])=>barra(k.replace("Transferencia o efectivo","Transf./efectivo"), v, mx1)).join("");
+    .sort((a,b)=>b[1]-a[1]).map(([k,v])=>barra(formaCorta(k), v, mx1)).join("");
 
   const pu = {};
   for(const v of vs) pu[v.puesto] = (pu[v.puesto]||0) + ventaCobrado(v);
   const mx2 = Math.max(...Object.values(pu));
   document.getElementById("porPuesto").innerHTML = Object.keys(pu).sort()
     .map(k=>barra(k, pu[k], mx2)).join("");
+
+  // Las tres razones sociales, una al lado de la otra.
+  const ps = {};
+  for(const v of S.ventas) ps[v.suc] = (ps[v.suc]||0) + ventaCobrado(v);
+  const mx3 = Math.max(...Object.values(ps));
+  document.getElementById("porSuc").innerHTML = SUCURSALES
+    .map(su=>barra(su.n, ps[su.id]||0, mx3)).join("");
 }
 function tile(k,v,d,cls){
   return '<div class="tile'+(cls?" "+cls:"")+'"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="d">'+d+'</div></div>';
@@ -1854,7 +2377,17 @@ const CLIENTES = [
 ];
 
 /** Lo que hay en el otro deposito. Inventado, pero fijo para cada articulo. */
-function stockOtro(p){ return Math.floor(hash("otro"+p.cod) * 9); }
+function stockOtro(p){ return p.dep[otroDep()]; }
+
+/** El stock pintado: verde si sobra, amarillo si se está por acabar,
+    rojo si no hay. Abajo, lo que queda en el otro depósito. */
+function stockPill(p){
+  const aca = p.stock, alla = p.dep[otroDep()];
+  const cls = aca > 10 ? "stk-ok" : (aca > 0 ? "stk-poco" : "stk-no");
+  const porque = aca > 10 ? "hay de sobra" : (aca > 0 ? "quedan pocos" : "no hay en este depósito");
+  return '<span class="stk '+cls+'" title="'+porque+'">'+aca+'</span>'+
+    '<span class="stk-otro">'+alla+' en '+DEPOSITOS[otroDep()]+'</span>';
+}
 
 const PEDIDOS_ABIERTOS = [
   {nro:"P-2841", cli:"c1", est:"preparando", ent:"envio", cuando:"mañana",
@@ -1921,7 +2454,7 @@ function pintarPedido(){
 
   document.getElementById("tbPed").innerHTML = filas.length
     ? filas.map(({l,p,e,sub})=>
-        '<tr><td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
+        '<tr data-cod="'+p.cod+'"><td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
         '<td class="nom" style="min-width:210px">'+p.tit.slice(0,58)+(p.tit.length>58?"…":"")+'</td>'+
         '<td class="r"><input class="cant" type="number" min="1" step="1" value="'+l.cant+'" data-c="'+l.cod+'" aria-label="cantidad"></td>'+
         '<td class="r">'+fmt(p.contado)+'</td>'+
@@ -2030,22 +2563,33 @@ function buscarPed(){
     caja.innerHTML = '<div class="vacio">Nada con <b>“'+crudo+'”</b>. Probá con menos palabras, o tocá una marca de arriba.</div>';
     return [];
   }
-  caja.innerHTML = hits.map(({p})=>{
-    const otro = stockOtro(p);
-    return '<button class="item" data-cod="'+p.cod+'">'+
-      '<span class="cod">'+p.cod.split("+")[0]+'</span>'+
-      '<span><span class="tit"><span>'+p.tit+'</span></span>'+
-      '<span class="meta"><span>'+p.prov+'</span><span>'+p.rub.toLowerCase()+'</span><span>'+p.stock+' acá</span><span>'+otro+' en el otro depósito</span></span></span>'+
-      '<span class="pre"><b>'+fmt(p.contado)+'</b></span></button>';
-  }).join("");
+  // El mismo listado que el mostrador, para no leer dos formatos.
+  caja.innerHTML =
+    '<div class="tabla-wrap"><table class="densa res-t"><thead><tr>'+
+      '<th>Código</th><th>Artículo</th><th>Marca</th><th class="r">Stock</th>'+
+      '<th class="r">Contado</th><th class="r">Cant.</th><th></th>'+
+    '</tr></thead><tbody>'+
+    hits.map(({p})=>{
+      const st = stockPill(p);
+      return '<tr data-cod="'+p.cod+'" style="cursor:pointer">'+
+        '<td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
+        '<td class="nom" style="min-width:230px">'+p.tit+'<small>'+p.rub.toLowerCase()+'</small></td>'+
+        '<td style="font-size:12px;color:var(--ink-2)">'+p.prov+'</td>'+
+        '<td class="r">'+st+'</td>'+
+        '<td class="r" style="font-weight:600">'+fmt(p.contado)+'</td>'+
+        '<td class="r"><input class="cant" type="number" min="1" step="1" value="1" data-q="'+p.cod+'" aria-label="cantidad"></td>'+
+        '<td><button class="sumar" data-add="'+p.cod+'">Sumar</button></td>'+
+      '</tr>';
+    }).join("")+
+    '</tbody></table></div>';
   return hits.map(h=>h.p);
 }
-function agregarPed(cod){
-  const campo = document.getElementById("qCant");
-  const cant = Math.max(1, Math.floor(+campo.value || 1));
+function agregarPed(cod, cuantos){
+  const cant = Math.max(1, Math.floor(+cuantos || 1));
   const l = PED.linea.find(x=>x.cod===cod);
   if(l) l.cant += cant; else PED.linea.push({cod, cant});
-  campo.value = 1;
+  marcarNuevo(cod);
+  toast(cant+" × "+prod(cod).tit.slice(0,46)+" al pedido.");
   document.getElementById("qPed").value = "";
   document.getElementById("resPed").innerHTML = "";
   pintarPedido();
@@ -2054,11 +2598,23 @@ document.getElementById("qPed").addEventListener("input", buscarPed);
 document.getElementById("qPed").addEventListener("keydown",e=>{
   if(e.key !== "Enter") return;
   const hits = buscarPed();
-  if(hits.length) agregarPed(hits[0].cod);
+  if(hits.length) agregarPed(hits[0].cod, 1);
 });
 document.getElementById("resPed").addEventListener("click",e=>{
-  const b = e.target.closest(".item"); if(!b) return;
-  agregarPed(b.dataset.cod);
+  // Sirve el botón Sumar y también tocar el renglón en cualquier lado,
+  // menos adentro del casillero de la cantidad.
+  if(e.target.closest("input")) return;
+  const b = e.target.closest("[data-add]") || e.target.closest("tr[data-cod]");
+  if(!b) return;
+  const cod = b.dataset.add || b.dataset.cod;
+  const campo = document.querySelector('#resPed input[data-q="'+cod+'"]');
+  agregarPed(cod, campo ? +campo.value : 1);
+});
+document.getElementById("resPed").addEventListener("keydown",e=>{
+  if(e.key!=="Enter") return;
+  const i = e.target.closest("input[data-q]"); if(!i) return;
+  e.preventDefault();
+  agregarPed(i.dataset.q, +i.value);
 });
 document.getElementById("tbPed").addEventListener("input",e=>{
   const i = e.target.closest("input[data-c]"); if(!i) return;
@@ -2102,8 +2658,16 @@ document.getElementById("btnGuardarPed").addEventListener("click",()=>{
 });
 document.getElementById("btnWhatsPed").addEventListener("click",()=>{
   const c = clienteDe(PED.cliente);
-  const total = PED.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
-  toast("Presupuesto de "+fmt(total)+" listo para mandarle a "+c.n+" por WhatsApp. Cuando conteste, la respuesta vuelve acá.");
+  const doc = PEDCFG.doc || docDe(c)[0];
+  const nro = letraDe(doc)+" "+sucAct().pv+"-"+String(PED.nro).padStart(8,"0");
+  const lineas = PED.linea.map(l=>({p:prod(l.cod), cant:l.cant}));
+  const bruto = lineas.reduce((a,x)=>a+x.p.contado*x.cant,0);
+  const total = bruto - Math.round(bruto*PEDCFG.desc/100);
+  abrirEnvio({
+    quien: c ? c.n : "el cliente",
+    tit: doc.replace(/^\\d+\\./,""), nro, lineas,
+    total: total - (PED.senia||0), senia: PED.senia||0
+  });
 });
 document.getElementById("btnVaciarPed").addEventListener("click",()=>{
   PED.linea = []; PED.senia = 0;
@@ -2373,20 +2937,68 @@ document.getElementById("preg").addEventListener("keydown",e=>{
   e.target.value = ""; responder(v);
 });
 
+/* ------------------------------------------- preguntarle hablando ----
+   El navegador escucha y escribe lo que oye; cuando la frase termina,
+   la pregunta sale sola. Sirve con las manos ocupadas, que es como
+   trabaja el del mostrador. Chrome y Edge lo tienen; otros no. */
+(function microfono(){
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const bot = document.getElementById("mic");
+  const caja = document.getElementById("preg");
+  let rec = null, escuchando = false;
+
+  bot.addEventListener("click",()=>{
+    if(!Rec){
+      toast("Este navegador no deja dictar. En Chrome o Edge sí anda.");
+      return;
+    }
+    if(escuchando){ rec.stop(); return; }
+    rec = new Rec();
+    rec.lang = "es-AR";
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onstart = ()=>{
+      escuchando = true; bot.classList.add("on");
+      caja.placeholder = "Te escucho… hablá tranquilo";
+    };
+    rec.onresult = e=>{
+      let t = "";
+      for(const r of e.results) t += r[0].transcript;
+      caja.value = t.trim();
+      if(e.results[e.results.length-1].isFinal){
+        const v = caja.value.trim();
+        if(v){ caja.value = ""; responder(v); }
+      }
+    };
+    rec.onerror = ev=>{
+      toast(ev.error==="not-allowed" || ev.error==="service-not-allowed"
+        ? "Hay que darle permiso al micrófono: está en el candado de la barra de direcciones."
+        : (ev.error==="no-speech" ? "No se escuchó nada. Probá de nuevo." : "No se entendió. Probá de nuevo."));
+    };
+    rec.onend = ()=>{
+      escuchando = false; bot.classList.remove("on");
+      caja.placeholder = "Preguntá lo que quieras, o tocá el micrófono y hablá";
+    };
+    rec.start();
+  });
+})();
+
 /* ============================== los campos del pedido, los mismos de GBP */
 /* La pantalla de GBP (Pedidos - Generar y Emitir) te hace bajar a mano, en
    cada pedido: documento a emitir, condicion de venta, vendedor, descuento,
    entregar por, lista de precios y deposito. Son los mismos campos que hay
    aca. La diferencia es que aca vienen elegidos, abajo dice por que, y si
    no te gusta lo cambias. */
-const VENDEDORES = ["Gerencia","Darío · Mostrador 1","Marcela · Mostrador 2","Pablo · Mostrador 3","Sabrina · Mostrador 4","Luis · Mostrador 5"];
+const VENDEDORES = ["Mauro","Horacio","Agustín","Freddy","Daniel","Carlos","Miguel","Damián"];
 const DOCUMENTOS = ["01.Factura A","02.Factura B","03.Presupuesto X cnc","04.Remito","05.Pedido interno"];
-const CONDICIONES = ["01-Contado","02-Cuenta corriente 30 días","03-Cuenta corriente 60 días","04-Cheque a 30 días"];
 const ENTREGAS = ["00-Retira en Local","01-Reparto propio CABA/GBA","02-Transporte a cargo del cliente"];
 const LISTAS = ["01.Lista 1","02.Lista 2","03.Lista 3 corralón"];
-const DEPOSITOS = ["01-Dep Bs As","02-Dep Traslasierra"];
+/* Los mismos dos depositos, escritos como los pide el pedido. */
+const DEP_OPC = ["01-Dep "+DEPOSITOS.BA, "02-Dep "+DEPOSITOS.TS];
+/** El que le toca a la sucursal en la que estas parado. */
+const depOpcDe = () => depAct()==="BA" ? DEP_OPC[0] : DEP_OPC[1];
 
-const PEDCFG = { doc:null, cond:null, vend:"Gerencia", entrega:null, lista:null, dep:"02-Dep Traslasierra", desc:0 };
+const PEDCFG = { doc:null, cond:null, entrega:null, lista:null, dep:null, desc:0 };
 
 /** Que comprobante corresponde, mirando la condicion fiscal del cliente. */
 function docDe(c){
@@ -2397,9 +3009,9 @@ function docDe(c){
 }
 /** Si puede comprar en cuenta corriente o tiene que pagar ahora. */
 function condDe(c){
-  if(!c || c.lim<=0) return ["01-Contado","no tiene cuenta corriente abierta"];
-  if(c.saldo>c.lim) return ["01-Contado","ya se pasó del límite de su cuenta"];
-  return ["02-Cuenta corriente 30 días","tiene cuenta y le queda "+fmt(c.lim-c.saldo)];
+  if(!c || c.lim<=0) return ["02-Transferencia","no tiene cuenta corriente abierta"];
+  if(c.saldo>c.lim) return ["02-Transferencia","ya se pasó del límite de su cuenta"];
+  return ["08-Cuenta corriente 30 días","tiene cuenta y le queda "+fmt(c.lim-c.saldo)];
 }
 function listaDe(c){
   return (c && c.lim>0)
@@ -2434,11 +3046,13 @@ function pintarCamposPedido(){
 
   document.getElementById("camposPed").innerHTML =
     campo("fDoc","Documento a emitir",DOCUMENTOS,vDoc,sDoc[1],!PEDCFG.doc)+
-    campo("fCond","Condición de venta",CONDICIONES,vCond,sCond[1],!PEDCFG.cond)+
+    campo("fCond","Condición de venta",Object.keys(MULT).concat(["09-Cheque a 30 días"]),vCond,sCond[1],!PEDCFG.cond)+
     campo("fLista","Lista de precios",LISTAS,vLis,sLis[1],!PEDCFG.lista)+
     campo("fEnt","Entregar por",ENTREGAS,vEnt,sEnt[1],!PEDCFG.entrega)+
-    campo("fVend","Vendedor",VENDEDORES,PEDCFG.vend,"quién lo atendió",false)+
-    campo("fDep","Depósito",DEPOSITOS,PEDCFG.dep,"de dónde sale la mercadería",false)+
+    '<div class="campo"><label for="fVend">Vendedor</label>'+
+      '<input id="fVend" type="text" readonly value="'+S.usuario+'" style="background:var(--surface-2);color:var(--ink-2)">'+
+      '<span class="por">sale de tu usuario</span></div>'+
+    campo("fDep","Depósito",DEP_OPC,PEDCFG.dep||depOpcDe(),"el de "+sucAct().n,!PEDCFG.dep)+
     '<div class="campo"><label for="fDesc">Descuento</label>'+
       '<input id="fDesc" data-k="fDesc" type="number" min="0" max="40" step="1" value="'+PEDCFG.desc+'">'+
       '<span class="por">'+(PEDCFG.desc>0?"en por ciento, sobre toda la mercadería":"sin descuento")+'</span></div>'+
@@ -2454,7 +3068,6 @@ document.getElementById("camposPed").addEventListener("change",function(e){
   if(k==="fCond")  PEDCFG.cond = v;
   if(k==="fLista") PEDCFG.lista = v;
   if(k==="fEnt")   PEDCFG.entrega = v;
-  if(k==="fVend")  PEDCFG.vend = v;
   if(k==="fDep")   PEDCFG.dep = v;
   if(k==="fDesc")  PEDCFG.desc = Math.max(0, Math.min(40, +v||0));
   pintarPedido();
@@ -2466,6 +3079,8 @@ const ESCRITORIO = [
     ["Generar nuevo pedido","Tomar lo que el cliente pide. Lo que no hay se ve en el renglón, no cuando llega el camión.","pedidos"],
     ["Venta de mostrador","Cobrar y entregar en el momento. Es el POS.","mostrador"],
     ["Presupuestos","Guardar sin mover stock ni caja, esperando que el cliente vuelva.","mostrador"],
+    ["Rentabilidad","Qué deja cada venta, por rubro, marca, vendedor y sucursal.","renta"],
+    ["Contable","Libro IVA, notas de crédito y los archivos para el contador.","contable"],
     ["Pedidos de la web","Lo que entra por la tienda y por Mercado Libre, en la misma cola.","web"],
     ["Preparar y despachar","Armar el bulto, marcar el remito y sacarlo.","web"]
   ]],
@@ -2526,7 +3141,337 @@ document.getElementById("escritorio").addEventListener("click",function(e){
 // Arranca con algo en pantalla: un cliente, una venta a medio armar y una
 // busqueda hecha. Una demo que abre vacia no se entiende sola.
 document.getElementById("q").value = "termotanque";
-pintarEscritorio(); pintarCamposVenta(); pintarDtos(); pintarHoy(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
+/* ============================================== RENTABILIDAD Y CONTABLE
+   Las ventas sembradas no traian ni vendedor ni numero de comprobante:
+   sin eso no hay libro IVA que mostrar. Se los ponemos una sola vez, al
+   arrancar, con numeros que terminan justo debajo del que sigue. */
+(function completarVentas(){
+  const ctr = {};
+  for(const su of SUCURSALES) ctr[su.id] = {A:S.nro[su.id].A-18, B:S.nro[su.id].B-34};
+  const conCuit = CLIENTES.filter(c=>c.t==="Responsable Inscripto");
+  for(const v of S.ventas){
+    v.vend = VENDEDORES[Math.floor(az()*VENDEDORES.length)];
+    if(!v.facturada) continue;
+    const esA = az() < 0.24;
+    v.letra = esA ? "A" : "B";
+    v.cli = esA && conCuit.length ? conCuit[Math.floor(az()*conCuit.length)].id : "";
+    v.nro = v.letra+" "+sucDe(v.suc).pv+"-"+String(ctr[v.suc][v.letra]++).padStart(8,"0");
+  }
+})();
+
+/* Tres devoluciones del dia, para que la pantalla del contador tenga lo
+   que de verdad tiene: facturas y notas de credito. */
+const NOTAS_CREDITO = (function(){
+  const fact = S.ventas.filter(v=>v.facturada);
+  const motivos = ["Devolución: el inodoro vino rajado",
+                   "Error de facturación: se cargó de más",
+                   "Devolución: el cliente se arrepintió"];
+  const out = [];
+  for(let i=0; i<Math.min(3, fact.length); i++){
+    const v = fact[Math.floor((i+1)*fact.length/4)];
+    if(!v) continue;
+    const parte = i===1 ? 1 : 0.5;              // una es total, dos parciales
+    const total = Math.round(ventaCobrado(v) * parte);
+    out.push({
+      suc: v.suc, hora: v.hora, letra: v.letra,
+      nro: "NC "+v.letra+" "+sucDe(v.suc).pv+"-"+String(410+i).padStart(8,"0"),
+      anula: v.nro, motivo: motivos[i], total
+    });
+  }
+  return out;
+})();
+
+const HOY = new Date().toLocaleDateString("es-AR");
+const neto21 = t => t/1.21;
+const iva21  = t => t - t/1.21;
+
+/** La sucursal que se esta mirando en cada pantalla. "" = las tres. */
+const S_FIL = { renta:"", conta:"" };
+function filtrar(id){ return id ? S.ventas.filter(v=>v.suc===id) : S.ventas; }
+function solapas(cont, cual, fn){
+  document.getElementById(cont).innerHTML =
+    [["","Todas"]].concat(SUCURSALES.map(x=>[x.id,x.n]))
+      .map(([id,n])=>'<button data-s="'+id+'" aria-pressed="'+(id===S_FIL[cual])+'">'+n+'</button>').join("");
+}
+for(const [cont,cual,fn] of [["rentaSucs","renta",()=>pintarRenta()],["contaSucs","conta",()=>pintarContable()]]){
+  document.getElementById(cont).addEventListener("click",e=>{
+    const b = e.target.closest("button[data-s]"); if(!b) return;
+    S_FIL[cual] = b.dataset.s; fn();
+  });
+}
+
+/** Junta lo vendido por una clave cualquiera (rubro, marca, vendedor…). */
+function agrupar(vs, clave){
+  const m = {};
+  for(const v of vs) for(const l of v.linea){
+    const p = prod(l.cod), k = clave(p, v);
+    const g = m[k] || (m[k] = {vend:0, costo:0, un:0});
+    g.vend  += p.contado * l.cant;
+    g.costo += p.costo   * l.cant;
+    g.un    += l.cant;
+  }
+  return m;
+}
+const filaMargen = (nom, g, mx) => {
+  const deja = g.vend - g.costo, mp = g.costo>0 ? deja/g.costo*100 : 0;
+  const cls = mp>=S.objetivo ? "p-ok" : (mp>=10 ? "p-warn" : "p-bad");
+  return '<tr><td class="nom" style="min-width:150px">'+nom+'</td>'+
+    '<td class="r">'+fmt(g.vend)+'</td>'+
+    '<td class="r" style="color:var(--ink-2)">'+fmt(g.costo)+'</td>'+
+    '<td class="r" style="font-weight:600">'+fmt(deja)+'</td>'+
+    '<td class="r"><span class="pill '+cls+'">'+pct(mp)+'</span></td>'+
+    '<td style="width:120px"><span class="mini"><i style="width:'+
+      Math.max(2, Math.round(Math.abs(deja)/mx*100))+'%"></i></span></td></tr>';
+};
+
+function pintarRenta(){
+  solapas("rentaSucs","renta");
+  const vs = filtrar(S_FIL.renta);
+  const quien = S_FIL.renta ? sucDe(S_FIL.renta).n : "las tres razones sociales";
+
+  const vendido = vs.reduce((a,v)=>a+ventaBase(v),0);
+  const cobrado = vs.reduce((a,v)=>a+ventaCobrado(v),0);
+  const costo   = vs.reduce((a,v)=>a+v.linea.reduce((b,l)=>b+prod(l.cod).costo*l.cant,0),0);
+  const deja    = vendido - costo;
+  const mp      = costo>0 ? deja/costo*100 : 0;
+  const un      = vs.reduce((a,v)=>a+v.linea.reduce((b,l)=>b+l.cant,0),0);
+  const cls     = mp>=S.objetivo ? "" : (mp>=10 ? "" : "alerta");
+
+  document.getElementById("rentaTiles").innerHTML =
+    tile("Vendido de contado", fmt(vendido), vs.length+" ventas · "+quien) +
+    tile("Costó la mercadería", fmt(costo), "lo que hay que reponer") +
+    tile("Deja", fmt(deja), pct(mp)+" sobre el costo", cls) +
+    tile("Entró por caja", fmt(cobrado), fmt(cobrado-vendido)+" es recargo de tarjeta") +
+    tile("Ticket promedio", fmt(vs.length?cobrado/vs.length:0), un+" unidades en total");
+
+  // El aviso de arriba dice lo que importa en una sola frase.
+  const flojas = vs.filter(v=>{
+    const c = v.linea.reduce((a,l)=>a+prod(l.cod).costo*l.cant,0);
+    return c>0 && (ventaBase(v)-c)/c*100 < 10;
+  });
+  document.getElementById("rentaAviso").innerHTML =
+    '<span>'+(mp>=S.objetivo?"✔":"⚠")+'</span><div><b>'+
+    (mp>=S.objetivo
+      ? "Hoy el negocio deja "+pct(mp)+", arriba del objetivo de "+S.objetivo+"%."
+      : "Hoy el negocio deja "+pct(mp)+", abajo del objetivo de "+S.objetivo+"%.")+
+    '</b> '+flojas.length+' de '+vs.length+' ventas dejaron menos del 10%. '+
+    'El recargo de tarjeta ('+fmt(cobrado-vendido)+') entró por caja pero no es ganancia: lo paga la tarjeta.</div>';
+
+  // Rubro y marca.
+  const rub = agrupar(vs, p=>p.rub);
+  const mxR = Math.max(1, ...Object.values(rub).map(g=>Math.abs(g.vend-g.costo)));
+  document.getElementById("tbRubro").innerHTML = Object.entries(rub)
+    .sort((a,b)=>(b[1].vend-b[1].costo)-(a[1].vend-a[1].costo))
+    .map(([k,g])=>filaMargen(k, g, mxR)).join("");
+
+  const mar = agrupar(vs, p=>p.prov);
+  const topM = Object.entries(mar).sort((a,b)=>(b[1].vend-b[1].costo)-(a[1].vend-a[1].costo)).slice(0,10);
+  const mxM = Math.max(1, ...topM.map(([,g])=>Math.abs(g.vend-g.costo)));
+  document.getElementById("tbMarca").innerHTML = topM.map(([k,g])=>filaMargen(k, g, mxM)).join("");
+
+  // Articulo por articulo, los que mas dejan arriba y los que pierden abajo.
+  const art = {};
+  for(const v of vs) for(const l of v.linea){
+    const p = prod(l.cod);
+    const g = art[l.cod] || (art[l.cod] = {p, un:0, vend:0, costo:0});
+    g.un += l.cant; g.vend += p.contado*l.cant; g.costo += p.costo*l.cant;
+  }
+  document.getElementById("tbArt").innerHTML = Object.values(art)
+    .sort((a,b)=>(b.vend-b.costo)-(a.vend-a.costo))
+    .map(g=>{
+      const d = g.vend-g.costo, m = g.costo>0 ? d/g.costo*100 : 0;
+      const c = m>=S.objetivo ? "p-ok" : (m>=10 ? "p-warn" : "p-bad");
+      return '<tr><td class="num" style="font-size:12px">'+g.p.cod.split("+")[0]+'</td>'+
+        '<td class="nom" style="min-width:250px">'+g.p.tit+'<small>'+g.p.prov+'</small></td>'+
+        '<td class="r">'+g.un+'</td><td class="r">'+fmt(g.vend)+'</td>'+
+        '<td class="r" style="font-weight:600'+(d<0?';color:var(--bad)':'')+'">'+fmt(d)+'</td>'+
+        '<td class="r"><span class="pill '+c+'">'+pct(m)+'</span></td></tr>';
+    }).join("");
+
+  // Sucursal, vendedor, tarjeta y hora.
+  document.getElementById("tbRentaSuc").innerHTML = SUCURSALES.map(su=>{
+    const mias = S.ventas.filter(v=>v.suc===su.id);
+    const ve = mias.reduce((a,v)=>a+ventaBase(v),0);
+    const co = mias.reduce((a,v)=>a+v.linea.reduce((b,l)=>b+prod(l.cod).costo*l.cant,0),0);
+    const d = ve-co, m = co>0 ? d/co*100 : 0;
+    const c = m>=S.objetivo ? "p-ok" : (m>=10 ? "p-warn" : "p-bad");
+    return '<tr><td class="nom">'+su.n+'</td><td class="r">'+fmt(ve)+'</td>'+
+      '<td class="r" style="font-weight:600">'+fmt(d)+'</td>'+
+      '<td class="r"><span class="pill '+c+'">'+pct(m)+'</span></td></tr>';
+  }).join("");
+
+  const pv = {};
+  for(const v of vs) pv[v.vend] = (pv[v.vend]||0) + ventaBase(v) -
+    v.linea.reduce((a,l)=>a+prod(l.cod).costo*l.cant,0);
+  const mxV = Math.max(1, ...Object.values(pv));
+  document.getElementById("porVend").innerHTML = Object.entries(pv)
+    .sort((a,b)=>b[1]-a[1]).map(([k,n])=>barra(k, n, mxV)).join("");
+
+  const tj = {};
+  for(const v of vs){
+    const t = tj[v.forma] || (tj[v.forma] = {cob:0, rec:0, n:0});
+    t.cob += ventaCobrado(v); t.rec += ventaCobrado(v)-ventaBase(v); t.n++;
+  }
+  document.getElementById("tbTarjeta").innerHTML = Object.entries(tj)
+    .sort((a,b)=>b[1].cob-a[1].cob).map(([k,t])=>
+      '<tr><td class="nom">'+formaCorta(k)+'</td><td class="r">'+fmt(t.cob)+'</td>'+
+      '<td class="r"'+(t.rec>0?' style="color:var(--bad);font-weight:600"':' style="color:var(--ink-3)"')+'>'+
+        (t.rec>0?fmt(t.rec):"—")+'</td>'+
+      '<td class="r">'+t.n+'</td></tr>').join("");
+
+  const hr = {};
+  for(const v of vs){ const h = v.hora.slice(0,2)+":00"; hr[h] = (hr[h]||0) + ventaCobrado(v); }
+  const mxH = Math.max(1, ...Object.values(hr));
+  document.getElementById("porHora").innerHTML = Object.keys(hr).sort()
+    .map(k=>barra(k, hr[k], mxH)).join("");
+}
+
+/* ------------------------------------------------------ contable ----- */
+function pintarContable(){
+  solapas("contaSucs","conta");
+  const id = S_FIL.conta;
+  const vs = filtrar(id);
+  const quien = id ? sucDe(id).n : "las tres razones sociales";
+  const fact = vs.filter(v=>v.facturada);
+  const sinF = vs.filter(v=>!v.facturada);
+  const ncs  = id ? NOTAS_CREDITO.filter(n=>n.suc===id) : NOTAS_CREDITO;
+
+  const totF = fact.reduce((a,v)=>a+ventaCobrado(v),0);
+  const totNC = ncs.reduce((a,n)=>a+n.total,0);
+  const totSinF = sinF.reduce((a,v)=>a+ventaCobrado(v),0);
+
+  document.getElementById("contaTiles").innerHTML =
+    tile("Neto gravado", fmt(neto21(totF-totNC)), "facturas menos notas de crédito") +
+    tile("IVA débito fiscal", fmt(iva21(totF-totNC)), "21% · es lo que se le debe a ARCA") +
+    tile("Total facturado", fmt(totF), fact.length+" comprobantes · "+quien) +
+    tile("Notas de crédito", fmt(totNC), ncs.length+" · se restan del libro") +
+    tile("Sin comprobante", fmt(totSinF), sinF.length+" ventas · NO van al libro", totSinF>0?"alerta":"");
+
+  // Las bajadas.
+  document.getElementById("bajadas").innerHTML = [
+    ["ventas","Todas las ventas","Una fila por venta, facturada o no, con sucursal, vendedor, forma de pago y margen. Es el archivo de la casa, no el del contador."],
+    ["iva","Libro IVA Ventas","Facturas A y B con neto, IVA y total, como lo pide el contador. Las ventas sin comprobante no entran."],
+    ["nc","Notas de crédito","Las devoluciones y los errores, con la factura que anulan."],
+    ["det","Detalle por artículo","Cada renglón de cada factura, por si el contador o la auditoría lo pide."]
+  ].map(([k,t,d])=>'<button data-baja="'+k+'"><span class="t">'+t+'</span><span class="d">'+d+'</span></button>').join("");
+
+  document.getElementById("contaNota").innerHTML =
+    'Los archivos salen en <b>CSV con punto y coma</b>, que es lo que abre el Excel en castellano. '+
+    'Van con la fecha y la razón social en el nombre, así no se mezclan.';
+
+  // Libro IVA.
+  document.getElementById("ivaCount").textContent = fact.length + " comprobantes";
+  document.getElementById("tbIva").innerHTML = fact.slice().reverse().map(v=>{
+    const t = ventaCobrado(v), c = v.cli ? CLIENTES.find(x=>x.id===v.cli) : null;
+    return '<tr><td class="num" style="font-size:12px">'+HOY+'</td>'+
+      '<td><span class="pill '+(v.letra==="A"?"p-n":"p-ok")+'">Factura '+v.letra+'</span></td>'+
+      '<td class="num" style="font-size:12px">'+v.nro+'</td>'+
+      '<td style="font-size:12px;color:var(--ink-2);white-space:nowrap">'+sucDe(v.suc).n+'</td>'+
+      '<td class="nom" style="min-width:160px">'+(c?c.n:"Consumidor final")+'</td>'+
+      '<td class="num" style="font-size:12px">'+(c?c.doc:"—")+'</td>'+
+      '<td class="r">'+fmt(neto21(t))+'</td><td class="r" style="color:var(--ink-2)">'+fmt(iva21(t))+'</td>'+
+      '<td class="r" style="font-weight:600">'+fmt(t)+'</td></tr>';
+  }).join("") || '<tr><td colspan="9" class="vacio">No hay facturas en '+quien+'.</td></tr>';
+
+  // Notas de credito.
+  document.getElementById("ncCount").textContent = ncs.length + (ncs.length===1?" nota":" notas");
+  document.getElementById("tbNC").innerHTML = ncs.map(n=>
+    '<tr><td class="num" style="font-size:12px">'+HOY+'</td>'+
+    '<td class="num" style="font-size:12px">'+n.nro+'</td>'+
+    '<td class="num" style="font-size:12px;color:var(--ink-2)">'+n.anula+'</td>'+
+    '<td class="nom" style="min-width:180px">'+n.motivo+'</td>'+
+    '<td class="r">−'+fmt(neto21(n.total))+'</td>'+
+    '<td class="r" style="color:var(--ink-2)">−'+fmt(iva21(n.total))+'</td>'+
+    '<td class="r" style="font-weight:600">−'+fmt(n.total)+'</td></tr>').join("")
+    || '<tr><td colspan="7" class="vacio">Hoy no hubo devoluciones.</td></tr>';
+
+  // Lo que queda afuera.
+  const porc = (totF+totSinF)>0 ? Math.round(totSinF/(totF+totSinF)*100) : 0;
+  document.getElementById("afueraTot").innerHTML =
+    '<div class="tr"><span>Entró en total</span><b>'+fmt(totF+totSinF)+'</b></div>'+
+    '<div class="tr"><span>Con comprobante</span><b>'+fmt(totF)+'</b></div>'+
+    '<div class="tr big"><span>Sin comprobante</span><b>'+fmt(totSinF)+'</b></div>'+
+    '<div class="tr"><span>Es el '+porc+'% de lo que entró</span><b>'+sinF.length+' ventas</b></div>';
+  document.getElementById("afueraNota").innerHTML =
+    '<b>Esto no va en el archivo del contador</b>, porque no son comprobantes: no existen para ARCA. '+
+    'Quedan acá, en un solo registro, para que la casa sepa cuánto entró de verdad. '+
+    'Que el número esté a la vista es justamente lo que permite achicarlo.';
+}
+
+/* ------------------------------------------------- los archivos ----- */
+/** Un numero como lo espera el Excel en castellano: coma decimal. */
+const num2 = n => (Math.round(n*100)/100).toFixed(2).replace(".",",");
+function bajarCSV(nombre, filas){
+  const csv = filas.map(f=>f.map(c=>{
+    const t = String(c==null ? "" : c);
+    return /[;"\\r\\n]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+  }).join(";")).join("\\r\\n");
+  const blob = new Blob(["\\ufeff"+csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  toast("Bajó "+nombre+". Eso es lo que se adjunta al mail del contador.");
+}
+function sufijo(){
+  const d = new Date();
+  const f = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  return (S_FIL.conta ? sucDe(S_FIL.conta).n.replace(/[^A-Za-z]/g,"") : "TODAS")+"-"+f+".csv";
+}
+document.getElementById("bajadas").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-baja]"); if(!b) return;
+  const vs = filtrar(S_FIL.conta);
+  const ncs = S_FIL.conta ? NOTAS_CREDITO.filter(n=>n.suc===S_FIL.conta) : NOTAS_CREDITO;
+
+  if(b.dataset.baja==="ventas"){
+    const f = [["Fecha","Hora","Razon social","Punto de venta","Comprobante","Tipo","Facturada",
+                "Puesto","Vendedor","Forma de pago","Cliente","Neto","IVA","Total cobrado","Costo","Deja"]];
+    for(const v of vs){
+      const t = ventaCobrado(v);
+      const co = v.linea.reduce((a,l)=>a+prod(l.cod).costo*l.cant,0);
+      const c = v.cli ? CLIENTES.find(x=>x.id===v.cli) : null;
+      f.push([HOY, v.hora, sucDe(v.suc).n, sucDe(v.suc).pv, v.nro||"", v.facturada?("Factura "+v.letra):"Sin comprobante",
+              v.facturada?"SI":"NO", v.puesto, v.vend, formaCorta(v.forma), c?c.n:"Consumidor final",
+              num2(neto21(t)), num2(iva21(t)), num2(t), num2(co), num2(ventaBase(v)-co)]);
+    }
+    bajarCSV("ventas-"+sufijo(), f);
+
+  } else if(b.dataset.baja==="iva"){
+    const f = [["Fecha","Tipo","Punto de venta","Numero","Razon social","Cliente","CUIT/DNI",
+                "Condicion IVA","Neto gravado","IVA 21%","Total"]];
+    for(const v of vs.filter(x=>x.facturada)){
+      const t = ventaCobrado(v), c = v.cli ? CLIENTES.find(x=>x.id===v.cli) : null;
+      f.push([HOY, "Factura "+v.letra, sucDe(v.suc).pv, v.nro, sucDe(v.suc).n,
+              c?c.n:"Consumidor final", c?c.doc:"", c?c.t:"Consumidor Final",
+              num2(neto21(t)), num2(iva21(t)), num2(t)]);
+    }
+    for(const n of ncs){
+      f.push([HOY, "Nota de credito "+n.letra, sucDe(n.suc).pv, n.nro, sucDe(n.suc).n,
+              "Anula "+n.anula, "", "", num2(-neto21(n.total)), num2(-iva21(n.total)), num2(-n.total)]);
+    }
+    bajarCSV("libro-iva-ventas-"+sufijo(), f);
+
+  } else if(b.dataset.baja==="nc"){
+    const f = [["Fecha","Comprobante","Razon social","Anula","Motivo","Neto","IVA 21%","Total"]];
+    for(const n of ncs)
+      f.push([HOY, n.nro, sucDe(n.suc).n, n.anula, n.motivo,
+              num2(-neto21(n.total)), num2(-iva21(n.total)), num2(-n.total)]);
+    bajarCSV("notas-de-credito-"+sufijo(), f);
+
+  } else {
+    const f = [["Fecha","Comprobante","Razon social","Codigo","Articulo","Rubro","Marca",
+                "Cantidad","Precio unitario","Subtotal","Costo unitario"]];
+    for(const v of vs.filter(x=>x.facturada)) for(const l of v.linea){
+      const p = prod(l.cod);
+      f.push([HOY, v.nro, sucDe(v.suc).n, p.cod, p.tit, p.rub, p.prov,
+              l.cant, num2(p.contado), num2(p.contado*l.cant), num2(p.costo)]);
+    }
+    bajarCSV("detalle-por-articulo-"+sufijo(), f);
+  }
+});
+
+pintarSucs(); pintarUsuarios(); pintarEscritorio(); pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
 </script>
 </body>
 </html>
