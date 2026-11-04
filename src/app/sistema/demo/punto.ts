@@ -21,7 +21,7 @@ export const PUNTO_HTML = `<!DOCTYPE html>
    No hay modo oscuro, igual que el panel: siempre claro, para que al
    mostrarlo se vea igual en cualquier maquina. */
 :root{
-  --bg:#ffffff; --surface:#ffffff; --surface-2:#f6f5f3; --surface-3:#efedea;
+  --bg:#f6f5f3; --surface:#ffffff; --surface-2:#faf9f8; --surface-3:#efedea;
   --line:#e6e4e0; --line-2:#d6d2cc;
   --ink:#0a0a0a; --ink-2:#6b6b6b; --ink-3:#9b9893;
   --accent:#e63020; --accent-ink:#ffffff; --accent-soft:#fdeae7;
@@ -52,30 +52,59 @@ input,select{font-family:inherit; font-size:inherit; color:var(--ink)}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
 
 /* ------------------------------------------------------------- barra */
+/* El encabezado es el mismo del panel admin (AdminShell.tsx): barra blanca
+   pegada arriba, el nombre en rojo con el chip de version al lado, el reloj
+   y el usuario a la derecha, y abajo las solapas con el subrayado rojo. */
 header{
   position:sticky; top:0; z-index:40;
   background:var(--surface); border-bottom:1px solid var(--line);
 }
 .bar{
-  max-width:1240px; margin:0 auto; padding:10px 16px;
-  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  max-width:1280px; margin:0 auto; padding:11px 24px;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
 }
-.logo{display:flex; align-items:center; gap:11px; margin-right:auto; flex-wrap:wrap}
-/* La marca se dibuja con la tipografia y el rojo de Conesa en vez de una
-   imagen, para que se vea igual de nitida en cualquier pantalla y para que
-   el nombre no desaparezca cuando la pantalla esta en modo oscuro. */
-.marca{display:block; height:34px; width:auto}
-.marca-sep{width:1px; align-self:stretch; background:var(--line-2); margin:4px 0}
-.logo b{
-  font-family:var(--font-d); font-size:18px; font-weight:700;
-  letter-spacing:.05em; text-transform:uppercase; color:var(--ink-2);
+.marca{display:block; height:30px; width:auto}
+.bar-sep{width:1px; height:20px; background:var(--line)}
+.app{
+  font-family:var(--font-d); font-size:12px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.35em; color:var(--accent);
 }
-.logo .lema{font-size:12.5px; color:var(--ink-2); max-width:30ch}
-.chip-demo{
-  font-family:var(--font-d); font-size:12.5px; font-weight:600; letter-spacing:.14em;
-  text-transform:uppercase; padding:3px 9px; border-radius:999px;
-  background:var(--warn-soft); color:var(--warn); border:1px solid currentColor;
+.ver{
+  border:1px solid var(--line); background:var(--surface-2); border-radius:999px;
+  padding:1px 8px; font-size:10px; font-weight:700; color:var(--ink-2);
+  font-variant-numeric:tabular-nums;
 }
+.org{font-size:14px; color:var(--ink-2)}
+.relo{margin-left:auto; font-size:11px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+.user{font-size:14px; color:var(--ink-2)}
+.user b{color:var(--ink); font-weight:600}
+.salir{
+  border:1px solid var(--line); border-radius:999px; padding:7px 16px; background:none;
+  font-family:var(--font-d); font-size:13px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.05em; color:var(--ink);
+}
+.salir:hover{border-color:var(--accent); color:var(--accent)}
+@media (max-width:820px){ .org,.relo,.user,.ocultable{display:none} }
+
+/* La franja de contexto, como la verde de "Estás editando Traslasierra". */
+.banda{
+  border-top:1px solid rgba(0,0,0,.08);
+  background:var(--warn-soft); color:var(--warn);
+}
+.banda > div, .banda{display:block}
+.banda-et{
+  font-family:var(--font-d); font-size:10px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.3em; opacity:.85;
+}
+.banda strong{
+  font-family:var(--font-d); font-size:16px; font-weight:900;
+  text-transform:uppercase; letter-spacing:.04em; margin-left:7px;
+}
+.banda-n{font-size:12px; opacity:.9; margin-left:10px}
+.banda{max-width:none; padding:0}
+.banda{display:flex}
+.banda{align-items:baseline; gap:0; flex-wrap:wrap; padding:7px 24px}
+
 .puesto{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--ink-3); margin-left:auto}
 .puesto label{text-transform:uppercase; letter-spacing:.07em; font-weight:600}
 .puesto select{
@@ -97,18 +126,22 @@ header{
 .tk-cli-info{margin-top:8px; font-size:12px; color:var(--ink-2); display:flex; gap:7px 12px; flex-wrap:wrap; align-items:center}
 .tk-cli-info b{color:var(--ink); font-variant-numeric:tabular-nums}
 nav{
-  max-width:1240px; margin:0 auto; padding:0 16px 0;
-  display:flex; gap:3px; overflow-x:auto; scrollbar-width:thin;
+  max-width:1280px; margin:0 auto; padding:0 24px;
+  display:flex; gap:2px; overflow-x:auto; scrollbar-width:thin;
+  border-top:1px solid var(--line);
 }
 nav button{
-  flex:0 0 auto; background:none; border:0; border-bottom:2.5px solid transparent;
-  padding:9px 13px 10px; color:var(--ink-2); font-weight:600; font-size:13.5px;
-  white-space:nowrap;
+  flex:0 0 auto; display:inline-flex; align-items:center; gap:8px;
+  background:none; border:0; border-bottom:2px solid transparent;
+  padding:12px 15px; color:var(--ink-2); white-space:nowrap;
+  font-family:var(--font-d); font-size:12px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.06em;
 }
-nav button[aria-current="true"]{color:var(--ink); border-bottom-color:var(--accent)}
-nav button:hover{color:var(--ink)}
+nav button svg{width:15px; height:15px; flex:0 0 15px}
+nav button[aria-current="true"]{color:var(--accent); border-bottom-color:var(--accent)}
+nav button:not([aria-current="true"]):hover{color:var(--ink)}
 
-main{max-width:1240px; margin:0 auto; padding:20px 16px 72px}
+main{max-width:1280px; margin:0 auto; padding:28px 24px 72px}
 section[hidden]{display:none}
 .head{margin-bottom:16px}
 .head h2{font-size:30px; font-weight:700; text-transform:uppercase; letter-spacing:.02em}
@@ -383,6 +416,21 @@ table.densa th{padding:8px 10px}
 .pistas .et + button{margin-left:0}
 .pistas button.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
 
+/* La franja del dia: lo facturado y lo no facturado, uno al lado del otro.
+   No son dos libros: es el mismo registro mirado por la marca de la venta. */
+.hoy{
+  display:flex; gap:0; flex-wrap:wrap; margin-bottom:16px;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
+}
+.hoy > div{flex:1 1 170px; padding:11px 15px; border-right:1px solid var(--line)}
+.hoy > div:last-child{border-right:0}
+.hoy .k{font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); font-weight:600}
+.hoy .v{font-family:var(--font-d); font-size:22px; font-weight:800; line-height:1.15; margin-top:3px; font-variant-numeric:tabular-nums}
+.hoy .n{font-size:11.5px; color:var(--ink-2); margin-top:1px}
+.hoy .bl .v{color:var(--ok)}
+.hoy .ng .v{color:var(--warn)}
+.dtos{margin-top:0}
+
 .campos{display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); gap:13px 14px; padding:13px 14px}
 .campo{display:flex; flex-direction:column; gap:5px; min-width:0}
 .campo > label{font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); font-weight:600}
@@ -438,10 +486,13 @@ table.densa th{padding:8px 10px}
   position:fixed; left:50%; bottom:22px; transform:translate(-50%,130%);
   background:var(--ink); color:var(--bg); padding:11px 18px; border-radius:999px;
   font-size:13.5px; font-weight:500; z-index:90; max-width:calc(100vw - 32px);
-  text-align:center; transition:transform .22s ease;
-  box-shadow:0 8px 24px rgba(0,0,0,.22);
+  text-align:center; box-shadow:0 8px 24px rgba(0,0,0,.22);
+  /* Escondido de verdad: con solo correrlo para abajo asomaba una pestania
+     negra en el borde de la pantalla. */
+  opacity:0; visibility:hidden;
+  transition:transform .22s ease, opacity .22s ease, visibility .22s;
 }
-#toast.on{transform:translate(-50%,0)}
+#toast.on{transform:translate(-50%,0); opacity:1; visibility:visible}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 
 footer{
@@ -454,32 +505,39 @@ footer{
 
 <header>
   <div class="bar">
-    <div class="logo">
-      <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
-      <span class="marca-sep"></span>
-      <b>Punto</b>
-      <span class="lema">lee la lista de tu proveedor antes de que te rompa el margen</span>
-    </div>
-    <span class="chip-demo">Demo</span>
+    <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
+    <span class="bar-sep"></span>
+    <span class="app">Punto</span>
+    <span class="ver">v1.0</span>
+    <span class="org">· Sanitarios Conesa</span>
+    <span class="relo" id="relo"></span>
+    <span class="bar-sep ocultable"></span>
+    <span class="user">Puesto: <b id="barPuesto">Mostrador 1</b></span>
+    <button class="salir" type="button">Salir</button>
   </div>
   <nav id="nav">
-    <button data-v="inicio" aria-current="true">Inicio</button>
-    <button data-v="mostrador">Mostrador</button>
-    <button data-v="pedidos">Pedidos</button>
-    <button data-v="web">Pedidos web</button>
-    <button data-v="productos">Productos y costos</button>
-    <button data-v="listas">Listas de proveedor</button>
-    <button data-v="red">La Red</button>
-    <button data-v="caja">Caja del día</button>
-    <button data-v="gerencia">Gerencia</button>
-    <button data-v="asistente">Asistente</button>
+    <button data-v="mostrador" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2l2.7 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L21.7 7H5.1"/></svg>Venta</button>
+    <button data-v="pedidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg>Pedidos</button>
+    <button data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Web</button>
+    <button data-v="productos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Productos</button>
+    <button data-v="listas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>Listas</button>
+    <button data-v="red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>La Red</button>
+    <button data-v="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Caja</button>
+    <button data-v="gerencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>Gerencia</button>
+    <button data-v="asistente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</button>
+    <button data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Todo el sistema</button>
   </nav>
+  <div class="banda">
+    <span class="banda-et">Estás viendo</span>
+    <strong>Una demo</strong>
+    <span class="banda-n">los artículos, los códigos y los precios son los reales; los costos, el stock y la caja están simulados</span>
+  </div>
 </header>
 
 <main>
 
 <!-- ======================================================== MOSTRADOR -->
-<section id="v-inicio">
+<section id="v-inicio" hidden>
   <div class="head">
     <h2>Escritorio</h2>
     <p>Todo lo que hoy se hace en GlobalBluePoint, con el nombre que le dan ustedes. Lo que está en gris todavía no se puede tocar en esta demo.</p>
@@ -487,25 +545,44 @@ footer{
   <div class="esc" id="escritorio"></div>
 </section>
 
-<section id="v-mostrador" hidden>
+<section id="v-mostrador">
   <div class="head">
-    <h2>Mostrador</h2>
-    <p>Buscá como lo nombra el cliente, en el orden que salga. Un clic lo suma a la venta.</p>
+    <h2>Venta de mostrador</h2>
+    <p>Todo lo del comprobante ya viene puesto. Buscás, cobrás y emitís.</p>
   </div>
+
+  <div class="hoy" id="hoyTira"></div>
 
   <div class="dos">
     <div>
-      <div class="buscar">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
-        <input id="q" type="text" placeholder="termo 80 electrico · bacha gulliart · 11114 · campana 60" autocomplete="off" spellcheck="false">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Comprobante</h3><span class="sub">viene completo; se cambia si hace falta</span></div>
+        <div class="campos" id="camposVta"></div>
       </div>
-      <div class="pistas" id="pistas"></div>
-      <div class="res" id="res"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>Artículos</h3><span class="sub" id="vtaCuenta"></span></div>
+        <div style="padding:12px 14px 0">
+          <div class="busca-fila">
+            <div class="buscar">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+              <input id="q" type="text" placeholder="Marca, rubro, nombre o código: ferrum · inodoro · 11114 · termo 80" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="campo cant-fija">
+              <label for="qCantV">Cantidad</label>
+              <input id="qCantV" type="number" min="1" step="1" value="1">
+            </div>
+          </div>
+          <p class="ayuda-busca">Las palabras entran en cualquier orden y no hace falta escribirlas enteras. <b>Enter</b> suma el primero.</p>
+          <div class="res" id="res"></div>
+        </div>
+        <div class="tk-lineas" id="tkLineas"></div>
+      </div>
     </div>
 
     <div class="card ticket">
       <div class="card-h">
-        <h3>Venta</h3>
+        <h3>Total</h3>
         <div class="puesto">
           <label for="selPuesto">Puesto</label>
           <select id="selPuesto">
@@ -514,24 +591,22 @@ footer{
           </select>
         </div>
       </div>
-      <div class="tk-cli">
-        <label for="vtaCliente">Cliente</label>
-        <select id="vtaCliente"></select>
-        <div class="tk-cli-info" id="vtaCliInfo"></div>
-      </div>
-      <div class="tk-lineas" id="tkLineas"></div>
       <div class="tk-pago">
         <label>Cómo paga</label>
         <div class="formas" id="formas"></div>
       </div>
+      <div class="tk-pago" style="border-top:1px solid var(--line)">
+        <label>Descuento</label>
+        <div class="pistas dtos" id="dtos"></div>
+      </div>
       <div class="tk-tot" id="tkTot"></div>
       <div class="tk-acc">
-        <button class="b1" id="btnFactura">Vender con factura</button>
+        <button class="b1" id="btnFactura">Emitir comprobante</button>
         <button class="b2" id="btnSinFactura">Vender sin factura</button>
         <button class="b2" id="btnPresu">Guardar como presupuesto</button>
         <button class="b3" id="btnVaciar">Vaciar</button>
       </div>
-      <p class="nota">Una sola venta, un solo registro. <b>Facturada</b> es un dato de la venta, no un libro aparte: la gerencia ve el total real y, dentro, cuánto salió con factura.</p>
+      <p class="nota"><b>Un solo registro.</b> La venta sin factura queda anotada igual, marcada como tal. La franja de arriba y la gerencia muestran las dos columnas por separado: el total de verdad, y cuánto de eso salió con comprobante. No hay un segundo libro.</p>
     </div>
   </div>
 </section>
@@ -578,8 +653,7 @@ footer{
               <input id="qCant" type="number" min="1" step="1" value="1">
             </div>
           </div>
-          <p class="ayuda-busca">Las palabras entran en cualquier orden y no hace falta que sean enteras. <b>Enter</b> suma el primero.</p>
-          <div class="pistas" id="pistasPed"></div>
+          <p class="ayuda-busca">Marca, rubro, nombre o código. Las palabras entran en cualquier orden y no hace falta escribirlas enteras. <b>Enter</b> suma el primero.</p>
           <div class="res" id="resPed" style="margin-top:8px"></div>
         </div>
         <div class="tabla-wrap">
@@ -1110,7 +1184,9 @@ const pct = n => (n>=0?"":"−") + Math.abs(n).toFixed(1).replace(".",",") + "%"
 /* ====================================================== estado */
 const S = {
   puesto:"Mostrador 1",
-  cliente:"c1",        // a quien le estamos vendiendo
+  cliente:"",          // vacio = consumidor final, que es lo normal en mostrador
+  comp:null, cond:null, vend:"Gerencia", desc:0,
+  nro:{A:12847, B:48214},   // el numero que sigue, por letra
   forma:"Transferencia o efectivo",
   // La demo abre con una venta ya empezada: si abre vacia, el que la mira
   // no ve nada y hay que explicarle que toque algo primero.
@@ -1156,7 +1232,7 @@ function ventaCobrado(v){ return ventaBase(v) * MULT[v.forma]; }
 function ventaMargen(v){ return v.linea.reduce((a,l)=>{const p=prod(l.cod); return a+(p.contado-p.costo)*l.cant;},0); }
 
 /* ================================================== navegación */
-const vistas = ["inicio","mostrador","pedidos","web","productos","listas","red","caja","gerencia","asistente"];
+const vistas = ["mostrador","inicio","pedidos","web","productos","listas","red","caja","gerencia","asistente"];
 document.getElementById("nav").addEventListener("click",e=>{
   const b = e.target.closest("button[data-v]"); if(!b) return;
   for(const v of vistas) document.getElementById("v-"+v).hidden = (v !== b.dataset.v);
@@ -1169,6 +1245,7 @@ document.getElementById("nav").addEventListener("click",e=>{
   if(b.dataset.v==="red") pintarRed();
   if(b.dataset.v==="asistente") pintarAsistente();
   if(b.dataset.v==="pedidos") pintarPedido();
+  if(b.dataset.v==="mostrador"){ pintarCamposVenta(); pintarDtos(); pintarHoy(); }
 });
 
 /** Lleva a una solapa como si la hubieran tocado. */
@@ -1186,45 +1263,127 @@ function toast(msg){
 
 document.getElementById("selPuesto").addEventListener("change",e=>{
   S.puesto = e.target.value;
+  document.getElementById("barPuesto").textContent = S.puesto;
 });
 
-/* ------------------------------------------------- el cliente */
-function pintarClienteVenta(){
-  const sel = document.getElementById("vtaCliente");
-  if(!sel.options.length){
-    sel.innerHTML = '<option value="">Consumidor final</option>' +
-      CLIENTES.map(c=>'<option value="'+c.id+'">'+c.n+'</option>').join("");
-    sel.value = S.cliente;
-  }
-  const c = CLIENTES.find(x=>x.id===sel.value);
-  const info = document.getElementById("vtaCliInfo");
-  if(!c){
-    info.innerHTML = '<span>Sin cuenta: paga y se lleva. Factura B o ticket.</span>';
-    return;
-  }
-  const libre = c.lim - c.saldo;
-  info.innerHTML =
-    '<span>'+c.t+'</span>'+
-    '<span>CUIT '+c.doc+'</span>'+
-    '<span>Debe <b>'+fmt(c.saldo)+'</b> de <b>'+fmt(c.lim)+'</b></span>'+
-    (libre<=0
-      ? '<span class="pill p-bad">pasado del límite</span>'
-      : '<span class="pill p-ok">le queda '+fmt(libre)+'</span>');
+/* El reloj de la barra, igual que el del panel. */
+(function reloj(){
+  const el = document.getElementById("relo");
+  const tic = () => {
+    const h = new Date();
+    el.textContent = h.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"})
+      + " " + h.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
+  };
+  tic(); setInterval(tic, 1000);
+})();
+
+/* ------------------- el encabezado de la venta, como el de GBP -------------
+   Comprobante, numero, condicion de venta y cliente. Todo viene puesto: el
+   comprobante sale de la condicion fiscal del cliente y el numero es el que
+   sigue. Por defecto es consumidor final y contado, que es lo que pasa en
+   el mostrador nueve de cada diez veces. */
+const PTOVTA = "0003";
+const COND_VTA = ["01-Contado","02-Cuenta corriente 30 días"];
+const DESCUENTOS = [0,5,10,12,20,25];
+
+function clienteVta(){ return CLIENTES.find(c=>c.id===S.cliente) || null; }
+
+/** Que comprobante corresponde segun a quien se le vende. */
+function compDe(c){
+  if(!c) return ["02.Factura B","no hay datos del cliente: va como consumidor final"];
+  if(c.t==="Responsable Inscripto") return ["01.Factura A","es responsable inscripto"];
+  if(c.t==="IVA Exento") return ["02.Factura B","está exento de IVA"];
+  return ["02.Factura B","es consumidor final"];
 }
-document.getElementById("vtaCliente").addEventListener("change",e=>{
-  S.cliente = e.target.value;
-  pintarClienteVenta();
+function condVtaDe(c){
+  if(!c || c.lim<=0) return ["01-Contado","no tiene cuenta corriente"];
+  if(c.saldo>c.lim) return ["01-Contado","se pasó del límite de su cuenta"];
+  return ["01-Contado","tiene cuenta, pero en mostrador se cobra al contado"];
+}
+/** El numero que sigue, por letra. Sale solo, nadie lo escribe. */
+function nroDe(comp){
+  const letra = comp.indexOf("Factura A")>=0 ? "A" : "B";
+  return letra+" "+PTOVTA+"-"+String(S.nro[letra]).padStart(8,"0");
+}
+
+function pintarCamposVenta(){
+  const c = clienteVta();
+  const sComp = compDe(c), sCond = condVtaDe(c);
+  const comp = S.comp || sComp[0];
+  const cond = S.cond || sCond[0];
+  const opcCli = '<option value=""'+(S.cliente?"":" selected")+'>Consumidor final</option>' +
+    CLIENTES.map(x=>'<option value="'+x.id+'"'+(x.id===S.cliente?" selected":"")+'>'+x.n+'</option>').join("");
+
+  let info;
+  if(!c){
+    info = 'Venta al público. Si el cliente pide factura A, elegilo en la lista y el comprobante cambia solo.';
+  } else {
+    const libre = c.lim - c.saldo;
+    info = c.t+' · CUIT '+c.doc+
+      (c.lim>0 ? ' · debe <b>'+fmt(c.saldo)+'</b> de <b>'+fmt(c.lim)+'</b>'+
+        (libre<=0 ? ' <span class="pill p-bad">pasado del límite</span>'
+                  : ' <span class="pill p-ok">le queda '+fmt(libre)+'</span>')
+      : ' · sin cuenta corriente');
+  }
+
+  document.getElementById("camposVta").innerHTML =
+    '<div class="campo ancho"><label for="vtaCliente">Cliente</label>'+
+      '<select id="vtaCliente" data-k="cli">'+opcCli+'</select>'+
+      '<span class="por">'+info+'</span></div>'+
+    campo("vtaComp","Documento a emitir",DOCUMENTOS,comp,sComp[1],!S.comp)+
+    '<div class="campo"><label for="vtaNro">Número</label>'+
+      '<input id="vtaNro" type="text" readonly value="'+nroDe(comp)+'" style="background:var(--surface-2);color:var(--ink-2);font-variant-numeric:tabular-nums">'+
+      '<span class="por">sale solo, es el que sigue</span></div>'+
+    campo("vtaCond","Condición de venta",COND_VTA,cond,sCond[1],!S.cond)+
+    campo("vtaVend","Vendedor",VENDEDORES,S.vend,"quién atendió",false);
+}
+
+document.getElementById("camposVta").addEventListener("change",e=>{
+  const id = e.target.id;
+  if(id==="vtaCliente"){ S.cliente = e.target.value; S.comp = null; S.cond = null; }
+  if(id==="vtaComp") S.comp = e.target.value;
+  if(id==="vtaCond") S.cond = e.target.value;
+  if(id==="vtaVend") S.vend = e.target.value;
+  pintarCamposVenta(); pintarTicket();
 });
+
+/* Los descuentos de un toque, mas uno a medida. */
+function pintarDtos(){
+  document.getElementById("dtos").innerHTML =
+    DESCUENTOS.map(d=>'<button data-d="'+d+'" class="'+(S.desc===d?"on":"")+'">'+(d===0?"sin descuento":d+"%")+'</button>').join("")+
+    '<button data-d="otro" class="'+(DESCUENTOS.indexOf(S.desc)<0?"on":"")+'">'+
+      (DESCUENTOS.indexOf(S.desc)<0 ? S.desc+"% · otro" : "otro…")+'</button>';
+}
+document.getElementById("dtos").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-d]"); if(!b) return;
+  if(b.dataset.d==="otro"){
+    const v = prompt("¿Qué descuento le hacés? (en por ciento)", String(S.desc));
+    if(v===null) return;
+    S.desc = Math.max(0, Math.min(60, Math.round(+v||0)));
+  } else {
+    S.desc = +b.dataset.d;
+  }
+  pintarDtos(); pintarTicket();
+});
+
+/* La franja del dia: el total de verdad y, adentro, cuanto salio con
+   comprobante y cuanto no. Es un solo registro con la venta marcada. */
+function pintarHoy(){
+  const conF = S.ventas.filter(v=>v.facturada);
+  const sinF = S.ventas.filter(v=>!v.facturada);
+  const suma = l => l.reduce((a,v)=>a+ventaCobrado(v),0);
+  const tot = suma(S.ventas), blanco = suma(conF), negro = suma(sinF);
+  const pct0 = tot>0 ? Math.round(blanco/tot*100) : 0;
+  document.getElementById("hoyTira").innerHTML =
+    '<div><div class="k">Entró hoy</div><div class="v">'+fmt(tot)+'</div>'+
+      '<div class="n">'+S.ventas.length+' ventas, todos los mostradores</div></div>'+
+    '<div class="bl"><div class="k">Con comprobante</div><div class="v">'+fmt(blanco)+'</div>'+
+      '<div class="n">'+conF.length+' ventas · '+pct0+'% del total</div></div>'+
+    '<div class="ng"><div class="k">Sin comprobante</div><div class="v">'+fmt(negro)+'</div>'+
+      '<div class="n">'+sinF.length+' ventas · '+(100-pct0)+'% del total</div></div>';
+}
 
 /* =================================================== MOSTRADOR */
-const EJEMPLOS = ["termo 80 electrico","bacha gulliart","campana 60","11114","tanque 1100","dogo","combo inodoro bidet","5135"];
-document.getElementById("pistas").innerHTML =
-  EJEMPLOS.map(e=>'<button data-q="'+e+'">'+e+'</button>').join("");
-document.getElementById("pistas").addEventListener("click",e=>{
-  const b = e.target.closest("button"); if(!b) return;
-  const q = document.getElementById("q"); q.value = b.dataset.q; buscar(); q.focus();
-});
-
 function buscar(){
   const q = plano(document.getElementById("q").value.trim());
   const caja = document.getElementById("res");
@@ -1264,14 +1423,22 @@ function buscar(){
   }).join("");
 }
 document.getElementById("q").addEventListener("input", buscar);
+document.getElementById("q").addEventListener("keydown",e=>{
+  if(e.key !== "Enter") return;
+  const primero = document.querySelector("#res .item");
+  if(primero) sumar(primero.dataset.cod);
+});
 document.getElementById("res").addEventListener("click",e=>{
   const b = e.target.closest(".item"); if(!b) return;
   sumar(b.dataset.cod);
 });
 
 function sumar(cod){
+  const campo = document.getElementById("qCantV");
+  const cant = Math.max(1, Math.floor(+campo.value || 1));
   const l = S.linea.find(x=>x.cod===cod);
-  if(l) l.cant++; else S.linea.push({cod, cant:1});
+  if(l) l.cant += cant; else S.linea.push({cod, cant});
+  campo.value = 1;
   pintarTicket();
 }
 
@@ -1288,6 +1455,7 @@ document.getElementById("formas").addEventListener("click",e=>{
 });
 
 function pintarTicket(){
+  pintarHoy();
   const cont = document.getElementById("tkLineas");
   if(!S.linea.length){
     cont.innerHTML = '<div class="vacio" style="padding:30px 14px">Buscá un artículo y tocalo.<br>La venta se arma acá.</div>';
@@ -1304,15 +1472,27 @@ function pintarTicket(){
     }).join("");
   }
 
-  const base = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  const unid = S.linea.reduce((a,l)=>a+l.cant,0);
+  document.getElementById("vtaCuenta").textContent =
+    S.linea.length ? unid+" unidades en "+S.linea.length+" renglones" : "";
+
+  const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  const dto = Math.round(bruto * S.desc / 100);
+  const base = bruto - dto;
   const total = base * MULT[S.forma];
-  const marg = S.linea.reduce((a,l)=>{const p=prod(l.cod); return a+(p.contado-p.costo)*l.cant;},0);
-  const mp = base>0 ? marg/(base-marg)*100 : 0;
+  // El margen se mide contra el contado, nunca contra lo que entra por
+  // tarjeta: el recargo no es ganancia, es lo que se lleva la tarjeta.
+  const costo = S.linea.reduce((a,l)=>a+prod(l.cod).costo*l.cant,0);
+  const marg = base - costo;
+  const mp = costo>0 ? marg/costo*100 : 0;
   const cls = mp>=S.objetivo ? "p-ok" : (mp>=10 ? "p-warn" : "p-bad");
+  const iva = Math.round(total - total/1.21);
 
   document.getElementById("tkTot").innerHTML =
-    (S.linea.length ? '<div class="tr"><span>'+S.linea.reduce((a,l)=>a+l.cant,0)+' artículos, de contado</span><b>'+fmt(base)+'</b></div>'+
+    (S.linea.length ? '<div class="tr"><span>'+unid+' artículos, de contado</span><b>'+fmt(bruto)+'</b></div>'+
+      (dto>0 ? '<div class="tr"><span>Descuento '+S.desc+'%</span><b>−'+fmt(dto)+'</b></div>' : '')+
       (MULT[S.forma]!==1 ? '<div class="tr"><span>Recargo '+S.forma.toLowerCase()+'</span><b>'+fmt(total-base)+'</b></div>' : '')+
+      '<div class="tr"><span style="color:var(--ink-3)">IVA 21%, ya incluido</span><b style="color:var(--ink-3)">'+fmt(iva)+'</b></div>'+
       '<div class="tr"><span>Deja de margen <span class="pill '+cls+'">'+pct(mp)+'</span></span><b>'+fmt(marg)+'</b></div>'
       : '')+
     '<div class="tr big"><span>Total</span><b>'+fmt(total)+'</b></div>';
@@ -1333,7 +1513,10 @@ document.getElementById("tkLineas").addEventListener("click",e=>{
 });
 
 function cerrar(facturada){
-  const total = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0) * MULT[S.forma];
+  const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  const total = (bruto - Math.round(bruto*S.desc/100)) * MULT[S.forma];
+  const comp = S.comp || compDe(clienteVta())[0];
+  const nro = nroDe(comp);
   const h = new Date();
   S.ventas.push({
     hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
@@ -1341,8 +1524,13 @@ function cerrar(facturada){
     linea: S.linea.map(l=>({...l}))
   });
   for(const l of S.linea){ const p = prod(l.cod); p.stock = Math.max(0, p.stock - l.cant); }
-  S.linea = []; pintarTicket(); buscar();
-  toast((facturada?"Venta facturada":"Venta registrada sin factura")+" por "+fmt(total)+" en "+S.puesto+". Ya está en caja y en gerencia.");
+  // El numero solo avanza cuando de verdad se emitio un comprobante.
+  if(facturada) S.nro[comp.indexOf("Factura A")>=0 ? "A" : "B"]++;
+  S.linea = []; S.desc = 0; S.comp = null;
+  pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
+  toast(facturada
+    ? "Emitida "+comp.replace(/^\\d+\\./,"")+" N° "+nro.slice(2)+" por "+fmt(total)+". CAE pedido a ARCA. Ya está en caja y en gerencia."
+    : "Venta sin comprobante por "+fmt(total)+" en "+S.puesto+". Queda registrada y marcada como tal.");
 }
 document.getElementById("btnFactura").addEventListener("click",()=>cerrar(true));
 document.getElementById("btnSinFactura").addEventListener("click",()=>cerrar(false));
@@ -1809,21 +1997,6 @@ document.getElementById("siempre").addEventListener("click",e=>{
   pintarPedido();
 });
 
-/* Los atajos: las marcas y los rubros que de verdad hay cargados. Asi no
-   hay que acordarse de nada ni escribirlo bien: se toca y busca. */
-function pintarPistasPed(){
-  const marcas = [...new Set(PRODUCTOS.map(p=>p.prov))].sort();
-  const rubros = [...new Set(PRODUCTOS.map(p=>p.rub))].sort();
-  const chip = t => '<button data-q="'+t+'">'+t.toLowerCase()+'</button>';
-  document.getElementById("pistasPed").innerHTML =
-    '<span class="et">Marca</span>' + marcas.map(chip).join("") +
-    '<span class="et" style="margin-left:7px">Rubro</span>' + rubros.map(chip).join("");
-}
-function marcarPistas(){
-  const q = plano(document.getElementById("qPed").value.trim());
-  for(const b of document.querySelectorAll("#pistasPed button"))
-    b.classList.toggle("on", plano(b.dataset.q) === q);
-}
 
 /** El buscador de renglones. Entra marca, rubro, nombre o codigo, en
     cualquier orden y sin tener que escribir la palabra entera. Enter mete
@@ -1832,7 +2005,6 @@ function buscarPed(){
   const crudo = document.getElementById("qPed").value.trim();
   const q = plano(crudo);
   const caja = document.getElementById("resPed");
-  marcarPistas();
   if(!q){ caja.innerHTML = ""; return []; }
   const toks = q.split(/\\s+/).filter(Boolean);
   const hits = PRODUCTOS
@@ -1876,17 +2048,8 @@ function agregarPed(cod){
   campo.value = 1;
   document.getElementById("qPed").value = "";
   document.getElementById("resPed").innerHTML = "";
-  marcarPistas();
   pintarPedido();
 }
-document.getElementById("pistasPed").addEventListener("click",e=>{
-  const b = e.target.closest("button[data-q]"); if(!b) return;
-  const campo = document.getElementById("qPed");
-  // Tocar la misma otra vez la saca: sirve de filtro de ida y vuelta.
-  campo.value = b.classList.contains("on") ? "" : b.dataset.q;
-  buscarPed();
-  campo.focus();
-});
 document.getElementById("qPed").addEventListener("input", buscarPed);
 document.getElementById("qPed").addEventListener("keydown",e=>{
   if(e.key !== "Enter") return;
@@ -2363,7 +2526,7 @@ document.getElementById("escritorio").addEventListener("click",function(e){
 // Arranca con algo en pantalla: un cliente, una venta a medio armar y una
 // busqueda hecha. Una demo que abre vacia no se entiende sola.
 document.getElementById("q").value = "termotanque";
-pintarEscritorio(); pintarPistasPed(); pintarClienteVenta(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
+pintarEscritorio(); pintarCamposVenta(); pintarDtos(); pintarHoy(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
 </script>
 </body>
 </html>

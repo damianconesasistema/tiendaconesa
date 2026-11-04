@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.58.5";
+export const APP_VERSION = "V.0.58.6";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,19 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.58.6",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\" — ENCABEZADO IGUAL AL DEL PANEL: logo, el nombre en rojo con el chip de versión, el reloj, el puesto y Salir; abajo las solapas con ícono y el subrayado rojo, y la franja de contexto como la verde de \"Estás editando\".",
+      "Abre en la venta, no en el menú.",
+      "MOSTRADOR REHECHO como la pantalla de pedido de GBP: comprobante, número y condición de venta ya puestos. Por defecto Consumidor Final y Contado; si se elige un cliente responsable inscripto, el comprobante pasa solo a Factura A y el número cambia a la serie A.",
+      "El número sale solo (0003-00048214) y avanza únicamente cuando se emite de verdad.",
+      "Descuento de un toque: 5, 10, 12, 20, 25% o el que se escriba. Se ve en el total y en cuánto margen deja.",
+      "La venta sin comprobante se registra igual, marcada como tal, y arriba hay una franja con las dos columnas: lo que entró, cuánto con comprobante y cuánto sin. Es un solo registro, no dos libros.",
+      "Sacado el ruido: se fueron los atajos de marcas y los ejemplos de búsqueda; queda escribir, que es lo que se pidió. Y se arregló una pestaña negra que asomaba abajo de la pantalla (era un aviso mal escondido).",
+    ],
+  },
   {
     version: "V.0.58.5",
     date: "2026-11-04",
