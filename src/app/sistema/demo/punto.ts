@@ -8,54 +8,35 @@ export const PUNTO_HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Punto — Sanitarios Conesa</title>
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#161617" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* Un sistema de mostrador: barra fija arriba, solapas, y cada modulo a dos
    columnas que se apilan en el telefono.
-   Los colores y las dos tipografias son los de Sanitarios Conesa, sacados de
-   globals.css de la tienda: el rojo #e63020, el negro, y Montserrat con
-   Inter. El unico cambio es el rojo de alerta, que va mas oscuro que el de
-   la marca para que un aviso no se confunda con un boton. */
+   Los colores, las dos tipografias y el redondeo son los del panel y la
+   tienda de Sanitarios Conesa (globals.css): blanco, el rojo #e63020 y
+   negro, con Montserrat para titulos y numeros e Inter para el texto.
+   No hay modo oscuro, igual que el panel: siempre claro, para que al
+   mostrarlo se vea igual en cualquier maquina. */
 :root{
-  --bg:#f6f5f3; --surface:#ffffff; --surface-2:#faf9f8; --surface-3:#efedea;
+  --bg:#ffffff; --surface:#ffffff; --surface-2:#f6f5f3; --surface-3:#efedea;
   --line:#e6e4e0; --line-2:#d6d2cc;
   --ink:#0a0a0a; --ink-2:#6b6b6b; --ink-3:#9b9893;
   --accent:#e63020; --accent-ink:#ffffff; --accent-soft:#fdeae7;
+  --accent-hover:#c82614;
   --ok:#0f7a3d; --ok-soft:#e6f3ec;
   --warn:#a35a06; --warn-soft:#fbf0dd;
+  /* El rojo de aviso va mas oscuro que el de la marca para que un error no
+     se confunda con un boton. */
   --bad:#8f1d12; --bad-soft:#fae4e1;
   --font-d:"Montserrat",-apple-system,"Segoe UI",Roboto,sans-serif;
   --font-b:"Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
   --font-m:"Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
   --font-raw:ui-monospace,Consolas,"SF Mono",Menlo,"Courier New",monospace;
-  --r:10px;
+  --r:14px;
   color-scheme:light;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#0d0d0e; --surface:#161617; --surface-2:#1d1d1f; --surface-3:#262628;
-    --line:#2b2b2e; --line-2:#3a3a3e;
-    --ink:#f2f1ef; --ink-2:#a6a39e; --ink-3:#76736e;
-    --accent:#ff4a36; --accent-ink:#ffffff; --accent-soft:#3a120c;
-    --ok:#49bd7b; --ok-soft:#122b1c;
-    --warn:#e0a53f; --warn-soft:#2e2410;
-    --bad:#ff6a58; --bad-soft:#3a1410;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0d0d0e; --surface:#161617; --surface-2:#1d1d1f; --surface-3:#262628;
-  --line:#2b2b2e; --line-2:#3a3a3e;
-  --ink:#f2f1ef; --ink-2:#a6a39e; --ink-3:#76736e;
-  --accent:#ff4a36; --accent-ink:#ffffff; --accent-soft:#3a120c;
-  --ok:#49bd7b; --ok-soft:#122b1c;
-  --warn:#e0a53f; --warn-soft:#2e2410;
-  --bad:#ff6a58; --bad-soft:#3a1410;
-  color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -83,20 +64,8 @@ header{
 /* La marca se dibuja con la tipografia y el rojo de Conesa en vez de una
    imagen, para que se vea igual de nitida en cualquier pantalla y para que
    el nombre no desaparezca cuando la pantalla esta en modo oscuro. */
-.marca{display:flex; flex-direction:column; gap:3px; line-height:1}
-.marca-sup{
-  font-family:var(--font-d); font-size:8.5px; font-weight:600;
-  letter-spacing:.3em; text-transform:uppercase; color:var(--ink-2);
-  padding-left:.15em;
-}
-.marca-nom{
-  display:flex; align-items:baseline; gap:0;
-  font-family:var(--font-d); font-size:25px; font-weight:900;
-  letter-spacing:-.015em; text-transform:uppercase; color:var(--ink);
-  line-height:.8;
-}
-.marca-a{display:block; height:.70em; width:auto; fill:var(--accent); margin-left:.01em}
-.marca-sep{width:1px; align-self:stretch; background:var(--line-2); margin:3px 0}
+.marca{display:block; height:34px; width:auto}
+.marca-sep{width:1px; align-self:stretch; background:var(--line-2); margin:4px 0}
 .logo b{
   font-family:var(--font-d); font-size:18px; font-weight:700;
   letter-spacing:.05em; text-transform:uppercase; color:var(--ink-2);
@@ -107,11 +76,26 @@ header{
   text-transform:uppercase; padding:3px 9px; border-radius:999px;
   background:var(--warn-soft); color:var(--warn); border:1px solid currentColor;
 }
-.puesto{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2)}
+.puesto{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--ink-3); margin-left:auto}
+.puesto label{text-transform:uppercase; letter-spacing:.07em; font-weight:600}
 .puesto select{
-  background:var(--surface-2); border:1px solid var(--line-2); border-radius:8px;
-  padding:6px 9px; font-weight:600;
+  background:var(--surface-2); border:1px solid var(--line-2); border-radius:999px;
+  padding:5px 11px; font-weight:600; font-size:12.5px; color:var(--ink);
 }
+/* El cliente, arriba de todo: sin saber a quien le vendes no hay cuenta
+   corriente, ni factura A, ni precio de corralon. */
+.tk-cli{padding:11px 14px; border-bottom:1px solid var(--line); background:var(--surface-2)}
+.tk-cli > label{
+  display:block; font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--ink-3); font-weight:600; margin-bottom:5px;
+}
+.tk-cli select{
+  width:100%; background:var(--surface); border:1px solid var(--line-2);
+  border-radius:10px; padding:9px 11px; font-weight:600; font-size:14px; color:var(--ink);
+}
+.tk-cli select:focus{border-color:var(--accent); outline:none}
+.tk-cli-info{margin-top:8px; font-size:12px; color:var(--ink-2); display:flex; gap:7px 12px; flex-wrap:wrap; align-items:center}
+.tk-cli-info b{color:var(--ink); font-variant-numeric:tabular-nums}
 nav{
   max-width:1240px; margin:0 auto; padding:0 16px 0;
   display:flex; gap:3px; overflow-x:auto; scrollbar-width:thin;
@@ -387,6 +371,53 @@ table.densa th{padding:8px 10px}
 }
 .lect-raw b{color:var(--accent)}
 
+.busca-fila{display:flex; gap:10px; align-items:flex-end}
+.busca-fila .buscar{flex:1; min-width:0}
+.busca-fila .cant-fija{flex:0 0 96px}
+.ayuda-busca{margin:7px 0 0; font-size:12px; color:var(--ink-2)}
+.ayuda-busca b{color:var(--ink)}
+.pistas .et{
+  font-size:10.5px; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--ink-3); font-weight:600; align-self:center; margin-right:1px;
+}
+.pistas .et + button{margin-left:0}
+.pistas button.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+
+.campos{display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); gap:13px 14px; padding:13px 14px}
+.campo{display:flex; flex-direction:column; gap:5px; min-width:0}
+.campo > label{font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); font-weight:600}
+.campo select,.campo input,.campo textarea{
+  background:var(--surface); border:1px solid var(--line-2); border-radius:10px;
+  padding:8px 10px; font-size:13.5px; font-weight:500; color:var(--ink); width:100%;
+  font-family:var(--font-b);
+}
+.campo select:focus,.campo input:focus,.campo textarea:focus{border-color:var(--accent); outline:none}
+.campo textarea{resize:vertical; min-height:58px; line-height:1.45}
+/* El campo que el sistema eligio solo. Es la diferencia con GBP, donde cada
+   uno de estos lo tenes que bajar a mano en cada pedido. */
+.campo.auto select{border-color:var(--accent); background:var(--accent-soft)}
+.campo .por{font-size:11.5px; color:var(--ink-2); line-height:1.4}
+.campo .por b{color:var(--accent); font-weight:600}
+.campo.ancho{grid-column:1/-1}
+
+.esc{display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:16px; align-items:start}
+.esc-g{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden}
+.esc-g > h3{
+  font-family:var(--font-d); font-size:13px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.1em; padding:11px 14px; border-bottom:1px solid var(--line); color:var(--ink);
+}
+.esc-i{
+  display:flex; gap:11px; align-items:flex-start; width:100%; text-align:left;
+  padding:10px 14px; background:none; border:0; border-bottom:1px solid var(--line);
+}
+.esc-g .esc-i:last-child{border-bottom:0}
+.esc-i:not([disabled]):hover{background:var(--surface-2)}
+.esc-i[disabled]{cursor:default}
+.esc-i > span{flex:1; min-width:0}
+.esc-i .t{display:block; font-weight:600; font-size:13.5px; color:var(--ink)}
+.esc-i .d{display:block; font-size:12px; color:var(--ink-2); margin-top:3px; line-height:1.45}
+.esc-i .ch{margin-left:auto; flex:0 0 auto; align-self:center}
+
 /* el semáforo de margen del mostrador */
 .sem{width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 9px}
 .sem-ok{background:var(--ok)} .sem-med{background:var(--warn)} .sem-mal{background:var(--bad)}
@@ -424,25 +455,16 @@ footer{
 <header>
   <div class="bar">
     <div class="logo">
-      <div class="marca" aria-label="Sanitarios Conesa">
-        <span class="marca-sup">Sanitarios</span>
-        <span class="marca-nom">Cones<svg class="marca-a" viewBox="0 0 26 24" aria-hidden="true"><path d="M13 0 26 24h-7.3L13 12.6 7.3 24H0z"/></svg></span>
-      </div>
+      <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
       <span class="marca-sep"></span>
       <b>Punto</b>
       <span class="lema">lee la lista de tu proveedor antes de que te rompa el margen</span>
     </div>
     <span class="chip-demo">Demo</span>
-    <div class="puesto">
-      <label for="selPuesto">Estás en</label>
-      <select id="selPuesto">
-        <option>Mostrador 1</option><option>Mostrador 2</option><option>Mostrador 3</option>
-        <option>Mostrador 4</option><option>Mostrador 5</option>
-      </select>
-    </div>
   </div>
   <nav id="nav">
-    <button data-v="mostrador" aria-current="true">Mostrador</button>
+    <button data-v="inicio" aria-current="true">Inicio</button>
+    <button data-v="mostrador">Mostrador</button>
     <button data-v="pedidos">Pedidos</button>
     <button data-v="web">Pedidos web</button>
     <button data-v="productos">Productos y costos</button>
@@ -457,7 +479,15 @@ footer{
 <main>
 
 <!-- ======================================================== MOSTRADOR -->
-<section id="v-mostrador">
+<section id="v-inicio">
+  <div class="head">
+    <h2>Escritorio</h2>
+    <p>Todo lo que hoy se hace en GlobalBluePoint, con el nombre que le dan ustedes. Lo que está en gris todavía no se puede tocar en esta demo.</p>
+  </div>
+  <div class="esc" id="escritorio"></div>
+</section>
+
+<section id="v-mostrador" hidden>
   <div class="head">
     <h2>Mostrador</h2>
     <p>Buscá como lo nombra el cliente, en el orden que salga. Un clic lo suma a la venta.</p>
@@ -476,7 +506,18 @@ footer{
     <div class="card ticket">
       <div class="card-h">
         <h3>Venta</h3>
-        <span class="sub" id="tkPuesto">Mostrador 1</span>
+        <div class="puesto">
+          <label for="selPuesto">Puesto</label>
+          <select id="selPuesto">
+            <option>Mostrador 1</option><option>Mostrador 2</option><option>Mostrador 3</option>
+            <option>Mostrador 4</option><option>Mostrador 5</option>
+          </select>
+        </div>
+      </div>
+      <div class="tk-cli">
+        <label for="vtaCliente">Cliente</label>
+        <select id="vtaCliente"></select>
+        <div class="tk-cli-info" id="vtaCliInfo"></div>
       </div>
       <div class="tk-lineas" id="tkLineas"></div>
       <div class="tk-pago">
@@ -513,16 +554,32 @@ footer{
         <div class="siempre" id="siempre"></div>
       </div>
 
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h">
+          <h3>Datos del pedido</h3>
+          <span class="sub">los mismos campos de GBP, ya completos</span>
+        </div>
+        <div class="campos" id="camposPed"></div>
+      </div>
+
       <div class="card">
         <div class="card-h">
           <h3>Renglones</h3>
           <span class="sub" id="pedCuenta"></span>
         </div>
         <div style="padding:12px 14px 0">
-          <div class="buscar">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-            <input id="qPed" type="text" placeholder="Agregá un artículo: escribí y apretá Enter" autocomplete="off">
+          <div class="busca-fila">
+            <div class="buscar">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+              <input id="qPed" type="text" placeholder="Marca, rubro, nombre o código: ferrum · inodoro · 11114 · termo 80" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="campo cant-fija">
+              <label for="qCant">Cantidad</label>
+              <input id="qCant" type="number" min="1" step="1" value="1">
+            </div>
           </div>
+          <p class="ayuda-busca">Las palabras entran en cualquier orden y no hace falta que sean enteras. <b>Enter</b> suma el primero.</p>
+          <div class="pistas" id="pistasPed"></div>
           <div class="res" id="resPed" style="margin-top:8px"></div>
         </div>
         <div class="tabla-wrap">
@@ -570,6 +627,20 @@ footer{
           <button class="b3" id="btnVaciarPed">Vaciar</button>
         </div>
         <p class="nota">Guardar el pedido reserva el stock que hay y deja anotado lo que falta. No cobra nada todavía: eso pasa cuando el cliente lo retira.</p>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-h"><h3>Notas</h3></div>
+        <div class="campos">
+          <div class="campo ancho">
+            <label for="obsPed">Observaciones <span style="text-transform:none;letter-spacing:0;color:var(--ink-3);font-weight:400">— las ve el cliente en el comprobante</span></label>
+            <textarea id="obsPed" placeholder="Entregar por la puerta del fondo. Avisar antes de salir."></textarea>
+          </div>
+          <div class="campo ancho">
+            <label for="intPed">Anotación interna <span style="text-transform:none;letter-spacing:0;color:var(--ink-3);font-weight:400">— no sale impresa en ningún lado</span></label>
+            <textarea id="intPed" placeholder="Pidió que le repitan el descuento de la vez pasada. Confirmar con Daniel."></textarea>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1039,8 +1110,11 @@ const pct = n => (n>=0?"":"−") + Math.abs(n).toFixed(1).replace(".",",") + "%"
 /* ====================================================== estado */
 const S = {
   puesto:"Mostrador 1",
+  cliente:"c1",        // a quien le estamos vendiendo
   forma:"Transferencia o efectivo",
-  linea:[],            // la venta que se está armando
+  // La demo abre con una venta ya empezada: si abre vacia, el que la mira
+  // no ve nada y hay que explicarle que toque algo primero.
+  linea:[{cod:"11114",cant:1},{cod:"3719",cant:2},{cod:"00677",cant:4}],
   ventas:[],           // lo del día
   presupuestos:0,
   objetivo:35,
@@ -1082,7 +1156,7 @@ function ventaCobrado(v){ return ventaBase(v) * MULT[v.forma]; }
 function ventaMargen(v){ return v.linea.reduce((a,l)=>{const p=prod(l.cod); return a+(p.contado-p.costo)*l.cant;},0); }
 
 /* ================================================== navegación */
-const vistas = ["mostrador","pedidos","web","productos","listas","red","caja","gerencia","asistente"];
+const vistas = ["inicio","mostrador","pedidos","web","productos","listas","red","caja","gerencia","asistente"];
 document.getElementById("nav").addEventListener("click",e=>{
   const b = e.target.closest("button[data-v]"); if(!b) return;
   for(const v of vistas) document.getElementById("v-"+v).hidden = (v !== b.dataset.v);
@@ -1097,6 +1171,12 @@ document.getElementById("nav").addEventListener("click",e=>{
   if(b.dataset.v==="pedidos") pintarPedido();
 });
 
+/** Lleva a una solapa como si la hubieran tocado. */
+function irA(v){
+  const b = document.querySelector('#nav button[data-v="'+v+'"]');
+  if(b) b.click();
+}
+
 let tt;
 function toast(msg){
   const t = document.getElementById("toast");
@@ -1106,7 +1186,34 @@ function toast(msg){
 
 document.getElementById("selPuesto").addEventListener("change",e=>{
   S.puesto = e.target.value;
-  document.getElementById("tkPuesto").textContent = S.puesto;
+});
+
+/* ------------------------------------------------- el cliente */
+function pintarClienteVenta(){
+  const sel = document.getElementById("vtaCliente");
+  if(!sel.options.length){
+    sel.innerHTML = '<option value="">Consumidor final</option>' +
+      CLIENTES.map(c=>'<option value="'+c.id+'">'+c.n+'</option>').join("");
+    sel.value = S.cliente;
+  }
+  const c = CLIENTES.find(x=>x.id===sel.value);
+  const info = document.getElementById("vtaCliInfo");
+  if(!c){
+    info.innerHTML = '<span>Sin cuenta: paga y se lleva. Factura B o ticket.</span>';
+    return;
+  }
+  const libre = c.lim - c.saldo;
+  info.innerHTML =
+    '<span>'+c.t+'</span>'+
+    '<span>CUIT '+c.doc+'</span>'+
+    '<span>Debe <b>'+fmt(c.saldo)+'</b> de <b>'+fmt(c.lim)+'</b></span>'+
+    (libre<=0
+      ? '<span class="pill p-bad">pasado del límite</span>'
+      : '<span class="pill p-ok">le queda '+fmt(libre)+'</span>');
+}
+document.getElementById("vtaCliente").addEventListener("change",e=>{
+  S.cliente = e.target.value;
+  pintarClienteVenta();
 });
 
 /* =================================================== MOSTRADOR */
@@ -1572,7 +1679,10 @@ const PEDIDOS_ABIERTOS = [
    lin:[["3674",1],["3688",1]], senia:500000},
 ];
 
-const PED = { cliente:"c1", linea:[], entrega:"retira", senia:0, nro:2842 };
+// Igual que el mostrador, la pantalla abre con un pedido a medio tomar:
+// lo que este cliente pide siempre, ya cargado.
+const PED = { cliente:"c1", linea:[{cod:"10955",cant:2},{cod:"10953",cant:1},{cod:"10951",cant:4}],
+              entrega:"retira", senia:0, nro:2842 };
 
 function clienteDe(id){ return CLIENTES.find(c=>c.id===id); }
 
@@ -1612,6 +1722,7 @@ function pintarCliente(){
 
 function pintarPedido(){
   pintarCliente();
+  pintarCamposPedido();
   document.getElementById("pedNro").textContent = "Pedido P-" + PED.nro;
 
   const filas = PED.linea.map(l=>{
@@ -1645,12 +1756,22 @@ function pintarPedido(){
       '</div></div>'
     : "";
 
-  const total = filas.reduce((a,f)=>a+f.sub,0);
+  // Los mismos renglones que GBP pone abajo de la grilla, pero diciendo lo
+  // que son. El IVA va incluido en el precio, no se suma aparte: en el
+  // mostrador el precio que se dice es el precio final.
+  const bruto = filas.reduce((a,f)=>a+f.sub,0);
+  const dto = Math.round(bruto * PEDCFG.desc / 100);
+  const total = bruto - dto;
+  const iva = Math.round(total - total / 1.21);
   const senia = Math.max(0, Math.min(PED.senia, total));
   document.getElementById("pedTot").innerHTML =
-    '<div class="tr"><span>Mercadería</span><b>'+fmt(total)+'</b></div>'+
+    '<div class="tr"><span>Mercadería</span><b>'+fmt(bruto)+'</b></div>'+
+    (dto>0 ? '<div class="tr"><span>Descuento '+PEDCFG.desc+'%</span><b>−'+fmt(dto)+'</b></div>' : '')+
+    '<div class="tr"><span>Interés</span><b>'+fmt(0)+'</b></div>'+
+    '<div class="tr"><span style="color:var(--ink-3)">IVA 21%, ya incluido arriba</span>'+
+      '<b style="color:var(--ink-3)">'+fmt(iva)+'</b></div>'+
     (senia>0 ? '<div class="tr"><span>Seña</span><b>−'+fmt(senia)+'</b></div>' : '')+
-    '<div class="tr big"><span>'+(senia>0?"Queda a pagar":"Total")+'</span><b>'+fmt(total-senia)+'</b></div>';
+    '<div class="tr big"><span>'+(senia>0?"Queda a pagar":"Importe")+'</span><b>'+fmt(total-senia)+'</b></div>';
 
   const vacio = filas.length === 0;
   document.getElementById("btnGuardarPed").disabled = vacio;
@@ -1688,30 +1809,84 @@ document.getElementById("siempre").addEventListener("click",e=>{
   pintarPedido();
 });
 
-/** El buscador de renglones: Enter mete el primero que aparece. */
-function buscarPed(){
+/* Los atajos: las marcas y los rubros que de verdad hay cargados. Asi no
+   hay que acordarse de nada ni escribirlo bien: se toca y busca. */
+function pintarPistasPed(){
+  const marcas = [...new Set(PRODUCTOS.map(p=>p.prov))].sort();
+  const rubros = [...new Set(PRODUCTOS.map(p=>p.rub))].sort();
+  const chip = t => '<button data-q="'+t+'">'+t.toLowerCase()+'</button>';
+  document.getElementById("pistasPed").innerHTML =
+    '<span class="et">Marca</span>' + marcas.map(chip).join("") +
+    '<span class="et" style="margin-left:7px">Rubro</span>' + rubros.map(chip).join("");
+}
+function marcarPistas(){
   const q = plano(document.getElementById("qPed").value.trim());
+  for(const b of document.querySelectorAll("#pistasPed button"))
+    b.classList.toggle("on", plano(b.dataset.q) === q);
+}
+
+/** El buscador de renglones. Entra marca, rubro, nombre o codigo, en
+    cualquier orden y sin tener que escribir la palabra entera. Enter mete
+    el primero que aparece, con la cantidad que diga al lado. */
+function buscarPed(){
+  const crudo = document.getElementById("qPed").value.trim();
+  const q = plano(crudo);
   const caja = document.getElementById("resPed");
+  marcarPistas();
   if(!q){ caja.innerHTML = ""; return []; }
   const toks = q.split(/\\s+/).filter(Boolean);
-  const hits = PRODUCTOS.filter(p=>toks.every(t=>p.blob.includes(t))).slice(0,5);
-  caja.innerHTML = hits.map(p=>{
+  const hits = PRODUCTOS
+    .filter(p=>toks.every(t=>p.blob.includes(t)))
+    .map(p=>{
+      // El mismo orden que en el mostrador: primero el codigo exacto,
+      // despues lo que empieza igual, despues lo que arranca una palabra.
+      let s = 0;
+      if(plano(p.cod)===q) s += 1000;
+      if(plano(p.prov)===q) s += 200;
+      if(plano(p.tit).startsWith(toks[0])) s += 50;
+      // La palabra en el nombre pesa mas que la misma palabra encontrada
+      // por el rubro: "inodoro" tiene que traer primero un inodoro, no
+      // una bacha que esta en el mismo rubro.
+      for(const t of toks) if(plano(p.tit).includes(t)) s += 30;
+      for(const t of toks) if(new RegExp("(^|[ ·(])"+t.replace(/[.*+?^\${}()|[\\]\\\\]/g,"\\\\$&")).test(p.blob)) s += 10;
+      return {p, s};
+    })
+    .sort((a,b)=>b.s-a.s || a.p.contado-b.p.contado)
+    .slice(0,8);
+
+  if(!hits.length){
+    caja.innerHTML = '<div class="vacio">Nada con <b>“'+crudo+'”</b>. Probá con menos palabras, o tocá una marca de arriba.</div>';
+    return [];
+  }
+  caja.innerHTML = hits.map(({p})=>{
     const otro = stockOtro(p);
     return '<button class="item" data-cod="'+p.cod+'">'+
       '<span class="cod">'+p.cod.split("+")[0]+'</span>'+
       '<span><span class="tit"><span>'+p.tit+'</span></span>'+
-      '<span class="meta"><span>'+p.prov+'</span><span>'+p.stock+' acá</span><span>'+otro+' en el otro depósito</span></span></span>'+
+      '<span class="meta"><span>'+p.prov+'</span><span>'+p.rub.toLowerCase()+'</span><span>'+p.stock+' acá</span><span>'+otro+' en el otro depósito</span></span></span>'+
       '<span class="pre"><b>'+fmt(p.contado)+'</b></span></button>';
   }).join("");
-  return hits;
+  return hits.map(h=>h.p);
 }
 function agregarPed(cod){
+  const campo = document.getElementById("qCant");
+  const cant = Math.max(1, Math.floor(+campo.value || 1));
   const l = PED.linea.find(x=>x.cod===cod);
-  if(l) l.cant++; else PED.linea.push({cod, cant:1});
+  if(l) l.cant += cant; else PED.linea.push({cod, cant});
+  campo.value = 1;
   document.getElementById("qPed").value = "";
   document.getElementById("resPed").innerHTML = "";
+  marcarPistas();
   pintarPedido();
 }
+document.getElementById("pistasPed").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-q]"); if(!b) return;
+  const campo = document.getElementById("qPed");
+  // Tocar la misma otra vez la saca: sirve de filtro de ida y vuelta.
+  campo.value = b.classList.contains("on") ? "" : b.dataset.q;
+  buscarPed();
+  campo.focus();
+});
 document.getElementById("qPed").addEventListener("input", buscarPed);
 document.getElementById("qPed").addEventListener("keydown",e=>{
   if(e.key !== "Enter") return;
@@ -2035,8 +2210,160 @@ document.getElementById("preg").addEventListener("keydown",e=>{
   e.target.value = ""; responder(v);
 });
 
+/* ============================== los campos del pedido, los mismos de GBP */
+/* La pantalla de GBP (Pedidos - Generar y Emitir) te hace bajar a mano, en
+   cada pedido: documento a emitir, condicion de venta, vendedor, descuento,
+   entregar por, lista de precios y deposito. Son los mismos campos que hay
+   aca. La diferencia es que aca vienen elegidos, abajo dice por que, y si
+   no te gusta lo cambias. */
+const VENDEDORES = ["Gerencia","Darío · Mostrador 1","Marcela · Mostrador 2","Pablo · Mostrador 3","Sabrina · Mostrador 4","Luis · Mostrador 5"];
+const DOCUMENTOS = ["01.Factura A","02.Factura B","03.Presupuesto X cnc","04.Remito","05.Pedido interno"];
+const CONDICIONES = ["01-Contado","02-Cuenta corriente 30 días","03-Cuenta corriente 60 días","04-Cheque a 30 días"];
+const ENTREGAS = ["00-Retira en Local","01-Reparto propio CABA/GBA","02-Transporte a cargo del cliente"];
+const LISTAS = ["01.Lista 1","02.Lista 2","03.Lista 3 corralón"];
+const DEPOSITOS = ["01-Dep Bs As","02-Dep Traslasierra"];
+
+const PEDCFG = { doc:null, cond:null, vend:"Gerencia", entrega:null, lista:null, dep:"02-Dep Traslasierra", desc:0 };
+
+/** Que comprobante corresponde, mirando la condicion fiscal del cliente. */
+function docDe(c){
+  if(!c) return ["02.Factura B","no hay cliente elegido"];
+  if(c.t==="Responsable Inscripto") return ["01.Factura A","es responsable inscripto"];
+  if(c.t==="IVA Exento") return ["02.Factura B","está exento de IVA"];
+  return ["02.Factura B","es consumidor final"];
+}
+/** Si puede comprar en cuenta corriente o tiene que pagar ahora. */
+function condDe(c){
+  if(!c || c.lim<=0) return ["01-Contado","no tiene cuenta corriente abierta"];
+  if(c.saldo>c.lim) return ["01-Contado","ya se pasó del límite de su cuenta"];
+  return ["02-Cuenta corriente 30 días","tiene cuenta y le queda "+fmt(c.lim-c.saldo)];
+}
+function listaDe(c){
+  return (c && c.lim>0)
+    ? ["03.Lista 3 corralón","compra en cuenta: le toca la de corralón"]
+    : ["02.Lista 2","venta al público"];
+}
+function entregaPorDe(c){
+  return (c && c.lim>0)
+    ? ["01-Reparto propio CABA/GBA","los pedidos de cuenta se mandan"]
+    : ["00-Retira en Local","lo más común en mostrador"];
+}
+
+function campo(id, et, opciones, valor, porque, auto){
+  return '<div class="campo'+(auto?" auto":"")+'">'+
+    '<label for="'+id+'">'+et+'</label>'+
+    '<select id="'+id+'" data-k="'+id+'">'+
+      opciones.map(function(o){ return '<option'+(o===valor?' selected':'')+'>'+o+'</option>'; }).join("")+
+    '</select>'+
+    (porque ? '<span class="por">'+(auto?'<b>lo elegí yo</b> porque ':'')+porque+'</span>' : '')+
+  '</div>';
+}
+
+function pintarCamposPedido(){
+  const c = clienteDe(PED.cliente);
+  const sDoc = docDe(c), sCond = condDe(c), sLis = listaDe(c), sEnt = entregaPorDe(c);
+  // Lo que eligieron a mano manda; si no, va la sugerencia.
+  const vDoc  = PEDCFG.doc     || sDoc[0];
+  const vCond = PEDCFG.cond    || sCond[0];
+  const vLis  = PEDCFG.lista   || sLis[0];
+  const vEnt  = PEDCFG.entrega || sEnt[0];
+  const hoy = new Date().toLocaleDateString("es-AR");
+
+  document.getElementById("camposPed").innerHTML =
+    campo("fDoc","Documento a emitir",DOCUMENTOS,vDoc,sDoc[1],!PEDCFG.doc)+
+    campo("fCond","Condición de venta",CONDICIONES,vCond,sCond[1],!PEDCFG.cond)+
+    campo("fLista","Lista de precios",LISTAS,vLis,sLis[1],!PEDCFG.lista)+
+    campo("fEnt","Entregar por",ENTREGAS,vEnt,sEnt[1],!PEDCFG.entrega)+
+    campo("fVend","Vendedor",VENDEDORES,PEDCFG.vend,"quién lo atendió",false)+
+    campo("fDep","Depósito",DEPOSITOS,PEDCFG.dep,"de dónde sale la mercadería",false)+
+    '<div class="campo"><label for="fDesc">Descuento</label>'+
+      '<input id="fDesc" data-k="fDesc" type="number" min="0" max="40" step="1" value="'+PEDCFG.desc+'">'+
+      '<span class="por">'+(PEDCFG.desc>0?"en por ciento, sobre toda la mercadería":"sin descuento")+'</span></div>'+
+    '<div class="campo"><label for="fNro">Número y fecha</label>'+
+      '<input id="fNro" type="text" value="P-'+PED.nro+' · '+hoy+'" readonly style="background:var(--surface-2);color:var(--ink-2)">'+
+      '<span class="por">sale solo, no hay que pedirlo</span></div>';
+}
+
+document.getElementById("camposPed").addEventListener("change",function(e){
+  const k = e.target.dataset.k; if(!k) return;
+  const v = e.target.value;
+  if(k==="fDoc")   PEDCFG.doc = v;
+  if(k==="fCond")  PEDCFG.cond = v;
+  if(k==="fLista") PEDCFG.lista = v;
+  if(k==="fEnt")   PEDCFG.entrega = v;
+  if(k==="fVend")  PEDCFG.vend = v;
+  if(k==="fDep")   PEDCFG.dep = v;
+  if(k==="fDesc")  PEDCFG.desc = Math.max(0, Math.min(40, +v||0));
+  pintarPedido();
+});
+
+/* ====================================== el escritorio, como el menú de GBP */
+const ESCRITORIO = [
+  ["Vender", [
+    ["Generar nuevo pedido","Tomar lo que el cliente pide. Lo que no hay se ve en el renglón, no cuando llega el camión.","pedidos"],
+    ["Venta de mostrador","Cobrar y entregar en el momento. Es el POS.","mostrador"],
+    ["Presupuestos","Guardar sin mover stock ni caja, esperando que el cliente vuelva.","mostrador"],
+    ["Pedidos de la web","Lo que entra por la tienda y por Mercado Libre, en la misma cola.","web"],
+    ["Preparar y despachar","Armar el bulto, marcar el remito y sacarlo.","web"]
+  ]],
+  ["Cobrar", [
+    ["Caja del día","Lo que entró, por dónde entró y en qué mostrador.","caja"],
+    ["Cuenta corriente de clientes","Quién debe, cuánto y cuánto le queda. Se ve al elegir el cliente.","pedidos"],
+    ["Ingresar cobranzas","Imputar un pago a las facturas que salda.",null],
+    ["Valores recibidos","Cheques: dónde están y cuándo vencen.",null],
+    ["Transferencias entre cajas y bancos","Mover plata entre cajas, bancos y sucursales.",null]
+  ]],
+  ["Comprar", [
+    ["Listas de proveedor","Leerla como llega: PDF, Excel o la foto que mandaron por WhatsApp.","listas"],
+    ["La Red","Si el descuento que te da tu proveedor es el que le da al resto.","red"],
+    ["Órdenes de compra","Pedirle al proveedor lo que falta, con lo que se vendió a la vista.",null],
+    ["Contabilizar compras y gastos","Cargar la factura del proveedor y que impacte en el costo.",null],
+    ["Cuenta corriente de proveedores","A quién le debés y cuándo vence.",null],
+    ["Órdenes de pago","Pagarle y que quede imputado solo.",null]
+  ]],
+  ["Mercadería", [
+    ["Productos y costos","Qué deja cada artículo con el precio que tiene puesto hoy.","productos"],
+    ["Consultar artículos","Buscar como lo nombra el cliente, no por código.","mostrador"],
+    ["Ajustar stock","Corregir lo que el conteo dice distinto, con el motivo anotado.",null],
+    ["Publicaciones","Mercado Libre y la tienda, con el mismo stock y el mismo precio.",null]
+  ]],
+  ["Mirar", [
+    ["Mis indicadores","Los números del negocio sin que nadie arme un reporte.","gerencia"],
+    ["Preguntarle al sistema","En castellano, y contesta con tus números.","asistente"],
+    ["C.R.M.","Qué le vendiste a cada cliente y cuándo conviene llamarlo.",null]
+  ]],
+  ["Administración", [
+    ["Facturación ARCA","El CAE sale solo al cerrar la venta.",null],
+    ["Libro IVA","Compras y ventas del mes, listo para el contador.",null],
+    ["Asientos contables","Lo que ya pasó, asentado sin volver a cargarlo.",null],
+    ["Usuarios y permisos","Quién puede ver el costo y quién no.",null]
+  ]]
+];
+
+function pintarEscritorio(){
+  document.getElementById("escritorio").innerHTML = ESCRITORIO.map(function(g){
+    return '<div class="esc-g"><h3>'+g[0]+'</h3>'+
+      g[1].map(function(it){
+        const t = it[0], d = it[1], v = it[2];
+        return '<button class="esc-i"'+(v?' data-ir="'+v+'"':' disabled')+'>'+
+          '<span><span class="t"'+(v?'':' style="color:var(--ink-3)"')+'>'+t+'</span>'+
+          '<span class="d">'+d+'</span></span>'+
+          '<span class="ch pill '+(v?"p-ok":"p-n")+'">'+(v?"andando":"en el plan")+'</span>'+
+        '</button>';
+      }).join("")+
+    '</div>';
+  }).join("");
+}
+document.getElementById("escritorio").addEventListener("click",function(e){
+  const b = e.target.closest("button[data-ir]"); if(!b) return;
+  irA(b.dataset.ir);
+});
+
 /* ======================================================= inicio */
-pintarTicket(); buscar(); pintarProd(); pintarWeb();
+// Arranca con algo en pantalla: un cliente, una venta a medio armar y una
+// busqueda hecha. Una demo que abre vacia no se entiende sola.
+document.getElementById("q").value = "termotanque";
+pintarEscritorio(); pintarPistasPed(); pintarClienteVenta(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
 </script>
 </body>
 </html>

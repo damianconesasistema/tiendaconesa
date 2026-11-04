@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.58.3";
+export const APP_VERSION = "V.0.58.5";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,27 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.58.5",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\" — PANTALLA DE PEDIDO COMO LA DE GBP: tiene los mismos campos que \"Pedidos - Generar y Emitir\" (documento a emitir, condición de venta, lista de precios, entregar por, vendedor, depósito, descuento, número y fecha), pero vienen completos y abajo de cada uno dice por qué se eligió eso. En GBP hay que bajarlos a mano en cada pedido.",
+      "El buscador de artículos del pedido ahora busca escribiendo, como se habla: marca, rubro, nombre o código, las palabras en cualquier orden y sin tener que escribirlas enteras. Al lado tiene la cantidad, y debajo las marcas y los rubros para tocar en vez de escribir.",
+      "Los totales se desglosan como los de GBP: mercadería, descuento, interés, IVA (que va incluido en el precio, no se suma) e importe. Más observaciones y anotación interna.",
+      "SOLAPA INICIO: un escritorio con todas las operaciones del ERP agrupadas por lo que se hace con ellas (vender, cobrar, comprar, mercadería, mirar, administración). Dice cuáles andan en la demo y cuáles están en el plan, sin inventar.",
+      "La pantalla de pedido también abre con un pedido a medio tomar, para que se vea funcionando.",
+    ],
+  },
+  {
+    version: "V.0.58.4",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\": ahora usa el logo de verdad (el mismo archivo que la tienda y las facturas) en vez de uno dibujado a mano, que no estaba bien.",
+      "Le saqué el modo oscuro. El panel y la tienda son siempre claros, así que la demo se veía de otro color en las máquinas que tienen el modo oscuro prendido. Ahora es blanca siempre, igual que el panel.",
+      "La pantalla de Mostrador abre con una venta ya empezada: se ve el cliente (con su CUIT, lo que debe y cuánto le queda de cuenta corriente) y tres productos cargados. Antes abría vacía y no se entendía qué mirar.",
+      "El selector de mostrador salió de al lado del logo, donde no se entendía qué era, y pasó adentro de la ficha de Venta, que es donde significa algo.",
+    ],
+  },
   {
     version: "V.0.58.3",
     date: "2026-11-04",
