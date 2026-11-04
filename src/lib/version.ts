@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.57.0";
+export const APP_VERSION = "V.0.58.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.58.0",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\" EN /demo: una página suelta para mostrarle a un cliente cómo sería un sistema de gestión para un corralón con varios mostradores. Pide una clave propia antes de abrirse (la ventanita del navegador), que sale de DEMO_PASSWORD en el servidor. Si esa variable no está puesta, la dirección contesta \"no encontrado\": nunca queda abierta sola.",
+      "No toca nada de la tienda: no lee la base, no escribe, no comparte la sesión del panel y no la levanta Google. Es una sola dirección que devuelve una página y listo.",
+      "La demo usa los artículos, los códigos y los dos precios reales del catálogo. Los costos, el stock y las ventas del día son inventados, y la propia página lo aclara.",
+    ],
+  },
   {
     version: "V.0.57.0",
     date: "2026-11-03",
