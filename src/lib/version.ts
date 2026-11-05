@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.4";
+export const APP_VERSION = "V.0.59.5";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.5",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — UN ARTÍCULO NUEVO ARRANCA CON LOS SEIS DESCUENTOS EN CERO. Antes venía con los de un proveedor cualquiera y había que borrarlos a mano.",
+      "EL SIGNO DE LA MONEDA, ADENTRO DEL CAMPO: la lista del proveedor se ve con $ (o U$S) adelante, para que no quede duda de qué número es.",
+      "LISTAS EN DÓLARES: se elige la moneda de la lista. Pesos siempre por defecto; si el proveedor lista en dólares se pone a cuánto se toma y el costo se pasa a pesos solo. La cotización queda guardada y la cuenta muestra el renglón de la conversión.",
+      "PRECIO POR MAYOR: se tilda \"Se ofrece por mayor\" y se habilita un markup aparte sobre el costo y desde cuántas unidades rige. Convive con la Lista 2 y avisa si queda más caro que ella.",
+    ],
+  },
   {
     version: "V.0.59.4",
     date: "2026-11-05",
