@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.58.8";
+export const APP_VERSION = "V.0.58.9";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,19 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.58.9",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\" — FORMADOR DE PRECIOS CON 6 DESCUENTOS: cada artículo puede tener hasta seis descuentos sobre la lista del proveedor (el de siempre, volumen, contado, temporada, negociado y uno extra). Se ve la cuenta entera: lista sin IVA → descuentos → IVA 21% → costo → markup → contado → 1 pago.",
+      "EN CASCADA O SUMADOS, AL LADO: 38+8+4+2 no da lo mismo de las dos maneras (46,3% contra 52,0%). Se muestran los dos costos juntos y cuánta plata es la diferencia por unidad, para mirar la factura del proveedor y elegir la que usa.",
+      "CAMBIAR PRECIOS POR PROVEEDOR, POR LISTA DE CÓDIGOS O POR UN ARTÍCULO SOLO, y cambiar la lista, los descuentos o el markup. Primero se mira la tabla con lo que pasaría y recién después se aplica: aceptando sólo los costos, o también los precios sugeridos.",
+      "MARKUP POR PORCENTAJE: lo que se le pone encima al costo para llegar al precio de contado, editable, con el precio que quedaría mientras se escribe.",
+      "ALTA DE ARTÍCULO EN UN SOLO LUGAR: título, descripción, marca, rubro, stock, lista, los seis descuentos y el markup. Sugiere el código libre que sigue y avisa si el que se escribe ya es de otro artículo.",
+      "SE MANEJA CON EL TECLADO: flechas para moverse por el listado, Enter para sumar a la venta, / para ir a buscar, Esc para salir y Alt+F/P/B/N para facturar, presupuestar, guardar borrador o cargar un cliente. La franja de abajo muestra los cuatro de siempre y el resto con ?.",
+      "MENOS TEXTO REPETIDO: las ayudas que decían dos o tres veces lo mismo quedaron una sola vez, la tabla de precios perdió las dos columnas que repetían lo elegido arriba y los carteles largos de la pantalla de venta se acortaron.",
+    ],
+  },
   {
     version: "V.0.58.8",
     date: "2026-11-04",

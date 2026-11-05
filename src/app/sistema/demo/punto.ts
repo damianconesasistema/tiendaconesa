@@ -573,6 +573,112 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 .filtro-vend select:focus{border-color:var(--accent); outline:none}
 .filtro-vend .n{font-size:13px; font-weight:500; color:var(--ink-2)}
 
+/* El formador de precios: tres pasos, numerados, uno abajo del otro. */
+.paso{display:flex; gap:12px; padding:14px 0; border-top:1px solid var(--line)}
+.paso:first-child{border-top:0; padding-top:4px}
+.paso-n{
+  flex:0 0 26px; height:26px; border-radius:50%; background:var(--accent);
+  color:var(--accent-ink); font-family:var(--font-d); font-size:13px; font-weight:800;
+  display:flex; align-items:center; justify-content:center;
+}
+.paso-cuerpo{flex:1; min-width:0}
+.paso-cuerpo>label{
+  display:block; font-family:var(--font-d); font-size:11px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.09em; color:var(--ink-2); margin-bottom:8px;
+}
+.sub-campo{margin-top:12px}
+.sub-campo label{
+  display:block; font-size:12.5px; font-weight:600; color:var(--ink-2); margin-bottom:5px;
+}
+.sub-campo input[type=number], .sub-campo input[type=text], .sub-campo textarea, .sub-campo select{
+  width:100%; max-width:420px; border:1px solid var(--line-2); border-radius:10px;
+  padding:9px 11px; font-family:var(--font-b); font-size:14.5px; font-weight:600;
+  color:var(--ink); background:var(--surface);
+}
+.sub-campo textarea{font-family:var(--font-raw); font-size:13px; font-weight:400; resize:vertical}
+.sub-campo input:focus, .sub-campo textarea:focus, .sub-campo select:focus{border-color:var(--accent); outline:none}
+.sub-campo .por{display:block; margin-top:5px; font-size:12.5px; font-weight:500; color:var(--ink-2)}
+.modo.chico button{font-size:11.5px; padding:5px 12px}
+
+/* Los seis casilleros de descuento, uno al lado del otro. */
+.seis{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px}
+.seis .d{position:relative}
+.seis .d input{
+  width:84px; border:1px solid var(--line-2); border-radius:10px;
+  padding:9px 24px 9px 11px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; color:var(--ink); background:var(--surface);
+}
+.seis .d input:focus{border-color:var(--accent); outline:none}
+.seis .d.puesto input{border-color:var(--accent); background:var(--accent-soft)}
+.seis .d .pc{position:absolute; right:10px; top:50%; transform:translateY(-50%);
+  font-size:13px; font-weight:600; color:var(--ink-3); pointer-events:none}
+.seis .d .et{display:block; font-size:10.5px; font-weight:600; color:var(--ink-3); margin-bottom:3px}
+
+/* Los dos resultados, lado a lado, para que se vea la diferencia. */
+.comparar{display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.comparar .c{border:1px solid var(--line-2); border-radius:12px; padding:10px 13px; background:var(--surface-2)}
+.comparar .c.elegido{border-color:var(--accent); background:var(--accent-soft)}
+.comparar .c .k{font-family:var(--font-d); font-size:10.5px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.07em; color:var(--ink-2)}
+.comparar .c.elegido .k{color:var(--accent)}
+.comparar .c .v{font-size:19px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:2px}
+.comparar .c .n{font-size:12px; font-weight:500; color:var(--ink-2); margin-top:2px}
+.comparar .dif{grid-column:1/-1; font-size:13px; font-weight:500; color:var(--ink-2);
+  background:var(--warn-soft); color:var(--warn); border-radius:10px; padding:9px 12px}
+
+/* La cadena del costo, dicha en renglones. */
+.cadena{padding:14px}
+.cadena .r2{display:flex; align-items:baseline; gap:10px; padding:7px 0; border-bottom:1px dashed var(--line)}
+.cadena .r2:last-child{border-bottom:0}
+.cadena .r2 .k{flex:1; font-size:14px; font-weight:500; color:var(--ink-2)}
+.cadena .r2 .v{font-size:15.5px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap}
+.cadena .r2.total{border-top:2px solid var(--ink); border-bottom:0; margin-top:4px; padding-top:10px}
+.cadena .r2.total .k{color:var(--ink); font-weight:700}
+.cadena .r2.total .v{font-size:19px; color:var(--accent)}
+.cadena .r2.sub .k, .cadena .r2.sub .v{color:var(--ink-3); font-size:13px; font-weight:500}
+
+/* El alta de artículo: dos columnas, los datos a la izquierda y la
+   cuenta del precio a la derecha, armándose sola. */
+.alta{display:grid; gap:20px; padding:16px; grid-template-columns:1fr}
+@media(min-width:900px){.alta{grid-template-columns:1fr 1fr}}
+.alta .col>.sub-campo:first-child{margin-top:0}
+.alta .sub-campo input, .alta .sub-campo select, .alta .sub-campo textarea{max-width:none}
+.sku-fila{display:flex; gap:8px; align-items:center}
+.sku-fila input{flex:1}
+.sku-fila .b2{white-space:nowrap; padding:9px 16px}
+.pc-grande{font-size:16px; font-weight:700; color:var(--ink-2)}
+.dos-chicos{display:grid; gap:10px; grid-template-columns:1fr 1fr}
+.dos-chicos label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-2); margin-bottom:5px}
+.dos-chicos input{width:100%; border:1px solid var(--line-2); border-radius:10px;
+  padding:9px 11px; font-size:14.5px; font-weight:600; background:var(--surface); color:var(--ink)}
+.cuenta{margin-top:16px; border:1px solid var(--line-2); border-radius:12px;
+  background:var(--surface-2); padding:12px 14px}
+
+/* La franja de atajos, pegada abajo. */
+.teclas{
+  position:fixed; left:0; right:0; bottom:0; z-index:80;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  background:var(--surface); border-top:1px solid var(--line-2);
+  padding:7px 16px; font-size:12px; font-weight:500; color:var(--ink-2);
+  box-shadow:0 -2px 10px rgba(0,0,0,.05);
+}
+.teclas[hidden]{display:none}
+.teclas .t{display:inline-flex; align-items:center; gap:5px; white-space:nowrap}
+.teclas .extra{display:none}
+.teclas.abierta .extra{display:inline-flex}
+.teclas kbd{
+  font-family:var(--font-raw); font-size:11px; font-weight:700; color:var(--ink);
+  background:var(--surface-2); border:1px solid var(--line-2);
+  border-bottom-width:2px; border-radius:5px; padding:1px 6px; min-width:18px; text-align:center;
+}
+.teclas .x{margin-left:auto; border:0; background:none; font-size:19px; line-height:1; color:var(--ink-3)}
+.teclas .x:hover{color:var(--accent)}
+main{padding-bottom:96px}
+
+/* El renglón donde está parado el teclado. */
+tr.marcado{background:var(--accent-soft) !important; box-shadow:inset 3px 0 0 var(--accent)}
+tr.marcado .nom{color:var(--accent); font-weight:700}
+
 .bajadas{display:grid; gap:10px; padding:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
 .bajadas button{
   text-align:left; border:1px solid var(--line-2); background:var(--surface);
@@ -760,9 +866,8 @@ footer{
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
             <input id="q" type="text" placeholder="Agregar artículo: marca, rubro, nombre o código · ferrum · inodoro · 11114 · termo 80" autocomplete="off" spellcheck="false">
           </div>
-          <p class="ayuda-busca">Las palabras entran en cualquier orden y no hace falta escribirlas enteras. <b>Enter</b> suma el primero.
-            El stock va en <b style="color:var(--ok)">verde</b> si hay más de 10, en <b style="color:var(--warn)">amarillo</b> si quedan 10 o menos y en <b style="color:var(--bad)">rojo</b> si no hay.
-            Igual se puede tocar cualquiera para ver el precio.</p>
+          <p class="ayuda-busca">Escribí pedazos, en cualquier orden. El stock va en <b style="color:var(--ok)">verde</b> si hay más de 10,
+            en <b style="color:var(--warn)">amarillo</b> si quedan 10 o menos y en <b style="color:var(--bad)">rojo</b> si no hay; igual se puede elegir para ver el precio.</p>
         </div>
         <div class="res" id="res"></div>
       </div>
@@ -793,10 +898,9 @@ footer{
         <button class="b3" id="btnVaciar">Vaciar</button>
         <div class="borradores" id="borradores"></div>
       </div>
-      <p class="nota"><b>Qué hace cada uno.</b> <i>Emitir factura</i> saca el comprobante y le pide el CAE a ARCA: gasta número, descuenta stock y entra en caja.
-        <i>Emitir presupuesto</i> numera y se lo podés mandar, pero no mueve nada.
-        <i>Guardar como borrador</i> ni siquiera numera: lo deja esperando.
-        <b>Un solo registro.</b> La venta sin factura queda anotada igual, marcada como tal. La franja de arriba y la gerencia muestran las dos columnas por separado: el total de verdad, y cuánto de eso salió con comprobante. No hay un segundo libro.</p>
+      <p class="nota"><i>Emitir factura</i> le pide el CAE a ARCA: gasta número, descuenta stock y entra en caja.
+        El <i>presupuesto</i> numera y se manda, pero no mueve nada; el <i>borrador</i> ni numera.
+        La venta sin factura queda anotada igual, marcada como tal: no hay un segundo libro.</p>
     </div>
   </div>
 </section>
@@ -949,7 +1053,7 @@ footer{
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
             <input id="qPed" type="text" placeholder="Agregar al pedido: marca, rubro, nombre o código · ferrum · inodoro · 11114 · termo 80" autocomplete="off" spellcheck="false">
           </div>
-          <p class="ayuda-busca">Las palabras entran en cualquier orden y no hace falta escribirlas enteras. Tocá el renglón, o <b>Sumar</b>, y entra al pedido. <b>Enter</b> suma el primero.</p>
+          <p class="ayuda-busca">Escribí pedazos, en cualquier orden. Tocá el renglón y entra al pedido.</p>
           <div class="res" id="resPed" style="margin-top:8px"></div>
         </div>
         <div class="tabla-wrap">
@@ -1055,7 +1159,80 @@ footer{
     <h2>Productos y costos</h2>
     <p>Qué deja cada artículo con el precio que tiene puesto hoy.</p>
   </div>
-  <div class="aviso"><span>i</span><div><b>Los nombres, los códigos y los precios son los reales del catálogo.</b> Los costos de esta demo están simulados, salvo donde diga lo contrario: en el sistema de verdad salen de la lista del proveedor.</div></div>
+  <div class="aviso"><span>i</span><div>Los costos de esta demo están simulados, salvo los que dicen <b>costo real</b>. En el sistema de verdad salen de la lista del proveedor.</div></div>
+
+  <div class="card armando" style="margin-bottom:16px">
+    <div class="card-h">
+      <h3>Artículo nuevo</h3>
+      <span class="sub">el precio se arma solo mientras escribís</span>
+      <button class="b2" id="btnAbrirAlta" style="margin-left:12px;padding:6px 16px">Cargar uno</button>
+    </div>
+    <div id="altaCuerpo" hidden>
+      <div class="alta">
+        <div class="col">
+          <div class="sub-campo">
+            <label for="aMarca">Marca o proveedor</label>
+            <input id="aMarca" type="text" list="aMarcas" placeholder="FERRUM, HEINEKEN, …" autocomplete="off">
+            <datalist id="aMarcas"></datalist>
+          </div>
+          <div class="sub-campo">
+            <label for="aRubro">Rubro</label>
+            <select id="aRubro"></select>
+          </div>
+          <div class="sub-campo">
+            <label for="aTit">Título</label>
+            <input id="aTit" type="text" placeholder="TERMOTANQUE HEINEKEN 80 LTS ELÉCTRICO" autocomplete="off">
+            <span class="por" id="aTitAviso">Como va a verlo el mostrador y la web. En mayúsculas, con la capacidad y el tipo.</span>
+          </div>
+          <div class="sub-campo">
+            <label for="aDesc">Descripción</label>
+            <textarea id="aDesc" rows="4" placeholder="Lo que le decís al cliente cuando pregunta: para qué sirve, qué trae, qué medidas."></textarea>
+            <span class="por" id="aDescAviso"></span>
+          </div>
+          <div class="sub-campo">
+            <label for="aSku">Código (SKU)</label>
+            <div class="sku-fila">
+              <input id="aSku" type="text" autocomplete="off">
+              <button class="b2" id="aOtroSku" type="button">Sugerime otro</button>
+            </div>
+            <span class="por" id="aSkuAviso"></span>
+          </div>
+          <div class="sub-campo dos-chicos">
+            <div><label for="aStockBA">Stock en Buenos Aires</label>
+              <input id="aStockBA" type="number" min="0" step="1" value="0"></div>
+            <div><label for="aStockTS">Stock en Traslasierra</label>
+              <input id="aStockTS" type="number" min="0" step="1" value="0"></div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="sub-campo">
+            <label for="aLista">Lista del proveedor, sin IVA</label>
+            <input id="aLista" type="number" min="0" step="100" value="0">
+            <span class="por">el número que figura en la lista, antes de descuentos</span>
+          </div>
+          <div class="sub-campo">
+            <label>Descuentos que te hace</label>
+            <div class="seis" id="aSeis"></div>
+            <span class="por" id="aSeisAviso"></span>
+          </div>
+          <div class="sub-campo">
+            <label for="aMk">Markup sobre el costo</label>
+            <div class="sku-fila">
+              <input id="aMk" type="number" min="0" max="400" step="0.5" value="42">
+              <span class="pc-grande">%</span>
+            </div>
+            <span class="por">lo que le ponés encima para llegar al precio de contado</span>
+          </div>
+          <div class="cuenta" id="aCuenta"></div>
+          <div class="envio-acc" style="padding:14px 0 0">
+            <button class="b1" id="aGuardar">Guardar el artículo</button>
+            <button class="b3" id="aCancelar">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="card" style="margin-bottom:16px">
     <div class="card-h">
@@ -1091,7 +1268,7 @@ footer{
   <div class="card" style="margin-bottom:16px">
     <div class="card-h"><h3>Llegaron estas</h3><span class="sub">sin abrir</span></div>
     <div class="bandeja" id="bandeja"></div>
-    <p class="nota">Ninguna se aplica sola. Se lee, se cruza con tu catálogo y se te muestra qué te rompe. Vos firmás.</p>
+    <p class="nota">Se lee, se cruza con tu catálogo y te muestra qué te rompe.</p>
   </div>
 
   <div class="card" id="lectura" hidden style="margin-bottom:16px">
@@ -1100,33 +1277,80 @@ footer{
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <div class="card-h"><h3>Qué pasa si…</h3><span class="sub">o probalo a mano</span></div>
+    <div class="card-h"><h3>Cómo se arma el precio</h3><span class="sub" id="cadenaDe"></span></div>
+    <div class="cadena" id="cadenaCuerpo"></div>
+  </div>
+
+  <div class="card armando" style="margin-bottom:16px">
+    <div class="card-h"><h3>Cambiar precios</h3><span class="sub">nada se aplica hasta que lo firmes</span></div>
     <div class="sim">
-      <div class="sim-fila">
-        <div class="campo">
-          <label for="sProv">Proveedor</label>
-          <select id="sProv"></select>
-        </div>
-        <div class="campo">
-          <label>Qué cambió</label>
-          <div class="modo" id="sModo">
-            <button data-m="sube" aria-pressed="true">Sube la lista</button>
-            <button data-m="desc" aria-pressed="false">Me bajan el descuento</button>
+
+      <div class="paso">
+        <span class="paso-n">1</span>
+        <div class="paso-cuerpo">
+          <label>A quiénes se los cambio</label>
+          <div class="modo" id="sQuien">
+            <button data-q="prov" aria-pressed="true">Todo un proveedor</button>
+            <button data-q="sku" aria-pressed="false">Una lista de códigos</button>
+            <button data-q="uno" aria-pressed="false">Un artículo solo</button>
+          </div>
+          <div class="sub-campo" id="qProv">
+            <label for="sProv">Proveedor</label>
+            <select id="sProv"></select>
+          </div>
+          <div class="sub-campo" id="qSku" hidden>
+            <label for="sSku">Códigos</label>
+            <textarea id="sSku" rows="3" placeholder="11114, 3719, 00677&#10;Uno por renglón o separados por coma. Pegalos del Excel si querés."></textarea>
+            <span class="por" id="skuAviso"></span>
+          </div>
+          <div class="sub-campo" id="qUno" hidden>
+            <label for="sUno">Buscá el artículo</label>
+            <input id="sUno" type="text" placeholder="Código, nombre o marca" autocomplete="off">
+            <div class="res" id="sUnoRes"></div>
+            <span class="por" id="unoElegido">Ninguno elegido todavía.</span>
           </div>
         </div>
-        <div class="campo" id="cSube">
-          <label for="sPct">Sube un</label>
-          <input id="sPct" type="number" value="18" min="0" max="200" step="0.5">
+      </div>
+
+      <div class="paso">
+        <span class="paso-n">2</span>
+        <div class="paso-cuerpo">
+          <label>Qué les cambio</label>
+          <div class="modo" id="sModo">
+            <button data-m="sube" aria-pressed="true">La lista del proveedor</button>
+            <button data-m="desc" aria-pressed="false">Los descuentos</button>
+            <button data-m="mk" aria-pressed="false">El markup</button>
+          </div>
+
+          <div class="sub-campo" id="cSube">
+            <label for="sPct">La lista sube un</label>
+            <input id="sPct" type="number" value="18" min="-90" max="300" step="0.5">
+            <span class="por">en menos, poné el número con el signo menos</span>
+          </div>
+
+          <div class="sub-campo" id="cDesc" hidden>
+            <label>Los seis descuentos sobre la lista</label>
+            <div class="seis" id="seisD"></div>
+            <div class="modo chico" id="sModoDesc">
+              <button data-d="cascada" aria-pressed="true">En cascada</button>
+              <button data-d="suma" aria-pressed="false">Sumados</button>
+            </div>
+            <div class="comparar" id="compararDesc"></div>
+          </div>
+
+          <div class="sub-campo" id="cMk" hidden>
+            <label for="sMk">Markup sobre el costo</label>
+            <input id="sMk" type="number" value="42" min="0" max="400" step="0.5">
+            <span class="por" id="mkAviso">Lo que se le pone encima al costo para llegar al precio de contado.</span>
+          </div>
         </div>
-        <div class="campo" id="cD1" hidden>
-          <label for="sD1">Tenía</label>
-          <input id="sD1" type="number" value="45" min="0" max="90" step="0.5">
+      </div>
+
+      <div class="paso">
+        <span class="paso-n">3</span>
+        <div class="paso-cuerpo">
+          <button class="b1" id="btnSim" style="padding:11px 22px">Ver qué pasa</button>
         </div>
-        <div class="campo" id="cD2" hidden>
-          <label for="sD2">Pasa a</label>
-          <input id="sD2" type="number" value="40" min="0" max="90" step="0.5">
-        </div>
-        <button class="b1" id="btnSim" style="padding:10px 18px">Ver qué pasa</button>
       </div>
     </div>
     <div class="resumen-sim" id="simResumen" hidden></div>
@@ -1134,9 +1358,10 @@ footer{
       <table>
         <thead><tr>
           <th>Código</th><th>Artículo</th>
+          <th class="r">Lista</th>
           <th class="r">Costo hoy</th><th class="r">Costo nuevo</th>
-          <th class="r">Precio hoy</th><th class="r">Margen que queda</th>
-          <th class="r">Precio sugerido</th><th class="r">Sube al cliente</th>
+          <th class="r">Precio hoy</th><th class="r">Precio sugerido</th>
+          <th class="r">Margen que queda</th><th class="r">Sube al cliente</th>
         </tr></thead>
         <tbody id="tbSim"></tbody>
       </table>
@@ -1145,7 +1370,7 @@ footer{
       <button class="b2" id="btnAplicarCosto">Aceptar los costos y dejar los precios</button>
       <button class="b1" id="btnAplicarTodo">Aceptar los costos y subir al sugerido</button>
     </div>
-    <p class="nota">El precio sugerido es el que vuelve a dejar el margen objetivo, redondeado a los $100 de arriba. Nada se aplica hasta que lo apretás.</p>
+    <p class="nota">El precio sugerido es el que vuelve a dejar el margen objetivo, redondeado a los $100 de arriba.</p>
   </div>
 </section>
 
@@ -1379,6 +1604,20 @@ footer{
       <a class="b2" id="envioWa" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
     </div>
   </div>
+</div>
+
+<!-- Los atajos, siempre abajo, para no tener que acordarse. -->
+<div class="teclas" id="teclas">
+  <span class="t"><kbd>↑</kbd><kbd>↓</kbd> moverse</span>
+  <span class="t"><kbd>Enter</kbd> sumar</span>
+  <span class="t"><kbd>/</kbd> buscar</span>
+  <span class="t"><kbd>?</kbd> más atajos</span>
+  <span class="t extra"><kbd>Esc</kbd> salir del listado</span>
+  <span class="t extra"><kbd>Alt</kbd>+<kbd>F</kbd> facturar</span>
+  <span class="t extra"><kbd>Alt</kbd>+<kbd>P</kbd> presupuesto</span>
+  <span class="t extra"><kbd>Alt</kbd>+<kbd>B</kbd> borrador</span>
+  <span class="t extra"><kbd>Alt</kbd>+<kbd>N</kbd> cliente nuevo</span>
+  <button class="x" id="teclasX" aria-label="esconder">×</button>
 </div>
 
 <div id="toast" role="status" aria-live="polite"></div>
@@ -1625,7 +1864,60 @@ for(const p of PRODUCTOS){
   });
 }
 
+/* ------------------------------------------- el costo, paso por paso ---
+   Cada proveedor da su cadena de descuentos sobre la lista. Hasta seis:
+   el de siempre, el de volumen, el de pago contado, el de temporada, y
+   los dos que aparecen cuando uno pelea. */
+const IVA = 1.21;
+const RECARGO_CONTADO = 1.1363636363636365;   // el 12% de descuento al revés
+
+const DESC_PROV = {
+  "FERRUM":   [32, 10,  5, 0, 0, 0],
+  "HEINEKEN": [38,  8,  4, 2, 0, 0],
+  "GULLIART": [30, 12,  6, 0, 0, 0],
+  "LYG":      [35,  7,  5, 3, 0, 0],
+  "TST":      [28, 10,  0, 0, 0, 0],
+  "ROT-AR":   [34,  9,  4, 0, 0, 0],
+  "PIAZZA":   [31, 11,  5, 0, 0, 0],
+  "PRINGLES": [33,  8,  5, 2, 0, 0],
+  "BOSCA":    [27, 12,  6, 3, 0, 0]
+};
+const CADENA_BASE = [33, 9, 5, 0, 0, 0];      // para el que no está en la lista
+const MARKUP_BASE = 42;                       // lo que se le pone encima por defecto
+
+/** La cadena que rige hoy para ese proveedor (la tocada, o la de fábrica). */
+function cadenaDe(prov){
+  return (S.cadenas[prov] || DESC_PROV[prov] || CADENA_BASE).slice(0,6);
+}
+const limD = d => Math.min(95, Math.max(0, +d || 0));
+
+/** Lo que queda de la lista después de los descuentos.
+    En cascada: cada uno se aplica sobre lo que quedó del anterior.
+    Sumados: se suman los porcentajes y se descuenta una sola vez.
+    No dan lo mismo, y la diferencia crece con cada descuento. */
+function factorDe(ds, modo){
+  modo = modo || S.modoDesc;
+  if(modo === "suma"){
+    const t = ds.reduce((a,d)=>a+limD(d), 0);
+    return Math.max(0.02, 1 - t/100);
+  }
+  return ds.reduce((a,d)=>a*(1-limD(d)/100), 1);
+}
+/** El descuento único equivalente a toda la cadena, para decirlo corto. */
+const descEquiv = (ds, modo) => (1 - factorDe(ds, modo)) * 100;
+const cadenaTxt = ds => ds.filter(d=>limD(d)>0).map(d=>limD(d)+"%").join(" + ") || "sin descuento";
+
+/** El costo que sale de una lista y una cadena. Con IVA, como se paga. */
+const costoDe = (lista, ds, modo) => Math.round(lista * factorDe(ds, modo) * IVA);
+/** Y el precio que sale de un costo y un markup. */
+const precioDe = (costo, mk) => redondear(costo * (1 + (+mk||0)/100));
+
+/** El markup que tiene puesto el artículo. */
+const markupDe = p => p.markup != null ? p.markup : MARKUP_BASE;
+
 const margen = p => (p.contado - p.costo) / p.costo * 100;
+/** Los precios de venta se redondean para arriba a los $100. */
+function redondear(n){ return Math.ceil(n/100)*100; }
 const fmt = n => "$" + Math.round(n).toLocaleString("es-AR");
 const fmt0 = n => Math.round(n).toLocaleString("es-AR");
 const pct = n => (n>=0?"":"−") + Math.abs(n).toFixed(1).replace(".",",") + "%";
@@ -1633,6 +1925,8 @@ const pct = n => (n>=0?"":"−") + Math.abs(n).toFixed(1).replace(".",",") + "%"
 /* ====================================================== estado */
 const S = {
   suc:"srl",           // en que razon social se esta vendiendo
+  modoDesc:"cascada",  // como se aplican los 6 descuentos: cascada o suma
+  cadenas:{},          // las cadenas que se cambiaron a mano, por proveedor
   cajaSuc:"",          // que caja se esta mirando ("" = todas)
   cajaVend:"",         // y de que vendedor ("" = todos)
   puesto:"Mostrador 1",
@@ -1683,6 +1977,18 @@ const S = {
       web: az() < 0.12,
       linea: lin
     });
+  }
+})();
+
+/* La demo ya traía un costo para cada artículo. Ahora ese costo tiene que
+   poder explicarse: de qué lista sale y con qué descuentos. Así que se
+   calcula la lista hacia atrás, para que ningún número se mueva de lugar
+   y a la vez quede todo a la vista. */
+(function armarListas(){
+  for(const p of PRODUCTOS){
+    const fac = factorDe(cadenaDe(p.prov), "cascada");
+    p.lista  = Math.round(p.costo / (fac * IVA));   // lista sin IVA
+    p.markup = Math.round((p.contado / p.costo - 1) * 1000) / 10;
   }
 })();
 
@@ -1781,11 +2087,8 @@ function compDe(c){
   // Siempre arranca en presupuesto: mientras el cliente está mirando, no
   // se emite nada. Cuando dice que se lo lleva, se cambia acá y recién
   // ahí sale el comprobante. La ayuda ya dice cuál le corresponde.
-  const cual = !c ? "Factura B, porque va como consumidor final"
-    : c.t==="Responsable Inscripto" ? "Factura A, porque es responsable inscripto"
-    : c.t==="IVA Exento"            ? "Factura B, porque está exento de IVA"
-    :                                 "Factura B, porque es consumidor final";
-  return ["03.Presupuesto X cnc","arranca como presupuesto; si se lo lleva, cambialo a "+cual];
+  const cual = (c && c.t==="Responsable Inscripto") ? "Factura A" : "Factura B";
+  return ["03.Presupuesto X cnc","si se lo lleva, cambialo a "+cual];
 }
 /** Que letra y que numeracion le toca a cada documento. */
 const LETRA = {"01.Factura A":"A","02.Factura B":"B","03.Presupuesto X cnc":"X",
@@ -1823,7 +2126,7 @@ function pintarCamposVenta(){
 
   let info;
   if(!c){
-    info = 'Venta al público. Si el cliente pide factura A, elegilo en la lista y el comprobante cambia solo.';
+    info = 'Venta al público. Si pide factura A, elegilo de la lista.';
   } else {
     const libre = c.lim - c.saldo;
     info = c.t+' · CUIT '+c.doc+
@@ -1839,19 +2142,19 @@ function pintarCamposVenta(){
       '<select id="vtaSuc" style="font-weight:600">'+
         SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
       '</select>'+
-      '<span class="por">punto de venta '+su.pv+'; la mercadería sale del depósito de <b>'+DEPOSITOS[su.dep]+'</b></span></div>'+
+      '<span class="por">punto de venta '+su.pv+' · depósito <b>'+DEPOSITOS[su.dep]+'</b></span></div>'+
     '<div class="campo ancho"><label for="vtaCliente">Cliente</label>'+
       '<select id="vtaCliente" data-k="cli">'+opcCli+'</select>'+
       '<span class="por">'+info+'</span></div>'+
     campo("vtaComp","Documento a emitir",DOCUMENTOS,comp,sComp[1],!S.comp)+
     '<div class="campo"><label for="vtaNro">Número</label>'+
       '<input id="vtaNro" type="text" readonly value="'+nroDe(comp)+'" style="background:var(--surface-2);color:var(--ink-2);font-variant-numeric:tabular-nums">'+
-      '<span class="por">sale solo, es el que sigue en '+su.n+'</span></div>'+
+      '<span class="por">el que sigue, sale solo</span></div>'+
     campo("vtaCond","Condición de venta",Object.keys(MULT),cond,
-          sCond[1]+", y "+recargoDe(cond),!S.cond)+
+          recargoDe(cond)==="sin recargo" ? sCond[1] : recargoDe(cond),!S.cond)+
     '<div class="campo"><label for="vtaVend">Vendedor</label>'+
       '<input id="vtaVend" type="text" readonly value="'+S.usuario+'" style="background:var(--surface-2);color:var(--ink-2)">'+
-      '<span class="por">sale de tu usuario; no se elige a mano</span></div>';
+      '<span class="por">de tu usuario, no se elige a mano</span></div>';
   pintarAcciones();
 }
 
@@ -2148,12 +2451,18 @@ function buscar(){
       '</tr>';
     }).join("")+
     '</tbody></table></div>';
+  // Deja el primero marcado: así Enter suma sin tener que bajar.
+  const pri = caja.querySelector("tr[data-cod]");
+  if(pri) pri.classList.add("marcado");
 }
 document.getElementById("q").addEventListener("input", buscar);
 document.getElementById("q").addEventListener("keydown",e=>{
   if(e.key !== "Enter") return;
-  const primero = document.querySelector("#res tbody tr[data-cod]");
-  if(primero) sumar(primero.dataset.cod, 1);
+  // El que esté marcado con las flechas; si no se movió, el primero.
+  const t = document.querySelector("#res tr.marcado") || document.querySelector("#res tbody tr[data-cod]");
+  if(!t) return;
+  const campo = document.querySelector('#res input[data-q="'+t.dataset.cod+'"]');
+  sumar(t.dataset.cod, campo ? +campo.value : 1);
 });
 document.getElementById("res").addEventListener("click",e=>{
   // El botón Sumar, y también el renglón entero: es lo que uno espera
@@ -2208,7 +2517,7 @@ function pintarTicket(){
       S.linea.map(l=>{
         const p = prod(l.cod);
         const u = p.contado * MULT[S.forma];
-        return '<tr>'+
+        return '<tr data-cod="'+l.cod+'">'+
           '<td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
           '<td class="nom" style="min-width:230px">'+p.tit+'<small>'+p.prov.toLowerCase()+'</small></td>'+
           '<td class="r"><span class="c">'+
@@ -2412,6 +2721,294 @@ document.getElementById("pedidos").addEventListener("click",e=>{
   toast("El pedido "+p.q+" está cargado en la venta del "+S.puesto+".");
 });
 
+/* ======================================================= TECLADO
+   Dos listados se manejan igual: el de la venta y el del pedido. En los
+   dos, las flechas mueven un renglón marcado y Enter lo suma con la
+   cantidad que diga al lado. */
+const LISTADOS = [
+  {caja:"res",    campo:"q",    sumar:(cod,n)=>sumar(cod,n)},
+  {caja:"resPed", campo:"qPed", sumar:(cod,n)=>agregarPed(cod,n)}
+];
+function listadoActivo(){
+  for(const L of LISTADOS){
+    const c = document.getElementById(L.caja);
+    if(c && c.offsetParent !== null && c.querySelector("tr[data-cod]")) return L;
+  }
+  return null;
+}
+function filas(L){ return [...document.getElementById(L.caja).querySelectorAll("tr[data-cod]")]; }
+function marcado(L){ return document.getElementById(L.caja).querySelector("tr.marcado"); }
+
+function mover(L, paso){
+  const fs = filas(L); if(!fs.length) return;
+  const act = marcado(L);
+  let i = act ? fs.indexOf(act) + paso : (paso > 0 ? 0 : fs.length - 1);
+  if(i < 0) i = fs.length - 1;
+  if(i >= fs.length) i = 0;
+  for(const t of fs) t.classList.remove("marcado");
+  fs[i].classList.add("marcado");
+  fs[i].scrollIntoView({block:"nearest"});
+}
+function sumarMarcado(L){
+  const t = marcado(L) || filas(L)[0];
+  if(!t) return;
+  const cod = t.dataset.cod;
+  const campo = document.querySelector("#"+L.caja+' input[data-q="'+cod+'"]');
+  L.sumar(cod, campo ? +campo.value : 1);
+}
+
+/** La pantalla que se está viendo. */
+function vistaActual(){
+  for(const v of vistas) if(!document.getElementById("v-"+v).hidden) return v;
+  return "mostrador";
+}
+/** El buscador de la pantalla que se está viendo. */
+function buscadorActual(){
+  const v = vistaActual();
+  if(v === "mostrador") return document.getElementById("q");
+  if(v === "pedidos")   return document.getElementById("qPed");
+  if(v === "asistente") return document.getElementById("preg");
+  if(v === "listas")    return document.getElementById("sUno");
+  return null;
+}
+const escribiendo = e => {
+  const t = e.target;
+  return t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+};
+
+document.addEventListener("keydown",e=>{
+  // Escape cierra lo que esté abierto, en orden de encima hacia abajo.
+  if(e.key === "Escape"){
+    for(const id of ["cliNuevo","envio"]){
+      const m = document.getElementById(id);
+      if(m && !m.hidden){ m.hidden = true; e.preventDefault(); return; }
+    }
+    const L = listadoActivo();
+    const t = L && marcado(L);
+    if(t){ t.classList.remove("marcado"); e.preventDefault(); return; }
+    const b = buscadorActual();
+    if(b && b.value){ b.value = ""; b.dispatchEvent(new Event("input",{bubbles:true})); e.preventDefault(); }
+    return;
+  }
+
+  // Los atajos con Alt andan aunque se esté escribiendo.
+  if(e.altKey && !e.ctrlKey && !e.metaKey){
+    const k = e.key.toLowerCase();
+    const enVenta = vistaActual() === "mostrador";
+    if(k === "f" && enVenta){ e.preventDefault(); document.getElementById("btnFactura").click(); return; }
+    if(k === "p" && enVenta){ e.preventDefault(); document.getElementById("btnPresu").click(); return; }
+    if(k === "b" && enVenta){ e.preventDefault(); document.getElementById("btnBorrador").click(); return; }
+    if(k === "n" && enVenta){ e.preventDefault(); abrirCliente(); return; }
+    if(k === "w" && enVenta){ e.preventDefault(); document.getElementById("btnWhatsVta").click(); return; }
+  }
+
+  const L = listadoActivo();
+
+  // Las flechas mueven el listado aunque el foco esté en el buscador:
+  // es justo lo que uno hace, escribir y bajar sin soltar el teclado.
+  if(L && (e.key === "ArrowDown" || e.key === "ArrowUp")){
+    const t = e.target;
+    const enNumero = t && t.tagName === "INPUT" && t.type === "number";
+    if(!enNumero){ e.preventDefault(); mover(L, e.key === "ArrowDown" ? 1 : -1); return; }
+  }
+  // Enter suma el marcado. Si no hay ninguno marcado, el primero.
+  if(L && e.key === "Enter" && !e.altKey){
+    const t = e.target;
+    const el = (t && t.nodeType === 1) ? t : null;
+    if(el && el.id === L.campo) return;             // eso ya lo maneja el buscador
+    if(el && el.closest("#"+L.caja)) return;        // la cantidad del renglón también
+    if(escribiendo(e)) return;
+    e.preventDefault(); sumarMarcado(L); return;
+  }
+
+  if(escribiendo(e)) return;
+
+  // Barra: ir a buscar. Signo de pregunta: la ayuda.
+  if(e.key === "/"){
+    const b = buscadorActual();
+    if(b){ e.preventDefault(); b.focus(); b.select(); }
+    return;
+  }
+  if(e.key === "?"){
+    const t = document.getElementById("teclas");
+    if(t.hidden){ t.hidden = false; t.classList.add("abierta"); }
+    else t.classList.toggle("abierta");
+    return;
+  }
+});
+
+document.getElementById("teclasX").addEventListener("click",()=>{
+  document.getElementById("teclas").hidden = true;
+  toast("Los atajos vuelven con la tecla ?");
+});
+
+/* ============================================== ALTA DE ARTÍCULO
+   Todo junto: lo que se escribe, lo que cuesta y a cuánto se vende. El
+   código lo propone el sistema y controla que no esté usado, que es el
+   error que después cuesta una semana de desorden. */
+const ALTA = { seis:[0,0,0,0,0,0] };
+
+/** El código que sigue, en la numeración que ya usa el catálogo. */
+function skuSugerido(){
+  const nums = PRODUCTOS.map(p=>+p.cod.split("+")[0]).filter(n=>!isNaN(n) && n < 90000);
+  let n = Math.max(0, ...nums) + 1;
+  while(PRODUCTOS.some(p=>p.cod.split("+")[0] === String(n))) n++;
+  return String(n);
+}
+/** Uno alternativo, legible, por si prefieren hablar en letras. */
+function skuLegible(){
+  const m = (document.getElementById("aMarca").value || "GEN").toUpperCase().replace(/[^A-Z]/g,"").slice(0,3) || "GEN";
+  const r = (document.getElementById("aRubro").value || "GEN").toUpperCase().replace(/[^A-Z]/g,"").slice(0,3) || "GEN";
+  let i = 1, c;
+  do { c = m+"-"+r+"-"+String(i).padStart(3,"0"); i++; } while(PRODUCTOS.some(p=>p.cod===c));
+  return c;
+}
+function revisarSku(){
+  const v = document.getElementById("aSku").value.trim();
+  const av = document.getElementById("aSkuAviso");
+  if(!v){ av.innerHTML = "Hace falta un código."; return false; }
+  const usado = PRODUCTOS.find(p=>p.cod === v || p.cod.split("+")[0] === v);
+  if(usado){
+    av.innerHTML = '<b style="color:var(--bad)">Ese código ya es de otro artículo:</b> '+usado.tit.slice(0,54)+
+      '. Cambialo, o vas a tener dos cosas distintas con el mismo número.';
+    return false;
+  }
+  av.innerHTML = '<b style="color:var(--ok)">Libre.</b> No lo tiene ningún otro artículo.';
+  return true;
+}
+
+function altaCuenta(){
+  const lista = +document.getElementById("aLista").value || 0;
+  const mk = +document.getElementById("aMk").value || 0;
+  const ds = ALTA.seis;
+  const fac = factorDe(ds);
+  const neto = Math.round(lista * fac);
+  const costo = Math.round(neto * IVA);
+  const contado = precioDe(costo, mk);
+  const unPago = redondear(contado * RECARGO_1PAGO);
+
+  document.getElementById("aSeisAviso").innerHTML = lista > 0
+    ? cadenaTxt(ds)+" ("+(S.modoDesc==="cascada"?"en cascada":"sumados")+") = "+
+      pct(descEquiv(ds)).replace("−","")+" de descuento"
+    : "Poné la lista arriba y los descuentos acá: el costo sale solo.";
+
+  const r = (k,v,cls) => '<div class="r2'+(cls?" "+cls:"")+'"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
+  document.getElementById("aCuenta").innerHTML = '<div class="cadena" style="padding:0">'+
+    r("Lista sin IVA", fmt(lista))+
+    r("Menos los descuentos", "−"+fmt(lista-neto))+
+    r("Más IVA 21%", "+"+fmt(costo-neto))+
+    r("<b>Te cuesta</b>", fmt(costo), "total")+
+    r("Markup "+mk+"%", "+"+fmt(contado-costo))+
+    r("<b>Precio de contado</b>", fmt(contado), "total")+
+    r("Precio de 1 pago", fmt(unPago), "sub")+
+    (costo>0 && mk < 10
+      ? '<p class="nota" style="padding:8px 0 0;color:var(--bad)"><b>Ese markup no alcanza.</b> Con '+mk+'% no cubrís los cargos de venta ni el costo de tener la plata parada.</p>'
+      : "")+
+  '</div>';
+}
+
+function abrirAlta(){
+  document.getElementById("altaCuerpo").hidden = false;
+  document.getElementById("btnAbrirAlta").textContent = "Cerrar";
+  document.getElementById("aMarcas").innerHTML =
+    [...new Set(PRODUCTOS.map(p=>p.prov))].sort().map(p=>'<option value="'+p+'">').join("");
+  document.getElementById("aRubro").innerHTML =
+    [...new Set(PRODUCTOS.map(p=>p.rub))].sort().map(r=>'<option>'+r+'</option>').join("");
+  document.getElementById("aSku").value = skuSugerido();
+  ALTA.seis = CADENA_BASE.slice(0,6);
+  while(ALTA.seis.length < 6) ALTA.seis.push(0);
+  pintarAltaSeis();
+  revisarSku(); altaCuenta();
+  document.getElementById("aMarca").focus();
+}
+function cerrarAlta(){
+  document.getElementById("altaCuerpo").hidden = true;
+  document.getElementById("btnAbrirAlta").textContent = "Cargar uno";
+}
+document.getElementById("btnAbrirAlta").addEventListener("click",()=>{
+  if(document.getElementById("altaCuerpo").hidden) abrirAlta(); else cerrarAlta();
+});
+document.getElementById("aCancelar").addEventListener("click", cerrarAlta);
+
+function pintarAltaSeis(){
+  document.getElementById("aSeis").innerHTML = ALTA.seis.map((d,i)=>
+    '<div class="d'+(limD(d)>0?" puesto":"")+'">'+
+      '<span class="et">'+ET_D[i]+'</span>'+
+      '<input type="number" min="0" max="95" step="0.5" value="'+limD(d)+'" data-a="'+i+'" aria-label="descuento '+(i+1)+'">'+
+      '<span class="pc">%</span></div>').join("");
+}
+document.getElementById("aSeis").addEventListener("input",e=>{
+  const i = e.target.closest("input[data-a]"); if(!i) return;
+  ALTA.seis[+i.dataset.a] = limD(i.value);
+  i.parentElement.classList.toggle("puesto", limD(i.value) > 0);
+  altaCuenta();
+});
+for(const id of ["aLista","aMk"]) document.getElementById(id).addEventListener("input", altaCuenta);
+document.getElementById("aSku").addEventListener("input", revisarSku);
+document.getElementById("aOtroSku").addEventListener("click",()=>{
+  const v = document.getElementById("aSku").value.trim();
+  document.getElementById("aSku").value = /^\\d+$/.test(v) ? skuLegible() : skuSugerido();
+  revisarSku();
+});
+// La marca y el rubro, en mayúsculas, como está todo el catálogo.
+document.getElementById("aMarca").addEventListener("blur",e=>{ e.target.value = e.target.value.toUpperCase().trim(); });
+document.getElementById("aTit").addEventListener("input",e=>{
+  const v = e.target.value;
+  const av = document.getElementById("aTitAviso");
+  const marca = document.getElementById("aMarca").value.trim().toUpperCase();
+  if(v.length && marca && !plano(v).includes(plano(marca)))
+    av.innerHTML = '<b style="color:var(--warn)">Le falta la marca.</b> Si el título no dice '+marca+
+      ', el mostrador no lo encuentra buscando por marca.';
+  else if(v.length && v.length < 18)
+    av.innerHTML = '<b style="color:var(--warn)">Muy corto.</b> Agregale la medida o el tipo: así se distingue de los parecidos.';
+  else
+    av.innerHTML = "Como va a verlo el mostrador y la web. En mayúsculas, con la capacidad y el tipo.";
+});
+document.getElementById("aDesc").addEventListener("input",e=>{
+  const n = e.target.value.trim().length;
+  document.getElementById("aDescAviso").innerHTML = n === 0
+    ? "Sin descripción se puede vender, pero en la web rinde la mitad."
+    : (n < 60 ? n+" caracteres. Con 150 o más la web lo muestra mejor." : '<b style="color:var(--ok)">'+n+' caracteres.</b> Alcanza.');
+});
+
+document.getElementById("aGuardar").addEventListener("click",()=>{
+  const cod = document.getElementById("aSku").value.trim();
+  const tit = document.getElementById("aTit").value.trim().toUpperCase();
+  const prov = document.getElementById("aMarca").value.trim().toUpperCase();
+  const rub = document.getElementById("aRubro").value;
+  const lista = +document.getElementById("aLista").value || 0;
+  const mk = +document.getElementById("aMk").value || 0;
+
+  if(!revisarSku()){ document.getElementById("aSku").focus(); return; }
+  if(tit.length < 6){ toast("Falta el título del artículo."); document.getElementById("aTit").focus(); return; }
+  if(!prov){ toast("Falta la marca o el proveedor."); document.getElementById("aMarca").focus(); return; }
+  if(lista <= 0){ toast("Falta la lista del proveedor: sin eso no hay costo."); document.getElementById("aLista").focus(); return; }
+
+  const costo = costoDe(lista, ALTA.seis);
+  const contado = precioDe(costo, mk);
+  const p = {
+    cod, tit, rub, prov,
+    desc: document.getElementById("aDesc").value.trim(),
+    lista, markup: mk,
+    costo, costoBase: costo,
+    contado, unPago: redondear(contado * RECARGO_1PAGO),
+    dep: { BA: Math.max(0, +document.getElementById("aStockBA").value||0),
+           TS: Math.max(0, +document.getElementById("aStockTS").value||0) },
+    propio: plano(cod+" "+tit+" "+rub+" "+prov),
+    blob: plano(cod+" "+tit+" "+rub+" "+prov+" "+(ALIAS[rub]||""))
+  };
+  Object.defineProperty(p, "stock", {
+    get(){ return this.dep[depAct()]; },
+    set(v){ this.dep[depAct()] = Math.max(0, Math.round(v)); },
+    enumerable:true, configurable:true
+  });
+  S.cadenas[prov] = S.cadenas[prov] || ALTA.seis.slice();
+  PRODUCTOS.push(p);
+  llenarSelects(); pintarProd(); buscar();
+  cerrarAlta();
+  toast(cod+" · "+tit.slice(0,40)+" cargado. Cuesta "+fmt(costo)+" y se vende a "+fmt(contado)+".");
+});
+
 /* =================================================== PRODUCTOS */
 function llenarSelects(){
   const provs = [...new Set(PRODUCTOS.map(p=>p.prov))].sort();
@@ -2467,83 +3064,270 @@ document.getElementById("tbProd").addEventListener("change",e=>{
 });
 
 /* ===================================================== LISTAS */
+/* El formador de precios. Tres preguntas: a quiénes, qué les cambio, y
+   qué pasa si lo hago. Nada se toca hasta el último botón. */
+const PF = { quien:"prov", modo:"sube", uno:null, seis:[0,0,0,0,0,0] };
+
+/* --------------------------------------------------- paso 1: a quiénes */
+document.getElementById("sQuien").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-q]"); if(!b) return;
+  for(const x of document.querySelectorAll("#sQuien button")) x.setAttribute("aria-pressed", String(x===b));
+  PF.quien = b.dataset.q;
+  document.getElementById("qProv").hidden = PF.quien !== "prov";
+  document.getElementById("qSku").hidden  = PF.quien !== "sku";
+  document.getElementById("qUno").hidden  = PF.quien !== "uno";
+  cargarSeis(); pintarCadena();
+});
+
+/** Los artículos a los que se les va a cambiar algo. */
+function alcance(){
+  if(PF.quien === "prov")
+    return PRODUCTOS.filter(p => p.prov === document.getElementById("sProv").value);
+  if(PF.quien === "uno")
+    return PF.uno ? [PF.uno] : [];
+  const cods = document.getElementById("sSku").value
+    .split(/[\\s,;]+/).map(x=>x.trim()).filter(Boolean);
+  const out = [], faltan = [];
+  for(const c of cods){
+    const p = PRODUCTOS.find(x => x.cod === c || x.cod.split("+")[0] === c);
+    if(p){ if(!out.includes(p)) out.push(p); } else faltan.push(c);
+  }
+  document.getElementById("skuAviso").innerHTML = !cods.length
+    ? "Pegá los códigos y te digo cuáles reconozco."
+    : '<b style="color:'+(faltan.length?"var(--warn)":"var(--ok)")+'">'+out.length+' de '+cods.length+' reconocidos.</b>'+
+      (faltan.length ? " No encontré: "+faltan.slice(0,8).join(", ")+(faltan.length>8?"…":"") : "");
+  return out;
+}
+document.getElementById("sSku").addEventListener("input", ()=>{ alcance(); pintarCadena(); });
+document.getElementById("sProv").addEventListener("change", ()=>{ cargarSeis(); pintarCadena(); });
+
+/* buscar un artículo solo */
+document.getElementById("sUno").addEventListener("input",e=>{
+  const q = plano(e.target.value.trim());
+  const caja = document.getElementById("sUnoRes");
+  if(!q){ caja.innerHTML = ""; return; }
+  const hits = encontrar(q.split(/\\s+/).filter(Boolean)).hits.slice(0,6);
+  caja.innerHTML = hits.map(({p})=>
+    '<button class="item" data-u="'+p.cod+'">'+
+      '<span class="cod">'+p.cod.split("+")[0]+'</span>'+
+      '<span><span class="tit"><span>'+p.tit+'</span></span>'+
+      '<span class="meta"><span>'+p.prov+'</span><span>lista '+fmt(p.lista)+'</span></span></span>'+
+      '<span class="pre"><b>'+fmt(p.contado)+'</b></span></button>').join("")
+    || '<div class="vacio" style="padding:14px">Nada con eso.</div>';
+});
+document.getElementById("sUnoRes").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-u]"); if(!b) return;
+  PF.uno = prod(b.dataset.u);
+  document.getElementById("sUnoRes").innerHTML = "";
+  document.getElementById("sUno").value = PF.uno.tit;
+  document.getElementById("unoElegido").innerHTML =
+    '<b>'+PF.uno.cod.split("+")[0]+' · '+PF.uno.tit+'</b>';
+  cargarSeis(); pintarCadena();
+});
+
+/* ---------------------------------------------- paso 2: qué les cambio */
 document.getElementById("sModo").addEventListener("click",e=>{
   const b = e.target.closest("button[data-m]"); if(!b) return;
   for(const x of document.querySelectorAll("#sModo button")) x.setAttribute("aria-pressed", String(x===b));
-  const sube = b.dataset.m==="sube";
-  document.getElementById("cSube").hidden = !sube;
-  document.getElementById("cD1").hidden = sube;
-  document.getElementById("cD2").hidden = sube;
+  PF.modo = b.dataset.m;
+  document.getElementById("cSube").hidden = PF.modo !== "sube";
+  document.getElementById("cDesc").hidden = PF.modo !== "desc";
+  document.getElementById("cMk").hidden   = PF.modo !== "mk";
+  if(PF.modo === "desc") cargarSeis();
+  if(PF.modo === "mk"){
+    const a = alcance();
+    if(a.length) document.getElementById("sMk").value = Math.round(markupDe(a[0])*10)/10;
+    avisoMarkup();
+  }
 });
 
-function redondear(n){ return Math.ceil(n/100)*100; }
+/** Trae a los seis casilleros la cadena que rige para lo que está elegido. */
+function cargarSeis(){
+  const a = alcance();
+  const prov = PF.quien === "prov" ? document.getElementById("sProv").value
+             : (a.length ? a[0].prov : null);
+  PF.seis = (prov ? cadenaDe(prov) : CADENA_BASE).slice(0,6);
+  while(PF.seis.length < 6) PF.seis.push(0);
+  pintarSeis();
+}
+const ET_D = ["el de siempre","volumen","pago contado","temporada","negociado","extra"];
+function pintarSeis(){
+  document.getElementById("seisD").innerHTML = PF.seis.map((d,i)=>
+    '<div class="d'+(limD(d)>0?" puesto":"")+'">'+
+      '<span class="et">'+ET_D[i]+'</span>'+
+      '<input type="number" min="0" max="95" step="0.5" value="'+limD(d)+'" data-i="'+i+'" aria-label="descuento '+(i+1)+'">'+
+      '<span class="pc">%</span></div>').join("");
+  pintarComparar();
+}
+document.getElementById("seisD").addEventListener("input",e=>{
+  const i = e.target.closest("input[data-i]"); if(!i) return;
+  PF.seis[+i.dataset.i] = limD(i.value);
+  i.parentElement.classList.toggle("puesto", limD(i.value) > 0);
+  pintarComparar();
+});
+document.getElementById("sModoDesc").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-d]"); if(!b) return;
+  for(const x of document.querySelectorAll("#sModoDesc button")) x.setAttribute("aria-pressed", String(x===b));
+  S.modoDesc = b.dataset.d;
+  pintarComparar(); pintarCadena();
+});
 
-document.getElementById("btnSim").addEventListener("click",()=>{
-  const provSel = document.getElementById("sProv").value;
-  const modo = document.querySelector('#sModo button[aria-pressed="true"]').dataset.m;
-  let factor;
-  if(modo==="sube"){
-    factor = 1 + (+document.getElementById("sPct").value||0)/100;
-  } else {
-    const d1 = (+document.getElementById("sD1").value||0)/100;
-    const d2 = (+document.getElementById("sD2").value||0)/100;
-    if(d1>=1||d2>=1){ toast("El descuento tiene que ser menor que 100%."); return; }
-    factor = (1-d2)/(1-d1);
+/** Los dos resultados al lado, porque la diferencia es plata. */
+function pintarComparar(){
+  const ds = PF.seis;
+  const fc = factorDe(ds, "cascada"), fs = factorDe(ds, "suma");
+  const a = alcance();
+  const ej = a.length ? a[0] : null;
+  const puestos = ds.filter(d=>limD(d)>0).length;
+  const cc = ej ? costoDe(ej.lista, ds, "cascada") : null;
+  const cs = ej ? costoDe(ej.lista, ds, "suma") : null;
+  const dif = (cc!=null && cs!=null) ? cc - cs : null;
+
+  document.getElementById("compararDesc").innerHTML =
+    '<div class="c'+(S.modoDesc==="cascada"?" elegido":"")+'">'+
+      '<div class="k">En cascada</div>'+
+      '<div class="v">'+pct(-(1-fc)*100).replace("−","")+' de descuento</div>'+
+      '<div class="n">cada uno sobre lo que quedó'+(cc!=null?' · costo '+fmt(cc):'')+'</div></div>'+
+    '<div class="c'+(S.modoDesc==="suma"?" elegido":"")+'">'+
+      '<div class="k">Sumados</div>'+
+      '<div class="v">'+pct(-(1-fs)*100).replace("−","")+' de descuento</div>'+
+      '<div class="n">se suman y se descuenta una vez'+(cs!=null?' · costo '+fmt(cs):'')+'</div></div>'+
+    (puestos < 2
+      ? '<div class="dif">Con un solo descuento las dos cuentas dan igual. La diferencia aparece del segundo en adelante.</div>'
+      : '<div class="dif">'+
+        (dif!=null ? 'Son <b>'+fmt(Math.abs(dif))+'</b> de diferencia por unidad. ' : '')+
+        'Fijate en la factura del proveedor cuál de las dos usa y elegí esa.</div>');
+}
+
+function avisoMarkup(){
+  const a = alcance();
+  if(!a.length){ document.getElementById("mkAviso").textContent =
+    "Lo que se le pone encima al costo para llegar al precio de contado."; return; }
+  const mk = +document.getElementById("sMk").value || 0;
+  const p = a[0];
+  document.getElementById("mkAviso").innerHTML =
+    'Con '+mk+'% sobre el costo, <b>'+p.tit.slice(0,38)+'</b> pasaría de '+fmt(p.contado)+
+    ' a <b>'+fmt(precioDe(p.costo, mk))+'</b> de contado, y a '+
+    fmt(redondear(precioDe(p.costo, mk)*RECARGO_1PAGO))+' en 1 pago. '+
+    'El margen sobre el costo es justamente ese '+mk+'%.';
+}
+document.getElementById("sMk").addEventListener("input", avisoMarkup);
+
+/* ------------------------------------ la cadena, escrita como una cuenta */
+function pintarCadena(){
+  const a = alcance();
+  const p = a.length ? a[0] : null;
+  const de = document.getElementById("cadenaDe");
+  if(!p){
+    de.textContent = "elegí algo arriba";
+    document.getElementById("cadenaCuerpo").innerHTML =
+      '<div class="vacio" style="padding:18px">Elegí un proveedor, pegá unos códigos o buscá un artículo y te muestro de dónde sale cada peso de su precio.</div>';
+    return;
   }
-  const obj = S.objetivo = +document.getElementById("fObj").value || 35;
-  const filas = PRODUCTOS.filter(p=>p.prov===provSel).map(p=>{
-    const nuevo = Math.round(p.costo*factor);
-    const mQueda = (p.contado - nuevo)/nuevo*100;
-    const sugerido = redondear(nuevo*(1+obj/100));
-    return {p, nuevo, mQueda, sugerido, sube:(sugerido-p.contado)/p.contado*100};
-  }).sort((a,b)=>a.mQueda-b.mQueda);
+  const ds = cadenaDe(p.prov);
+  const fac = factorDe(ds);
+  const neto = Math.round(p.lista * fac);
+  const costo = Math.round(neto * IVA);
+  const mk = markupDe(p);
+  const r = (k,v,cls) => '<div class="r2'+(cls?" "+cls:"")+'"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
 
-  S.sim = {provSel, factor, filas};
+  de.innerHTML = a.length>1 ? "ejemplo: "+p.cod.split("+")[0] : p.cod.split("+")[0];
+  document.getElementById("cadenaCuerpo").innerHTML =
+    r("<b>"+p.tit+"</b>", p.prov, "sub")+
+    r("Lista del proveedor, sin IVA", fmt(p.lista))+
+    r("Descuentos: "+cadenaTxt(ds)+" ("+(S.modoDesc==="cascada"?"en cascada":"sumados")+")",
+      "−"+fmt(p.lista-neto))+
+    r("Queda neto", fmt(neto), "sub")+
+    r("IVA 21%", "+"+fmt(costo-neto))+
+    r("<b>Lo que te cuesta</b>", fmt(costo), "total")+
+    r("Markup "+mk+"% sobre el costo", "+"+fmt(precioDe(costo,mk)-costo))+
+    r("<b>Precio de contado</b>", fmt(precioDe(costo,mk)), "total")+
+    r("Recargo 13,64% si paga en 1 pago", "+"+fmt(redondear(precioDe(costo,mk)*RECARGO_1PAGO)-precioDe(costo,mk)), "sub")+
+    r("Precio de 1 pago", fmt(redondear(precioDe(costo,mk)*RECARGO_1PAGO)), "sub")+
+    (Math.abs(costo - p.costo) > 2
+      ? '<p class="nota" style="padding:10px 0 0">El costo cargado hoy es '+fmt(p.costo)+
+        '. La cuenta de arriba da '+fmt(costo)+', porque el modo de descuento elegido no es el mismo con el que se cargó. Aplicá el cambio para emparejarlos.</p>'
+      : '');
+}
+
+/* ------------------------------------------- paso 3: qué pasa si lo hago */
+document.getElementById("btnSim").addEventListener("click",()=>{
+  const a = alcance();
+  if(!a.length){ toast("Primero elegí a quiénes les cambiás el precio."); return; }
+  const obj = S.objetivo = +document.getElementById("fObj").value || 35;
+
+  const filas = a.map(p=>{
+    let lista = p.lista, ds = cadenaDe(p.prov).slice(), mk = markupDe(p);
+    if(PF.modo === "sube") lista = Math.round(lista * (1 + (+document.getElementById("sPct").value||0)/100));
+    if(PF.modo === "desc") ds = PF.seis.slice();
+    if(PF.modo === "mk")   mk = +document.getElementById("sMk").value || 0;
+    const nuevo = costoDe(lista, ds);
+    const sugerido = precioDe(nuevo, mk);
+    return {
+      p, lista, ds, mk, nuevo, sugerido,
+      mQueda: (p.contado - nuevo)/nuevo*100,
+      sube: (sugerido - p.contado)/p.contado*100
+    };
+  }).sort((x,y)=>x.mQueda - y.mQueda);
+
+  S.sim = {filas, quien: textoAlcance(a)};
 
   const bajoCosto = filas.filter(f=>f.mQueda<0).length;
   const flojos = filas.filter(f=>f.mQueda>=0 && f.mQueda<obj).length;
-  const enStock = filas.filter(f=>f.mQueda<0).reduce((a,f)=>a+(f.p.contado-f.nuevo)*f.p.stock,0);
+  const enStock = filas.filter(f=>f.mQueda<0).reduce((acc,f)=>acc+(f.p.contado-f.nuevo)*f.p.stock,0);
 
   document.getElementById("simResumen").hidden = false;
   document.getElementById("simResumen").innerHTML =
-    '<div><b>'+filas.length+'</b>artículos de '+provSel+'</div>'+
-    '<div style="color:var(--bad)"><b>'+bajoCosto+'</b>quedarían abajo del costo</div>'+
-    '<div style="color:var(--warn)"><b>'+flojos+'</b>no llegarían al '+obj+'%</div>'+
+    '<div><b>'+filas.length+'</b>'+(filas.length===1?"artículo":"artículos")+' de '+S.sim.quien+'</div>'+
+    '<div style="color:var(--bad)"><b>'+bajoCosto+'</b>'+(bajoCosto===1?"quedaría":"quedarían")+' abajo del costo</div>'+
+    '<div style="color:var(--warn)"><b>'+flojos+'</b>no '+(flojos===1?"llegaría":"llegarían")+' al '+obj+'%</div>'+
     '<div><b>'+fmt(Math.abs(enStock))+'</b>'+(enStock<0?"se pierden":"quedan")+' con el stock que hay</div>';
 
   document.getElementById("tbSim").innerHTML = filas.map(f=>
     '<tr><td class="num" style="font-size:12.5px">'+f.p.cod.split("+")[0]+'</td>'+
     '<td class="nom">'+f.p.tit+'</td>'+
+    '<td class="r">'+fmt(f.lista)+(f.lista!==f.p.lista?'<small style="display:block;color:var(--ink-3)">era '+fmt(f.p.lista)+'</small>':'')+'</td>'+
     '<td class="r" style="color:var(--ink-3)">'+fmt(f.p.costo)+'</td>'+
-    '<td class="r" style="font-weight:600">'+fmt(f.nuevo)+'</td>'+
+    '<td class="r" style="font-weight:700">'+fmt(f.nuevo)+'</td>'+
     '<td class="r">'+fmt(f.p.contado)+'</td>'+
+    '<td class="r" style="color:var(--accent);font-weight:700">'+fmt(f.sugerido)+'</td>'+
     '<td class="r" style="font-weight:600;color:'+(f.mQueda<0?"var(--bad)":(f.mQueda<obj?"var(--warn)":"var(--ok)"))+'">'+pct(f.mQueda)+'</td>'+
-    '<td class="r" style="color:var(--accent);font-weight:600">'+fmt(f.sugerido)+'</td>'+
-    '<td class="r">'+pct(f.sube)+'</td></tr>').join("")
-    || '<tr><td colspan="8" class="vacio">Ese proveedor no tiene artículos cargados.</td></tr>';
+    '<td class="r">'+pct(f.sube)+'</td></tr>').join("");
 
-  document.getElementById("simAcc").hidden = filas.length===0;
-  toast(filas.length+" artículos de "+provSel+" revisados. Todavía no se aplicó nada.");
+  document.getElementById("simAcc").hidden = false;
+  pintarCadena();
+  toast(filas.length+" "+(filas.length===1?"artículo revisado":"artículos revisados"));
 });
 
-document.getElementById("btnAplicarCosto").addEventListener("click",()=>{
-  if(!S.sim) return;
-  for(const f of S.sim.filas) f.p.costo = f.nuevo;
-  toast("Costos nuevos de "+S.sim.provSel+" aplicados. Los precios quedaron como estaban: mirá Gerencia.");
-  document.getElementById("btnSim").click();
-  pintarProd();
-});
-document.getElementById("btnAplicarTodo").addEventListener("click",()=>{
-  if(!S.sim) return;
+function textoAlcance(a){
+  if(PF.quien === "prov") return document.getElementById("sProv").value;
+  if(PF.quien === "uno")  return "un artículo";
+  return "la lista de códigos";
+}
+
+/* ------------------------------------------------------- aplicar ------- */
+function aplicar(todo){
+  if(!S.sim || !S.sim.filas.length) return;
   for(const f of S.sim.filas){
-    f.p.costo = f.nuevo;
-    f.p.contado = f.sugerido;
-    f.p.unPago = redondear(f.sugerido*RECARGO_1PAGO);
+    f.p.lista  = f.lista;
+    f.p.markup = f.mk;
+    f.p.costo  = f.nuevo;
+    if(todo){
+      f.p.contado = f.sugerido;
+      f.p.unPago  = redondear(f.sugerido * RECARGO_1PAGO);
+    }
   }
-  toast("Costos y precios de "+S.sim.provSel+" actualizados. El mostrador y la web ya venden con los nuevos.");
+  // Si se tocó la cadena de un proveedor entero, queda guardada para él.
+  if(PF.modo === "desc" && PF.quien === "prov")
+    S.cadenas[document.getElementById("sProv").value] = PF.seis.slice();
+  toast(todo
+    ? "Costos y precios de "+S.sim.quien+" actualizados. El mostrador y la web ya venden con los nuevos."
+    : "Costos nuevos de "+S.sim.quien+" aplicados. Los precios quedaron como estaban: mirá el margen en Gerencia.");
   document.getElementById("btnSim").click();
-  pintarProd();
-});
+  pintarProd(); pintarTicket(); buscar();
+}
+document.getElementById("btnAplicarCosto").addEventListener("click",()=>aplicar(false));
+document.getElementById("btnAplicarTodo").addEventListener("click",()=>aplicar(true));
 
 /* ======================================================= CAJA */
 function barra(et, v, max, f2){
@@ -2914,6 +3698,8 @@ function buscarPed(){
       '</tr>';
     }).join("")+
     '</tbody></table></div>';
+  const pri = caja.querySelector("tr[data-cod]");
+  if(pri) pri.classList.add("marcado");
   return hits.map(h=>h.p);
 }
 function agregarPed(cod, cuantos){
@@ -2930,7 +3716,9 @@ document.getElementById("qPed").addEventListener("input", buscarPed);
 document.getElementById("qPed").addEventListener("keydown",e=>{
   if(e.key !== "Enter") return;
   const hits = buscarPed();
-  if(hits.length) agregarPed(hits[0].cod, 1);
+  const t = document.querySelector("#resPed tr.marcado");
+  if(t) agregarPed(t.dataset.cod, 1);
+  else if(hits.length) agregarPed(hits[0].cod, 1);
 });
 document.getElementById("resPed").addEventListener("click",e=>{
   // Sirve el botón Sumar y también tocar el renglón en cualquier lado,
@@ -3075,11 +3863,19 @@ document.getElementById("bandeja").addEventListener("click",e=>{
     '; con los 10.000 del sistema de verdad engancharía casi toda. Lo que no reconoce queda marcado para que lo mires vos: nunca lo adivina.</p>';
 
   // Carga el simulador de abajo con lo que dice la lista y lo corre.
+  document.querySelector('#sQuien button[data-q="prov"]').click();
   document.getElementById("sProv").value = s.prov;
-  const btnModo = document.querySelector('#sModo button[data-m="'+s.modo+'"]');
-  if(btnModo) btnModo.click();
-  if(s.modo==="sube") document.getElementById("sPct").value = s.valor;
-  else { document.getElementById("sD1").value = s.d1; document.getElementById("sD2").value = s.d2; }
+  if(s.modo === "sube"){
+    document.querySelector('#sModo button[data-m="sube"]').click();
+    document.getElementById("sPct").value = s.valor;
+  } else {
+    // La lista avisa que baja el descuento: se carga la cadena que rige y
+    // se le cambia el primero, que es el que el proveedor mueve.
+    document.querySelector('#sModo button[data-m="desc"]').click();
+    PF.seis = cadenaDe(s.prov).slice(0,6);
+    PF.seis[0] = limD(s.d2);
+    pintarSeis();
+  }
   document.getElementById("btnSim").click();
   document.getElementById("lectura").scrollIntoView({behavior:"smooth", block:"start"});
 });
@@ -3362,7 +4158,7 @@ function campo(id, et, opciones, valor, porque, auto){
     '<select id="'+id+'" data-k="'+id+'">'+
       opciones.map(function(o){ return '<option'+(o===valor?' selected':'')+'>'+o+'</option>'; }).join("")+
     '</select>'+
-    (porque ? '<span class="por">'+(auto?'<b>lo elegí yo</b> porque ':'')+porque+'</span>' : '')+
+    (porque ? '<span class="por">'+porque+'</span>' : '')+
   '</div>';
 }
 
@@ -3803,6 +4599,7 @@ document.getElementById("bajadas").addEventListener("click",e=>{
   }
 });
 
+cargarSeis(); pintarCadena();
 pintarSucs(); pintarUsuarios(); pintarEscritorio(); pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
 </script>
 </body>
