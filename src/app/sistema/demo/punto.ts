@@ -1232,7 +1232,7 @@ footer{
             <div><label for="aL2">Lista 2, sobre la Lista 1</label>
               <div class="sku-fila"><input id="aL2" type="number" min="0" max="400" step="0.5" value="25"><span class="pc-grande">%</span></div></div>
           </div>
-          <span class="por" style="display:block;margin:-6px 0 14px">Como las arma el sistema de hoy. La Lista 2 es el precio de 1 pago; el de contado es esa misma menos 12%.</span>
+          <span class="por" style="display:block;margin:-6px 0 14px">Como las arma el sistema de hoy: la 1 sobre el costo, la 2 sobre la 1.</span>
           <div class="cuenta" id="aCuenta"></div>
           <div class="envio-acc" style="padding:14px 0 0">
             <button class="b1" id="aGuardar">Guardar el artículo</button>
@@ -2011,6 +2011,63 @@ const S = {
     p.markup = Math.round((p.contado / p.costo - 1) * 1000) / 10;
   }
 })();
+
+/* ================================================= LO QUE CARGA EL QUE USA
+   Una demo que se recarga y se come el artículo que acabás de dar de alta
+   no sirve para mostrarla. Lo que se carga o se edita queda guardado en el
+   navegador de esta computadora: no viaja a ningún lado ni lo ve nadie más.
+   Se guarda sólo lo tocado, no el catálogo entero, así una versión nueva de
+   la demo no se lleva puesto lo que cargaste. */
+const GUARDA = "punto.catalogo.v1";
+const CAMPOS_ED = ["tit","desc","rub","prov","lista","seis","l1","l2","iva",
+                   "costo","contado","unPago","markup"];
+
+/** El stock contesta por el depósito de la sucursal en la que se está. */
+function ponerStock(p){
+  Object.defineProperty(p,"stock",{
+    get(){ return this.dep[depAct()]; },
+    set(v){ this.dep[depAct()] = Math.max(0, Math.round(v)); },
+    enumerable:true, configurable:true
+  });
+  return p;
+}
+function serialDe(p){
+  const o = { cod: p.cod, dep: { BA: p.dep.BA, TS: p.dep.TS } };
+  for(const k of CAMPOS_ED) if(p[k] !== undefined) o[k] = p[k];
+  return o;
+}
+function guardarCatalogo(){
+  try{
+    localStorage.setItem(GUARDA, JSON.stringify({
+      nuevos:  PRODUCTOS.filter(p=>p.cargado).map(serialDe),
+      cambios: PRODUCTOS.filter(p=>p.tocado && !p.cargado).map(serialDe)
+    }));
+  }catch(e){ /* sin espacio o en ventana privada: la demo anda igual */ }
+}
+function restaurarCatalogo(){
+  let d = null;
+  try{ d = JSON.parse(localStorage.getItem(GUARDA) || "null"); }catch(e){ return 0; }
+  if(!d) return 0;
+  let n = 0;
+  for(const o of (d.cambios || [])){
+    const p = PRODUCTOS.find(x=>x.cod === o.cod);
+    if(!p) continue;
+    const dep = o.dep; delete o.dep;
+    Object.assign(p, o);
+    if(dep){ p.dep.BA = dep.BA; p.dep.TS = dep.TS; }
+    p.tocado = true; n++;
+  }
+  for(const o of (d.nuevos || [])){
+    if(PRODUCTOS.some(x=>x.cod === o.cod)) continue;
+    const p = Object.assign({ costoBase:o.costo, cargado:true }, o);
+    p.propio = plano(p.cod+" "+p.tit+" "+p.rub+" "+p.prov);
+    p.blob   = plano(p.cod+" "+p.tit+" "+p.rub+" "+p.prov+" "+(ALIAS[p.rub]||""));
+    PRODUCTOS.push(ponerStock(p));
+    n++;
+  }
+  return n;
+}
+restaurarCatalogo();
 
 const prod = c => PRODUCTOS.find(p=>p.cod===c);
 /* Lo que la venta deja: el recargo de tarjeta no es ganancia, lo paga la
@@ -2943,11 +3000,9 @@ function altaCuenta(){
     r("<b>Te cuesta, con IVA</b>", fmt(costo), "total")+
     r("Lista 1, "+pTxt(l1)+"% sobre el costo", fmt(pr.lista1))+
     r("<b>Lista 2</b>, "+pTxt(l2)+"% sobre la Lista 1", fmt(pr.lista2), "total")+
-    r("Contado, la Lista 2 menos 12%", fmt(contado), "sub")+
-    (costo>0 ? r("Te queda "+pTxt(mk)+"% sobre el costo", fmt(contado-costo), "sub") : "")+
-    (costo>0 && mk < 10
-      ? '<p class="nota" style="padding:8px 0 0;color:var(--bad)"><b>Así no alcanza.</b> Con '+pTxt(mk)+'% sobre el costo no cubrís los cargos de venta ni el costo de tener la plata parada.</p>'
-      : "")+
+    (costo>0 && l1 < 10
+      ? '<p class="nota" style="padding:8px 0 0;color:var(--bad)"><b>Así no alcanza.</b> Con '+pTxt(l1)+'% sobre el costo no cubrís los cargos de venta ni el costo de tener la plata parada.</p>'
+      : '<p class="nota" style="padding:8px 0 0">Lo que termina pagando el cliente depende de cómo pague. Eso se decide en la venta, no acá.</p>')+
   '</div>';
 }
 
@@ -3078,25 +3133,22 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
     if(!p){ toast("Ese artículo ya no está."); cerrarAlta(); return; }
     const antes = p.contado;
     Object.assign(p, datos);
+    p.tocado = true; guardarCatalogo();
     llenarSelects(); pintarProd(); buscar(); pintarTicket();
     cerrarAlta();
     toast(cod+" guardado. "+(antes===contado
-      ? "El precio quedó igual."
-      : "Pasa de "+fmt(antes)+" a "+fmt(contado)+" de contado."));
+      ? "La Lista 2 quedó igual."
+      : "La Lista 2 pasa a "+fmt(pr.lista2)+"."));
     return;
   }
 
-  const p = Object.assign({ costoBase: costo }, datos);
-  Object.defineProperty(p, "stock", {
-    get(){ return this.dep[depAct()]; },
-    set(v){ this.dep[depAct()] = Math.max(0, Math.round(v)); },
-    enumerable:true, configurable:true
-  });
+  const p = ponerStock(Object.assign({ costoBase: costo, cargado: true }, datos));
   S.cadenas[prov] = S.cadenas[prov] || ALTA.seis.slice();
   PRODUCTOS.push(p);
+  guardarCatalogo();
   llenarSelects(); pintarProd(); buscar();
   cerrarAlta();
-  toast(cod+" · "+tit.slice(0,40)+" cargado. Cuesta "+fmt(costo)+" y se vende a "+fmt(contado)+".");
+  toast(cod+" · "+tit.slice(0,40)+" cargado. Cuesta "+fmt(costo)+" con IVA y la Lista 2 queda en "+fmt(pr.lista2)+".");
 });
 
 /* =================================================== PRODUCTOS */
@@ -3148,13 +3200,24 @@ function pintarProd(){
 
   const bajo = PRODUCTOS.filter(p=>margen(p)<0);
   const flojos = PRODUCTOS.filter(p=>{const m=margen(p); return m>=0 && m<S.objetivo;});
+  const mios = PRODUCTOS.filter(p=>p.cargado || p.tocado).length;
   document.getElementById("prodPie").innerHTML =
     "Se ven <b>"+lista.length+"</b> de "+PRODUCTOS.length+" artículos. En todo el catálogo: <b>"+bajo.length+
     "</b> se venden por debajo del costo y <b>"+flojos.length+"</b> no llegan al "+S.objetivo+
-    "%. El costo se puede corregir acá mismo y el margen se recalcula solo.";
+    "%. El costo se puede corregir acá mismo y el margen se recalcula solo."+
+    (mios ? ' <b>'+mios+'</b> '+(mios===1 ? "artículo lo cargaste o lo editaste vos y queda guardado"
+                                          : "artículos los cargaste o los editaste vos y quedan guardados")+
+            ' en esta computadora. <button class="b3" id="btnOlvidar" style="padding:3px 11px;font-size:12px;margin-left:4px">Volver al catálogo original</button>'
+          : "");
 }
 for(const id of ["fProv","fRub","fObj","fFlojos"]) document.getElementById(id).addEventListener("input",pintarProd);
 document.getElementById("fBusca").addEventListener("input", pintarProd);
+document.getElementById("prodPie").addEventListener("click",e=>{
+  if(!e.target.closest("#btnOlvidar")) return;
+  if(!confirm("¿Borro los artículos que cargaste y los cambios que hiciste, y vuelvo al catálogo original?")) return;
+  try{ localStorage.removeItem(GUARDA); }catch(e2){}
+  location.reload();
+});
 document.getElementById("tbProd").addEventListener("click",e=>{
   const b = e.target.closest("button[data-ed]"); if(!b) return;
   const p = PRODUCTOS.find(x=>x.cod === b.dataset.ed);
@@ -3167,6 +3230,7 @@ document.getElementById("tbProd").addEventListener("change",e=>{
     const neto = netoDe(p);                 // el neto no cambia: cambia el IVA
     p.iva = +sv.value;
     p.costo = Math.round(neto * facIva(p.iva));
+    p.tocado = true; guardarCatalogo();
     pintarProd(); pintarTicket();
     toast(p.cod.split("+")[0]+" pasa a IVA "+ivaTxt(p.iva)+". Cuesta "+fmt(p.costo)+" con IVA.");
     return;
@@ -3175,6 +3239,7 @@ document.getElementById("tbProd").addEventListener("change",e=>{
   const p = prod(i.dataset.cod); if(!p) return;
   const neto = Math.max(0, +i.value||0);
   p.costo = Math.round(neto * facIva(ivaDe(p)));
+  p.tocado = true; guardarCatalogo();
   pintarProd();
   toast("Costo de "+p.cod.split("+")[0]+": "+fmt(neto)+" sin IVA, "+fmt(p.costo)+" con IVA. El margen ya está recalculado.");
 });
@@ -3432,7 +3497,9 @@ function aplicar(todo){
       f.p.contado = f.sugerido;
       f.p.unPago  = redondear(f.sugerido * RECARGO_1PAGO);
     }
+    f.p.tocado = true;
   }
+  guardarCatalogo();
   // Si se tocó la cadena de un proveedor entero, queda guardada para él.
   if(PF.modo === "desc" && PF.quien === "prov")
     S.cadenas[document.getElementById("sProv").value] = PF.seis.slice();
