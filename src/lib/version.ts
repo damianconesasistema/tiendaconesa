@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.58.9";
+export const APP_VERSION = "V.0.59.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.0",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\" — LISTA 1 Y LISTA 2, COMO LAS ARMA EL SISTEMA DE HOY: la Lista 1 es el costo más 25% y la Lista 2 es la Lista 1 más 25%. Los dos porcentajes se editan. La Lista 2 es el precio de 1 pago y el de contado es esa misma menos 12%.",
+      "EL COSTO SE MUESTRA SIN IVA, CON LA ALÍCUOTA AL LADO: cada artículo puede ir al 21% o al 10,5%, se cambia desde la misma tabla y el costo con IVA, el margen y el IVA del ticket se recalculan solos. Si en una venta hay artículos de las dos alícuotas, el total lo dice.",
+      "LÁPIZ PARA EDITAR CADA ARTÍCULO: abre la misma ficha del alta con todo cargado (título, descripción, código, stock por depósito, lista, descuentos, IVA y las dos listas) y guarda encima. Si nunca se le pusieron las dos listas, deduce la Lista 2 del precio que tiene hoy.",
+      "BUSCADOR EN PRODUCTOS: se escribe código, nombre o marca y la tabla se filtra mientras se escribe, sin tener que usar los desplegables.",
+    ],
+  },
   {
     version: "V.0.58.9",
     date: "2026-11-04",

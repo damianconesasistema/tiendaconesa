@@ -679,6 +679,14 @@ main{padding-bottom:96px}
 tr.marcado{background:var(--accent-soft) !important; box-shadow:inset 3px 0 0 var(--accent)}
 tr.marcado .nom{color:var(--accent); font-weight:700}
 
+/* El lápiz de cada renglón de productos. */
+.filtros .busca-chica input{min-width:230px}
+.lapiz{
+  border:1px solid var(--line-2); background:var(--surface); color:var(--ink-3);
+  border-radius:8px; padding:4px 7px 2px; cursor:pointer; line-height:1;
+}
+.lapiz:hover{color:var(--accent); border-color:var(--accent); background:var(--accent-soft)}
+
 .bajadas{display:grid; gap:10px; padding:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
 .bajadas button{
   text-align:left; border:1px solid var(--line-2); background:var(--surface);
@@ -1163,8 +1171,8 @@ footer{
 
   <div class="card armando" style="margin-bottom:16px">
     <div class="card-h">
-      <h3>Artículo nuevo</h3>
-      <span class="sub">el precio se arma solo mientras escribís</span>
+      <h3 id="altaTit">Artículo nuevo</h3>
+      <span class="sub" id="altaSub">el precio se arma solo mientras escribís</span>
       <button class="b2" id="btnAbrirAlta" style="margin-left:12px;padding:6px 16px">Cargar uno</button>
     </div>
     <div id="altaCuerpo" hidden>
@@ -1206,24 +1214,25 @@ footer{
         </div>
 
         <div class="col">
-          <div class="sub-campo">
-            <label for="aLista">Lista del proveedor, sin IVA</label>
-            <input id="aLista" type="number" min="0" step="100" value="0">
-            <span class="por">el número que figura en la lista, antes de descuentos</span>
+          <div class="sub-campo dos-chicos">
+            <div><label for="aLista">Lista del proveedor, sin IVA</label>
+              <input id="aLista" type="number" min="0" step="100" value="0"></div>
+            <div><label for="aIva">IVA del artículo</label>
+              <select id="aIva"><option value="21">21%</option><option value="10.5">10,5%</option></select></div>
           </div>
+          <span class="por" style="display:block;margin:-6px 0 14px">El número que figura en la lista, antes de descuentos. Casi todo va al 21%.</span>
           <div class="sub-campo">
             <label>Descuentos que te hace</label>
             <div class="seis" id="aSeis"></div>
             <span class="por" id="aSeisAviso"></span>
           </div>
-          <div class="sub-campo">
-            <label for="aMk">Markup sobre el costo</label>
-            <div class="sku-fila">
-              <input id="aMk" type="number" min="0" max="400" step="0.5" value="42">
-              <span class="pc-grande">%</span>
-            </div>
-            <span class="por">lo que le ponés encima para llegar al precio de contado</span>
+          <div class="sub-campo dos-chicos">
+            <div><label for="aL1">Lista 1, sobre el costo</label>
+              <div class="sku-fila"><input id="aL1" type="number" min="0" max="400" step="0.5" value="25"><span class="pc-grande">%</span></div></div>
+            <div><label for="aL2">Lista 2, sobre la Lista 1</label>
+              <div class="sku-fila"><input id="aL2" type="number" min="0" max="400" step="0.5" value="25"><span class="pc-grande">%</span></div></div>
           </div>
+          <span class="por" style="display:block;margin:-6px 0 14px">Como las arma el sistema de hoy. La Lista 2 es el precio de 1 pago; el de contado es esa misma menos 12%.</span>
           <div class="cuenta" id="aCuenta"></div>
           <div class="envio-acc" style="padding:14px 0 0">
             <button class="b1" id="aGuardar">Guardar el artículo</button>
@@ -1238,6 +1247,7 @@ footer{
     <div class="card-h">
       <h3>Filtros</h3>
       <div class="filtros" style="margin-left:auto">
+        <label class="busca-chica">Buscar <input id="fBusca" type="search" placeholder="código, nombre o marca" autocomplete="off"></label>
         <label>Proveedor <select id="fProv"></select></label>
         <label>Rubro <select id="fRub"></select></label>
         <label>Margen objetivo <input id="fObj" type="number" value="35" min="0" max="90" step="1">%</label>
@@ -1248,8 +1258,8 @@ footer{
       <table>
         <thead><tr>
           <th>Código</th><th>Artículo</th><th>Proveedor</th>
-          <th class="r">Costo</th><th class="r">Contado</th><th class="r">1 pago</th>
-          <th class="r">Margen</th><th>Estado</th><th class="r">Stock</th>
+          <th class="r">Costo sin IVA</th><th class="r">IVA</th><th class="r">Contado</th><th class="r">1 pago</th>
+          <th class="r">Margen</th><th>Estado</th><th class="r">Stock</th><th></th>
         </tr></thead>
         <tbody id="tbProd"></tbody>
       </table>
@@ -1869,6 +1879,16 @@ for(const p of PRODUCTOS){
    el de siempre, el de volumen, el de pago contado, el de temporada, y
    los dos que aparecen cuando uno pelea. */
 const IVA = 1.21;
+// No todo va al 21%. Lo que va al 10,5% hay que poder marcarlo, porque si
+// no el costo queda inflado y el margen que se ve es mentira.
+const ALICUOTAS = [21, 10.5];
+const ivaDe  = p => (p && p.iva != null) ? +p.iva : 21;
+const facIva = i => 1 + ((i == null ? 21 : +i) / 100);
+const ivaTxt = i => String(i == null ? 21 : i).replace(".", ",") + "%";
+/** Un porcentaje suelto, escrito como se escribe aca: 3,7 y no 3.7. */
+const pTxt = n => String(n).replace(".", ",");
+/** Lo que cuesta sin IVA: es como viene la lista del proveedor. */
+const netoDe = p => Math.round(p.costo / facIva(ivaDe(p)));
 const RECARGO_CONTADO = 1.1363636363636365;   // el 12% de descuento al revés
 
 const DESC_PROV = {
@@ -1908,7 +1928,7 @@ const descEquiv = (ds, modo) => (1 - factorDe(ds, modo)) * 100;
 const cadenaTxt = ds => ds.filter(d=>limD(d)>0).map(d=>limD(d)+"%").join(" + ") || "sin descuento";
 
 /** El costo que sale de una lista y una cadena. Con IVA, como se paga. */
-const costoDe = (lista, ds, modo) => Math.round(lista * factorDe(ds, modo) * IVA);
+const costoDe = (lista, ds, modo, iva) => Math.round(lista * factorDe(ds, modo) * facIva(iva));
 /** Y el precio que sale de un costo y un markup. */
 const precioDe = (costo, mk) => redondear(costo * (1 + (+mk||0)/100));
 
@@ -1987,7 +2007,7 @@ const S = {
 (function armarListas(){
   for(const p of PRODUCTOS){
     const fac = factorDe(cadenaDe(p.prov), "cascada");
-    p.lista  = Math.round(p.costo / (fac * IVA));   // lista sin IVA
+    p.lista  = Math.round(p.costo / (fac * facIva(ivaDe(p))));   // lista sin IVA
     p.markup = Math.round((p.contado / p.costo - 1) * 1000) / 10;
   }
 })();
@@ -2547,13 +2567,23 @@ function pintarTicket(){
   const marg = base - costo;
   const mp = costo>0 ? marg/costo*100 : 0;
   const cls = mp>=S.objetivo ? "p-ok" : (mp>=10 ? "p-warn" : "p-bad");
-  const iva = Math.round(total - total/1.21);
+  // El IVA incluido se arma renglón por renglón: si hay algo al 10,5%,
+  // el total no lleva 21% y el libro tiene que decir la verdad.
+  const ivaLin = S.linea.reduce((a,l)=>{
+    const p = prod(l.cod), t = p.contado * l.cant;
+    return a + (t - t/facIva(ivaDe(p)));
+  }, 0);
+  const iva = Math.round(ivaLin * (bruto>0 ? total/bruto : 1));
+  const alics = [...new Set(S.linea.map(l=>ivaDe(prod(l.cod))))];
+  const etIva = alics.length > 1
+    ? "IVA ya incluido ("+alics.sort((a,b)=>b-a).map(ivaTxt).join(" y ")+")"
+    : "IVA "+ivaTxt(alics[0])+", ya incluido";
 
   document.getElementById("tkTot").innerHTML =
     (S.linea.length ? '<div class="tr"><span>'+unid+' artículos, de contado</span><b>'+fmt(bruto)+'</b></div>'+
       (dto>0 ? '<div class="tr"><span>Descuento '+S.desc+'%</span><b>−'+fmt(dto)+'</b></div>' : '')+
       (MULT[S.forma]!==1 ? '<div class="tr"><span>Recargo '+S.forma.toLowerCase()+'</span><b>'+fmt(total-base)+'</b></div>' : '')+
-      '<div class="tr"><span style="color:var(--ink-3)">IVA 21%, ya incluido</span><b style="color:var(--ink-3)">'+fmt(iva)+'</b></div>'+
+      '<div class="tr"><span style="color:var(--ink-3)">'+etIva+'</span><b style="color:var(--ink-3)">'+fmt(iva)+'</b></div>'+
       // Al mostrador no se le muestra el costo ni el margen en pesos: solo
       // si la venta deja o no deja. El numero es de gerencia.
       '<div class="tr"><span>Lo que deja</span><b><span class="pill '+cls+'">'+
@@ -2846,7 +2876,7 @@ document.getElementById("teclasX").addEventListener("click",()=>{
    Todo junto: lo que se escribe, lo que cuesta y a cuánto se vende. El
    código lo propone el sistema y controla que no esté usado, que es el
    error que después cuesta una semana de desorden. */
-const ALTA = { seis:[0,0,0,0,0,0] };
+const ALTA = { seis:[0,0,0,0,0,0], editando:null };
 
 /** El código que sigue, en la numeración que ya usa el catálogo. */
 function skuSugerido(){
@@ -2867,7 +2897,7 @@ function revisarSku(){
   const v = document.getElementById("aSku").value.trim();
   const av = document.getElementById("aSkuAviso");
   if(!v){ av.innerHTML = "Hace falta un código."; return false; }
-  const usado = PRODUCTOS.find(p=>p.cod === v || p.cod.split("+")[0] === v);
+  const usado = PRODUCTOS.find(p=>(p.cod === v || p.cod.split("+")[0] === v) && p.cod !== ALTA.editando);
   if(usado){
     av.innerHTML = '<b style="color:var(--bad)">Ese código ya es de otro artículo:</b> '+usado.tit.slice(0,54)+
       '. Cambialo, o vas a tener dos cosas distintas con el mismo número.';
@@ -2877,15 +2907,25 @@ function revisarSku(){
   return true;
 }
 
+/** Los dos escalones del sistema: costo -> Lista 1 -> Lista 2.
+    El precio de contado es la Lista 2 menos el recargo de 1 pago. */
+function preciosDeLista(costo, l1, l2){
+  const lista1 = redondear(costo * (1 + (+l1||0)/100));
+  const lista2 = redondear(lista1 * (1 + (+l2||0)/100));
+  return { lista1, lista2, contado: redondear(lista2 / RECARGO_1PAGO) };
+}
 function altaCuenta(){
   const lista = +document.getElementById("aLista").value || 0;
-  const mk = +document.getElementById("aMk").value || 0;
+  const l1 = +document.getElementById("aL1").value || 0;
+  const l2 = +document.getElementById("aL2").value || 0;
+  const iva = +document.getElementById("aIva").value || 21;
   const ds = ALTA.seis;
   const fac = factorDe(ds);
   const neto = Math.round(lista * fac);
-  const costo = Math.round(neto * IVA);
-  const contado = precioDe(costo, mk);
-  const unPago = redondear(contado * RECARGO_1PAGO);
+  const costo = Math.round(neto * facIva(iva));
+  const pr = preciosDeLista(costo, l1, l2);
+  const contado = pr.contado;
+  const mk = costo > 0 ? Math.round((contado/costo - 1) * 1000)/10 : 0;
 
   document.getElementById("aSeisAviso").innerHTML = lista > 0
     ? cadenaTxt(ds)+" ("+(S.modoDesc==="cascada"?"en cascada":"sumados")+") = "+
@@ -2896,37 +2936,65 @@ function altaCuenta(){
   document.getElementById("aCuenta").innerHTML = '<div class="cadena" style="padding:0">'+
     r("Lista sin IVA", fmt(lista))+
     r("Menos los descuentos", "−"+fmt(lista-neto))+
-    r("Más IVA 21%", "+"+fmt(costo-neto))+
+    r("Más IVA "+ivaTxt(iva), "+"+fmt(costo-neto))+
     r("<b>Te cuesta</b>", fmt(costo), "total")+
-    r("Markup "+mk+"%", "+"+fmt(contado-costo))+
-    r("<b>Precio de contado</b>", fmt(contado), "total")+
-    r("Precio de 1 pago", fmt(unPago), "sub")+
+    r("Lista 1, "+pTxt(l1)+"% sobre el costo", fmt(pr.lista1))+
+    r("<b>Lista 2</b>, "+pTxt(l2)+"% sobre la Lista 1", fmt(pr.lista2), "total")+
+    r("Contado, la Lista 2 menos 12%", fmt(contado), "sub")+
+    (costo>0 ? r("Te queda "+pTxt(mk)+"% sobre el costo", fmt(contado-costo), "sub") : "")+
     (costo>0 && mk < 10
-      ? '<p class="nota" style="padding:8px 0 0;color:var(--bad)"><b>Ese markup no alcanza.</b> Con '+mk+'% no cubrís los cargos de venta ni el costo de tener la plata parada.</p>'
+      ? '<p class="nota" style="padding:8px 0 0;color:var(--bad)"><b>Así no alcanza.</b> Con '+pTxt(mk)+'% sobre el costo no cubrís los cargos de venta ni el costo de tener la plata parada.</p>'
       : "")+
   '</div>';
 }
 
-function abrirAlta(){
+const V = (id,v) => { document.getElementById(id).value = v; };
+function abrirAlta(p){
   document.getElementById("altaCuerpo").hidden = false;
   document.getElementById("btnAbrirAlta").textContent = "Cerrar";
   document.getElementById("aMarcas").innerHTML =
-    [...new Set(PRODUCTOS.map(p=>p.prov))].sort().map(p=>'<option value="'+p+'">').join("");
+    [...new Set(PRODUCTOS.map(x=>x.prov))].sort().map(x=>'<option value="'+x+'">').join("");
   document.getElementById("aRubro").innerHTML =
-    [...new Set(PRODUCTOS.map(p=>p.rub))].sort().map(r=>'<option>'+r+'</option>').join("");
-  document.getElementById("aSku").value = skuSugerido();
-  ALTA.seis = CADENA_BASE.slice(0,6);
+    [...new Set(PRODUCTOS.map(x=>x.rub))].sort().map(r=>'<option>'+r+'</option>').join("");
+
+  ALTA.editando = p ? p.cod : null;
+  document.getElementById("altaTit").textContent = p ? "Editar el artículo" : "Artículo nuevo";
+  document.getElementById("altaSub").textContent = p
+    ? p.cod.split("+")[0]+" · "+p.tit.slice(0,40)
+    : "el precio se arma solo mientras escribís";
+  document.getElementById("aGuardar").textContent = p ? "Guardar los cambios" : "Guardar el artículo";
+
+  if(p){
+    // Los descuentos guardados del artículo; si no tiene, los del proveedor.
+    ALTA.seis = (p.seis || cadenaDe(p.prov)).slice(0,6);
+    V("aMarca", p.prov); V("aRubro", p.rub); V("aTit", p.tit); V("aDesc", p.desc || "");
+    V("aSku", p.cod); V("aLista", p.lista || 0); V("aIva", ivaDe(p));
+    V("aStockBA", p.dep.BA); V("aStockTS", p.dep.TS);
+    // Si nunca se le pusieron las dos listas, se deducen del precio que tiene
+    // hoy: así abre mostrando lo que de verdad vale, no un precio inventado.
+    const l1 = p.l1 != null ? p.l1 : 25;
+    const base = redondear(p.costo * (1 + l1/100));
+    V("aL1", l1);
+    V("aL2", p.l2 != null ? p.l2 : Math.round((p.unPago/base - 1) * 1000)/10);
+  } else {
+    ALTA.seis = CADENA_BASE.slice(0,6);
+    V("aMarca",""); V("aTit",""); V("aDesc",""); V("aLista",0);
+    V("aStockBA",0); V("aStockTS",0); V("aL1",25); V("aL2",25); V("aIva",21);
+    V("aSku", skuSugerido());
+  }
   while(ALTA.seis.length < 6) ALTA.seis.push(0);
   pintarAltaSeis();
   revisarSku(); altaCuenta();
-  document.getElementById("aMarca").focus();
+  document.getElementById("altaCuerpo").scrollIntoView({block:"nearest", behavior:"smooth"});
+  document.getElementById(p ? "aTit" : "aMarca").focus();
 }
 function cerrarAlta(){
   document.getElementById("altaCuerpo").hidden = true;
   document.getElementById("btnAbrirAlta").textContent = "Cargar uno";
+  ALTA.editando = null;
 }
 document.getElementById("btnAbrirAlta").addEventListener("click",()=>{
-  if(document.getElementById("altaCuerpo").hidden) abrirAlta(); else cerrarAlta();
+  if(document.getElementById("altaCuerpo").hidden || ALTA.editando) abrirAlta(null); else cerrarAlta();
 });
 document.getElementById("aCancelar").addEventListener("click", cerrarAlta);
 
@@ -2943,7 +3011,8 @@ document.getElementById("aSeis").addEventListener("input",e=>{
   i.parentElement.classList.toggle("puesto", limD(i.value) > 0);
   altaCuenta();
 });
-for(const id of ["aLista","aMk"]) document.getElementById(id).addEventListener("input", altaCuenta);
+for(const id of ["aLista","aL1","aL2"]) document.getElementById(id).addEventListener("input", altaCuenta);
+document.getElementById("aIva").addEventListener("change", altaCuenta);
 document.getElementById("aSku").addEventListener("input", revisarSku);
 document.getElementById("aOtroSku").addEventListener("click",()=>{
   const v = document.getElementById("aSku").value.trim();
@@ -2977,26 +3046,44 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   const prov = document.getElementById("aMarca").value.trim().toUpperCase();
   const rub = document.getElementById("aRubro").value;
   const lista = +document.getElementById("aLista").value || 0;
-  const mk = +document.getElementById("aMk").value || 0;
+  const l1 = +document.getElementById("aL1").value || 0;
+  const l2 = +document.getElementById("aL2").value || 0;
+  const iva = +document.getElementById("aIva").value || 21;
 
   if(!revisarSku()){ document.getElementById("aSku").focus(); return; }
   if(tit.length < 6){ toast("Falta el título del artículo."); document.getElementById("aTit").focus(); return; }
   if(!prov){ toast("Falta la marca o el proveedor."); document.getElementById("aMarca").focus(); return; }
   if(lista <= 0){ toast("Falta la lista del proveedor: sin eso no hay costo."); document.getElementById("aLista").focus(); return; }
 
-  const costo = costoDe(lista, ALTA.seis);
-  const contado = precioDe(costo, mk);
-  const p = {
+  const costo = costoDe(lista, ALTA.seis, null, iva);
+  const pr = preciosDeLista(costo, l1, l2);
+  const contado = pr.contado;
+  const datos = {
     cod, tit, rub, prov,
     desc: document.getElementById("aDesc").value.trim(),
-    lista, markup: mk,
-    costo, costoBase: costo,
-    contado, unPago: redondear(contado * RECARGO_1PAGO),
+    lista, seis: ALTA.seis.slice(), l1, l2, iva,
+    markup: Math.round((contado/costo - 1) * 1000)/10,
+    costo, contado, unPago: pr.lista2,
     dep: { BA: Math.max(0, +document.getElementById("aStockBA").value||0),
            TS: Math.max(0, +document.getElementById("aStockTS").value||0) },
     propio: plano(cod+" "+tit+" "+rub+" "+prov),
     blob: plano(cod+" "+tit+" "+rub+" "+prov+" "+(ALIAS[rub]||""))
   };
+
+  if(ALTA.editando){
+    const p = PRODUCTOS.find(x=>x.cod === ALTA.editando);
+    if(!p){ toast("Ese artículo ya no está."); cerrarAlta(); return; }
+    const antes = p.contado;
+    Object.assign(p, datos);
+    llenarSelects(); pintarProd(); buscar(); pintarTicket();
+    cerrarAlta();
+    toast(cod+" guardado. "+(antes===contado
+      ? "El precio quedó igual."
+      : "Pasa de "+fmt(antes)+" a "+fmt(contado)+" de contado."));
+    return;
+  }
+
+  const p = Object.assign({ costoBase: costo }, datos);
   Object.defineProperty(p, "stock", {
     get(){ return this.dep[depAct()]; },
     set(v){ this.dep[depAct()] = Math.max(0, Math.round(v)); },
@@ -3032,8 +3119,10 @@ function pintarProd(){
   const fp = document.getElementById("fProv").value;
   const fr = document.getElementById("fRub").value;
   const solo = document.getElementById("fFlojos").checked;
+  const toks = plano(document.getElementById("fBusca").value).split(/\\s+/).filter(Boolean);
   const lista = PRODUCTOS
-    .filter(p=>(!fp||p.prov===fp) && (!fr||p.rub===fr) && (!solo || margen(p) < S.objetivo))
+    .filter(p=>(!fp||p.prov===fp) && (!fr||p.rub===fr) && (!solo || margen(p) < S.objetivo)
+             && toks.every(t=>p.propio.includes(t)))
     .sort((a,b)=>margen(a)-margen(b));
 
   document.getElementById("tbProd").innerHTML = lista.map(p=>{
@@ -3041,11 +3130,17 @@ function pintarProd(){
     return '<tr><td class="num" style="font-size:12.5px">'+p.cod.split("+")[0]+'</td>'+
       '<td class="nom">'+p.tit+(p.real?' <span class="pill p-n">costo real</span>':'')+'<small>'+p.rub+'</small></td>'+
       '<td>'+p.prov+'</td>'+
-      '<td class="r"><input class="ed" type="number" data-cod="'+p.cod+'" value="'+p.costo+'" step="100" min="0" aria-label="costo"></td>'+
+      '<td class="r"><input class="ed" type="number" data-cod="'+p.cod+'" value="'+netoDe(p)+'" step="100" min="0" aria-label="costo sin IVA"></td>'+
+      '<td class="r"><select class="ed" data-iva="'+p.cod+'" aria-label="IVA del artículo">'+
+        ALICUOTAS.map(a=>'<option value="'+a+'"'+(a===ivaDe(p)?" selected":"")+'>'+ivaTxt(a)+'</option>').join("")+
+      '</select><small style="display:block;color:var(--ink-3)">+'+fmt(p.costo-netoDe(p))+'</small></td>'+
       '<td class="r">'+fmt(p.contado)+'</td><td class="r" style="color:var(--ink-3)">'+fmt(p.unPago)+'</td>'+
       '<td class="r" style="font-weight:600;color:'+(m<0?"var(--bad)":(m<S.objetivo?"var(--warn)":"var(--ok)"))+'">'+pct(m)+'</td>'+
-      '<td>'+estadoPill(m)+'</td><td class="r">'+p.stock+'</td></tr>';
-  }).join("") || '<tr><td colspan="9" class="vacio">Nada con esos filtros.</td></tr>';
+      '<td>'+estadoPill(m)+'</td><td class="r">'+p.stock+'</td>'+
+      '<td class="r"><button class="lapiz" data-ed="'+p.cod+'" title="Editar este artículo" aria-label="editar '+p.cod+'">'+
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" aria-hidden="true">'+
+        '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button></td></tr>';
+  }).join("") || '<tr><td colspan="11" class="vacio">Nada con esos filtros.</td></tr>';
 
   const bajo = PRODUCTOS.filter(p=>margen(p)<0);
   const flojos = PRODUCTOS.filter(p=>{const m=margen(p); return m>=0 && m<S.objetivo;});
@@ -3055,12 +3150,29 @@ function pintarProd(){
     "%. El costo se puede corregir acá mismo y el margen se recalcula solo.";
 }
 for(const id of ["fProv","fRub","fObj","fFlojos"]) document.getElementById(id).addEventListener("input",pintarProd);
+document.getElementById("fBusca").addEventListener("input", pintarProd);
+document.getElementById("tbProd").addEventListener("click",e=>{
+  const b = e.target.closest("button[data-ed]"); if(!b) return;
+  const p = PRODUCTOS.find(x=>x.cod === b.dataset.ed);
+  if(p) abrirAlta(p);
+});
 document.getElementById("tbProd").addEventListener("change",e=>{
+  const sv = e.target.closest("select[data-iva]");
+  if(sv){
+    const p = prod(sv.dataset.iva); if(!p) return;
+    const neto = netoDe(p);                 // el neto no cambia: cambia el IVA
+    p.iva = +sv.value;
+    p.costo = Math.round(neto * facIva(p.iva));
+    pintarProd(); pintarTicket();
+    toast(p.cod.split("+")[0]+" pasa a IVA "+ivaTxt(p.iva)+". Cuesta "+fmt(p.costo)+" con IVA.");
+    return;
+  }
   const i = e.target.closest("input[data-cod]"); if(!i) return;
   const p = prod(i.dataset.cod); if(!p) return;
-  p.costo = Math.max(0, +i.value||0);
+  const neto = Math.max(0, +i.value||0);
+  p.costo = Math.round(neto * facIva(ivaDe(p)));
   pintarProd();
-  toast("Costo de "+p.cod.split("+")[0]+" cambiado a "+fmt(p.costo)+". El margen ya está recalculado.");
+  toast("Costo de "+p.cod.split("+")[0]+": "+fmt(neto)+" sin IVA, "+fmt(p.costo)+" con IVA. El margen ya está recalculado.");
 });
 
 /* ===================================================== LISTAS */
@@ -3179,8 +3291,8 @@ function pintarComparar(){
   const a = alcance();
   const ej = a.length ? a[0] : null;
   const puestos = ds.filter(d=>limD(d)>0).length;
-  const cc = ej ? costoDe(ej.lista, ds, "cascada") : null;
-  const cs = ej ? costoDe(ej.lista, ds, "suma") : null;
+  const cc = ej ? costoDe(ej.lista, ds, "cascada", ivaDe(ej)) : null;
+  const cs = ej ? costoDe(ej.lista, ds, "suma", ivaDe(ej)) : null;
   const dif = (cc!=null && cs!=null) ? cc - cs : null;
 
   document.getElementById("compararDesc").innerHTML =
@@ -3227,7 +3339,7 @@ function pintarCadena(){
   const ds = cadenaDe(p.prov);
   const fac = factorDe(ds);
   const neto = Math.round(p.lista * fac);
-  const costo = Math.round(neto * IVA);
+  const costo = Math.round(neto * facIva(ivaDe(p)));
   const mk = markupDe(p);
   const r = (k,v,cls) => '<div class="r2'+(cls?" "+cls:"")+'"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
 
@@ -3238,7 +3350,7 @@ function pintarCadena(){
     r("Descuentos: "+cadenaTxt(ds)+" ("+(S.modoDesc==="cascada"?"en cascada":"sumados")+")",
       "−"+fmt(p.lista-neto))+
     r("Queda neto", fmt(neto), "sub")+
-    r("IVA 21%", "+"+fmt(costo-neto))+
+    r("IVA "+ivaTxt(ivaDe(p)), "+"+fmt(costo-neto))+
     r("<b>Lo que te cuesta</b>", fmt(costo), "total")+
     r("Markup "+mk+"% sobre el costo", "+"+fmt(precioDe(costo,mk)-costo))+
     r("<b>Precio de contado</b>", fmt(precioDe(costo,mk)), "total")+
@@ -3261,7 +3373,7 @@ document.getElementById("btnSim").addEventListener("click",()=>{
     if(PF.modo === "sube") lista = Math.round(lista * (1 + (+document.getElementById("sPct").value||0)/100));
     if(PF.modo === "desc") ds = PF.seis.slice();
     if(PF.modo === "mk")   mk = +document.getElementById("sMk").value || 0;
-    const nuevo = costoDe(lista, ds);
+    const nuevo = costoDe(lista, ds, null, ivaDe(p));
     const sugerido = precioDe(nuevo, mk);
     return {
       p, lista, ds, mk, nuevo, sugerido,
