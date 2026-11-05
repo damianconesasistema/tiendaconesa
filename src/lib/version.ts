@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.5";
+export const APP_VERSION = "V.0.59.6";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.6",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — ARREGLADA LA FLECHA DE LA COLUMNA ORDENADA. Un escape mal escrito dejaba un caracter de control y en vez de la flecha se leia \"93\" al lado del titulo (MARGEN 93). Ahora dice MARGEN con la flecha arriba o abajo, segun el orden.",
+      "LOS TEXTOS DE AYUDA DE LA FICHA, TODOS DEL MISMO TAMANIO. El tamanio chico estaba atado al contenedor, asi que los avisos sueltos (el de la lista del proveedor y el de las dos listas) salian con la letra del cuerpo y se veian enormes.",
+      "EL BLOQUE DEL PRECIO POR MAYOR AHORA SE ESCONDE DE VERDAD cuando la casilla esta destildada: la grilla le ganaba al hidden.",
+    ],
+  },
   {
     version: "V.0.59.5",
     date: "2026-11-05",
