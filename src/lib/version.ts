@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.6";
+export const APP_VERSION = "V.0.59.7";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.7",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — LOS AVISOS DE LA FICHA YA NO SE MONTAN SOBRE EL CAMPO DE ARRIBA. Dos de ellos subian 6px y se pisaban con la moneda de la lista y con la Lista 1.",
+      "LAS DOS LISTAS ARRANCAN EN CERO, no en 25%. El markup lo pone el que carga: un 25% puesto solo es un precio inventado.",
+      "SIN LISTA 1 NO SE GUARDA EL ARTICULO. El campo queda marcado en rojo, el aviso explica que es, y al querer guardar manda el foco ahi. Sin ese porcentaje el articulo quedaria a precio de costo y el que vende no se enteraria.",
+    ],
+  },
   {
     version: "V.0.59.6",
     date: "2026-11-05",
