@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.8";
+export const APP_VERSION = "V.0.59.9";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.9",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — EL DESCUENTO POR PAGO CONTADO AHORA BAJA EL COSTO. Era un renglon al costado que no entraba en el total: si el proveedor te hace un 5% mas por pagarle al contado, ese 5% es plata que no pagas.",
+      "Y NO SE SUMA A LOS SEIS: SE APLICA SOBRE LO QUE QUEDA despues de ellos. Con 50-15-10-10 y 5% de contado, el 5% sale de lo que sobrevivio a los otros cuatro, no del total.",
+      "APARECE EL RENGLON \"COSTO SIN IVA\": el numero con el que se discute con el proveedor. Antes la cuenta saltaba de los descuentos al costo con IVA y ese numero no se veia.",
+    ],
+  },
   {
     version: "V.0.59.8",
     date: "2026-11-05",
