@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.9";
+export const APP_VERSION = "V.0.59.10";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.10",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — LOS SEIS DESCUENTOS DEL PROVEEDOR SE APLICAN UNO SOBRE OTRO, no sumados: es como los hace el proveedor. 50 y 15 no es 65, es 57,5. Arranca asi en la ficha y en el formador de precios; el boton \"Se suman\" sigue estando para el que los cobra sumados.",
+    ],
+  },
   {
     version: "V.0.59.9",
     date: "2026-11-05",
