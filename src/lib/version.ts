@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.11";
+export const APP_VERSION = "V.0.60.0";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,17 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.60.0",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — CREACION POR ADJUNTO, EN PRODUCTOS. Se adjunta la lista del proveedor, una factura o un remito y salen todos los articulos juntos, en vez de cargarlos de a uno.",
+      "EL EXCEL (.xlsx) Y EL CSV SE LEEN DE VERDAD, en la misma pagina y sin servidor: un .xlsx es un zip y el navegador sabe descomprimirlo solo. Reconoce las columnas por el encabezado (codigo, descripcion, precio, marca, rubro, cantidad) y se pueden corregir a mano; lee los precios en cualquier formato (118.450,50 o 118450.50) y el separador que venga (; , o tabulacion).",
+      "ANTES DE CARGAR SE VE TODO: la tabla con lo que salio, cuantos articulos entran, y una tilde por renglon para sacar los que no van. Lo que el archivo no trae (marca, rubro, los seis descuentos, pago contado, IVA, Lista 1 y 2, moneda) se pone una sola vez y vale para todos.",
+      "LA FOTO Y EL PDF DE UNA FACTURA muestran el circuito completo con renglones de ejemplo, y la pantalla lo dice: leer una factura de una foto lo hace la IA del panel, no esta pagina.",
+      "No carga dos veces el mismo: si el codigo del proveedor ya esta en ese proveedor, lo saltea y lo avisa.",
+    ],
+  },
   {
     version: "V.0.59.11",
     date: "2026-11-05",

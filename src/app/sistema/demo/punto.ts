@@ -509,6 +509,7 @@ table.densa th{padding:8px 10px; font-size:11.5px}
   padding:9px 11px; font-family:var(--font-raw); font-size:12.5px; color:var(--ink); background:var(--surface-2)}
 .envio-acc{display:flex; flex-wrap:wrap; gap:8px; padding:14px 16px 16px}
 .envio-acc .b1,.envio-acc .b2{flex:1 1 auto; text-align:center; text-decoration:none; line-height:1.3}
+.envio-acc[hidden]{display:none}   /* el flex le gana al hidden si no se dice */
 
 /* El semáforo del stock, el mismo en la venta y en el pedido.
    Más de 10: tranquilo. De 1 a 10: se está por acabar. En cero: no hay. */
@@ -662,6 +663,27 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 /* Lo que falta completar, marcado. */
 .falta input{border-color:var(--bad) !important; background:var(--bad-soft)}
 .aviso-falta{color:var(--bad); font-weight:600}
+
+/* La zona donde se suelta el archivo. */
+.soltar{border:2px dashed var(--line-2); border-radius:14px; padding:22px 16px;
+  text-align:center; background:var(--surface-2); transition:border-color .12s, background .12s}
+.soltar.encima{border-color:var(--accent); background:var(--accent-soft)}
+.soltar .st{font-size:15px; color:var(--ink-2); margin-bottom:5px}
+.soltar .st b{color:var(--ink)}
+.adj-est{margin-top:12px; padding:11px 14px; border-radius:12px; font-size:13.5px;
+  background:var(--surface-2); border:1px solid var(--line-2); color:var(--ink-2)}
+.adj-est b{color:var(--ink)}
+.adj-est.ojo{background:var(--warn-soft); border-color:var(--warn); color:var(--warn)}
+.adj-est.mal{background:var(--bad-soft); border-color:var(--bad); color:var(--bad)}
+.adj-prev{margin-top:12px; max-height:340px; overflow:auto; border:1px solid var(--line-2); border-radius:12px}
+.adj-prev table{width:100%; border-collapse:collapse; font-size:12.5px}
+.adj-prev th, .adj-prev td{padding:6px 9px; border-bottom:1px solid var(--line-2); text-align:left; white-space:nowrap}
+.adj-prev thead th{position:sticky; top:0; background:var(--surface); z-index:2}
+.adj-prev select{width:100%; font-size:11.5px; font-weight:600; padding:4px 6px;
+  border:1px solid var(--line-2); border-radius:8px; background:var(--surface); color:var(--ink)}
+.adj-prev td.num{text-align:right; font-variant-numeric:tabular-nums}
+.adj-prev tr.fuera{opacity:.45; text-decoration:line-through}
+.adj-foto{max-height:170px; border-radius:10px; border:1px solid var(--line-2); margin-top:10px}
 
 .plata{position:relative}
 .plata .sig{position:absolute; left:11px; top:50%; transform:translateY(-50%);
@@ -861,7 +883,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOgAAABNCAYAAACseCglAAAAAklEQVR4AewaftIAAA4vSURBVO3B/5OkCX0Q4OfTvRDk20wACUhIN5KOAuJ0ohRojp1eMEEqgR1UorGsmrm/YCd/wcyVVf5kFZPyB3/QyvZqKWpFnSs04F3kuiEcCZjQI4GAXYZeMKVEzPVU5I47ru/jWUOqd3Znut/5tv3O3fs8kZkqlUo51VQqldKqqVQqpVVTqVRKq6ZSqZRWTaVSKa2aSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqldUVJRMQObpi6jbXMHJghInpYNXUtM3tmiIg09RB6eMzUD2fm2F0iooPHTF3LzJ67RMQ2thztoczcdoyI6OAxU/3M7JghInZww2G30cNmZo4dIyJ6WHVgLzPbZoiIbWxiyYHb2MzMXTNERBNdrJray8y2yrFqSiAitnHDYQ0sm2/ZYW0ns+YumTm2OE2HNc03dq8G1tFT3NgMEbGDLSyZauDfR0THbLtYddiKykxXlMOGw/pYNUdELGPFYW0ns4Km8ug4rBERy5k5VtxtNBxYiYhOZvacQUQ0ccPxttFxhIhoY8XUPsZoOEqr/hL8A/wovo9EmC/xEnwXjxpO/o1LrqYcGqb2MrODt2BktrZ7dZzchnOUmduZGeib6mdmZOa22dru1XEyGw5rO7s1h30Et0ytRsSyoy07bCczm7jmaG/H+/AArmIVV3EVV3EVV3EVV3EVV7GKB/B+fNALQE05PGxqJSK6GGfmyGwd92pExLKTWVUeK+7VdjIbDhs4u2V3yMxd9BzWdrSBw7YiYiMze+7Wqv8p/F28Ez+KBhpooIEGGmiggQYaaKCBN+Mt+IBW/W0uuZpy2Ma+qXX0ImLZbG1Te6Y6LqGI6Jjqm+o4mXVT+xg4u7Z7jRSQmWM85LCbEbHhXq/CRxBIJBKJRCKRSCQSiUQi8Wp81CVXUwKZOUAH+6ZWsGm2jqmuqbbLqWOqZ2rV6XUyc+zsxs4gM7fxSw67GREdh/0FvBV1BAKBQCAQCAQCgUAgEHgp/qZW/bUusZqSyMwBOtg31XGMiGhiyVTbVEdx+8qjbaqNfT8QEW2ns+x8jNyr7QQycwcPOqzjT7Tqy/jbqDm7K3gH3uYSu6IEImKAzczsRcQIKw40Ha/tsHVTq4rbxbpy6Ji67rAOBorpY9WBTfSc3cgdImIbbXfIzJ4jREQHG9hGz/Fejw85EM6ujl/Qqv+u4WTsEqophxU8FhGJFVMDx+uYISLaitlVAhHRxJLjtRXXNXU9IprObhf7prZw3dQts63jG/iGw0amVvAGsyWew3NIxwsk/hZe65KqKbdtx2ubeigzA3umOooZ45bFa5vaz8zAg6Y6CsrMLvZNbTqjzBxj09H2se3k9rDr/2vVX4+fR5jt/+Jx/DaeMVvgjfhJl1RNOfwy+g7s42H8ZGYOzNZHHwMHeuijj2XH66OPvgNd9NFHPyKWHW2MPvroY2y2AfroY2C2Jvroo+vAAH30MYqIZUcbo48++g7soI8+mo43QB99jMyQmV18BH0HbuMW2pk5crwRbmHPgdu4hU5mjh1o4oNIsz2Bf4h/iqcV8yGt+utcQpGZKpWFa9XX0TXfF/EAXo09/BmzJf4Q1w0nv+WSqalUFq1VX8JfR5rte/iC4eQZw8l38F/wjNkCP4J3uoSuqFQuWqv+RlxzIJEIB/4Y78L7EI6X+AP8K1P/BO/B6833c1r1TxhOvu0SuaLkImIZHbTRca8RehhhlJkjM0REE2too+leA/TQy8yxOSKijWXzjTNz4A4R0cay+UaZOYqIjvMxyMyxI0REE2voYNm9Rhigl5kDxfxF/CNHm+DleIXZAl/D5019Ct/E6833fqzgEZfIFSUVEU1sYw1LjreKdQeuYeQIEdHGDlbNtoob2I+IHexk5tjxOviY+W5hw2EbuGG+axhhG6vO7hp67hARbWzjutlWse55EbGPUWa2zfZSvMbZPIlPG04m/sRw8qxW/VG8HS8326vwbjziEqkpoYjYxADrWHJGEbGNL2FVcUvYwigiOo43UEzHvcZOpucCRMQGvoTrTmYJK+b7vrP7Cv6de/0zfFMxV7XqP+YSqSmZiOjiY1hyDiKiiy2nt4THImLD2TQiYk3JRMQGbrpY6ex+03Aycrfh5GsYKOZdeMAlUlMiEdHFunMSEV2sOx83I6LjbNaUSER0cNPFqzmbP8JjjvcpPGG+JbzHJVJTEhGxjXXnJCLWsO587UbEstNbi4hl5dF1OTyOxx3vEfxX8yXerVX/sy6JmhKIiDa2nK8d528J205vCWtKICI6aLgcPmM4+bbjDCf/E583X+Dt+KBLoqYcdpyjiNhAw8W4ERFNp7emHNZcDt/C4+b7dXzLfK/EqkuiZsEiooNV52vbxdpwetcjomnx2k5mD330se/++TX8jvk+h88o5h1a9Xe4BK5YvA0ns4/NzOx6XkQ00cG250VEGw3F7GMtM3sR0cW6Yjaw7fTWsOPi3ELX0ZYxUtw+1jKz5w4RsYZNrLo4iUcMJ0+ZZzj5nlb9MfwiamZr4hewpeSuWLw1xe2jk5kDP5CZI3QjYteBDcXtZGbP8zJzIyLaWDFfIyKamTlyOhvYcXFGmdkzQ0QoaJCZPXfJzF3sRsSGi7OHgeJ+A1/Gitlejvdp1f++4eRZJVazQBHRwZLiNjJz4AiZOc7MMdYUt+OwHcV1nN5KRDRdDk0zZGbXxfnnhpPfV9Rw8nX8qmLegvcouZrF6iiun5m75msrpp+ZY4f1FNd2NpsWa6SYRkR03X9P4T87uR6eNN9rsK7kaharo7iuYpYUM3CXzBxhXzFtZ7NmsQaKW4+IbkQsu3jpwKfwTSf33/Ap870M79eqv0qJXbFYTcXtmiMiOoobO9oAq+ZrOpsGOi5GJyK23WsZg8zsYhcfU9w62hGxlpkjF+9XDCdPOKnh5A+16h/H3zDfn8bP4t8qqZrFaihmLzPHzlfP2TSc3aqLsYotbGELW9jCDTQ9LzNHuOVkVjCIiLaLM8EIv+n0fge3kY4XeAk2tOovU1I1l8PA/TPy4rGJfSezhC9FxIaL8Sz+heHkO07vf+FfIsz2UlzDm5RUzeUwUkzH2Y28SGTmGBtO52ZEbDh/f4xbzmI4eRIfx9NIxwu8Ah/Qqv+QEqqpvKhl5i4edDo3I6JjvlTMs/htw8nQ2X0dn8XEfA/idUqopvKil5ldPIh9J7cbEctmS8U8ga7zMJw8g3+M75nvp/BWJVRzOSwrpqdyKpnZRQf7TmYJO2Z7RjHfxH9wfj6JbyHNVsPPaNVfrmRqLoe2+6fjRSozB2hiz8msR0TT8cJ8T+OzhpPvOi/DyVP4BL5rvo+iqWSuWKx9LJlv1flro+f09p3MHlbcHw9l5ra7RETHHJk5RjsiulhX3Aa2Ha1ltsS38K+dv5v4KF5ptp/AO/FVJVKzWAMFRUTbfAPFLTtaUzEDJ9O1YJnZy8yeAjJzA7cU13GUVv0N+DmzBb6MLzhvw8nX8BWk2QLv1aq/UonULNZAcZvmyMyx4tqO1lDMyMkMcNvlsonbimk62rvwXrM9ic8YTp5zMXbxR+b7AN6hRGoWq6e4tYhYNl9fMR13iYg1xQ2c3I4SiIhmRLTNkZlj7Cqm4Wh/Cctm+zI+6eI8jN8z31vxl5VIzWL1FLeEXfP1FLMUEWsOW1Ncz8ntKocmvhQR2+YbO61W/c34abMlfstw8nUXZTj5Dr6IidkCP61Vf4WSqFmgzBzjYcWtRkQ3IpbdISKWI2I7ItroKW7TD0REG+uKuZ2ZAyeUmSPsWaCIaOINDmxFxCgiNhwhIpaxoZg993oA7zbbE/isi/dJjMz3AP6qkrhi8XZxXXHrWIuIXYzQRgdL6GVmLyJuo2G+1YgYYRcbitt1eju46WJtRcSW4/2SqQZuRsQOehg4sIw1NBQzcq8H8CqzfR59F+9z+CLearY3o4NHlUDNgmVmF7edzBLWsYXrWHJYV3EN3MCS4rpOb1c5LeE6trCFG2gorudOrfqPoW2+Rw0n/9tFG06exOfwPfP9lFb9tUqgphw2na8dF6efmQOnlJljPOyFZ9dhP48/73iJP8AX3D+fxu+abwXXlEBNCWTmLh52TjJzjIdcjE1n1/XCciszRw57L17jeIFdfNX9Mpx8FY+Y7w34GSVQUx4b2HNOMnMbe87XQ5k5cEaZuYt9Lwz72HanVr2Ft5ntWXzacLLv/nocT5kt0Naqv8aC1ZREZo7RwW3nZw37zsetzNx2fna9MKxl5shhH0bDbF/G77n/9vCo+Zr4sAWrKZHMHKONvnOQmSN0sOdsbmXmhvO143Lbx7XM7LnXz+LVZvtV/L77bTj5H/iE+V6LD1uwmpLJzHFmdvAgbjujzBygg192crfxkczccLxlxSy7Q2YOcNvJNJ2fPaf3MNqZ2XO3Vv3H8RbUHC3xFH7dcPK0xRjgNtLx6vgJrfqbLNAVJZWZXXQjYgNr6GDJ0fYwwtgRMnOMzYjYwSbW0HC8PrqZ2TVfE33zNd1rF23zLZvqO7teZu5ExDI6WEMbK453G7vYycyR430YP4x0tMBnMLI4Q+ziBtLRAq/DB/ArFiQy02UREU00HTbIzLFTiIiOw8aZOfAiFhEdd8nMniJa9Tfi41g129/BruHkaYvSqv81/Bpe4niJ/4S/Zzj5PxbgikskM0cYOSeZ2VM5JDN7Tu8X8SP4Np5zWA3P4Rt4zHDytMX6Cv4j/goS6bBADW/Ch9C1AFdUKufnx/HfHXgO4UDiCr6PL2Js8cb4BF6GZ5EIU4k6JvhzFiQyU6VSKaeaSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqlVVOpVEqrplKplFZNpVIprZpKpVJaNZVKpbT+H/ThmLvjr5fGAAAAAElFTkSuQmCC">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión de la demo">V.0.59.11</span>
+    <span class="ver" id="ver" title="versión de la demo">V.0.60.0</span>
     <span class="org">· Sanitarios Conesa</span>
     <span class="relo" id="relo"></span>
     <span class="bar-sep ocultable"></span>
@@ -1219,6 +1241,71 @@ footer{
     <p>Qué deja cada artículo con el precio que tiene puesto hoy.</p>
   </div>
   <div class="aviso"><span>i</span><div>Los costos de esta demo están simulados, salvo los que dicen <b>costo real</b>. En el sistema de verdad salen de la lista del proveedor.</div></div>
+
+  <div class="card armando" style="margin-bottom:16px">
+    <div class="card-h">
+      <h3>Creación por adjunto</h3>
+      <span class="sub">una lista, una factura o un remito, y salen todos juntos</span>
+      <button class="b2" id="btnAdj" style="margin-left:12px;padding:6px 16px">Adjuntar</button>
+    </div>
+    <div id="adjCuerpo" hidden>
+      <div class="soltar" id="adjZona">
+        <input type="file" id="adjFile" accept=".csv,.txt,.xlsx,.xls,.pdf,image/*" hidden>
+        <div class="st"><b>Soltá el archivo acá</b> o <button class="b2" type="button" id="adjElegir">elegilo</button></div>
+        <span class="por">La lista del proveedor en Excel o CSV, o la foto o el PDF de una factura o un remito.</span>
+      </div>
+      <div id="adjEstado"></div>
+
+      <div id="adjConfig" hidden>
+        <div class="card-h" style="padding:14px 0 6px"><h3>Lo que vale para todos</h3>
+          <span class="sub">lo que el archivo no trae</span></div>
+        <div class="alta">
+          <div class="col">
+            <div class="sub-campo dos-chicos">
+              <div><label for="xProv">Marca o proveedor</label>
+                <input id="xProv" type="text" list="aMarcas" autocomplete="off"></div>
+              <div><label for="xRub">Rubro</label>
+                <input id="xRub" type="text" list="xRubros" autocomplete="off">
+                <datalist id="xRubros"></datalist></div>
+            </div>
+            <div class="sub-campo">
+              <label>Descuentos que te hace, hasta seis</label>
+              <div class="seis" id="xSeis"></div>
+              <span class="por" id="xSeisAviso"></span>
+            </div>
+            <div class="sub-campo dos-chicos">
+              <div><label for="xMoneda">Moneda de la lista</label>
+                <select id="xMoneda"><option value="ARS">Pesos ($)</option><option value="USD">Dólares (U$S)</option></select></div>
+              <div id="xCajaDolar" hidden><label for="xDolar">Dólar, a cuánto lo tomás</label>
+                <div class="plata"><span class="sig">$</span>
+                  <input id="xDolar" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="sub-campo dos-chicos">
+              <div><label for="xCont">Descuento por pago contado</label>
+                <div class="sku-fila"><input id="xCont" type="number" min="0" max="95" step="0.5" value="0"><span class="pc-grande">%</span></div></div>
+              <div><label for="xIva">IVA del artículo</label>
+                <select id="xIva"><option value="21">21%</option><option value="10.5">10,5%</option></select></div>
+            </div>
+            <div class="sub-campo dos-chicos">
+              <div><label for="xL1">Lista 1, sobre el costo</label>
+                <div class="sku-fila"><input id="xL1" type="number" min="0" max="400" step="0.5" value="0"><span class="pc-grande">%</span></div></div>
+              <div><label for="xL2">Lista 2, sobre la Lista 1</label>
+                <div class="sku-fila"><input id="xL2" type="number" min="0" max="400" step="0.5" value="0"><span class="pc-grande">%</span></div></div>
+            </div>
+            <span class="por" id="xListasAviso" style="display:block;margin:6px 0 0">Sin Lista 1 los artículos quedarían a precio de costo.</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="adjTabla"></div>
+      <div class="envio-acc" id="adjAcc" hidden style="padding:14px 0 0">
+        <button class="b1" id="adjCargar">Cargar los artículos</button>
+        <button class="b3" id="adjOtro">Elegir otro archivo</button>
+      </div>
+    </div>
+  </div>
 
   <div class="card armando" style="margin-bottom:16px">
     <div class="card-h">
@@ -3448,6 +3535,430 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   cerrarAlta();
   toast(cod+" · "+tit.slice(0,40)+" cargado. Cuesta "+fmt(costo)+" con IVA y la Lista 2 queda en "+fmt(pr.lista2)+".");
 });
+
+/* ======================================= CREACIÓN POR ADJUNTO
+   Cargar diez mil artículos de a uno no lo hace nadie. Se adjunta la
+   lista del proveedor, la factura o el remito, se mira lo que salió y
+   se cargan todos juntos.
+
+   El Excel y el CSV se leen acá mismo, sin servidor: un .xlsx es un
+   zip y el navegador sabe descomprimirlo solo. La foto y el PDF son
+   otra cosa: leer una factura de una foto lo hace la IA del panel, no
+   esta página, así que la demo muestra el circuito con renglones de
+   ejemplo y lo dice en pantalla. */
+const ADJ = { filas:[], cab:[], mapa:{}, tipo:"", nombre:"", muestra:false,
+              seis:[0,0,0,0,0,0], fuera:{} };
+
+const CAMPOS_ADJ = [
+  ["", "— no la uso —"],
+  ["cod",   "Código del proveedor"],
+  ["tit",   "Descripción"],
+  ["lista", "Precio de lista, sin IVA"],
+  ["prov",  "Marca o proveedor"],
+  ["rub",   "Rubro"],
+  ["stock", "Cantidad o stock"],
+  ["iva",   "IVA"],
+];
+const PISTAS_ADJ = {
+  cod:   ["codigo","cod","sku","articulo","art","item","referencia","ref","nro"],
+  tit:   ["descripcion","detalle","producto","nombre","denominacion","concepto"],
+  lista: ["precio","lista","importe","valor","unitario","punit","neto","costo"],
+  prov:  ["marca","proveedor","fabricante"],
+  rub:   ["rubro","familia","categoria","grupo","linea"],
+  stock: ["cantidad","cant","stock","unidades","bultos","qty"],
+  iva:   ["iva","alicuota"],
+};
+
+/* ---------------------------------------------------- leer el archivo */
+const desescapar = t => String(t)
+  .replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"')
+  .replace(/&apos;/g,"'").replace(/&#(\\d+);/g, (m,n)=>String.fromCharCode(+n))
+  .replace(/&amp;/g,"&");
+
+/** El CSV, con el separador que venga y respetando las comillas. */
+function filasCSV(txt){
+  txt = String(txt).replace(/^﻿/, "");
+  const prim = txt.split(/\\r?\\n/).find(x=>x.trim()) || "";
+  const cuenta = { ";":0, ",":0, "\\t":0 };
+  let dentro = false;
+  for(const ch of prim){
+    if(ch === '"') dentro = !dentro;
+    else if(!dentro && ch in cuenta) cuenta[ch]++;
+  }
+  const sep = Object.keys(cuenta).sort((a,b)=>cuenta[b]-cuenta[a])[0];
+  const filas = []; let f = [], v = "", q = false;
+  for(let i = 0; i < txt.length; i++){
+    const ch = txt[i];
+    if(q){
+      if(ch === '"'){ if(txt[i+1] === '"'){ v += '"'; i++; } else q = false; }
+      else v += ch;
+    }
+    else if(ch === '"') q = true;
+    else if(ch === sep){ f.push(v); v = ""; }
+    else if(ch === "\\n"){ f.push(v); filas.push(f); f = []; v = ""; }
+    else if(ch !== "\\r") v += ch;
+  }
+  if(v !== "" || f.length){ f.push(v); filas.push(f); }
+  return filas.filter(x => x.some(c => String(c).trim()));
+}
+
+/** Un .xlsx es un zip. Esto lo abre sin ninguna librería. */
+async function desinflar(trozo, metodo){
+  if(metodo === 0) return trozo;
+  const flujo = new Blob([trozo]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(flujo).arrayBuffer());
+}
+async function abrirZip(buf){
+  const b = new Uint8Array(buf), dv = new DataView(buf);
+  let fin = -1;
+  for(let i = b.length - 22; i >= 0 && i > b.length - 66000; i--)
+    if(dv.getUint32(i, true) === 0x06054b50){ fin = i; break; }
+  if(fin < 0) throw new Error("Ese archivo no parece un Excel.");
+  const cuantos = dv.getUint16(fin + 10, true);
+  let p = dv.getUint32(fin + 16, true);
+  const dentro = {};
+  for(let k = 0; k < cuantos && p + 46 < b.length; k++){
+    const metodo = dv.getUint16(p + 10, true);
+    const comp   = dv.getUint32(p + 20, true);
+    const nLen   = dv.getUint16(p + 28, true);
+    const eLen   = dv.getUint16(p + 30, true);
+    const cLen   = dv.getUint16(p + 32, true);
+    const loc    = dv.getUint32(p + 42, true);
+    const nombre = new TextDecoder().decode(b.subarray(p + 46, p + 46 + nLen));
+    const lnLen  = dv.getUint16(loc + 26, true);
+    const leLen  = dv.getUint16(loc + 28, true);
+    const ini    = loc + 30 + lnLen + leLen;
+    dentro[nombre] = { metodo, trozo: b.subarray(ini, ini + comp) };
+    p += 46 + nLen + eLen + cLen;
+  }
+  return dentro;
+}
+const letraACol = r => { let n = 0; for(const c of r) n = n*26 + (c.charCodeAt(0)-64); return n-1; };
+
+async function filasXlsx(buf){
+  const zip = await abrirZip(buf);
+  const texto = async n => zip[n]
+    ? new TextDecoder().decode(await desinflar(zip[n].trozo, zip[n].metodo)) : "";
+  const comunes = [];
+  for(const m of (await texto("xl/sharedStrings.xml")).matchAll(/<si>([\\s\\S]*?)<\\/si>/g)){
+    let t = "";
+    for(const x of m[1].matchAll(/<t[^>]*>([\\s\\S]*?)<\\/t>/g)) t += x[1];
+    comunes.push(desescapar(t));
+  }
+  const hojas = Object.keys(zip).filter(n=>/^xl\\/worksheets\\/sheet\\d+\\.xml$/.test(n)).sort();
+  if(!hojas.length) throw new Error("Ese Excel no tiene ninguna hoja.");
+  const hoja = await texto(hojas[0]);
+  const filas = [];
+  for(const fm of hoja.matchAll(/<row[^>]*>([\\s\\S]*?)<\\/row>/g)){
+    const f = [];
+    for(const cm of fm[1].matchAll(/<c([^>]*?)\\/>|<c([^>]*?)>([\\s\\S]*?)<\\/c>/g)){
+      const attr = cm[1] || cm[2] || "", cuerpo = cm[3] || "";
+      const ref = (attr.match(/r="([A-Z]+)/) || [])[1];
+      const col = ref ? letraACol(ref) : f.length;
+      const t = (attr.match(/t="([^"]+)"/) || [])[1];
+      let v = "";
+      if(t === "inlineStr"){
+        for(const x of cuerpo.matchAll(/<t[^>]*>([\\s\\S]*?)<\\/t>/g)) v += x[1];
+        v = desescapar(v);
+      } else {
+        const vm = cuerpo.match(/<v[^>]*>([\\s\\S]*?)<\\/v>/);
+        v = vm ? vm[1] : "";
+        v = t === "s" ? (comunes[+v] || "") : desescapar(v);
+      }
+      while(f.length < col) f.push("");
+      f[col] = v;
+    }
+    filas.push(f);
+  }
+  if(!filas.length) throw new Error("Ese Excel está vacío.");
+  return filas.filter(x => x.some(c => String(c).trim()));
+}
+
+/** Lo que la IA del panel devuelve de una factura. Acá es una muestra. */
+function filasDeMuestra(){
+  return [
+    ["Código", "Descripción", "Cantidad", "Precio unitario"],
+    ["FE-1140", "INODORO FERRUM BARI CORTO BLANCO", "6", "118450.00"],
+    ["FE-1141", "DEPOSITO FERRUM BARI DOBLE DESCARGA", "6", "96300.50"],
+    ["FE-2208", "LAVATORIO FERRUM BARI 1 AGUJERO", "4", "74120.00"],
+    ["FV-0410", "GRIFERIA FV ARIZONA LAVATORIO", "3", "131990.75"],
+    ["FV-0411", "GRIFERIA FV ARIZONA DUCHA", "3", "186400.00"],
+    ["RO-5001", "CAMARA SEPTICA ROT-AR 500 LTS", "2", "208700.00"],
+  ];
+}
+
+async function leerAdjunto(file){
+  const n = file.name.toLowerCase();
+  if(/\\.(csv|txt)$/.test(n))  return { tipo:"CSV",   filas: filasCSV(await file.text()) };
+  if(/\\.xlsx$/.test(n))       return { tipo:"Excel", filas: await filasXlsx(await file.arrayBuffer()) };
+  if(/\\.xls$/.test(n))        throw new Error("Ese Excel es del formato viejo (.xls). Guardalo como .xlsx o como CSV y volvé a adjuntarlo.");
+  if(/\\.pdf$/.test(n) || /^image\\//.test(file.type))
+    return { tipo: /\\.pdf$/.test(n) ? "PDF" : "Foto", filas: filasDeMuestra(), muestra:true };
+  throw new Error("No sé leer ese archivo. Va un Excel (.xlsx), un CSV, o la foto o el PDF de una factura.");
+}
+
+/* ---------------------------------------------------- el mapeo de columnas */
+function adivinarColumnas(cab){
+  const mapa = {}, usadas = {};
+  cab.forEach((c, i) => {
+    const t = plano(c).replace(/[^a-z0-9]/g, "");
+    if(!t) return;
+    for(const campo of Object.keys(PISTAS_ADJ)){
+      if(usadas[campo]) continue;
+      if(PISTAS_ADJ[campo].some(p => t.indexOf(p) >= 0)){ mapa[i] = campo; usadas[campo] = true; return; }
+    }
+  });
+  return mapa;
+}
+/** Si la primera fila no son nombres de columna, es un renglón más. */
+function pareceCabecera(f){
+  const conNumero = f.filter(c => aNum(c) > 0 && /\\d/.test(String(c))).length;
+  return conNumero <= Math.max(0, Math.floor(f.length / 4));
+}
+
+/* ---------------------------------------------------- la pantalla */
+const adjG = id => document.getElementById(id);
+function pintarAdjSeis(){
+  adjG("xSeis").innerHTML = ADJ.seis.map((d,i)=>
+    '<div class="d'+(limD(d)>0?" puesto":"")+'">'+
+      '<span class="et">'+ET_D[i]+'</span>'+
+      '<input type="number" min="0" max="95" step="0.5" value="'+limD(d)+'" data-x="'+i+'" aria-label="descuento '+(i+1)+'">'+
+      '<span class="pc">%</span></div>').join("");
+}
+function avisoAdjSeis(){
+  const puestos = ADJ.seis.filter(d=>limD(d)>0).length;
+  adjG("xSeisAviso").innerHTML = puestos
+    ? "<b>"+cadenaTxt(ADJ.seis)+" = "+pTxt(Math.round(descEquiv(ADJ.seis)*10)/10)+"%</b>, uno sobre otro · se le aplican a todos"
+    : "Los que el proveedor te hace sobre esta lista. Se le aplican a todos los artículos del archivo.";
+  const l1 = +adjG("xL1").value || 0;
+  adjG("xListasAviso").innerHTML = l1 > 0
+    ? "Cada artículo va a salir con la Lista 1 al "+pTxt(l1)+"% y la Lista 2 al "+pTxt(+adjG("xL2").value||0)+"%."
+    : '<span class="aviso-falta">Falta la Lista 1.</span> Sin ese porcentaje los artículos quedarían a precio de costo.';
+}
+function adjDolar(){ return aNum(adjG("xDolar").value); }
+function pintarAdjMoneda(){
+  const usd = adjG("xMoneda").value === "USD";
+  adjG("xCajaDolar").hidden = !usd;
+  if(usd && !adjDolar() && DOLAR) adjG("xDolar").value = plata2(DOLAR);
+}
+
+/** Lo que va a quedar cargado, fila por fila. */
+function filasUtiles(){
+  const col = c => { for(const i of Object.keys(ADJ.mapa)) if(ADJ.mapa[i] === c) return +i; return -1; };
+  const iTit = col("tit"), iLis = col("lista"), iCod = col("cod"),
+        iPro = col("prov"), iRub = col("rub"), iSt = col("stock"), iIva = col("iva");
+  return ADJ.filas.map((f, n) => ({
+    n,
+    tit:  iTit >= 0 ? String(f[iTit] || "").trim().toUpperCase() : "",
+    lista: iLis >= 0 ? aNum(f[iLis]) : 0,
+    cod:  iCod >= 0 ? String(f[iCod] || "").trim().toUpperCase() : "",
+    prov: iPro >= 0 ? String(f[iPro] || "").trim().toUpperCase() : "",
+    rub:  iRub >= 0 ? String(f[iRub] || "").trim().toUpperCase() : "",
+    stock: iSt >= 0 ? Math.max(0, Math.round(aNum(f[iSt]))) : 0,
+    iva:  iIva >= 0 && aNum(f[iIva]) > 0 ? (aNum(f[iIva]) < 15 ? 10.5 : 21) : null,
+  }));
+}
+const adjSirve = r => !ADJ.fuera[r.n] && r.tit.length >= 3 && r.lista > 0;
+
+function pintarAdjTabla(){
+  if(!ADJ.filas.length){ adjG("adjTabla").innerHTML = ""; adjG("adjAcc").hidden = true; return; }
+  const anchos = Math.max(...ADJ.filas.map(f=>f.length));
+  const sel = i => '<select data-col="'+i+'">'+CAMPOS_ADJ.map(([v,t])=>
+      '<option value="'+v+'"'+(ADJ.mapa[i]===v?" selected":"")+'>'+t+'</option>').join("")+'</select>';
+  const rs = filasUtiles();
+  const ok = rs.filter(adjSirve).length;
+  const verse = ADJ.filas.slice(0, 60);
+  adjG("adjTabla").innerHTML =
+    '<div class="adj-prev"><table><thead><tr><th style="width:34px"></th>'+
+      Array.from({length:anchos}, (_,i)=>'<th>'+sel(i)+
+        '<small style="display:block;color:var(--ink-3);font-weight:500;margin-top:3px">'+
+        (ADJ.cab[i] ? String(ADJ.cab[i]).slice(0,22) : "columna "+(i+1))+'</small></th>').join("")+
+    '</tr></thead><tbody>'+
+    verse.map((f, n)=>{
+      const r = rs[n];
+      return '<tr'+(adjSirve(r)?"":' class="fuera"')+'>'+
+        '<td><input type="checkbox" data-fila="'+n+'"'+(ADJ.fuera[n]?"":" checked")+' aria-label="incluir"></td>'+
+        Array.from({length:anchos}, (_,i)=>{
+          const v = f[i] == null ? "" : String(f[i]);
+          const num = ADJ.mapa[i] === "lista" || ADJ.mapa[i] === "stock";
+          return '<td'+(num?' class="num"':'')+'>'+
+            (num && aNum(v) ? plata2(aNum(v)) : v.slice(0, 44))+'</td>';
+        }).join("")+'</tr>';
+    }).join("")+
+    '</tbody></table></div>'+
+    '<div class="adj-est">Del archivo salen <b>'+ok+'</b> '+(ok===1?"artículo":"artículos")+
+      (ADJ.filas.length > verse.length ? ' (se ven los primeros '+verse.length+' renglones de '+ADJ.filas.length+')' : '')+
+      '. Un renglón entra si tiene descripción y precio: destildá el que no quieras.'+
+      (ok ? '' : ' <b>Revisá arriba qué columna es la descripción y cuál el precio.</b>')+'</div>';
+  adjG("adjAcc").hidden = false;
+  adjG("adjCargar").textContent = ok ? "Cargar los "+ok+" artículos" : "Cargar los artículos";
+  adjG("adjCargar").disabled = !ok;
+}
+
+function adjEstado(txt, clase){
+  adjG("adjEstado").innerHTML = txt ? '<div class="adj-est'+(clase?" "+clase:"")+'">'+txt+'</div>' : "";
+}
+
+async function tomarAdjunto(file){
+  if(!file) return;
+  adjG("adjTabla").innerHTML = ""; adjG("adjAcc").hidden = true;
+  adjEstado("Leyendo <b>"+file.name+"</b>…");
+  let r;
+  try { r = await leerAdjunto(file); }
+  catch(e){ adjEstado(e.message || "No pude leer ese archivo.", "mal"); return; }
+
+  ADJ.filas = r.filas; ADJ.tipo = r.tipo; ADJ.nombre = file.name;
+  ADJ.muestra = !!r.muestra; ADJ.fuera = {};
+  ADJ.cab = pareceCabecera(ADJ.filas[0]) ? ADJ.filas.shift() : [];
+  ADJ.mapa = ADJ.cab.length ? adivinarColumnas(ADJ.cab) : {};
+  if(!Object.keys(ADJ.mapa).length){
+    // Sin encabezados: la columna más larga es la descripción y la de
+    // números más grandes, el precio.
+    const anchos = Math.max(...ADJ.filas.map(f=>f.length));
+    let mejorT = -1, largo = -1, mejorP = -1, plata = -1;
+    for(let i = 0; i < anchos; i++){
+      const l = ADJ.filas.reduce((a,f)=>a + String(f[i]||"").replace(/[\\d.,]/g,"").length, 0);
+      const n = ADJ.filas.reduce((a,f)=>a + aNum(f[i]), 0);
+      if(l > largo){ largo = l; mejorT = i; }
+      if(n > plata){ plata = n; mejorP = i; }
+    }
+    if(mejorT >= 0) ADJ.mapa[mejorT] = "tit";
+    if(mejorP >= 0 && mejorP !== mejorT) ADJ.mapa[mejorP] = "lista";
+  }
+
+  const foto = /^image\\//.test(file.type)
+    ? '<img class="adj-foto" src="'+URL.createObjectURL(file)+'" alt="lo adjuntado">' : "";
+  adjEstado(ADJ.muestra
+    ? '<b>Recibido: '+file.name+'.</b> En el sistema de verdad la IA lee la factura y propone estos renglones. '+
+      'Acá, como en el resto de la demo, los renglones son de muestra: el circuito es el real, los números no salieron de tu archivo.'+foto
+    : '<b>'+ADJ.tipo+' leído: '+file.name+'.</b> Salieron '+ADJ.filas.length+' '+
+      (ADJ.filas.length===1?"renglón":"renglones")+
+      (ADJ.cab.length ? ", con encabezados." : ", sin encabezados: fijate si acerté con las columnas."),
+    ADJ.muestra ? "ojo" : "");
+
+  adjG("adjConfig").hidden = false;
+  adjG("xRubros").innerHTML = [...new Set(PRODUCTOS.map(p=>p.rub))].sort()
+    .map(r=>'<option value="'+r+'">').join("");
+  pintarAdjTabla();
+  adjG("adjConfig").scrollIntoView({block:"nearest", behavior:"smooth"});
+}
+
+/* ---------------------------------------------------- cargarlos */
+function cargarAdjuntos(){
+  const l1 = +adjG("xL1").value || 0, l2 = +adjG("xL2").value || 0;
+  if(l1 <= 0){ toast("Falta la Lista 1: poné el porcentaje que le cargás al costo."); adjG("xL1").focus(); return; }
+  const provBase = adjG("xProv").value.trim().toUpperCase();
+  const rubBase  = adjG("xRub").value.trim().toUpperCase() || "SANITARIOS";
+  const ivaBase  = +adjG("xIva").value || 21;
+  const cont     = limD(adjG("xCont").value);
+  const usd      = adjG("xMoneda").value === "USD";
+  const dol      = adjDolar();
+  if(usd && dol <= 0){ toast("Poné a cuánto tomás el dólar: sin eso no hay costo en pesos."); adjG("xDolar").focus(); return; }
+
+  const rs = filasUtiles().filter(adjSirve);
+  if(!rs.length){ toast("No hay ningún renglón para cargar."); return; }
+  if(!provBase && rs.some(r=>!r.prov)){
+    toast("Falta la marca o el proveedor: el archivo no la trae."); adjG("xProv").focus(); return;
+  }
+
+  let hechos = 0, repes = 0;
+  for(const r of rs){
+    const prov = r.prov || provBase;
+    const rub  = r.rub || rubBase;
+    const iva  = r.iva != null ? r.iva : ivaBase;
+    const lista = usd ? cent(r.lista * dol) : cent(r.lista);
+    const codProv = r.cod;
+    if(codProv && PRODUCTOS.some(p => (p.codProv||"") === codProv && p.prov === prov)){ repes++; continue; }
+    const costo = costoDe(lista, ADJ.seis, null, iva, cont);
+    const pr = preciosDeLista(costo, l1, l2);
+    const cod = skuSugerido();
+    const p = ponerStock({
+      cod, tit: r.tit, rub, prov, desc: "",
+      lista, seis: ADJ.seis.slice(), l1, l2, iva,
+      dctoCont: cont, promo: false, codProv,
+      mon: usd ? "USD" : "ARS", listaMon: usd ? r.lista : null, dolar: usd ? dol : null,
+      may: false, mayPct: 0, mayDesde: 1, mayPrecio: null,
+      markup: costo > 0 ? Math.round((pr.contado/costo - 1) * 1000)/10 : 0,
+      costo, contado: pr.contado, unPago: pr.lista2, costoBase: costo, cargado: true,
+      dep: { BA: 0, TS: r.stock || 0 },
+      propio: plano(cod+" "+codProv+" "+r.tit+" "+rub+" "+prov),
+      blob:   plano(cod+" "+codProv+" "+r.tit+" "+rub+" "+prov+" "+(ALIAS[rub]||""))
+    });
+    PRODUCTOS.push(p);
+    hechos++;
+  }
+  guardarCatalogo();
+  llenarSelects(); pintarProd(); buscar();
+  cerrarAdj();
+  toast(hechos+" "+(hechos===1?"artículo cargado":"artículos cargados")+" desde "+ADJ.nombre+
+        (repes ? ". "+repes+" ya estaban por código del proveedor y los salteé." : "."));
+}
+
+function cerrarAdj(){
+  adjG("adjCuerpo").hidden = true;
+  adjG("btnAdj").textContent = "Adjuntar";
+  adjG("adjConfig").hidden = true;
+  adjG("adjTabla").innerHTML = "";
+  adjG("adjAcc").hidden = true;
+  adjEstado("");
+  adjG("adjFile").value = "";
+  ADJ.filas = []; ADJ.cab = []; ADJ.mapa = {}; ADJ.fuera = {};
+}
+
+/* ---------------------------------------------------- los botones */
+adjG("btnAdj").addEventListener("click",()=>{
+  const c = adjG("adjCuerpo");
+  if(!c.hidden){ cerrarAdj(); return; }
+  c.hidden = false;
+  adjG("btnAdj").textContent = "Cerrar";
+  ADJ.seis = [0,0,0,0,0,0];
+  pintarAdjSeis(); avisoAdjSeis(); pintarAdjMoneda();
+  c.scrollIntoView({block:"nearest", behavior:"smooth"});
+});
+adjG("adjElegir").addEventListener("click",()=>adjG("adjFile").click());
+adjG("adjZona").addEventListener("click",e=>{ if(e.target.closest("button")) return; adjG("adjFile").click(); });
+adjG("adjFile").addEventListener("change",e=>{ if(e.target.files[0]) tomarAdjunto(e.target.files[0]); });
+for(const ev of ["dragenter","dragover"]) adjG("adjZona").addEventListener(ev, e=>{
+  e.preventDefault(); adjG("adjZona").classList.add("encima");
+});
+for(const ev of ["dragleave","drop"]) adjG("adjZona").addEventListener(ev, e=>{
+  e.preventDefault(); adjG("adjZona").classList.remove("encima");
+});
+adjG("adjZona").addEventListener("drop", e=>{
+  const f = e.dataTransfer && e.dataTransfer.files[0];
+  if(f) tomarAdjunto(f);
+});
+adjG("adjTabla").addEventListener("change", e=>{
+  const s = e.target.closest("select[data-col]");
+  if(s){
+    const i = +s.dataset.col, v = s.value;
+    if(v) for(const k of Object.keys(ADJ.mapa)) if(ADJ.mapa[k] === v && +k !== i) delete ADJ.mapa[k];
+    if(v) ADJ.mapa[i] = v; else delete ADJ.mapa[i];
+    pintarAdjTabla();
+    return;
+  }
+  const c = e.target.closest("input[data-fila]");
+  if(c){
+    if(c.checked) delete ADJ.fuera[+c.dataset.fila]; else ADJ.fuera[+c.dataset.fila] = true;
+    pintarAdjTabla();
+  }
+});
+adjG("xSeis").addEventListener("input", e=>{
+  const i = e.target.closest("input[data-x]"); if(!i) return;
+  ADJ.seis[+i.dataset.x] = limD(i.value);
+  i.parentElement.classList.toggle("puesto", limD(i.value) > 0);
+  avisoAdjSeis();
+});
+for(const id of ["xL1","xL2"]) adjG(id).addEventListener("input", avisoAdjSeis);
+adjG("xMoneda").addEventListener("change", pintarAdjMoneda);
+adjG("xDolar").addEventListener("blur", e=>{
+  const v = aNum(e.target.value);
+  if(v > 0){ DOLAR = v; try{ localStorage.setItem(DOLAR_GUARDA, String(v)); }catch(e2){} }
+  e.target.value = v ? plata2(v) : "";
+});
+adjG("adjCargar").addEventListener("click", cargarAdjuntos);
+adjG("adjOtro").addEventListener("click",()=>adjG("adjFile").click());
+
 
 /* =================================================== PRODUCTOS */
 function llenarSelects(){
