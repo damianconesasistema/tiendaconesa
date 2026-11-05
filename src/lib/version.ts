@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.10";
+export const APP_VERSION = "V.0.59.11";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.11",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — AFUERA EL BOTON \"SE SUMAN\". Los descuentos del proveedor se aplican uno sobre otro y punto: tener el boton al lado invitaba a elegir mal y hacia dudar de un numero que no se discute. Se fue tambien la comparacion de las dos cuentas; queda la unica que vale, con el descuento equivalente y el costo.",
+    ],
+  },
   {
     version: "V.0.59.10",
     date: "2026-11-05",
