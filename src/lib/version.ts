@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.3";
+export const APP_VERSION = "V.0.59.4";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,19 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.4",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — LA PANTALLA DE VENTA, MÁS SIMPLE: los seis campos del comprobante ahora son un renglón (sucursal · cliente · comprobante y número · condición) y se abren con Cambiar. De los seis botones quedan tres a la vista; el resto, atrás de Otras opciones.",
+      "PRECIOS CON COMA Y CENTAVOS: la lista del proveedor se escribe 60.000,50 y los centavos dejan de perderse. El costeo entero trabaja al centavo.",
+      "LA CUENTA, EN TRES COLUMNAS: cada renglón dice qué es, cuánto suma ese porcentaje en pesos y en cuánto queda. El \"Te cuesta\" aclara que es el costo más el IVA.",
+      "ARMADOR DE TÍTULO: se cargan qué es, modelo, medida y detalle, y el título se escribe solo con el orden del catálogo (INODORO PRINGLES ONIX · LARGO). Los tipos salen de los artículos que ya existen.",
+      "CÓDIGO DEL PROVEEDOR: el artículo guarda también el código con el que lo factura el proveedor, se ve debajo del código interno y se puede buscar por él.",
+      "TILDE DE PROMOCIÓN DEL PROVEEDOR: se marca en la ficha y aparece como etiqueta en el listado y en el mostrador.",
+      "LA TABLA DE PRODUCTOS SE ORDENA TOCANDO EL TÍTULO DE LA COLUMNA, y los seis descuentos quedaron alineados parejos.",
+    ],
+  },
   {
     version: "V.0.59.3",
     date: "2026-11-05",
