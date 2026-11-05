@@ -2,7 +2,11 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.60.0";
+// V.0.61.0 - Punto: el PDF adjuntado se lee de verdad (texto adentro del
+//            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
+//            no encuentra columna de precios tambien. Columna de precios
+//            detectada por contenido cuando el encabezado no la nombra.
+export const APP_VERSION = "V.0.61.0";
 
 export type VersionEntry = {
   version: string;

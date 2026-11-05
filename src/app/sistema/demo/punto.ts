@@ -883,7 +883,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión de la demo">V.0.60.0</span>
+    <span class="ver" id="ver" title="versión de la demo">V.0.59.3</span>
     <span class="org">· Sanitarios Conesa</span>
     <span class="relo" id="relo"></span>
     <span class="bar-sep ocultable"></span>
@@ -3674,6 +3674,171 @@ async function filasXlsx(buf){
   return filas.filter(x => x.some(c => String(c).trim()));
 }
 
+/* ------------------------------------------------ leer un PDF de verdad
+   Un PDF que salió de un sistema (una lista de precios, una factura
+   electrónica, un remito) lleva el texto adentro, casi siempre
+   comprimido con Flate, que es lo mismo que el navegador ya sabe
+   descomprimir. Así que se puede leer acá, sin servidor y sin librerías.
+
+   Lo único que no se puede es un PDF que sea una hoja escaneada: ahí no
+   hay texto, hay una imagen, y eso lo lee la IA del panel. Cuando pasa,
+   la pantalla lo dice en vez de inventar renglones. */
+
+/** Los strings de un PDF: (así) con sus escapes, o <41 42> en hexa. */
+function textoPdf(cru){
+  let t = "";
+  for(let i = 0; i < cru.length; i++){
+    const c = cru[i];
+    if(c !== "\\\\"){ t += c; continue; }
+    const n = cru[++i];
+    if(n === "n" || n === "r" || n === "t") t += " ";
+    else if(n >= "0" && n <= "7"){
+      let o = n;
+      while(o.length < 3 && cru[i+1] >= "0" && cru[i+1] <= "7") o += cru[++i];
+      t += String.fromCharCode(parseInt(o, 8));
+    }
+    else if(n === "\\n"){ /* corte de línea del archivo, no del texto */ }
+    else t += n;
+  }
+  return t;
+}
+const hexPdf = h => {
+  let t = "";
+  const s = h.replace(/[^0-9A-Fa-f]/g, "");
+  for(let i = 0; i + 1 < s.length; i += 2) t += String.fromCharCode(parseInt(s.substr(i,2), 16));
+  // Si vino en UTF-16 (texto con acentos), los bytes van de a dos.
+  return t.indexOf("\\u0000") >= 0 ? t.replace(/\\u0000/g, "") : t;
+};
+
+/** Descomprime. Los PDF suelen dejar un par de bytes de relleno al final
+    del stream, y eso hace saltar al descompresor cuando ya terminó: si
+    algo salió, vale igual. */
+async function desinflarPdf(bytes, modo){
+  const f = new Blob([bytes]).stream().pipeThrough(new DecompressionStream(modo));
+  const rd = f.getReader();
+  const ps = [];
+  let tot = 0;
+  try{
+    for(;;){
+      const paso = await rd.read();
+      if(paso.done) break;
+      ps.push(paso.value); tot += paso.value.length;
+    }
+  }catch(e){
+    if(!tot) throw e;        // no salió nada: ese no era el formato
+  }
+  const u = new Uint8Array(tot);
+  let o = 0;
+  for(const p of ps){ u.set(p, o); o += p.length; }
+  return u;
+}
+
+/** Saca del archivo los pedazos que llevan texto, ya descomprimidos. */
+async function streamsPdf(buf){
+  const b = new Uint8Array(buf);
+  const crudo = new TextDecoder("latin1").decode(b);
+  const salida = [];
+  // "endstream" también termina en "stream": sin el (?<!end) se lee basura.
+  const re = /(?<!end)stream\\r?\\n?/g;
+  let m;
+  while((m = re.exec(crudo))){
+    const ini = m.index + m[0].length;
+    const cierre = crudo.indexOf("endstream", ini);
+    if(cierre < 0) continue;
+    // El diccionario del objeto: lo que va entre su "obj" y este "stream".
+    const desde = crudo.lastIndexOf(" obj", m.index);
+    const dic = crudo.slice(desde < 0 ? Math.max(0, m.index - 900) : desde, m.index);
+    re.lastIndex = cierre;
+    if(/\\/Image|\\/DCTDecode|\\/JPXDecode|\\/CCITTFaxDecode/.test(dic)) continue;
+    // El largo que declara el propio PDF manda; si no está, hasta el cierre.
+    const largo = /\\/Length\\s+(\\d+)[^\\d]/.exec(dic);
+    const fin = largo ? Math.min(ini + (+largo[1]), cierre) : cierre;
+    let trozo = b.subarray(ini, fin);
+    if(/\\/FlateDecode/.test(dic)){
+      let ok = null;
+      for(const modo of ["deflate", "deflate-raw"]){
+        try{ ok = await desinflarPdf(trozo, modo); break; }catch(e){ /* probamos el otro */ }
+      }
+      if(!ok || !ok.length) continue;
+      trozo = ok;
+    }
+    else if(/\\/[A-Za-z]*Decode/.test(dic)) continue;   // otra compresión: no la sabemos
+    salida.push(new TextDecoder("latin1").decode(trozo));
+  }
+  return salida;
+}
+
+/** De los operadores de texto a trozos con su posición en la hoja. */
+function trozosPdf(contenido){
+  const tr = [];
+  let x = 0, y = 0, lx = 0, ly = 0, tam = 10;
+  const re = /(?:BT)|(?:ET)|(?:T\\*)|(?:\\/[A-Za-z0-9#+.\\-]+\\s+([\\d.]+)\\s+Tf)|(?:([-\\d.]+)\\s+([-\\d.]+)\\s+(?:Td|TD))|(?:([-\\d.]+\\s+){4}([-\\d.]+)\\s+([-\\d.]+)\\s+Tm)|(?:\\[((?:[^\\[\\]\\\\]|\\\\.)*)\\]\\s*TJ)|(?:\\(((?:[^()\\\\]|\\\\.)*)\\)\\s*Tj)|(?:<([0-9A-Fa-f\\s]*)>\\s*Tj)/g;
+  let m;
+  while((m = re.exec(contenido))){
+    const s = m[0];
+    if(s === "BT"){ x = y = lx = ly = 0; continue; }
+    if(s === "ET") continue;
+    if(s === "T*"){ ly -= tam * 1.2; x = lx; y = ly; continue; }
+    if(/Tf$/.test(s)){ tam = +m[1] || 10; continue; }
+    if(/T[dD]$/.test(s)){ lx += +m[2]; ly += +m[3]; x = lx; y = ly; continue; }
+    if(/Tm$/.test(s)){ lx = +m[5]; ly = +m[6]; x = lx; y = ly; continue; }
+    let t = "";
+    if(m[7] != null){
+      for(const p of m[7].matchAll(/\\(((?:[^()\\\\]|\\\\.)*)\\)|<([0-9A-Fa-f\\s]+)>/g))
+        t += p[1] != null ? textoPdf(p[1]) : hexPdf(p[2]);
+    }
+    else if(m[8] != null) t = textoPdf(m[8]);
+    else if(m[9] != null) t = hexPdf(m[9]);
+    if(!t.trim()) continue;
+    tr.push({ x: x, y: y, t: t, tam: tam });
+    x += t.length * tam * 0.5;
+  }
+  return tr;
+}
+
+/** Los trozos, acomodados en renglones y columnas. */
+function filasDeTrozos(tr){
+  const porY = {};
+  for(const t of tr){
+    const k = Math.round(t.y / 3) * 3;      // misma línea, con medio punto de juego
+    (porY[k] = porY[k] || []).push(t);
+  }
+  const filas = [];
+  for(const k of Object.keys(porY).map(Number).sort((a,b)=>b-a)){
+    const linea = porY[k].sort((a,b)=>a.x - b.x);
+    const celdas = [];
+    let act = null, finAnt = -1e9;
+    for(const t of linea){
+      if(act !== null && t.x - finAnt < t.tam * 0.9) act.t += t.t;
+      else { act = { t: t.t }; celdas.push(act); }
+      finAnt = t.x + t.t.length * t.tam * 0.5;
+    }
+    const f = celdas.map(c => c.t.replace(/\\s+/g, " ").trim()).filter(c => c !== "");
+    if(f.length) filas.push(f);
+  }
+  return filas;
+}
+
+async function filasPdf(buf){
+  const ss = await streamsPdf(buf);
+  let tr = [];
+  let hoja = 0;
+  for(const s of ss){
+    const t = trozosPdf(s);
+    if(!t.length) continue;
+    // Cada hoja arranca abajo de la anterior, para que no se mezclen.
+    for(const x of t) x.y += hoja;
+    hoja -= 5000;
+    tr = tr.concat(t);
+  }
+  if(tr.length < 4)
+    throw new Error("Ese PDF no tiene texto adentro: es una hoja escaneada, o una foto metida " +
+                    "en un PDF. Pasame la lista en Excel o CSV, o el PDF original del proveedor.");
+  const filas = filasDeTrozos(tr);
+  if(!filas.length) throw new Error("Ese PDF no tiene texto que pueda leer.");
+  return filas;
+}
+
 /** Lo que la IA del panel devuelve de una factura. Acá es una muestra. */
 function filasDeMuestra(){
   return [
@@ -3692,8 +3857,8 @@ async function leerAdjunto(file){
   if(/\\.(csv|txt)$/.test(n))  return { tipo:"CSV",   filas: filasCSV(await file.text()) };
   if(/\\.xlsx$/.test(n))       return { tipo:"Excel", filas: await filasXlsx(await file.arrayBuffer()) };
   if(/\\.xls$/.test(n))        throw new Error("Ese Excel es del formato viejo (.xls). Guardalo como .xlsx o como CSV y volvé a adjuntarlo.");
-  if(/\\.pdf$/.test(n) || /^image\\//.test(file.type))
-    return { tipo: /\\.pdf$/.test(n) ? "PDF" : "Foto", filas: filasDeMuestra(), muestra:true };
+  if(/\\.pdf$/.test(n))        return { tipo:"PDF",   filas: await filasPdf(await file.arrayBuffer()) };
+  if(/^image\\//.test(file.type)) return { tipo:"Foto", filas: filasDeMuestra(), muestra:true };
   throw new Error("No sé leer ese archivo. Va un Excel (.xlsx), un CSV, o la foto o el PDF de una factura.");
 }
 
@@ -3826,15 +3991,38 @@ async function tomarAdjunto(file){
     if(mejorP >= 0 && mejorP !== mejorT) ADJ.mapa[mejorP] = "lista";
   }
 
+  // Si del encabezado no salio el precio, se busca por lo que hay
+  // adentro: la columna con mas celdas que parecen plata.
+  if(!Object.values(ADJ.mapa).includes("lista")){
+    const anchos = Math.max(...ADJ.filas.map(f=>f.length));
+    let mejor = -1, cuantas = 0;
+    for(let i = 0; i < anchos; i++){
+      if(ADJ.mapa[i]) continue;
+      const c = ADJ.filas.reduce((a,f)=>{
+        const t = String(f[i] || "").trim();
+        return a + (t && /^[$\\s]*[\\d][\\d.,]*$/.test(t.replace(/U\\$S|USD/gi,"").trim()) && aNum(t) >= 1 ? 1 : 0);
+      }, 0);
+      if(c > cuantas){ cuantas = c; mejor = i; }
+    }
+    // Vale si al menos la mitad de los renglones la tienen con plata.
+    if(mejor >= 0 && cuantas >= Math.max(2, ADJ.filas.length * 0.4)) ADJ.mapa[mejor] = "lista";
+  }
+  const sinPrecio = !Object.values(ADJ.mapa).includes("lista");
+
   const foto = /^image\\//.test(file.type)
     ? '<img class="adj-foto" src="'+URL.createObjectURL(file)+'" alt="lo adjuntado">' : "";
   adjEstado(ADJ.muestra
     ? '<b>Recibido: '+file.name+'.</b> En el sistema de verdad la IA lee la factura y propone estos renglones. '+
       'Acá, como en el resto de la demo, los renglones son de muestra: el circuito es el real, los números no salieron de tu archivo.'+foto
+    : sinPrecio
+    ? '<b>'+ADJ.tipo+' leído: '+file.name+'.</b> Salieron '+ADJ.filas.length+' '+
+      (ADJ.filas.length===1?"renglón":"renglones")+', pero no encontré una columna de precios. '+
+      'Si es un catálogo con fotos, el precio no está en una tabla y de ahí no sale: va mejor la '+
+      'lista en Excel o CSV. Si el precio sí está, marcalo abajo en el desplegable de la columna.'
     : '<b>'+ADJ.tipo+' leído: '+file.name+'.</b> Salieron '+ADJ.filas.length+' '+
       (ADJ.filas.length===1?"renglón":"renglones")+
       (ADJ.cab.length ? ", con encabezados." : ", sin encabezados: fijate si acerté con las columnas."),
-    ADJ.muestra ? "ojo" : "");
+    (ADJ.muestra || sinPrecio) ? "ojo" : "");
 
   adjG("adjConfig").hidden = false;
   adjG("xRubros").innerHTML = [...new Set(PRODUCTOS.map(p=>p.rub))].sort()
