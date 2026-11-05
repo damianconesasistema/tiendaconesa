@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.2";
+export const APP_VERSION = "V.0.59.3";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.3",
+    date: "2026-11-05",
+    changes: [
+      "DEMO \"PUNTO\" — LA VERSIÓN QUE SE VE ES LA DE VERDAD: el cartelito de arriba a la izquierda mostraba \"v1.0\" fijo. Ahora sale de la misma versión que muestra el panel, puesta automáticamente al publicar.",
+      "LOS SEIS DESCUENTOS, NUMERADOS Y SUMÁNDOSE: se llaman Descuento 1 a 6, sin nombres inventados, y por defecto se suman (33% + 9% + 5% = 47%). Con un botón se pasa a uno sobre otro, y ahí dice cuánto darían sumados.",
+      "EL DESCUENTO POR PAGO CONTADO, APARTE: no es uno de los seis del artículo sino una condición de pago. Tiene su propio campo y la ficha muestra cuánto costaría el artículo si se le paga al contado.",
+    ],
+  },
   {
     version: "V.0.59.2",
     date: "2026-11-05",
