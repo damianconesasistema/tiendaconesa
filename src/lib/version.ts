@@ -2,7 +2,7 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-export const APP_VERSION = "V.0.59.0";
+export const APP_VERSION = "V.0.59.1";
 
 export type VersionEntry = {
   version: string;
@@ -12,6 +12,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel (ultimas N entradas)
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.59.1",
+    date: "2026-11-04",
+    changes: [
+      "DEMO \"PUNTO\" — LA LISTA 1 Y LA LISTA 2, AL PESO: antes redondeaban para arriba a los $100 y daban un número distinto al del sistema (72.600 + 25% mostraba 90.800 en vez de 90.750). Ahora dan la cuenta exacta.",
+      "EL COSTO, SIEMPRE ACLARADO: donde aparece un costo dice si es con IVA o sin IVA y de cuánto es el IVA. En la tabla de productos, debajo de la alícuota van los pesos de IVA y el costo final con IVA.",
+    ],
+  },
   {
     version: "V.0.59.0",
     date: "2026-11-04",

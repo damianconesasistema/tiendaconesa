@@ -1258,7 +1258,7 @@ footer{
       <table>
         <thead><tr>
           <th>Código</th><th>Artículo</th><th>Proveedor</th>
-          <th class="r">Costo sin IVA</th><th class="r">IVA</th><th class="r">Contado</th><th class="r">1 pago</th>
+          <th class="r">Costo sin IVA</th><th class="r">IVA y costo final</th><th class="r">Contado</th><th class="r">1 pago</th>
           <th class="r">Margen</th><th>Estado</th><th class="r">Stock</th><th></th>
         </tr></thead>
         <tbody id="tbProd"></tbody>
@@ -1368,8 +1368,8 @@ footer{
       <table>
         <thead><tr>
           <th>Código</th><th>Artículo</th>
-          <th class="r">Lista</th>
-          <th class="r">Costo hoy</th><th class="r">Costo nuevo</th>
+          <th class="r">Lista sin IVA</th>
+          <th class="r">Costo hoy con IVA</th><th class="r">Costo nuevo con IVA</th>
           <th class="r">Precio hoy</th><th class="r">Precio sugerido</th>
           <th class="r">Margen que queda</th><th class="r">Sube al cliente</th>
         </tr></thead>
@@ -1522,7 +1522,7 @@ footer{
         <div class="card-h"><h3>Artículos que no llegan al objetivo</h3><span class="sub" id="gerAlertCount"></span></div>
         <div class="tabla-wrap">
           <table>
-            <thead><tr><th>Código</th><th>Artículo</th><th>Proveedor</th><th class="r">Costo</th><th class="r">Contado</th><th class="r">Margen</th><th class="r">Stock</th></tr></thead>
+            <thead><tr><th>Código</th><th>Artículo</th><th>Proveedor</th><th class="r">Costo con IVA</th><th class="r">Contado</th><th class="r">Margen</th><th class="r">Stock</th></tr></thead>
             <tbody id="tbAlert"></tbody>
           </table>
         </div>
@@ -2910,9 +2910,12 @@ function revisarSku(){
 /** Los dos escalones del sistema: costo -> Lista 1 -> Lista 2.
     El precio de contado es la Lista 2 menos el recargo de 1 pago. */
 function preciosDeLista(costo, l1, l2){
-  const lista1 = redondear(costo * (1 + (+l1||0)/100));
-  const lista2 = redondear(lista1 * (1 + (+l2||0)/100));
-  return { lista1, lista2, contado: redondear(lista2 / RECARGO_1PAGO) };
+  // Al peso, no a los $100: estas dos listas son la cuenta del sistema y
+  // tienen que dar el mismo numero que da el sistema. 72.600 + 25% es
+  // 90.750, no 90.800.
+  const lista1 = Math.round(costo * (1 + (+l1||0)/100));
+  const lista2 = Math.round(lista1 * (1 + (+l2||0)/100));
+  return { lista1, lista2, contado: Math.round(lista2 / RECARGO_1PAGO) };
 }
 function altaCuenta(){
   const lista = +document.getElementById("aLista").value || 0;
@@ -2937,7 +2940,7 @@ function altaCuenta(){
     r("Lista sin IVA", fmt(lista))+
     r("Menos los descuentos", "−"+fmt(lista-neto))+
     r("Más IVA "+ivaTxt(iva), "+"+fmt(costo-neto))+
-    r("<b>Te cuesta</b>", fmt(costo), "total")+
+    r("<b>Te cuesta, con IVA</b>", fmt(costo), "total")+
     r("Lista 1, "+pTxt(l1)+"% sobre el costo", fmt(pr.lista1))+
     r("<b>Lista 2</b>, "+pTxt(l2)+"% sobre la Lista 1", fmt(pr.lista2), "total")+
     r("Contado, la Lista 2 menos 12%", fmt(contado), "sub")+
@@ -3133,7 +3136,8 @@ function pintarProd(){
       '<td class="r"><input class="ed" type="number" data-cod="'+p.cod+'" value="'+netoDe(p)+'" step="100" min="0" aria-label="costo sin IVA"></td>'+
       '<td class="r"><select class="ed" data-iva="'+p.cod+'" aria-label="IVA del artículo">'+
         ALICUOTAS.map(a=>'<option value="'+a+'"'+(a===ivaDe(p)?" selected":"")+'>'+ivaTxt(a)+'</option>').join("")+
-      '</select><small style="display:block;color:var(--ink-3)">+'+fmt(p.costo-netoDe(p))+'</small></td>'+
+      '</select><small style="display:block;color:var(--ink-3)">+'+fmt(p.costo-netoDe(p))+'</small>'+
+      '<small style="display:block;color:var(--ink-2);font-weight:600">= '+fmt(p.costo)+'</small></td>'+
       '<td class="r">'+fmt(p.contado)+'</td><td class="r" style="color:var(--ink-3)">'+fmt(p.unPago)+'</td>'+
       '<td class="r" style="font-weight:600;color:'+(m<0?"var(--bad)":(m<S.objetivo?"var(--warn)":"var(--ok)"))+'">'+pct(m)+'</td>'+
       '<td>'+estadoPill(m)+'</td><td class="r">'+p.stock+'</td>'+
@@ -3351,7 +3355,7 @@ function pintarCadena(){
       "−"+fmt(p.lista-neto))+
     r("Queda neto", fmt(neto), "sub")+
     r("IVA "+ivaTxt(ivaDe(p)), "+"+fmt(costo-neto))+
-    r("<b>Lo que te cuesta</b>", fmt(costo), "total")+
+    r("<b>Lo que te cuesta, con IVA</b>", fmt(costo), "total")+
     r("Markup "+mk+"% sobre el costo", "+"+fmt(precioDe(costo,mk)-costo))+
     r("<b>Precio de contado</b>", fmt(precioDe(costo,mk)), "total")+
     r("Recargo 13,64% si paga en 1 pago", "+"+fmt(redondear(precioDe(costo,mk)*RECARGO_1PAGO)-precioDe(costo,mk)), "sub")+
