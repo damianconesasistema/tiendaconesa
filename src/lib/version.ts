@@ -2,6 +2,14 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.65.0 - Punto: la foto del presupuesto se lee de verdad. Antes, al
+//            adjuntar una foto salian seis renglones de ejemplo escritos a
+//            mano en el codigo (inodoros FERRUM) que no tenian nada que ver
+//            con el archivo; eso se fue. Ahora la pagina encoge la foto, la
+//            manda al servidor y la lee la IA de Google, que devuelve los
+//            renglones de verdad. Si no lee nada lo dice, y no inventa. Un
+//            PDF escaneado -sin texto adentro- tambien ofrece la IA. Hace
+//            falta GEMINI_API_KEY en el servidor; sin eso el aviso lo dice.
 // V.0.64.0 - Punto: lo ultimo del modo demo. El pie tenia tres parrafos
 //            explicando que esto era una demo; quedan dos lineas, las que
 //            no son presentacion. Ya no queda la palabra demo en pantalla.
@@ -18,7 +26,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.64.0";
+export const APP_VERSION = "V.0.65.0";
 
 export type VersionEntry = {
   version: string;

@@ -892,7 +892,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.59.3</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.65.0</span>
     <span class="org">· Sanitarios Conesa</span>
     <span class="relo" id="relo"></span>
     <span class="bar-sep ocultable"></span>
@@ -1254,7 +1254,7 @@ footer{
       <div class="soltar" id="adjZona">
         <input type="file" id="adjFile" accept=".csv,.txt,.xlsx,.xls,.pdf,image/*" hidden>
         <div class="st"><b>Soltá el archivo acá</b> o <button class="b2" type="button" id="adjElegir">elegilo</button></div>
-        <span class="por">Excel, CSV, PDF o foto.</span>
+        <span class="por">Excel, CSV o PDF. La foto la lee la IA.</span>
       </div>
       <div id="adjEstado"></div>
 
@@ -3545,7 +3545,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
    otra cosa: leer una factura de una foto lo hace la IA del panel, no
    esta página, así que la demo muestra el circuito con renglones de
    ejemplo y lo dice en pantalla. */
-const ADJ = { filas:[], cab:[], mapa:{}, tipo:"", nombre:"", muestra:false,
+const ADJ = { filas:[], cab:[], mapa:{}, tipo:"", nombre:"",
               seis:[0,0,0,0,0,0], fuera:{} };
 
 const CAMPOS_ADJ = [
@@ -3838,26 +3838,13 @@ async function filasPdf(buf){
   return filas;
 }
 
-/** Lo que la IA del panel devuelve de una factura. Acá es una muestra. */
-function filasDeMuestra(){
-  return [
-    ["Código", "Descripción", "Cantidad", "Precio unitario"],
-    ["FE-1140", "INODORO FERRUM BARI CORTO BLANCO", "6", "118450.00"],
-    ["FE-1141", "DEPOSITO FERRUM BARI DOBLE DESCARGA", "6", "96300.50"],
-    ["FE-2208", "LAVATORIO FERRUM BARI 1 AGUJERO", "4", "74120.00"],
-    ["FV-0410", "GRIFERIA FV ARIZONA LAVATORIO", "3", "131990.75"],
-    ["FV-0411", "GRIFERIA FV ARIZONA DUCHA", "3", "186400.00"],
-    ["RO-5001", "CAMARA SEPTICA ROT-AR 500 LTS", "2", "208700.00"],
-  ];
-}
-
 async function leerAdjunto(file){
   const n = file.name.toLowerCase();
   if(/\\.(csv|txt)$/.test(n))  return { tipo:"CSV",   filas: filasCSV(await file.text()) };
   if(/\\.xlsx$/.test(n))       return { tipo:"Excel", filas: await filasXlsx(await file.arrayBuffer()) };
   if(/\\.xls$/.test(n))        throw new Error("Ese Excel es del formato viejo (.xls). Guardalo como .xlsx o como CSV y volvé a adjuntarlo.");
   if(/\\.pdf$/.test(n))        return { tipo:"PDF",   filas: await filasPdf(await file.arrayBuffer()) };
-  if(/^image\\//.test(file.type)) return { tipo:"Foto", filas: filasDeMuestra(), muestra:true };
+  if(/^image\\//.test(file.type)) return { tipo:"Foto", filas: [], foto:true };
   throw new Error("No sé leer ese archivo. Va un Excel (.xlsx), un CSV, o la foto o el PDF de una factura.");
 }
 
@@ -4000,8 +3987,31 @@ async function tomarAdjunto(file){
   try { r = await leerAdjunto(file); }
   catch(e){ adjEstado(e.message || "No pude leer ese archivo.", "mal"); return; }
 
-  ADJ.filas = r.filas; ADJ.tipo = r.tipo; ADJ.nombre = file.name;
-  ADJ.muestra = !!r.muestra; ADJ.fuera = {};
+  // De una foto los renglones no salen solos: son pixeles, no texto. Los
+  // tiene que leer la IA, y eso se hace en el servidor.
+  if(r.foto){
+    ADJ.filas = []; ADJ.tipo = "Foto"; ADJ.nombre = file.name; ADJ.fuera = {};
+    ofrecerIA(file, "<b>Foto recibida: "+file.name+".</b>");
+    return;
+  }
+
+  ADJ.filas = r.filas; ADJ.tipo = r.tipo; ADJ.nombre = file.name; ADJ.fuera = {};
+
+  // Un PDF que es el escaneo de un papel no tiene texto adentro: no sale
+  // ningun renglon. Ahi tambien sirve la IA.
+  if(!ADJ.filas.length){
+    ofrecerIA(file, "<b>"+ADJ.tipo+" recibido: "+file.name+".</b> Adentro no hay texto, "+
+      "asi que debe ser el escaneo de un papel. Eso lo tiene que leer la IA.");
+    return;
+  }
+
+  armarAdjunto();
+}
+
+/** Con los renglones ya leídos: adivina las columnas, avisa y pinta la tabla. */
+function armarAdjunto(){
+  // "PDF leído", "Excel leído"... y "Foto leída", que es el unico femenino.
+  const leido = ADJ.tipo === "Foto" ? "Foto leída con la IA" : ADJ.tipo + " leído";
   ADJ.cab = pareceCabecera(ADJ.filas[0]) ? ADJ.filas.shift() : [];
   ADJ.mapa = ADJ.cab.length ? adivinarColumnas(ADJ.cab) : {};
   if(!Object.keys(ADJ.mapa).length){
@@ -4037,26 +4047,126 @@ async function tomarAdjunto(file){
   }
   const sinPrecio = !Object.values(ADJ.mapa).includes("lista");
 
-  const foto = /^image\\//.test(file.type)
-    ? '<img class="adj-foto" src="'+URL.createObjectURL(file)+'" alt="lo adjuntado">' : "";
-  adjEstado(ADJ.muestra
-    ? '<b>Recibido: '+file.name+'.</b> En el sistema de verdad la IA lee la factura y propone estos renglones. '+
-      'Acá, como en el resto de la demo, los renglones son de muestra: el circuito es el real, los números no salieron de tu archivo.'+foto
-    : sinPrecio
-    ? '<b>'+ADJ.tipo+' leído: '+file.name+'.</b> Salieron '+ADJ.filas.length+' '+
+  adjEstado(sinPrecio
+    ? '<b>'+leido+': '+ADJ.nombre+'.</b> Salieron '+ADJ.filas.length+' '+
       (ADJ.filas.length===1?"renglón":"renglones")+', pero no encontré una columna de precios. '+
       'Si es un catálogo con fotos, el precio no está en una tabla y de ahí no sale: va mejor la '+
       'lista en Excel o CSV. Si el precio sí está, marcalo abajo en el desplegable de la columna.'
-    : '<b>'+ADJ.tipo+' leído: '+file.name+'.</b> Salieron '+ADJ.filas.length+' '+
+    : '<b>'+leido+': '+ADJ.nombre+'.</b> Salieron '+ADJ.filas.length+' '+
       (ADJ.filas.length===1?"renglón":"renglones")+
       (ADJ.cab.length ? ", con encabezados." : ", sin encabezados: fijate si acerté con las columnas."),
-    (ADJ.muestra || sinPrecio) ? "ojo" : "");
+    sinPrecio ? "ojo" : "");
 
   adjG("adjConfig").hidden = false;
   adjG("xRubros").innerHTML = [...new Set(PRODUCTOS.map(p=>p.rub))].sort()
     .map(r=>'<option value="'+r+'">').join("");
   pintarAdjTabla();
   adjG("adjConfig").scrollIntoView({block:"nearest", behavior:"smooth"});
+}
+
+/* ------------------------------------------- cuando hay que leer una foto */
+/**
+ * Ofrece el botón, con el aviso que corresponda. La foto no se manda sola:
+ * manda plata y manda tiempo, así que la aprieta él.
+ */
+function ofrecerIA(file, aviso){
+  adjG("adjConfig").hidden = true;
+  const foto = /^image\\//.test(file.type)
+    ? '<img class="adj-foto" src="'+URL.createObjectURL(file)+'" alt="lo que adjuntaste">' : "";
+  adjEstado(aviso +
+    ' Fijate bien en la tabla antes de cargar nada: la IA lee muy bien un papel derecho y con luz, '+
+    'y se equivoca con uno borroso o torcido.'+
+    '<div style="margin-top:10px"><button class="b1" type="button" id="adjIA">Leerlo con la IA</button></div>'+
+    foto, "ojo");
+  adjG("adjIA").onclick = () => leerConIA(file);
+}
+
+/** El botón: manda el archivo, espera, y sigue por el camino de siempre. */
+async function leerConIA(file){
+  const b = adjG("adjIA");
+  if(b){ b.disabled = true; b.textContent = "Leyendo…"; }
+  adjEstado("La IA está leyendo <b>"+file.name+"</b>. Puede tardar unos segundos.");
+  let filas;
+  try { filas = await filasConIA(file); }
+  catch(e){
+    adjEstado((e.message || "No pude leer ese archivo.") +
+      ' <div style="margin-top:10px"><button class="b2" type="button" id="adjIA">Probar de nuevo</button></div>', "mal");
+    adjG("adjIA").onclick = () => leerConIA(file);
+    return;
+  }
+  if(!filas.length){
+    adjEstado("<b>No encontré renglones de artículos ahí.</b> Si el papel está borroso o torcido, "+
+      "sacá la foto de nuevo con buena luz y el papel derecho. Si tenés el Excel o el PDF del "+
+      "proveedor, por ahí entra mejor.", "ojo");
+    return;
+  }
+  ADJ.filas = filas; ADJ.tipo = "Foto"; ADJ.nombre = file.name; ADJ.fuera = {};
+  armarAdjunto();
+}
+
+/**
+ * Manda el archivo al servidor, que es el único que tiene la clave de la IA,
+ * y vuelve con los renglones.
+ */
+async function filasConIA(file){
+  const { base64, mime } = await encogerParaLaIA(file);
+  let r;
+  try {
+    r = await fetch("/sistema/demo/leer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ base64: base64, mime: mime }),
+    });
+  } catch(e){
+    throw new Error("No pude llegar al servidor. Fijate si tenés internet y probá de nuevo.");
+  }
+  if(r.status === 401) throw new Error("La página perdió la clave. Recargala y entrá de nuevo.");
+  if(r.status === 404) throw new Error("La lectura por IA no está habilitada en este servidor.");
+  let d = {};
+  try { d = await r.json(); } catch(e){}
+  if(!r.ok || d.error) throw new Error(d.error || ("El servidor respondió "+r.status+"."));
+  return d.filas || [];
+}
+
+/** El archivo en base64. Un PDF va tal cual; una foto se encoge primero. */
+function enBase64(file){
+  return new Promise((ok, mal) => {
+    const l = new FileReader();
+    l.onload = () => {
+      const u = String(l.result);
+      ok({ base64: u.slice(u.indexOf(",") + 1), mime: file.type || "application/octet-stream" });
+    };
+    l.onerror = () => mal(new Error("No pude abrir ese archivo."));
+    l.readAsDataURL(file);
+  });
+}
+
+/**
+ * Una foto de celular pesa de más: 4000 píxeles de ancho no se leen mejor
+ * que 1800, y tardan el triple en subir. Así que se encoge antes de mandarla.
+ * Si el navegador no puede abrirla (pasa con las HEIC del iPhone), va tal cual
+ * y que la abra el servidor.
+ */
+async function encogerParaLaIA(file){
+  if(file.type === "application/pdf") return enBase64(file);
+  let img;
+  try {
+    img = await new Promise((ok, mal) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = () => mal(new Error("sin decodificar"));
+      i.src = URL.createObjectURL(file);
+    });
+  } catch(e){ return enBase64(file); }
+
+  const TOPE = 1800;
+  const esc = Math.min(1, TOPE / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement("canvas");
+  c.width  = Math.max(1, Math.round(img.naturalWidth  * esc));
+  c.height = Math.max(1, Math.round(img.naturalHeight * esc));
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  const url = c.toDataURL("image/jpeg", 0.9);
+  return { base64: url.slice(url.indexOf(",") + 1), mime: "image/jpeg" };
 }
 
 /* ---------------------------------------------------- cargarlos */

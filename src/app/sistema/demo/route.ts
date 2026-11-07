@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { pedirLaClave, revisarClave } from "./clave";
 import { PUNTO_HTML } from "./punto";
 
 // La demo "Punto" (conesa.com.ar/sistema/demo), para mostrarla sin que ande dando vueltas.
@@ -18,51 +18,15 @@ import { PUNTO_HTML } from "./punto";
 
 export const dynamic = "force-dynamic";
 
-function pedirLaClave(): Response {
-  return new Response("Hace falta la clave.\n", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": 'Basic realm="Demo Punto", charset="UTF-8"',
-      "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "no-store",
-    },
-  });
-}
-
-/** Compara sin delatar en cuanto tiempo tarda en fallar. */
-function igual(a: string, b: string): boolean {
-  const x = Buffer.from(a, "utf8");
-  const y = Buffer.from(b, "utf8");
-  if (x.length !== y.length) return false;
-  return timingSafeEqual(x, y);
-}
-
 export async function GET(req: Request): Promise<Response> {
-  const clave = process.env.DEMO_PASSWORD;
-
-  // Sin clave configurada la demo directamente no existe. Asi, si el dia de
-  // maniana se olvida de ponerla en el servidor, no queda abierta sola.
-  if (!clave || clave.length < 8) {
+  const paso = revisarClave(req);
+  if (paso === "sin-configurar") {
     return new Response("No encontrado.\n", {
       status: 404,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
-
-  const cabecera = req.headers.get("authorization") ?? "";
-  const m = /^Basic\s+(.+)$/i.exec(cabecera.trim());
-  if (!m) return pedirLaClave();
-
-  let descifrado = "";
-  try {
-    descifrado = Buffer.from(m[1], "base64").toString("utf8");
-  } catch {
-    return pedirLaClave();
-  }
-
-  const corte = descifrado.indexOf(":");
-  const dada = corte >= 0 ? descifrado.slice(corte + 1) : "";
-  if (!igual(dada, clave)) return pedirLaClave();
+  if (paso === "mal") return pedirLaClave();
 
   return new Response(PUNTO_HTML, {
     status: 200,
