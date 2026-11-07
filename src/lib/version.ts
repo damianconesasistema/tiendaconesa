@@ -2,11 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.62.0 - Punto: carga por adjunto, cuando no sale ningun articulo el
+//            boton decia solo 'Cargar los articulos' y quedaba apagado.
+//            Ahora dice que falta y sale un cartel con dos preguntas
+//            (cual columna es la descripcion, cual el precio).
 // V.0.61.0 - Punto: el PDF adjuntado se lee de verdad (texto adentro del
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.61.0";
+export const APP_VERSION = "V.0.62.0";
 
 export type VersionEntry = {
   version: string;

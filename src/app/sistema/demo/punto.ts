@@ -3933,7 +3933,32 @@ function pintarAdjTabla(){
   const rs = filasUtiles();
   const ok = rs.filter(adjSirve).length;
   const verse = ADJ.filas.slice(0, 60);
-  adjG("adjTabla").innerHTML =
+
+  // Si no sale ningun articulo, lo que falta es decir cual columna es
+  // cual. Se pregunta derecho, con una muestra de lo que hay adentro.
+  const puesto = c => { for(const i of Object.keys(ADJ.mapa)) if(ADJ.mapa[i] === c) return +i; return -1; };
+  const faltaTit = puesto("tit") < 0, faltaPre = puesto("lista") < 0;
+  const muestraCol = i => {
+    for(const fi of ADJ.filas){
+      const v = String(fi[i] == null ? "" : fi[i]).trim();
+      if(v) return v.slice(0, 24);
+    }
+    return "vacía";
+  };
+  const elegir = (campo, puesta) => '<select data-quees="'+campo+'">'+
+    '<option value="">elegí una…</option>'+
+    Array.from({length:anchos}, (_,i)=>'<option value="'+i+'"'+(puesta===i?" selected":"")+'>'+
+      'columna '+(i+1)+' — '+muestraCol(i)+'</option>').join("")+'</select>';
+  const guia = ok ? "" :
+    '<div class="adj-est ojo" style="margin:0 0 12px">'+
+      '<b>Decime cuál columna es cuál</b> y la lista se arma sola. '+
+      'Un renglón entra si tiene descripción y precio.'+
+      '<div class="dos-chicos" style="margin-top:10px">'+
+        '<div><label>El nombre del artículo está en…</label>'+elegir("tit", puesto("tit"))+'</div>'+
+        '<div><label>El precio de lista está en…</label>'+elegir("lista", puesto("lista"))+'</div>'+
+      '</div></div>';
+
+  adjG("adjTabla").innerHTML = guia +
     '<div class="adj-prev"><table><thead><tr><th style="width:34px"></th>'+
       Array.from({length:anchos}, (_,i)=>'<th>'+sel(i)+
         '<small style="display:block;color:var(--ink-3);font-weight:500;margin-top:3px">'+
@@ -3953,10 +3978,14 @@ function pintarAdjTabla(){
     '</tbody></table></div>'+
     '<div class="adj-est">Del archivo salen <b>'+ok+'</b> '+(ok===1?"artículo":"artículos")+
       (ADJ.filas.length > verse.length ? ' (se ven los primeros '+verse.length+' renglones de '+ADJ.filas.length+')' : '')+
-      '. Un renglón entra si tiene descripción y precio: destildá el que no quieras.'+
-      (ok ? '' : ' <b>Revisá arriba qué columna es la descripción y cuál el precio.</b>')+'</div>';
+      '. Un renglón entra si tiene descripción y precio: destildá el que no quieras.</div>';
   adjG("adjAcc").hidden = false;
-  adjG("adjCargar").textContent = ok ? "Cargar los "+ok+" artículos" : "Cargar los artículos";
+  adjG("adjCargar").textContent =
+    ok ? "Cargar los "+ok+" artículo"+(ok===1?"":"s")
+    : faltaTit && faltaPre ? "Falta marcar la descripción y el precio"
+    : faltaPre ? "Falta marcar cuál columna es el precio"
+    : faltaTit ? "Falta marcar cuál columna es la descripción"
+    : "Ningún renglón tiene descripción y precio";
   adjG("adjCargar").disabled = !ok;
 }
 
@@ -4078,8 +4107,11 @@ function cargarAdjuntos(){
   guardarCatalogo();
   llenarSelects(); pintarProd(); buscar();
   cerrarAdj();
-  toast(hechos+" "+(hechos===1?"artículo cargado":"artículos cargados")+" desde "+ADJ.nombre+
-        (repes ? ". "+repes+" ya estaban por código del proveedor y los salteé." : "."));
+  toast(!hechos && repes
+    ? (repes===1 ? "Ese artículo ya estaba cargado" : "Esos "+repes+" artículos ya estaban cargados")+
+      ", por el código del proveedor. No dupliqué nada."
+    : hechos+" "+(hechos===1?"artículo cargado":"artículos cargados")+" desde "+ADJ.nombre+
+      (repes ? ". "+repes+" ya estaban por código del proveedor y los salteé." : "."));
 }
 
 function cerrarAdj(){
@@ -4117,6 +4149,15 @@ adjG("adjZona").addEventListener("drop", e=>{
   if(f) tomarAdjunto(f);
 });
 adjG("adjTabla").addEventListener("change", e=>{
+  const q = e.target.closest("select[data-quees]");
+  if(q){
+    const campo = q.dataset.quees;
+    for(const k of Object.keys(ADJ.mapa)) if(ADJ.mapa[k] === campo) delete ADJ.mapa[k];
+    // Esa columna no puede ser dos cosas a la vez: la pisa.
+    if(q.value !== "") ADJ.mapa[+q.value] = campo;
+    pintarAdjTabla();
+    return;
+  }
   const s = e.target.closest("select[data-col]");
   if(s){
     const i = +s.dataset.col, v = s.value;
