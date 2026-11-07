@@ -2,6 +2,16 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.66.0 - Punto: la tabla del adjunto se puede corregir a mano, y nunca
+//            se carga el total del renglon como precio de uno.
+//            Tres cosas: (1) cada celda de la vista previa es editable, asi
+//            un renglon mal leido se arregla escribiendo encima en vez de
+//            tener que empezar de nuevo; (2) si la columna que parecia el
+//            precio es en realidad cantidad x precio, se toma la del
+//            unitario y se avisa -antes, un renglon de 2 unidades entraba
+//            al doble y no se veia-; (3) un PDF escaneado ahora lo lee la
+//            IA. Eso ultimo estaba anunciado en V.0.65.0 pero no andaba:
+//            filasPdf tiraba error antes de llegar a ofrecerlo.
 // V.0.65.0 - Punto: la foto del presupuesto se lee de verdad. Antes, al
 //            adjuntar una foto salian seis renglones de ejemplo escritos a
 //            mano en el codigo (inodoros FERRUM) que no tenian nada que ver
@@ -26,7 +36,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.65.0";
+export const APP_VERSION = "V.0.66.0";
 
 export type VersionEntry = {
   version: string;

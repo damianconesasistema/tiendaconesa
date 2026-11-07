@@ -66,8 +66,9 @@ export async function POST(req: Request): Promise<Response> {
     return json(
       {
         error:
-          "La imagen es muy grande. Sacá la foto de nuevo con menos " +
-          "resolución, o mandá el PDF.",
+          "Ese archivo pesa demasiado. Si es una foto, sacala de nuevo con " +
+          "menos resolución. Si es un PDF de varias hojas, mandá sola la " +
+          "hoja que tiene la lista.",
       },
       413,
     );

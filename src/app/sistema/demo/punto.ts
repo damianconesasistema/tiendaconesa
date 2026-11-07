@@ -691,7 +691,19 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 .adj-prev select{width:100%; font-size:11.5px; font-weight:600; padding:4px 6px;
   border:1px solid var(--line-2); border-radius:8px; background:var(--surface); color:var(--ink)}
 .adj-prev td.num{text-align:right; font-variant-numeric:tabular-nums}
-.adj-prev tr.fuera{opacity:.45; text-decoration:line-through}
+.adj-prev tr.fuera{opacity:.45}
+.adj-prev tr.fuera td{text-decoration:line-through}
+.adj-prev input.adj-cel{width:100%; min-width:64px; max-width:250px; font:inherit; color:inherit;
+  background:transparent; border:1px solid transparent; border-bottom-color:var(--line);
+  border-radius:7px; padding:3px 5px; width:auto; max-width:none}
+.adj-prev td.num input.adj-cel{text-align:right; font-variant-numeric:tabular-nums}
+.adj-prev input.adj-cel:hover{border-color:var(--line-2)}
+.adj-prev input.adj-cel:focus{border-color:var(--ink-3); background:var(--surface);
+  outline:none; text-decoration:none}
+.adj-prev tr.fuera input.adj-cel{text-decoration:line-through}
+/* En el telefono, un campo con letra chica hace que la pagina salte al
+   tocarlo. Con 16px no salta. */
+@media (max-width:640px){ .adj-prev input.adj-cel{font-size:16px} }
 .adj-foto{max-height:170px; border-radius:10px; border:1px solid var(--line-2); margin-top:10px}
 
 .plata{position:relative}
@@ -892,7 +904,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.65.0</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.66.0</span>
     <span class="org">· Sanitarios Conesa</span>
     <span class="relo" id="relo"></span>
     <span class="bar-sep ocultable"></span>
@@ -1254,7 +1266,7 @@ footer{
       <div class="soltar" id="adjZona">
         <input type="file" id="adjFile" accept=".csv,.txt,.xlsx,.xls,.pdf,image/*" hidden>
         <div class="st"><b>Soltá el archivo acá</b> o <button class="b2" type="button" id="adjElegir">elegilo</button></div>
-        <span class="por">Excel, CSV o PDF. La foto la lee la IA.</span>
+        <span class="por">Excel, CSV o PDF. La foto y el PDF escaneado los lee la IA.</span>
       </div>
       <div id="adjEstado"></div>
 
@@ -3548,6 +3560,15 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
 const ADJ = { filas:[], cab:[], mapa:{}, tipo:"", nombre:"",
               seis:[0,0,0,0,0,0], fuera:{} };
 
+/** Para texto que va adentro del HTML, no en un atributo. */
+const txt = t => String(t == null ? "" : t)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** Para meter texto adentro de un value="..." sin que rompa el HTML. */
+const atrib = t => String(t == null ? "" : t)
+  .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+  .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 const CAMPOS_ADJ = [
   ["", "— no la uso —"],
   ["cod",   "Código del proveedor"],
@@ -3561,11 +3582,18 @@ const CAMPOS_ADJ = [
 const PISTAS_ADJ = {
   cod:   ["codigo","cod","sku","articulo","art","item","referencia","ref","nro"],
   tit:   ["descripcion","detalle","producto","nombre","denominacion","concepto"],
-  lista: ["precio","lista","importe","valor","unitario","punit","neto","costo"],
+  lista: ["preciounitario","punit","unitario","precio","lista","neto","costo"],
   prov:  ["marca","proveedor","fabricante"],
   rub:   ["rubro","familia","categoria","grupo","linea"],
   stock: ["cantidad","cant","stock","unidades","bultos","qty"],
   iva:   ["iva","alicuota"],
+};
+// Pistas de segunda. "Importe" casi siempre es el TOTAL del renglon
+// (cantidad x precio), no el precio de uno. Solo valen si ninguna columna
+// dijo "precio" o "unitario": ahi si, el importe es lo unico que hay.
+const PISTAS_FLOJAS = {
+  lista: ["importe","total","subtotal","monto","valor"],
+  stock: ["cantidad","cant","qty"],
 };
 
 /* ---------------------------------------------------- leer el archivo */
@@ -3830,12 +3858,13 @@ async function filasPdf(buf){
     hoja -= 5000;
     tr = tr.concat(t);
   }
-  if(tr.length < 4)
-    throw new Error("Ese PDF no tiene texto adentro: es una hoja escaneada, o una foto metida " +
-                    "en un PDF. Pasame la lista en Excel o CSV, o el PDF original del proveedor.");
+  // Sin texto adentro es una hoja escaneada. Eso no es un error: devuelve
+  // vacio, y arriba se ofrece leerlo con la IA, igual que una foto.
+  if(tr.length < 4) return [];
   const filas = filasDeTrozos(tr);
-  if(!filas.length) throw new Error("Ese PDF no tiene texto que pueda leer.");
-  return filas;
+  // Cuatro palabras sueltas no son una lista. Si no hay un solo renglon
+  // con dos columnas, es un escaneo con algo de texto encima: a la IA.
+  return filas.some(f => f.filter(c => String(c == null ? "" : c).trim()).length >= 2) ? filas : [];
 }
 
 async function leerAdjunto(file){
@@ -3851,14 +3880,19 @@ async function leerAdjunto(file){
 /* ---------------------------------------------------- el mapeo de columnas */
 function adivinarColumnas(cab){
   const mapa = {}, usadas = {};
-  cab.forEach((c, i) => {
+  const pasada = (pistas, saltear) => cab.forEach((c, i) => {
+    if(mapa[i] != null) return;
     const t = plano(c).replace(/[^a-z0-9]/g, "");
     if(!t) return;
-    for(const campo of Object.keys(PISTAS_ADJ)){
-      if(usadas[campo]) continue;
-      if(PISTAS_ADJ[campo].some(p => t.indexOf(p) >= 0)){ mapa[i] = campo; usadas[campo] = true; return; }
+    for(const campo of Object.keys(pistas)){
+      if(usadas[campo] || (saltear && saltear[campo])) continue;
+      if(pistas[campo].some(p => t.indexOf(p) >= 0)){ mapa[i] = campo; usadas[campo] = true; return; }
     }
   });
+  // Primero lo que no se discute: "Precio unitario" gana siempre.
+  pasada(PISTAS_ADJ, null);
+  // Despues lo dudoso, y solo para los campos que quedaron sin columna.
+  pasada(PISTAS_FLOJAS, usadas);
   return mapa;
 }
 /** Si la primera fila no son nombres de columna, es un renglón más. */
@@ -3891,6 +3925,110 @@ function pintarAdjMoneda(){
   const usd = adjG("xMoneda").value === "USD";
   adjG("xCajaDolar").hidden = !usd;
   if(usd && !adjDolar() && DOLAR) adjG("xDolar").value = plata2(DOLAR);
+}
+
+/** En que columna quedo un campo. -1 si en ninguna. */
+function colAdj(campo){
+  for(const i of Object.keys(ADJ.mapa)) if(ADJ.mapa[i] === campo) return +i;
+  return -1;
+}
+
+/** Las columnas que parecen cantidades: numeros enteros y chicos. */
+function columnasCantidad(){
+  const anchos = Math.max(...ADJ.filas.map(f=>f.length));
+  const sale = [];
+  const i0 = colAdj("stock");
+  if(i0 >= 0) sale.push(i0);
+  for(let i = 0; i < anchos; i++){
+    if(sale.indexOf(i) >= 0 || ADJ.mapa[i]) continue;
+    let hay = 0, enteros = 0;
+    for(const f of ADJ.filas){
+      const t = String(f[i] == null ? "" : f[i]).trim();
+      if(!t) continue;
+      hay++;
+      const n = aNum(t);
+      if(n >= 1 && n <= 500 && Math.abs(n - Math.round(n)) < 1e-9) enteros++;
+    }
+    if(hay >= 2 && enteros >= hay * 0.8) sale.push(i);
+  }
+  return sale;
+}
+
+/**
+ * Si la columna i es cantidad x precio, devuelve en que columna esta el
+ * precio de uno. Si no lo es, -1.
+ *
+ * Por que importa: en un presupuesto el renglon de 2 unidades trae el
+ * unitario y el total. Si se carga el total como precio de lista, ese
+ * articulo entra al doble de lo que vale, y el error no se ve hasta que
+ * alguien compra.
+ */
+function columnaDelUnitario(i){
+  const anchos = Math.max(...ADJ.filas.map(f=>f.length));
+  const cerca = (a, b) => Math.abs(a - b) <= Math.max(0.02, Math.abs(b) * 0.005);
+  for(const q of columnasCantidad()){
+    if(q === i) continue;
+    // Una columna de cantidades tiene algun renglon chico: casi siempre hay
+    // un "1". Una columna de precios en dolares tambien son numeros enteros
+    // y chicos, pero no arranca en uno. Sin esto, una lista en dolares
+    // pasaba por presupuesto.
+    const cants = ADJ.filas.map(f => aNum(f[q])).filter(n => n > 0);
+    if(!cants.length || Math.min(...cants) > 10) continue;
+    for(let j = 0; j < anchos; j++){
+      if(j === i || j === q || ADJ.mapa[j]) continue;
+      let mira = 0, vale = 0, conDos = 0, alReves = 0;
+      const distintos = new Set();
+      for(const f of ADJ.filas){
+        const c = aNum(f[q]), u = aNum(f[j]), t = aNum(f[i]);
+        if(c < 1 || u <= 0 || t <= 0) continue;
+        mira++;
+        distintos.add(u);
+        if(c > 1) conDos++;
+        if(cerca(c * u, t)) vale++;
+        if(cerca(c * t, u)) alReves++;
+      }
+      // Una columna de precios no es toda el mismo numero. Si lo es, es la
+      // cotizacion del dolar o un coeficiente, no el precio de nada.
+      if(distintos.size < 2) continue;
+      // Si la cuenta da para los dos lados, la que ya estaba marcada era el
+      // unitario y esta otra el total. No se toca nada.
+      if(alReves >= Math.max(2, mira * 0.8)) continue;
+      // Hace falta al menos un renglon de mas de uno: si todos son de a
+      // una unidad, el total y el unitario son el mismo numero y no hay
+      // forma de distinguirlos (ni falta, porque da igual).
+      if(mira >= 2 && conDos >= 1 && vale >= Math.max(2, mira * 0.8)) return j;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Hay renglones de mas de una unidad y ninguna otra columna es
+ * cantidad x precio. Entonces no hay con que comprobar si el precio que
+ * tenemos es el de uno o el total del renglon. No se puede adivinar, pero
+ * si se puede avisar: es el caso que mas plata cuesta si sale mal.
+ */
+function puedeSerTotalSinPrueba(){
+  const iL = colAdj("lista"), q = colAdj("stock");
+  if(iL < 0 || q < 0) return false;
+  // Si el encabezado ya dice que es el precio de uno, no hay nada que
+  // avisar: el papel lo dice solo.
+  if(/unitario|punit|preciounit|cu/.test(plano(ADJ.cab[iL] || "").replace(/[^a-z0-9]/g, ""))) return false;
+  if(!ADJ.filas.some(f => aNum(f[q]) > 1)) return false;
+  const anchos = Math.max(...ADJ.filas.map(f=>f.length));
+  for(let k = 0; k < anchos; k++){
+    if(k === iL || k === q) continue;
+    let mira = 0, vale = 0;
+    for(const f of ADJ.filas){
+      const c = aNum(f[q]), u = aNum(f[iL]), t = aNum(f[k]);
+      if(c < 1 || u <= 0 || t <= 0) continue;
+      mira++;
+      if(Math.abs(c * u - t) <= Math.max(0.02, t * 0.005)) vale++;
+    }
+    // Esta columna es cantidad x el precio: entonces el precio es el de uno.
+    if(mira >= 2 && vale >= Math.max(2, mira * 0.8)) return false;
+  }
+  return true;
 }
 
 /** Lo que va a quedar cargado, fila por fila. */
@@ -3934,7 +4072,7 @@ function pintarAdjTabla(){
   const elegir = (campo, puesta) => '<select data-quees="'+campo+'">'+
     '<option value="">elegí una…</option>'+
     Array.from({length:anchos}, (_,i)=>'<option value="'+i+'"'+(puesta===i?" selected":"")+'>'+
-      'columna '+(i+1)+' — '+muestraCol(i)+'</option>').join("")+'</select>';
+      'columna '+(i+1)+' — '+txt(muestraCol(i))+'</option>').join("")+'</select>';
   const guia = ok ? "" :
     '<div class="adj-est ojo" style="margin:0 0 12px">'+
       '<b>Decime cuál columna es cuál</b> y la lista se arma sola. '+
@@ -3948,31 +4086,72 @@ function pintarAdjTabla(){
     '<div class="adj-prev"><table><thead><tr><th style="width:34px"></th>'+
       Array.from({length:anchos}, (_,i)=>'<th>'+sel(i)+
         '<small style="display:block;color:var(--ink-3);font-weight:500;margin-top:3px">'+
-        (ADJ.cab[i] ? String(ADJ.cab[i]).slice(0,22) : "columna "+(i+1))+'</small></th>').join("")+
+        (ADJ.cab[i] ? txt(String(ADJ.cab[i]).slice(0,22)) : "columna "+(i+1))+'</small></th>').join("")+
     '</tr></thead><tbody>'+
     verse.map((f, n)=>{
       const r = rs[n];
       return '<tr'+(adjSirve(r)?"":' class="fuera"')+'>'+
         '<td><input type="checkbox" data-fila="'+n+'"'+(ADJ.fuera[n]?"":" checked")+' aria-label="incluir"></td>'+
         Array.from({length:anchos}, (_,i)=>{
-          const v = f[i] == null ? "" : String(f[i]);
+          let v = f[i] == null ? "" : String(f[i]);
           const num = ADJ.mapa[i] === "lista" || ADJ.mapa[i] === "stock";
+          // La columna del precio se muestra SIEMPRE como el sistema la
+          // entendio, y se deja escrita asi en el renglon. Si no, un precio
+          // escrito a la inglesa ("1,234.56", que acá se lee 1,23) se veria
+          // bien en pantalla y se cargaria mal, sin que nadie lo note.
+          if(ADJ.mapa[i] === "lista" && aNum(v) > 0){ v = plata2(aNum(v)); f[i] = v; }
           return '<td'+(num?' class="num"':'')+'>'+
-            (num && aNum(v) ? plata2(aNum(v)) : v.slice(0, 44))+'</td>';
+            '<input class="adj-cel" data-f="'+n+'" data-c="'+i+'" spellcheck="false" '+
+            'size="'+Math.min(44, Math.max(7, v.length + 1))+'" '+
+            (num ? 'inputmode="decimal" ' : '')+
+            (v.length > 44 ? 'title="'+atrib(v)+'" ' : '')+
+            'value="'+atrib(v)+'" '+
+            'aria-label="'+atrib((CAMPOS_ADJ.find(c=>c[0]===(ADJ.mapa[i]||""))||["","columna "+(i+1)])[1])+
+            ', renglón '+(n+1)+'"></td>';
         }).join("")+'</tr>';
     }).join("")+
     '</tbody></table></div>'+
-    '<div class="adj-est">Del archivo salen <b>'+ok+'</b> '+(ok===1?"artículo":"artículos")+
-      (ADJ.filas.length > verse.length ? ' (se ven los primeros '+verse.length+' renglones de '+ADJ.filas.length+')' : '')+
-      '. Un renglón entra si tiene descripción y precio: destildá el que no quieras.</div>';
+    '<div class="adj-est">Del archivo salen <b id="adjCuenta">'+ok+'</b> '+
+      '<span id="adjCuentaPal">'+(ok===1?"artículo":"artículos")+'</span>'+
+      (ADJ.filas.length > verse.length
+        ? ' <b>(se ven y se corrigen los primeros '+verse.length+' renglones de '+ADJ.filas.length+
+          '; los demás se cargan como salieron)</b>' : '')+
+      '. <b>Si algo salió mal leído, escribí encima y se corrige.</b> '+
+      'Un renglón entra si tiene descripción y precio: destildá el que no quieras.</div>';
   adjG("adjAcc").hidden = false;
-  adjG("adjCargar").textContent =
-    ok ? "Cargar los "+ok+" artículo"+(ok===1?"":"s")
+  ADJ.vacia = (ok === 0);
+  adjG("adjCargar").textContent = textoAdjCargar(ok);
+  adjG("adjCargar").disabled = !ok;
+}
+
+/** Lo que dice el botón de cargar, según lo que falte. */
+function textoAdjCargar(ok){
+  const faltaTit = colAdj("tit") < 0, faltaPre = colAdj("lista") < 0;
+  return ok === 1 ? "Cargar 1 artículo"
+    : ok ? "Cargar los "+ok+" artículos"
     : faltaTit && faltaPre ? "Falta marcar la descripción y el precio"
     : faltaPre ? "Falta marcar cuál columna es el precio"
     : faltaTit ? "Falta marcar cuál columna es la descripción"
     : "Ningún renglón tiene descripción y precio";
+}
+
+/**
+ * Despues de corregir una celda: actualiza la cuenta y los renglones
+ * tachados, sin repintar la tabla. Si se repintara, la celda perderia el
+ * foco en cada tecla y no se podria escribir.
+ */
+function refrescarAdjCuenta(){
+  const rs = filasUtiles(), ok = rs.filter(adjSirve).length;
+  for(const tr of adjG("adjTabla").querySelectorAll("tbody tr")){
+    const c = tr.querySelector("input[data-fila]");
+    if(c && rs[+c.dataset.fila]) tr.classList.toggle("fuera", !adjSirve(rs[+c.dataset.fila]));
+  }
+  const n = adjG("adjCuenta"), pal = adjG("adjCuentaPal");
+  if(n) n.textContent = ok;
+  if(pal) pal.textContent = ok === 1 ? "artículo" : "artículos";
+  adjG("adjCargar").textContent = textoAdjCargar(ok);
   adjG("adjCargar").disabled = !ok;
+  return ok;
 }
 
 function adjEstado(txt, clase){
@@ -3981,37 +4160,95 @@ function adjEstado(txt, clase){
 
 async function tomarAdjunto(file){
   if(!file) return;
+  // Numero de turno. La IA tarda unos segundos: si en el medio se adjunta
+  // otro archivo, la respuesta vieja tiene que caer al vacio y no pisar los
+  // renglones del nuevo.
+  const turno = ADJ.turno = (ADJ.turno || 0) + 1;
   adjG("adjTabla").innerHTML = ""; adjG("adjAcc").hidden = true;
-  adjEstado("Leyendo <b>"+file.name+"</b>…");
+  adjEstado("Leyendo <b>"+txt(file.name)+"</b>…");
   let r;
   try { r = await leerAdjunto(file); }
-  catch(e){ adjEstado(e.message || "No pude leer ese archivo.", "mal"); return; }
+  catch(e){
+    if(turno !== ADJ.turno) return;
+    adjEstado(e.message || "No pude leer ese archivo.", "mal"); return;
+  }
+  if(turno !== ADJ.turno) return;
 
   // De una foto los renglones no salen solos: son pixeles, no texto. Los
   // tiene que leer la IA, y eso se hace en el servidor.
   if(r.foto){
-    ADJ.filas = []; ADJ.tipo = "Foto"; ADJ.nombre = file.name; ADJ.fuera = {};
-    ofrecerIA(file, "<b>Foto recibida: "+file.name+".</b>");
+    ADJ.filas = []; ADJ.tipo = "Foto"; ADJ.nombre = file.name; ADJ.fuera = {}; ADJ.ia = false;
+    ofrecerIA(file, "<b>Foto recibida: "+txt(file.name)+".</b>");
     return;
   }
 
-  ADJ.filas = r.filas; ADJ.tipo = r.tipo; ADJ.nombre = file.name; ADJ.fuera = {};
+  ADJ.filas = r.filas; ADJ.tipo = r.tipo; ADJ.nombre = file.name; ADJ.fuera = {}; ADJ.ia = false;
 
   // Un PDF que es el escaneo de un papel no tiene texto adentro: no sale
   // ningun renglon. Ahi tambien sirve la IA.
   if(!ADJ.filas.length){
-    ofrecerIA(file, "<b>"+ADJ.tipo+" recibido: "+file.name+".</b> Adentro no hay texto, "+
-      "asi que debe ser el escaneo de un papel. Eso lo tiene que leer la IA.");
+    // La IA lee un papel: una foto o un PDF. Un Excel vacio no es eso, y
+    // ofrecerle el boton seria mandarlo a un error que no entiende.
+    if(!loLeeLaIA(file)){
+      adjEstado("<b>"+ADJ.tipo+" recibido: "+txt(file.name)+", pero no encontré ningún renglón adentro.</b> "+
+        (ADJ.tipo === "Excel"
+          ? "Fijate si la lista está en otra hoja del libro: leo la primera. "
+          : "Fijate si el archivo tiene algo adentro. ")+
+        "Si no, pasame el archivo donde está la lista, o sacale una foto.", "ojo");
+      return;
+    }
+    ofrecerIA(file, "<b>"+ADJ.tipo+" recibido: "+txt(file.name)+".</b> Adentro no hay texto, "+
+      "así que debe ser el escaneo de un papel. Eso lo tiene que leer la IA.");
     return;
   }
 
   armarAdjunto();
 }
 
+/**
+ * El renglon de arriba: que se leyo, cuantos renglones salieron, y lo que
+ * haya que mirar con cuidado. Se vuelve a escribir cada vez que cambian las
+ * columnas, para que no quede diciendo algo que ya no es cierto.
+ */
+function pintarAvisoAdjunto(){
+  // "PDF leído", "Excel leído"... y "Foto leída", que es el unico femenino.
+  const leido = ADJ.tipo === "Foto"
+    ? "Foto leída con la IA"
+    : ADJ.tipo + (ADJ.ia ? " leído con la IA" : " leído");
+  const sinPrecio = !Object.values(ADJ.mapa).includes("lista");
+  const cuantos = ADJ.filas.length + ' ' + (ADJ.filas.length === 1 ? "renglón" : "renglones");
+
+  adjEstado(sinPrecio
+    ? '<b>'+leido+': '+txt(ADJ.nombre)+'.</b> Salieron '+cuantos+', pero no encontré una columna '+
+      'de precios. Si es un catálogo con fotos, el precio no está en una tabla y de ahí no sale: '+
+      'va mejor la lista en Excel o CSV. Si el precio sí está, marcalo abajo en el desplegable '+
+      'de la columna.'
+    : '<b>'+leido+': '+txt(ADJ.nombre)+'.</b> Salieron '+cuantos+
+      (ADJ.cab.length ? ", con encabezados." : ", sin encabezados: fijate si acerté con las columnas.")+
+      (ADJ.total
+        ? ' <b>Ojo:</b> la columna '+ADJ.total.era+' era el total del renglón (cantidad × precio), '+
+          'no el precio de uno. Tomé la columna '+ADJ.total.es+', que es el precio unitario.'
+        : '')+
+      (ADJ.duda
+        ? ' <b>Fijate una cosa:</b> hay renglones de más de una unidad y una sola columna de precios. '+
+          'Si ese número es el total del renglón y no el precio de uno, los artículos entran caros. '+
+          'Mirá el papel: si dice $100 la unidad y 2 unidades $200, el que va es el 100. '+
+          'Lo podés corregir a mano en la tabla.'
+        : ''),
+    sinPrecio || ADJ.total || ADJ.duda ? "ojo" : "");
+}
+
+/** El usuario mando: la correccion automatica deja de valer y la duda se
+ *  vuelve a calcular con las columnas nuevas. */
+function cambioDeColumna(){
+  ADJ.total = null;
+  ADJ.duda = ADJ.filas.length ? puedeSerTotalSinPrueba() : false;
+  pintarAvisoAdjunto();
+  pintarAdjTabla();
+}
+
 /** Con los renglones ya leídos: adivina las columnas, avisa y pinta la tabla. */
 function armarAdjunto(){
-  // "PDF leído", "Excel leído"... y "Foto leída", que es el unico femenino.
-  const leido = ADJ.tipo === "Foto" ? "Foto leída con la IA" : ADJ.tipo + " leído";
   ADJ.cab = pareceCabecera(ADJ.filas[0]) ? ADJ.filas.shift() : [];
   ADJ.mapa = ADJ.cab.length ? adivinarColumnas(ADJ.cab) : {};
   if(!Object.keys(ADJ.mapa).length){
@@ -4045,17 +4282,24 @@ function armarAdjunto(){
     // Vale si al menos la mitad de los renglones la tienen con plata.
     if(mejor >= 0 && cuantas >= Math.max(2, ADJ.filas.length * 0.4)) ADJ.mapa[mejor] = "lista";
   }
+  // La columna que marque como precio, ¿no sera el total del renglon?
+  ADJ.total = null;
+  const iLis = colAdj("lista");
+  if(iLis >= 0){
+    const iUni = columnaDelUnitario(iLis);
+    // Si la columna del unitario ya es otra cosa, no toco nada: prefiero
+    // dejarlo como esta antes que romper el mapeo entero.
+    if(iUni >= 0 && !ADJ.mapa[iUni]){
+      delete ADJ.mapa[iLis];
+      ADJ.mapa[iUni] = "lista";
+      ADJ.total = { era: iLis + 1, es: iUni + 1 };
+    }
+  }
+  ADJ.duda = !ADJ.total && puedeSerTotalSinPrueba();
+
   const sinPrecio = !Object.values(ADJ.mapa).includes("lista");
 
-  adjEstado(sinPrecio
-    ? '<b>'+leido+': '+ADJ.nombre+'.</b> Salieron '+ADJ.filas.length+' '+
-      (ADJ.filas.length===1?"renglón":"renglones")+', pero no encontré una columna de precios. '+
-      'Si es un catálogo con fotos, el precio no está en una tabla y de ahí no sale: va mejor la '+
-      'lista en Excel o CSV. Si el precio sí está, marcalo abajo en el desplegable de la columna.'
-    : '<b>'+leido+': '+ADJ.nombre+'.</b> Salieron '+ADJ.filas.length+' '+
-      (ADJ.filas.length===1?"renglón":"renglones")+
-      (ADJ.cab.length ? ", con encabezados." : ", sin encabezados: fijate si acerté con las columnas."),
-    sinPrecio ? "ojo" : "");
+  pintarAvisoAdjunto();
 
   adjG("adjConfig").hidden = false;
   adjG("xRubros").innerHTML = [...new Set(PRODUCTOS.map(p=>p.rub))].sort()
@@ -4063,6 +4307,12 @@ function armarAdjunto(){
   pintarAdjTabla();
   adjG("adjConfig").scrollIntoView({block:"nearest", behavior:"smooth"});
 }
+
+/** Un PDF es un PDF aunque el navegador no le ponga el tipo. */
+const esPdf  = f => f.type === "application/pdf" || /\\.pdf$/i.test(f.name || "");
+const esFoto = f => /^image\\//.test(f.type || "") || /\\.(jpe?g|png|webp|heic|heif)$/i.test(f.name || "");
+/** Lo unico que la IA sabe leer: un papel. Un Excel no es un papel. */
+const loLeeLaIA = f => esFoto(f) || esPdf(f);
 
 /* ------------------------------------------- cuando hay que leer una foto */
 /**
@@ -4075,32 +4325,35 @@ function ofrecerIA(file, aviso){
     ? '<img class="adj-foto" src="'+URL.createObjectURL(file)+'" alt="lo que adjuntaste">' : "";
   adjEstado(aviso +
     ' Fijate bien en la tabla antes de cargar nada: la IA lee muy bien un papel derecho y con luz, '+
-    'y se equivoca con uno borroso o torcido.'+
+    'y se equivoca con uno borroso o torcido. Lo que salga mal lo podés corregir a mano en la tabla.'+
     '<div style="margin-top:10px"><button class="b1" type="button" id="adjIA">Leerlo con la IA</button></div>'+
     foto, "ojo");
-  adjG("adjIA").onclick = () => leerConIA(file);
+  adjG("adjIA").onclick = () => leerConIA(file, ADJ.turno);
 }
 
 /** El botón: manda el archivo, espera, y sigue por el camino de siempre. */
-async function leerConIA(file){
+async function leerConIA(file, turno){
   const b = adjG("adjIA");
   if(b){ b.disabled = true; b.textContent = "Leyendo…"; }
-  adjEstado("La IA está leyendo <b>"+file.name+"</b>. Puede tardar unos segundos.");
+  adjEstado("La IA está leyendo <b>"+txt(file.name)+"</b>. Puede tardar unos segundos.");
   let filas;
   try { filas = await filasConIA(file); }
   catch(e){
+    if(turno !== ADJ.turno) return;
     adjEstado((e.message || "No pude leer ese archivo.") +
       ' <div style="margin-top:10px"><button class="b2" type="button" id="adjIA">Probar de nuevo</button></div>', "mal");
-    adjG("adjIA").onclick = () => leerConIA(file);
+    adjG("adjIA").onclick = () => leerConIA(file, turno);
     return;
   }
+  if(turno !== ADJ.turno) return;
   if(!filas.length){
     adjEstado("<b>No encontré renglones de artículos ahí.</b> Si el papel está borroso o torcido, "+
       "sacá la foto de nuevo con buena luz y el papel derecho. Si tenés el Excel o el PDF del "+
       "proveedor, por ahí entra mejor.", "ojo");
     return;
   }
-  ADJ.filas = filas; ADJ.tipo = "Foto"; ADJ.nombre = file.name; ADJ.fuera = {};
+  // El tipo ya quedo puesto al adjuntar: "Foto" o "PDF". No lo piso.
+  ADJ.filas = filas; ADJ.nombre = file.name; ADJ.fuera = {}; ADJ.ia = true;
   armarAdjunto();
 }
 
@@ -4110,6 +4363,14 @@ async function leerConIA(file){
  */
 async function filasConIA(file){
   const { base64, mime } = await encogerParaLaIA(file);
+  // El servidor acepta hasta 12 MB ya convertido. Conviene medirlo acá: si
+  // sale igual, el usuario espera la subida entera para que le digan que no.
+  if(base64.length > 11.5 * 1024 * 1024){
+    throw new Error(esPdf(file)
+      ? "Ese PDF pesa demasiado para mandarlo a la IA. Si son varias hojas, mandá sola la que "+
+        "tiene la lista, o sacale una foto a esa hoja."
+      : "Esa foto pesa demasiado para mandarla a la IA. Sacala de nuevo con menos resolución.");
+  }
   let r;
   try {
     r = await fetch("/sistema/demo/leer", {
@@ -4134,7 +4395,10 @@ function enBase64(file){
     const l = new FileReader();
     l.onload = () => {
       const u = String(l.result);
-      ok({ base64: u.slice(u.indexOf(",") + 1), mime: file.type || "application/octet-stream" });
+      // Si el navegador no le puso tipo, lo saco del nombre: sin un tipo
+      // que conozca, el servidor lo rechaza y no se entiende por que.
+      const tipo = file.type || (esPdf(file) ? "application/pdf" : "application/octet-stream");
+      ok({ base64: u.slice(u.indexOf(",") + 1), mime: tipo });
     };
     l.onerror = () => mal(new Error("No pude abrir ese archivo."));
     l.readAsDataURL(file);
@@ -4148,7 +4412,7 @@ function enBase64(file){
  * y que la abra el servidor.
  */
 async function encogerParaLaIA(file){
-  if(file.type === "application/pdf") return enBase64(file);
+  if(esPdf(file)) return enBase64(file);
   let img;
   try {
     img = await new Promise((ok, mal) => {
@@ -4232,6 +4496,8 @@ function cerrarAdj(){
   adjEstado("");
   adjG("adjFile").value = "";
   ADJ.filas = []; ADJ.cab = []; ADJ.mapa = {}; ADJ.fuera = {};
+  ADJ.ia = false; ADJ.total = null; ADJ.duda = false; ADJ.vacia = true;
+  ADJ.turno = (ADJ.turno || 0) + 1;
 }
 
 /* ---------------------------------------------------- los botones */
@@ -4264,7 +4530,7 @@ adjG("adjTabla").addEventListener("change", e=>{
     for(const k of Object.keys(ADJ.mapa)) if(ADJ.mapa[k] === campo) delete ADJ.mapa[k];
     // Esa columna no puede ser dos cosas a la vez: la pisa.
     if(q.value !== "") ADJ.mapa[+q.value] = campo;
-    pintarAdjTabla();
+    cambioDeColumna();
     return;
   }
   const s = e.target.closest("select[data-col]");
@@ -4272,7 +4538,7 @@ adjG("adjTabla").addEventListener("change", e=>{
     const i = +s.dataset.col, v = s.value;
     if(v) for(const k of Object.keys(ADJ.mapa)) if(ADJ.mapa[k] === v && +k !== i) delete ADJ.mapa[k];
     if(v) ADJ.mapa[i] = v; else delete ADJ.mapa[i];
-    pintarAdjTabla();
+    cambioDeColumna();
     return;
   }
   const c = e.target.closest("input[data-fila]");
@@ -4280,6 +4546,40 @@ adjG("adjTabla").addEventListener("change", e=>{
     if(c.checked) delete ADJ.fuera[+c.dataset.fila]; else ADJ.fuera[+c.dataset.fila] = true;
     pintarAdjTabla();
   }
+});
+// Corregir una celda a mano. Lo que se escribe va derecho al renglon:
+// lo que se ve en la tabla es exactamente lo que se va a cargar.
+adjG("adjTabla").addEventListener("input", e=>{
+  const c = e.target.closest("input.adj-cel");
+  if(!c) return;
+  const n = +c.dataset.f, i = +c.dataset.c, fila = ADJ.filas[n];
+  if(!fila) return;
+  while(fila.length <= i) fila.push("");   // renglon corto: lo relleno
+  fila[i] = c.value;
+  refrescarAdjCuenta();
+});
+// Al salir de la celda: si recien apareció (o se fue) el primer artículo,
+// la tabla cambia de forma y ahí sí se repinta entera.
+adjG("adjTabla").addEventListener("change", e=>{
+  const c = e.target.closest("input.adj-cel");
+  if(!c) return;
+  const ok = refrescarAdjCuenta();
+  if((ok === 0) === (ADJ.vacia === true)) return;
+  // Repintar destruye las celdas. Si lo hago ahora, el foco todavia no
+  // termino de moverse y la celda a la que iba el usuario desaparece: lo
+  // que escriba despues se pierde. Asi que espero a que el foco se pose, y
+  // le devuelvo la misma celda ya repintada.
+  setTimeout(()=>{
+    const a = document.activeElement;
+    const ir = a && a.classList && a.classList.contains("adj-cel")
+      ? [a.dataset.f, a.dataset.c, a.selectionStart, a.selectionEnd] : null;
+    pintarAdjTabla();
+    if(!ir) return;
+    const nuevo = document.querySelector('.adj-cel[data-f="'+ir[0]+'"][data-c="'+ir[1]+'"]');
+    if(!nuevo) return;
+    nuevo.focus();
+    try { nuevo.setSelectionRange(ir[2], ir[3]); } catch(e2){}
+  }, 0);
 });
 adjG("xSeis").addEventListener("input", e=>{
   const i = e.target.closest("input[data-x]"); if(!i) return;
