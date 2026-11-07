@@ -2,6 +2,9 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.64.0 - Punto: lo ultimo del modo demo. El pie tenia tres parrafos
+//            explicando que esto era una demo; quedan dos lineas, las que
+//            no son presentacion. Ya no queda la palabra demo en pantalla.
 // V.0.63.0 - Punto: afuera el modo demo (la banda amarilla y los carteles
 //            de numeros simulados). 'Productos y costos' pasa a llamarse
 //            'Creacion de articulos'. Menos texto: once parrafos de ayuda
@@ -15,7 +18,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.63.0";
+export const APP_VERSION = "V.0.64.0";
 
 export type VersionEntry = {
   version: string;
