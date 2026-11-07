@@ -175,7 +175,16 @@ section[hidden]{display:none}
   padding:11px 14px; border-bottom:1px solid var(--line);
   display:flex; align-items:center; gap:10px; flex-wrap:wrap;
 }
-.card-h h3{font-size:18px; font-weight:600; text-transform:uppercase; letter-spacing:.03em}
+/* La barrita de color: dice donde empieza una seccion sin tener que
+   pintar la tarjeta entera. */
+.card-h h3{
+  font-size:16px; font-weight:600; text-transform:uppercase; letter-spacing:.03em;
+  position:relative; padding-left:12px;
+}
+.card-h h3::before{
+  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:3px; height:15px; border-radius:2px; background:var(--accent);
+}
 .card-h .sub{font-size:12.5px; font-weight:500; color:var(--ink-2); margin-left:auto}
 
 .dos{display:grid; grid-template-columns:minmax(0,1fr) 420px; gap:18px; align-items:start}
@@ -907,11 +916,6 @@ footer{
     <button data-v="asistente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</button>
     <button data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Todo el sistema</button>
   </nav>
-  <div class="banda">
-    <span class="banda-et">Estás viendo</span>
-    <strong>Una demo</strong>
-    <span class="banda-n">los artículos, los códigos y los precios son los reales; los costos, el stock y la caja están simulados</span>
-  </div>
 </header>
 
 <main>
@@ -1237,22 +1241,20 @@ footer{
 <!-- ======================================================= PRODUCTOS -->
 <section id="v-productos" hidden>
   <div class="head">
-    <h2>Productos y costos</h2>
-    <p>Qué deja cada artículo con el precio que tiene puesto hoy.</p>
+    <h2>Creación de artículos</h2>
   </div>
-  <div class="aviso"><span>i</span><div>Los costos de esta demo están simulados, salvo los que dicen <b>costo real</b>. En el sistema de verdad salen de la lista del proveedor.</div></div>
 
-  <div class="card armando" style="margin-bottom:16px">
+  <div class="card" style="margin-bottom:16px">
     <div class="card-h">
-      <h3>Creación por adjunto</h3>
-      <span class="sub">una lista, una factura o un remito, y salen todos juntos</span>
+      <h3>Por adjunto</h3>
+      <span class="sub">varios de una vez</span>
       <button class="b2" id="btnAdj" style="margin-left:12px;padding:6px 16px">Adjuntar</button>
     </div>
     <div id="adjCuerpo" hidden>
       <div class="soltar" id="adjZona">
         <input type="file" id="adjFile" accept=".csv,.txt,.xlsx,.xls,.pdf,image/*" hidden>
         <div class="st"><b>Soltá el archivo acá</b> o <button class="b2" type="button" id="adjElegir">elegilo</button></div>
-        <span class="por">La lista del proveedor en Excel o CSV, o la foto o el PDF de una factura o un remito.</span>
+        <span class="por">Excel, CSV, PDF o foto.</span>
       </div>
       <div id="adjEstado"></div>
 
@@ -1294,7 +1296,7 @@ footer{
               <div><label for="xL2">Lista 2, sobre la Lista 1</label>
                 <div class="sku-fila"><input id="xL2" type="number" min="0" max="400" step="0.5" value="0"><span class="pc-grande">%</span></div></div>
             </div>
-            <span class="por" id="xListasAviso" style="display:block;margin:6px 0 0">Sin Lista 1 los artículos quedarían a precio de costo.</span>
+            <span class="por" id="xListasAviso" style="display:block;margin:6px 0 0">Sin Lista 1 quedan a precio de costo.</span>
           </div>
         </div>
       </div>
@@ -1307,10 +1309,10 @@ footer{
     </div>
   </div>
 
-  <div class="card armando" style="margin-bottom:16px">
+  <div class="card" style="margin-bottom:16px">
     <div class="card-h">
-      <h3 id="altaTit">Artículo nuevo</h3>
-      <span class="sub" id="altaSub">el precio se arma solo mientras escribís</span>
+      <h3 id="altaTit">Uno por uno</h3>
+      <span class="sub" id="altaSub">el precio se arma solo</span>
       <button class="b2" id="btnAbrirAlta" style="margin-left:12px;padding:6px 16px">Cargar uno</button>
     </div>
     <div id="altaCuerpo" hidden>
@@ -1330,7 +1332,6 @@ footer{
               <input type="checkbox" id="aPromo">
               <span>Es una promoción del proveedor</span>
             </label>
-            <span class="por">Se marca en el listado y en el mostrador, para que el que vende lo sepa.</span>
           </div>
           <div class="sub-campo">
             <label for="aTit">Título</label>
@@ -1350,7 +1351,7 @@ footer{
                 <input id="gDetalle" type="text" placeholder="LARGO" autocomplete="off"></div>
               <datalist id="gTipos"></datalist>
             </div>
-            <span class="por" id="aTitAviso">Como va a verlo el mostrador y la web. En mayúsculas, con la capacidad y el tipo.</span>
+            <span class="por" id="aTitAviso">Como lo ve el mostrador y la web.</span>
           </div>
           <div class="sub-campo">
             <label for="aDesc">Descripción</label>
@@ -1368,7 +1369,6 @@ footer{
           <div class="sub-campo">
             <label for="aCodProv">Código del proveedor</label>
             <input id="aCodProv" type="text" placeholder="el que figura en su lista y en su factura" autocomplete="off">
-            <span class="por">Sirve para cruzar su lista con tu catálogo, y se puede buscar por él.</span>
           </div>
           <div class="sub-campo dos-chicos">
             <div><label for="aStockBA">Stock en Buenos Aires</label>
@@ -1393,7 +1393,7 @@ footer{
               <div class="plata"><span class="sig">$</span>
                 <input id="aDolar" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div></div>
           </div>
-          <span class="por" style="display:block;margin:6px 0 14px">El número de la lista, antes de descuentos. Casi todo va al 21%. Los centavos van con coma o con punto, da igual: 60000.50 y 60.000,50 son lo mismo.</span>
+          <span class="por" style="display:block;margin:6px 0 14px">Antes de descuentos. La coma y el punto valen igual.</span>
           <div class="sub-campo">
             <label>Descuentos que te hace, hasta seis</label>
             <div class="seis" id="aSeis"></div>
@@ -1405,7 +1405,7 @@ footer{
               <input id="aCont" type="number" min="0" max="95" step="0.5" value="0">
               <span class="pc-grande">%</span>
             </div>
-            <span class="por">Va aparte de los seis y no se suma a ellos: se aplica sobre lo que queda. Baja el costo.</span>
+            <span class="por">Se aplica sobre lo que queda de los seis.</span>
           </div>
           <div class="sub-campo dos-chicos">
             <div><label for="aL1">Lista 1, sobre el costo</label>
@@ -1413,7 +1413,7 @@ footer{
             <div><label for="aL2">Lista 2, sobre la Lista 1</label>
               <div class="sku-fila"><input id="aL2" type="number" min="0" max="400" step="0.5" value="0"><span class="pc-grande">%</span></div></div>
           </div>
-          <span class="por" id="aListasAviso" style="display:block;margin:6px 0 14px">Como las arma el sistema de hoy: la 1 sobre el costo, la 2 sobre la 1.</span>
+          <span class="por" id="aListasAviso" style="display:block;margin:6px 0 14px">La 1 sobre el costo, la 2 sobre la 1.</span>
           <div class="sub-campo">
             <label class="tilde" for="aMay">
               <input type="checkbox" id="aMay">
@@ -1425,7 +1425,7 @@ footer{
               <div><label for="aMayDesde">Desde cuántas unidades</label>
                 <input id="aMayDesde" type="number" min="1" step="1" value="10"></div>
             </div>
-            <span class="por">Un precio aparte para el que se lleva cantidad. No reemplaza a la Lista 2: convive con ella.</span>
+            <span class="por">Un precio aparte por cantidad.</span>
           </div>
           <div class="cuenta" id="aCuenta"></div>
           <div class="envio-acc" style="padding:14px 0 0">
@@ -1486,7 +1486,7 @@ footer{
     <div class="cadena" id="cadenaCuerpo"></div>
   </div>
 
-  <div class="card armando" style="margin-bottom:16px">
+  <div class="card" style="margin-bottom:16px">
     <div class="card-h"><h3>Cambiar precios</h3><span class="sub">nada se aplica hasta que lo firmes</span></div>
     <div class="sim">
 
@@ -1542,7 +1542,7 @@ footer{
           <div class="sub-campo" id="cMk" hidden>
             <label for="sMk">Markup sobre el costo</label>
             <input id="sMk" type="number" value="42" min="0" max="400" step="0.5">
-            <span class="por" id="mkAviso">Lo que se le pone encima al costo para llegar al precio de contado.</span>
+            <span class="por" id="mkAviso">Del costo al precio de contado.</span>
           </div>
         </div>
       </div>
@@ -1759,7 +1759,7 @@ footer{
         <div class="con-mic">
           <input id="cnDoc" type="text" inputmode="numeric" placeholder="30-71044821-9 o 20144523018" autocomplete="off">
         </div>
-        <span class="por" id="cnAviso">Sin guiones también vale. El sistema controla que el número cierre.</span>
+        <span class="por" id="cnAviso">Sin guiones también vale.</span>
       </div>
       <div class="campo ancho"><label for="cnNom">Razón social o nombre</label>
         <input id="cnNom" type="text" placeholder="Como figura en la factura" autocomplete="off"></div>
@@ -2561,7 +2561,7 @@ function abrirCliente(){
   for(const id of ["cnDoc","cnNom","cnDir","cnTel"]) document.getElementById(id).value = "";
   document.getElementById("cnIva").value = "Consumidor Final";
   document.getElementById("cnLim").value = 0;
-  document.getElementById("cnAviso").innerHTML = "Sin guiones también vale. El sistema controla que el número cierre.";
+  document.getElementById("cnAviso").innerHTML = "Sin guiones también vale.";
   document.getElementById("cliNuevo").hidden = false;
   document.getElementById("cnDoc").focus();
 }
@@ -3272,14 +3272,14 @@ function altaCuenta(){
   document.getElementById("aSeisAviso").innerHTML = lista > 0
     ? "<b>"+cadenaTxt(ds)+" = "+pTxt(Math.round(descEquiv(ds)*10)/10)+"%</b>"+
       ", uno sobre otro · te saca "+fmt2(lista-neto)+" de la lista"
-    : "Poné la lista arriba y los descuentos acá: el costo sale solo.";
+    : "El costo sale solo.";
 
   // La Lista 1 la pone el que carga: sin ella el artículo sale a precio
   // de costo y el que vende no se entera.
   document.getElementById("aL1").closest("div").classList.toggle("falta", !(l1 > 0));
   document.getElementById("aListasAviso").innerHTML = l1 > 0
-    ? "Como las arma el sistema de hoy: la 1 sobre el costo, la 2 sobre la 1."
-    : '<span class="aviso-falta">Falta la Lista 1.</span> Es el porcentaje que le ponés al costo: sin eso el artículo queda a precio de costo.';
+    ? "La 1 sobre el costo, la 2 sobre la 1."
+    : '<span class="aviso-falta">Falta la Lista 1.</span>';
 
   const r = (k,v,cls,x) => '<div class="r2'+(cls?" "+cls:"")+'"><span class="k">'+k+'</span>'+
     (x ? '<span class="x">'+x+'</span>' : '')+'<span class="v">'+v+'</span></div>';
@@ -3323,10 +3323,10 @@ function abrirAlta(p){
   document.getElementById("armaTit").hidden = true;
   document.getElementById("btnArmarTit").textContent = "Armarlo";
   ALTA.editando = p ? p.cod : null;
-  document.getElementById("altaTit").textContent = p ? "Editar el artículo" : "Artículo nuevo";
+  document.getElementById("altaTit").textContent = p ? "Editar el artículo" : "Uno por uno";
   document.getElementById("altaSub").textContent = p
     ? p.cod.split("+")[0]+" · "+p.tit.slice(0,40)
-    : "el precio se arma solo mientras escribís";
+    : "el precio se arma solo";
   document.getElementById("aGuardar").textContent = p ? "Guardar los cambios" : "Guardar el artículo";
 
   if(p){
@@ -3458,7 +3458,7 @@ document.getElementById("aTit").addEventListener("input",e=>{
   else if(v.length && v.length < 18)
     av.innerHTML = '<b style="color:var(--warn)">Muy corto.</b> Agregale la medida o el tipo: así se distingue de los parecidos.';
   else
-    av.innerHTML = "Como va a verlo el mostrador y la web. En mayúsculas, con la capacidad y el tipo.";
+    av.innerHTML = "Como lo ve el mostrador y la web.";
 });
 document.getElementById("aDesc").addEventListener("input",e=>{
   const n = e.target.value.trim().length;
@@ -4427,7 +4427,7 @@ function pintarComparar(){
 function avisoMarkup(){
   const a = alcance();
   if(!a.length){ document.getElementById("mkAviso").textContent =
-    "Lo que se le pone encima al costo para llegar al precio de contado."; return; }
+    "Del costo al precio de contado."; return; }
   const mk = +document.getElementById("sMk").value || 0;
   const p = a[0];
   document.getElementById("mkAviso").innerHTML =
@@ -5454,7 +5454,7 @@ const ESCRITORIO = [
     ["Órdenes de pago","Pagarle y que quede imputado solo.",null]
   ]],
   ["Mercadería", [
-    ["Productos y costos","Qué deja cada artículo con el precio que tiene puesto hoy.","productos"],
+    ["Creación de artículos","","productos"],
     ["Consultar artículos","Buscar como lo nombra el cliente, no por código.","mostrador"],
     ["Ajustar stock","Corregir lo que el conteo dice distinto, con el motivo anotado.",null],
     ["Publicaciones","Mercado Libre y la tienda, con el mismo stock y el mismo precio.",null]

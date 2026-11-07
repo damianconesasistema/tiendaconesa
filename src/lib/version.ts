@@ -2,6 +2,11 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.63.0 - Punto: afuera el modo demo (la banda amarilla y los carteles
+//            de numeros simulados). 'Productos y costos' pasa a llamarse
+//            'Creacion de articulos'. Menos texto: once parrafos de ayuda
+//            afuera o en una linea. Las tres tarjetas rojas de esa
+//            pantalla pasan a comunes, con barrita de color en el titulo.
 // V.0.62.0 - Punto: carga por adjunto, cuando no sale ningun articulo el
 //            boton decia solo 'Cargar los articulos' y quedaba apagado.
 //            Ahora dice que falta y sale un cartel con dos preguntas
@@ -10,7 +15,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.62.0";
+export const APP_VERSION = "V.0.63.0";
 
 export type VersionEntry = {
   version: string;
