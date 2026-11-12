@@ -205,7 +205,10 @@ section[hidden]{display:none}
 }
 .pistas button:hover{border-color:var(--accent); color:var(--ink)}
 
-.res{margin-top:14px; display:flex; flex-direction:column; gap:7px}
+.res{display:flex; flex-direction:column; gap:7px; max-height:40vh; overflow-y:auto}
+/* Separa los resultados de los renglones ya cargados: son dos cosas
+   distintas y arriba se parecen. */
+.res:not(:empty){border-bottom:1px solid var(--line)}
 .item{
   display:grid; grid-template-columns:62px 1fr auto; gap:12px; align-items:center;
   background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
@@ -225,7 +228,7 @@ section[hidden]{display:none}
 .vacio{padding:26px 14px; text-align:center; color:var(--ink-3); font-size:14px}
 
 .ticket{position:sticky; top:106px}
-.tk-lineas{padding:6px 0; max-height:42vh; overflow-y:auto}
+.tk-lineas{padding:0; max-height:52vh; overflow-y:auto}
 .tk-l{display:grid; grid-template-columns:1fr auto; gap:8px; padding:9px 14px; border-bottom:1px solid var(--line)}
 .tk-l:last-child{border-bottom:0}
 .tk-l .n{font-size:13.5px; font-weight:500; line-height:1.25}
@@ -254,7 +257,7 @@ section[hidden]{display:none}
 .tr{display:flex; justify-content:space-between; font-size:13px; color:var(--ink-2)}
 .tr b{font-family:var(--font-m); color:var(--ink); font-variant-numeric:tabular-nums}
 .tr.big{font-size:15px; color:var(--ink); align-items:baseline; margin-top:3px; padding-top:8px; border-top:1px solid var(--line)}
-.tr.big b{font-size:21px; font-family:var(--font-d); font-weight:700}
+.tr.big b{font-size:26px; font-family:var(--font-d); font-weight:700; letter-spacing:-.02em}
 .tk-acc{padding:0 14px 14px; display:flex; flex-direction:column; gap:7px}
 .b1,.b2,.b3{border-radius:8px; padding:11px; font-weight:600; border:1px solid transparent; text-align:center}
 .b1{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
@@ -452,7 +455,7 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 
 /* La franja del dia: lo facturado y lo no facturado, uno al lado del otro.
    No son dos libros: es el mismo registro mirado por la marca de la venta. */
-.busca-pie{padding:12px 14px; border-top:1px solid var(--line); background:var(--surface-2)}
+.busca-pie{padding:12px 14px; border-bottom:1px solid var(--line); background:var(--surface-2)}
 .lin-t .c{display:inline-flex; align-items:center; gap:6px}
 .lin-t .c button{
   width:24px; height:24px; border-radius:7px; border:1px solid var(--line-2);
@@ -765,11 +768,23 @@ th[data-ord].ord{color:var(--accent)}
 th[data-ord].ord::after{content:" ↓"; font-size:11px}
 th[data-ord].ord.asc::after{content:" ↑"}
 /* El comprobante entero en un renglón, para no mirar seis campos. */
-.resumen-vta{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; font-size:15px; color:var(--ink-2)}
-.resumen-vta b{font-weight:800; color:var(--ink)}
-.resumen-vta .sep{color:var(--line-2); font-weight:700}
-.resumen-vta .av{width:100%; font-size:13px; font-weight:500; color:var(--ink-3); margin-top:2px}
+.resumen-vta{display:flex; flex-wrap:wrap; align-items:center; gap:0}
+/* Cada dato con su rotulo chiquito encima, separados por una linea: se lee
+   de un vistazo cual es cual, sin tener que desarmar un renglon de texto. */
+.vcel{padding:1px 18px 1px 0; margin-right:18px; border-right:1px solid var(--line)}
+.vcel:last-of-type{border-right:0; margin-right:0; padding-right:0}
+.vet{display:block; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600; line-height:1.5}
+.vva{display:block; font-size:14.5px; font-weight:700; color:var(--ink); white-space:nowrap; line-height:1.35}
+.vva.ch{font-weight:500; color:var(--ink-2)}
+.vva i{font-style:normal; font-weight:500; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.resumen-vta .av{width:100%; font-size:13px; font-weight:500; color:var(--ink-3); margin-top:8px}
 .resumen-vta .av.ojo{color:var(--bad); font-weight:600}
+/* El numero de renglon: no es un dato, es para poder decir "sacame el 3". */
+.lin-t td.ix,.lin-t th.ix{width:30px; text-align:right; padding-right:4px;
+  color:var(--ink-3); font-size:12px; font-weight:500}
+.lin-t tr.invita td{text-align:center; color:var(--ink-3); padding:34px 14px; font-size:14px}
+.lin-t tr.invita b{color:var(--ink-2)}
 
 /* Lo que no se usa todos los días, atrás de un botón. */
 #masAcc{display:flex; flex-direction:column; gap:8px; margin-top:2px}
@@ -904,7 +919,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOgAAABNCAYAAACseCglAAAAAklEQVR4AewaftIAAA4vSURBVO3B/5OkCX0Q4OfTvRDk20wACUhIN5KOAuJ0ohRojp1eMEEqgR1UorGsmrm/YCd/wcyVVf5kFZPyB3/QyvZqKWpFnSs04F3kuiEcCZjQI4GAXYZeMKVEzPVU5I47ru/jWUOqd3Znut/5tv3O3fs8kZkqlUo51VQqldKqqVQqpVVTqVRKq6ZSqZRWTaVSKa2aSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqldUVJRMQObpi6jbXMHJghInpYNXUtM3tmiIg09RB6eMzUD2fm2F0iooPHTF3LzJ67RMQ2thztoczcdoyI6OAxU/3M7JghInZww2G30cNmZo4dIyJ6WHVgLzPbZoiIbWxiyYHb2MzMXTNERBNdrJray8y2yrFqSiAitnHDYQ0sm2/ZYW0ns+YumTm2OE2HNc03dq8G1tFT3NgMEbGDLSyZauDfR0THbLtYddiKykxXlMOGw/pYNUdELGPFYW0ns4Km8ug4rBERy5k5VtxtNBxYiYhOZvacQUQ0ccPxttFxhIhoY8XUPsZoOEqr/hL8A/wovo9EmC/xEnwXjxpO/o1LrqYcGqb2MrODt2BktrZ7dZzchnOUmduZGeib6mdmZOa22dru1XEyGw5rO7s1h30Et0ytRsSyoy07bCczm7jmaG/H+/AArmIVV3EVV3EVV3EVV3EVV7GKB/B+fNALQE05PGxqJSK6GGfmyGwd92pExLKTWVUeK+7VdjIbDhs4u2V3yMxd9BzWdrSBw7YiYiMze+7Wqv8p/F28Ez+KBhpooIEGGmiggQYaaKCBN+Mt+IBW/W0uuZpy2Ma+qXX0ImLZbG1Te6Y6LqGI6Jjqm+o4mXVT+xg4u7Z7jRSQmWM85LCbEbHhXq/CRxBIJBKJRCKRSCQSiUQi8Wp81CVXUwKZOUAH+6ZWsGm2jqmuqbbLqWOqZ2rV6XUyc+zsxs4gM7fxSw67GREdh/0FvBV1BAKBQCAQCAQCgUAgEHgp/qZW/bUusZqSyMwBOtg31XGMiGhiyVTbVEdx+8qjbaqNfT8QEW2ns+x8jNyr7QQycwcPOqzjT7Tqy/jbqDm7K3gH3uYSu6IEImKAzczsRcQIKw40Ha/tsHVTq4rbxbpy6Ji67rAOBorpY9WBTfSc3cgdImIbbXfIzJ4jREQHG9hGz/Fejw85EM6ujl/Qqv+u4WTsEqophxU8FhGJFVMDx+uYISLaitlVAhHRxJLjtRXXNXU9IprObhf7prZw3dQts63jG/iGw0amVvAGsyWew3NIxwsk/hZe65KqKbdtx2ubeigzA3umOooZ45bFa5vaz8zAg6Y6CsrMLvZNbTqjzBxj09H2se3k9rDr/2vVX4+fR5jt/+Jx/DaeMVvgjfhJl1RNOfwy+g7s42H8ZGYOzNZHHwMHeuijj2XH66OPvgNd9NFHPyKWHW2MPvroY2y2AfroY2C2Jvroo+vAAH30MYqIZUcbo48++g7soI8+mo43QB99jMyQmV18BH0HbuMW2pk5crwRbmHPgdu4hU5mjh1o4oNIsz2Bf4h/iqcV8yGt+utcQpGZKpWFa9XX0TXfF/EAXo09/BmzJf4Q1w0nv+WSqalUFq1VX8JfR5rte/iC4eQZw8l38F/wjNkCP4J3uoSuqFQuWqv+RlxzIJEIB/4Y78L7EI6X+AP8K1P/BO/B6833c1r1TxhOvu0SuaLkImIZHbTRca8RehhhlJkjM0REE2too+leA/TQy8yxOSKijWXzjTNz4A4R0cay+UaZOYqIjvMxyMyxI0REE2voYNm9Rhigl5kDxfxF/CNHm+DleIXZAl/D5019Ct/E6833fqzgEZfIFSUVEU1sYw1LjreKdQeuYeQIEdHGDlbNtoob2I+IHexk5tjxOviY+W5hw2EbuGG+axhhG6vO7hp67hARbWzjutlWse55EbGPUWa2zfZSvMbZPIlPG04m/sRw8qxW/VG8HS8326vwbjziEqkpoYjYxADrWHJGEbGNL2FVcUvYwigiOo43UEzHvcZOpucCRMQGvoTrTmYJK+b7vrP7Cv6de/0zfFMxV7XqP+YSqSmZiOjiY1hyDiKiiy2nt4THImLD2TQiYk3JRMQGbrpY6ex+03Aycrfh5GsYKOZdeMAlUlMiEdHFunMSEV2sOx83I6LjbNaUSER0cNPFqzmbP8JjjvcpPGG+JbzHJVJTEhGxjXXnJCLWsO587UbEstNbi4hl5dF1OTyOxx3vEfxX8yXerVX/sy6JmhKIiDa2nK8d528J205vCWtKICI6aLgcPmM4+bbjDCf/E583X+Dt+KBLoqYcdpyjiNhAw8W4ERFNp7emHNZcDt/C4+b7dXzLfK/EqkuiZsEiooNV52vbxdpwetcjomnx2k5mD330se/++TX8jvk+h88o5h1a9Xe4BK5YvA0ns4/NzOx6XkQ00cG250VEGw3F7GMtM3sR0cW6Yjaw7fTWsOPi3ELX0ZYxUtw+1jKz5w4RsYZNrLo4iUcMJ0+ZZzj5nlb9MfwiamZr4hewpeSuWLw1xe2jk5kDP5CZI3QjYteBDcXtZGbP8zJzIyLaWDFfIyKamTlyOhvYcXFGmdkzQ0QoaJCZPXfJzF3sRsSGi7OHgeJ+A1/Gitlejvdp1f++4eRZJVazQBHRwZLiNjJz4AiZOc7MMdYUt+OwHcV1nN5KRDRdDk0zZGbXxfnnhpPfV9Rw8nX8qmLegvcouZrF6iiun5m75msrpp+ZY4f1FNd2NpsWa6SYRkR03X9P4T87uR6eNN9rsK7kaharo7iuYpYUM3CXzBxhXzFtZ7NmsQaKW4+IbkQsu3jpwKfwTSf33/Ap870M79eqv0qJXbFYTcXtmiMiOoobO9oAq+ZrOpsGOi5GJyK23WsZg8zsYhcfU9w62hGxlpkjF+9XDCdPOKnh5A+16h/H3zDfn8bP4t8qqZrFaihmLzPHzlfP2TSc3aqLsYotbGELW9jCDTQ9LzNHuOVkVjCIiLaLM8EIv+n0fge3kY4XeAk2tOovU1I1l8PA/TPy4rGJfSezhC9FxIaL8Sz+heHkO07vf+FfIsz2UlzDm5RUzeUwUkzH2Y28SGTmGBtO52ZEbDh/f4xbzmI4eRIfx9NIxwu8Ah/Qqv+QEqqpvKhl5i4edDo3I6JjvlTMs/htw8nQ2X0dn8XEfA/idUqopvKil5ldPIh9J7cbEctmS8U8ga7zMJw8g3+M75nvp/BWJVRzOSwrpqdyKpnZRQf7TmYJO2Z7RjHfxH9wfj6JbyHNVsPPaNVfrmRqLoe2+6fjRSozB2hiz8msR0TT8cJ8T+OzhpPvOi/DyVP4BL5rvo+iqWSuWKx9LJlv1flro+f09p3MHlbcHw9l5ra7RETHHJk5RjsiulhX3Aa2Ha1ltsS38K+dv5v4KF5ptp/AO/FVJVKzWAMFRUTbfAPFLTtaUzEDJ9O1YJnZy8yeAjJzA7cU13GUVv0N+DmzBb6MLzhvw8nX8BWk2QLv1aq/UonULNZAcZvmyMyx4tqO1lDMyMkMcNvlsonbimk62rvwXrM9ic8YTp5zMXbxR+b7AN6hRGoWq6e4tYhYNl9fMR13iYg1xQ2c3I4SiIhmRLTNkZlj7Cqm4Wh/Cctm+zI+6eI8jN8z31vxl5VIzWL1FLeEXfP1FLMUEWsOW1Ncz8ntKocmvhQR2+YbO61W/c34abMlfstw8nUXZTj5Dr6IidkCP61Vf4WSqFmgzBzjYcWtRkQ3IpbdISKWI2I7ItroKW7TD0REG+uKuZ2ZAyeUmSPsWaCIaOINDmxFxCgiNhwhIpaxoZg993oA7zbbE/isi/dJjMz3AP6qkrhi8XZxXXHrWIuIXYzQRgdL6GVmLyJuo2G+1YgYYRcbitt1eju46WJtRcSW4/2SqQZuRsQOehg4sIw1NBQzcq8H8CqzfR59F+9z+CLearY3o4NHlUDNgmVmF7edzBLWsYXrWHJYV3EN3MCS4rpOb1c5LeE6trCFG2gorudOrfqPoW2+Rw0n/9tFG06exOfwPfP9lFb9tUqgphw2na8dF6efmQOnlJljPOyFZ9dhP48/73iJP8AX3D+fxu+abwXXlEBNCWTmLh52TjJzjIdcjE1n1/XCciszRw57L17jeIFdfNX9Mpx8FY+Y7w34GSVQUx4b2HNOMnMbe87XQ5k5cEaZuYt9Lwz72HanVr2Ft5ntWXzacLLv/nocT5kt0Naqv8aC1ZREZo7RwW3nZw37zsetzNx2fna9MKxl5shhH0bDbF/G77n/9vCo+Zr4sAWrKZHMHKONvnOQmSN0sOdsbmXmhvO143Lbx7XM7LnXz+LVZvtV/L77bTj5H/iE+V6LD1uwmpLJzHFmdvAgbjujzBygg192crfxkczccLxlxSy7Q2YOcNvJNJ2fPaf3MNqZ2XO3Vv3H8RbUHC3xFH7dcPK0xRjgNtLx6vgJrfqbLNAVJZWZXXQjYgNr6GDJ0fYwwtgRMnOMzYjYwSbW0HC8PrqZ2TVfE33zNd1rF23zLZvqO7teZu5ExDI6WEMbK453G7vYycyR430YP4x0tMBnMLI4Q+ziBtLRAq/DB/ArFiQy02UREU00HTbIzLFTiIiOw8aZOfAiFhEdd8nMniJa9Tfi41g129/BruHkaYvSqv81/Bpe4niJ/4S/Zzj5PxbgikskM0cYOSeZ2VM5JDN7Tu8X8SP4Np5zWA3P4Rt4zHDytMX6Cv4j/goS6bBADW/Ch9C1AFdUKufnx/HfHXgO4UDiCr6PL2Js8cb4BF6GZ5EIU4k6JvhzFiQyU6VSKaeaSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqlVVOpVEqrplKplFZNpVIprZpKpVJaNZVKpbT+H/ThmLvjr5fGAAAAAElFTkSuQmCC">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.66.0</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.67.0</span>
     <span class="org">· Sanitarios Conesa</span>
     <span class="relo" id="relo"></span>
     <span class="bar-sep ocultable"></span>
@@ -956,7 +971,6 @@ footer{
       <div class="card armando">
         <div class="card-h"><h3>Artículos de la venta</h3><span class="sub" id="vtaCuenta"></span>
           <span class="sub" id="vtaDep" style="margin-left:auto"></span></div>
-        <div class="tk-lineas" id="tkLineas"></div>
         <div class="busca-pie">
           <div class="buscar">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
@@ -966,6 +980,7 @@ footer{
             en <b style="color:var(--warn)">amarillo</b> si quedan 10 o menos y en <b style="color:var(--bad)">rojo</b> si no hay; igual se puede elegir para ver el precio.</p>
         </div>
         <div class="res" id="res"></div>
+        <div class="tk-lineas" id="tkLineas"></div>
       </div>
     </div>
 
@@ -2468,15 +2483,19 @@ function pintarCamposVenta(){
   // El mismo comprobante, en un renglón: lo que se mira de reojo antes de
   // emitir. Sin los números de orden adelante, que no los lee nadie.
   const limpio = t => String(t).replace(/^\\d+[.\\-]\\s*/, "");
-  const sp = '<span class="sep">·</span>';
   const libre = c && c.lim > 0 ? c.lim - c.saldo : null;
+  const cel = (et, va, ch) =>
+    '<div class="vcel"><span class="vet">'+et+'</span>'+
+    '<span class="vva'+(ch ? " ch" : "")+'">'+va+'</span></div>';
   document.getElementById("resumenVta").innerHTML =
-    '<b>'+su.n+'</b>'+sp+
-    '<b>'+(c ? c.n : "Consumidor final")+'</b>'+sp+
-    limpio(comp)+' '+nroDe(comp).slice(2)+sp+
-    limpio(cond)+
+    cel("Sucursal", txt(su.n)+' <i>pv '+su.pv+'</i>')+
+    cel("Cliente", txt(c ? c.n : "Consumidor final"))+
+    cel("Documento", txt(limpio(comp))+' <i>'+nroDe(comp).slice(2)+'</i>')+
+    cel("Condición", txt(limpio(cond)), true)+
+    cel("Vendedor", txt(S.usuario), true)+
+    cel("Depósito", txt(DEPOSITOS[depAct()]), true)+
     (libre !== null && libre <= 0
-      ? '<span class="av ojo">'+c.n+' está pasado del límite de su cuenta.</span>'
+      ? '<span class="av ojo">'+txt(c.n)+' está pasado del límite de su cuenta.</span>'
       : "");
   document.getElementById("camposVta").hidden = !S.verComp;
   document.getElementById("btnCambiarVta").textContent = S.verComp ? "Listo" : "Cambiar";
@@ -2738,7 +2757,10 @@ function buscar(){
   const q = plano(document.getElementById("q").value.trim());
   const caja = document.getElementById("res");
   if(!q){
-    caja.innerHTML = '<div class="vacio" style="padding:22px 14px">Escribí lo que te están pidiendo. Entra en cualquier orden: <b>“electrico termo 80”</b> encuentra lo mismo que <b>“termo 80 electrico”</b>.</div>';
+    // El cartel de ayuda va entre el buscador y los renglones: si ya hay
+    // venta armada, estorba. Se muestra solo cuando no hay nada cargado.
+    caja.innerHTML = S.linea.length ? "" :
+      '<div class="vacio" style="padding:22px 14px">Escribí lo que te están pidiendo. Entra en cualquier orden: <b>“electrico termo 80”</b> encuentra lo mismo que <b>“termo 80 electrico”</b>.</div>';
     return;
   }
   const toks = q.split(/\\s+/).filter(Boolean);
@@ -2746,14 +2768,14 @@ function buscar(){
   const hits = r.hits.slice(0,10);
 
   if(!hits.length){
-    caja.innerHTML = '<div class="vacio" style="padding:22px 14px">Nada con <b>“'+document.getElementById("q").value+'”</b>. '+
+    caja.innerHTML = '<div class="vacio" style="padding:22px 14px">Nada con <b>“'+txt(document.getElementById("q").value)+'”</b>. '+
       'Probá con menos palabras, o con el código.</div>';
     return;
   }
   // Un listado con columnas, no tarjetas: se compara de un vistazo y cada
   // renglon lleva su cantidad, como en cualquier mostrador.
   caja.innerHTML =
-    (r.porRubro ? '<p class="por-rubro">Ninguno se llama <b>“'+document.getElementById("q").value+'”</b>. '+
+    (r.porRubro ? '<p class="por-rubro">Ninguno se llama <b>“'+txt(document.getElementById("q").value)+'”</b>. '+
       'Te muestro lo que hay en ese rubro.</p>' : '')+
     '<div class="tabla-wrap"><table class="densa res-t"><thead><tr>'+
       '<th>Código</th><th>Artículo</th><th class="r">Stock</th>'+
@@ -2833,22 +2855,39 @@ function marcarNuevo(cod){
 
 function pintarTicket(){
   const cont = document.getElementById("tkLineas");
+  // Aunque no haya nada, se ve la grilla con sus encabezados: la pantalla
+  // tiene que parecer una venta recien empezada, no una hoja en blanco.
   if(!S.linea.length){
-    cont.innerHTML = '<div class="vacio" style="padding:26px 14px">Todavía no hay nada en la venta. Buscá arriba y tocá <b>Sumar</b>.</div>';
+    cont.innerHTML =
+      '<div class="tabla-wrap"><table class="densa lin-t"><thead><tr>'+
+        '<th class="ix"></th><th>Código</th><th>Artículo</th><th>Stock</th>'+
+        '<th class="r">Cantidad</th><th class="r">Precio</th>'+
+        '<th class="r">Subtotal</th><th></th>'+
+      '</tr></thead><tbody>'+
+      '<tr class="invita"><td colspan="8">Escribí arriba lo que te están pidiendo '+
+      'y tocá <b>Sumar</b>. El primer artículo aparece acá.</td></tr>'+
+      '</tbody></table></div>';
   } else {
     // Las mismas columnas que el listado de arriba, para no tener que
     // leer dos formatos distintos en la misma pantalla.
     cont.innerHTML =
       '<div class="tabla-wrap"><table class="densa lin-t"><thead><tr>'+
-        '<th>Código</th><th>Artículo</th><th class="r">Cantidad</th>'+
-        '<th class="r">Precio</th><th class="r">Subtotal</th><th></th>'+
+        '<th class="ix"></th><th>Código</th><th>Artículo</th><th>Stock</th>'+
+        '<th class="r">Cantidad</th><th class="r">Precio</th>'+
+        '<th class="r">Subtotal</th><th></th>'+
       '</tr></thead><tbody>'+
-      S.linea.map(l=>{
+      S.linea.map((l,i)=>{
         const p = prod(l.cod);
         const u = p.contado * MULT[S.forma];
+        // El stock del renglon, con el mismo color que en el buscador. Si
+        // uno quedo en rojo se ve antes de emitir, no despues.
+        const st = p.stock;
+        const scl = st > 10 ? "stk-ok" : (st > 0 ? "stk-poco" : "stk-no");
         return '<tr data-cod="'+l.cod+'">'+
-          '<td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
-          '<td class="nom" style="min-width:230px">'+p.tit+'<small>'+p.prov.toLowerCase()+'</small></td>'+
+          '<td class="ix">'+(i+1)+'</td>'+
+          '<td class="num" style="font-size:12px">'+txt(p.cod.split("+")[0])+'</td>'+
+          '<td class="nom" style="min-width:230px">'+txt(p.tit)+'<small>'+txt(p.prov.toLowerCase())+'</small></td>'+
+          '<td><span class="stk '+scl+'">'+st+'</span></td>'+
           '<td class="r"><span class="c">'+
             '<button data-m="-" data-cod="'+l.cod+'" aria-label="uno menos">−</button>'+
             '<b>'+l.cant+'</b>'+
@@ -4373,13 +4412,22 @@ async function filasConIA(file){
   }
   let r;
   try {
+    // Con tope. Sin esto, si el servidor se cuelga la pantalla queda en
+    // "la IA está leyendo" para siempre y no hay ni error ni botón para
+    // reintentar: el que está atendiendo no sabe si esperar o salir.
+    // Son 95 segundos a propósito: más que el tope del servidor, así casi
+    // siempre llega primero el mensaje de allá, que explica qué pasó.
     r = await fetch("/sistema/demo/leer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ base64: base64, mime: mime }),
+      signal: AbortSignal.timeout(95000),
     });
   } catch(e){
-    throw new Error("No pude llegar al servidor. Fijate si tenés internet y probá de nuevo.");
+    throw new Error(e && (e.name === "TimeoutError" || e.name === "AbortError")
+      ? "Pasó un minuto y medio y el servidor no contestó. Probá de nuevo. "+
+        "Si sigue igual, cargá los artículos desde el Excel o el CSV del proveedor."
+      : "No pude llegar al servidor. Fijate si tenés internet y probá de nuevo.");
   }
   if(r.status === 401) throw new Error("La página perdió la clave. Recargala y entrá de nuevo.");
   if(r.status === 404) throw new Error("La lectura por IA no está habilitada en este servidor.");

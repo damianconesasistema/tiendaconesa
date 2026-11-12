@@ -2,6 +2,35 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.67.0 - Punto: la pantalla de venta parece una venta, y la lectura por
+//            IA ya no se cuelga para siempre.
+//            (1) El panel de venta se rehizo. Damian lo dijo asi: "necesito
+//            que sea mas como un panel de venta de articulo, como la
+//            pantalla de un pedido que se esta vendiendo". El comprobante
+//            paso a ser una tira de datos con rotulo -sucursal, cliente,
+//            documento, condicion, vendedor, deposito- en vez de un renglon
+//            de texto corrido; el buscador subio por encima de los
+//            renglones, que es por donde entra todo; y la grilla gano el
+//            numero de renglon y el stock de cada articulo, con el mismo
+//            color que en el buscador, asi un renglon en rojo se ve antes
+//            de emitir y no despues. Con la venta vacia se ven igual los
+//            encabezados de la grilla: la pantalla parece una venta recien
+//            empezada y no una hoja en blanco.
+//            (2) La lectura por IA no tenia tope de tiempo en NINGUN lado.
+//            Si Google se colgaba, la pantalla quedaba en "la IA esta
+//            leyendo" para siempre: sin error, sin boton de reintentar y
+//            sin forma de saber si valia la pena esperar. El `maxDuration`
+//            del route no servia de nada, porque eso lo respeta Vercel y
+//            esto corre con `next start` en la VM de Google. Ahora el
+//            servidor corta a los 40 s por intento y 75 s contando los
+//            reintentos, la pagina a los 95 s, y los dos explican que paso
+//            y ofrecen cargar la lista desde el Excel.
+//            (3) El mensaje de "clave no valida" decia que la de Google
+//            empieza con AIza. Ya no: las de AI Studio ahora empiezan con
+//            AQ. y son mas largas. Decia algo falso justo cuando hay que
+//            arreglar algo.
+//            (4) Lo que se escribia en el buscador volvia al HTML sin
+//            escapar: un "<" rompia el cartel de "nada con ...".
 // V.0.66.0 - Punto: la tabla del adjunto se puede corregir a mano, y nunca
 //            se carga el total del renglon como precio de uno.
 //            Tres cosas: (1) cada celda de la vista previa es editable, asi
@@ -36,7 +65,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.66.0";
+export const APP_VERSION = "V.0.67.0";
 
 export type VersionEntry = {
   version: string;

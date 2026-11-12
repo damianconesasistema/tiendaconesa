@@ -106,10 +106,23 @@ export async function leerComprobante(
   }
   if (!base64) return { error: "No me llegó la imagen." };
 
+  // Cuanto se espera, como mucho. Sin esto, si Google se cuelga la llamada
+  // no termina nunca y el navegador queda en "la IA esta leyendo" para
+  // siempre: el que esta en el mostrador no sabe si esperar o salir.
+  // Ojo: el `maxDuration` del route NO alcanza. Eso lo respeta Vercel, y
+  // aca el sistema corre con `next start` en la VM, donde no hace nada.
+  const EMPEZO = Date.now();
+  const LIMITE_TOTAL = 75_000;
+  const LIMITE_INTENTO = 40_000;
+  const queda = () => LIMITE_TOTAL - (Date.now() - EMPEZO);
+
   async function llamar() {
     const r = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
       {
+        signal: AbortSignal.timeout(
+          Math.max(1_000, Math.min(LIMITE_INTENTO, queda())),
+        ),
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": key! },
         body: JSON.stringify({
@@ -137,8 +150,11 @@ export async function leerComprobante(
   try {
     let { r, data } = await llamar();
 
-    // El modelo se satura seguido y contesta 503. Es pasajero.
+    // El modelo se satura seguido y contesta 503. Es pasajero. Pero el
+    // reintento no puede comerse el tope: si ya no queda tiempo, se
+    // contesta con lo que hay en vez de hacer esperar al pedo.
     for (let i = 1; i <= 2 && (r.status === 503 || r.status === 500); i++) {
+      if (queda() < 8_000) break;
       await new Promise((res) => setTimeout(res, i * 2000));
       ({ r, data } = await llamar());
     }
@@ -148,8 +164,10 @@ export async function leerComprobante(
       if (r.status === 400 && /API key not valid/i.test(msg)) {
         return {
           error:
-            "La clave de Google no es válida. Tiene que ser la de AI Studio " +
-            "(empieza con AIza) y estar bien pegada en el servidor.",
+            "La clave de Google no es válida o se venció. Tiene que ser una " +
+            "de AI Studio, cargada en GEMINI_API_KEY en el servidor. Ojo: el " +
+            "formato cambió, las nuevas empiezan con \"AQ.\" y son más largas " +
+            "que las viejas \"AIza\".",
         };
       }
       if (r.status === 503 || /overloaded|high demand/i.test(msg)) {
@@ -199,6 +217,15 @@ export async function leerComprobante(
 
     return { ok: true, filas: limpiar(crudo) };
   } catch (e) {
-    return { error: `No se pudo contactar a Google: ${(e as Error).message}` };
+    const err = e as Error;
+    if (err?.name === "TimeoutError" || err?.name === "AbortError") {
+      return {
+        error:
+          "Google tardo demasiado y corte la espera. No es problema del " +
+          "archivo: proba de nuevo en un minuto. Si sigue igual, carga los " +
+          "articulos desde el Excel o el CSV del proveedor.",
+      };
+    }
+    return { error: `No se pudo contactar a Google: ${err.message}` };
   }
 }
