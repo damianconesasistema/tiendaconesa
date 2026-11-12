@@ -2,6 +2,72 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.69.0 - Punto: el comprobante acomodado como se mira, y dos
+//            agujeros que habia dejado la revision anterior.
+//            (1) El vendedor subio arriba, al lado de la sucursal. Las
+//            dos contestan la misma pregunta -quien vende y desde donde-
+//            y estaban separadas por media pantalla: el vendedor andaba
+//            perdido abajo, entre el numero y el deposito.
+//            (2) El descuento se mudo al lado de la condicion de venta.
+//            Son las dos cosas que se le conceden al cliente. Dejo de
+//            vivir afuera de #camposVta: ahora se rellena en cada
+//            repintado desde pintarCamposVenta() y el cambio lo agarra
+//            el listener delegado de #camposVta, que es lo unico que
+//            sobrevive a un innerHTML. La tira de un renglon tambien
+//            muestra el descuento, para cuando los campos estan cerrados.
+//            (3) El comprobante abre desplegado. Palabras de Damian:
+//            "siempre desplegado eso, no comprimido como arranca".
+//            (4) El cartel de cliente nuevo ya NO se cierra tocando
+//            afuera. "Ojo que no se cierre con foco sino con una X": se
+//            tipea un CUIT de once numeros, se toca al lado sin querer y
+//            se perdia todo lo cargado. Se cierra con la X o con Escape.
+//            (5) ARREGLO - "Guardar como borrador" dejaba el deposito
+//            pisado. Despues de guardar un borrador estando en
+//            Traslasierra con el deposito puesto en Buenos Aires, TODAS
+//            las ventas siguientes descontaban de Buenos Aires sin que
+//            nadie lo pidiera. Lo habia encontrado la revision de la
+//            0.68.0 y quedo sin arreglar: era el tercer camino, aparte
+//            de cerrar y de guardar presupuesto. Ahora el deposito se
+//            guarda adentro del borrador y vuelve al retomarlo.
+//            (6) ARREGLO - dos combos distintos se veian como el MISMO
+//            renglon. El codigo de un combo es compuesto ("3480+3641") y
+//            se mostraba solo el primer pedazo, asi que dos combos
+//            daban el mismo numero; con el nombre cortado con puntos
+//            suspensivos quedaban identicos letra por letra, mismo
+//            precio incluido. Uno lleva bidet de un agujero y el otro de
+//            tres. Ahora el codigo se muestra entero y el nombre entra
+//            100 px mas largo antes de cortarse.
+//            (7) La barra de arriba. Fuera el "· Sanitarios Conesa"
+//            escrito: el logo de al lado ya lo dice, era lo mismo dos
+//            veces. El logo, mas grande. Y la fecha pasa a ser el dato
+//            grande de la barra -mas cuerpo, negrita y con segundos-
+//            porque en el mostrador se prometen entregas y se cierran
+//            cajas por hora. En pantalla angosta ahora se esconde el
+//            dolar y NO la fecha, que es al reves de como estaba.
+//            (8) El numero del comprobante viene TRABADO, de solo
+//            lectura, con un boton "Corregir" al lado. Damian: "que
+//            venga para no modificar pero que tenga la opcion de
+//            modificarlo". Es el dato que llega a ARCA y estaba abierto
+//            todo el tiempo en el medio de una fila de campos que se
+//            tocan en cada venta: alcanzaba con apoyar el dedo. Mientras
+//            esta destrabado avisa en negrita que eso cambia la
+//            numeracion de los que siguen, y se vuelve a trabar solo
+//            apenas se corrige, al cerrar la venta, al guardar un
+//            presupuesto o un borrador y al cambiar de documento.
+//            (9) ARREGLO de lo que rompieron (7) y (3), medido en una
+//            pantalla de 1366x768: la barra se partia en dos renglones
+//            -el boton Salir se caia abajo- y el buscador quedaba 195 px
+//            por debajo del borde de la pantalla. Lo segundo tenia una
+//            causa vieja y tonta: el alto de la grilla se calculaba bien
+//            en el codigo y lo pisaba un min-height:250px escrito en el
+//            CSS, que en CSS le gana al max-height. Ahora el alto lo pone
+//            un solo lugar, ajustarGrilla(), y el piso depende de si hay
+//            algo cargado: con la venta vacia el hueco es chico y el
+//            buscador queda a la vista, que es lo que se va a tocar.
+//            OJO, queda asi a proposito: en una pantalla de 768 de alto,
+//            con el comprobante siempre desplegado, apenas se cargan
+//            renglones la pagina scrollea. No entran las dos cosas.
+//            Nada de esto toca el facturador de ARCA ni la tienda.
 // V.0.68.0 - Punto: el mostrador, como lo pidio el que lo va a usar.
 //            Nueve cosas que Damian marco mirando la pantalla, mas la
 //            regla de los depositos que conto despues.
@@ -186,7 +252,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.68.0";
+export const APP_VERSION = "V.0.69.0";
 
 export type VersionEntry = {
   version: string;

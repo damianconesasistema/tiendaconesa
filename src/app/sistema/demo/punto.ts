@@ -60,10 +60,10 @@ header{
   background:var(--surface); border-bottom:1px solid var(--line);
 }
 .bar{
-  max-width:none; margin:0; padding:11px 24px;
-  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  max-width:none; margin:0; padding:11px 14px;
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
 }
-.marca{display:block; height:30px; width:auto}
+.marca{display:block; height:38px; width:auto}
 .bar-sep{width:1px; height:20px; background:var(--line)}
 .app{
   font-family:var(--font-d); font-size:12px; font-weight:700;
@@ -74,16 +74,23 @@ header{
   padding:1px 8px; font-size:10px; font-weight:700; color:var(--ink-2);
   font-variant-numeric:tabular-nums;
 }
-.org{font-size:14px; color:var(--ink-2)}
-.relo{margin-left:auto; font-size:11px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+/* La fecha es el dato grande de la barra: en el mostrador se prometen
+   entregas "para el jueves" y se cierran cajas por hora. */
+.relo{
+  margin-left:auto; font-size:14.5px; font-weight:700; color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
 /* El dolar va pegado a la fecha, no al otro extremo de la barra. */
-.relo.dolar{margin-left:14px; padding-left:14px; border-left:1px solid var(--line)}
+.relo.dolar{
+  margin-left:14px; padding-left:14px; border-left:1px solid var(--line);
+  font-size:12.5px; font-weight:600; color:var(--ink-2);
+}
 .relo.dolar b{color:var(--ink); font-weight:700}
-.user{font-size:14px; color:var(--ink-2)}
+.user{font-size:13.5px; color:var(--ink-2)}
 .user b{color:var(--ink); font-weight:600}
 .user b::before{content:"· "; color:var(--ink-3); font-weight:400}
 .user select{
-  border:0; background:none; font-family:var(--font-b); font-size:14px;
+  border:0; background:none; font-family:var(--font-b); font-size:13.5px;
   font-weight:600; color:var(--ink); padding:0 2px;
 }
 .salir{
@@ -92,15 +99,16 @@ header{
   text-transform:uppercase; letter-spacing:.05em; color:var(--ink);
 }
 .salir:hover{border-color:var(--accent); color:var(--accent)}
-/* En pantalla angosta se va lo decorativo (el reloj, el nombre largo),
-   pero el usuario y la sucursal se quedan: sin eso no se sabe con qué
-   razón social se está vendiendo. */
-@media (max-width:980px){ .org,.relo{display:none} }
+/* En pantalla angosta se va el dólar, que es para mirar de reojo. La fecha
+   se queda -es de las cosas que mas se miran- y la barra se parte en dos
+   renglones, que para eso tiene flex-wrap. El usuario y la sucursal tambien
+   se quedan: sin eso no se sabe con qué razón social se está vendiendo. */
+@media (max-width:980px){ .relo.dolar{display:none} }
 @media (max-width:820px){
   .bar{gap:8px 10px; padding:9px 14px}
   .bar-sep{display:none}
   .user{font-size:13px}
-  .marca{height:26px; width:auto}
+  .marca{height:34px; width:auto}
 }
 
 /* La franja de contexto, como la verde de "Estás editando Traslasierra". */
@@ -237,7 +245,10 @@ section[hidden]{display:none}
 .ticket{position:sticky; top:106px}
 /* Que entren 20 y pico de renglones sin scrollear: el alto sale de lo que
    haya de pantalla, no de un numero fijo. */
-.tk-lineas{padding:0; max-height:calc(100vh - 330px); min-height:250px; overflow-y:auto}
+/* El alto lo pone ajustarGrilla(), que lo mide. Aca no va ni min-height ni
+   max-height: el min-height del CSS le gana al max-height y dejaba la caja
+   clavada en 250 px por mas que el codigo calculara otra cosa. */
+.tk-lineas{padding:0; overflow-y:auto}
 /* El renglon, apretado: el proveedor al lado del nombre y no abajo. Pasa de
    unos 49 px a unos 32, que es la diferencia entre ver 9 y ver 20. */
 .lin-t tbody td{padding:4px 10px !important; font-size:13px}
@@ -247,7 +258,7 @@ section[hidden]{display:none}
    de tres lineas es lindo y deja ver seis articulos; uno de una linea
    deja ver veinte, que es lo que hace falta cuando estas cargando. */
 .lin-t td.nom .nomln{
-  max-width:360px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  max-width:460px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .lin-t td.nom small{display:inline; margin-left:8px; color:var(--ink-3)}
 .lin-t td.nom small::before{content:"\\00b7 "}
@@ -800,13 +811,6 @@ th[data-ord].ord.asc::after{content:" ↑"}
 .vcel:last-of-type{border-right:0; margin-right:0; padding-right:0}
 .tira-vta{display:flex; align-items:center; flex-wrap:wrap; gap:10px 0}
 .tira-vta .resumen-vta{flex:1 1 auto; min-width:0}
-.vdto{display:flex; flex-direction:column; gap:3px; padding-left:18px;
-  border-left:1px solid var(--line); margin-left:auto}
-.vdto select{
-  border:1px solid var(--line-2); background:var(--surface); border-radius:8px;
-  padding:5px 9px; font-size:13.5px; font-weight:600; color:var(--ink);
-}
-.vdto select:focus{border-color:var(--accent); outline:none}
 .vet{display:block; font-size:11px; letter-spacing:.07em; text-transform:uppercase;
   color:var(--ink-3); font-weight:600; line-height:1.5}
 .vva{display:block; font-size:16.5px; font-weight:700; color:var(--ink); white-space:nowrap; line-height:1.3}
@@ -895,6 +899,17 @@ th[data-ord].ord.asc::after{content:" ↑"}
 .campo.ancho{grid-column:1/-1}
 /* La sucursal manda sobre todo lo demas: va arriba, sola y en grande. */
 .suc-sola select{font-weight:700; font-size:15.5px}
+/* Trabado se ve apagado, como lo que no se toca. No lo escondemos: el que
+   vende tiene que poder leer el numero que va a salir. */
+#vtaNro[readonly]{background:var(--surface-2); color:var(--ink-2); cursor:default}
+#vtaNro:not([readonly]){border-color:var(--accent); background:var(--surface)}
+/* Sucursal y vendedor en el mismo renglon: quien vende y desde donde. La
+   sucursal se lleva el ancho que sobra; el vendedor, lo justo. */
+.fila-dos{grid-column:1/-1; display:flex; gap:14px; align-items:flex-start}
+.fila-dos .campo{min-width:0}
+.fila-dos .suc-sola{flex:1 1 auto}
+.fila-dos .vend{flex:0 0 232px}
+@media (max-width:760px){ .fila-dos{flex-wrap:wrap} .fila-dos .vend{flex:1 1 100%} }
 /* El desplegable y el "+" en el mismo renglon. */
 .con-mas{display:flex; gap:8px; align-items:center}
 .con-mas select{flex:1 1 auto; min-width:0}
@@ -960,8 +975,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.68.0</span>
-    <span class="org">· Sanitarios Conesa</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.69.0</span>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
     <span class="bar-sep ocultable"></span>
@@ -1005,17 +1019,11 @@ footer{
         <div class="card-h"><h3>Comprobante</h3>
           <button class="b3" id="btnCambiarVta" style="margin-left:auto;padding:5px 15px">Cambiar</button>
         </div>
-        <!-- Todo junto en un renglón. Los campos se abren con Cambiar. -->
-        <!-- El descuento va aca, con los datos del cliente, porque es una
-             decision sobre el cliente; el total es la consecuencia. Queda
-             fuera de #resumenVta a proposito: ese se redibuja entero y el
-             select perderia el listener. -->
+        <!-- La tira de un renglón: lo mismo que los campos, para cuando
+             estan cerrados. El descuento ya no vive aca: se fue adentro de
+             #camposVta, al lado de la condicion de venta. -->
         <div class="tira-vta">
           <div class="resumen-vta" id="resumenVta"></div>
-          <div class="vdto">
-            <label class="vet" for="selDto">Descuento</label>
-            <select id="selDto"></select>
-          </div>
         </div>
         <div class="campos" id="camposVta" hidden></div>
       </div>
@@ -2268,7 +2276,13 @@ const S = {
   suc:"srl",           // en que razon social se esta vendiendo
   ordProd:{col:"margen", asc:true},   // por que columna se ordena la tabla
   cadenas:{},          // las cadenas que se cambiaron a mano, por proveedor
-  verComp:false,       // los campos del comprobante, abiertos o cerrados
+  // Abierto de entrada. Palabras de Damian: "siempre desplegado eso, no
+  // comprimido como arranca". La tira de un renglon queda para el que lo
+  // cierra a mano con el boton Listo.
+  verComp:true,
+  // El numero del comprobante arranca trabado. Se destraba a proposito,
+  // con el boton de al lado, y se vuelve a trabar apenas se corrige.
+  nroLibre:false,
   cajaSuc:"",          // que caja se esta mirando ("" = todas)
   cajaVend:"",         // y de que vendedor ("" = todos)
   puesto:"Mostrador 1",
@@ -2510,7 +2524,8 @@ document.getElementById("selUsuario").addEventListener("change",e=>{
     const f = h.toLocaleDateString("es-AR",
       {weekday:"long", day:"numeric", month:"long", year:"numeric"});
     el.textContent = f.charAt(0).toUpperCase() + f.slice(1)
-      + " · " + h.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",hour12:false});
+      + " · " + h.toLocaleTimeString("es-AR",
+          {hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
   };
   tic(); setInterval(tic, 1000);
 })();
@@ -2640,11 +2655,20 @@ function pintarCamposVenta(){
     // La sucursal va arriba de todo y sola. De ella salen el punto de venta,
     // la numeracion y el deposito del que sale la mercaderia: no es un dato
     // mas del comprobante, es el marco de toda la venta.
-    '<div class="campo ancho suc-sola"><label for="vtaSuc">Sucursal</label>'+
-      '<select id="vtaSuc">'+
-        SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
-      '</select>'+
-      '<span class="por">punto de venta '+su.pv+' · depósito <b>'+DEPOSITOS[depAct()]+'</b></span></div>'+
+    '<div class="fila-dos">'+
+      '<div class="campo suc-sola"><label for="vtaSuc">Sucursal</label>'+
+        '<select id="vtaSuc">'+
+          SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
+        '</select>'+
+        '<span class="por">punto de venta '+su.pv+' · depósito <b>'+DEPOSITOS[depAct()]+'</b></span></div>'+
+      // El vendedor va con la sucursal, no abajo entre el numero y el
+      // deposito: las dos contestan lo mismo, quien vende y desde donde.
+      '<div class="campo vend"><label for="vtaVend">Vendedor</label>'+
+        '<select id="vtaVend">'+
+          VENDEDORES.map(v=>'<option'+(v===S.usuario?" selected":"")+'>'+v+'</option>').join("")+
+        '</select>'+
+        '<span class="por">viene de tu usuario</span></div>'+
+    '</div>'+
     '<div class="campo ancho"><label for="vtaCliente">Cliente</label>'+
       // El "+" al lado del desplegable, que es donde la mano ya esta.
       '<div class="con-mas">'+
@@ -2656,12 +2680,29 @@ function pintarCamposVenta(){
     // Todos los datos del comprobante se pueden tocar. El numero sale solo,
     // pero si la numeracion quedo desfasada hay que poder corregirla sin
     // entrar al codigo.
+    // El numero sale solo y viene de solo lectura: es EL dato que llega a
+    // ARCA y no se toca por apoyar el dedo. Para corregirlo hay que
+    // destrabarlo a proposito con el boton de al lado.
     '<div class="campo"><label for="vtaNro">Número</label>'+
-      '<input id="vtaNro" type="text" value="'+nroDe(comp)+'" style="width:auto;text-align:left;font-variant-numeric:tabular-nums">'+
-      '<span class="por">sale solo; se puede corregir</span></div>'+
+      '<div class="con-mas">'+
+        '<input id="vtaNro" type="text" value="'+nroDe(comp)+'"'+
+          (S.nroLibre ? '' : ' readonly')+
+          ' style="width:auto;text-align:left;font-variant-numeric:tabular-nums">'+
+        '<button class="b2 mas" type="button" id="vtaNroEdit" title="'+
+          (S.nroLibre ? "dejarlo como está" : "corregir la numeración")+'">'+
+          (S.nroLibre ? "Dejarlo" : "Corregir")+'</button>'+
+      '</div>'+
+      '<span class="por">'+(S.nroLibre
+        ? '<b>Ojo:</b> esto cambia la numeración de los que siguen.'
+        : 'sale solo')+'</span></div>'+
     campo("vtaCond","Condición de venta",Object.keys(MULT),cond,
           recargoDe(cond)==="sin recargo" ? sCond[1] : recargoDe(cond),!S.cond)+
-    campo("vtaVend","Vendedor",VENDEDORES,S.usuario,"viene de tu usuario")+
+    // El descuento, pegado a la condicion de venta: son las dos cosas que se
+    // le conceden al cliente. Las opciones las pone pintarDtos() despues de
+    // este innerHTML, y el cambio lo agarra el listener delegado de abajo.
+    '<div class="campo"><label for="selDto">Descuento</label>'+
+      '<select id="selDto"></select>'+
+      '<span class="por">se descuenta del subtotal</span></div>'+
     // El deposito solo se muestra cuando hay algo para elegir. Traslasierra
     // puede vender de Buenos Aires -se lo traen en el proximo viaje-; desde
     // Buenos Aires no hay segunda opcion, asi que no se pregunta.
@@ -2686,6 +2727,7 @@ function pintarCamposVenta(){
     cel("Documento", txt(limpio(comp))+' <i>'+nroDe(comp).slice(2)+'</i>')+
     cel("Pedido", nroPedido())+
     cel("Condición", txt(limpio(cond)))+
+    cel("Descuento", S.desc ? S.desc+"%" : "sin descuento")+
     cel("Vendedor", txt(S.usuario))+
     cel("Depósito", txt(DEPOSITOS[depAct()])+
       (depAct() === su.dep ? "" : ' <i>se lo traen</i>'))+
@@ -2697,6 +2739,9 @@ function pintarCamposVenta(){
   // dos veces, una al lado de la otra.
   document.getElementById("resumenVta").hidden = S.verComp;
   document.getElementById("btnCambiarVta").textContent = S.verComp ? "Listo" : "Cambiar";
+  // El desplegable del descuento se redibuja con todo lo demas: el <select>
+  // que habia ya no existe, hay que volver a ponerle las opciones.
+  pintarDtos();
   pintarAcciones();
 }
 document.getElementById("btnCambiarVta").addEventListener("click",()=>{
@@ -2736,7 +2781,23 @@ document.getElementById("camposVta").addEventListener("change",e=>{
         "entrega en "+sucAct().n+": lo que se ve abajo es el stock de allá."
       : "Volvés a vender lo que hay en el depósito de "+DEPOSITOS[depAct()]+".") + yaHay);
   }
-  if(id==="vtaNro") corregirNumero(e.target.value);
+  if(id==="vtaNro"){
+    corregirNumero(e.target.value);
+    // Se corrigio: se vuelve a trabar sola. Queda abierta solo el rato que
+    // dura la correccion, no toda la venta.
+    S.nroLibre = false;
+  }
+  // Cambiar de documento cambia la numeracion que se esta mirando: lo que
+  // habia destrabado ya no es el mismo numero.
+  if(id==="vtaComp") S.nroLibre = false;
+  if(id==="selDto"){
+    if(e.target.value==="otro"){
+      const v = prompt("¿Qué descuento le hacés? (en por ciento)", String(S.desc));
+      S.desc = v===null ? S.desc : Math.max(0, Math.min(60, Math.round(+v||0)));
+    } else {
+      S.desc = +e.target.value;
+    }
+  }
   pintarCamposVenta(); pintarTicket();
 });
 
@@ -2744,6 +2805,16 @@ document.getElementById("camposVta").addEventListener("change",e=>{
 // entero cada vez que cambia algo del comprobante.
 document.getElementById("camposVta").addEventListener("click",e=>{
   if(e.target.closest("#vtaCliNuevo")) abrirCliente();
+  if(e.target.closest("#vtaNroEdit")){
+    S.nroLibre = !S.nroLibre;
+    pintarCamposVenta();
+    if(S.nroLibre){
+      // Si lo destrabo es porque lo quiere escribir: le dejamos el cursor
+      // adentro y el numero marcado, para que escriba encima.
+      const i = document.getElementById("vtaNro");
+      if(i){ i.focus(); i.select(); }
+    }
+  }
 });
 
 /** El botón grande dice lo que va a pasar al tocarlo, no "emitir" a secas. */
@@ -2768,23 +2839,21 @@ function pintarAcciones(){
 
 /* Los descuentos de un toque, mas uno a medida. */
 function pintarDtos(){
+  // Vive adentro de #camposVta, que se redibuja entero: si todavia no se
+  // pinto una vez, no hay nada que llenar.
+  const sel = document.getElementById("selDto");
+  if(!sel) return;
   const hechos = DESCUENTOS.slice();
   if(hechos.indexOf(S.desc)<0) hechos.push(S.desc);
   hechos.sort((a,b)=>a-b);
-  document.getElementById("selDto").innerHTML =
+  sel.innerHTML =
     hechos.map(d=>'<option value="'+d+'"'+(d===S.desc?" selected":"")+'>'+
       (d===0?"Sin descuento":d+"%")+'</option>').join("")+
     '<option value="otro">Otro…</option>';
 }
-document.getElementById("selDto").addEventListener("change",e=>{
-  if(e.target.value==="otro"){
-    const v = prompt("¿Qué descuento le hacés? (en por ciento)", String(S.desc));
-    S.desc = v===null ? S.desc : Math.max(0, Math.min(60, Math.round(+v||0)));
-  } else {
-    S.desc = +e.target.value;
-  }
-  pintarDtos(); pintarTicket();
-});
+// El cambio del descuento lo agarra el listener delegado de #camposVta, que
+// esta mas arriba: el <select> se rehace cada vez que se repinta el bloque,
+// asi que no se le puede colgar un listener propio.
 
 /* ------------------------------ clientes nuevos ------------------------
    Un padron de prueba, para mostrar como seria con el de ARCA. */
@@ -2796,6 +2865,13 @@ const PADRON = {
   "27351209886":{n:"Lucía Benítez", t:"Monotributo", dir:"Los Molles s/n, Nono"},
   "30999034127":{n:"Municipalidad de Nono", t:"IVA Exento", dir:"Sarmiento 50, Nono"}
 };
+/** El codigo que se le muestra al que vende. Los combos tienen el codigo
+    compuesto -"3480+3641"- y mostrar solo el primer pedazo hacia que dos
+    combos distintos aparecieran con el MISMO numero; con el nombre cortado
+    con puntos suspensivos, los dos renglones quedaban identicos, letra por
+    letra, y se podia vender el que no era: uno lleva bidet de un agujero y
+    el otro de tres. */
+const codVista = p => p.cod;
 const soloNum = v => String(v||"").replace(/\\D/g,"");
 /** El digito verificador del CUIT, el mismo control que hace ARCA. */
 function cuitValido(d){
@@ -2822,7 +2898,10 @@ function abrirCliente(){
 }
 function cerrarCliente(){ document.getElementById("cliNuevo").hidden = true; }
 document.getElementById("cliX").addEventListener("click", cerrarCliente);
-document.getElementById("cliNuevo").addEventListener("click",e=>{ if(e.target.id==="cliNuevo") cerrarCliente(); });
+// A proposito NO se cierra tocando afuera. Damian: "ojo que no se cierre con
+// foco sino con una X". Se tipea un CUIT de once numeros, se toca al lado sin
+// querer y se perdia todo lo cargado. Se cierra con la X, y con Escape, que
+// es una tecla que se aprieta a proposito.
 
 function traerPadron(){
   const d = soloNum(document.getElementById("cnDoc").value);
@@ -3027,7 +3106,7 @@ function buscar(){
       // consulta aunque no haya, que es para lo que más se usa.
       const st = stockPill(p);
       return '<tr data-cod="'+p.cod+'">'+
-        '<td class="num" style="font-size:12px">'+p.cod.split("+")[0]+'</td>'+
+        '<td class="num" style="font-size:12px">'+codVista(p)+'</td>'+
         '<td class="nom" style="min-width:230px"><span class="sem '+cls+'" title="'+tit+'"></span>'+p.tit+
           (p.promo?' <span class="pill p-ok">promo</span>':'')+
           '<small>'+p.rub.toLowerCase()+'</small></td>'+
@@ -3103,9 +3182,17 @@ function ajustarGrilla(){
   if(!caja || !pie || caja.offsetParent === null) return;
   const arriba = caja.getBoundingClientRect().top + window.scrollY;
   const libre  = window.innerHeight - arriba - pie.offsetHeight - 22;
-  // Nunca menos de 250: con la venta vacia el hueco tiene que verse, para
-  // que se entienda que los articulos van a aparecer ahi.
-  caja.style.maxHeight = Math.max(250, Math.round(libre)) + "px";
+  // Con la venta vacia el hueco tiene que verse -para que se entienda que
+  // los articulos van a aparecer ahi- pero poco: lo que de verdad tiene que
+  // estar a la vista es el buscador de abajo, que es lo que se va a tocar.
+  // Con renglones cargados la grilla se estira y la pagina scrollea, que es
+  // lo natural cuando la lista se hace larga.
+  const piso = (S.linea && S.linea.length) ? 180 : 96;
+  const alto = Math.max(piso, Math.round(libre));
+  // Los dos, y desde el mismo lado. Si el min-height vive en el CSS y el
+  // max-height aca, el CSS gana y este calculo no sirve para nada.
+  caja.style.minHeight = alto + "px";
+  caja.style.maxHeight = alto + "px";
 }
 addEventListener("resize", ajustarGrilla);
 
@@ -3149,7 +3236,7 @@ function pintarTicket(){
         const scl = st > 10 ? "stk-ok" : (st > 0 ? "stk-poco" : "stk-no");
         return '<tr data-cod="'+l.cod+'">'+
           '<td class="ix">'+(i+1)+'</td>'+
-          '<td class="num" style="font-size:12px">'+txt(p.cod.split("+")[0])+'</td>'+
+          '<td class="num" style="font-size:12px">'+txt(codVista(p))+'</td>'+
           '<td class="nom" style="min-width:230px" title="'+txt(p.tit)+'">'+
             '<div class="nomln">'+txt(p.tit)+'<small>'+txt(p.prov.toLowerCase())+'</small></div></td>'+
           '<td><span class="stk '+scl+'">'+st+'</span></td>'+
@@ -3235,9 +3322,10 @@ document.getElementById("borradores").addEventListener("click",e=>{
   if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el borrador?")) return;
   S.linea = b.linea.map(l=>({...l}));
   S.cliente = b.cliente; S.desc = b.desc; S.forma = b.forma; S.cond = b.forma; S.comp = null; S.suc = b.suc;
-  // El borrador se guardo con el deposito de su sucursal; el pisado de la
-  // venta que estabas armando no tiene nada que ver con el.
-  S.dep = null;
+  // Vuelve el deposito con el que se guardo. Si era una venta de Buenos
+  // Aires parada en Traslasierra, sigue siendolo; el pisado de la venta que
+  // estabas armando recien no tiene nada que ver con este borrador.
+  S.dep = b.dep || null;
   S.borradores = S.borradores.filter(y=>y.id !== b.id);
   document.getElementById("selSuc").value = S.suc;
   pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
@@ -3281,6 +3369,7 @@ function cerrar(facturada){
   // El deposito pisado vale para ESTA venta. Si no se limpia, la siguiente
   // tambien sale del otro galpon sin que nadie lo haya pedido.
   S.dep = null;
+  S.nroLibre = false;
   pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
   const deDonde = "Descontad"+(facturada?"a":"o")+" del depósito de "+DEPOSITOS[dep]+
     (dep !== su.dep ? ", que hay que traer a "+su.n : "")+".";
@@ -3300,7 +3389,7 @@ function guardarPresu(){
   S.nroPed++;
   S.presupuestos++;
   S.presuDe[S.usuario] = (S.presuDe[S.usuario]||0) + 1;
-  S.linea = []; S.desc = 0; S.comp = null; S.dep = null;
+  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   toast("Presupuesto "+nro+" de "+su.n+" por "+fmt(total)+". No mueve stock ni caja: queda esperando al cliente.");
 }
@@ -3323,10 +3412,14 @@ document.getElementById("btnBorrador").addEventListener("click",()=>{
     id: "b"+Date.now().toString(36),
     hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
     suc: S.suc, cliente: S.cliente, desc: S.desc, forma: S.forma,
+    dep: S.dep,
     linea: S.linea.map(l=>({...l}))
   });
   if(S.borradores.length > 6) S.borradores.pop();
-  S.linea = []; S.desc = 0; S.comp = null;
+  // El deposito pisado se va adentro del borrador y la venta siguiente
+  // arranca limpia. Si no, el cliente que entraba despues le descontaba de
+  // Buenos Aires sin que nadie lo hubiera pedido.
+  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   toast("Guardado como borrador. No gastó número ni movió stock: lo retomás cuando el cliente vuelva.");
 });
