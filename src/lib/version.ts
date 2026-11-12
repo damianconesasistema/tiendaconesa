@@ -2,6 +2,127 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.68.0 - Punto: el mostrador, como lo pidio el que lo va a usar.
+//            Nueve cosas que Damian marco mirando la pantalla, mas la
+//            regla de los depositos que conto despues.
+//            (1) La sucursal va arriba de todo, sola y en grande. De ella
+//            salen el punto de venta, la numeracion y el deposito: no es
+//            un dato mas del comprobante, es el marco de toda la venta.
+//            Mientras los campos estan abiertos se esconde la tira de
+//            arriba, que decia lo mismo dos veces.
+//            (2) Todos los datos del comprobante se pueden tocar. El
+//            numero y el vendedor estaban de solo lectura; si la
+//            numeracion queda desfasada hay que poder corregirla sin
+//            entrar al codigo.
+//            (3) El descuento se mudo de la columna del total a los datos
+//            del cliente. Es una decision sobre el cliente; el total es
+//            la consecuencia. Queda fuera de #resumenVta a proposito: ese
+//            bloque se redibuja entero y el select perderia el listener.
+//            (4) Boton "+ Cliente" al lado del desplegable, que es donde
+//            la mano ya esta. El alta sumo localidad, provincia, correo y
+//            lista de precios; el domicilio del padron se parte en calle
+//            y localidad por la ultima coma.
+//            (5) El documento dice "Presupuesto" y no "Presupuesto X
+//            cnc". La letra y la sucursal las sabe el sistema.
+//            (6) 01-Efectivo pasa a ser la condicion por defecto en
+//            mostrador, en lugar de transferencia.
+//            (7) Fuera el semaforo de "Lo que deja". Del otro lado del
+//            mostrador hay un cliente mirando la pantalla, y lo que deja
+//            la venta es un numero de gerencia.
+//            (8) Entran 20 renglones a la vista sin scrollear, 24 en
+//            pantallas altas. Apretar el padding no alcanzaba: lo que
+//            comia el lugar era el nombre del articulo, que se partia en
+//            tres lineas. Ahora va en una sola, cortado con puntos, con
+//            el nombre entero en el globito. El renglon bajo de 68 px a
+//            33.
+//            (9) El numero de pedido es propio y correlativo (P-2842),
+//            aparte del numero del comprobante: existe aunque todavia no
+//            se haya facturado y es con el que se sigue la entrega.
+//            (10) El deposito, como funciona de verdad: Traslasierra
+//            puede vender mercaderia de Buenos Aires -se la traen en el
+//            proximo viaje y se la entregan alla-, pero al reves no pasa
+//            nunca, asi que desde Buenos Aires ni se pregunta. Cuando la
+//            venta sale del otro galpon, la tira lo avisa y el stock que
+//            se busca es el de alla.
+//            (11) El puesto ya no se elige a mano: sale del usuario.
+//            Nadie se cambia de mostrador en el medio de una venta.
+//            (12) Las solapas de arriba pasaron de <button> a <a href>.
+//            Con un boton el navegador no ve ningun link y el menu del
+//            boton derecho no ofrece "abrir en una pestana nueva"; ahora
+//            se puede tener la venta en una ventana y Productos en otra,
+//            y la direccion recuerda en que solapa estabas.
+//            (13) En Creacion de articulos ya no se muestran "Margen
+//            objetivo" ni "Solo los que no llegan": no tienen nada que
+//            ver con cargar un articulo. El objetivo se mudo a
+//            Rentabilidad, que es la pantalla que lo usa; el otro se fue.
+//            (14) Un cartel de ayuda repetido menos: con la venta vacia
+//            se veian dos diciendo casi lo mismo.
+//            (15) El buscador vuelve abajo de los renglones, y arriba
+//            queda el hueco donde caen los articulos. Lo habia puesto
+//            arriba y estaba mal: la pantalla es un ticket, la lista
+//            crece de arriba para abajo y la mano escribe abajo. Con la
+//            venta vacia el hueco se ve, asi se entiende que los
+//            articulos van a aparecer ahi.
+//            (16) El alto de la grilla se mide en vez de adivinarse.
+//            Con el buscador abajo volvio el problema de siempre al
+//            reves: con 18 renglones el buscador se iba de la pantalla.
+//            Estaba atado a un "100vh - 330px" inventado, que deja de
+//            servir en cuanto la tira de arriba se parte en dos
+//            renglones o cambia el monitor. Ahora se mide donde empieza
+//            la grilla y cuanto mide el buscador, y lo que sobra es el
+//            alto. El buscador queda siempre a la vista.
+//            (17) La tira del comprobante, mas grande y toda en negrita.
+//            Tenia tres datos en gris claro -condicion, vendedor,
+//            deposito- como si valieran menos. No valen menos: son
+//            justamente los que se miran de reojo antes de emitir.
+//            (18) La fecha de la barra, entera, con dia de la semana y
+//            mes con nombre: en el mostrador se prometen entregas "para
+//            el jueves" y ese dato tiene que estar a la vista.
+//            (19) El dolar oficial al lado de la fecha, solo el numero.
+//            Sale de dolarapi.com (a dolarhoy no se le puede pegar desde
+//            el navegador: no manda el permiso de CORS). Se mira cada
+//            diez minutos y si no hay internet no se muestra nada. NO
+//            toca el dolar del formador de precios, que se pone a mano.
+//            ---- lo que encontro la revision adversarial antes de subir:
+//            (20) Habia DOS numeradores de pedido arrancando los dos en
+//            2842 -S.nroPed y PED.nro- y los dos mostrandose "P-NNNN":
+//            dos pedidos distintos con el mismo numero, y el choque se
+//            repetia en 2843, 2844. Ahora PED.nro es un getter sobre
+//            S.nroPed: un solo numerador para todo el sistema.
+//            (21) El numero de comprobante escrito a mano agarraba el
+//            ULTIMO grupo de digitos: "48.215" -como se escriben los
+//            miles aca- daba 215 y la numeracion retrocedia sin un solo
+//            aviso, o sea comprobantes repetidos en ARCA. Ahora el punto
+//            y la coma son separadores, hay tope de 8 digitos, y si el
+//            numero BAJA avisa fuerte y dice a que documento y a que
+//            sucursal le toco la numeracion.
+//            (22) El deposito pisado no se limpiaba: despues de que
+//            Traslasierra vendiera una vez de Buenos Aires, TODAS las
+//            ventas siguientes salian de Buenos Aires. Ahora se limpia al
+//            cerrar, al guardar presupuesto, al retomar un borrador y al
+//            cambiar de sucursal desde la barra de arriba (el selector de
+//            la barra no lo hacia; el del formulario si).
+//            (23) El cartel de cierre nombraba el deposito de la sucursal
+//            y no del que salio la mercaderia, y la venta no guardaba de
+//            donde habia salido. Ahora se anota dep y traida.
+//            (24) Cambiar el usuario desde la barra de arriba no movia el
+//            puesto: la caja del dia se le imputaba al mostrador del
+//            anterior.
+//            (25) Al pasar las solapas a <a> quedo un lugar buscando
+//            todavia un <button>: "Pasarlo al mostrador" tiraba
+//            TypeError, cargaba los renglones y no cambiaba de pantalla.
+//            Tambien faltaba escuchar hashchange -pegar un link con #renta
+//            con Punto ya abierto no hacia nada- y las solapas se habian
+//            quedado sin la barra espaciadora.
+//            (26) Los articulos que entran por una lista de proveedor se
+//            cargaban siempre con cero en Buenos Aires y todo en
+//            Traslasierra. Ahora entran en el deposito de la sucursal
+//            desde la que se carga.
+//            (27) La venta abre en blanco. Arrancaba con tres articulos
+//            puestos y "termotanque" escrito en el buscador, de cuando
+//            era una demo para mostrar. Damian: "sino marea". Y abrir con
+//            renglones puestos no solo marea: el dia que alguien no mire
+//            bien le suma lo del cliente nuevo arriba de la venta de otro.
 // V.0.67.0 - Punto: la pantalla de venta parece una venta, y la lectura por
 //            IA ya no se cuelga para siempre.
 //            (1) El panel de venta se rehizo. Damian lo dijo asi: "necesito
@@ -65,7 +186,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.67.0";
+export const APP_VERSION = "V.0.68.0";
 
 export type VersionEntry = {
   version: string;
