@@ -252,13 +252,18 @@ section[hidden]{display:none}
 /* El renglon, apretado: el proveedor al lado del nombre y no abajo. Pasa de
    unos 49 px a unos 32, que es la diferencia entre ver 9 y ver 20. */
 .lin-t tbody td{padding:4px 10px !important; font-size:13px}
+.lin-t td.num{white-space:nowrap}
 .lin-t td.nom{line-height:1.3}
 /* El nombre, en una sola linea. Lo que no entra se corta con puntos: el
    nombre entero esta en el globito y el codigo esta al lado. Un renglon
    de tres lineas es lindo y deja ver seis articulos; uno de una linea
    deja ver veinte, que es lo que hace falta cuando estas cargando. */
 .lin-t td.nom .nomln{
-  max-width:460px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  /* 280 y no mas: con el codigo entero de los combos, a 460 la tabla se
+     pasaba 182 px de la caja y quedaban afuera el Precio, el Subtotal y la
+     cruz de sacar el renglon. El nombre cede porque tiene el globito con el
+     nombre completo y, ahora si, un codigo que no miente. */
+  max-width:255px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .lin-t td.nom small{display:inline; margin-left:8px; color:var(--ink-3)}
 .lin-t td.nom small::before{content:"\\00b7 "}
@@ -911,9 +916,20 @@ th[data-ord].ord.asc::after{content:" ↑"}
 .fila-dos .vend{flex:0 0 232px}
 @media (max-width:760px){ .fila-dos{flex-wrap:wrap} .fila-dos .vend{flex:1 1 100%} }
 /* El desplegable y el "+" en el mismo renglon. */
-.con-mas{display:flex; gap:8px; align-items:center}
-.con-mas select{flex:1 1 auto; min-width:0}
+/* min-width:0 para que no se haga mas ancho que su casilla, y la regla de
+   encoger vale para los <input> tambien: decia solo "select", y por eso el
+   numero del comprobante -que es un input- se le subia al campo de al lado. */
+.con-mas{display:flex; gap:8px; align-items:center; min-width:0}
+.con-mas select,
+.con-mas input{flex:1 1 auto; min-width:0; width:100%}
 .con-mas .mas{flex:0 0 auto; white-space:nowrap; padding:7px 14px; font-size:13px}
+/* Un boton que se lee como un link, para meterlo adentro de una linea de
+   texto chica sin que parezca otro boton mas de la pantalla. */
+.link-chico{
+  border:0; background:none; padding:0; font:inherit; color:var(--accent);
+  text-decoration:underline; cursor:pointer;
+}
+.link-chico:hover{color:var(--ink)}
 
 .esc{display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:16px; align-items:start}
 .esc-g{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden}
@@ -975,7 +991,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.69.0</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.70.0</span>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
     <span class="bar-sep ocultable"></span>
@@ -2684,17 +2700,17 @@ function pintarCamposVenta(){
     // ARCA y no se toca por apoyar el dedo. Para corregirlo hay que
     // destrabarlo a proposito con el boton de al lado.
     '<div class="campo"><label for="vtaNro">Número</label>'+
-      '<div class="con-mas">'+
-        '<input id="vtaNro" type="text" value="'+nroDe(comp)+'"'+
-          (S.nroLibre ? '' : ' readonly')+
-          ' style="width:auto;text-align:left;font-variant-numeric:tabular-nums">'+
-        '<button class="b2 mas" type="button" id="vtaNroEdit" title="'+
-          (S.nroLibre ? "dejarlo como está" : "corregir la numeración")+'">'+
-          (S.nroLibre ? "Dejarlo" : "Corregir")+'</button>'+
-      '</div>'+
+      '<input id="vtaNro" type="text" value="'+nroDe(comp)+'"'+
+        (S.nroLibre ? '' : ' readonly')+
+        ' style="text-align:left;font-variant-numeric:tabular-nums">'+
+      // El boton va en la linea de ayuda, que existe igual: al lado de la
+      // cajita no entraba sin comerse el numero o un renglon de la fila.
       '<span class="por">'+(S.nroLibre
-        ? '<b>Ojo:</b> esto cambia la numeración de los que siguen.'
-        : 'sale solo')+'</span></div>'+
+        ? '<b>Ojo:</b> cambia la numeración de los que siguen. '
+        : 'sale solo · ')+
+        '<button type="button" class="link-chico" id="vtaNroEdit">'+
+        (S.nroLibre ? "dejarlo como está" : "corregirlo")+'</button>'+
+      '</span></div>'+
     campo("vtaCond","Condición de venta",Object.keys(MULT),cond,
           recargoDe(cond)==="sin recargo" ? sCond[1] : recargoDe(cond),!S.cond)+
     // El descuento, pegado a la condicion de venta: son las dos cosas que se
@@ -2799,6 +2815,19 @@ document.getElementById("camposVta").addEventListener("change",e=>{
     }
   }
   pintarCamposVenta(); pintarTicket();
+  // Y ahora lo mas importante de todo este bloque: devolverle el foco al
+  // campo que se acaba de tocar.
+  //
+  // pintarCamposVenta() rehace el bloque entero con innerHTML, asi que el
+  // desplegable que tenias abierto deja de existir y el foco se cae al
+  // body. Con el foco en el body, la guarda que frena el atajo "Enter
+  // suma" -que pregunta si estas escribiendo en un campo- deja de valer, y
+  // el Enter siguiente mete en la venta el renglon marcado del buscador:
+  // un articulo que nadie pidio, con su precio, en la factura y descontado
+  // del deposito. Pasa con el descuento, y desde que el bloque abre
+  // desplegado tambien con los demas campos, que antes ni se veian.
+  const vuelve = id && document.getElementById(id);
+  if(vuelve) vuelve.focus();
 });
 
 // El "+" de al lado del cliente. Va delegado porque el bloque se redibuja

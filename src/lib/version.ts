@@ -2,6 +2,38 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.70.0 - Punto: lo que encontro la revision de la 0.69.0, y el boton
+//            que se le subia encima al campo de al lado.
+//            (1) GRAVE, y estuvo arriba unas horas: apretar Enter despues
+//            de tocar el Descuento metia en la venta un articulo que nadie
+//            habia pedido. Al mudar el descuento adentro del bloque de
+//            campos, cambiarlo termina llamando a pintarCamposVenta(), que
+//            rehace el bloque entero con innerHTML y destruye el propio
+//            <select> que tenia el foco; el foco se cae al <body>, la
+//            guarda escribiendo(e) -que mira e.target- deja de frenar el
+//            atajo "Enter suma", y el Enter siguiente agarra el renglon
+//            marcado del buscador y lo carga, con su precio, en la factura
+//            y descontado del deposito. Lo reprodujeron dos revisores por
+//            separado con teclado de verdad. Se arregla devolviendole el
+//            foco al campo que se toco despues de repintar, y vale para
+//            TODOS los campos del bloque: desde que abre desplegado, los
+//            demas desplegables tambien estan al alcance de la mano.
+//            (2) En los renglones de la venta se cortaban Precio, Subtotal
+//            y la cruz de sacar el renglon. El codigo entero de los combos
+//            mas el nombre estirado a 460 px ensanchaban la tabla: medido
+//            en 1366, pedia 1043 contra 861 de caja. Quedaba scroll
+//            horizontal, que nadie ve. El codigo entero se queda -es lo que
+//            distingue un combo de otro- y cede el nombre, que tiene el
+//            globito con el nombre completo. Ahora se pasa 0 px.
+//            (3) El boton "Corregir" del numero se le subia encima a
+//            "Condicion de venta" -103 px afuera de su casilla-. La causa
+//            era de una linea: la regla que hace encoger lo que esta al
+//            lado de un boton decia ".con-mas select", y el numero es un
+//            <input>, asi que no la agarraba. Ahora la regla vale para los
+//            input tambien, y el boton se mudo a la linea de ayuda de
+//            abajo, que existe igual: al lado no entraba sin comerse el
+//            numero o un renglon entero de la fila.
+//            Nada de esto toca el facturador de ARCA ni la tienda.
 // V.0.69.0 - Punto: el comprobante acomodado como se mira, y dos
 //            agujeros que habia dejado la revision anterior.
 //            (1) El vendedor subio arriba, al lado de la sucursal. Las
@@ -252,7 +284,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.69.0";
+export const APP_VERSION = "V.0.70.0";
 
 export type VersionEntry = {
   version: string;
