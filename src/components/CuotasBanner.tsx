@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { CreditCard, Wallet, ArrowRight } from "lucide-react";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 // Banner de financiación.
 //
@@ -11,11 +13,17 @@ export function CuotasBanner({
   cuotasMax,
   dctoContadoPct = 0,
   variant = "hero",
+  tiendaAbierta = true,
+  whatsappHref = "",
 }: {
   cuotasMax: number;
   /** Descuento real de pagar por transferencia. */
   dctoContadoPct?: number;
   variant?: "hero" | "full" | "strip";
+  /** Si hay alguna tienda abierta. Con todas cerradas, el boton lleva al
+   *  WhatsApp en vez de al catalogo. Por defecto true. */
+  tiendaAbierta?: boolean;
+  whatsappHref?: string;
 }) {
   if (!cuotasMax || cuotasMax < 2) return null;
 
@@ -107,13 +115,24 @@ export function CuotasBanner({
       </div>
 
       <div className="animate-banner-in-3 relative mx-auto mt-8 flex max-w-5xl justify-center sm:justify-start">
-        <Link
-          href="/tienda"
-          className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[#009EE3] transition-transform hover:scale-[1.03]"
-        >
-          Ver la tienda
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        {tiendaAbierta ? (
+          <Link
+            href="/tienda"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[#009EE3] transition-transform hover:scale-[1.03]"
+          >
+            Ver la tienda
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        ) : (
+          <WhatsAppLink
+            href={whatsappHref}
+            origen="cuotas-tienda-cerrada"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[#1DA851] transition-transform hover:scale-[1.03]"
+          >
+            <WhatsAppIcon className="h-4 w-4" />
+            Consultar por WhatsApp
+          </WhatsAppLink>
+        )}
 
       </div>
     </section>

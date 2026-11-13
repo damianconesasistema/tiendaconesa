@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Tag, ArrowRight } from "lucide-react";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { precioVitrina } from "@/lib/precios";
 import { formatPrice } from "@/lib/order";
 
@@ -27,12 +29,18 @@ export function OfertasBanner({
   ofertas,
   total,
   comisionUnPago = 10,
+  tiendaAbierta = true,
+  whatsappHref = "",
 }: {
   /** Las de mayor descuento, ya ordenadas. */
   ofertas: Oferta[];
   /** Cuantas hay en total, que suelen ser mas que las que entran acá. */
   total: number;
   comisionUnPago?: number;
+  /** Si hay alguna tienda abierta. Con todas cerradas, el boton lleva al
+   *  WhatsApp en vez de al catalogo. Por defecto true. */
+  tiendaAbierta?: boolean;
+  whatsappHref?: string;
 }) {
   const conDescuento = ofertas
     .map((p) => ({
@@ -84,13 +92,24 @@ export function OfertasBanner({
             stock y para llevar hoy.
           </p>
 
-          <Link
-            href="/tienda?filter=on-sale"
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[var(--brand-red)] transition-transform hover:scale-[1.03]"
-          >
-            Ver todas las ofertas
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          {tiendaAbierta ? (
+            <Link
+              href="/tienda?filter=on-sale"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[var(--brand-red)] transition-transform hover:scale-[1.03]"
+            >
+              Ver todas las ofertas
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <WhatsAppLink
+              href={whatsappHref}
+              origen="ofertas-tienda-cerrada"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-[#1DA851] transition-transform hover:scale-[1.03]"
+            >
+              <WhatsAppIcon className="h-4 w-4" />
+              Consultar por WhatsApp
+            </WhatsAppLink>
+          )}
         </div>
 
         {/* Las de mayor descuento. En el celular entran dos: cuatro

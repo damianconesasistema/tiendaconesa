@@ -2,6 +2,84 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.72.0 - Tienda: el precio, la oferta y el stock salen del LOCAL.
+//            Hasta hoy todo salia del articulo ("Product"). Andaba porque
+//            vendia un local solo; con dos, los dos publicarian el precio y
+//            el stock del primero. Un cliente de Buenos Aires compraria algo
+//            que esta en el deposito de Cordoba, al precio de Cordoba.
+//            Ahora todo lo que el cliente ve y paga pasa por
+//            src/lib/catalogo.ts: catalogo, portada, ficha, recomendados y
+//            checkout. El local sale de sucursalQueVende() —el que cobra, no
+//            el que se muestra— porque esto termina en una venta.
+//            Un articulo que el local no lleva no aparece en su tienda y no
+//            se puede vender ahi: ponerle el precio del otro local seria
+//            cobrar el precio de otro negocio.
+//            La migracion 31 copia el articulo a la fila de Traslasierra
+//            ANTES de que la tienda lea de ahi. Esa tabla se habia llenado
+//            una sola vez y podia estar vieja; copiando el articulo, que es
+//            exactamente lo que el cliente ve hoy, la tienda lee otra tabla
+//            y muestra los mismos numeros. Comprobado contra el sitio en el
+//            aire, articulo por articulo, antes y despues.
+//            Va contra 'traslasierra' con todas las letras y no contra "la
+//            que vende": si el dia del cambio la tienda esta cerrada, "la
+//            que vende" no es nadie y no haria nada, que es justo el caso en
+//            el que hace falta.
+//
+//            Portada: con TODAS las tiendas cerradas, solo WhatsApp.
+//            El boton grande decia "Entra a la tienda", y con la tienda
+//            cerrada es invitar a una puerta que no abre. Con ninguna tienda
+//            abierta, la portada cambia entera: el boton del hero, los dos
+//            banners, las dos secciones de productos, las marcas y los
+//            rubros llevan al WhatsApp —con la marca o el rubro ya escritos
+//            en el mensaje— y las tarjetas dejan de ofrecer "Agregar",
+//            porque no hay carrito al que agregar. El cartel "la tienda
+//            online nunca cierra" tambien se va: seria mentira escrita en la
+//            portada.
+//            Lo decide la casilla "Tienda abierta" del panel, asi que el dia
+//            que se reabra la portada vuelve sola y no hay que acordarse de
+//            deshacer nada. Los cuatro bloques que cambian se usan SOLO en
+//            la home, y la perilla entra con valor por defecto "abierta":
+//            usarlos en otra pantalla sin pasarla se porta como siempre.
+//            Cada boton de WhatsApp avisa a Analytics con su propia
+//            etiqueta, asi se ve de donde salen las consultas mientras la
+//            tienda esta cerrada.
+//
+//            Catalogo de Buenos Aires: cuatro marcas mas (migracion 33),
+//            Heineken, Hydros, Narf y Dogo, con las mismas reglas que la 32
+//            (pausados, sin stock, con el precio de hoy de arranque). Los
+//            codigos de marca se verificaron contra src/lib/marcas.ts: uno
+//            mal escrito copiaria cero articulos sin dar ningun error.
+//
+//            Queda pendiente y a la vista: con la tienda cerrada,
+//            conesa.com.ar/tienda sigue respondiendo y mostraria un catalogo
+//            vacio. Ya no hay nada en el sitio que lleve ahi, pero el que
+//            tenga el link guardado entra. Falta decidir que hace esa
+//            pantalla.
+//            Nada de esto toca el facturador de ARCA, ni MercadoPago, ni
+//            Punto.
+// V.0.71.1 - Panel: que siga guardando precios con la tienda cerrada.
+//            El espejo —el que copia el precio del articulo a la fila del
+//            local— y la "sucursal principal" del panel daban los dos por
+//            hecho que siempre hay una tienda abierta. Con Traslasierra
+//            cerrada un rato no hay ninguna: el espejo actualizaba cero
+//            filas y el panel se quedaba sin principal, asi que guardar un
+//            precio entrando por conesa.com.ar/admin no grababa nada, sin
+//            error y sin aviso. Se veia como cambiar un precio y que el
+//            panel siguiera mostrando el viejo.
+//            Los dos pasan a mirar a 'traslasierra' con todas las letras.
+//            No es lo mismo que "la que tiene la tienda abierta": lo que hay
+//            guardado en el articulo es el catalogo de Traslasierra, de
+//            cuando habia un solo local. Eso es un hecho de la historia, no
+//            una regla que cambie al destildar una casilla.
+//            Antes de esto, y sin tocar una linea de codigo, entro por
+//            migracion el catalogo de arranque de Buenos Aires: Piazza,
+//            Pringles, Ferrum y TST. Pausados, sin stock —el stock esta
+//            fisicamente en Cordoba— y con el precio de hoy como punto de
+//            partida, para editar desde el panel de Buenos Aires. Esa
+//            tienda sigue cerrada: esto no la abre.
+//            Nada de esto toca el facturador de ARCA, ni MercadoPago, ni lo
+//            que ve el cliente: el catalogo publicado quedo identico,
+//            comparado articulo por articulo antes y despues.
 // V.0.71.0 - Tienda: cada sucursal cobra en SU cuenta de MercadoPago, y el
 //            pedido guarda de que sucursal es.
 //            Hasta hoy el servidor tenia UNA sola clave de MercadoPago y la
@@ -333,7 +411,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.71.0";
+export const APP_VERSION = "V.0.72.0";
 
 export type VersionEntry = {
   version: string;

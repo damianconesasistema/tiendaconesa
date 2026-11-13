@@ -36,7 +36,8 @@ export type SucursalPanel = {
   subdominio: string | null;
   nombre: string;
   /** La que atiende el dominio principal: la de menor orden con tienda
-   *  abierta. Es la unica cuyos precios hoy ve el cliente. */
+   *  abierta. Es la unica cuyos precios hoy ve el cliente. Con todas las
+   *  tiendas cerradas sigue siendo Traslasierra. */
   principal: boolean;
   tiendaActiva: boolean;
   productos: number;
@@ -68,7 +69,14 @@ export const sucursalesDelPanel = cache(async (): Promise<SucursalPanel[]> => {
     },
   });
 
-  const idPrincipal = filas.find((f) => f.tiendaActiva)?.id;
+  // Con todas las tiendas cerradas no habria principal, y de la principal
+  // cuelga a que sucursal le escribe el panel cuando se entra por
+  // conesa.com.ar/admin: sin ella, guardar un precio ahi no graba nada y no
+  // avisa. Mientras no haya ninguna abierta, la principal es Traslasierra,
+  // que es la que tiene el catalogo de siempre.
+  const idPrincipal =
+    filas.find((f) => f.tiendaActiva)?.id ??
+    filas.find((f) => f.slug === "traslasierra")?.id;
   const dominio = dominioBase();
 
   return filas.map((f, i) => ({

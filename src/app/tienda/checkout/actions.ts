@@ -8,6 +8,7 @@ import { precioVitrina, precioCuotas } from "@/lib/precios";
 import { codigoDeAhora } from "@/lib/codigo-viejo";
 import { opcionValida } from "@/lib/etiquetas";
 import { sucursalQueVende } from "@/lib/sucursal";
+import { articulosParaVender } from "@/lib/catalogo";
 
 type Result =
   | { ok: true; orderId: string; orderNumber: number }
@@ -43,11 +44,14 @@ export async function createOrder(
       const nuevo = codigoDeAhora(id);
       if (nuevo) equivalente.set(id, nuevo);
     }
-    const dbProducts = await prisma.product.findMany({
-      where: {
-        itemId: { in: [...new Set([...itemIds, ...equivalente.values()])] },
-      },
-    });
+    // El precio sale de la fila del local que vende, no del articulo: es el
+    // local que cobra y que factura. Los articulos que este local no lleva no
+    // vuelven, y mas abajo se descartan igual que un codigo que no existe:
+    // ponerles el precio del otro local seria cobrar el precio de otro
+    // negocio.
+    const dbProducts = await articulosParaVender([
+      ...new Set([...itemIds, ...equivalente.values()]),
+    ]);
     const porCodigo = new Map(dbProducts.map((p) => [p.itemId, p]));
     const byItemId = {
       get: (id: string) =>

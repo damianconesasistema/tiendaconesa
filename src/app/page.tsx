@@ -8,6 +8,7 @@ import { CuotasBanner } from "@/components/CuotasBanner";
 import { OfertasBanner } from "@/components/OfertasBanner";
 import { Sucursales } from "@/components/Sucursales";
 import { prisma } from "@/lib/db";
+import { articulosEnVenta, paraLaVitrina } from "@/lib/catalogo";
 import { getMarcasConLogo } from "@/lib/marcas-server";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
 
@@ -27,7 +28,11 @@ import {
   Truck,
 } from "lucide-react";
 import { business, aniosDeOficio } from "@/lib/business";
-import { contactoActual, subdominioActual } from "@/lib/sucursal";
+import {
+  contactoActual,
+  subdominioActual,
+  sucursalQueVende,
+} from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const categoryIcons = [
@@ -52,6 +57,25 @@ export default async function Home() {
     (1 - 1 / (1 + recargos.unPago / 100)) * 100,
   );
   const contacto = await contactoActual();
+  // El WhatsApp general de esta visita, para todo lo que con la tienda
+  // cerrada deja de llevar al catalogo.
+  const waGeneral = contacto.linkWhatsapp(
+    "Hola! Vi la web y quería hacer una consulta.",
+  );
+
+  // Si en esta visita hay ALGUNA tienda abierta.
+  //
+  // Con todas cerradas, la portada no puede mandar a entrar al catalogo:
+  // seria invitar a una puerta que no abre. Todo lo que llevaba a la tienda
+  // pasa a llevar al WhatsApp. Se prende y se apaga con la casilla "Tienda
+  // abierta" del panel, asi que el dia que se reabra la portada vuelve sola
+  // y no hay que acordarse de deshacer nada.
+  //
+  // sucursalQueVende() devuelve la que tiene la tienda abierta; si no hay
+  // ninguna devuelve la que atiende, que justamente la tiene cerrada. Si la
+  // base no contesta devuelve null, y ahi tampoco hay catalogo para mostrar:
+  // mandar al WhatsApp sigue siendo la respuesta correcta.
+  const hayTienda = !!(await sucursalQueVende())?.tiendaActiva;
   // En el subdominio de una tienda se muestra solo esa sucursal: la de
   // Buenos Aires no tiene por que publicar el telefono de Cordoba. En
   // conesa.com.ar van las dos, que es de lo que habla esa pagina.
@@ -105,21 +129,9 @@ export default async function Home() {
   // contarlas y quedarse con las de mayor rebaja. El descuento no se puede
   // ordenar en la base (es una cuenta entre dos columnas), asi que se
   // traen livianas y se ordenan aca.
-  const todasEnOferta = await prisma.product.findMany({
-    where: {
-      active: true,
-      salePrice: { not: null },
-      itemId: { not: "__RESET_PRICES_MARKER__" },
-    },
-    select: {
-      itemId: true,
-      title: true,
-      price: true,
-      salePrice: true,
-      category: true,
-      imageUrl: true,
-    },
-  });
+  const todasEnOferta = (await articulosEnVenta({ soloOferta: true })).map(
+    paraLaVitrina,
+  );
   const mejoresOfertas = [...todasEnOferta]
     .filter((p) => p.salePrice !== null && p.salePrice < p.price)
     .sort(
@@ -129,24 +141,13 @@ export default async function Home() {
     .slice(0, 4);
 
   // Ofertas: productos con salePrice < price
-  const onSale = await prisma.product.findMany({
-    where: {
-      active: true,
-      salePrice: { not: null },
-      itemId: { not: "__RESET_PRICES_MARKER__" },
-    },
-    select: {
-      itemId: true,
-      title: true,
-      price: true,
-      salePrice: true,
-      category: true,
-      imageUrl: true,
-      stock: true,
-    },
-    orderBy: [{ featured: "desc" }, { title: "asc" }],
-    take: 8,
-  });
+  const onSale = (
+    await articulosEnVenta({
+      soloOferta: true,
+      orden: ["destacado", "titulo"],
+      cuantos: 8,
+    })
+  ).map(paraLaVitrina);
 
   // Destacados: los que el admin marco como tales y, si no alcanzan,
   // se completa con el resto del catalogo.
@@ -157,43 +158,28 @@ export default async function Home() {
   // Ahora se excluyen los itemId que YA se mostraron arriba, que es lo
   // que se queria evitar de verdad.
   const yaMostrados = onSale.map((p) => p.itemId);
-  const CAMPOS = {
-    itemId: true,
-    title: true,
-    price: true,
-    salePrice: true,
-    category: true,
-    imageUrl: true,
-    stock: true,
-  } as const;
 
-  let featured = await prisma.product.findMany({
-    where: {
-      featured: true,
-      active: true,
-      itemId: { not: "__RESET_PRICES_MARKER__", notIn: yaMostrados },
-    },
-    select: CAMPOS,
-    take: 8,
-    orderBy: { title: "asc" },
-  });
+  let featured = (
+    await articulosEnVenta({
+      articulo: { featured: true, itemId: { notIn: yaMostrados } },
+      orden: ["titulo"],
+      cuantos: 8,
+    })
+  ).map(paraLaVitrina);
 
   if (featured.length < 8) {
-    const extras = await prisma.product.findMany({
-      where: {
-        active: true,
-        featured: false,
-        itemId: {
-          not: "__RESET_PRICES_MARKER__",
-          notIn: [...yaMostrados, ...featured.map((f) => f.itemId)],
+    const extras = (
+      await articulosEnVenta({
+        articulo: {
+          featured: false,
+          itemId: { notIn: [...yaMostrados, ...featured.map((f) => f.itemId)] },
         },
-      },
-      select: CAMPOS,
-      take: 8 - featured.length,
-      // Con stock primero: no tiene sentido destacar algo que no se puede
-      // comprar.
-      orderBy: [{ stock: "desc" }, { title: "asc" }],
-    });
+        // Con stock primero: no tiene sentido destacar algo que no se puede
+        // comprar.
+        orden: ["stock", "titulo"],
+        cuantos: 8 - featured.length,
+      })
+    ).map(paraLaVitrina);
     featured = [...featured, ...extras];
   }
   return (
@@ -207,6 +193,7 @@ export default async function Home() {
         retiroDesc={promesas.retiroDesc}
         envioTitulo={promesas.envioTitulo}
         envioDesc={promesas.envioDesc}
+        tiendaAbierta={hayTienda}
       />
 
       {/* Las ofertas, arriba de todo: la seccion completa queda mas abajo,
@@ -218,17 +205,30 @@ export default async function Home() {
             .length
         }
         comisionUnPago={recargos.unPago}
+        tiendaAbierta={hayTienda}
+        whatsappHref={waGeneral}
       />
 
       {/* FINANCIACIÓN: apenas termina el hero, es el primer gancho */}
-      <CuotasBanner cuotasMax={cuotasMax} dctoContadoPct={dctoContadoPct} />
+      <CuotasBanner
+        cuotasMax={cuotasMax}
+        dctoContadoPct={dctoContadoPct}
+        tiendaAbierta={hayTienda}
+        whatsappHref={waGeneral}
+      />
 
       {/* STATS */}
       <section className="border-b border-[var(--border)] bg-white px-6 py-12">
         <div className="mx-auto grid max-w-6xl grid-cols-3 gap-6 sm:gap-16">
           <Stat value="14k+" label="En Instagram" />
           <Stat value="20+" label="Marcas" />
-          <Stat value="24/7" label="Comprá cuando quieras" sub="la tienda online nunca cierra" />
+          {/* Con la tienda cerrada, "la tienda online nunca cierra" seria
+              mentira escrita en la portada. */}
+          {hayTienda ? (
+            <Stat value="24/7" label="Comprá cuando quieras" sub="la tienda online nunca cierra" />
+          ) : (
+            <Stat value="24/7" label="Escribinos cuando quieras" sub="te contestamos por WhatsApp" />
+          )}
         </div>
       </section>
 
@@ -243,20 +243,23 @@ export default async function Home() {
               Trabajamos con las mejores
             </h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Tocá una marca para ver todos sus productos.
+              {hayTienda
+                ? "Tocá una marca para ver todos sus productos."
+                : "Tocá una marca para consultarla por WhatsApp."}
             </p>
           </div>
           {/* Caja de alto fijo y logo con el mismo techo para todas: los logos
               vienen con margenes y proporciones distintas, y si los dejamos
               crecer libre cada uno pesa distinto y la grilla se ve despareja. */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {marcasConLogo.map((marca) => (
-              <Link
-                key={marca.id}
-                href={`/tienda?marca=${marca.id}`}
-                title={`Ver productos ${marca.name}`}
-                className="group flex h-28 items-center justify-center rounded-xl bg-white px-5 py-4 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-[var(--brand-red)]"
-              >
+            {marcasConLogo.map((marca) => {
+              // Con la tienda cerrada, tocar una marca no puede llevar al
+              // catalogo: lleva al WhatsApp con el nombre de la marca ya
+              // escrito en el mensaje, que es lo unico que se puede hacer
+              // con esa consulta hoy.
+              const clase =
+                "group flex h-28 items-center justify-center rounded-xl bg-white px-5 py-4 shadow-sm ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-[var(--brand-red)]";
+              const logo = (
                 <Image
                   src={marca.logo!}
                   alt={marca.name}
@@ -269,8 +272,31 @@ export default async function Home() {
                     marca.invert ? "brightness-0" : ""
                   }`}
                 />
-              </Link>
-            ))}
+              );
+              return hayTienda ? (
+                <Link
+                  key={marca.id}
+                  href={`/tienda?marca=${marca.id}`}
+                  title={`Ver productos ${marca.name}`}
+                  className={clase}
+                >
+                  {logo}
+                </Link>
+              ) : (
+                <WhatsAppLink
+                  key={marca.id}
+                  href={contacto.linkWhatsapp(
+                    `Hola! Quería consultar por productos ${marca.name}.`,
+                  )}
+                  origen="marca-tienda-cerrada"
+                  producto={marca.name}
+                  title={`Consultar por ${marca.name}`}
+                  className={clase}
+                >
+                  {logo}
+                </WhatsAppLink>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -284,12 +310,19 @@ export default async function Home() {
           title="En oferta ahora"
           cta="Ver todas las ofertas"
           ctaHref="/tienda?filter=on-sale"
+          tiendaAbierta={hayTienda}
+          whatsappHref={waGeneral}
         />
       )}
 
       {/* DESTACADOS (solo si hay) */}
       {featured.length > 0 && (
-        <FeaturedProducts comisionUnPago={recargos.unPago} featured={featured} />
+        <FeaturedProducts
+          comisionUnPago={recargos.unPago}
+          featured={featured}
+          tiendaAbierta={hayTienda}
+          whatsappHref={waGeneral}
+        />
       )}
 
       {/* SUCURSALES: la home habla del comercio y desde aca reparte */}
@@ -320,12 +353,14 @@ export default async function Home() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {business.categories.map((cat, i) => {
               const Icon = categoryIcons[i] ?? Wrench;
-              return (
-                <Link
-                  key={cat.name}
-                  href={`/tienda?cat=${cat.slug}`}
-                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 transition-all hover:-translate-y-1 hover:border-[var(--brand-red)] hover:shadow-xl"
-                >
+              // Mismo criterio que las marcas: con la tienda cerrada, la
+              // tarjeta de un rubro lleva al WhatsApp con el rubro ya
+              // escrito en el mensaje, y no a un catalogo al que no se
+              // puede comprar.
+              const clase =
+                "group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 transition-all hover:-translate-y-1 hover:border-[var(--brand-red)] hover:shadow-xl";
+              const contenido = (
+                <>
                   <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-white text-[var(--brand-red)] shadow-sm transition-colors group-hover:bg-[var(--brand-red)] group-hover:text-white">
                     <Icon className="h-7 w-7" strokeWidth={1.8} />
                   </div>
@@ -336,9 +371,30 @@ export default async function Home() {
                     {cat.description}
                   </p>
                   <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[var(--brand-red)] opacity-0 transition-opacity group-hover:opacity-100">
-                    Ver productos →
+                    {hayTienda ? "Ver productos →" : "Consultar →"}
                   </span>
+                </>
+              );
+              return hayTienda ? (
+                <Link
+                  key={cat.name}
+                  href={`/tienda?cat=${cat.slug}`}
+                  className={clase}
+                >
+                  {contenido}
                 </Link>
+              ) : (
+                <WhatsAppLink
+                  key={cat.name}
+                  href={contacto.linkWhatsapp(
+                    `Hola! Quería consultar por ${cat.name}.`,
+                  )}
+                  origen="rubro-tienda-cerrada"
+                  producto={cat.name}
+                  className={clase}
+                >
+                  {contenido}
+                </WhatsAppLink>
               );
             })}
           </div>

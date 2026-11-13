@@ -34,6 +34,7 @@ export function HeroCarousel({
   retiroDesc,
   envioTitulo,
   envioDesc,
+  tiendaAbierta = true,
 }: {
   whatsappHref: string;
   /** Como se nombra el lugar de retiro en el parrafo. */
@@ -41,6 +42,13 @@ export function HeroCarousel({
   retiroDesc: string;
   envioTitulo: string;
   envioDesc: string;
+  /** Si hay alguna tienda abierta. Con todas cerradas, el boton grande no
+   *  puede decir "entra a la tienda": seria invitar a una puerta que no
+   *  abre. Ahi queda el de WhatsApp, y queda como principal.
+   *
+   *  Por defecto true: si alguien usa este bloque sin pasarla, se porta
+   *  como venia. */
+  tiendaAbierta?: boolean;
 }) {
   const [index, setIndex] = useState(0);
 
@@ -95,7 +103,7 @@ export function HeroCarousel({
               />
             </span>
             <span className="font-display text-[11px] font-bold uppercase tracking-[0.3em] text-white">
-              Tienda online activa
+              {tiendaAbierta ? "Tienda online activa" : "Atención por WhatsApp"}
             </span>
           </div>
 
@@ -125,23 +133,37 @@ export function HeroCarousel({
           </p>
 
           <div className="animate-fade-up-delay-3 mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/tienda"
-              className="animate-titilate-delay group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white transition-all hover:bg-[var(--brand-red-hover)]"
-              style={{ boxShadow: "0 10px 32px -8px rgba(230,48,32,0.55)" }}
-            >
-              Entrá a la tienda
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
+            {tiendaAbierta ? (
+              <>
+                <Link
+                  href="/tienda"
+                  className="animate-titilate-delay group inline-flex items-center justify-center gap-3 rounded-full bg-[var(--brand-red)] px-8 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white transition-all hover:bg-[var(--brand-red-hover)]"
+                  style={{ boxShadow: "0 10px 32px -8px rgba(230,48,32,0.55)" }}
+                >
+                  Entrá a la tienda
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
 
-            <WhatsAppLink
-              href={whatsappHref}
-              origen="hero"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-7 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-[#25D366]/90"
-            >
-              <WhatsAppIcon className="h-5 w-5" />
-              WhatsApp
-            </WhatsAppLink>
+                <WhatsAppLink
+                  href={whatsappHref}
+                  origen="hero"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-7 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white backdrop-blur-md transition-all hover:border-white/50 hover:bg-[#25D366]/90"
+                >
+                  <WhatsAppIcon className="h-5 w-5" />
+                  WhatsApp
+                </WhatsAppLink>
+              </>
+            ) : (
+              <WhatsAppLink
+                href={whatsappHref}
+                origen="hero-tienda-cerrada"
+                className="animate-titilate-delay group inline-flex items-center justify-center gap-3 rounded-full bg-[#25D366] px-8 py-4 font-display text-sm font-bold uppercase tracking-[0.12em] text-white transition-all hover:bg-[#1DA851]"
+                style={{ boxShadow: "0 10px 32px -8px rgba(37,211,102,0.45)" }}
+              >
+                <WhatsAppIcon className="h-5 w-5" />
+                Consultar por WhatsApp
+              </WhatsAppLink>
+            )}
           </div>
         </div>
 

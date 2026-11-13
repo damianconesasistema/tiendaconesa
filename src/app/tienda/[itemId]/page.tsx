@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { contactoDeLaVenta } from "@/lib/sucursal";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { articuloEnVenta, articulosEnVenta } from "@/lib/catalogo";
 import { nombreMarca } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
 import { ProductDetail } from "@/components/ProductDetail";
@@ -23,10 +24,9 @@ export async function generateMetadata(
   { params }: RouteProps,
 ): Promise<Metadata> {
   const { itemId } = await params;
-  const p = await prisma.product.findFirst({
-    where: { itemId: { in: codigoDeLaUrl(itemId) } },
-    select: { title: true, price: true, salePrice: true, imageUrl: true, category: true },
-  });
+  // El precio que se comparte por WhatsApp tiene que ser el de ESTE local:
+  // es el que va a pagar el que toque el link.
+  const p = await articuloEnVenta(codigoDeLaUrl(itemId));
   if (!p) return { title: "Producto no encontrado · Sanitarios Conesa" };
 
   const base = (process.env.SITE_URL || "https://conesa.com.ar").replace(/\/$/, "");
@@ -66,19 +66,14 @@ export async function generateMetadata(
 
 export default async function ProductoPage({ params }: RouteProps) {
   const { itemId } = await params;
-  const product = await prisma.product.findFirst({
-    where: { itemId: { in: codigoDeLaUrl(itemId) } },
-  });
+  const product = await articuloEnVenta(codigoDeLaUrl(itemId));
   if (!product || !product.active || product.itemId === "__RESET_PRICES_MARKER__") {
     // Los codigos eran MARCA-numero y ahora son el numero solo. Los links
     // viejos siguen circulando por WhatsApp y estan en Google: antes de
     // contestar que no existe, se prueba con el numero.
     const nuevo = product ? null : codigoDeAhora(itemId);
     if (nuevo) {
-      const otro = await prisma.product.findUnique({
-        where: { itemId: nuevo },
-        select: { active: true },
-      });
+      const otro = await articuloEnVenta([nuevo]);
       if (otro?.active) redirect(`/tienda/${nuevo}`);
     }
     notFound();
@@ -95,27 +90,20 @@ export default async function ProductoPage({ params }: RouteProps) {
   const CUANTOS = 4;
 
   // 1) Misma categoria, con stock primero (son los que realmente puede comprar)
-  const mismaCategoria = await prisma.product.findMany({
-    where: {
-      category: product.category,
-      active: true,
-      itemId: { notIn: EXCLUIR },
-    },
-    orderBy: [{ stock: "desc" }, { salePrice: { sort: "desc", nulls: "last" } }],
-    take: CUANTOS,
+  const mismaCategoria = await articulosEnVenta({
+    articulo: { category: product.category, itemId: { notIn: EXCLUIR } },
+    orden: ["stock", "oferta"],
+    cuantos: CUANTOS,
   });
 
   // 2) Si no alcanza, completamos con otros productos publicados, asi la
   //    seccion "Tambien te puede interesar" nunca queda vacia si hay catalogo.
   let related = mismaCategoria;
   if (related.length < CUANTOS) {
-    const relleno = await prisma.product.findMany({
-      where: {
-        active: true,
-        itemId: { notIn: [...EXCLUIR, ...related.map((r) => r.itemId)] },
-      },
-      orderBy: [{ featured: "desc" }, { stock: "desc" }],
-      take: CUANTOS - related.length,
+    const relleno = await articulosEnVenta({
+      articulo: { itemId: { notIn: [...EXCLUIR, ...related.map((r) => r.itemId)] } },
+      orden: ["destacado", "stock"],
+      cuantos: CUANTOS - related.length,
     });
     related = [...related, ...relleno];
   }
@@ -129,10 +117,9 @@ export default async function ProductoPage({ params }: RouteProps) {
   });
   let masVendidos: typeof related = [];
   if (masVendidosRaw.length) {
-    const encontrados = await prisma.product.findMany({
-      where: {
+    const encontrados = await articulosEnVenta({
+      articulo: {
         id: { in: masVendidosRaw.map((m) => m.productId) },
-        active: true,
         itemId: { notIn: EXCLUIR },
       },
     });

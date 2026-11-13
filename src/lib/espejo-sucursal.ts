@@ -10,7 +10,15 @@ import { prisma } from "@/lib/db";
 //
 // Si no se hiciera nada mas, Damian cambiaria un precio y el panel seguiria
 // mostrando el viejo. Por eso despues de cada cambio se copia el articulo a la
-// fila de la sucursal principal (la de menor orden con la tienda abierta).
+// fila de Traslasierra.
+//
+// Dice "traslasierra" con todas las letras y no "la que tiene la tienda
+// abierta", que es como lo resuelve el resto del sistema. No es lo mismo: lo
+// que hay en el articulo es el catalogo de Traslasierra, de cuando habia un
+// solo local, y eso es un hecho de la historia y no una regla que cambie con
+// una casilla. Preguntar por la tienda abierta significaba que cerrarla un
+// rato dejaba al espejo sin a quien copiarle: cero filas actualizadas, sin
+// error y sin aviso.
 //
 // Es temporal y a proposito: cuando la tienda lea los precios de la sucursal
 // —y la de Buenos Aires tenga los suyos— este archivo se borra y cada panel
@@ -19,7 +27,7 @@ import { prisma } from "@/lib/db";
 // con el mismo precio.
 
 /** Copia precio, oferta, stock y visibilidad del articulo a las filas que YA
- *  existen en la sucursal principal.
+ *  existen en Traslasierra.
  *
  *  No crea filas: un producto que se saco de un local tiene que seguir
  *  afuera, y crearlo de nuevo en cada guardado lo haria reaparecer. */
@@ -33,10 +41,7 @@ export async function sincronizarSucursalPrincipal(): Promise<void> {
           active = p.active,
           "updatedAt" = now()
       FROM "Product" p,
-           (SELECT id FROM "Branch"
-             WHERE active AND "tiendaActiva"
-             ORDER BY orden ASC
-             LIMIT 1) b
+           (SELECT id FROM "Branch" WHERE slug = 'traslasierra') b
       WHERE bp."productId" = p.id
         AND bp."branchId" = b.id
     `;

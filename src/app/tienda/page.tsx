@@ -3,7 +3,7 @@ import categoriesData from "@/data/categories.json";
 import { CatalogClient } from "@/components/CatalogClient";
 import { getRecargosMp } from "@/lib/settings";
 import { getMarcas } from "@/lib/marcas-server";
-import { prisma } from "@/lib/db";
+import { articulosEnVenta, paraLaVitrina } from "@/lib/catalogo";
 
 export const metadata: Metadata = {
   title: "Tienda",
@@ -43,33 +43,18 @@ export default async function Catalogo({
   const initialOrden = sp.orden ?? "";
   const initialVer = Number(sp.ver) || 0;
 
-  const products = await prisma.product.findMany({
-    where: {
-      active: true,
-      itemId: { not: "__RESET_PRICES_MARKER__" },
-      ...(onlySale ? { salePrice: { not: null } } : {}),
-    },
-    // Ofertas primero (más valor del descuento arriba), después destacados, después alfabético
-    orderBy: [
-      { salePrice: { sort: "desc", nulls: "last" } },
-      { featured: "desc" },
-      { title: "asc" },
-    ],
-    select: {
-      itemId: true,
-      title: true,
-      price: true,
-      salePrice: true,
-      stock: true,
-      category: true,
-      brand: true,
-      imageUrl: true,
-    },
+  // El precio, la oferta y el stock salen del local que vende, no del
+  // articulo. Ver src/lib/catalogo.ts.
+  const products = await articulosEnVenta({
+    soloOferta: onlySale,
+    // Ofertas primero (más valor del descuento arriba), después destacados,
+    // después alfabético
+    orden: ["oferta", "destacado", "titulo"],
   });
 
   // Compatibilidad con el shape que espera CatalogClient
   const compat = products.map((p) => ({
-    ...p,
+    ...paraLaVitrina(p),
     condition: "Nuevo" as string | null,
     status: "Activa" as string | null,
     mlUrl: "",

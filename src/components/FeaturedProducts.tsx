@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { opcionesDe } from "@/lib/etiquetas";
 import Image from "next/image";
 import { useState } from "react";
@@ -43,9 +45,16 @@ export function FeaturedProducts({
   cta,
   ctaHref,
   comisionUnPago = 10,
+  tiendaAbierta = true,
+  whatsappHref = "",
 }: {
   featured: Product[];
   variant?: Variant;
+  /** Si hay alguna tienda abierta. Con todas cerradas no hay carrito al que
+   *  agregar: el boton de la seccion lleva al WhatsApp y las tarjetas dejan
+   *  de ofrecer "Agregar". Por defecto true. */
+  tiendaAbierta?: boolean;
+  whatsappHref?: string;
   eyebrow?: string;
   title?: string;
   cta?: string;
@@ -77,23 +86,41 @@ export function FeaturedProducts({
             <p className="mt-2 text-balance text-base text-[var(--muted)]">
               {isOffers
                 ? "Aprovechá los descuentos activos."
-                : "Las mejores marcas. Entrá a la tienda."}
+                : tiendaAbierta
+                  ? "Las mejores marcas. Entrá a la tienda."
+                  : "Las mejores marcas. Consultanos por WhatsApp."}
             </p>
           </div>
-          <Link
-            href={ctaHref || "/tienda"}
-            className={`inline-flex items-center gap-2 rounded-full px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02] ${
-              isOffers ? "bg-[var(--brand-red)]" : "bg-[var(--brand-black)]"
-            }`}
-          >
-            {cta || "Ver tienda completa"}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          {tiendaAbierta ? (
+            <Link
+              href={ctaHref || "/tienda"}
+              className={`inline-flex items-center gap-2 rounded-full px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02] ${
+                isOffers ? "bg-[var(--brand-red)]" : "bg-[var(--brand-black)]"
+              }`}
+            >
+              {cta || "Ver tienda completa"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <WhatsAppLink
+              href={whatsappHref}
+              origen={isOffers ? "ofertas-seccion-cerrada" : "destacados-cerrada"}
+              className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-transform hover:scale-[1.02]"
+            >
+              <WhatsAppIcon className="h-4 w-4" />
+              Consultar por WhatsApp
+            </WhatsAppLink>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {featured.map((p) => (
-            <FeaturedCard key={p.itemId} p={p} comisionUnPago={comisionUnPago} />
+            <FeaturedCard
+              key={p.itemId}
+              p={p}
+              comisionUnPago={comisionUnPago}
+              tiendaAbierta={tiendaAbierta}
+            />
           ))}
         </div>
       </div>
@@ -101,7 +128,15 @@ export function FeaturedProducts({
   );
 }
 
-function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number }) {
+function FeaturedCard({
+  p,
+  comisionUnPago,
+  tiendaAbierta = true,
+}: {
+  p: Product;
+  comisionUnPago: number;
+  tiendaAbierta?: boolean;
+}) {
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
   const { add } = useCart();
@@ -220,6 +255,14 @@ function FeaturedCard({ p, comisionUnPago }: { p: Product; comisionUnPago: numbe
           {outOfStock ? (
             <span className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] sm:text-xs">
               Sin stock
+            </span>
+          ) : !tiendaAbierta ? (
+            /* Con la tienda cerrada no hay carrito al que agregar. Va un
+               cartel y no un boton: toda la tarjeta ya es un link a la
+               ficha, que es donde esta el boton de WhatsApp, y un boton
+               adentro de un link es HTML invalido. */
+            <span className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-[#25D366] px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wider text-white sm:text-xs">
+              Consultá por WhatsApp
             </span>
           ) : (
             <button

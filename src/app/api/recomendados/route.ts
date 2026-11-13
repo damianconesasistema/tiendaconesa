@@ -6,6 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { articulosEnVenta } from "@/lib/catalogo";
 import { getRecargosMp } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
 import { leerCarrito, elegirSugerencias } from "@/lib/recomendaciones";
@@ -28,23 +29,13 @@ export async function POST(req: Request) {
     });
     if (enCarrito.length === 0) return NextResponse.json({ recomendados: [] });
 
-    const candidatos = await prisma.product.findMany({
-      where: {
-        active: true,
-        stock: { gt: 0 },
-        itemId: { notIn: [...ids, "__RESET_PRICES_MARKER__"] },
-      },
-      select: {
-        itemId: true,
-        title: true,
-        description: true,
-        category: true,
-        price: true,
-        salePrice: true,
-        imageUrl: true,
-      },
-      orderBy: [{ featured: "desc" }, { stock: "desc" }],
-      take: 200,
+    // Con el stock y el precio de ESTE local: no se ofrece lo que aca no
+    // hay, ni al precio del otro.
+    const candidatos = await articulosEnVenta({
+      articulo: { itemId: { notIn: ids } },
+      conStock: true,
+      orden: ["destacado", "stock"],
+      cuantos: 200,
     });
 
     const senales = leerCarrito(enCarrito);
