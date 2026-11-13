@@ -7,7 +7,7 @@ import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { precioVitrina, precioCuotas } from "@/lib/precios";
 import { codigoDeAhora } from "@/lib/codigo-viejo";
 import { opcionValida } from "@/lib/etiquetas";
-import { sucursalQueVende } from "@/lib/sucursal";
+import { sucursalQueVende, hayTiendaAbierta } from "@/lib/sucursal";
 import { articulosParaVender } from "@/lib/catalogo";
 
 type Result =
@@ -23,6 +23,18 @@ export async function createOrder(
   // Cuántas cuotas eligió el cliente (solo aplica a mp_cuotas)
   cuotasElegidas = 0,
 ): Promise<Result> {
+  // Con la tienda cerrada no se toma ningun pedido. El sitio ya no lleva
+  // aca, pero esto corre en el servidor y es lo unico que no se puede
+  // saltear: un carrito guardado de antes todavia puede llegar al checkout,
+  // y sin esta guardia armaria un pedido a nombre de la sucursal que no
+  // vende y lo cobraria en la cuenta de la otra.
+  if (!(await hayTiendaAbierta()))
+    return {
+      ok: false,
+      error:
+        "La tienda online está cerrada por el momento. Escribinos por WhatsApp y lo resolvemos.",
+    };
+
   if (items.length === 0) return { ok: false, error: "El carrito está vacío" };
   if (!customer.firstName || !customer.lastName || !customer.email || !customer.phone)
     return { ok: false, error: "Faltan datos del comprador" };

@@ -1,0 +1,23 @@
+-- CerrarTiendaTraslasierra
+--
+-- Damian pidio cerrar la tienda online de Traslasierra por el momento
+-- (13/11/2026). Lo intento desde Panel -> Sucursales y no quedo guardado,
+-- asi que se hace desde aca.
+--
+-- Esto NO cierra el local: la sucursal se sigue publicando en el sitio con
+-- su direccion, su telefono y sus horarios. Lo unico que se apaga es la
+-- compra online. Son dos campos distintos a proposito:
+--
+--   active        -> el local se muestra en el sitio
+--   tiendaActiva  -> en su subdominio se puede comprar
+--
+-- Que pasa a partir de aca, para que no sorprenda:
+--   traslasierra.conesa.com.ar redirige a conesa.com.ar.
+--   La portada deja de ofrecer "Entra a la tienda" y ofrece WhatsApp.
+--   /tienda y lo que cuelga mandan a la portada.
+--   No se toma ningun pedido nuevo.
+--
+-- Para volver a abrirla alcanza con tildar "Tienda abierta" en el panel:
+-- esta migracion corre una sola vez y no la vuelve a cerrar.
+
+UPDATE "Branch" SET "tiendaActiva" = false WHERE slug = 'traslasierra';

@@ -31,7 +31,7 @@ import { business, aniosDeOficio } from "@/lib/business";
 import {
   contactoActual,
   subdominioActual,
-  sucursalQueVende,
+  hayTiendaAbierta,
 } from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
@@ -71,11 +71,10 @@ export default async function Home() {
   // abierta" del panel, asi que el dia que se reabra la portada vuelve sola
   // y no hay que acordarse de deshacer nada.
   //
-  // sucursalQueVende() devuelve la que tiene la tienda abierta; si no hay
-  // ninguna devuelve la que atiende, que justamente la tiene cerrada. Si la
-  // base no contesta devuelve null, y ahi tampoco hay catalogo para mostrar:
-  // mandar al WhatsApp sigue siendo la respuesta correcta.
-  const hayTienda = !!(await sucursalQueVende())?.tiendaActiva;
+  // Es la misma pregunta que decide si /tienda sigue en pie (ver el layout),
+  // y sale de la misma funcion a proposito: dos formas de averiguar lo mismo
+  // terminan contestando distinto el dia menos pensado.
+  const hayTienda = await hayTiendaAbierta();
   // En el subdominio de una tienda se muestra solo esa sucursal: la de
   // Buenos Aires no tiene por que publicar el telefono de Cordoba. En
   // conesa.com.ar van las dos, que es de lo que habla esa pagina.

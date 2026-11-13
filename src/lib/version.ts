@@ -2,6 +2,41 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.72.1 - Traslasierra cierra su tienda online, y cerrar significa
+//            cerrar.
+//            Damian pidio apagarla por el momento. Lo intento desde Panel ->
+//            Sucursales y no quedo guardado, asi que va por migracion (34).
+//            NO cierra el local: la sucursal se sigue publicando con su
+//            direccion, su telefono y sus horarios; lo unico que se apaga es
+//            la compra online. Para reabrirla alcanza con tildar "Tienda
+//            abierta" en el panel: la migracion corre una sola vez.
+//            Y se tapa lo que la 0.72.0 dejaba a la vista: con la tienda
+//            cerrada, /tienda seguia respondiendo. Mostraba un catalogo
+//            vacio —feo pero inofensivo— y, eso si, dejaba llegar al
+//            checkout. Un carrito guardado de antes podia armar un pedido a
+//            nombre de la sucursal que NO vende y cobrarlo en la cuenta de
+//            la otra: justo lo que la 0.71.0 vino a evitar.
+//            Ahora, sin ninguna tienda abierta, /tienda y todo lo que
+//            cuelga mandan a la portada, y el checkout se niega del lado del
+//            servidor, que es lo unico que no se puede saltear desde el
+//            navegador.
+//            Las tres pantallas de vuelta de MercadoPago (exito, pendiente,
+//            error) quedan abiertas a proposito: ahi cae alguien que YA
+//            pago, y mandarlo a la portada seria dejarlo sin el aviso de que
+//            su compra entro.
+//            La redireccion va a una ruta relativa y solo para /tienda:
+//            mandar el sitio entero a la portada seria un bucle, porque la
+//            portada pasa por el mismo layout.
+//            La portada y el layout preguntan lo mismo con la misma funcion
+//            (hayTiendaAbierta). Dos maneras de averiguar lo mismo terminan
+//            contestando distinto el dia menos pensado.
+//            Y Buenos Aires queda todo pausado (migracion 35). Lo copiado
+//            hasta hoy ya entro pausado; esto lo deja escrito y no depende
+//            de que las migraciones 32 y 33 hayan salido como se esperaba.
+//            Pausado es que no se muestra ni se puede comprar: el precio,
+//            el titulo y las fotos quedan intactos. No toca el stock ni
+//            toca a Traslasierra, y corre una sola vez: lo que se publique
+//            despues desde el panel queda publicado.
 // V.0.72.0 - Tienda: el precio, la oferta y el stock salen del LOCAL.
 //            Hasta hoy todo salia del articulo ("Product"). Andaba porque
 //            vendia un local solo; con dos, los dos publicarian el precio y
@@ -411,7 +446,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.72.0";
+export const APP_VERSION = "V.0.72.1";
 
 export type VersionEntry = {
   version: string;

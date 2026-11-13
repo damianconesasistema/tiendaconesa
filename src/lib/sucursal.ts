@@ -218,6 +218,31 @@ export const tiendaSinHabilitar = cache(async (): Promise<boolean> => {
   }
 });
 
+/** Si hay ALGUNA sucursal que pueda vender hoy.
+ *
+ *  Con ninguna abierta no se puede comprar en ningun lado: la portada deja
+ *  de ofrecer "entra a la tienda" y ofrece WhatsApp, y las pantallas de la
+ *  tienda mandan ahi.
+ *
+ *  Es distinto de `tiendaSinHabilitar()`, que pregunta por LA sucursal de
+ *  esta visita. Esta pregunta por todas, porque en conesa.com.ar no hay una
+ *  sucursal: hay dos, y alcanza con que una venda.
+ *
+ *  Si la base no contesta devuelve false. Ahi no hay catalogo que mostrar ni
+ *  precio que cobrar, asi que mandar a la portada —donde esta el WhatsApp—
+ *  es la respuesta honesta y no un error en la cara del cliente. */
+export const hayTiendaAbierta = cache(async (): Promise<boolean> => {
+  try {
+    const s = await prisma.branch.findFirst({
+      where: { active: true, tiendaActiva: true },
+      select: { id: true },
+    });
+    return !!s;
+  } catch {
+    return false;
+  }
+});
+
 /** Telefono y WhatsApp de la sucursal de esta visita.
  *
  *  Es lo que ve y toca el cliente: el numero de la cabecera y el boton verde.

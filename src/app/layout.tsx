@@ -18,6 +18,7 @@ import {
   contactoActual,
   contactoDeLaVenta,
   tiendaSinHabilitar,
+  hayTiendaAbierta,
 } from "@/lib/sucursal";
 import { datosEstructurados } from "@/lib/datos-estructurados";
 import "./globals.css";
@@ -178,6 +179,24 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const ruta = (await headers()).get("x-ruta") ?? "";
   if (!ruta.startsWith("/admin") && (await tiendaSinHabilitar()))
     redirect("https://conesa.com.ar");
+
+  // Con NINGUNA tienda abierta no se puede comprar en ningun lado. Las
+  // pantallas de la tienda mandan a la portada, que en ese caso ofrece
+  // WhatsApp. Sin esto quedaba el catalogo vacio en pie y, peor, un checkout
+  // que podia armar un pedido a nombre de la sucursal que no vende.
+  //
+  // Va a una ruta relativa y solo para /tienda. Mandar el sitio entero a la
+  // portada seria un bucle: la portada tambien pasa por este layout.
+  //
+  // Las tres pantallas de vuelta de MercadoPago quedan abiertas a proposito:
+  // ahi cae alguien que YA pago, y mandarlo a la portada seria dejarlo sin
+  // el aviso de que su compra entro.
+  const vueltaDePago =
+    ruta.startsWith("/tienda/checkout/exito") ||
+    ruta.startsWith("/tienda/checkout/pendiente") ||
+    ruta.startsWith("/tienda/checkout/error");
+  if (ruta.startsWith("/tienda") && !vueltaDePago && !(await hayTiendaAbierta()))
+    redirect("/");
 
   // null en conesa.com.ar: ahi se publican las dos sucursales.
   const ficha = await datosEstructurados(await subdominioActual());
