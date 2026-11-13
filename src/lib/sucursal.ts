@@ -142,6 +142,31 @@ export const subdominioActual = cache(async (): Promise<string | null> => {
   }
 });
 
+/** El slug de la sucursal de ESTE subdominio, o null en conesa.com.ar.
+ *
+ *  Es lo que usan las configuraciones que son de cada local (los recargos de
+ *  tarjeta, por ejemplo). Va por subdominio y no por `sucursalActual()`, que
+ *  en el dominio general devuelve la de menor orden: ahi no hay una sucursal
+ *  sino dos, y tomar los numeros de una seria cobrarle a todos los de la
+ *  pagina general con los costos de un local que a lo mejor ni vende.
+ *
+ *  Null quiere decir "no hay sucursal en esta visita", y quien pregunta se
+ *  queda con el valor general, que es el que habia cuando habia un solo
+ *  local. */
+export const slugDelSubdominio = cache(async (): Promise<string | null> => {
+  const sub = await subdominioActual();
+  if (!sub) return null;
+  try {
+    const s = await prisma.branch.findFirst({
+      where: { subdominio: sub },
+      select: { slug: true },
+    });
+    return s?.slug ?? null;
+  } catch {
+    return null;
+  }
+});
+
 /** Los contactos que hay que mostrar en esta visita.
  *
  *  En la tienda de una sucursal es uno solo: el suyo. En conesa.com.ar son

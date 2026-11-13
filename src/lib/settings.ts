@@ -18,6 +18,7 @@
 // cuotas en MercadoPago para que no pague en mas de las que abono de recargo.
 
 import { prisma } from "@/lib/db";
+import { slugDelSubdominio } from "@/lib/sucursal";
 
 export const SETTING_RECARGO_1PAGO = "recargo_mp_1pago_pct";
 export const SETTING_RECARGO_CUOTAS = "recargo_mp_cuotas_pct";
@@ -123,9 +124,9 @@ export type PlanCuotas = {
 
 export async function getPlanesCuotas(): Promise<PlanCuotas[]> {
   const [cobroRaw, ivaRaw, planesRaw] = await Promise.all([
-    getSetting(SETTING_COSTO_COBRO),
-    getSetting(SETTING_IVA),
-    getSetting(SETTING_PLANES),
+    getSettingDeAca(SETTING_COSTO_COBRO),
+    getSettingDeAca(SETTING_IVA),
+    getSettingDeAca(SETTING_PLANES),
   ]);
 
   const cobro = parsePct(cobroRaw, DEFAULT_COSTO_COBRO);
@@ -177,6 +178,33 @@ export async function getSetting(key: string): Promise<string | null> {
   }
 }
 
+/** Como se llama una configuracion cuando es de una sucursal.
+ *
+ *  Es la clave de siempre con el slug pegado atras: "mp_planes:bsas". Se hizo
+ *  asi y no con una columna nueva en la tabla porque la clave general sigue
+ *  existiendo y sigue valiendo: lo que habia cuando habia un solo local queda
+ *  como esta, y una sucursal solo lo pisa si le cargaron lo suyo. */
+export function claveDeSucursal(clave: string, slug: string): string {
+  return `${clave}:${slug}`;
+}
+
+/** Lee una configuracion que puede ser de cada local.
+ *
+ *  Primero la de la sucursal de esta visita; si no tiene, la general. Dos
+ *  locales cobran en dos cuentas de MercadoPago distintas y cada cuenta tiene
+ *  sus costos: un solo numero para los dos le cobra al cliente de uno los
+ *  costos del otro.
+ *
+ *  En conesa.com.ar devuelve siempre la general. */
+async function getSettingDeAca(clave: string): Promise<string | null> {
+  const slug = await slugDelSubdominio();
+  if (slug) {
+    const propia = await getSetting(claveDeSucursal(clave, slug));
+    if (propia !== null && propia.trim() !== "") return propia;
+  }
+  return getSetting(clave);
+}
+
 export async function setSetting(key: string, value: string): Promise<void> {
   await prisma.setting.upsert({
     where: { key },
@@ -217,9 +245,9 @@ export type RecargosMp = {
 
 export async function getRecargosMp(): Promise<RecargosMp> {
   const [d, c, q] = await Promise.all([
-    getSetting(SETTING_RECARGO_1PAGO),
-    getSetting(SETTING_RECARGO_CUOTAS),
-    getSetting(SETTING_CUOTAS_MAX),
+    getSettingDeAca(SETTING_RECARGO_1PAGO),
+    getSettingDeAca(SETTING_RECARGO_CUOTAS),
+    getSettingDeAca(SETTING_CUOTAS_MAX),
   ]);
   const cuotas = Number(q);
   return {

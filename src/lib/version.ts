@@ -2,6 +2,38 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.72.4 - Los recargos de tarjeta son de cada sucursal, y entran los de
+//            Buenos Aires.
+//            Cada local cobra en SU cuenta de MercadoPago y cada cuenta tiene
+//            sus costos. Los porcentajes eran uno solo para todo el sitio, asi
+//            que cargar los de Buenos Aires movia los precios en cuotas de
+//            Traslasierra, que es la que esta vendiendo, y sin avisar.
+//            Ahora la configuracion se guarda con el nombre del local pegado
+//            atras ("mp_planes:bsas"). La clave sin nombre sigue existiendo y
+//            sigue valiendo: es la de Traslasierra y la de conesa.com.ar. Un
+//            local solo la pisa si le cargaron lo suyo, asi que esto no mueve
+//            ni un precio de los que hay hoy.
+//            Lo decide el SUBDOMINIO, no sucursalActual(): en el dominio
+//            general no hay una sucursal sino dos, y tomar los numeros de una
+//            seria cobrarle a todos con los costos de un local que a lo mejor
+//            ni vende.
+//            El panel de Configuracion ahora dice de quien son los numeros que
+//            estas mirando. Era el peor malentendido posible: creer que tocas
+//            los de uno cuando tocas los del otro. Y guardar desde el panel de
+//            una sucursal guarda los de esa sucursal y nada mas.
+//            Los de Buenos Aires (migracion 36), como los paso Damian el
+//            13/11/2026: 3 cuotas 23%, 6 cuotas 31%, 9 cuotas 42%, 12 cuotas
+//            53%, 18 cuotas 74%. Eso es lo que PAGA DE MAS EL CLIENTE, no el
+//            costo que publica MercadoPago: el confirmo cual de las dos cosas
+//            era, porque cargados como costo del plan el de 18 cuotas pasaba
+//            del 95% y el plan desaparecia solo del sitio.
+//            Sobre un articulo de $100.000 queda: 3 -> $123.000, 6 ->
+//            $131.000, 9 -> $142.000, 12 -> $153.000, 18 -> $174.000.
+//            Verificado uno por uno.
+//            Falta el recargo de 1 pago de Buenos Aires: hasta que se cargue
+//            usa el general (12% de descuento por contado). Y falta la clave
+//            de la cuenta en el servidor (MP_ACCESS_TOKEN_BSAS), que es lo
+//            unico que hace falta para que esa tienda pueda cobrar.
 // V.0.72.3 - Gas envasado sin stock, y el codigo del articulo se lee.
 //            1. No hay envasado (Damian, 13/11/2026), asi que un termotanque
 //            "a gas natural o envasado" deja de preguntar con que gas se va a
@@ -489,7 +521,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.72.3";
+export const APP_VERSION = "V.0.72.4";
 
 export type VersionEntry = {
   version: string;

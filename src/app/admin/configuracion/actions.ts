@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import {
   setSetting,
+  claveDeSucursal,
   SETTING_RECARGO_1PAGO,
   SETTING_RECARGO_CUOTAS,
   SETTING_CUOTAS_MAX,
 } from "@/lib/settings";
+import { sucursalDelPanel } from "@/lib/sucursal-panel";
 
 export async function guardarRecargos(
   prevState: unknown,
@@ -27,10 +29,20 @@ export async function guardarRecargos(
   if (!Number.isFinite(cuotasMax) || cuotasMax < 1 || cuotasMax > 24)
     return { error: "Las cuotas tienen que estar entre 1 y 24." };
 
+  // Estos numeros son de la cuenta de MercadoPago de ESTE local, asi que se
+  // guardan con su nombre. Sin esto, guardar desde el panel de Buenos Aires
+  // cambiaba tambien los precios en cuotas de Traslasierra, que es la que
+  // esta vendiendo, y sin decir nada.
+  //
+  // En conesa.com.ar/admin no hay un local (el panel pregunta a cual entrar),
+  // asi que ahi se guarda la general, que es la que usa la pagina general.
+  const local = await sucursalDelPanel();
+  const clave = (k: string) => (local ? claveDeSucursal(k, local.slug) : k);
+
   try {
-    await setSetting(SETTING_RECARGO_1PAGO, String(unPago));
-    await setSetting(SETTING_RECARGO_CUOTAS, String(cuotas));
-    await setSetting(SETTING_CUOTAS_MAX, String(Math.floor(cuotasMax)));
+    await setSetting(clave(SETTING_RECARGO_1PAGO), String(unPago));
+    await setSetting(clave(SETTING_RECARGO_CUOTAS), String(cuotas));
+    await setSetting(clave(SETTING_CUOTAS_MAX), String(Math.floor(cuotasMax)));
     revalidatePath("/admin/configuracion");
     revalidatePath("/tienda/checkout");
     return { ok: true };

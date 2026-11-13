@@ -11,6 +11,7 @@ import {
   mpNombreDeVariable,
 } from "@/lib/mercadopago";
 import { prisma } from "@/lib/db";
+import { sucursalDelPanel } from "@/lib/sucursal-panel";
 import { emailConfigurado } from "@/lib/email";
 import { ProbarArca } from "@/components/admin/ProbarArca";
 import { afipConfigurado, esProduccion, puntoVenta } from "@/lib/afip/config";
@@ -27,6 +28,12 @@ export default async function ConfiguracionPage() {
   if (!session) redirect("/admin/login");
 
   const recargos = await getRecargosMp();
+
+  // De quien son los recargos que se ven y se editan en esta pantalla. Cada
+  // local cobra en su cuenta y cada cuenta tiene sus costos, asi que decirlo
+  // con todas las letras evita el peor malentendido posible: creer que estas
+  // tocando los de uno cuando estas tocando los del otro.
+  const local = await sucursalDelPanel();
 
   // Cada local cobra en su cuenta, asi que el estado de MercadoPago no es uno
   // solo: hay que mirarlo sucursal por sucursal.
@@ -182,6 +189,22 @@ export default async function ConfiguracionPage() {
             El cliente ve el recargo desglosado <strong>antes</strong> de pagar,
             y en MercadoPago solo va a poder pagar en la cantidad de cuotas que
             eligió acá.
+          </p>
+
+          <p className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm">
+            {local ? (
+              <>
+                Estos son los de <strong>{local.nombre}</strong>, y solo los
+                suyos: cada local cobra en su cuenta de MercadoPago y cada
+                cuenta tiene sus costos.
+              </>
+            ) : (
+              <>
+                Estos son los <strong>generales</strong>, los que usa
+                conesa.com.ar. Los de cada local se editan entrando al panel de
+                esa sucursal.
+              </>
+            )}
           </p>
 
           <div className="mt-5">
