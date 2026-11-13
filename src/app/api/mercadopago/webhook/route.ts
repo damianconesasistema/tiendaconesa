@@ -3,12 +3,12 @@
 // Formato: query ?type=payment&data.id=XXX  (o body { type, data: { id } })
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { getPayment, MP_CONFIGURED } from "@/lib/mercadopago";
+import { getPayment, mpConfigurado } from "@/lib/mercadopago";
 
 export const dynamic = "force-dynamic";
 
-async function applyPayment(paymentId: string) {
-  const r = await getPayment(paymentId);
+async function applyPayment(paymentId: string, sucursal: string | null) {
+  const r = await getPayment(paymentId, sucursal);
   if (!r.ok || !r.payment) return;
   const p = r.payment;
 
@@ -39,9 +39,19 @@ async function applyPayment(paymentId: string) {
 }
 
 async function handle(req: NextRequest) {
-  if (!MP_CONFIGURED) return NextResponse.json({ ok: true });
-
   const url = req.nextUrl;
+
+  // De que sucursal es este aviso. Va pegado en la direccion porque el aviso
+  // lo manda MercadoPago desde sus servidores y no el navegador del cliente:
+  // aca no llega nuestro dominio. Sin esto no sabriamos con que clave
+  // preguntar por el pago, y preguntar con la clave equivocada da "no
+  // existe": el pedido quedaria sin marcar como pagado.
+  //
+  // Los avisos de preferencias creadas antes de este cambio no lo traen.
+  // Esos van con la clave de siempre, que es la que los cobro.
+  const sucursal = url.searchParams.get("suc");
+
+  if (!mpConfigurado(sucursal)) return NextResponse.json({ ok: true });
   const type =
     url.searchParams.get("type") || url.searchParams.get("topic") || "";
   let paymentId =
@@ -69,7 +79,7 @@ async function handle(req: NextRequest) {
 
   if (isPayment && paymentId) {
     try {
-      await applyPayment(paymentId);
+      await applyPayment(paymentId, sucursal);
     } catch {
       /* igual respondemos 200 para que MP no reintente en loop */
     }

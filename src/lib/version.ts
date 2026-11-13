@@ -2,6 +2,55 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.71.0 - Tienda: cada sucursal cobra en SU cuenta de MercadoPago, y el
+//            pedido guarda de que sucursal es.
+//            Hasta hoy el servidor tenia UNA sola clave de MercadoPago y la
+//            usaba para todo, sin preguntar de que tienda venia la venta.
+//            Con una sola tienda abierta no se nota; el dia que abra Buenos
+//            Aires, su plata entraria en la cuenta de Traslasierra. Son dos
+//            contribuyentes distintos: eso no es un detalle de programacion,
+//            es plata que entra a nombre de quien no vendio.
+//            Buscandolo aparecio un segundo agujero del que cuelga el
+//            primero: el pedido NO guardaba de que sucursal era. El aviso de
+//            pago lo manda MercadoPago desde sus servidores, asi que en ese
+//            pedido no viene nuestro dominio; y el boton Facturar del panel
+//            tampoco sabe por donde entro el cliente. Sin ese dato no hay
+//            forma de saber a que cuenta preguntarle por el pago ni con que
+//            CUIT facturar. Van los dos juntos.
+//            (1) Order.branchId: el pedido guarda el local que cobra y
+//            factura, tomado de sucursalQueVende() en el momento del
+//            checkout, que es el unico momento en que se sabe. Queda
+//            opcional: los pedidos que ya estaban cargados no lo tienen y no
+//            hay manera honesta de adivinarselo.
+//            (2) La clave de MercadoPago sale de la sucursal:
+//            MP_ACCESS_TOKEN_TRASLASIERRA, MP_ACCESS_TOKEN_BSAS. Si una
+//            sucursal no tiene la suya cargada, se usa MP_ACCESS_TOKEN, que
+//            es la de siempre. Ese respaldo es a proposito: mientras no se
+//            carguen las claves por sucursal, la tienda que ya vende cobra
+//            exactamente como venia cobrando. Probado con el codigo de
+//            verdad: con una sola clave cargada, las tres funciones dan lo
+//            mismo que antes.
+//            (3) El aviso de pago de MercadoPago lleva la sucursal pegada en
+//            la direccion (?suc=). Tiene que ir ahi porque el aviso no lo
+//            manda el navegador del cliente: es la unica forma de saber con
+//            que clave preguntar por el pago. Los avisos de preferencias
+//            viejas no lo traen y caen en la clave de siempre, que es la que
+//            las cobro.
+//            (4) El cliente vuelve al dominio por el que entro y no a
+//            conesa.com.ar. El dominio se toma del pedido HTTP y se acepta
+//            solo si termina en conesa.com.ar: viene en un encabezado y un
+//            encabezado lo puede escribir cualquiera.
+//            (5) El panel muestra el estado de MercadoPago sucursal por
+//            sucursal, con el nombre exacto de la variable que falta cargar,
+//            y avisa en rojo el caso peligroso: dos tiendas abiertas
+//            cobrando con la misma clave. Con una sola abierta no asusta al
+//            pedo, porque esa cuenta es la suya.
+//            Pendiente a proposito: statement_descriptor sigue diciendo
+//            "SANITARIOS CONESA" para las dos. Es lo que el cliente ve en el
+//            resumen de la tarjeta y tendria que ser el nombre del que
+//            cobra, pero cambiarlo a ojo le cambiaria el resumen a los
+//            clientes de la tienda que ya vende.
+//            Nada de esto toca el facturador de ARCA ni Punto.
 // V.0.70.0 - Punto: lo que encontro la revision de la 0.69.0, y el boton
 //            que se le subia encima al campo de al lado.
 //            (1) GRAVE, y estuvo arriba unas horas: apretar Enter despues
@@ -284,7 +333,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.70.0";
+export const APP_VERSION = "V.0.71.0";
 
 export type VersionEntry = {
   version: string;

@@ -124,6 +124,21 @@ model Order {
   streetNumber String?
   reference    String?
   notes        String?
+
+  // De que sucursal es este pedido: el local que cobra y que factura.
+  //
+  // Se guarda aca porque despues ya no hay de donde sacarlo. El aviso de
+  // pago lo manda MercadoPago desde sus servidores y ahi no viene nuestro
+  // dominio; el boton Facturar del panel tampoco sabe por donde entro el
+  // cliente. Sin este dato, un pedido de Buenos Aires se cobraria en la
+  // cuenta de Traslasierra y se facturaria con el CUIT de Traslasierra.
+  //
+  // Puede estar vacio: los pedidos que ya estaban cargados el dia que se
+  // agrego la columna no lo tienen. Para esos se usa la sucursal que vende,
+  // que mientras venda una sola es la misma de siempre.
+  branch       Branch?     @relation(fields: [branchId], references: [id])
+  branchId     String?
+
   subtotal     Int // suma de items
   shippingCost Int         @default(0)
   surcharge    Int         @default(0) // recargo por pagar con tarjeta
@@ -180,6 +195,7 @@ model Order {
 
   @@index([status])
   @@index([createdAt])
+  @@index([branchId])
 }
 
 model OrderItem {
@@ -266,6 +282,7 @@ model Branch {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   productos BranchProduct[]
+  pedidos   Order[]
 
   @@index([active])
 }

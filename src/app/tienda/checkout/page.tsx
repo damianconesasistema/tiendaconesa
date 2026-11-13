@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { contactoDeLaVenta, sucursalQueVende } from "@/lib/sucursal";
 import { CheckoutPage } from "@/components/CheckoutPage";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
-import { MP_CONFIGURED } from "@/lib/mercadopago";
+import { mpConfigurado } from "@/lib/mercadopago";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -35,7 +35,10 @@ export default async function Checkout() {
       envioTitulo="Envío a domicilio"
       envioDesc={s?.zonaEnvio || "Costo a coordinar por WhatsApp"}
       recargos={recargos}
-      mpDisponible={MP_CONFIGURED}
+      // Si ESTA sucursal puede cobrar online. Una puede tener su cuenta
+      // cargada y la otra no, y el que compra en la que no la tiene no
+      // tiene que ver el boton de pagar con tarjeta.
+      mpDisponible={mpConfigurado(s?.slug)}
       planes={planes}
     />
   );

@@ -7,6 +7,7 @@ import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { precioVitrina, precioCuotas } from "@/lib/precios";
 import { codigoDeAhora } from "@/lib/codigo-viejo";
 import { opcionValida } from "@/lib/etiquetas";
+import { sucursalQueVende } from "@/lib/sucursal";
 
 type Result =
   | { ok: true; orderId: string; orderNumber: number }
@@ -118,10 +119,19 @@ export async function createOrder(
 
     const nextNumber = ((await prisma.order.findFirst({ orderBy: { number: "desc" } }))?.number || 0) + 1;
 
+    // El local que VENDE, no el que se muestra. Es el unico momento en que
+    // sabemos de que sucursal es el pedido: aca todavia estamos adentro de
+    // la visita del cliente y se sabe por que dominio entro. Despues no.
+    const sucursal = await sucursalQueVende();
+
     const order = await prisma.order.create({
       data: {
         number: nextNumber,
         status: "pendiente",
+        // Va asi y no como branchId pelado: Prisma no deja mezclar las dos
+        // formas en el mismo create, y aca abajo ya se crean el cliente y
+        // los renglones de esa manera.
+        ...(sucursal ? { branch: { connect: { id: sucursal.id } } } : {}),
         shipping: customer.shipping,
         locality: customer.shipping === "envio" ? customer.locality : null,
         // La provincia solo viene cuando la localidad se escribio a mano. El
