@@ -96,7 +96,13 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
         subdominio,
         orden,
         active: formData.get("active") === "on",
-        tiendaActiva: formData.get("tiendaActiva") === "on",
+        // "Tienda abierta" NO se guarda desde aca: tiene su propio boton,
+        // arriba de la ficha, que toca ese campo y nada mas.
+        //
+        // Si ademas viajara en este formulario, guardar cualquier otro dato
+        // volveria a mandar el valor que tenia la casilla cuando se abrio la
+        // pantalla. Con el boton recien usado, eso reabriria la tienda sin
+        // que nadie lo pida.
         razonSocial: texto(formData, "razonSocial"),
         cuit,
         iibb: texto(formData, "iibb"),
@@ -124,6 +130,43 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
     return { error: `No se pudo guardar: ${msg}` };
   }
 
+  revalidatePath("/admin/sucursales");
+  revalidatePath("/");
+  revalidatePath("/tienda");
+  return { ok: true };
+}
+
+// Abre o cierra la tienda de una sucursal. Es lo unico que hace.
+//
+// Va aparte de guardarSucursal a proposito. Aquella valida media ficha —el
+// CUIT, el subdominio, que alguien cubra el resto del pais— y si algo de eso
+// no cuadra no guarda nada: la tienda se quedaba abierta por un CUIT mal
+// escrito, que no tiene nada que ver. Esto no puede fallar por un campo de al
+// lado.
+//
+// No decide por su cuenta si conviene abrirla. Eso lo decide quien aprieta el
+// boton; el panel le muestra antes lo que tiene que saber (si falta el
+// MercadoPago de esa sucursal, si es la ultima abierta).
+export async function cambiarTiendaAbierta(
+  id: string,
+  abrir: boolean,
+): Promise<Resultado> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!id) return { error: "Falta la sucursal" };
+
+  try {
+    await prisma.branch.update({
+      where: { id },
+      data: { tiendaActiva: abrir },
+    });
+  } catch (e) {
+    return { error: `No se pudo: ${(e as Error).message}` };
+  }
+
+  // La portada y la tienda cambian de cara segun esto, asi que hay que
+  // avisarles. Sin esto el panel diria "cerrada" y el sitio seguiria
+  // vendiendo, que es justo el enredo que este boton vino a sacar.
   revalidatePath("/admin/sucursales");
   revalidatePath("/");
   revalidatePath("/tienda");

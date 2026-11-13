@@ -2,7 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
-import { guardarSucursal } from "@/app/admin/sucursales/actions";
+import {
+  guardarSucursal,
+  cambiarTiendaAbierta,
+} from "@/app/admin/sucursales/actions";
 
 export type Sucursal = {
   id: string;
@@ -31,6 +34,12 @@ export type Sucursal = {
   cubreTodoElPais: boolean;
   zonaEnvio: string | null;
   productos: number;
+  /** Si tiene SU clave de MercadoPago cargada en el servidor. */
+  clavePropia: boolean;
+  /** Como se llama esa variable, para nombrarla cuando falta. */
+  variableMp: string;
+  /** Si es la unica tienda abierta que queda. */
+  ultimaAbierta: boolean;
 };
 
 function Campo({
@@ -81,6 +90,25 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
   const [estado, setEstado] = useState<{ ok?: true; error?: string } | null>(null);
   const [pendiente, empezar] = useTransition();
 
+  // El boton de abrir y cerrar la tienda. Pregunta antes de hacerlo: es lo
+  // unico de esta pantalla que se ve desde afuera al instante.
+  const [cambiando, cambiarTienda] = useTransition();
+  const [preguntando, setPreguntando] = useState(false);
+  const [falloTienda, setFalloTienda] = useState<string | null>(null);
+  const abierta = sucursal.tiendaActiva;
+  const dondeVive = sucursal.subdominio
+    ? `${sucursal.subdominio}.conesa.com.ar`
+    : "su subdominio";
+
+  function tocarLaTienda() {
+    setFalloTienda(null);
+    cambiarTienda(async () => {
+      const r = await cambiarTiendaAbierta(sucursal.id, !abierta);
+      setPreguntando(false);
+      if (r.error) setFalloTienda(r.error);
+    });
+  }
+
   return (
     <form
       action={(fd) =>
@@ -100,6 +128,101 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
         <span className="text-xs text-[var(--muted)]">
           {sucursal.productos} {sucursal.productos === 1 ? "producto" : "productos"}
         </span>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-[var(--border)] p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <span
+            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+              abierta
+                ? "bg-green-100 text-green-800"
+                : "bg-[var(--border)] text-[var(--muted)]"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                abierta ? "bg-green-600" : "bg-[var(--muted)]"
+              }`}
+            />
+            {abierta ? "Tienda abierta" : "Tienda cerrada"}
+          </span>
+
+          {/* type="button" a proposito: adentro de un formulario, un boton sin
+              tipo manda el formulario entero. */}
+          {!preguntando ? (
+            <button
+              type="button"
+              onClick={() => setPreguntando(true)}
+              disabled={cambiando}
+              className={`rounded-xl px-4 py-2 text-sm font-bold text-white disabled:opacity-60 ${
+                abierta ? "bg-[var(--brand-red)]" : "bg-green-700"
+              }`}
+            >
+              {abierta ? "Cerrar tienda" : "Abrir tienda"}
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={tocarLaTienda}
+                disabled={cambiando}
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-white disabled:opacity-60 ${
+                  abierta ? "bg-[var(--brand-red)]" : "bg-green-700"
+                }`}
+              >
+                {cambiando && <Loader2 className="h-4 w-4 animate-spin" />}
+                {abierta ? "Sí, cerrar" : "Sí, abrir"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreguntando(false)}
+                disabled={cambiando}
+                className="rounded-xl border border-[var(--border)] px-4 py-2 text-sm font-bold disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+            </>
+          )}
+        </div>
+
+        <p className="mt-3 text-sm text-[var(--muted)]">
+          {abierta ? (
+            <>
+              En <strong>{dondeVive}</strong> se puede comprar. Cerrarla no
+              cierra el local: la sucursal se sigue mostrando en el sitio con
+              su dirección, su teléfono y sus horarios.
+            </>
+          ) : (
+            <>
+              El local se sigue mostrando en el sitio, pero en{" "}
+              <strong>{dondeVive}</strong> no se puede comprar: el que entra va
+              a la página general.
+            </>
+          )}
+        </p>
+
+        {preguntando && !abierta && !sucursal.clavePropia && (
+          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            <strong>Ojo.</strong> Esta sucursal no tiene cargado su
+            MercadoPago: falta <code>{sucursal.variableMp}</code> en el
+            servidor. Si la abrís, lo que se venda acá se cobra en la cuenta de
+            la otra sucursal, sin que nadie vea un error.
+          </p>
+        )}
+
+        {preguntando && abierta && sucursal.ultimaAbierta && (
+          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            <strong>Es la última tienda abierta.</strong> Al cerrarla no se
+            puede comprar en ningún lado: la portada pasa a ofrecer WhatsApp y
+            el que entre a la tienda va a parar ahí.
+          </p>
+        )}
+
+        {falloTienda && (
+          <p className="mt-3 inline-flex items-start gap-1.5 text-sm font-semibold text-red-700">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {falloTienda}
+          </p>
+        )}
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -218,25 +341,6 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
           <strong>Sucursal activa</strong>
           <span className="text-[var(--muted)]">
             Se muestra en el sitio: dirección, mapa, teléfono y horarios.
-          </span>
-        </label>
-        <label className="flex items-start gap-2 text-sm">
-          <input
-            type="checkbox"
-            name="tiendaActiva"
-            defaultChecked={sucursal.tiendaActiva}
-            className="mt-1"
-          />
-          <span>
-            <strong>Tienda abierta.</strong>{" "}
-            <span className="text-[var(--muted)]">
-              Si está destildada, el local se sigue mostrando en el sitio
-              pero en su subdominio no se puede comprar: el que entra va a
-              la página general. Destildala mientras la sucursal no tenga
-              su propio MercadoPago y su propio certificado de ARCA, porque
-              hasta entonces una venta ahí cobra y factura a nombre de la
-              otra.
-            </span>
           </span>
         </label>
       </div>

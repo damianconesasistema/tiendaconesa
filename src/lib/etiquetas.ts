@@ -7,6 +7,18 @@
 // Se derivan del título a propósito: así alcanza con escribirlo bien en el
 // Excel del proveedor y no hace falta cargar nada aparte por producto.
 
+// ---------------------------------------------------------- el gas envasado
+//
+// No hay stock de envasado (Damian, 13/11/2026). Mientras esto sea false, un
+// termotanque "a gas natural o envasado" se vende SOLO como gas natural: no
+// se ofrece la eleccion, porque dejar elegir algo que no hay es una venta que
+// despues hay que deshacer a mano.
+//
+// Para volver a ofrecerlo cuando entre mercaderia: poner true. Es lo unico
+// que hay que tocar, y vuelven solos el cartel de la ficha y la eleccion
+// antes de comprar.
+const HAY_GAS_ENVASADO = false;
+
 export type Etiqueta = { texto: string; tono: "gas" | "info" };
 
 export function etiquetasDe(titulo: string): Etiqueta[] {
@@ -15,7 +27,14 @@ export function etiquetasDe(titulo: string): Etiqueta[] {
 
   if (/GAS NATURAL O ENVASADO/.test(t)) {
     etiquetas.push({ texto: "Gas natural", tono: "gas" });
-    etiquetas.push({ texto: "Gas envasado", tono: "gas" });
+    if (HAY_GAS_ENVASADO) {
+      etiquetas.push({ texto: "Gas envasado", tono: "gas" });
+    } else {
+      // Callarse no alcanza: el titulo del articulo sigue diciendo "o
+      // envasado", asi que el que lo quiera para garrafa tiene que
+      // enterarse ANTES de comprar y no cuando se lo entregan.
+      etiquetas.push({ texto: "Sin stock de envasado", tono: "info" });
+    }
   } else if (/GAS NATURAL/.test(t)) {
     etiquetas.push({ texto: "Gas natural", tono: "gas" });
   } else if (/ENVASADO/.test(t)) {
@@ -42,6 +61,10 @@ export const TONOS_ETIQUETA: Record<Etiqueta["tono"], string> = {
 export type Opcion = { label: string; valores: string[] };
 
 export function opcionesDe(titulo: string): Opcion | null {
+  // Sin envasado no queda nada que elegir: hay una sola posibilidad, asi que
+  // el cliente agrega al carrito de una y no tiene que entrar a la ficha a
+  // contestar una pregunta con una sola respuesta.
+  if (!HAY_GAS_ENVASADO) return null;
   if (/GAS NATURAL O ENVASADO/.test(titulo.toUpperCase()))
     return {
       label: "¿Con qué gas lo vas a usar?",

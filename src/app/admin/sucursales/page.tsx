@@ -3,6 +3,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { SucursalFicha } from "@/components/admin/SucursalFicha";
+import { mpClavePropia, mpNombreDeVariable } from "@/lib/mercadopago";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,11 @@ export default async function SucursalesPage() {
   });
 
   const sinCobertura = !sucursales.some((s) => s.cubreTodoElPais);
+
+  // Para avisar, antes de cerrar, que no va a quedar ninguna abierta: ahi el
+  // sitio entero pasa a atender por WhatsApp. Es un cambio grande como para
+  // enterarse despues.
+  const abiertas = sucursales.filter((s) => s.tiendaActiva).length;
 
   return (
     <AdminShell username={session.username} active="sucursales">
@@ -70,6 +76,13 @@ export default async function SucursalesPage() {
                 cubreTodoElPais: s.cubreTodoElPais,
                 zonaEnvio: s.zonaEnvio,
                 productos: s._count.productos,
+                // La clave de MercadoPago no esta en la base sino en el
+                // servidor, asi que esto se mira aca y viaja ya resuelto: el
+                // componente del panel corre en el navegador y ahi no hay
+                // variables de entorno que valgan.
+                clavePropia: mpClavePropia(s.slug),
+                variableMp: mpNombreDeVariable(s.slug),
+                ultimaAbierta: s.tiendaActiva && abiertas === 1,
               }}
             />
           ))}

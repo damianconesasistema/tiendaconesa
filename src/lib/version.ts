@@ -2,6 +2,49 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.72.3 - Gas envasado sin stock, y el codigo del articulo se lee.
+//            1. No hay envasado (Damian, 13/11/2026), asi que un termotanque
+//            "a gas natural o envasado" deja de preguntar con que gas se va a
+//            usar: se vende solo como gas natural y se agrega al carrito de
+//            una, sin pasar por la ficha a contestar una pregunta con una
+//            sola respuesta.
+//            El titulo del articulo sigue diciendo "o envasado", asi que
+//            callarse no alcanza: la ficha avisa "Sin stock de envasado". El
+//            que lo quiera para garrafa se entera ANTES de comprar y no
+//            cuando se lo entregan.
+//            Es una sola perilla en src/lib/etiquetas.ts (HAY_GAS_ENVASADO).
+//            Cuando entre mercaderia se pone en true y vuelven solos el
+//            cartel y la eleccion.
+//            Los articulos que son SOLO envasado no se tocan: eso se pausa
+//            desde el panel, que es donde se maneja el stock.
+//            2. En la lista de productos del panel, el codigo que va abajo
+//            del titulo estaba en gris claro y fino, y no se leia. Ahora va
+//            en negrita y en el color del texto, y adelante aparece el SKU
+//            cuando el articulo lo tiene cargado. Es lo que se busca y lo que
+//            se dicta por telefono; el SKU ademas es con lo que se emparejan
+//            las fotos, asi que de paso se ve cual no lo tiene.
+// V.0.72.2 - Un boton para abrir y cerrar la tienda, arriba de la ficha.
+//            La casilla "Tienda abierta" estaba al fondo de una ficha larga
+//            y solo se guardaba junto con todo lo demas. Damian la destildo,
+//            apreto Guardar y el sitio siguio vendiendo igual. Eso es lo peor
+//            que puede pasar en un panel: decir una cosa y hacer otra.
+//            Ahora es un boton arriba de todo, con el estado al lado en verde
+//            o en gris, y toca ese campo y nada mas. Va aparte del Guardar a
+//            proposito: guardarSucursal valida media ficha —el CUIT, el
+//            subdominio, que alguien cubra el resto del pais— y si algo de eso
+//            no cuadra no guarda NADA. La tienda se quedaba abierta por un
+//            CUIT mal escrito, que no tiene nada que ver.
+//            La casilla se fue. Dos controles para la misma cosa terminan
+//            peleandose: el boton cierra la tienda, la casilla sigue tildada
+//            porque la pantalla no se recargo, y el proximo Guardar la vuelve
+//            a abrir sin que nadie lo pida. Por lo mismo, Guardar ya no manda
+//            ese campo.
+//            Pregunta antes de hacerlo, porque es lo unico de esa pantalla
+//            que se ve desde afuera al instante, y en la pregunta avisa lo
+//            que hay que saber: si la sucursal no tiene cargado SU
+//            MercadoPago —y entonces lo que venda se cobra en la cuenta de la
+//            otra— y, al cerrar, si es la ultima abierta, porque ahi el sitio
+//            entero pasa a atender por WhatsApp.
 // V.0.72.1 - Traslasierra cierra su tienda online, y cerrar significa
 //            cerrar.
 //            Damian pidio apagarla por el momento. Lo intento desde Panel ->
@@ -446,7 +489,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.72.1";
+export const APP_VERSION = "V.0.72.3";
 
 export type VersionEntry = {
   version: string;

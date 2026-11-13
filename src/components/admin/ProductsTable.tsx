@@ -47,6 +47,8 @@ import {
 type Product = {
   id: string;
   itemId: string;
+  /** El codigo del fabricante. Es con lo que se emparejan las fotos. */
+  sku: string | null;
   title: string;
   category: string;
   brand: string | null;
@@ -592,7 +594,10 @@ export function ProductsTable({
                         >
                           {p.title}
                         </Link>
-                        <div className="whitespace-nowrap text-xs text-[var(--muted)]">
+                        {/* El codigo es lo que se busca y se dicta por
+                            telefono, asi que va en negrita y en el color del
+                            texto: en gris claro y fino no se leia. */}
+                        <div className="whitespace-nowrap text-xs">
                           {p.locked && (
                             <span
                               title="Bloqueado: protegido contra cambios y borrado"
@@ -602,7 +607,10 @@ export function ProductsTable({
                               Bloqueado
                             </span>
                           )}
-                          {p.itemId}
+                          <span className="font-bold">
+                            {p.sku ? `SKU ${p.sku} · ` : ""}
+                            {p.itemId}
+                          </span>
                           {hasSale && (
                             <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-1.5 py-0.5 text-[9px] font-black uppercase text-white">
                               <Tag className="h-2.5 w-2.5" />
