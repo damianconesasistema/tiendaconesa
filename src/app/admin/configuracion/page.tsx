@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { RecargosForm } from "@/components/admin/RecargosForm";
-import { getRecargosMp } from "@/lib/settings";
+import { getRecargosDelPanel } from "@/lib/settings";
 import {
   mpConfigurado,
   mpEsPrueba,
@@ -12,6 +12,7 @@ import {
 } from "@/lib/mercadopago";
 import { prisma } from "@/lib/db";
 import { sucursalDelPanel } from "@/lib/sucursal-panel";
+import { sucursalQueVende } from "@/lib/sucursal";
 import { emailConfigurado } from "@/lib/email";
 import { ProbarArca } from "@/components/admin/ProbarArca";
 import {
@@ -32,13 +33,21 @@ export default async function ConfiguracionPage() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
 
-  const recargos = await getRecargosMp();
+  // Los que esta pantalla GUARDA, que no son siempre los que la tienda cobra:
+  // en conesa.com.ar aca se editan los generales, y al cliente le cobra la
+  // sucursal que vende con los suyos. Por eso abajo se dice cual es.
+  const recargos = await getRecargosDelPanel();
 
   // De quien son los recargos que se ven y se editan en esta pantalla. Cada
   // local cobra en su cuenta y cada cuenta tiene sus costos, asi que decirlo
   // con todas las letras evita el peor malentendido posible: creer que estas
   // tocando los de uno cuando estas tocando los del otro.
   const local = await sucursalDelPanel();
+
+  // En conesa.com.ar el panel no es de ninguna sucursal, pero la tienda SI la
+  // atiende una: la que cobra y factura. Hace falta su nombre para avisar que
+  // los numeros de esta pantalla no son los que paga el cliente.
+  const vende = local ? null : await sucursalQueVende();
 
   // Cada local cobra en su cuenta, asi que el estado de MercadoPago no es uno
   // solo: hay que mirarlo sucursal por sucursal.
@@ -216,6 +225,14 @@ export default async function ConfiguracionPage() {
                 Estos son los de <strong>{local.nombre}</strong>, y solo los
                 suyos: cada local cobra en su cuenta de MercadoPago y cada
                 cuenta tiene sus costos.
+              </>
+            ) : vende ? (
+              <>
+                Estos son los <strong>generales</strong>. Al cliente le cobra{" "}
+                <strong>{vende.name}</strong>, tambien en conesa.com.ar, y lo
+                hace con los suyos: estos generales solo le valen a un local
+                que no tenga los propios cargados. Para tocar los de{" "}
+                {vende.name}, entra al panel de esa sucursal.
               </>
             ) : (
               <>

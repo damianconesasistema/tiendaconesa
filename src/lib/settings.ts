@@ -18,7 +18,7 @@
 // cuotas en MercadoPago para que no pague en mas de las que abono de recargo.
 
 import { prisma } from "@/lib/db";
-import { slugDelSubdominio } from "@/lib/sucursal";
+import { slugDelSubdominio, sucursalQueVende } from "@/lib/sucursal";
 
 export const SETTING_RECARGO_1PAGO = "recargo_mp_1pago_pct";
 export const SETTING_RECARGO_CUOTAS = "recargo_mp_cuotas_pct";
@@ -188,21 +188,57 @@ export function claveDeSucursal(clave: string, slug: string): string {
   return `${clave}:${slug}`;
 }
 
-/** Lee una configuracion que puede ser de cada local.
+/** Lee la clave de esta sucursal, y si no tiene la suya, la general.
  *
- *  Primero la de la sucursal de esta visita; si no tiene, la general. Dos
- *  locales cobran en dos cuentas de MercadoPago distintas y cada cuenta tiene
- *  sus costos: un solo numero para los dos le cobra al cliente de uno los
- *  costos del otro.
- *
- *  En conesa.com.ar devuelve siempre la general. */
-async function getSettingDeAca(clave: string): Promise<string | null> {
-  const slug = await slugDelSubdominio();
+ *  El respaldo general es lo que habia cuando la tienda era una sola: una
+ *  sucursal solo lo pisa si le cargaron lo suyo. */
+async function leerDe(
+  clave: string,
+  slug: string | null,
+): Promise<string | null> {
   if (slug) {
     const propia = await getSetting(claveDeSucursal(clave, slug));
     if (propia !== null && propia.trim() !== "") return propia;
   }
   return getSetting(clave);
+}
+
+/** De que sucursal son los numeros que le rigen al cliente en esta visita.
+ *
+ *  Normalmente la del subdominio. En conesa.com.ar no hay subdominio, pero SI
+ *  hay una sucursal que vende: el dominio principal lo atiende la de menor
+ *  orden con la tienda abierta, y es esa la que cobra en su cuenta de
+ *  MercadoPago y la que factura.
+ *
+ *  Antes aca se leian los generales. Como el que cobraba era el local igual,
+ *  el mismo carrito salia a dos precios distintos segun por que puerta entro
+ *  el cliente: por conesa.com.ar con los numeros generales, por
+ *  buenosaires.conesa.com.ar con los de Buenos Aires.
+ *
+ *  Con todas las tiendas cerradas no hay quien venda y devuelve null, o sea
+ *  los generales. No importa: cerradas no se cobra nada. */
+async function slugQueCobra(): Promise<string | null> {
+  const sub = await slugDelSubdominio();
+  if (sub) return sub;
+  const vende = await sucursalQueVende();
+  return vende?.slug ?? null;
+}
+
+/** Lee una configuracion como la ve el CLIENTE: la de quien le va a cobrar. */
+async function getSettingDeAca(clave: string): Promise<string | null> {
+  return leerDe(clave, await slugQueCobra());
+}
+
+/** Lee una configuracion como la EDITA el panel: la del subdominio del panel,
+ *  o la general en conesa.com.ar.
+ *
+ *  Es a proposito que no use slugQueCobra. La pantalla de Configuracion tiene
+ *  que mostrar exactamente lo que va a guardar: guardarRecargos escribe en el
+ *  subdominio del panel, o en la general si no hay. Si mostrara los de la
+ *  sucursal que vende y guardara en la general, entrar a esa pantalla y
+ *  apretar Guardar pisaria los generales con los numeros de otro local. */
+async function getSettingDelPanel(clave: string): Promise<string | null> {
+  return leerDe(clave, await slugDelSubdominio());
 }
 
 export async function setSetting(key: string, value: string): Promise<void> {
@@ -243,11 +279,13 @@ export type RecargosMp = {
   cuotasMax: number;
 };
 
-export async function getRecargosMp(): Promise<RecargosMp> {
+async function armarRecargos(
+  leerClave: (clave: string) => Promise<string | null>,
+): Promise<RecargosMp> {
   const [d, c, q] = await Promise.all([
-    getSettingDeAca(SETTING_RECARGO_1PAGO),
-    getSettingDeAca(SETTING_RECARGO_CUOTAS),
-    getSettingDeAca(SETTING_CUOTAS_MAX),
+    leerClave(SETTING_RECARGO_1PAGO),
+    leerClave(SETTING_RECARGO_CUOTAS),
+    leerClave(SETTING_CUOTAS_MAX),
   ]);
   const cuotas = Number(q);
   return {
@@ -258,6 +296,16 @@ export async function getRecargosMp(): Promise<RecargosMp> {
         ? Math.min(Math.floor(cuotas), 24)
         : DEFAULT_CUOTAS,
   };
+}
+
+/** Los recargos que se le cobran al cliente en esta visita. */
+export async function getRecargosMp(): Promise<RecargosMp> {
+  return armarRecargos(getSettingDeAca);
+}
+
+/** Los recargos que muestra y edita la pantalla de Configuracion. */
+export async function getRecargosDelPanel(): Promise<RecargosMp> {
+  return armarRecargos(getSettingDelPanel);
 }
 
 /** Recargo en pesos sobre un subtotal, redondeado al peso. */

@@ -2,6 +2,24 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.73.2 - En conesa.com.ar los recargos son los de la sucursal que vende.
+//            Los recargos de MercadoPago se leian por subdominio. En
+//            conesa.com.ar no hay subdominio, asi que se leian los generales;
+//            pero la venta la toma igual la sucursal que vende, que cobra en
+//            SU cuenta y factura con SU CUIT. El mismo carrito salia a dos
+//            precios segun por que puerta entro el cliente: Buenos Aires
+//            tiene cargado 31% en cuotas y hasta 18, y los generales son
+//            25,71% y hasta 6.
+//            La pantalla de Configuracion no se movio: sigue mostrando y
+//            guardando lo mismo de antes (lo del subdominio, o lo general en
+//            conesa.com.ar). Es a proposito: si mostrara los de la sucursal
+//            que vende y guardara en los generales, entrar ahi y apretar
+//            Guardar pisaria los generales con los numeros de otro local, y
+//            los generales son los que usa la tienda que no tiene los suyos.
+//            Ahora ese cartel dice quien le cobra de verdad al cliente.
+//            Con todas las tiendas cerradas no cambia nada, porque no hay
+//            quien venda y se siguen leyendo los generales. Empieza a valer
+//            el dia que se abra una tienda.
 // V.0.73.1 - El logo de Data Fiscal enlaza por http.
 //            Se cargo el codigo del QR de la S.R.L. (F960/D del sitio
 //            https://conesa.com.ar, declarado ante ARCA el 14/11/2026), y
@@ -587,7 +605,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.73.1";
+export const APP_VERSION = "V.0.73.2";
 
 export type VersionEntry = {
   version: string;
