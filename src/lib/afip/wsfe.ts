@@ -73,8 +73,9 @@ function bloqueAuth(a: { token: string; sign: string; cuit: string }) {
 export async function ultimoAutorizado(
   ptoVta: number,
   cbteTipo: number,
+  sucursal?: string | null,
 ): Promise<number> {
-  const a = await auth();
+  const a = await auth(sucursal);
   const xml = await llamar(
     "FECompUltimoAutorizado",
     `<ar:FECompUltimoAutorizado>${bloqueAuth(a)}` +
@@ -95,6 +96,10 @@ export async function ultimoAutorizado(
 }
 
 export type Comprobante = {
+  /** El slug de la sucursal que emite. Decide con que certificado se firma
+   *  y con que CUIT se pide el CAE. Sin esto, los dos locales facturarian
+   *  con el mismo. */
+  sucursal?: string | null;
   ptoVta: number;
   cbteTipo: number;
   /** 80 = CUIT, 96 = DNI, 99 = consumidor final */
@@ -140,8 +145,8 @@ function dosDecimales(n: number): string {
 
 /** Emite el comprobante y devuelve el CAE. */
 export async function solicitarCae(c: Comprobante): Promise<Autorizacion> {
-  const a = await auth();
-  const ultimo = await ultimoAutorizado(c.ptoVta, c.cbteTipo);
+  const a = await auth(c.sucursal);
+  const ultimo = await ultimoAutorizado(c.ptoVta, c.cbteTipo, c.sucursal);
   const nro = ultimo + 1;
   const fecha = yyyymmdd(c.fecha ?? new Date());
 

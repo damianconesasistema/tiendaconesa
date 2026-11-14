@@ -1,5 +1,12 @@
 import { prisma } from "@/lib/db";
-import { CBTE, afipConfigurado, cuit, puntoVenta } from "@/lib/afip/config";
+import {
+  CBTE,
+  afipConfigurado,
+  cuit,
+  cuitSiHay,
+  puntoVenta,
+  variableDe,
+} from "@/lib/afip/config";
 import { partirIva, tipoDeComprobante } from "@/lib/afip/factura";
 import { solicitarCae } from "@/lib/afip/wsfe";
 
@@ -20,7 +27,7 @@ export type ResultadoFactura =
 /** Lo minimo que hay que saber del pedido para decidir si se puede emitir. */
 type PedidoAChequear = {
   number: number;
-  branch: { name: string; cuit: string | null } | null;
+  branch: { slug: string; name: string; cuit: string | null } | null;
 };
 
 /** El motivo por el que ESTE pedido no se puede emitir con el certificado
@@ -45,30 +52,34 @@ type PedidoAChequear = {
  *
  *  Se comparan solo los digitos: en el panel el CUIT se carga con guiones
  *  ("30-71132164-7") y en el servidor va sin ellos. */
-function cuitQueNoEs(pedido: PedidoAChequear, accion: string): string | null {
-  const delServidor = (process.env.AFIP_CUIT || "").replace(/\D/g, "");
+function cuitQueNoEs(
+  pedido: PedidoAChequear,
+  accion: string,
+  /** El CUIT con el que se va a pedir el CAE: el de la sucursal si tiene
+   *  sus variables cargadas, o el general. Viene resuelto de afuera porque
+   *  es el mismo que va a usar solicitarCae, y comparar contra otra cosa
+   *  seria comparar contra algo que no pasa. */
+  elQueSeVaAUsar: string,
+): string | null {
   const deLaSucursal = (pedido.branch?.cuit || "").replace(/\D/g, "");
-  if (!delServidor || !deLaSucursal || deLaSucursal === delServidor) return null;
+  if (!elQueSeVaAUsar || !deLaSucursal || deLaSucursal === elQueSeVaAUsar)
+    return null;
 
+  const slug = pedido.branch?.slug;
   const local = pedido.branch?.name ?? "la sucursal del pedido";
+  const faltan = ["AFIP_CUIT", "AFIP_CERT", "AFIP_KEY", "AFIP_PTO_VTA"]
+    .map((v) => variableDe(v, slug))
+    .join(", ");
   return (
     `El pedido #${pedido.number} es de ${local}, que factura con el CUIT ` +
-    `${pedido.branch?.cuit}. El certificado de ARCA que tiene cargado el ` +
-    `servidor es del CUIT ${delServidor}, que es otro contribuyente: ` +
-    `${accion} lo emitiria a nombre de quien no vendio. Para emitir desde ` +
-    `acá hay que cargar en el servidor el certificado de ${local} ` +
-    `(AFIP_CUIT, AFIP_CERT, AFIP_KEY y AFIP_PTO_VTA).`
+    `${pedido.branch?.cuit}. El certificado que se usaria es del CUIT ` +
+    `${elQueSeVaAUsar}, que es otro contribuyente: ${accion} lo emitiria a ` +
+    `nombre de quien no vendio. Para emitir desde acá hay que cargar en el ` +
+    `servidor el certificado de ${local} (${faltan}).`
   );
 }
 
 export async function emitirFactura(orderId: string): Promise<ResultadoFactura> {
-  if (!afipConfigurado())
-    return {
-      ok: false,
-      error:
-        "Falta configurar ARCA: cargá AFIP_CUIT, AFIP_CERT, AFIP_KEY y AFIP_PTO_VTA.",
-    };
-
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { customer: true, items: true, branch: true },
@@ -84,18 +95,33 @@ export async function emitirFactura(orderId: string): Promise<ResultadoFactura> 
   if (order.total <= 0)
     return { ok: false, error: "El total del pedido es cero" };
 
-  const noEsSuCuit = cuitQueNoEs(order, "facturarlo");
+  // De quien es este pedido. Con eso se elige el certificado, el CUIT y el
+  // punto de venta: los tres tienen que ser del mismo contribuyente.
+  const sucursal = order.branch?.slug ?? null;
+
+  if (!afipConfigurado(sucursal))
+    return {
+      ok: false,
+      error: `Falta configurar ARCA${
+        order.branch ? ` para ${order.branch.name}` : ""
+      }: cargá ${["AFIP_CUIT", "AFIP_CERT", "AFIP_KEY", "AFIP_PTO_VTA"]
+        .map((v) => variableDe(v, sucursal))
+        .join(", ")} en el servidor.`,
+    };
+
+  const noEsSuCuit = cuitQueNoEs(order, "facturarlo", cuitSiHay(sucursal));
   if (noEsSuCuit) return { ok: false, error: noEsSuCuit };
 
   const { cbteTipo, docTipo, docNro } = tipoDeComprobante({
     dni: order.customer.dni,
   });
   const { neto, iva } = partirIva(order.total);
-  const ptoVta = puntoVenta();
+  const ptoVta = puntoVenta(sucursal);
 
   let autorizacion;
   try {
     autorizacion = await solicitarCae({
+      sucursal,
       ptoVta,
       cbteTipo,
       docTipo,
@@ -140,9 +166,6 @@ export async function emitirNotaCredito(
   orderId: string,
   motivo: string,
 ): Promise<ResultadoFactura> {
-  if (!afipConfigurado())
-    return { ok: false, error: "Falta configurar ARCA." };
-
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { customer: true, branch: true },
@@ -156,7 +179,21 @@ export async function emitirNotaCredito(
       error: `Ya tiene una nota de crédito emitida (CAE ${order.ncCae}).`,
     };
 
-  const ncNoEsSuCuit = cuitQueNoEs(order, "anularlo");
+  const sucursal = order.branch?.slug ?? null;
+
+  if (!afipConfigurado(sucursal))
+    return {
+      ok: false,
+      error: `Falta configurar ARCA${
+        order.branch ? ` para ${order.branch.name}` : ""
+      }.`,
+    };
+
+  // Una nota de credito tiene que salir del MISMO CUIT que emitio la
+  // factura. Si el certificado del servidor cambio desde entonces, esto lo
+  // frena en vez de emitir la NC de un contribuyente contra el comprobante
+  // de otro.
+  const ncNoEsSuCuit = cuitQueNoEs(order, "anularlo", cuitSiHay(sucursal));
   if (ncNoEsSuCuit) return { ok: false, error: ncNoEsSuCuit };
 
   // La NC es del mismo tipo que la factura: A anula A, B anula B.
@@ -168,6 +205,7 @@ export async function emitirNotaCredito(
   let autorizacion;
   try {
     autorizacion = await solicitarCae({
+      sucursal,
       ptoVta: order.ptoVta,
       cbteTipo: ncTipo,
       docTipo,
@@ -179,7 +217,7 @@ export async function emitirNotaCredito(
         cbteTipo: order.cbteTipo,
         ptoVta: order.ptoVta,
         cbteNro: order.cbteNro,
-        cuit: cuit(),
+        cuit: cuit(sucursal),
         fecha: order.facturadoAt ?? order.createdAt,
       },
     });

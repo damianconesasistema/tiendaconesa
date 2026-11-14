@@ -2,6 +2,37 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.73.0 - Cada sucursal factura con SU certificado de ARCA.
+//            Damian decidio que la tienda online pasa a ser de Buenos
+//            Aires: cobra y factura la S.R.L. El certificado de la S.R.L.
+//            ya esta en el servidor (AFIP_CERT_BSAS / AFIP_KEY_BSAS), y
+//            este cambio es para que el sitio lo use.
+//            Las variables de ARCA ahora llevan el slug atras, igual que
+//            las de MercadoPago: AFIP_CUIT_BSAS, AFIP_PTO_VTA_BSAS,
+//            AFIP_CERT_BSAS, AFIP_KEY_BSAS. La sucursal que no tiene las
+//            suyas usa las peladas, que es lo que habia cuando la tienda
+//            era una sola: Traslasierra no se toca, y es la unica que hoy
+//            emite comprobantes con validez fiscal.
+//            Ese respaldo puede devolver el certificado del OTRO
+//            contribuyente. No es un descuido: antes de pedir el CAE se
+//            compara el CUIT de la sucursal del pedido con el que se va a
+//            usar, y si no coinciden no se emite (el freno de la 0.72.5,
+//            ahora comparando contra el que de verdad se va a usar y no
+//            contra AFIP_CUIT a secas).
+//            El ticket de acceso de ARCA se guarda por certificado y no
+//            por sitio. Un TA se le emite a UN certificado y vale para UN
+//            CUIT: compartirlo entre dos contribuyentes es pedir el CAE
+//            con el token del otro.
+//            La sucursal SIN certificado propio conserva la clave de cache
+//            de siempre, sin sufijo. Eso es a proposito: ARCA no emite un
+//            TA nuevo mientras haya uno valido ("El CEE ya posee un TA
+//            valido"), asi que cambiarle la clave a la tienda que hoy
+//            factura la dejaria sin facturar hasta 12 horas.
+//            El panel muestra el estado de ARCA del local en el que estas
+//            parado, prueba la conexion con SU certificado, y avisa cuando
+//            un local esta usando el general. Antes el panel de Buenos
+//            Aires probaba el certificado de Traslasierra y contestaba que
+//            todo andaba bien.
 // V.0.72.5 - ARCA: no se factura con el CUIT de otro contribuyente.
 //            El sitio tiene UN solo certificado de ARCA, en el servidor, y
 //            atiende dos sucursales que son dos contribuyentes distintos:
@@ -547,7 +578,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.72.5";
+export const APP_VERSION = "V.0.73.0";
 
 export type VersionEntry = {
   version: string;

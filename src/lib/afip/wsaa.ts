@@ -1,6 +1,13 @@
 import forge from "node-forge";
 import { prisma } from "@/lib/db";
-import { ambiente, certificado, cuit, urls } from "@/lib/afip/config";
+import {
+  afipClavePropia,
+  ambiente,
+  certificado,
+  cuit,
+  urls,
+  variableDe,
+} from "@/lib/afip/config";
 
 // WSAA: el login de ARCA.
 //
@@ -14,13 +21,26 @@ import { ambiente, certificado, cuit, urls } from "@/lib/afip/config";
 
 export type TicketAcceso = { token: string; sign: string; expira: Date };
 
-function claveCache() {
-  return `afip:ta:wsfe:${ambiente()}`;
+// Un ticket por certificado, no uno por sitio.
+//
+// El TA se le emite a UN certificado y sirve para UN CUIT. Guardar los dos
+// bajo la misma clave haria que Buenos Aires usara el ticket de Traslasierra
+// y ARCA lo rechazara, o peor, que lo aceptara contra el CUIT equivocado.
+//
+// La sucursal que NO tiene certificado propio conserva la clave de siempre,
+// sin sufijo. No es cosmetico: ARCA no emite un TA nuevo mientras haya uno
+// valido ("El CEE ya posee un TA valido"), asi que cambiarle la clave a la
+// tienda que hoy factura la dejaria sin poder facturar hasta que venciera el
+// que ya tiene, hasta 12 horas despues.
+function claveCache(sucursal?: string | null) {
+  const base = `afip:ta:wsfe:${ambiente()}`;
+  if (!afipClavePropia(sucursal)) return base;
+  return `${base}:${variableDe("AFIP_CERT", sucursal)}`;
 }
 
 /** Arma el XML que pide ARCA y lo firma con el certificado. */
-function firmarLoginTicketRequest(): string {
-  const { cert, key } = certificado();
+function firmarLoginTicketRequest(sucursal?: string | null): string {
+  const { cert, key } = certificado(sucursal);
   const ahora = Date.now();
   // Se pide con 10 minutos de margen hacia atrás y 10 hacia adelante para
   // tolerar diferencias de reloj entre nuestro servidor y el de ARCA.
@@ -72,8 +92,8 @@ function desescapar(s: string): string {
 }
 
 /** Pide un TA nuevo a ARCA. */
-async function pedirTicket(): Promise<TicketAcceso> {
-  const cms = firmarLoginTicketRequest();
+async function pedirTicket(sucursal?: string | null): Promise<TicketAcceso> {
+  const cms = firmarLoginTicketRequest(sucursal);
   const sobre =
     `<?xml version="1.0" encoding="UTF-8"?>` +
     `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" ` +
@@ -104,8 +124,10 @@ async function pedirTicket(): Promise<TicketAcceso> {
 }
 
 /** Devuelve un TA válido: el guardado si todavía sirve, o uno nuevo. */
-export async function ticketAcceso(): Promise<TicketAcceso> {
-  const clave = claveCache();
+export async function ticketAcceso(
+  sucursal?: string | null,
+): Promise<TicketAcceso> {
+  const clave = claveCache(sucursal);
   const guardado = await prisma.setting.findUnique({ where: { key: clave } });
 
   if (guardado) {
@@ -124,7 +146,7 @@ export async function ticketAcceso(): Promise<TicketAcceso> {
     }
   }
 
-  const ta = await pedirTicket();
+  const ta = await pedirTicket(sucursal);
   const valor = JSON.stringify({
     token: ta.token,
     sign: ta.sign,
@@ -139,7 +161,7 @@ export async function ticketAcceso(): Promise<TicketAcceso> {
 }
 
 /** El bloque <Auth> que acompaña a cada llamada de facturación. */
-export async function auth() {
-  const ta = await ticketAcceso();
-  return { token: ta.token, sign: ta.sign, cuit: cuit() };
+export async function auth(sucursal?: string | null) {
+  const ta = await ticketAcceso(sucursal);
+  return { token: ta.token, sign: ta.sign, cuit: cuit(sucursal) };
 }

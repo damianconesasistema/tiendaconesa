@@ -72,7 +72,12 @@ export async function probarArca(): Promise<{
     "@/lib/afip/config"
   );
 
-  if (!afipConfigurado())
+  // Se prueba el de ESTE local. Sin esto, el panel de Buenos Aires probaba
+  // el certificado de Traslasierra y decia que todo andaba.
+  const suc = await sucursalDelPanel();
+  const sucursal = suc?.slug ?? null;
+
+  if (!afipConfigurado(sucursal))
     return {
       error:
         "Faltan datos de ARCA en el servidor (CUIT, certificado, clave o punto de venta).",
@@ -80,17 +85,17 @@ export async function probarArca(): Promise<{
 
   try {
     const { ticketAcceso } = await import("@/lib/afip/wsaa");
-    await ticketAcceso();
+    await ticketAcceso(sucursal);
   } catch (e) {
     return { error: `ARCA rechazó el certificado: ${(e as Error).message}` };
   }
 
   try {
     const { ultimoAutorizado } = await import("@/lib/afip/wsfe");
-    const pv = puntoVenta();
+    const pv = puntoVenta(sucursal);
     const [a, b] = await Promise.all([
-      ultimoAutorizado(pv, CBTE.FACTURA_A),
-      ultimoAutorizado(pv, CBTE.FACTURA_B),
+      ultimoAutorizado(pv, CBTE.FACTURA_A, sucursal),
+      ultimoAutorizado(pv, CBTE.FACTURA_B, sucursal),
     ]);
     return { ok: true, ambiente: ambiente(), proximaA: a + 1, proximaB: b + 1 };
   } catch (e) {

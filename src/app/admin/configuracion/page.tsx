@@ -14,7 +14,12 @@ import { prisma } from "@/lib/db";
 import { sucursalDelPanel } from "@/lib/sucursal-panel";
 import { emailConfigurado } from "@/lib/email";
 import { ProbarArca } from "@/components/admin/ProbarArca";
-import { afipConfigurado, esProduccion, puntoVenta } from "@/lib/afip/config";
+import {
+  afipClavePropia,
+  afipConfigurado,
+  esProduccion,
+  puntoVenta,
+} from "@/lib/afip/config";
 
 export const metadata: Metadata = {
   title: "Configuración · Panel Admin",
@@ -146,18 +151,21 @@ export default async function ConfiguracionPage() {
         {/* Estado de la facturacion electronica */}
         <div
           className={`rounded-2xl border p-4 text-sm ${
-            !afipConfigurado()
+            !afipConfigurado(local?.slug)
               ? "border-amber-200 bg-amber-50 text-amber-900"
               : esProduccion()
                 ? "border-green-200 bg-green-50 text-green-900"
                 : "border-amber-200 bg-amber-50 text-amber-900"
           }`}
         >
-          {!afipConfigurado() ? (
+          {!afipConfigurado(local?.slug) ? (
             <>
-              <strong>Facturación electrónica apagada.</strong> El botón
-              Facturar de cada pedido no va a emitir nada. Falta cargar el
-              certificado de ARCA en el servidor.
+              <strong>
+                Facturación electrónica apagada
+                {local ? ` en ${local.nombre}` : ""}.
+              </strong>{" "}
+              El botón Facturar de cada pedido no va a emitir nada. Falta
+              cargar el certificado de ARCA en el servidor.
             </>
           ) : (
             <>
@@ -169,7 +177,18 @@ export default async function ConfiguracionPage() {
               {esProduccion()
                 ? "Las facturas que emitas tienen validez fiscal."
                 : "Los comprobantes NO tienen validez fiscal: sirven para probar."}{" "}
-              Punto de venta {puntoVenta()}.
+              Punto de venta {puntoVenta(local?.slug)}.
+              {local && !afipClavePropia(local.slug) && (
+                <>
+                  {" "}
+                  <strong>
+                    Ojo: {local.nombre} no tiene su propio certificado
+                  </strong>{" "}
+                  y usa el general, que es de la otra sucursal. Mientras sea
+                  así, el sitio no va a dejar facturar sus pedidos: la factura
+                  saldría a nombre de otro contribuyente.
+                </>
+              )}
               <ProbarArca />
             </>
           )}

@@ -59,35 +59,97 @@ export const DOC = {
 export const IVA_21 = 5;
 export const IVA_PCT = 0.21;
 
-export function afipConfigurado(): boolean {
+// --------------------------------------------- una sucursal, un certificado
+//
+// Las dos tiendas las atiende el mismo servidor y son dos contribuyentes
+// distintos. Cada una factura con SU certificado, igual que cobra en SU
+// cuenta de MercadoPago.
+//
+// La variable de cada una es la de siempre con el slug pegado atras:
+// AFIP_CERT_BSAS, AFIP_KEY_BSAS, AFIP_CUIT_BSAS, AFIP_PTO_VTA_BSAS.
+
+/** Como se llama esta variable para esta sucursal.
+ *
+ *  Sin sucursal devuelve el nombre pelado, que es el que habia cuando la
+ *  tienda era una sola. */
+export function variableDe(nombre: string, sucursal?: string | null): string {
+  if (!sucursal) return nombre;
+  return nombre + "_" + sucursal.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+}
+
+/** El valor que le toca a esta sucursal: el suyo, o el general.
+ *
+ *  El respaldo existe porque Traslasierra factura con las variables peladas
+ *  desde antes de que hubiera dos locales. Moverlas seria tocar lo unico que
+ *  hoy esta emitiendo comprobantes con validez fiscal, y no hace falta.
+ *
+ *  Que el respaldo pueda devolver el certificado del otro contribuyente no
+ *  es un descuido: antes de pedir el CAE, emitir.ts compara el CUIT de la
+ *  sucursal del pedido con el que se va a usar y no emite si no coinciden.
+ *  El respaldo deja todo andando; el freno impide que ande mal. */
+function valor(nombre: string, sucursal?: string | null): string {
+  const propia = process.env[variableDe(nombre, sucursal)];
+  if (propia && propia.trim()) return propia.trim();
+  return (process.env[nombre] || "").trim();
+}
+
+/** Si esta sucursal tiene SU certificado cargado.
+ *
+ *  Si no lo tiene, usa el general, que es de la otra: todo parece andar y no
+ *  hay ningun error a la vista. Por eso el panel lo dice. */
+export function afipClavePropia(sucursal?: string | null): boolean {
+  if (!sucursal) return false;
+  const c = process.env[variableDe("AFIP_CERT", sucursal)];
+  return !!(c && c.trim());
+}
+
+export function afipConfigurado(sucursal?: string | null): boolean {
   return (
-    !!process.env.AFIP_CUIT &&
-    !!process.env.AFIP_CERT &&
-    !!process.env.AFIP_KEY &&
-    !!process.env.AFIP_PTO_VTA
+    !!valor("AFIP_CUIT", sucursal) &&
+    !!valor("AFIP_CERT", sucursal) &&
+    !!valor("AFIP_KEY", sucursal) &&
+    !!valor("AFIP_PTO_VTA", sucursal)
   );
 }
 
-export function cuit(): string {
-  const c = (process.env.AFIP_CUIT || "").replace(/\D/g, "");
-  if (c.length !== 11) throw new Error("AFIP_CUIT tiene que tener 11 dígitos");
+export function cuit(sucursal?: string | null): string {
+  const c = valor("AFIP_CUIT", sucursal).replace(/\D/g, "");
+  if (c.length !== 11)
+    throw new Error(
+      `${variableDe("AFIP_CUIT", sucursal)} tiene que tener 11 dígitos`,
+    );
   return c;
 }
 
-export function puntoVenta(): number {
-  const p = Number(process.env.AFIP_PTO_VTA);
+/** El CUIT que se va a usar, o "" si no hay uno valido.
+ *
+ *  Para el freno de emitir.ts, que necesita comparar sin romperse cuando
+ *  falta el dato: un freno que explota es un freno que deja de facturar. */
+export function cuitSiHay(sucursal?: string | null): string {
+  const c = valor("AFIP_CUIT", sucursal).replace(/\D/g, "");
+  return c.length === 11 ? c : "";
+}
+
+export function puntoVenta(sucursal?: string | null): number {
+  const p = Number(valor("AFIP_PTO_VTA", sucursal));
   if (!Number.isInteger(p) || p <= 0)
-    throw new Error("AFIP_PTO_VTA tiene que ser un número de punto de venta");
+    throw new Error(
+      `${variableDe("AFIP_PTO_VTA", sucursal)} tiene que ser un número de punto de venta`,
+    );
   return p;
 }
 
 /** El .crt y el .key, decodificados de base64 a texto PEM. */
-export function certificado(): { cert: string; key: string } {
-  const cert = Buffer.from(process.env.AFIP_CERT || "", "base64").toString("utf8");
-  const key = Buffer.from(process.env.AFIP_KEY || "", "base64").toString("utf8");
+export function certificado(sucursal?: string | null): { cert: string; key: string } {
+  const cert = Buffer.from(valor("AFIP_CERT", sucursal), "base64").toString("utf8");
+  const key = Buffer.from(valor("AFIP_KEY", sucursal), "base64").toString("utf8");
   if (!cert.includes("BEGIN CERTIFICATE"))
-    throw new Error("AFIP_CERT no parece un certificado en base64");
+    throw new Error(
+      `${variableDe("AFIP_CERT", sucursal)} no parece un certificado en base64`,
+    );
   if (!key.includes("PRIVATE KEY"))
-    throw new Error("AFIP_KEY no parece una clave privada en base64");
+    throw new Error(
+      `${variableDe("AFIP_KEY", sucursal)} no parece una clave privada en base64`,
+    );
   return { cert, key };
 }
