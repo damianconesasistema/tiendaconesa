@@ -27,10 +27,7 @@ export type SucursalDeEdicion = {
   id: string;
   slug: string;
   nombre: string;
-  /** Si es la sucursal PRINCIPAL. Solo en ese caso se escribe tambien el
-   *  articulo, porque del articulo el espejo copia a la principal y a nadie
-   *  mas. Ojo: "principal" no es lo mismo que `sucursalQueVende()`, que es
-   *  quien le cobra al cliente en esta visita. */
+  /** Si es la que vende hoy. Solo en ese caso se escribe el articulo. */
   esPrincipal: boolean;
 };
 
@@ -136,27 +133,14 @@ export async function agregarALaSucursal(itemIds: string[]): Promise<void> {
 /** Para las pantallas que todavia no saben de sucursales.
  *
  *  Devuelve el mensaje de error cuando se las quiere usar desde un local que
- *  no es el principal. Es a proposito: esas pantallas escriben el articulo, y
- *  del articulo el espejo copia a la principal. Dejarlas pasar significaria
- *  que tocar un precio en el panel del otro local se lo cambia al de la
- *  principal. Un cartel que dice "todavia no" es molesto; cambiar el precio
- *  del otro local sin avisar es plata.
- *
- *  Desde que la principal es Buenos Aires, el que queda con el cartel es
- *  Traslasierra. Las pantallas que SI saben de sucursales —el alta, la
- *  importacion desde Excel y la edicion de un producto— siguen andando en los
- *  dos paneles: lo que no se puede hacer desde Traslasierra son las de lote
- *  (editar, duplicar, restaurar, y cambiar precio o stock en lote). */
+ *  no es el que vende. Es a proposito: dejarlas pasar significaria que tocar
+ *  un precio en el panel de Buenos Aires se lo cambia a Traslasierra. Un
+ *  cartel que dice "todavia no" es molesto; cambiar el precio del otro local
+ *  sin avisar es plata. */
 export async function todaviaNoPorSucursal(
   queCosa: string,
 ): Promise<string | null> {
   const s = await sucursalDeEdicion();
   if (!s || s.esPrincipal) return null;
-  // El cartel nombra el panel al que hay que ir. "El local que vende" no le
-  // dice a nadie cual es, y con dos locales es justo el dato que falta.
-  const principal = (await sucursalesDelPanel()).find((x) => x.principal);
-  const donde = principal
-    ? `el panel de ${principal.nombre}`
-    : "el panel del local principal";
-  return `${queCosa} todavía no está disponible en el panel de ${s.nombre}. Por ahora se hace desde ${donde}.`;
+  return `${queCosa} todavía no está disponible en el panel de ${s.nombre}. Por ahora se hace desde el panel del local que vende.`;
 }

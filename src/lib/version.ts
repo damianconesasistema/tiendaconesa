@@ -2,38 +2,6 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
-// V.0.73.3 - La sucursal principal pasa a ser Buenos Aires.
-//            Damian decidio que Buenos Aires va a ser el unico local que
-//            venda. "La principal" era Traslasierra, escrito con el nombre
-//            puesto para cuando no hay ninguna tienda abierta, que es el
-//            caso hoy.
-//            De la principal cuelgan TRES cosas, y las tres son plata: a que
-//            sucursal le escribe los precios el panel de conesa.com.ar, a
-//            quien le copia el espejo lo que se guardo en el articulo, y que
-//            pantallas en lote estan habilitadas en cada panel. Dar vuelta
-//            solo la primera era el error que casi se comete: el puente
-//            habria escrito el articulo al editar Buenos Aires y el espejo
-//            lo habria copiado a Traslasierra, asi que cada precio tocado en
-//            Buenos Aires le pisaba el precio a Traslasierra, sin aviso.
-//            Por eso la regla de quien es la principal quedo en una sola
-//            funcion (elegirPrincipal) y el espejo la pregunta en vez de
-//            tener el nombre escrito. Dos copias de la misma regla es lo que
-//            permitia que discrepen.
-//            Lo que SE PIERDE: desde el panel de Traslasierra ya no se puede
-//            editar en lote, duplicar, restaurar, ni cambiar precio o stock
-//            en lote. Esas pantallas escriben el articulo, y por eso solo
-//            las puede usar la principal. Lo que SIGUE andando en los dos
-//            paneles: el alta, la importacion desde Excel y la edicion de un
-//            producto, que ya escriben la tabla de cada sucursal.
-//            El orden de las sucursales NO decide la principal, a proposito:
-//            el orden se cambia arrastrando una fila en la pantalla de
-//            Sucursales, y se cambia por como queda el sitio a la vista. El
-//            29/10 Buenos Aires quedo primera para que se viera primero y
-//            eso solo ya mando la venta al local equivocado. Para cambiar la
-//            principal hay que editar SLUG_PRINCIPAL en sucursal-panel.ts.
-//            Trampa que queda abierta: al publicar un producto en un local
-//            que no lo tiene, la fila se crea con el precio del articulo,
-//            que ahora es el de Buenos Aires. Antes era igual al reves.
 // V.0.73.2 - En conesa.com.ar los recargos son los de la sucursal que vende.
 //            Los recargos de MercadoPago se leian por subdominio. En
 //            conesa.com.ar no hay subdominio, asi que se leian los generales;
@@ -637,7 +605,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.73.3";
+export const APP_VERSION = "V.0.73.2";
 
 export type VersionEntry = {
   version: string;
