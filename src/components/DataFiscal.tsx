@@ -18,9 +18,14 @@ export async function DataFiscal({ className = "" }: { className?: string }) {
   const legales = await getLegales();
   if (!legales.afipQr) return null;
 
+  // El enlace va por http a proposito. https://qr.afip.gob.ar no existe:
+  // no contesta TLS. La direccion con http es la que da el propio script
+  // del F960/D de ARCA, y redirige sola a serviciosweb.afip.gob.ar, que si
+  // es https. La imagen, en cambio, tiene que ir por https: por http el
+  // navegador la bloquearia por contenido mixto y el logo no se veria.
   return (
     <a
-      href={`https://qr.afip.gob.ar/?qr=${legales.afipQr}`}
+      href={`http://qr.afip.gob.ar/?qr=${legales.afipQr}`}
       target="_F960AFIPInfo"
       rel="noopener noreferrer"
       title="Data Fiscal · ARCA"

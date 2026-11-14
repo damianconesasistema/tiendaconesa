@@ -2,6 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.73.1 - El logo de Data Fiscal enlaza por http.
+//            Se cargo el codigo del QR de la S.R.L. (F960/D del sitio
+//            https://conesa.com.ar, declarado ante ARCA el 14/11/2026), y
+//            al probarlo aparecio que https://qr.afip.gob.ar no existe: no
+//            contesta TLS. El componente armaba el enlace con https, asi
+//            que el logo habria quedado apuntando a una direccion muerta.
+//            Ahora usa http, que es lo que da el propio script del F960/D
+//            y redirige solo a serviciosweb.afip.gob.ar. La imagen sigue
+//            por https, porque por http la bloquea el navegador.
 // V.0.73.0 - Cada sucursal factura con SU certificado de ARCA.
 //            Damian decidio que la tienda online pasa a ser de Buenos
 //            Aires: cobra y factura la S.R.L. El certificado de la S.R.L.
@@ -578,7 +587,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.73.0";
+export const APP_VERSION = "V.0.73.1";
 
 export type VersionEntry = {
   version: string;
