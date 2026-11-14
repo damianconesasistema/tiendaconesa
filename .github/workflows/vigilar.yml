@@ -41,7 +41,13 @@ jobs:
     steps:
       - name: La tienda esta sana
         env:
-          SITIO: https://traslasierra.conesa.com.ar
+          # La portada general: existe siempre, este abierta o cerrada
+          # cualquier tienda. Antes esto apuntaba al subdominio de
+          # Traslasierra, que al cerrar su tienda empezo a redirigir.
+          SITIO: https://conesa.com.ar
+          # La tienda que vende. Si esta cerrada no es una falla: se dice y
+          # se saltean las pruebas que solo tienen sentido con ella abierta.
+          TIENDA: https://buenosaires.conesa.com.ar
         run: |
           set -u
 
@@ -70,9 +76,21 @@ jobs:
           # pasa si una importacion sale mal.
           hay_productos() {
             local n
-            n=$(curl -s --max-time 30 "$SITIO/tienda?porPagina=500" \
+            n=$(curl -s --max-time 30 "$TIENDA/tienda?porPagina=500" \
                 | grep -o 'itemId' | wc -l)
             [ "$n" -ge 40 ]
+          }
+
+          # Si en la tienda se puede comprar ahora mismo.
+          #
+          # Una tienda cerrada contesta una redireccion a la portada, que es
+          # exactamente lo que tiene que hacer. Confundir eso con una caida
+          # hacia sonar la alarma cada diez minutos sin que pasara nada.
+          tienda_abierta() {
+            local code
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 25 \
+                   "$TIENDA/tienda")
+            [ "$code" = "200" ]
           }
 
           # Los precios no estan en cero ni rotos.
@@ -85,12 +103,20 @@ jobs:
           while [ $intento -le 3 ]; do
             problemas=""
             echo "== intento $intento =="
+            # Esto tiene que andar siempre, haya o no una tienda abierta.
             revisar "la portada"            contesta "$SITIO/"
-            revisar "el catalogo"           contesta "$SITIO/tienda"
-            revisar "el carrito"            contesta "$SITIO/tienda/carrito"
-            revisar "el catalogo tiene productos" hay_productos
             revisar "los precios"           precios_sanos
             revisar "el panel"              contesta "$SITIO/admin/login"
+
+            # Y esto solo si hay donde comprar. Con todas las tiendas
+            # cerradas el sitio sigue sano: muestra los locales y manda a
+            # WhatsApp. No es una falla y no tiene que despertar a nadie.
+            if tienda_abierta; then
+              revisar "el carrito"                  contesta "$TIENDA/tienda/carrito"
+              revisar "el catalogo tiene productos" hay_productos
+            else
+              echo "  --    la tienda esta cerrada; no se revisa el catalogo"
+            fi
 
             [ -z "$problemas" ] && { echo; echo "Todo bien."; exit 0; }
 
