@@ -17,6 +17,50 @@ export type ResultadoFactura =
   | { ok: true; cbteNro: number; cae: string; observaciones: string[] }
   | { ok: false; error: string };
 
+/** Lo minimo que hay que saber del pedido para decidir si se puede emitir. */
+type PedidoAChequear = {
+  number: number;
+  branch: { name: string; cuit: string | null } | null;
+};
+
+/** El motivo por el que ESTE pedido no se puede emitir con el certificado
+ *  que hay cargado, o null si se puede.
+ *
+ *  El sitio tiene UN solo certificado de ARCA, en el servidor, y atiende dos
+ *  sucursales que son dos contribuyentes distintos. Nada en el codigo de
+ *  ARCA sabia de sucursales: pedia el CAE con el CUIT que hubiera cargado,
+ *  viniera el pedido de donde viniera. Un pedido de Buenos Aires facturado
+ *  con el certificado de Traslasierra sale a nombre de quien no vendio.
+ *
+ *  Eso no se arregla despues. Una factura emitida no se borra: se anula con
+ *  nota de credito, a mano, y queda en los libros de los dos.
+ *
+ *  SOLO frena cuando puede PROBARLO: hacen falta los dos CUIT, el del
+ *  servidor y el de la sucursal del pedido, y que sean distintos. Si el
+ *  pedido no tiene sucursal (los de antes de que existiera esa columna), si
+ *  la sucursal no tiene CUIT cargado en el panel, o si falta AFIP_CUIT,
+ *  factura igual que siempre. Un freno que salta por un dato que falta
+ *  dejaria de facturar un martes cualquiera sin que nadie haya tocado nada,
+ *  y eso es peor que el problema que vino a resolver.
+ *
+ *  Se comparan solo los digitos: en el panel el CUIT se carga con guiones
+ *  ("30-71132164-7") y en el servidor va sin ellos. */
+function cuitQueNoEs(pedido: PedidoAChequear, accion: string): string | null {
+  const delServidor = (process.env.AFIP_CUIT || "").replace(/\D/g, "");
+  const deLaSucursal = (pedido.branch?.cuit || "").replace(/\D/g, "");
+  if (!delServidor || !deLaSucursal || deLaSucursal === delServidor) return null;
+
+  const local = pedido.branch?.name ?? "la sucursal del pedido";
+  return (
+    `El pedido #${pedido.number} es de ${local}, que factura con el CUIT ` +
+    `${pedido.branch?.cuit}. El certificado de ARCA que tiene cargado el ` +
+    `servidor es del CUIT ${delServidor}, que es otro contribuyente: ` +
+    `${accion} lo emitiria a nombre de quien no vendio. Para emitir desde ` +
+    `acá hay que cargar en el servidor el certificado de ${local} ` +
+    `(AFIP_CUIT, AFIP_CERT, AFIP_KEY y AFIP_PTO_VTA).`
+  );
+}
+
 export async function emitirFactura(orderId: string): Promise<ResultadoFactura> {
   if (!afipConfigurado())
     return {
@@ -27,7 +71,7 @@ export async function emitirFactura(orderId: string): Promise<ResultadoFactura> 
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { customer: true, items: true },
+    include: { customer: true, items: true, branch: true },
   });
   if (!order) return { ok: false, error: "El pedido no existe" };
   if (order.cae)
@@ -39,6 +83,9 @@ export async function emitirFactura(orderId: string): Promise<ResultadoFactura> 
     return { ok: false, error: "El pedido no tiene items" };
   if (order.total <= 0)
     return { ok: false, error: "El total del pedido es cero" };
+
+  const noEsSuCuit = cuitQueNoEs(order, "facturarlo");
+  if (noEsSuCuit) return { ok: false, error: noEsSuCuit };
 
   const { cbteTipo, docTipo, docNro } = tipoDeComprobante({
     dni: order.customer.dni,
@@ -98,7 +145,7 @@ export async function emitirNotaCredito(
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { customer: true },
+    include: { customer: true, branch: true },
   });
   if (!order) return { ok: false, error: "El pedido no existe" };
   if (!order.cae || !order.cbteNro || !order.cbteTipo || !order.ptoVta)
@@ -108,6 +155,9 @@ export async function emitirNotaCredito(
       ok: false,
       error: `Ya tiene una nota de crédito emitida (CAE ${order.ncCae}).`,
     };
+
+  const ncNoEsSuCuit = cuitQueNoEs(order, "anularlo");
+  if (ncNoEsSuCuit) return { ok: false, error: ncNoEsSuCuit };
 
   // La NC es del mismo tipo que la factura: A anula A, B anula B.
   const ncTipo =

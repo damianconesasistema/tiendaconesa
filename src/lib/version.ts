@@ -2,6 +2,32 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.72.5 - ARCA: no se factura con el CUIT de otro contribuyente.
+//            El sitio tiene UN solo certificado de ARCA, en el servidor, y
+//            atiende dos sucursales que son dos contribuyentes distintos:
+//            Traslasierra (Conesa Carlos Daniel) y Buenos Aires (Sanitarios
+//            Conesa S.R.L.). Todo el modulo de ARCA no sabia de sucursales:
+//            pedia el CAE con el CUIT que hubiera cargado, viniera el
+//            pedido de donde viniera. Un pedido de Buenos Aires facturado
+//            con el certificado de Traslasierra sale a nombre de quien no
+//            vendio, y eso no se deshace: se anula con nota de credito, a
+//            mano, y queda en los libros de los dos.
+//            Ahora emitirFactura y emitirNotaCredito comparan el CUIT de la
+//            sucursal del pedido con el del servidor, y si son distintos no
+//            emiten: devuelven que falta cargar el certificado de esa
+//            sucursal.
+//            La nota de credito importa por su propia razon: tiene que
+//            salir del mismo CUIT que emitio la factura. El dia que se
+//            cambie el certificado del servidor, anular una factura vieja
+//            desde el nuevo seria emitir la NC de un contribuyente contra
+//            el comprobante de otro.
+//            SOLO frena cuando puede probarlo: hacen falta los dos CUIT y
+//            que sean distintos. Sin sucursal en el pedido, sin CUIT en el
+//            panel o sin AFIP_CUIT, factura igual que siempre. Un freno que
+//            salta por un dato que falta dejaria de facturar un martes
+//            cualquiera sin que nadie haya tocado nada.
+//            Traslasierra no cambia en nada: su CUIT es el del certificado
+//            cargado, asi que la comparacion da igual y sigue de largo.
 // V.0.72.4 - Los recargos de tarjeta son de cada sucursal, y entran los de
 //            Buenos Aires.
 //            Cada local cobra en SU cuenta de MercadoPago y cada cuenta tiene
@@ -521,7 +547,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.72.4";
+export const APP_VERSION = "V.0.72.5";
 
 export type VersionEntry = {
   version: string;
