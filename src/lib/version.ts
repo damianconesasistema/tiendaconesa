@@ -2,6 +2,27 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.73.4 - Se volvio atras la 0.73.3: la principal sigue siendo
+//            Traslasierra.
+//            La 0.73.3 movia "la sucursal principal" a Buenos Aires, y con
+//            ella el espejo. El espejo no copia solo el precio: copia
+//            precio, oferta, stock Y si el producto esta activo. Lo que hay
+//            en Product es el catalogo de Traslasierra, que esta ACTIVO; las
+//            filas de Buenos Aires estan PAUSADAS a proposito. Apuntar el
+//            espejo a Buenos Aires le iba a copiar active = true a sus 54
+//            filas en el primer guardado de cualquier producto —incluso
+//            desde el alta o al subir una foto, que no pasan por el freno de
+//            todaviaNoPorSucursal— y despausarle el catalogo entero.
+//            No alcanzo a correr: se verificaron los 54 en Pausado despues
+//            del deploy. El precio y el stock de Buenos Aires ya eran
+//            identicos a los de Traslasierra (los dejo asi la migracion
+//            32/33), asi que el estado era lo unico que cambiaba.
+//            El error de fondo: "la principal" no es una etiqueta que se
+//            pueda mover. Las filas de Traslasierra SON una copia del
+//            articulo, y eso es un hecho de la historia. Para que Buenos
+//            Aires sea la unica tienda hay que SACAR el puente —y con el
+//            este espejo— para que Product deje de ser la fuente de nadie.
+//            Recien ahi "principal" no significa nada y no hay que elegirla.
 // V.0.73.2 - En conesa.com.ar los recargos son los de la sucursal que vende.
 //            Los recargos de MercadoPago se leian por subdominio. En
 //            conesa.com.ar no hay subdominio, asi que se leian los generales;
@@ -605,7 +626,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.73.2";
+export const APP_VERSION = "V.0.73.4";
 
 export type VersionEntry = {
   version: string;
