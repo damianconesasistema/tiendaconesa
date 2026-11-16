@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.81.0 - "Buscar descripciones en la web" para muchos productos a la vez.
+//            Damian, 16/11/2026: "se puede hacer que busquen en la web
+//            masivamente, para no hacer uno por uno". Pantalla nueva
+//            (/admin/productos/descripciones, boton "Descripciones de la web"
+//            en Productos): los productos de este panel sin descripcion, con
+//            filtro por marca y rubro. Busca de a dos: FV en la pagina de FV,
+//            el resto en internet con la IA. No guarda solo: cada texto se ve
+//            en un cuadro editable y se guardan las tildadas; nunca pisa una
+//            descripcion que ya este. Si Google se queda sin cupo de busqueda,
+//            la IA escribe solo con el titulo: esas salen destildadas y
+//            marcadas. Si Google corta por limite, la tanda se frena.
 // V.0.80.3 - Al guardar la ficha, rubro, subrubro y marca volvian al valor
 //            viejo en pantalla. Damian, 16/11/2026: "cuando guardo, la
 //            categoria, el subrubro y la marca se resetea". Con <form
@@ -886,7 +897,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.80.3";
+export const APP_VERSION = "V.0.81.0";
 
 export type VersionEntry = {
   version: string;
