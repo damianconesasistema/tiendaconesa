@@ -2,6 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.74.1 - La lista de productos muestra el codigo una sola vez.
+//            Decia "SKU TST-10633 · 10633": el SKU con la marca adelante y el
+//            codigo del articulo, el mismo numero dos veces. Lo que se carga
+//            desde el alta guarda los dos IGUALES, asi que los 121 FV iban a
+//            salir "0207/C3-CR · 0207/C3-CR". Damian: "estas duplicando el
+//            sku". Ahora, si el SKU termina en el codigo (comparando solo
+//            letras y numeros), se muestra "SKU 10633". Si es otro codigo de
+//            verdad, siguen saliendo los dos. Solo cambia lo que se ve: en
+//            la base no se toco nada.
 // V.0.74.0 - Subrubros, y titulo y foto traidos de la pagina de FV.
 //            SUBRUBROS: columna nueva Product.subcategory (migracion 37) con
 //            la lista fija de cada rubro en src/lib/subrubros.ts. Griferia:
@@ -688,7 +697,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.74.0";
+export const APP_VERSION = "V.0.74.1";
 
 export type VersionEntry = {
   version: string;

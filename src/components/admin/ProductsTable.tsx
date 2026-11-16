@@ -76,6 +76,16 @@ const CAT_LABELS: Record<string, string> = {
   otros: "Otros",
 };
 
+/** Si el SKU dice lo mismo que el codigo del articulo, con o sin la marca
+ *  adelante y con otros separadores: "TST-10633" y "10633", o
+ *  "COMBO-PRIN-3440-3443-3442" y "3440+3443+3442". Solo letras y numeros. */
+function repiteElCodigo(sku: string, itemId: string): boolean {
+  const solo = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const a = solo(sku);
+  const b = solo(itemId);
+  return b !== "" && a.endsWith(b);
+}
+
 export function ProductsTable({
   products,
   total = products.length,
@@ -607,8 +617,17 @@ export function ProductsTable({
                               Bloqueado
                             </span>
                           )}
+                          {/* Un solo codigo cuando el SKU repite el del
+                              articulo: "TST-10633 · 10633" era el mismo
+                              numero dos veces, y lo que se carga desde el
+                              alta guarda los dos iguales ("0207/C3-CR ·
+                              0207/C3-CR"). El SKU solo se muestra aparte si
+                              de verdad es otro codigo. */}
                           <span className="font-bold">
-                            {p.sku ? `SKU ${p.sku} · ` : ""}
+                            SKU{" "}
+                            {p.sku && !repiteElCodigo(p.sku, p.itemId)
+                              ? `${p.sku} · `
+                              : ""}
                             {p.itemId}
                           </span>
                           {hasSale && (
