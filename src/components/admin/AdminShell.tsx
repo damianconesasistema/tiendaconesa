@@ -49,8 +49,13 @@ export async function AdminShell({
   const rutaDeLaPantalla = banda
     ? ((await headers()).get("x-ruta") ?? "/admin")
     : "/admin";
+  // En las pantallas de productos (las de la tienda) no se ofrece ir a un
+  // local sin tienda online: Traslasierra desde el 16/11/2026.
+  const esDeLaTienda = rutaDeLaPantalla.startsWith("/admin/productos");
   const otras = banda
-    ? (await sucursalesDelPanel()).filter((s) => s.id !== banda.id)
+    ? (await sucursalesDelPanel()).filter(
+        (s) => s.id !== banda.id && (!esDeLaTienda || s.tiendaOnline),
+      )
     : [];
 
   return (

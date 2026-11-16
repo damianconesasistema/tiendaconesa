@@ -34,6 +34,7 @@ import {
   hayTiendaAbierta,
 } from "@/lib/sucursal";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { entregaDelLocal } from "@/lib/entrega";
 
 const categoryIcons = [
   ShowerHead,
@@ -105,27 +106,12 @@ export default async function Home() {
     })
     .catch(() => []);
 
-  // Lo que promete la portada arriba de todo. En conesa.com.ar no se puede
-  // decir "retiralo en Villa Cura Brochero" ni "envios a Traslasierra": son
-  // dos locales y el que entra desde Capital leeria una promesa que no es
-  // para el. En la tienda de una sucursal si, porque ahi se vende esa.
-  const unica = sucursales.length === 1 ? sucursales[0] : null;
-  const promesas = unica
-    ? {
-        dondeRetirar: unica.city ?? unica.name,
-        retiroDesc: `${unica.city ?? unica.name} · gratis`,
-        envioTitulo: `Envíos a ${unica.name}`,
-        // Lo que escribio el local en su ficha ("Capital y Gran Buenos
-        // Aires. Gratis desde $100.000."). Buenos Aires ya no coordina el
-        // costo: lo cobra segun la zona.
-        envioDesc: unica.zonaEnvio || "Costo a coordinar por WhatsApp",
-      }
-    : {
-        dondeRetirar: "cualquiera de los dos locales",
-        retiroDesc: "En los dos locales · gratis",
-        envioTitulo: "Envíos",
-        envioDesc: "Según la zona de cada local",
-      };
+  // Lo que promete la portada arriba de todo: los mismos dos botones de la
+  // ficha y el checkout, del local que vende (src/lib/entrega.ts). Antes,
+  // con dos locales, decia "en cualquiera de los dos locales"; la tienda de
+  // Traslasierra no sigue (Damian, 16/11/2026) y la que vende es Buenos
+  // Aires: "Envio a AMBA" y "Retiro en sucursal Buenos Aires".
+  const promesas = await entregaDelLocal();
 
   // Para el banner de arriba: todas las que tienen descuento, para poder
   // contarlas y quedarse con las de mayor rebaja. El descuento no se puede
@@ -192,6 +178,7 @@ export default async function Home() {
       <HeroCarousel
         whatsappHref={contacto.linkWhatsapp("Hola! Vi la web y quería hacer una consulta.")}
         dondeRetirar={promesas.dondeRetirar}
+        retiroTitulo={promesas.retiroTitulo}
         retiroDesc={promesas.retiroDesc}
         envioTitulo={promesas.envioTitulo}
         envioDesc={promesas.envioDesc}
@@ -424,27 +411,39 @@ export default async function Home() {
               <br />
               <span className="text-[var(--brand-red)]">en el rubro.</span>
             </h2>
+            {/* Los locales salen de la base (los activos), no de un texto
+                fijo: Traslasierra se oculto el 16/11/2026 ("si volvemos a
+                activarla en algun momento la prendemos") y al prenderla
+                vuelve a aparecer sola aca. */}
             <p className="mt-6 max-w-md text-balance text-base text-[var(--muted)]">
               Desde {business.desde} vendemos sanitarios, grifería y materiales
-              para la construcción. Hoy somos dos locales: uno en Buenos Aires y
-              otro en Traslasierra, con la misma forma de atender.
+              para la construcción.
+              {sucursales.length > 1
+                ? ` Hoy somos ${sucursales.length} locales: ${sucursales.map((s) => s.name).join(" y ")}, con la misma forma de atender.`
+                : sucursales.length === 1
+                  ? ` Hoy atendemos en nuestra sucursal de ${sucursales[0].name}.`
+                  : ""}
             </p>
 
             <div className="mt-10 space-y-6">
-              <InfoRow icon={Store} title="Dos salones de venta">
-                Balvanera, Ciudad Autónoma de Buenos Aires
-                <br />
-                Villa Cura Brochero, Córdoba
-              </InfoRow>
-              {/* Decia "Envios a todo el pais", que hoy no es cierto:
-                  Traslasierra cubre el valle y Balvanera por ahora AMBA. En
-                  una tienda una promesa de envio que no se cumple no es un
-                  detalle de texto, es un reclamo. Lo concreto de cada local
-                  esta en su tarjeta, escrito por el que vende. */}
+              {sucursales.length > 0 && (
+                <InfoRow
+                  icon={Store}
+                  title={sucursales.length > 1 ? "Salones de venta" : "Salón de venta"}
+                >
+                  {sucursales.map((s) => (
+                    <span key={s.slug} className="block">
+                      {[s.address, s.city, s.province].filter(Boolean).join(", ") || s.name}
+                    </span>
+                  ))}
+                </InfoRow>
+              )}
+              {/* Lo mismo que dicen los botones de la ficha y el checkout
+                  (src/lib/entrega.ts). */}
               <InfoRow icon={Truck} title="Entregas">
-                Retiro en cualquiera de los dos locales
+                {promesas.retiroTitulo}
                 <br />
-                Envíos según la zona · fuera de ella, a coordinar
+                {promesas.envioTitulo} · {promesas.envioDesc}
               </InfoRow>
               {/* Un mail solo, sin decir de que local era, hacia que el que
                   escribia desde Capital le mandara el mail a Cordoba. Van
@@ -495,19 +494,24 @@ export default async function Home() {
                       }
                     />
                   ))
-              ) : (
+              ) : sucursales.some((s) => s.instagram) ? (
+                // Uno solo: el de esa sucursal. Antes caia en el Instagram
+                // general, que es la cuenta de Traslasierra.
                 <SocialPill
-                  href={business.social.instagram.url}
+                  href={sucursales.find((s) => s.instagram)!.instagram!}
                   icon={InstagramIcon}
                   label="Instagram"
-                  detail={business.social.instagram.followers}
+                />
+              ) : null}
+              {/* El Facebook de business es la pagina de Traslasierra: con
+                  Traslasierra oculta, no va. */}
+              {sucursales.some((s) => s.slug === "traslasierra") && (
+                <SocialPill
+                  href={business.social.facebook.url}
+                  icon={FacebookIcon}
+                  label="Facebook"
                 />
               )}
-              <SocialPill
-                href={business.social.facebook.url}
-                icon={FacebookIcon}
-                label="Facebook"
-              />
               <SocialPill
                 href={business.social.tiktok.url}
                 icon={TikTokIcon}

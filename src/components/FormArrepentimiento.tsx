@@ -11,7 +11,15 @@ import { business } from "@/lib/business";
 // WhatsApp o en el cliente de correo del visitante. Asi el pedido llega de
 // verdad y queda registrado del lado de la persona.
 
-export function FormArrepentimiento() {
+export function FormArrepentimiento({
+  whatsappNumero = business.whatsapp.number,
+  email = business.email,
+}: {
+  /** El WhatsApp y el mail de la sucursal que vende. Antes eran siempre los
+   *  de Traslasierra (business). */
+  whatsappNumero?: string;
+  email?: string;
+} = {}) {
   const [pedido, setPedido] = useState("");
   const [nombre, setNombre] = useState("");
   const [dni, setDni] = useState("");
@@ -39,8 +47,8 @@ export function FormArrepentimiento() {
       .join("\n");
   }
 
-  const wa = `https://api.whatsapp.com/send?phone=${business.whatsapp.number}&text=${encodeURIComponent(mensaje())}`;
-  const mail = `mailto:${business.email}?subject=${encodeURIComponent("Solicitud de arrepentimiento de compra")}&body=${encodeURIComponent(mensaje())}`;
+  const wa = `https://api.whatsapp.com/send?phone=${whatsappNumero}&text=${encodeURIComponent(mensaje())}`;
+  const mail = `mailto:${email}?subject=${encodeURIComponent("Solicitud de arrepentimiento de compra")}&body=${encodeURIComponent(mensaje())}`;
 
   return (
     <div className="mt-6 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm sm:p-6">

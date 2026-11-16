@@ -17,8 +17,10 @@ import {
   guardarComercial,
   agregarALaSucursal,
   todaviaNoPorSucursal,
+  sucursalDeEdicion,
 } from "@/lib/precios-sucursal";
 import { subrubroValido } from "@/lib/subrubros";
+import { whereDelLocal } from "@/lib/filtro-productos";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -446,39 +448,59 @@ export async function deleteHistoryEntry(
 // Acciones en bulk: pausar / activar / destacar muchos a la vez
 type BulkAction = "activate" | "pause" | "feature" | "unfeature";
 
+/** Aplica la accion en lote a estos articulos, los que no tienen candado.
+ *
+ *  Activar y pausar es del LOCAL: va a su fila (guardarComercial), y solo a
+ *  las que ese local ya tiene cargadas. Antes escribia el articulo, que es el
+ *  catalogo de Traslasierra: en el panel de Buenos Aires "activar 40" no
+ *  activaba nada en Buenos Aires. Destacar es del articulo (la portada es una
+ *  sola), asi que sigue yendo ahi. */
+async function aplicarEnLote(
+  itemIds: string[],
+  action: BulkAction,
+): Promise<{ ok?: true; error?: string; count?: number }> {
+  if (!["activate", "pause", "feature", "unfeature"].includes(action))
+    return { error: "Acción no soportada" };
+  // locked: false => los bloqueados con candado quedan intactos
+  const sueltos = (
+    await prisma.product.findMany({
+      where: { itemId: { in: itemIds }, locked: false },
+      select: { itemId: true },
+    })
+  ).map((p) => p.itemId);
+  if (sueltos.length === 0) return { ok: true, count: 0 };
+
+  let count: number;
+  if (action === "activate" || action === "pause") {
+    const r = await guardarComercial(
+      sueltos,
+      { active: action === "activate" },
+      { crearSiFalta: false },
+    );
+    count = r.guardados.length;
+  } else {
+    const r = await prisma.product.updateMany({
+      where: { itemId: { in: sueltos } },
+      data: { featured: action === "feature" },
+    });
+    count = r.count;
+  }
+  await sincronizarSucursalPrincipal();
+  revalidatePath("/admin/productos");
+  revalidatePath("/tienda");
+  revalidatePath("/");
+  return { ok: true, count };
+}
+
 export async function bulkUpdate(
   itemIds: string[],
   action: BulkAction,
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
-  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
-  // Ver src/lib/precios-sucursal.ts.
-  const noPorAhora = await todaviaNoPorSucursal("Editar en lote");
-  if (noPorAhora) return { error: noPorAhora };
   if (!itemIds.length) return { error: "Ningún producto seleccionado" };
-
-  const data: Record<string, boolean> = {};
-  if (action === "activate") data.active = true;
-  else if (action === "pause") data.active = false;
-  else if (action === "feature") data.featured = true;
-  else if (action === "unfeature") data.featured = false;
-  else return { error: "Acción no soportada" };
-
   try {
-    // locked: false => los bloqueados con candado quedan intactos
-    const r = await prisma.product.updateMany({
-      where: { itemId: { in: itemIds }, locked: false },
-      data,
-    });
-    // El panel lee los precios de la tabla de la sucursal, asi que despues
-  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
-  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
-  await sincronizarSucursalPrincipal();
-  revalidatePath("/admin/productos");
-    revalidatePath("/tienda");
-    revalidatePath("/");
-    return { ok: true, count: r.count };
+    return await aplicarEnLote(itemIds, action);
   } catch (e) {
     return { error: `Error al actualizar: ${(e as Error).message}` };
   }
@@ -527,31 +549,22 @@ export async function bulkUpdateAll(
 ): Promise<{ ok?: true; error?: string; count?: number }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
-  // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
-  // Ver src/lib/precios-sucursal.ts.
-  const noPorAhora = await todaviaNoPorSucursal("Editar en lote");
-  if (noPorAhora) return { error: noPorAhora };
-
-  const data: Record<string, boolean> = {};
-  if (action === "activate") data.active = true;
-  else if (action === "pause") data.active = false;
-  else if (action === "feature") data.featured = true;
-  else if (action === "unfeature") data.featured = false;
-  else return { error: "Acción no soportada" };
+  const local = await sucursalDeEdicion();
+  if (!local) return { error: "Entrá al panel de un local para editar en lote." };
 
   try {
-    const r = await prisma.product.updateMany({
-      where: { ...buildProductWhere(filter, excluir), locked: false },
-      data,
+    // Los mismos que muestra la lista de ESTE local con ese filtro: el filtro
+    // es el de la lista (src/lib/filtro-productos.ts), sobre la tabla del
+    // local. Antes filtraba sobre el articulo, con el estado y el stock de
+    // Traslasierra.
+    const filas = await prisma.branchProduct.findMany({
+      where: whereDelLocal(local.id, filter, excluir),
+      select: { product: { select: { itemId: true } } },
     });
-    // El panel lee los precios de la tabla de la sucursal, asi que despues
-  // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
-  // el precio viejo. Ver src/lib/espejo-sucursal.ts.
-  await sincronizarSucursalPrincipal();
-  revalidatePath("/admin/productos");
-    revalidatePath("/tienda");
-    revalidatePath("/");
-    return { ok: true, count: r.count };
+    return await aplicarEnLote(
+      filas.map((f) => f.product.itemId),
+      action,
+    );
   } catch (e) {
     return { error: `Error al actualizar: ${(e as Error).message}` };
   }

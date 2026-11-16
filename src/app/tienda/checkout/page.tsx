@@ -9,6 +9,7 @@ import {
 } from "@/lib/settings";
 import { mpConfigurado } from "@/lib/mercadopago";
 import { modoDeEnvio } from "@/lib/zona-envio";
+import { entregaDelLocal } from "@/lib/entrega";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -32,16 +33,17 @@ export default async function Checkout() {
   // tiene el stock y factura.
   const contacto = await contactoDeLaVenta();
   const s = await sucursalQueVende();
-  const dondeSeRetira = s?.city || s?.address || "el local";
+  // Los mismos dos botones que la ficha y la portada (src/lib/entrega.ts):
+  // "Envio a AMBA" y "Retiro en sucursal Buenos Aires".
+  const entrega = await entregaDelLocal();
 
   return (
     <CheckoutPage
       whatsappSucursal={contacto.whatsapp}
-      retiroDesc={`${dondeSeRetira} · sin costo`}
-      // "Envio a domicilio" y no "Envio a Traslasierra": ahora tambien se puede
-      // pedir desde fuera de la zona, a coordinar.
-      envioTitulo="Envío a domicilio"
-      envioDesc={s?.zonaEnvio || "Costo a coordinar por WhatsApp"}
+      retiroTitulo={entrega.retiroTitulo}
+      retiroDesc={entrega.retiroDesc}
+      envioTitulo={entrega.envioTitulo}
+      envioDesc={entrega.envioDesc}
       recargos={recargos}
       // Si ESTA sucursal puede cobrar online. Una puede tener su cuenta
       // cargada y la otra no, y el que compra en la que no la tiene no

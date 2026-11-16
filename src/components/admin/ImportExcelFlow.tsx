@@ -277,7 +277,10 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   if (stage === "preview" && parse?.ok && parse.rows) {
     const stats = parse.stats!;
     const rows = parse.rows;
-    const sample = rows.slice(0, 10);
+    // Todas las filas, siempre: antes se veian las primeras 10 y el resto
+    // quedaba como "+ 11 filas mas (no mostradas)". Damian quiere revisar la
+    // lista entera antes de aplicar, sobre todo los "No esta" (16/11/2026).
+    const sample = rows;
     const hasErrors = stats.withErrors > 0;
 
     return (
@@ -619,7 +622,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
         <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
           <div className="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-3">
             <div className="font-display text-xs font-black uppercase tracking-wider text-[var(--muted)]">
-              Preview de las primeras 10 filas
+              Todas las filas del archivo ({rows.length})
             </div>
           </div>
           <table className="w-full min-w-[800px] text-sm">
@@ -645,11 +648,6 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
               ))}
             </tbody>
           </table>
-          {rows.length > 10 && (
-            <div className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-xs text-[var(--muted)]">
-              + {rows.length - 10} filas más (no mostradas)
-            </div>
-          )}
         </div>
       </div>
     );

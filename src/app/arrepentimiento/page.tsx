@@ -4,6 +4,7 @@ import { ArrowLeft, Undo2 } from "lucide-react";
 import { business } from "@/lib/business";
 import { legales } from "@/lib/legales";
 import { FormArrepentimiento } from "@/components/FormArrepentimiento";
+import { sucursalQueVende } from "@/lib/sucursal";
 
 export const metadata: Metadata = {
   title: "Botón de arrepentimiento",
@@ -11,8 +12,16 @@ export const metadata: Metadata = {
     "Arrepentite de tu compra dentro de los 10 días corridos, sin costo y sin dar explicaciones. Ley 24.240, artículo 34.",
 };
 
-export default function ArrepentimientoPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ArrepentimientoPage() {
   const dias = legales.diasArrepentimiento;
+  // El mail y el WhatsApp de la sucursal que vende: el arrepentimiento lo
+  // atiende el que cobro. Antes eran siempre los de Traslasierra.
+  const s = await sucursalQueVende();
+  const email = s?.email || business.email;
+  const whatsappNumero = s?.whatsapp?.replace(/\D/g, "") || business.whatsapp.number;
+  const whatsappTexto = s?.whatsapp || business.whatsapp.display;
 
   return (
     <main className="min-h-screen bg-[var(--surface)] px-4 py-10 sm:px-6 sm:py-16">
@@ -69,11 +78,11 @@ export default function ArrepentimientoPage() {
           </p>
         </div>
 
-        <FormArrepentimiento />
+        <FormArrepentimiento whatsappNumero={whatsappNumero} email={email} />
 
         <p className="mt-6 text-center text-xs text-[var(--muted)]">
-          También podés escribirnos directo a {business.email} o al WhatsApp{" "}
-          {business.whatsapp.display}.{" "}
+          También podés escribirnos directo a {email} o al WhatsApp{" "}
+          {whatsappTexto}.{" "}
           <Link href="/legales" className="underline">
             Ver términos y condiciones
           </Link>

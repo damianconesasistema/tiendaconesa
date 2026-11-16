@@ -15,7 +15,6 @@ import {
   provinciaDeLaZona,
   envioDe,
   modoDeEnvio,
-  DONDE_ENVIAMOS,
 } from "@/lib/zona-envio";
 import { codigoDeAhora } from "@/lib/codigo-viejo";
 import { opcionValida } from "@/lib/etiquetas";
@@ -70,7 +69,7 @@ export async function createOrder(
     if (enMapa && !zona)
       return {
         ok: false,
-        error: `Por ahora enviamos solo a ${DONDE_ENVIAMOS}, y ese código postal queda afuera. Podés retirar en el local.`,
+        error: `Para ese código postal el envío se consulta por WhatsApp: escribinos y te pasamos el costo, o elegí retirar en el local.`,
       };
   }
 

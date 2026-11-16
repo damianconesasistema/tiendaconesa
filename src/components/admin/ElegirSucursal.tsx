@@ -10,11 +10,17 @@ export async function ElegirSucursal({
   /** A donde ir dentro del panel de cada local: "/admin/productos", etc. */
   pantalla = "/admin",
   titulo = "¿Qué local vas a administrar?",
+  soloConTienda = false,
 }: {
   pantalla?: string;
   titulo?: string;
+  /** Solo los locales con tienda online: el panel de productos es el de la
+   *  tienda, y un local sin tienda (Traslasierra) no tiene que aparecer. */
+  soloConTienda?: boolean;
 }) {
-  const sucursales = await sucursalesDelPanel();
+  const sucursales = (await sucursalesDelPanel()).filter(
+    (s) => !soloConTienda || s.tiendaOnline,
+  );
 
   return (
     <div className="mx-auto max-w-3xl">

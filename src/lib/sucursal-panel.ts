@@ -40,6 +40,9 @@ export type SucursalPanel = {
    *  tiendas cerradas sigue siendo Traslasierra. */
   principal: boolean;
   tiendaActiva: boolean;
+  /** Si tiene tienda online. Sin tienda (Traslasierra desde el 16/11/2026)
+   *  no aparece en el panel de productos; sigue siendo un local. */
+  tiendaOnline: boolean;
   productos: number;
   /** A donde queda su panel: https://<subdominio>.<dominio> */
   base: string;
@@ -65,6 +68,7 @@ export const sucursalesDelPanel = cache(async (): Promise<SucursalPanel[]> => {
       subdominio: true,
       name: true,
       tiendaActiva: true,
+      tiendaOnline: true,
       _count: { select: { productos: true } },
     },
   });
@@ -86,6 +90,7 @@ export const sucursalesDelPanel = cache(async (): Promise<SucursalPanel[]> => {
     nombre: f.name,
     principal: f.id === idPrincipal,
     tiendaActiva: f.tiendaActiva,
+    tiendaOnline: f.tiendaOnline,
     productos: f._count.productos,
     base: f.subdominio ? `https://${f.subdominio}.${dominio}` : `https://${dominio}`,
     color: COLORES[i % COLORES.length],

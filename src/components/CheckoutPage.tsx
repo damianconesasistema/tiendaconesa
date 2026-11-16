@@ -17,7 +17,6 @@ import { gaArrancarCheckout } from "@/lib/ga";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
 import { localidadesPorZona } from "@/lib/traslasierra";
 import {
-  DONDE_ENVIAMOS,
   envioDe,
   faltaParaEnvioGratis,
   type PreciosEnvio,
@@ -40,6 +39,7 @@ export function CheckoutPage({
   // Donde se retira y que envia ESTE local. Tambien venian fijos con los
   // datos de Traslasierra: el que compraba desde Capital leia que tenia que
   // retirar en Villa Cura Brochero.
+  retiroTitulo = "Retiro en tienda",
   retiroDesc,
   envioTitulo,
   envioDesc,
@@ -53,6 +53,8 @@ export function CheckoutPage({
   planes?: Plan[];
   whatsappSucursal: string;
   /** Donde se retira en este local: "Rincón 43 · sin costo". */
+  /** "Retiro en sucursal Buenos Aires" (src/lib/entrega.ts). */
+  retiroTitulo?: string;
   retiroDesc: string;
   /** El titulo y el detalle del envio de este local. */
   envioTitulo: string;
@@ -199,7 +201,7 @@ export function CheckoutPage({
       if (!esCP(customer.postalCode)) e.postalCode = "4 números";
       // Buenos Aires: solo dentro del mapa. Fuera, el pedido no sale.
       else if (fueraDelMapa)
-        e.postalCode = "No enviamos a este código postal";
+        e.postalCode = "Consultá el envío por WhatsApp";
       if (!customer.street.trim()) e.street = "Requerido";
       if (!customer.streetNumber.trim()) e.streetNumber = "Requerido";
     }
@@ -381,7 +383,7 @@ export function CheckoutPage({
                     setCustomer({ ...customer, shipping: "retiro" })
                   }
                   icon={Store}
-                  title="Retiro en tienda"
+                  title={retiroTitulo}
                   desc={retiroDesc}
                   badge="Sin cargo"
                 />
@@ -431,23 +433,51 @@ export function CheckoutPage({
                   {/* Lo que sale el envio a ese codigo postal, apenas se
                       escribe. Antes de pedir el resto de los datos: si no
                       llegamos, que lo sepa ahora y no al final. */}
-                  {cpCompleto && (
+                  {/* Fuera del mapa no hay precio automatico: se consulta.
+                      Damian, 16/11/2026: "si pone algun otro codigo postal
+                      que no sea de los que te pase, que diga consultar por
+                      WhatsApp el envio". El boton abre WhatsApp con lo que
+                      tiene en el carrito y su codigo postal. */}
+                  {cpCompleto && !envio && (
+                    <div className="rounded-xl bg-amber-50 px-3 py-3 text-sm text-amber-900">
+                      <p className="font-semibold">
+                        Consultá el envío por WhatsApp
+                      </p>
+                      <p className="mt-0.5">
+                        Al código postal {customer.postalCode.replace(/\D/g, "")} el
+                        envío se cotiza aparte. Escribinos y te pasamos el costo, o
+                        elegí retirar en el local.
+                      </p>
+                      <a
+                        href={whatsappOrderLink(
+                          [
+                            `¡Hola! Quiero consultar el envío al código postal ${customer.postalCode.replace(/\D/g, "")}${customer.locality.trim() ? ` (${customer.locality.trim()})` : ""} para:`,
+                            ...items.map((i) => `• ${i.qty}× ${i.title}`),
+                          ].join("\n"),
+                          whatsappSucursal,
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1DA851]"
+                      >
+                        <WhatsAppIcon className="h-4 w-4" />
+                        Consultar envío por WhatsApp
+                      </a>
+                    </div>
+                  )}
+                  {cpCompleto && envio && (
                     <p
                       className={`rounded-xl px-3 py-2 text-sm ${
-                        !envio
-                          ? "bg-amber-50 text-amber-900"
-                          : envio.gratis
-                            ? "bg-emerald-50 font-semibold text-emerald-800"
-                            : "bg-[var(--surface)] text-foreground"
+                        envio.gratis
+                          ? "bg-emerald-50 font-semibold text-emerald-800"
+                          : "bg-[var(--surface)] text-foreground"
                       }`}
                     >
-                      {!envio
-                        ? `Por ahora no enviamos a ese código postal: llegamos a ${DONDE_ENVIAMOS}. Podés retirar en el local o escribirnos por WhatsApp.`
-                        : envio.gratis
-                          ? `${envio.zona === "CABA" ? "Capital" : envio.zona} · Tu envío es gratis.`
-                          : `${envio.zona === "CABA" ? "Capital" : envio.zona} · Envío ${formatPrice(envio.costo)}${
-                              tope ? `. Gratis comprando desde ${formatPrice(tope)}: te faltan ${formatPrice(faltanParaGratis)}.` : "."
-                            }`}
+                      {envio.gratis
+                        ? `${envio.zona === "CABA" ? "Capital" : envio.zona} · Tu envío es gratis.`
+                        : `${envio.zona === "CABA" ? "Capital" : envio.zona} · Envío ${formatPrice(envio.costo)}${
+                            tope ? `. Gratis comprando desde ${formatPrice(tope)}: te faltan ${formatPrice(faltanParaGratis)}.` : "."
+                          }`}
                     </p>
                   )}
                   <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">

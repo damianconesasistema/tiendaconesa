@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     template: "%s · Sanitarios Conesa",
   },
   description:
-    "Comprá online sanitarios, grifería, bañeras, salamandras, calefones y materiales de construcción. Las mejores marcas (FV, Piazza, Hydros, Johnson). Dos locales: Balvanera, Ciudad de Buenos Aires y Villa Cura Brochero, Córdoba. Retiro en el local o envío a coordinar.",
+    "Comprá online sanitarios, grifería, bañeras, salamandras, calefones y materiales de construcción. Las mejores marcas (FV, Piazza, Hydros, Johnson). Dos locales: Balvanera, Ciudad de Buenos Aires y Villa Cura Brochero, Córdoba. Tienda online con envío a AMBA, gratis desde $100.000, o retiro en la sucursal Buenos Aires.",
   keywords: [
     "sanitarios conesa",
     "sanitarios villa cura brochero",
@@ -101,7 +101,7 @@ export const metadata: Metadata = {
     title:
       "Sanitarios Conesa · Tienda online de sanitarios y materiales",
     description:
-      "Ofertas en sanitarios, grifería, salamandras y materiales. Dos locales: Buenos Aires y Traslasierra. Retiro en el local o envío a coordinar.",
+      "Ofertas en sanitarios, grifería, salamandras y materiales. Dos locales: Buenos Aires y Traslasierra. Envío a AMBA o retiro en la sucursal Buenos Aires.",
     url: SITE_URL,
     siteName: business.name,
     locale: "es_AR",

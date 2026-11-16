@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { business } from "@/lib/business";
 import { legales, getLegales } from "@/lib/legales";
+import { sucursalActual } from "@/lib/sucursal";
+import { entregaDelLocal } from "@/lib/entrega";
 
 export const metadata: Metadata = {
   title: "Términos y condiciones",
@@ -14,7 +16,27 @@ const DIAS = legales.diasArrepentimiento;
 
 export default async function LegalesPage() {
   const legales = await getLegales();
-  const domicilio = `${business.address.street}, ${business.address.city}, ${business.address.province} (${business.address.postalCode})`;
+  // El domicilio y el contacto son los de la sucursal que atiende, igual que
+  // la razon social y el CUIT de arriba. Antes salian de business, que es
+  // Villa Cura Brochero: la pagina decia la S.R.L. de Buenos Aires con el
+  // domicilio de Traslasierra. Si la sucursal no tiene cargado un dato, queda
+  // el de antes en vez de un hueco.
+  const s = await sucursalActual();
+  const entrega = await entregaDelLocal();
+  const domicilio = s?.address
+    ? [s.address, s.city, s.province, s.postalCode ? `(${s.postalCode})` : null]
+        .filter(Boolean)
+        .join(", ")
+        .replace(", (", " (")
+    : `${business.address.street}, ${business.address.city}, ${business.address.province} (${business.address.postalCode})`;
+  const contacto = [
+    s?.email || business.email,
+    s?.phone || business.phone.display,
+    `WhatsApp ${s?.whatsapp || business.whatsapp.display}`,
+  ].join(" · ");
+  const horario = s?.hours?.trim()
+    ? s.hours.trim()
+    : `${business.hours.weekdays.toLowerCase()} y ${business.hours.saturday.toLowerCase()}`;
 
   return (
     <main className="min-h-screen bg-[var(--surface)] px-4 py-10 sm:px-6 sm:py-16">
@@ -42,10 +64,7 @@ export default async function LegalesPage() {
               {domicilio}.
             </p>
             <p>
-              Contacto: {business.email} · {business.phone.display} · WhatsApp{" "}
-              {business.whatsapp.display}. Atención{" "}
-              {business.hours.weekdays.toLowerCase()} y{" "}
-              {business.hours.saturday.toLowerCase()}.
+              Contacto: {contacto}. Atención: {horario}.
             </p>
           </Seccion>
 
@@ -74,9 +93,10 @@ export default async function LegalesPage() {
               abonado en su totalidad.
             </p>
             <p>
-              Podés retirar tu compra en nuestro local de {business.address.city} o
-              coordinar el envío a localidades del Valle de Traslasierra. El costo
-              del envío se informa y acuerda antes de despachar.
+              Podés retirar tu compra sin costo en {entrega.dondeRetirar} o pedir
+              el envío a Capital y Gran Buenos Aires. El costo del envío depende
+              de la zona de tu código postal y se informa antes de pagar. Fuera
+              de esa zona, por ahora, no realizamos envíos.
             </p>
             <p>
               Las imágenes de las publicaciones son a modo ilustrativo. El producto

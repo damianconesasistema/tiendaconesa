@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/db";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
 
+/** De que local es el articulo: el catalogo de Traslasierra, de cuando habia
+ *  un solo local. El espejo (src/lib/espejo-sucursal.ts) lo copia a sus
+ *  filas, con la misma palabra escrita en el SQL. Solo ese local escribe el
+ *  articulo; los demas, solo su fila. No depende de que tienda este abierta:
+ *  es un hecho de la historia y no una regla que cambie con una casilla. */
+const LOCAL_DEL_ARTICULO = "traslasierra";
+
 // Donde se guarda el precio, la oferta, el stock y si se muestra.
 //
 // Son datos de CADA LOCAL, no del articulo. El panel ya los lee de la tabla de
@@ -118,9 +125,15 @@ export async function guardarComercial(
     guardados.push(p.itemId);
   }
 
-  // El puente: la tienda todavia lee el precio del articulo. Solo por lo que
-  // de verdad se guardo, no por lo que se saltea.
-  if (s.esPrincipal && guardados.length > 0 && Object.keys(datos).length > 0) {
+  // El puente: el articulo es el catalogo de Traslasierra y se mantiene igual
+  // a sus filas. Solo por lo que de verdad se guardo, no por lo que se
+  // saltea. Va atado a Traslasierra y no a "la que vende": abrir la tienda de
+  // Buenos Aires no tiene que hacer que sus precios pisen el articulo.
+  if (
+    s.slug === LOCAL_DEL_ARTICULO &&
+    guardados.length > 0 &&
+    Object.keys(datos).length > 0
+  ) {
     await prisma.product.updateMany({
       where: { itemId: { in: guardados } },
       data: datos,
@@ -141,17 +154,19 @@ export async function agregarALaSucursal(
   await guardarComercial(itemIds, { active });
 }
 
-/** Para las pantallas que todavia no saben de sucursales.
+/** Para las pantallas que todavia escriben el articulo y no la fila del local.
  *
- *  Devuelve el mensaje de error cuando se las quiere usar desde un local que
- *  no es el que vende. Es a proposito: dejarlas pasar significaria que tocar
- *  un precio en el panel de Buenos Aires se lo cambia a Traslasierra. Un
- *  cartel que dice "todavia no" es molesto; cambiar el precio del otro local
- *  sin avisar es plata. */
+ *  El articulo es el catalogo de Traslasierra (lo copia a sus filas el
+ *  espejo, src/lib/espejo-sucursal.ts), asi que solo se pueden usar desde el
+ *  panel de Traslasierra. Antes la condicion era "el local que vende": con la
+ *  tienda de Buenos Aires abierta, estas pantallas se habrian destrabado en
+ *  su panel y habrian escrito en Traslasierra sin cambiar nada en Buenos
+ *  Aires. Un cartel que dice "todavia no" es molesto; cambiar el precio del
+ *  otro local sin avisar es plata. */
 export async function todaviaNoPorSucursal(
   queCosa: string,
 ): Promise<string | null> {
   const s = await sucursalDeEdicion();
-  if (!s || s.esPrincipal) return null;
-  return `${queCosa} todavía no está disponible en el panel de ${s.nombre}. Por ahora se hace desde el panel del local que vende.`;
+  if (!s || s.slug === LOCAL_DEL_ARTICULO) return null;
+  return `${queCosa} todavía no está disponible en el panel de ${s.nombre}. Mientras tanto se hace producto por producto, o por Excel en "Precios y stock".`;
 }

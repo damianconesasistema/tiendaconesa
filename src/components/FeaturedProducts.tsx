@@ -194,9 +194,6 @@ function FeaturedCard({
             strokeWidth={1.2}
           />
         )}
-        <span className="absolute bottom-3 right-3 z-10 inline-flex max-w-[calc(100%-1.5rem)] items-center truncate rounded-full bg-black/80 px-2.5 py-1 font-display text-[9px] font-bold tracking-wide text-white backdrop-blur-sm sm:text-[10px]">
-          {CAT_LABELS[p.category] || p.category}
-        </span>
         {hasSale && !outOfStock && (
           <span
             className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-3 py-1.5 font-display text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-red-500/40"
@@ -212,7 +209,13 @@ function FeaturedCard({
         )}
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="uppercase text-xs font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)] sm:text-sm">
+        {/* La categoria arriba del titulo y no encima de la foto, igual que
+            en la tienda: en la foto tapaba el producto (Damian, 16/11/2026:
+            "que no tape la imagen"). */}
+        <span className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+          {CAT_LABELS[p.category] || p.category}
+        </span>
+        <h3 className="mt-1 uppercase text-xs font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)] sm:text-sm">
           {p.title}
         </h3>
         {/* mt-auto empuja precio+boton al fondo. Asi se alinean entre cards */}

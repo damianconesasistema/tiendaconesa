@@ -248,6 +248,14 @@ model Branch {
   // su propio certificado de ARCA, vender ahi seria cobrar y facturar a
   // nombre del otro contribuyente.
   tiendaActiva Boolean @default(true)
+  // Si esta sucursal tiene tienda online. Distinto de tiendaActiva, que es
+  // abrir y cerrar la puerta un rato: esto dice si la tienda existe. Una
+  // sucursal sin tienda online sigue apareciendo como local (direccion,
+  // horarios, redes), pero no en el panel de productos ni en nada de
+  // comprar online. Damian, 16/11/2026: "Traslasierra se menciona como
+  // sucursal, pero no la tienda, solo la de Buenos Aires"; "si volvemos a
+  // activarla en algun momento la prendemos" -> se vuelve a poner en true.
+  tiendaOnline Boolean @default(true)
   orden  Int     @default(0) // En que orden se listan
 
   // Datos del titular: van en la factura, el pie del sitio y los mails.

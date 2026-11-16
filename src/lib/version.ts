@@ -2,6 +2,48 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.77.0 - Se abre la tienda de Buenos Aires; la de Traslasierra se apaga
+//            (sigue como sucursal).
+//            Damian, 16/11/2026: "la tienda de Traslasierra sacala, no va
+//            mas"; "Traslasierra se menciona como sucursal, pero no la
+//            tienda, solo la de Buenos Aires"; "si volvemos a activarla la
+//            prendemos"; "ya habilita el pago de producto, el carrito etc".
+//            Migracion 39: Branch.tiendaOnline (Traslasierra en false) y
+//            tiendaActiva de Buenos Aires en true. Ningun producto se activa.
+//            Un local sin tienda online sigue en el sitio como sucursal, pero
+//            no aparece en el panel de productos (ni en el selector ni en el
+//            link al otro panel); en su propio panel de productos se avisa
+//            y se manda al de Buenos Aires.
+//            Textos: Legales tomaba la razon social de Buenos Aires con el
+//            domicilio y el contacto de Villa Cura Brochero, y ofrecia envio
+//            "al Valle de Traslasierra"; ahora todo es de la sucursal que
+//            vende. Arrepentimiento: mail y WhatsApp de la que vende. La
+//            portada arma "Quienes somos" con las sucursales activas y no con
+//            un texto fijo. Google: "envio a coordinar" -> envio a AMBA o
+//            retiro en Buenos Aires.
+//            Checkout: un codigo postal fuera del mapa dice "Consulta el
+//            envio por WhatsApp", con boton que manda el carrito y el CP.
+//            La categoria de la tarjeta ya no tapa la foto: va arriba del
+//            titulo, como en la tienda (portada y ficha del producto).
+// V.0.76.0 - Botones "Envio a AMBA" y "Retiro en sucursal Buenos Aires";
+//            activar/pausar en lote escribe en el local; vista previa entera.
+//            BOTONES: la ficha de cada producto decia "Retiro en tienda ·
+//            Villa Cura Brochero" y "Envio a Traslasierra · costo a
+//            coordinar", escrito a mano. Ahora la ficha, la portada y el
+//            checkout salen de src/lib/entrega.ts con el local que vende:
+//            "Envio a AMBA · Capital y GBA, gratis desde $100.000" y "Retiro
+//            en sucursal Buenos Aires · direccion, sin costo".
+//            EN LOTE: activar/pausar escribia el articulo (catalogo de
+//            Traslasierra), asi que en Buenos Aires no publicaba nada; y con
+//            su tienda abierta se habria destrabado igual. Ahora va a la fila
+//            del local (guardarComercial), y "todos los que coinciden" usa el
+//            mismo filtro que la lista (src/lib/filtro-productos.ts).
+//            El freno de las pantallas que todavia escriben el articulo, y el
+//            puente de guardarComercial, quedan atados a Traslasierra (el
+//            local del articulo) y no a "la que vende": abrir la tienda de
+//            Buenos Aires no destraba esas pantallas ni hace que sus precios
+//            pisen el articulo.
+//            IMPORTAR: la vista previa muestra todas las filas, no 10.
 // V.0.75.1 - "Precios y stock por Excel" lee el listado de existencias de GBP.
 //            Damian bajo de GBP el stock de Heineken: item_code, item_desc y
 //            una columna "Dep BS AS" (el deposito de Buenos Aires), sin
@@ -741,7 +783,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.75.1";
+export const APP_VERSION = "V.0.77.0";
 
 export type VersionEntry = {
   version: string;

@@ -7,6 +7,7 @@ import { nombreMarca } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
 import { ProductDetail } from "@/components/ProductDetail";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
+import { entregaDelLocal } from "@/lib/entrega";
 import { precioVitrina } from "@/lib/precios";
 import { formatPrice } from "@/lib/order";
 import { codigoDeAhora, codigoDeLaUrl } from "@/lib/codigo-viejo";
@@ -159,9 +160,10 @@ export default async function ProductoPage({ params }: RouteProps) {
     imageUrl: p.imageUrl,
   });
 
-  const [recargos, planes] = await Promise.all([
+  const [recargos, planes, entrega] = await Promise.all([
     getRecargosMp(),
     getPlanesCuotas(),
+    entregaDelLocal(),
   ]);
 
   const contacto = await contactoDeLaVenta();
@@ -174,6 +176,7 @@ export default async function ProductoPage({ params }: RouteProps) {
       bestSellers={masVendidos.map(toCompat)}
       comisionUnPago={recargos.unPago}
       planes={planes}
+      entrega={entrega}
     />
   );
 }

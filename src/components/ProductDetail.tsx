@@ -74,6 +74,7 @@ export function ProductDetail({
   comisionUnPago = 10,
   planes = [],
   whatsappSucursal,
+  entrega,
 }: {
   product: Product;
   related: Product[];
@@ -85,6 +86,14 @@ export function ProductDetail({
   whatsappSucursal: string;
   // Planes de cuotas con su recargo ya calculado
   planes?: Array<{ cuotas: number; recargoPct: number }>;
+  /** Los botones de retiro y envio del local que vende (src/lib/entrega.ts).
+   *  Antes estaban escritos los de Traslasierra. */
+  entrega?: {
+    retiroTitulo: string;
+    retiroDesc: string;
+    envioTitulo: string;
+    envioDesc: string;
+  };
 }) {
   const { add } = useCart();
   const router = useRouter();
@@ -258,9 +267,6 @@ export function ProductDetail({
                 <ZoomIn className="h-3.5 w-3.5" />
                 Ampliar
               </span>
-              <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-black/80 px-3 py-1.5 font-display text-xs font-bold tracking-wide text-white backdrop-blur-sm">
-                {CAT_LABELS[product.category] || product.category}
-              </span>
               {hasDiscount && (
                 <span className="absolute right-4 top-4 inline-flex items-center rounded-full bg-[var(--brand-red)] px-3 py-1.5 font-display text-xs font-black uppercase tracking-wider text-white shadow-lg">
                   -{discount}%
@@ -309,7 +315,12 @@ export function ProductDetail({
                 className="shrink-0 !px-3 !py-1.5 !text-[10px]"
               />
             </div>
-            <h1 className="uppercase mt-2 font-display text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">
+            {/* La categoria va arriba del titulo y no encima de la foto: ahi
+                tapaba el producto (Damian, 16/11/2026). */}
+            <span className="mt-3 block font-display text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              {CAT_LABELS[product.category] || product.category}
+            </span>
+            <h1 className="uppercase mt-1 font-display text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">
               {product.title}
             </h1>
             {/* Si hay selector mas abajo, las chapitas de gas sobran:
@@ -585,15 +596,15 @@ export function ProductDetail({
               {shippingList.includes("retiro") && (
                 <Benefit
                   icon={Store}
-                  title="Retiro en tienda"
-                  desc="Villa Cura Brochero · sin costo"
+                  title={entrega?.retiroTitulo ?? "Retiro en tienda"}
+                  desc={entrega?.retiroDesc ?? "Sin costo"}
                 />
               )}
               {shippingList.includes("envio") && (
                 <Benefit
                   icon={Truck}
-                  title="Envío a Traslasierra"
-                  desc="Costo a coordinar por WhatsApp"
+                  title={entrega?.envioTitulo ?? "Envío a domicilio"}
+                  desc={entrega?.envioDesc ?? "Costo a coordinar por WhatsApp"}
                 />
               )}
               <Benefit

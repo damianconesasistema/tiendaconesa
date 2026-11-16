@@ -31,6 +31,7 @@ const ROTATION_MS = 5500; // crossfade cada 5.5s
 export function HeroCarousel({
   whatsappHref,
   dondeRetirar,
+  retiroTitulo = "Retiro en tienda",
   retiroDesc,
   envioTitulo,
   envioDesc,
@@ -39,6 +40,8 @@ export function HeroCarousel({
   whatsappHref: string;
   /** Como se nombra el lugar de retiro en el parrafo. */
   dondeRetirar: string;
+  /** "Retiro en sucursal Buenos Aires" (src/lib/entrega.ts). */
+  retiroTitulo?: string;
   retiroDesc: string;
   envioTitulo: string;
   envioDesc: string;
@@ -169,7 +172,7 @@ export function HeroCarousel({
 
         {/* Beneficios laterales (desktop) */}
         <aside className="pointer-events-none absolute bottom-16 right-10 hidden flex-col gap-3 lg:flex">
-          <BenefitChip icon={Store} title="Retiro en tienda" desc={retiroDesc} />
+          <BenefitChip icon={Store} title={retiroTitulo} desc={retiroDesc} />
           <BenefitChip icon={Truck} title={envioTitulo} desc={envioDesc} />
           <BenefitChip
             icon={CreditCard}

@@ -11,8 +11,9 @@ import { MarcasAuto } from "@/components/admin/MarcasAuto";
 import { getMarcas } from "@/lib/marcas-server";
 import { getRecargosMp } from "@/lib/settings";
 import { ProductsTable } from "@/components/admin/ProductsTable";
-import { sucursalDelPanel, tituloConSucursal } from "@/lib/sucursal-panel";
+import { sucursalDelPanel, sucursalesDelPanel, tituloConSucursal } from "@/lib/sucursal-panel";
 import { ElegirSucursal } from "@/components/admin/ElegirSucursal";
+import { whereDelLocal } from "@/lib/filtro-productos";
 
 // Siempre fresco: el admin debe reflejar el estado real de la DB
 // (nada de caché que muestre estados viejos de activo/pausado).
@@ -122,9 +123,40 @@ export default async function ProductosAdmin({
         <ElegirSucursal
           pantalla="/admin/productos"
           titulo="¿De qué local querés ver los productos?"
+          soloConTienda
         />
       </AdminShell>
     );
+
+  // Un local sin tienda online (Traslasierra desde el 16/11/2026) no tiene
+  // productos que administrar: su tienda esta apagada. Se dice eso en vez de
+  // mostrar su lista, y se manda al panel de la tienda que si existe.
+  if (!suc.tiendaOnline) {
+    const conTienda = (await sucursalesDelPanel()).filter((s) => s.tiendaOnline);
+    return (
+      <AdminShell username={session.username} active="productos" sucursal>
+        <div className="mx-auto max-w-2xl rounded-2xl border border-[var(--border)] bg-white p-8">
+          <h1 className="font-display text-2xl font-black uppercase">
+            {suc.nombre} no tiene tienda online
+          </h1>
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            La tienda online es la de{" "}
+            {conTienda.map((s) => s.nombre).join(" y ") || "otra sucursal"}. Los
+            productos se manejan desde su panel.
+          </p>
+          {conTienda.map((s) => (
+            <a
+              key={s.slug}
+              href={`${s.base}/admin/productos`}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white"
+            >
+              Ir a los productos de {s.nombre}
+            </a>
+          ))}
+        </div>
+      </AdminShell>
+    );
+  }
 
   // Como volver a ESTA pantalla desde la ficha de un producto. Sin esto,
   // editar uno y volver te dejaba en la lista sin filtros: trabajando sobre
@@ -145,48 +177,10 @@ export default async function ProductosAdmin({
   // La consulta sale de la tabla de la sucursal, no de la de articulos: un
   // producto que no esta cargado en este local no aparece en su panel, igual
   // que no aparece en su tienda.
-  const where: Prisma.BranchProductWhereInput = { branchId: suc.id };
-
-  // El buscador mira todo lo que sirve para encontrar un producto: el titulo,
-  // el SKU, el codigo, la marca, la categoria, la descripcion, la nota interna
-  // (donde queda el codigo del proveedor) y el precio de ESTE local.
-  if (q) {
-    const esNumero = /^[0-9]+$/.test(q) && Number(q) < 2147483647;
-    where.OR = [
-      {
-        product: {
-          is: {
-            OR: [
-              { title: { contains: q, mode: "insensitive" } },
-              { sku: { contains: q, mode: "insensitive" } },
-              { itemId: { contains: q, mode: "insensitive" } },
-              { brand: { contains: q, mode: "insensitive" } },
-              { category: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-              { memo: { contains: q, mode: "insensitive" } },
-            ],
-          },
-        },
-      },
-      // Si escribis un numero, tambien busca por precio: sirve para
-      // encontrar el articulo cuando te acordas cuanto sale y no el nombre.
-      ...(esNumero ? [{ price: Number(q) }, { salePrice: Number(q) }] : []),
-    ];
-  }
-
-  const filtrosDelArticulo: Prisma.ProductWhereInput = {};
-  if (cat) filtrosDelArticulo.category = cat;
-  // "sin-marca" encuentra lo que todavia falta etiquetar
-  if (marca) filtrosDelArticulo.brand = marca === "sin-marca" ? null : marca;
-  if (filter === "featured") filtrosDelArticulo.featured = true;
-  if (Object.keys(filtrosDelArticulo).length > 0)
-    where.product = { is: filtrosDelArticulo };
-
-  if (filter === "low-stock") {
-    where.active = true;
-    where.stock = { lt: 5 };
-  } else if (filter === "inactive") where.active = false;
-  else if (filter === "on-sale") where.salePrice = { not: null };
+  // El filtro es el mismo que usan las acciones en lote sobre "todos los que
+  // coinciden" (src/lib/filtro-productos.ts): asi pausar los 40 de una
+  // busqueda pausa esos 40 y no otros.
+  const where = whereDelLocal(suc.id, { q, cat, marca, filter });
 
   const [filas, total, deLaSucursal, enLaSucursal] = await Promise.all([
     prisma.branchProduct.findMany({
