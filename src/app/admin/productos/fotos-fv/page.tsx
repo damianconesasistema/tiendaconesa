@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 // los articulos de FV que no las tienen. Damian, 16/11/2026: "podes hacer
 // que levante por el codigo fotos del modelo desde la pagina de FV?" y
 // "faltaria que me traigas la descripcion de los articulos". Uno por uno,
-// en la ficha de cada articulo estan "Traer foto de FV" y "Traer de FV".
+// en la ficha de cada articulo estan "Traer foto de FV" y "Buscar en la web".
 
 export default async function FotosFVPage() {
   const session = await getAdminSession();

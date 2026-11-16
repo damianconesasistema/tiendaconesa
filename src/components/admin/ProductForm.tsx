@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, useRef, useTransition } from "react";
-import { Check, AlertCircle, Sparkles, Loader2, Download } from "lucide-react";
+import { Check, AlertCircle, Sparkles, Loader2, Globe } from "lucide-react";
 import { descripcionDeFV } from "@/app/admin/productos/fotos-fv/actions";
 import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
@@ -190,31 +190,78 @@ export function ProductForm({
   const [iaFuentes, setIaFuentes] = useState<string[] | null>(null);
   const [iaSinBusqueda, setIaSinBusqueda] = useState(false);
 
-  // --- Descripcion desde la pagina de FV ---
-  // Solo para los FV. Igual que la IA: pone el texto en el cuadro y NO
-  // guarda; se revisa y se guarda con el boton de siempre. La diferencia es
-  // que sale de la ficha oficial del fabricante, no de una redaccion.
-  const [fvPending, startFV] = useTransition();
-  const [fvMsg, setFvMsg] = useState<{ ok: boolean; texto: string } | null>(null);
+  // --- "Buscar en la web" ---
+  // Para cualquier marca. Damian, 16/11/2026: decia "Traer de FV" y "ojo con
+  // eso porque hay muchas marcas, ponele buscar en la web".
+  // - Si el articulo es FV, primero la ficha OFICIAL de fvsa.com: es la del
+  //   fabricante para ese codigo, no una redaccion.
+  // - Si FV no lo tiene (la jabonera Gran Gala 0172/42 ya no esta en su
+  //   pagina) o es otra marca, busca en internet con la IA, como el boton
+  //   "Escribir con IA".
+  // Como la IA: pone el texto en el cuadro y NO guarda; se revisa y se guarda
+  // con el boton de siempre.
+  const [webPending, startWeb] = useTransition();
+  const [webMsg, setWebMsg] = useState<{ ok: boolean; texto: string } | null>(null);
+  const puedeBuscarEnLaWeb = iaDisponible || product.brand === "fv";
 
-  function traerDescripcionDeFV() {
+  function buscarEnLaWeb() {
     const actual = descRef.current?.value.trim();
     if (actual) {
       const ok = window.confirm(
         "Este producto ya tiene descripción.\n\n" +
-          "Si seguís, se reemplaza por la de la página de FV y lo que está escrito se pierde (recién cuando apretás Guardar).\n\n" +
+          "Si seguís, se reemplaza por la que encuentre en la web y lo que está escrito se pierde (recién cuando apretás Guardar).\n\n" +
           "¿Reemplazar igual?",
       );
       if (!ok) return;
     }
-    setFvMsg(null);
-    startFV(async () => {
-      const r = await descripcionDeFV(product.itemId);
-      if (r.ok && descRef.current) {
-        descRef.current.value = r.texto;
-        setFvMsg({ ok: true, texto: "Traída de la ficha de FV. Revisala y apretá Guardar." });
-      } else if (!r.ok) {
-        setFvMsg({ ok: false, texto: `No se pudo: ${r.motivo}.` });
+    setWebMsg(null);
+    setIaError(null);
+    setIaFuentes(null);
+    setIaSinBusqueda(false);
+    const fd = new FormData(formRef.current!);
+    const titulo = String(fd.get("title") || "");
+    const categoria = String(fd.get("category") || "otros");
+    const marca = String(fd.get("brand") || "");
+    startWeb(async () => {
+      try {
+        let noEstaEnFV = false;
+        if (marca === "fv") {
+          const r = await descripcionDeFV(product.itemId);
+          if (r.ok && descRef.current) {
+            descRef.current.value = r.texto;
+            setWebMsg({
+              ok: true,
+              texto: "Sacada de la página oficial de FV. Revisala y apretá Guardar.",
+            });
+            return;
+          }
+          noEstaEnFV = true;
+        }
+        if (!iaDisponible) {
+          setWebMsg({
+            ok: false,
+            texto: noEstaEnFV
+              ? "No está en la página de FV, y la búsqueda en internet no está configurada."
+              : "La búsqueda en internet no está configurada.",
+          });
+          return;
+        }
+        const r = await redactarDescripcionIA(titulo, categoria);
+        if (r.ok && r.texto && descRef.current) {
+          descRef.current.value = r.texto;
+          setIaFuentes(r.fuentes?.length ? r.fuentes : null);
+          setIaSinBusqueda(r.conBusqueda === false);
+          setWebMsg({
+            ok: true,
+            texto: noEstaEnFV
+              ? "No estaba en la página de FV: la busqué en el resto de internet. Revisala y apretá Guardar."
+              : "Buscada en internet. Revisala y apretá Guardar.",
+          });
+        } else {
+          setWebMsg({ ok: false, texto: r.error ?? "No se encontró nada en la web." });
+        }
+      } catch (e) {
+        setWebMsg({ ok: false, texto: `Falló la búsqueda: ${(e as Error).message}` });
       }
     });
   }
@@ -448,19 +495,19 @@ export function ProductForm({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Label>Descripción (opcional)</Label>
           <div className="flex flex-wrap items-center gap-2">
-          {product.brand === "fv" && (
+          {puedeBuscarEnLaWeb && (
             <button
               type="button"
-              onClick={traerDescripcionDeFV}
-              disabled={fvPending}
+              onClick={buscarEnLaWeb}
+              disabled={webPending || iaPending}
               className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brand-red)]/40 bg-white px-3 py-1.5 font-display text-[11px] font-bold uppercase tracking-wider text-[var(--brand-red)] transition-colors hover:bg-[var(--brand-red)] hover:text-white disabled:opacity-50"
             >
-              {fvPending ? (
+              {webPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <Download className="h-3.5 w-3.5" />
+                <Globe className="h-3.5 w-3.5" />
               )}
-              {fvPending ? "Buscando en FV…" : "Traer de FV"}
+              {webPending ? "Buscando en la web…" : "Buscar en la web"}
             </button>
           )}
           {iaDisponible && (
@@ -488,18 +535,18 @@ export function ProductForm({
           placeholder="Marca, medidas, color, incluye, etc."
           className="input resize-y leading-relaxed"
         />
-        {fvMsg && (
+        {webMsg && (
           <p
             className={`mt-1 inline-flex items-start gap-1.5 text-[11px] font-bold ${
-              fvMsg.ok ? "text-emerald-700" : "text-red-500"
+              webMsg.ok ? "text-emerald-700" : "text-red-500"
             }`}
           >
-            {fvMsg.ok ? (
+            {webMsg.ok ? (
               <Check className="mt-0.5 h-3 w-3 shrink-0" />
             ) : (
               <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
             )}
-            {fvMsg.texto}
+            {webMsg.texto}
           </p>
         )}
         {iaError && (

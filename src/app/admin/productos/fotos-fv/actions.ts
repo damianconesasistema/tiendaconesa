@@ -39,7 +39,8 @@ export async function traerFotoFV(
   return r;
 }
 
-/** El boton "Traer de FV" al lado de la descripcion, en la ficha del panel.
+/** "Buscar en la web" al lado de la descripcion, en la ficha del panel,
+ *  cuando el articulo es FV: primero se prueba aca.
  *  NO guarda: devuelve el texto para ponerlo en el cuadro, que se revisa y
  *  se guarda con el boton de siempre (igual que el de la IA). */
 export async function descripcionDeFV(

@@ -252,7 +252,7 @@ export async function agregarFotoDeFV(
 // Damian, 16/11/2026: "faltaria que me traigas la descripcion de los
 // articulos desde la pagina o internet". Solo si el articulo no tiene: una
 // descripcion escrita a mano no se pisa nunca desde aca. Para cambiar una que
-// ya esta, la ficha del panel tiene "Traer de FV", que la pone en el cuadro
+// ya esta, la ficha del panel tiene "Buscar en la web", que la pone en el cuadro
 // para revisarla antes de guardar.
 // ---------------------------------------------------------------------------
 

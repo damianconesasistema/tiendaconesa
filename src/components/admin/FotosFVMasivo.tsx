@@ -60,8 +60,8 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
         </p>
         <p className="mt-1 text-sm text-[var(--muted)]">
           Para cambiar alguno en particular, entrá al artículo: ahí están
-          &quot;Traer foto de FV&quot; y, al lado de la descripción, &quot;Traer de
-          FV&quot;.
+          &quot;Traer foto de FV&quot; y, al lado de la descripción, &quot;Buscar
+          en la web&quot;.
         </p>
       </div>
     );

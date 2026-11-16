@@ -2,6 +2,13 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.80.1 - "Traer de FV" pasa a ser "Buscar en la web", para todas las
+//            marcas. Damian, 16/11/2026: "ojo con eso porque hay muchas marcas,
+//            ponele buscar en la web". Si el articulo es FV prueba primero la
+//            ficha oficial de fvsa.com; si FV no lo tiene (la jabonera Gran
+//            Gala 0172/42 ORO ya no esta en su pagina: daba "FV no lo tiene")
+//            o es otra marca, busca en internet con la IA. Igual que antes:
+//            pone el texto en el cuadro y se guarda con Guardar.
 // V.0.80.0 - Descripcion de los FV desde la pagina de FV.
 //            Damian, 16/11/2026: "faltaria que me traigas la descripcion de
 //            los articulos desde la pagina o internet". De la ficha de FV
@@ -860,7 +867,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.80.0";
+export const APP_VERSION = "V.0.80.1";
 
 export type VersionEntry = {
   version: string;
