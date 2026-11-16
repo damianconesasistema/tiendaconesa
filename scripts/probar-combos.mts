@@ -29,7 +29,7 @@ if (!l) {
 
 // Codigo -> precio de 1 pago, que es lo que trae la columna.
 const unPago = new Map<string, number>();
-for (const f of l.filas) unPago.set(f.itemCode, Math.round(f.precio));
+for (const f of l.filas) if (f.precio !== null) unPago.set(f.itemCode, Math.round(f.precio));
 
 console.log(`${l.regla}`);
 console.log(`${unPago.size} piezas en la lista · descuento del combo ${DESC}%\n`);

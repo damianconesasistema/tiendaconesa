@@ -10,7 +10,7 @@ import { detectarMarca, marcaPorId } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
-import { leerExportDelSistema } from "@/lib/excel-sistema";
+import { leerExportDelSistema, depositoDeOtroLocal } from "@/lib/excel-sistema";
 import {
   getRecargosMp,
   getDescuentoLista,
@@ -375,13 +375,35 @@ export async function previewExcel(
     // del precio cambia de nombre segun el proveedor: eso se reconoce solo.
     let delSistema: { regla: string; avisos: string[] } | undefined;
     if (missing.length) {
-      const lectura = leerExportDelSistema(wb);
+      // El local del panel: si el listado trae el stock de varios depositos
+      // ("Dep BS AS", "Dep Traslasierra"), se toma el de este local.
+      const local = await sucursalDeEdicion();
+      const lectura = leerExportDelSistema(wb, { deposito: local?.slug });
       if (!lectura) {
         return {
           ok: false,
           error: `Faltan columnas obligatorias: ${missing.join(", ")}. Usá la plantilla, o subí el Excel tal cual sale del sistema.`,
         };
       }
+
+      // Un listado de existencias ("Dep BS AS") no trae precio.
+      if (tocaPrecios && !lectura.traePrecio)
+        return {
+          ok: false,
+          error: `Este archivo trae solo el stock (columna "${lectura.columnaStock ?? "stock"}"), sin precio. Elegí "Solo stock" arriba y volvé a subirlo.`,
+        };
+
+      // El stock de un deposito es de ese local. Cargarle a Traslasierra el
+      // stock de Buenos Aires haria vender alla lo que solo hay aca.
+      const otro =
+        tocaStock && lectura.columnaStock
+          ? depositoDeOtroLocal(lectura.columnaStock, local?.slug)
+          : null;
+      if (otro)
+        return {
+          ok: false,
+          error: `Este archivo trae el stock del depósito "${lectura.columnaStock}", que no es de ${local?.nombre ?? "este local"}. Subilo desde el panel del local de ese depósito.`,
+        };
 
       // Para no pisar lo que ya esta cargado. El archivo del sistema trae el
       // precio y el stock; el titulo, la categoria y la marca del sitio son

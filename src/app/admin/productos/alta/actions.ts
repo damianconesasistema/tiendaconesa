@@ -134,6 +134,15 @@ export async function previsualizarAlta(
         "Este archivo no parece una exportación de GBP: no encontré las columnas item_code e item_desc. Exportá la grilla desde el sistema y subila tal cual.",
     };
 
+  // Un listado de solo stock ("Dep BS AS") no alcanza para dar de alta: sin
+  // precio no hay nada que publicar. Va a la otra pantalla.
+  if (!lectura.traePrecio)
+    return {
+      ok: false,
+      error:
+        "Este archivo trae solo el stock, sin precio. Para dar de alta hace falta el precio; para actualizar el stock usá \"Precios y stock por Excel\" con la opción Solo stock.",
+    };
+
   // Lo que la tienda ya tiene. Se engancha igual que en la importacion de
   // precios: por el codigo del sistema, por el codigo del sitio y por la
   // cola de los codigos viejos (MARCA-1234).
@@ -184,6 +193,9 @@ export async function previsualizarAlta(
     const r = rubroSugerido(t.titulo, f.subcategoria, f.categoria, laMarca);
     const sr = subrubroSugerido(r.slug, f.hoja, t.titulo);
 
+    // Un renglon sin precio no se puede dar de alta (en un archivo con
+    // precios, es un codigo que vino solo con stock).
+    if (f.precio === null) continue;
     const unPago = Math.round(f.precio);
     const contado = Math.round(unPago / (1 + recargo / 100));
     const margenPct =

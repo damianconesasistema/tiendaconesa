@@ -109,7 +109,7 @@ const porCodigo = new Map(publicados.map((p) => [p.itemId, p]));
 // Codigo del sistema -> su precio de 1 pago. Es lo que alimenta los combos.
 const unPago = new Map<string, number>();
 for (const f of lista.filas) {
-  if (f.precio > 0) unPago.set(f.itemCode, unPagoDe(Math.round(f.precio)));
+  if (f.precio !== null && f.precio > 0) unPago.set(f.itemCode, unPagoDe(Math.round(f.precio)));
 }
 
 // --- HOJA 1: los combos, que es lo unico que cambia ---------------------
@@ -139,7 +139,7 @@ for (const p of publicados) {
   }
 
   const sumaLista2 = piezas.reduce(
-    (a, c) => a + Math.round(lista.filas.find((f) => f.itemCode === c)!.precio),
+    (a, c) => a + Math.round(lista.filas.find((f) => f.itemCode === c)!.precio ?? 0),
     0,
   );
   const unPagoNuevo = piezas.reduce((a, c) => a + unPago.get(c)!, 0);
@@ -176,7 +176,7 @@ const combosDe = (codigo: string) =>
 
 const filasArt = lista.filas.map((f) => {
   const codigo = f.itemCode;
-  const lista2 = Math.round(f.precio);
+  const lista2 = Math.round(f.precio ?? 0);
   const enCombos = combosDe(codigo);
   // Puede estar publicado con el codigo pelado o con el prefijo viejo de marca.
   const publicado =
@@ -226,8 +226,8 @@ const filasArt = lista.filas.map((f) => {
 
 // --- HOJA 3: la cuenta, explicada ---------------------------------------
 
-const ejemplo = lista.filas.find((f) => f.precio > 0)!;
-const ej2 = Math.round(ejemplo.precio);
+const ejemplo = lista.filas.find((f) => (f.precio ?? 0) > 0)!;
+const ej2 = Math.round(ejemplo.precio ?? 0);
 const ejUno = unPagoDe(ej2);
 const ejContado = contadoDe(ejUno);
 

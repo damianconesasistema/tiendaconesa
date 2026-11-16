@@ -7,6 +7,7 @@ const l = leerExportDelSistema(wb)!;
 const f = (n: number) => Math.round(n).toLocaleString("es-AR").padStart(11);
 console.log("codigo   Lista 2 (archivo)   1 pago -12%   contado -10%   descripcion");
 for (const r of l.filas) {
+  if (r.precio === null) continue;
   const unPago = Math.round(r.precio * 0.88);
   const contado = Math.round(unPago / 1.1111);
   console.log(

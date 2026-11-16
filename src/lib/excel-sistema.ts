@@ -33,7 +33,9 @@ export type FilaDelSistema = {
   /** El codigo del sistema, pelado: "3674". */
   itemCode: string;
   descripcion: string;
-  precio: number;
+  /** null = el archivo no trae precio: es un listado de solo stock (ver
+   *  `traePrecio`). Sirve para actualizar stock, no para dar de alta. */
+  precio: number | null;
   oferta: number | null;
   /** null = el archivo no trae stock y hay que dejar el que esta cargado. */
   stock: number | null;
@@ -60,8 +62,30 @@ export type LecturaDelSistema = {
   columnaPrecio: string;
   columnaOferta: string | null;
   traeStock: boolean;
+  /** Si trae alguna columna de precio. Un listado de stock por deposito
+   *  ("Dep BS AS") no trae: sirve solo para actualizar stock. */
+  traePrecio: boolean;
+  /** Como se llamaba la columna de la que salio el stock ("Dep BS AS"). */
+  columnaStock: string | null;
   avisos: string[];
 };
+
+/** De que local es cada deposito de GBP, por como lo nombra el sistema. Sirve
+ *  para elegir la columna cuando el listado trae varios depositos, y para no
+ *  cargarle a un local el stock de otro. */
+const DEPOSITOS: Readonly<Record<string, RegExp>> = {
+  bsas: /\bbs\.? ?as\b|buenos aires|capital|balvanera|caba/,
+  traslasierra: /trasla|brochero|cordoba|\bcba\b|mina clavero/,
+};
+
+/** Si el nombre de una columna de deposito es de otro local que el pedido. */
+export function depositoDeOtroLocal(columna: string, slug: string | null | undefined): string | null {
+  if (!slug) return null;
+  const n = norm(columna);
+  for (const [otro, re] of Object.entries(DEPOSITOS))
+    if (otro !== slug && re.test(n) && !(DEPOSITOS[slug]?.test(n) ?? false)) return otro;
+  return null;
+}
 
 const norm = (s: unknown) =>
   String(s ?? "")
@@ -94,6 +118,11 @@ type Mapa = {
   code: number;
   desc: number;
   stock: number | null;
+  /** Como se llama en el archivo la columna del stock ("Stk", "Dep BS AS"). */
+  nombreStock: string | null;
+  /** Habia varias columnas de deposito y ninguna era la de este local: no se
+   *  eligio ninguna, para no cargar el stock de otro. */
+  depositosSinElegir: string[];
   lista2: number | null;
   contado: number | null;
   /** Como se llamaba la columna del contado en el archivo. */
@@ -104,7 +133,7 @@ type Mapa = {
   costo: number | null;
 };
 
-function mapearHoja(filas: unknown[][]): Mapa | null {
+function mapearHoja(filas: unknown[][], deposito?: string | null): Mapa | null {
   for (let i = 0; i < Math.min(filas.length, 10); i++) {
     const celdas = (filas[i] ?? []).map(norm);
     const code = celdas.indexOf("item_code");
@@ -120,7 +149,26 @@ function mapearHoja(filas: unknown[][]): Mapa | null {
       return null;
     };
 
-    const stock = buscar("stk", "stock");
+    // El stock: "Stk" en la grilla completa, o una columna por deposito
+    // ("Dep BS AS", "Dep Traslasierra") en el listado de existencias. Con
+    // un solo deposito se usa ese; con varios, el del local del panel, y si
+    // ninguno es de este local no se elige ninguno: cargar el stock de otro
+    // deposito haria vender lo que aca no hay.
+    let stock = buscar("stk", "stock");
+    const depositosSinElegir: string[] = [];
+    if (stock === null) {
+      const deps = celdas
+        .map((c, idx) => ({ c, idx }))
+        .filter((x) => /^dep(osito)?[\s.]/.test(x.c));
+      if (deps.length === 1) stock = deps[0].idx;
+      else if (deps.length > 1) {
+        const re = deposito ? DEPOSITOS[deposito] : undefined;
+        const propio = re ? deps.filter((x) => re.test(x.c)) : [];
+        if (propio.length === 1) stock = propio[0].idx;
+        else depositosSinElegir.push(...deps.map((x) => String(filas[i][x.idx]).trim()));
+      }
+    }
+    const nombreStock = stock !== null ? String(filas[i][stock]).trim() : null;
     const lista2 = buscar("lista 2", "lista2");
     let contado = buscar("contado", "precio contado", "efectivo");
     let nombreContado =
@@ -141,13 +189,17 @@ function mapearHoja(filas: unknown[][]): Mapa | null {
       }
     }
 
-    if (lista2 === null && contado === null) continue;
+    // Sin precio sirve igual si trae stock: es el listado de existencias, para
+    // actualizar el stock. Sin precio ni stock no hay nada que leer.
+    if (lista2 === null && contado === null && stock === null) continue;
 
     return {
       cabecera: i,
       code,
       desc,
       stock,
+      nombreStock,
+      depositosSinElegir,
       lista2,
       contado,
       nombreContado,
@@ -174,13 +226,19 @@ function mapearHoja(filas: unknown[][]): Mapa | null {
  *  hoja con las columnas corridas pondria el stock como precio. */
 function pareceDeLaMisma(filas: unknown[][], molde: Mapa): boolean {
   const columnaPrecio = molde.lista2 ?? molde.contado;
-  if (columnaPrecio === null || filas.length === 0) return false;
+  // Un listado de solo stock se compara por la columna del stock.
+  if ((columnaPrecio === null && molde.stock === null) || filas.length === 0)
+    return false;
   for (const f of filas.slice(0, 5)) {
     const code = String(f[molde.code] ?? "").trim();
     if (!code || norm(code) === "item_code") return false;
     if (!/[a-z]/i.test(String(f[molde.desc] ?? ""))) return false;
-    const precio = numeroDelSistema(f[columnaPrecio]);
-    if (precio === null || precio <= 0) return false;
+    if (columnaPrecio !== null) {
+      const precio = numeroDelSistema(f[columnaPrecio]);
+      if (precio === null || precio <= 0) return false;
+    } else if (numeroDelSistema(f[molde.stock as number]) === null) {
+      return false;
+    }
     if (molde.stock !== null) {
       const s = f[molde.stock];
       const vacio = s === null || s === undefined || String(s).trim() === "";
@@ -196,9 +254,13 @@ function enumerar(nombres: string[]): string {
   return q.length <= 1 ? (q[0] ?? "") : `${q.slice(0, -1).join(", ")} y ${q[q.length - 1]}`;
 }
 
-/** Lee el libro entero. Devuelve null si no parece un export del sistema. */
+/** Lee el libro entero. Devuelve null si no parece un export del sistema.
+ *
+ *  `deposito` es el slug del local del panel ("bsas"): cuando el listado trae
+ *  el stock de varios depositos, se toma el de ese local. */
 export function leerExportDelSistema(
   wb: XLSX.WorkBook,
+  opciones?: { deposito?: string | null },
 ): LecturaDelSistema | null {
   const hojas: Hoja[] = wb.SheetNames.map((nombre) => ({
     nombre,
@@ -211,7 +273,7 @@ export function leerExportDelSistema(
 
   const mapeadas = hojas.map((h) => ({
     hoja: h,
-    mapa: mapearHoja(h.filas) as Mapa | null,
+    mapa: mapearHoja(h.filas, opciones?.deposito) as Mapa | null,
   }));
 
   // Hace falta al menos una hoja con titulos: es lo que dice que esto es un
@@ -220,6 +282,11 @@ export function leerExportDelSistema(
   if (!molde || !molde.mapa) return null;
 
   const avisos: string[] = [];
+  const sinElegir = [...new Set(mapeadas.flatMap((x) => x.mapa?.depositosSinElegir ?? []))];
+  if (sinElegir.length > 0)
+    avisos.push(
+      `El archivo trae el stock de varios depósitos (${enumerar(sinElegir)}) y ninguno es claramente el de este local: no tomé el stock. Exportá solo el depósito de este local.`,
+    );
 
   // Las hojas sin titulos se leen con las columnas del molde, si encajan.
   // cabecera -1: los productos arrancan en la primera fila.
@@ -275,6 +342,7 @@ export function leerExportDelSistema(
   let huboContado = false;
   let nombreContado: string | null = null;
   let traeStock = false;
+  let columnaStock: string | null = null;
 
   for (const { hoja, mapa } of leidas) {
     if (mapa.lista2 !== null) huboLista2 = true;
@@ -282,7 +350,10 @@ export function leerExportDelSistema(
       huboContado = true;
       nombreContado = nombreContado ?? mapa.nombreContado;
     }
-    if (mapa.stock !== null) traeStock = true;
+    if (mapa.stock !== null) {
+      traeStock = true;
+      columnaStock = columnaStock ?? mapa.nombreStock;
+    }
 
     for (let i = mapa.cabecera + 1; i < hoja.filas.length; i++) {
       const f = hoja.filas[i] ?? [];
@@ -347,12 +418,13 @@ export function leerExportDelSistema(
     } else {
       precio = d.lista2 ?? d.contado;
     }
-    if (precio === null) continue;
+    // Sin precio queda solo si trae stock: el listado de existencias.
+    if (precio === null && d.stock === null) continue;
 
     filas.push({
       itemCode,
       descripcion: d.descripcion,
-      precio: Math.round(precio),
+      precio: precio !== null ? Math.round(precio) : null,
       oferta: oferta !== null ? Math.round(oferta) : null,
       stock: d.stock !== null ? Math.max(0, Math.floor(d.stock)) : null,
       marca: d.marca,
@@ -366,12 +438,19 @@ export function leerExportDelSistema(
 
   if (filas.length === 0) return null;
 
+  const traePrecio = huboLista2 || huboContado;
   const conOferta = filas.filter((f) => f.oferta !== null).length;
-  const columnaPrecio = huboLista2 ? "Lista 2" : (nombreContado ?? "CONTADO");
+  const columnaPrecio = !traePrecio
+    ? ""
+    : huboLista2
+      ? "Lista 2"
+      : (nombreContado ?? "CONTADO");
   const columnaOferta = conOferta > 0 ? (nombreContado ?? "CONTADO") : null;
 
   let regla: string;
-  if (columnaOferta) {
+  if (!traePrecio) {
+    regla = `El archivo trae solo stock (columna "${columnaStock ?? "stock"}") y no trae precio: sirve para actualizar el stock, no los precios.`;
+  } else if (columnaOferta) {
     regla = `Tomé "${columnaPrecio}" como precio de lista y "${columnaOferta}" como precio en efectivo, así que los productos quedan con el precio tachado.`;
   } else if (huboLista2) {
     regla = `Tomé "${columnaPrecio}" como precio. El archivo no trae una columna de contado, así que van sin precio tachado.`;
@@ -383,6 +462,8 @@ export function leerExportDelSistema(
     avisos.push(
       "El archivo no trae stock: a cada producto se le deja el que ya tiene cargado.",
     );
+  else if (columnaStock && /^dep(osito)?[\s.]/.test(norm(columnaStock)))
+    avisos.push(`El stock sale de la columna "${columnaStock}".`);
   // Avisar del tachado solo cuando de verdad se pudo comparar. En el archivo
   // de Pringles, por ejemplo, la segunda hoja tiene una columna EFECTIVO pero
   // con otros codigos y a medio llenar: no hay con que comparar, y decir que
@@ -402,6 +483,8 @@ export function leerExportDelSistema(
     columnaPrecio,
     columnaOferta,
     traeStock,
+    traePrecio,
+    columnaStock,
     avisos,
   };
 }

@@ -2,6 +2,18 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.75.1 - "Precios y stock por Excel" lee el listado de existencias de GBP.
+//            Damian bajo de GBP el stock de Heineken: item_code, item_desc y
+//            una columna "Dep BS AS" (el deposito de Buenos Aires), sin
+//            precio. El lector buscaba "Stk" y exigia un precio, asi que lo
+//            rechazaba. Ahora: una columna "Dep ..." es stock; con varios
+//            depositos se toma el del local del panel; un archivo sin precio
+//            sirve para "Solo stock" (en "precios" avisa que elija Solo
+//            stock, y el alta lo rechaza porque sin precio no hay que
+//            publicar). Si el deposito es de otro local (subir "Dep BS AS"
+//            en el panel de Traslasierra) frena: seria vender alla lo que
+//            solo hay aca. Probado con el archivo real: 16 Heineken, los
+//            codigos con cero adelante intactos ("00662").
 // V.0.75.0 - Envios de Buenos Aires: zona por codigo postal, cobrados con la
 //            compra, gratis desde $100.000; etiqueta nueva y recibo de
 //            MercadoPago para el que retira.
@@ -729,7 +741,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.75.0";
+export const APP_VERSION = "V.0.75.1";
 
 export type VersionEntry = {
   version: string;
