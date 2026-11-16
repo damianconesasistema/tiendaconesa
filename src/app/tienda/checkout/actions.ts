@@ -3,8 +3,20 @@
 import { prisma } from "@/lib/db";
 import type { CartItem } from "@/lib/cart";
 import type { Customer } from "@/lib/customer";
-import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
+import {
+  getRecargosMp,
+  getPlanesCuotas,
+  getEnvioGratisDesde,
+  getPreciosEnvio,
+} from "@/lib/settings";
 import { precioVitrina, precioCuotas } from "@/lib/precios";
+import {
+  zonaDelCP,
+  provinciaDeLaZona,
+  envioDe,
+  modoDeEnvio,
+  DONDE_ENVIAMOS,
+} from "@/lib/zona-envio";
 import { codigoDeAhora } from "@/lib/codigo-viejo";
 import { opcionValida } from "@/lib/etiquetas";
 import { sucursalQueVende, hayTiendaAbierta } from "@/lib/sucursal";
@@ -40,6 +52,27 @@ export async function createOrder(
     return { ok: false, error: "Faltan datos del comprador" };
   if (customer.shipping === "envio" && (!customer.locality || !customer.street))
     return { ok: false, error: "Faltan datos de envío" };
+
+  // Lo mismo que pide la pantalla, otra vez aca: el navegador no es de fiar.
+  // Para un envio van todos los datos que lleva la etiqueta, y en Buenos
+  // Aires solo a una zona del mapa.
+  const vende = await sucursalQueVende();
+  const enMapa = modoDeEnvio(vende?.slug) === "mapa";
+  const zona =
+    enMapa && customer.shipping === "envio" ? zonaDelCP(customer.postalCode) : null;
+  if (customer.shipping === "envio") {
+    if (!/^\d{7,8}$/.test(String(customer.dni ?? "").replace(/\D/g, "")))
+      return { ok: false, error: "Para el envío hace falta el DNI." };
+    if (!/^\d{4}$/.test(String(customer.postalCode ?? "").replace(/\D/g, "")))
+      return { ok: false, error: "Para el envío hace falta el código postal." };
+    if (!String(customer.streetNumber ?? "").trim())
+      return { ok: false, error: "Para el envío hace falta el número de la calle." };
+    if (enMapa && !zona)
+      return {
+        ok: false,
+        error: `Por ahora enviamos solo a ${DONDE_ENVIAMOS}, y ese código postal queda afuera. Podés retirar en el local.`,
+      };
+  }
 
   try {
     // Validar productos y precios contra la DB (no confiar en client)
@@ -128,8 +161,29 @@ export async function createOrder(
       const contado = p ? (p.salePrice ?? p.price) : i.price;
       return s + contado * i.qty;
     }, 0);
-    // Costos de envio aun no definidos: el admin confirma por WhatsApp
-    const shippingCost = 0;
+    // El envio de Buenos Aires se cobra JUNTO con la compra, segun la zona
+    // del codigo postal, y desde el tope es gratis (Damian, 16/11/2026). El
+    // tope se mide a precio de LISTA, lo que el cliente vio en el carrito,
+    // aunque despues pague por transferencia y le quede menos. Todo se
+    // calcula aca con los precios de la base, no con los del navegador.
+    const totalLista = validItems.reduce((s, i) => {
+      const p = byItemId.get(i.product.itemId);
+      const contado = p ? (p.salePrice ?? p.price) : i.price;
+      return s + precioVitrina(contado, recargos.unPago) * i.qty;
+    }, 0);
+    const envio =
+      zona && customer.shipping === "envio"
+        ? envioDe({
+            cp: customer.postalCode,
+            totalLista,
+            tope: await getEnvioGratisDesde(),
+            precios: await getPreciosEnvio(),
+          })
+        : null;
+    const envioGratis = !!envio?.gratis;
+    // Va aparte del subtotal y SIN recargo de tarjeta: el envio cuesta lo
+    // mismo pague como pague.
+    const shippingCost = envio ? envio.costo : 0;
     const recargo = Math.max(0, subtotal - contadoTotal);
     const total = subtotal + shippingCost;
 
@@ -153,12 +207,22 @@ export async function createOrder(
         // La provincia solo viene cuando la localidad se escribio a mano. El
         // codigo postal va siempre que haya envio: con eso se cotiza el flete
         // y, mas adelante, se decide que sucursal atiende.
+        // En Buenos Aires la provincia sale de la zona elegida: no se le pide
+        // al cliente algo que ya se sabe.
         province:
-          customer.shipping === "envio" ? customer.province || null : null,
+          customer.shipping !== "envio"
+            ? null
+            : zona
+              ? provinciaDeLaZona(zona)
+              : customer.province || null,
         postalCode:
           customer.shipping === "envio" ? customer.postalCode || null : null,
         street: customer.shipping === "envio" ? customer.street : null,
         streetNumber: customer.shipping === "envio" ? customer.streetNumber : null,
+        floor:
+          customer.shipping === "envio" ? String(customer.piso ?? "").trim() || null : null,
+        zonaEnvio: customer.shipping === "envio" ? zona : null,
+        envioGratis,
         reference: customer.reference || null,
         notes: customer.notes || null,
         // Guardar el metodo REAL. Antes caia todo lo que no fuera "tarjeta"
@@ -198,12 +262,21 @@ export async function createOrder(
     // Son dos: la confirmación al cliente y el aviso de venta al negocio.
     // Cada uno con su try propio, así si falla el del cliente igual sale el
     // del negocio, que es el que hace falta para preparar el pedido.
-    const itemsMail = validItems.map((it) => ({
-      title: tituloVendido(it),
-      qty: it.qty,
-      price: it.price,
-      codigo: it.product.sku || it.product.itemId,
-    }));
+    const itemsMail: { title: string; qty: number; price: number; codigo?: string }[] =
+      validItems.map((it) => ({
+        title: tituloVendido(it),
+        qty: it.qty,
+        price: it.price,
+        codigo: it.product.sku || it.product.itemId,
+      }));
+    // El envio cobrado va como un renglon mas: si no, la suma de la tabla del
+    // mail no da el total que dice abajo.
+    if (shippingCost > 0 && envio)
+      itemsMail.push({
+        title: `Envío ${envio.zona === "CABA" ? "Capital" : envio.zona}`,
+        qty: 1,
+        price: shippingCost,
+      });
 
     try {
       const { mailPedidoRecibido, emailConfigurado } = await import(
@@ -217,6 +290,9 @@ export async function createOrder(
           items: itemsMail,
           total,
           retira: customer.shipping === "retiro",
+          envioGratis,
+          costoEnvio: shippingCost,
+          dondeRetira: vende?.city || undefined,
         });
         if (!r.ok) console.error("mail pedido:", r.error);
       }
@@ -247,12 +323,20 @@ export async function createOrder(
           },
           envio: {
             retira: customer.shipping === "retiro",
-            localidad: [customer.locality, customer.province]
+            gratis: envioGratis,
+            dondeRetira: vende?.city || undefined,
+            localidad: [
+              customer.locality,
+              zona ?? null,
+              zona ? provinciaDeLaZona(zona) : customer.province,
+            ]
               .filter(Boolean)
               .join(", ") +
               (customer.postalCode ? ` (CP ${customer.postalCode})` : ""),
             calle: customer.street,
-            numero: customer.streetNumber,
+            numero:
+              customer.streetNumber +
+              (String(customer.piso ?? "").trim() ? `, ${String(customer.piso).trim()}` : ""),
             referencia: customer.reference,
             notas: customer.notes,
           },

@@ -3,7 +3,12 @@ import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { RecargosForm } from "@/components/admin/RecargosForm";
-import { getRecargosDelPanel } from "@/lib/settings";
+import { EnvioGratisForm } from "@/components/admin/EnvioGratisForm";
+import {
+  getRecargosDelPanel,
+  getEnvioGratisDelPanel,
+  getPreciosEnvioDelPanel,
+} from "@/lib/settings";
 import {
   mpConfigurado,
   mpEsPrueba,
@@ -37,6 +42,8 @@ export default async function ConfiguracionPage() {
   // en conesa.com.ar aca se editan los generales, y al cliente le cobra la
   // sucursal que vende con los suyos. Por eso abajo se dice cual es.
   const recargos = await getRecargosDelPanel();
+  const envioGratisDesde = await getEnvioGratisDelPanel();
+  const preciosEnvio = await getPreciosEnvioDelPanel();
 
   // De quien son los recargos que se ven y se editan en esta pantalla. Cada
   // local cobra en su cuenta y cada cuenta tiene sus costos, asi que decirlo
@@ -251,6 +258,23 @@ export default async function ConfiguracionPage() {
             />
           </div>
         </div>
+
+        {/* El envio es de un local: con su gente y en su zona. En
+            conesa.com.ar/admin no hay un local, asi que ahi no se muestra. */}
+        {local && (
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-6">
+            <h2 className="font-display text-lg font-black uppercase tracking-wider">
+              Envíos · {local.nombre}
+            </h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              El envío se cobra junto con la compra, según la zona del código
+              postal. Desde el tope es gratis, a cualquier zona del mapa.
+            </p>
+            <div className="mt-5">
+              <EnvioGratisForm desde={envioGratisDesde} precios={preciosEnvio} />
+            </div>
+          </div>
+        )}
       </div>
     </AdminShell>
   );

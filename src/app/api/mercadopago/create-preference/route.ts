@@ -79,6 +79,18 @@ export async function POST(req: NextRequest) {
   // OJO: los precios de los items YA incluyen la comision segun la forma de
   // pago elegida (ver checkout/actions.ts). No hay que sumar nada aparte, o se
   // cobraria dos veces.
+  //
+  // El envio SI va aparte: desde el 16/11/2026 Buenos Aires lo cobra junto
+  // con la compra, segun la zona. Sin este renglon MercadoPago cobraba solo
+  // los productos y el envio quedaba sin cobrar. Va sin recargo: el envio
+  // cuesta lo mismo pague como pague.
+  if (order.shippingCost > 0)
+    items.push({
+      id: "envio",
+      title: `Envío ${order.zonaEnvio === "CABA" ? "Capital" : (order.zonaEnvio ?? "a domicilio")}`,
+      quantity: 1,
+      unitPrice: order.shippingCost,
+    });
 
   // paymentMethod guarda "mp_cuotas_12" para saber el plan exacto
   const esCuotas = (order.paymentMethod ?? "").startsWith("mp_cuotas");

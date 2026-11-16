@@ -2,6 +2,38 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.75.0 - Envios de Buenos Aires: zona por codigo postal, cobrados con la
+//            compra, gratis desde $100.000; etiqueta nueva y recibo de
+//            MercadoPago para el que retira.
+//            Lo que paso Damian el 16/11/2026 (la tienda de Traslasierra no
+//            sigue, asi que es para Buenos Aires): se envia SOLO dentro del
+//            mapa de Mercado Envios Flex, repartiendo ellos. La zona sale
+//            del codigo postal: CABA 1000-1440 $5.500, Zona 1 $7.300, Zona 2
+//            $9.100, Zona 3 $10.500 (listas en src/lib/zona-envio.ts; el
+//            1642 vino en la 1 y en la 3, quedo en la 1). El envio se cobra
+//            JUNTO con la compra y desde $100.000 (precio de lista) es
+//            gratis a todas las zonas. Precios y tope se cambian desde
+//            Configuracion (migracion 38 los carga).
+//            CHECKOUT: el cliente escribe el codigo postal y ve la zona y el
+//            precio en el momento; fuera del mapa no puede elegir envio. Para
+//            un envio son obligatorios el DNI y todos los datos; se sumo
+//            piso/depto. Ya no aparece la lista de pueblos del Valle.
+//            COBRO: el servidor recalcula zona y precio (no confia en el
+//            navegador) y lo guarda en shippingCost, que hasta hoy era
+//            siempre 0. MercadoPago lo cobra como un renglon "Envio Zona 2",
+//            sin recargo. FACTURA: el importe que va a ARCA ya era
+//            order.total, que lo incluye; el PDF suma un renglon "Envio" para
+//            que el detalle cierre (renglonesDelPedido, armar-pdf.ts). Lo de
+//            ARCA no se toco.
+//            ETIQUETA (src/lib/etiqueta-envio.ts): zona y codigo postal
+//            grandes, piso, DNI, "NO COBRAR" (gratis o ya incluido) y el
+//            remitente del local del pedido; antes era siempre Villa Cura
+//            Brochero. RECIBO DE RETIRO: el "Recibo de entrega de producto"
+//            de MercadoPago, completado sobre su PDF original (pdf-lib), con
+//            boton en el pedido cuando retira; es la prueba ante un
+//            contracargo.
+//            Tambien: el mail de confirmacion, el carrito y la pantalla del
+//            pedido decian Traslasierra en un pedido de Buenos Aires.
 // V.0.74.1 - La lista de productos muestra el codigo una sola vez.
 //            Decia "SKU TST-10633 · 10633": el SKU con la marca adelante y el
 //            codigo del articulo, el mismo numero dos veces. Lo que se carga
@@ -697,7 +729,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.74.1";
+export const APP_VERSION = "V.0.75.0";
 
 export type VersionEntry = {
   version: string;

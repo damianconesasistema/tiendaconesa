@@ -25,9 +25,15 @@ export function buildOrderMessage(
   items: CartItem[],
   c: Customer,
   orderNumber?: number,
+  // Lo decide el checkout con la misma cuenta que el servidor (src/lib/
+  // zona-envio.ts): la zona del codigo postal, su precio, o gratis.
+  opciones?: { envioGratis?: boolean; costoEnvio?: number; zona?: string | null },
 ): string {
+  const envioGratis = !!opciones?.envioGratis;
+  const costoEnvio = c.shipping === "envio" ? Math.max(0, opciones?.costoEnvio ?? 0) : 0;
+  const zona = opciones?.zona ?? null;
   const { total: subtotal, hasUnpriced } = cartTotal(items);
-  const total = subtotal; // envio a consultar por WhatsApp
+  const total = subtotal + costoEnvio;
 
   const lines: string[] = [];
 
@@ -53,7 +59,11 @@ export function buildOrderMessage(
   // Retirar no es un envío gratis: es no tener envío. Decir "Gratis" hace
   // creer que se bonificó algo.
   if (c.shipping === "envio") {
-    lines.push(`*Entrega:* Envío a coordinar`);
+    lines.push(
+      `*Envío${zona ? ` (${zona === "CABA" ? "Capital" : zona})` : ""}:* ${
+        envioGratis ? "GRATIS" : costoEnvio > 0 ? formatPrice(costoEnvio) : "a coordinar"
+      }`,
+    );
   } else {
     lines.push(`*Entrega:* Retiro en tienda`);
   }
@@ -73,10 +83,13 @@ export function buildOrderMessage(
     lines.push("*Entrega:* Retiro en el local");
   } else {
     lines.push("*Entrega:* A domicilio");
+    if (zona) lines.push(`• Zona: ${zona === "CABA" ? "Capital" : zona}`);
     lines.push(`• Localidad: ${c.locality}`);
     if (c.province) lines.push(`• Provincia: ${c.province}`);
     if (c.postalCode) lines.push(`• Código postal: ${c.postalCode}`);
-    lines.push(`• Dirección: ${c.street} ${c.streetNumber}`);
+    lines.push(
+      `• Dirección: ${c.street} ${c.streetNumber}${c.piso?.trim() ? `, ${c.piso.trim()}` : ""}`,
+    );
     if (c.reference) lines.push(`• Referencia: ${c.reference}`);
   }
 

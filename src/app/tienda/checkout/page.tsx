@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import { contactoDeLaVenta, sucursalQueVende } from "@/lib/sucursal";
 import { CheckoutPage } from "@/components/CheckoutPage";
-import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
+import {
+  getRecargosMp,
+  getPlanesCuotas,
+  getEnvioGratisDesde,
+  getPreciosEnvio,
+} from "@/lib/settings";
 import { mpConfigurado } from "@/lib/mercadopago";
+import { modoDeEnvio } from "@/lib/zona-envio";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -14,9 +20,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function Checkout() {
-  const [recargos, planes] = await Promise.all([
+  const [recargos, planes, envioGratisDesde, preciosEnvio] = await Promise.all([
     getRecargosMp(),
     getPlanesCuotas(),
+    getEnvioGratisDesde(),
+    getPreciosEnvio(),
   ]);
   // OJO: el local que VENDE, no el primero de la lista. En conesa.com.ar la
   // primera es Buenos Aires porque asi se muestra en el sitio, pero esa
@@ -40,6 +48,9 @@ export default async function Checkout() {
       // tiene que ver el boton de pagar con tarjeta.
       mpDisponible={mpConfigurado(s?.slug)}
       planes={planes}
+      modoEnvio={modoDeEnvio(s?.slug)}
+      envioGratisDesde={envioGratisDesde}
+      preciosEnvio={modoDeEnvio(s?.slug) === "mapa" ? preciosEnvio : null}
     />
   );
 }

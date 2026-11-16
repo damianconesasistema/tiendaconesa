@@ -11,6 +11,39 @@ import { generarFacturaPdf } from "@/lib/afip/pdf";
 
 export type TipoComprobante = "factura" | "nc";
 
+/** Los renglones del detalle del comprobante: los articulos y, si se cobro,
+ *  el envio.
+ *
+ *  El envio se cobra junto con la compra en Buenos Aires desde el
+ *  16/11/2026. El importe que va a ARCA ya es order.total, que lo incluye:
+ *  este renglon es solo para que el detalle del PDF sume ese total. Sin envio
+ *  cobrado no aparece, y las facturas de antes salen iguales que siempre. */
+export function renglonesDelPedido(order: {
+  shippingCost: number;
+  zonaEnvio: string | null;
+  items: {
+    title: string;
+    qty: number;
+    price: number;
+    product: { sku: string | null; itemId: string } | null;
+  }[];
+}): { codigo: string; titulo: string; qty: number; precio: number }[] {
+  const renglones = order.items.map((it) => ({
+    codigo: it.product?.sku || it.product?.itemId || "-",
+    titulo: it.title,
+    qty: it.qty,
+    precio: it.price,
+  }));
+  if (order.shippingCost > 0)
+    renglones.push({
+      codigo: "ENVIO",
+      titulo: `Envío ${order.zonaEnvio === "CABA" ? "Capital" : (order.zonaEnvio ?? "a domicilio")}`,
+      qty: 1,
+      precio: order.shippingCost,
+    });
+  return renglones;
+}
+
 export async function pdfDeComprobante(
   orderId: string,
   tipo: TipoComprobante = "factura",
@@ -59,12 +92,7 @@ export async function pdfDeComprobante(
           : undefined,
       condicionIva: "Consumidor Final",
     },
-    items: order.items.map((it) => ({
-      codigo: it.product?.sku || it.product?.itemId || "-",
-      titulo: it.title,
-      qty: it.qty,
-      precio: it.price,
-    })),
+    items: renglonesDelPedido(order),
     orderNumber: order.number,
     asociado:
       esNc && order.cbteNro && order.cbteTipo

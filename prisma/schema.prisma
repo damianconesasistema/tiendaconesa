@@ -127,8 +127,19 @@ model Order {
   postalCode   String?
   street       String?
   streetNumber String?
+  // Piso y departamento. Aparte de la calle porque es lo primero que le
+  // falta al repartidor cuando llega a un edificio.
+  floor        String?
   reference    String?
   notes        String?
+  // La zona del mapa de Mercado Envios Flex que eligio el cliente
+  // ("La Matanza", "CABA"). Buenos Aires solo envia dentro de ese mapa
+  // (src/lib/zona-envio.ts); va en la etiqueta para el repartidor.
+  zonaEnvio    String?
+  // Si salio con envio gratis: compra desde el tope del local y dentro del
+  // mapa. Se guarda y no se recalcula, porque el tope puede cambiar despues
+  // y lo prometido al cliente tiene que seguir siendo lo que se le prometio.
+  envioGratis  Boolean     @default(false)
 
   // De que sucursal es este pedido: el local que cobra y que factura.
   //

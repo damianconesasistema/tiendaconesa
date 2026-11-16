@@ -19,6 +19,7 @@
 
 import { prisma } from "@/lib/db";
 import { slugDelSubdominio, sucursalQueVende } from "@/lib/sucursal";
+import { preciosValidos, type PreciosEnvio } from "@/lib/zona-envio";
 
 export const SETTING_RECARGO_1PAGO = "recargo_mp_1pago_pct";
 export const SETTING_RECARGO_CUOTAS = "recargo_mp_cuotas_pct";
@@ -26,6 +27,12 @@ export const SETTING_CUOTAS_MAX = "mp_cuotas_max";
 export const SETTING_DESC_LISTA = "descuento_lista_pct";
 export const SETTING_DESC_COMBO = "descuento_combo_pct";
 export const SETTING_MOSTRAR_DCTO = "mostrar_dcto_combo_pct";
+/** Desde cuantos pesos (precio de lista) el envio es gratis. Va por
+ *  sucursal: "envio_gratis_desde:bsas". Vacio = sin envio gratis. */
+export const SETTING_ENVIO_GRATIS = "envio_gratis_desde";
+/** Lo que se cobra el envio por zona, en JSON: {"CABA":5500,"Zona 1":7300...}.
+ *  Va por sucursal: "envio_precios:bsas". Ver src/lib/zona-envio.ts. */
+export const SETTING_PRECIOS_ENVIO = "envio_precios";
 
 // Valores por defecto, del simulador de MercadoPago (oct 2026).
 // Se editan desde el panel: Configuración.
@@ -306,6 +313,35 @@ export async function getRecargosMp(): Promise<RecargosMp> {
 /** Los recargos que muestra y edita la pantalla de Configuracion. */
 export async function getRecargosDelPanel(): Promise<RecargosMp> {
   return armarRecargos(getSettingDelPanel);
+}
+
+/** El tope de envio gratis de la sucursal que le cobra a este cliente. Null
+ *  si no tiene. Lo usan el carrito, el checkout y el servidor del pedido. */
+export async function getEnvioGratisDesde(): Promise<number | null> {
+  const raw = await getSettingDeAca(SETTING_ENVIO_GRATIS);
+  if (raw === null || raw.trim() === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+}
+
+/** El tope como lo muestra y edita Configuracion: el del panel en el que se
+ *  esta. Mismo motivo que getRecargosDelPanel. */
+export async function getEnvioGratisDelPanel(): Promise<number | null> {
+  const raw = await getSettingDelPanel(SETTING_ENVIO_GRATIS);
+  if (raw === null || raw.trim() === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+}
+
+/** Lo que cobra el envio cada zona, para el local que le cobra a este
+ *  cliente. Lo que falte en la configuracion sale de los de arranque. */
+export async function getPreciosEnvio(): Promise<PreciosEnvio> {
+  return preciosValidos(await getSettingDeAca(SETTING_PRECIOS_ENVIO));
+}
+
+/** Los precios como los muestra y edita Configuracion. */
+export async function getPreciosEnvioDelPanel(): Promise<PreciosEnvio> {
+  return preciosValidos(await getSettingDelPanel(SETTING_PRECIOS_ENVIO));
 }
 
 /** Recargo en pesos sobre un subtotal, redondeado al peso. */

@@ -16,6 +16,12 @@ import { useCart, lineaDe } from "@/lib/cart";
 import { gaArrancarCheckout } from "@/lib/ga";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
 import { localidadesPorZona } from "@/lib/traslasierra";
+import {
+  DONDE_ENVIAMOS,
+  envioDe,
+  faltaParaEnvioGratis,
+  type PreciosEnvio,
+} from "@/lib/zona-envio";
 import { formatPrice, cartTotal, buildOrderMessage, whatsappOrderLink } from "@/lib/order";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { createOrder } from "@/app/tienda/checkout/actions";
@@ -37,6 +43,9 @@ export function CheckoutPage({
   retiroDesc,
   envioTitulo,
   envioDesc,
+  modoEnvio = "mapa",
+  envioGratisDesde = null,
+  preciosEnvio = null,
 }: {
   recargos?: Recargos;
   mpDisponible?: boolean;
@@ -48,11 +57,45 @@ export function CheckoutPage({
   /** El titulo y el detalle del envio de este local. */
   envioTitulo: string;
   envioDesc: string;
+  /** Como se elige a donde va el envio.
+   *  "mapa": Buenos Aires. La zona sale del codigo postal (mapa de Mercado
+   *  Envios Flex) y el envio se cobra junto con la compra; fuera del mapa no
+   *  se envia (src/lib/zona-envio.ts).
+   *  "valle": Traslasierra, con sus pueblos y "otra localidad a coordinar". */
+  modoEnvio?: "mapa" | "valle";
+  /** Desde cuanto (precio de lista) el envio es gratis. null = no hay. */
+  envioGratisDesde?: number | null;
+  /** Lo que cobra el envio cada zona. */
+  preciosEnvio?: PreciosEnvio | null;
 }) {
   const router = useRouter();
   const { items, clear } = useCart();
   const { customer, setCustomer, hydrated } = useCustomer();
   const { total: subtotal, hasUnpriced } = cartTotal(items);
+  const enMapa = modoEnvio === "mapa" && !!preciosEnvio;
+
+  // El carrito guarda el precio de lista (vitrina), asi que `subtotal` es
+  // justo lo que se compara con el tope: lo que el cliente ve en el carrito.
+  const tope = enMapa ? envioGratisDesde : null;
+  const llegaAlTope = !!tope && !hasUnpriced && subtotal >= tope;
+  const faltanParaGratis = hasUnpriced ? 0 : faltaParaEnvioGratis(subtotal, tope);
+  // El envio de esta compra, segun el codigo postal. null mientras no haya
+  // un codigo postal del mapa (o si retira).
+  const envio =
+    enMapa && preciosEnvio && customer.shipping === "envio" && !hasUnpriced
+      ? envioDe({
+          cp: customer.postalCode,
+          totalLista: subtotal,
+          tope,
+          precios: preciosEnvio,
+        })
+      : null;
+  const envioGratis = !!envio?.gratis;
+  const cpCompleto = esCP(customer.postalCode);
+  const fueraDelMapa = enMapa && customer.shipping === "envio" && cpCompleto && !envio;
+  const precioMinimo = preciosEnvio
+    ? Math.min(...Object.values(preciosEnvio))
+    : null;
 
   // begin_checkout: una vez por visita al checkout, cuando ya hidrato el
   // carrito. Sin el no se puede saber cuantos arrancan y no terminan.
@@ -70,8 +113,9 @@ export function CheckoutPage({
       })),
     );
   }, [items]);
-  // Costos de envio aun no definidos: el admin confirma por WhatsApp
-  const shippingCost = 0;
+  // El envio se cobra junto con la compra (Buenos Aires). Fuera de Buenos
+  // Aires, o si no hay codigo postal todavia, queda en 0.
+  const shippingCost = envio ? envio.costo : 0;
   const [sent, setSent] = useState(false);
   const [orderNumber, setOrderNumber] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -125,27 +169,37 @@ export function CheckoutPage({
     const e: Record<string, string> = {};
     if (!customer.firstName.trim()) e.firstName = "Requerido";
     if (!customer.lastName.trim()) e.lastName = "Requerido";
-    // El DNI quedo OPCIONAL. Hace falta para la factura, no para tomar el
-    // pedido, y pedir el documento antes de la primera compra espanta. Si lo
-    // escriben se valida; si no, se sigue igual.
+    // El DNI es opcional para RETIRAR: hace falta para la factura, no para
+    // tomar el pedido, y pedirlo antes de la primera compra espanta. Para un
+    // ENVIO es obligatorio: va en la etiqueta y lo pide el que entrega
+    // (Damian, 16/11/2026: "siempre solicitar todos los datos para envio").
     const dniEscrito = customer.dni.trim() !== "";
-    if (dniEscrito && !/^\d{7,8}$/.test(customer.dni.replace(/\D/g, "")))
+    if (customer.shipping === "envio" && !dniEscrito)
+      e.dni = "Requerido para el envío";
+    else if (dniEscrito && !/^\d{7,8}$/.test(customer.dni.replace(/\D/g, "")))
       e.dni = "DNI inválido (7 u 8 dígitos)";
     if (!customer.email.trim()) e.email = "Requerido";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email))
       e.email = "Email inválido";
     if (!customer.phone.trim()) e.phone = "Requerido";
-    if (customer.shipping === "envio") {
+    if (customer.shipping === "envio" && enMapa) {
+      if (!customer.locality.trim()) e.locality = "Escribí tu localidad o barrio";
+    } else if (customer.shipping === "envio") {
       if (!customer.locality.trim())
         e.locality = customer.otraZona
           ? "Escribí tu localidad"
           : "Elegí una localidad";
       if (customer.otraZona && !customer.province.trim())
         e.province = "Requerido";
+    }
+    if (customer.shipping === "envio") {
       // El codigo postal se pide siempre en los envios: es con lo que se
       // cotiza el flete y, mas adelante, con lo que se decide que local
       // atiende el pedido.
       if (!esCP(customer.postalCode)) e.postalCode = "4 números";
+      // Buenos Aires: solo dentro del mapa. Fuera, el pedido no sale.
+      else if (fueraDelMapa)
+        e.postalCode = "No enviamos a este código postal";
       if (!customer.street.trim()) e.street = "Requerido";
       if (!customer.streetNumber.trim()) e.streetNumber = "Requerido";
     }
@@ -199,7 +253,11 @@ export function CheckoutPage({
 
     // Camino WhatsApp (default): abrimos el chat con el pedido cargado.
     setSubmitting(false);
-    const msg = buildOrderMessage(items, customer, result.orderNumber);
+    const msg = buildOrderMessage(items, customer, result.orderNumber, {
+      envioGratis,
+      costoEnvio: shippingCost,
+      zona: envio?.zona ?? null,
+    });
     const url = whatsappOrderLink(msg, whatsappSucursal);
     setOrderNumber(result.orderNumber);
     setSent(true);
@@ -281,7 +339,7 @@ export function CheckoutPage({
                   autoComplete="family-name"
                 />
                 <Field
-                  label="DNI (opcional)"
+                  label={customer.shipping === "envio" ? "DNI" : "DNI (opcional)"}
                   value={customer.dni}
                   onChange={(v) => setCustomer({ ...customer, dni: v })}
                   error={errors.dni}
@@ -335,11 +393,95 @@ export function CheckoutPage({
                   icon={Truck}
                   title={envioTitulo}
                   desc={envioDesc}
-                  badge="A coordinar"
+                  badge={
+                    !enMapa
+                      ? "A coordinar"
+                      : llegaAlTope
+                        ? "Gratis"
+                        : precioMinimo !== null
+                          ? `Desde ${formatPrice(precioMinimo)}`
+                          : "A coordinar"
+                  }
                 />
               </div>
 
-              {customer.shipping === "envio" && (
+              {/* Buenos Aires: la zona sale del codigo postal y el precio se
+                  ve mientras se escribe. Fuera del mapa no se envia. Se piden
+                  todos los datos que lleva la etiqueta. */}
+              {customer.shipping === "envio" && enMapa && (
+                <div className="mt-5 space-y-4 border-t border-[var(--border)] pt-5">
+                  <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
+                    <Field
+                      label="Código postal"
+                      value={customer.postalCode}
+                      onChange={(v) => setCustomer({ ...customer, postalCode: v })}
+                      error={errors.postalCode}
+                      inputMode="numeric"
+                      placeholder="Ej: 1414"
+                    />
+                    <Field
+                      label="Localidad o barrio"
+                      value={customer.locality}
+                      onChange={(v) => setCustomer({ ...customer, locality: v })}
+                      error={errors.locality}
+                      placeholder="Ej: Villa Crespo, Ramos Mejía"
+                    />
+                  </div>
+
+                  {/* Lo que sale el envio a ese codigo postal, apenas se
+                      escribe. Antes de pedir el resto de los datos: si no
+                      llegamos, que lo sepa ahora y no al final. */}
+                  {cpCompleto && (
+                    <p
+                      className={`rounded-xl px-3 py-2 text-sm ${
+                        !envio
+                          ? "bg-amber-50 text-amber-900"
+                          : envio.gratis
+                            ? "bg-emerald-50 font-semibold text-emerald-800"
+                            : "bg-[var(--surface)] text-foreground"
+                      }`}
+                    >
+                      {!envio
+                        ? `Por ahora no enviamos a ese código postal: llegamos a ${DONDE_ENVIAMOS}. Podés retirar en el local o escribirnos por WhatsApp.`
+                        : envio.gratis
+                          ? `${envio.zona === "CABA" ? "Capital" : envio.zona} · Tu envío es gratis.`
+                          : `${envio.zona === "CABA" ? "Capital" : envio.zona} · Envío ${formatPrice(envio.costo)}${
+                              tope ? `. Gratis comprando desde ${formatPrice(tope)}: te faltan ${formatPrice(faltanParaGratis)}.` : "."
+                            }`}
+                    </p>
+                  )}
+                  <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+                    <Field
+                      label="Calle"
+                      value={customer.street}
+                      onChange={(v) => setCustomer({ ...customer, street: v })}
+                      error={errors.street}
+                      autoComplete="address-line1"
+                    />
+                    <Field
+                      label="Número"
+                      value={customer.streetNumber}
+                      onChange={(v) => setCustomer({ ...customer, streetNumber: v })}
+                      error={errors.streetNumber}
+                      inputMode="numeric"
+                    />
+                    <Field
+                      label="Piso / depto"
+                      value={customer.piso}
+                      onChange={(v) => setCustomer({ ...customer, piso: v })}
+                      placeholder="Ej: 3° B"
+                    />
+                  </div>
+                  <Field
+                    label="Entre calles / referencia"
+                    value={customer.reference}
+                    onChange={(v) => setCustomer({ ...customer, reference: v })}
+                    placeholder="Entre tal y tal, portón negro, etc."
+                  />
+                </div>
+              )}
+
+              {customer.shipping === "envio" && !enMapa && (
                 <div className="mt-5 space-y-4 border-t border-[var(--border)] pt-5">
                   <div>
                     <label className="font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
@@ -602,11 +744,23 @@ export function CheckoutPage({
                 {/* Si retira, NO hay envío: decir "Gratis" haría creer que se
                     lo llevan sin cargo. */}
                 <div className="flex justify-between">
-                  <span className="text-[var(--muted)]">Entrega</span>
-                  <span className="font-semibold">
+                  <span className="text-[var(--muted)]">
+                    {envio && !envio.gratis
+                      ? `Envío ${envio.zona === "CABA" ? "Capital" : envio.zona}`
+                      : "Entrega"}
+                  </span>
+                  <span
+                    className={`font-semibold ${envioGratis ? "text-emerald-700" : ""}`}
+                  >
                     {customer.shipping === "retiro"
                       ? "Retiro en tienda"
-                      : "Envío a coordinar"}
+                      : envio
+                        ? envio.gratis
+                          ? "Envío gratis"
+                          : formatPrice(envio.costo)
+                        : enMapa
+                          ? "Poné tu código postal"
+                          : "Envío a coordinar"}
                   </span>
                 </div>
                 {/* La diferencia según la forma de pago se muestra SIEMPRE

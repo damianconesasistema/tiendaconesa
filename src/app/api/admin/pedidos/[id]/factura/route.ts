@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { generarFacturaPdf } from "@/lib/afip/pdf";
 import { numeroFormateado } from "@/lib/afip/factura";
 import { DOC } from "@/lib/afip/config";
+import { renglonesDelPedido } from "@/lib/afip/armar-pdf";
 
 // Descarga el PDF de la factura de un pedido.
 //
@@ -57,12 +58,9 @@ export async function GET(
           : undefined,
       condicionIva: "Consumidor Final",
     },
-    items: order.items.map((it) => ({
-      codigo: it.product?.sku || it.product?.itemId || "-",
-      titulo: it.title,
-      qty: it.qty,
-      precio: it.price,
-    })),
+    // Los articulos y, si se cobro, el envio: el mismo detalle que el PDF
+    // que se le manda al cliente (src/lib/afip/armar-pdf.ts).
+    items: renglonesDelPedido(order),
     orderNumber: order.number,
   });
 

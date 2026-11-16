@@ -18,9 +18,26 @@ import { useCart, lineaDe } from "@/lib/cart";
 import { formatPrice, cartTotal } from "@/lib/order";
 import { CartRecomendados } from "@/components/CartRecomendados";
 
-export function CartPage() {
+export function CartPage({
+  envioGratisDesde = null,
+  textoEnvio = "Envíos a domicilio",
+  envioDesde = null,
+}: {
+  /** Desde cuanto (precio de lista) el envio es gratis. null = no hay. */
+  envioGratisDesde?: number | null;
+  /** A donde envia el local que vende. Antes estaba escrito el Valle de
+   *  Traslasierra y lo leia tambien el que compraba en Buenos Aires. */
+  textoEnvio?: string;
+  /** El envio mas barato (Capital). El de cada uno depende del codigo
+   *  postal, que se pide en el checkout. null = se coordina. */
+  envioDesde?: number | null;
+} = {}) {
   const { items, setQty, remove, clear } = useCart();
   const { total, hasUnpriced } = cartTotal(items);
+  // El carrito guarda el precio de lista: es justo lo que se compara.
+  const tope = envioGratisDesde;
+  const llega = !!tope && !hasUnpriced && total >= tope;
+  const faltan = tope && !hasUnpriced ? Math.max(0, tope - total) : 0;
 
   if (items.length === 0) {
     return (
@@ -167,9 +184,42 @@ export function CartPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--muted)]">Envío</span>
-                  <span className="font-semibold">A calcular</span>
+                  <span className={`font-semibold ${llega ? "text-emerald-700" : ""}`}>
+                    {llega
+                      ? "Gratis"
+                      : envioDesde !== null
+                        ? `Desde ${formatPrice(envioDesde)}`
+                        : "A coordinar"}
+                  </span>
                 </div>
               </div>
+
+              {/* Lo que mas empuja a sumar algo: ver cuanto falta. Se mide
+                  sobre el precio de lista, el mismo que se ve arriba. */}
+              {tope && !hasUnpriced && (
+                <div
+                  className={`mt-4 rounded-xl px-3 py-2.5 text-sm ${
+                    llega
+                      ? "bg-emerald-50 text-emerald-800"
+                      : "bg-[var(--surface)] text-foreground"
+                  }`}
+                >
+                  <p className="font-semibold">
+                    {llega
+                      ? "¡Tenés envío gratis!"
+                      : `Te faltan ${formatPrice(faltan)} para el envío gratis`}
+                  </p>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+                    <div
+                      className={`h-full rounded-full ${llega ? "bg-emerald-500" : "bg-[var(--brand-red)]"}`}
+                      style={{ width: `${Math.min(100, Math.round((total / tope) * 100))}%` }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs text-[var(--muted)]">
+                    Desde {formatPrice(tope)}, a {textoEnvio.replace(/^Envíos a /, "")}.
+                  </p>
+                </div>
+              )}
               <div className="mt-4 flex items-end justify-between border-t border-[var(--border)] pt-4">
                 <span className="font-display text-sm font-bold uppercase">
                   Total
@@ -196,7 +246,7 @@ export function CartPage() {
 
             <div className="mt-4 space-y-2 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[var(--border)]">
               <Perk icon={Shield} text="Compra protegida — pagás al confirmar" />
-              <Perk icon={Truck} text="Envíos a todo el Valle de Traslasierra" />
+              <Perk icon={Truck} text={textoEnvio} />
               <Perk icon={ImageIcon} text="Las fotos son a modo ilustrativo" />
             </div>
           </aside>

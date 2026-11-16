@@ -115,7 +115,10 @@ export default async function Home() {
         dondeRetirar: unica.city ?? unica.name,
         retiroDesc: `${unica.city ?? unica.name} · gratis`,
         envioTitulo: `Envíos a ${unica.name}`,
-        envioDesc: "Costo a coordinar por WhatsApp",
+        // Lo que escribio el local en su ficha ("Capital y Gran Buenos
+        // Aires. Gratis desde $100.000."). Buenos Aires ya no coordina el
+        // costo: lo cobra segun la zona.
+        envioDesc: unica.zonaEnvio || "Costo a coordinar por WhatsApp",
       }
     : {
         dondeRetirar: "cualquiera de los dos locales",

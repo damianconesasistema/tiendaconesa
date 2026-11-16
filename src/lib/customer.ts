@@ -19,6 +19,8 @@ export type Customer = {
   postalCode: string;
   street: string;
   streetNumber: string;
+  /** Piso y depto. Opcional: no todos viven en un edificio. */
+  piso: string;
   reference: string;
   notes: string;
 };
@@ -36,6 +38,7 @@ export const emptyCustomer: Customer = {
   postalCode: "",
   street: "",
   streetNumber: "",
+  piso: "",
   reference: "",
   notes: "",
 };

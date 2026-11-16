@@ -46,6 +46,8 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
     include: {
       customer: true,
       items: { include: { product: true } },
+      // El local del pedido: de ahi sale donde se retira.
+      branch: { select: { name: true, address: true, city: true } },
     },
   });
   if (!order) notFound();
@@ -124,6 +126,19 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
               <Tag className="h-4 w-4" />
               Etiqueta
             </a>
+            {/* El recibo de MercadoPago para que firme el que retira: es la
+                prueba si despues desconoce el pago con la tarjeta. */}
+            {order.shipping === "retiro" && (
+              <a
+                href={`/api/admin/pedidos/${order.id}/recibo`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-[var(--brand-black)]"
+              >
+                <Tag className="h-4 w-4" />
+                Recibo de retiro
+              </a>
+            )}
           </div>
 
           <div className="border-t border-[var(--border)] pt-2 sm:w-auto">
@@ -169,9 +184,11 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
               value={
                 order.shipping === "retiro"
                   ? "Retiro en tienda"
-                  : order.shippingCost > 0
-                    ? formatPrice(order.shippingCost)
-                    : "Envío a coordinar"
+                  : order.envioGratis
+                    ? "Envío gratis"
+                    : order.shippingCost > 0
+                      ? formatPrice(order.shippingCost)
+                      : "Envío a coordinar"
               }
             />
             <div className="flex justify-between border-t border-[var(--border)] pt-3 font-display text-lg font-black">
@@ -219,22 +236,57 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
               <div className="mt-3 text-sm">
                 <div className="font-semibold">Retiro en tienda</div>
                 <div className="mt-1 text-[var(--muted)]">
-                  Villa Cura Brochero · Av. Belgrano 758
+                  {/* El local del pedido. Antes decia siempre Villa Cura
+                      Brochero, tambien en un pedido de Buenos Aires. */}
+                  {order.branch
+                    ? [order.branch.name, order.branch.address, order.branch.city]
+                        .filter(Boolean)
+                        .join(" · ")
+                    : "Villa Cura Brochero · Av. Belgrano 758"}
                 </div>
               </div>
             ) : (
               <div className="mt-3 space-y-2 text-sm">
                 <InfoRow icon={MapPin}>
                   <div>
-                    <div className="font-semibold">{order.locality}</div>
+                    <div className="font-semibold">
+                      {order.locality}
+                      {order.zonaEnvio && order.zonaEnvio !== order.locality && (
+                        <span className="font-normal text-[var(--muted)]">
+                          {" "}
+                          · {order.zonaEnvio}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-[var(--muted)]">
                       {order.street} {order.streetNumber}
+                      {order.floor ? `, ${order.floor}` : ""}
                     </div>
+                    {(order.postalCode || order.province) && (
+                      <div className="text-[var(--muted)]">
+                        {[order.postalCode ? `CP ${order.postalCode}` : null, order.province]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </div>
+                    )}
                     {order.reference && (
                       <div className="mt-1 text-xs text-[var(--muted)]">
                         Ref: {order.reference}
                       </div>
                     )}
+                    <div
+                      className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${
+                        order.envioGratis || order.shippingCost > 0
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-[var(--surface)] text-[var(--muted)]"
+                      }`}
+                    >
+                      {order.envioGratis
+                        ? `Envío gratis${order.zonaEnvio ? ` · ${order.zonaEnvio}` : ""} · no cobrar`
+                        : order.shippingCost > 0
+                          ? `Envío ${order.zonaEnvio ?? ""} ${formatPrice(order.shippingCost)} · incluido en el pedido`
+                          : "Envío a coordinar"}
+                    </div>
                   </div>
                 </InfoRow>
               </div>

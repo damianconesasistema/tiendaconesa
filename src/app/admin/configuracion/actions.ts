@@ -8,8 +8,61 @@ import {
   SETTING_RECARGO_1PAGO,
   SETTING_RECARGO_CUOTAS,
   SETTING_CUOTAS_MAX,
+  SETTING_ENVIO_GRATIS,
+  SETTING_PRECIOS_ENVIO,
 } from "@/lib/settings";
 import { sucursalDelPanel } from "@/lib/sucursal-panel";
+import { ZONAS, type PreciosEnvio } from "@/lib/zona-envio";
+
+/** Lo que cobra el envio cada zona, y desde cuanto es gratis, en ESTE local.
+ *
+ *  Solo desde el panel de una sucursal: el envio lo hace un local, con su
+ *  gente y en su zona, y en conesa.com.ar/admin no hay un local. */
+export async function guardarEnvio(
+  prevState: unknown,
+  formData: FormData,
+): Promise<{ ok?: true; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  const local = await sucursalDelPanel();
+  if (!local)
+    return { error: "Entrá al panel de la sucursal para cambiar sus envíos." };
+
+  const pesos = (v: FormDataEntryValue | null) => {
+    const crudo = String(v ?? "").replace(/[^\d]/g, "");
+    return crudo === "" ? null : Number(crudo);
+  };
+
+  const precios = {} as PreciosEnvio;
+  for (const z of ZONAS) {
+    const n = pesos(formData.get(`precio:${z}`));
+    if (n === null || !Number.isFinite(n) || n > 10_000_000)
+      return { error: `Poné el precio del envío de ${z === "CABA" ? "Capital" : z}.` };
+    precios[z] = Math.round(n);
+  }
+
+  const desde = pesos(formData.get("desde")) ?? 0;
+  if (!Number.isFinite(desde) || desde > 100_000_000)
+    return { error: "Poné un monto en pesos, o dejalo vacío para no ofrecer envío gratis." };
+
+  try {
+    await setSetting(
+      claveDeSucursal(SETTING_PRECIOS_ENVIO, local.slug),
+      JSON.stringify(precios),
+    );
+    await setSetting(
+      claveDeSucursal(SETTING_ENVIO_GRATIS, local.slug),
+      desde > 0 ? String(Math.round(desde)) : "",
+    );
+    revalidatePath("/admin/configuracion");
+    revalidatePath("/tienda/carrito");
+    revalidatePath("/tienda/checkout");
+    revalidatePath("/");
+    return { ok: true };
+  } catch (e) {
+    return { error: `Error al guardar: ${(e as Error).message}` };
+  }
+}
 
 export async function guardarRecargos(
   prevState: unknown,

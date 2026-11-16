@@ -134,7 +134,22 @@ export async function mailPedidoRecibido(opts: {
   items: ItemMail[];
   total: number;
   retira: boolean;
+  /** Compra desde el tope y dentro del mapa: el envio no se cobra. */
+  envioGratis?: boolean;
+  /** El envio que se cobro junto con el pedido. 0 = gratis o a coordinar. */
+  costoEnvio?: number;
+  /** Donde se retira: el local que vende. Antes decia siempre el pueblo de
+   *  Traslasierra, tambien al que compraba en Buenos Aires. */
+  dondeRetira?: string;
 }): Promise<EnvioResultado> {
+  const dondeRetira = opts.dondeRetira || business.address.city;
+  const queSigue = opts.retira
+    ? `Podés retirarlo en nuestro local de ${dondeRetira}. Te avisamos cuando esté listo.`
+    : opts.envioGratis
+      ? "Tu envío es gratis. Nos comunicamos con vos para coordinar el día de entrega."
+      : (opts.costoEnvio ?? 0) > 0
+        ? "El envío ya está incluido en el total. Nos comunicamos con vos para coordinar el día de entrega."
+        : "Nos comunicamos con vos para coordinar el envío y su costo.";
   const html = layout(`
     <h1 style="margin:0 0 8px;font-size:22px">¡Gracias por tu pedido, ${opts.nombre}!</h1>
     <p style="margin:0 0 4px;font-size:14px;color:#555">
@@ -142,11 +157,7 @@ export async function mailPedidoRecibido(opts: {
     </p>
     ${tablaItems(opts.items, opts.total)}
     <p style="margin:0 0 16px;font-size:14px;color:#555">
-      ${
-        opts.retira
-          ? `Podés retirarlo en nuestro local de ${business.address.city}. Te avisamos cuando esté listo.`
-          : "Nos comunicamos con vos para coordinar el envío y su costo."
-      }
+      ${queSigue}
     </p>
     <p style="margin:0 0 20px;font-size:14px;color:#555">
       Cualquier duda, respondé este mail o escribinos por WhatsApp.
@@ -158,7 +169,7 @@ export async function mailPedidoRecibido(opts: {
 Pedido #${opts.orderNumber}
 ${opts.items.map((i) => `${i.qty} x ${i.title} - ${formatPrice(i.price * i.qty)}`).join("\n")}
 Total: ${formatPrice(opts.total)}
-${opts.retira ? `Retirás en ${business.address.city}.` : "Coordinamos el envío."}
+${queSigue}
 ${business.name} - ${SITE_URL}`;
 
   return enviarEmail({
@@ -188,6 +199,10 @@ export async function mailVentaInterna(opts: {
   };
   envio: {
     retira: boolean;
+    /** El envio no se cobra (compra desde el tope, dentro del mapa). */
+    gratis?: boolean;
+    /** El local que vende, para "retira en el local de...". */
+    dondeRetira?: string;
     localidad?: string;
     calle?: string;
     numero?: string;
@@ -203,6 +218,13 @@ export async function mailVentaInterna(opts: {
 }): Promise<EnvioResultado> {
   const c = opts.comprador;
   const e = opts.envio;
+  const cobroEnvio = e.retira
+    ? ""
+    : e.gratis
+      ? "GRATIS (no se cobra)"
+      : opts.costoEnvio > 0
+        ? `${formatPrice(opts.costoEnvio)}, cobrado con el pedido`
+        : "A coordinar con el cliente";
   const nombreCompleto = `${c.nombre} ${c.apellido}`.trim();
 
   const fila = (etiqueta: string, valor: string) =>
@@ -212,7 +234,7 @@ export async function mailVentaInterna(opts: {
     </tr>`;
 
   const domicilio = e.retira
-    ? `Retira en el local (${business.address.city})`
+    ? `Retira en el local (${e.dondeRetira || business.address.city})`
     : [
         [e.calle, e.numero].filter(Boolean).join(" "),
         e.localidad,
@@ -237,6 +259,7 @@ export async function mailVentaInterna(opts: {
     <h2 style="margin:0 0 8px;font-size:16px">Entrega y pago</h2>
     <table style="width:100%;border-collapse:collapse;margin:0 0 20px">
       ${fila("Entrega", domicilio)}
+      ${cobroEnvio ? fila("Envío", cobroEnvio) : ""}
       ${e.referencia ? fila("Referencia", e.referencia) : ""}
       ${e.notas ? fila("Aclaraciones", e.notas) : ""}
       ${fila("Forma de pago", opts.formaDePago)}
@@ -264,7 +287,8 @@ Tel: ${c.telefono}
 Mail: ${c.email}
 
 ENTREGA
-${domicilio}${e.referencia ? `
+${domicilio}${cobroEnvio ? `
+Envio: ${cobroEnvio}` : ""}${e.referencia ? `
 Referencia: ${e.referencia}` : ""}${e.notas ? `
 Aclaraciones: ${e.notas}` : ""}
 Pago: ${opts.formaDePago}
