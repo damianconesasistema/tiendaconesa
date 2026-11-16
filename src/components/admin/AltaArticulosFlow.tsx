@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import {
   Upload,
@@ -176,6 +176,18 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
       }
     });
   }
+
+  // Apenas se sube un Excel con articulos de FV, se los busca en la pagina
+  // de FV solos: titulo oficial y foto, sin tener que apretar nada (Damian,
+  // 16/11/2026: "que levante por el codigo fotos del modelo desde la pagina
+  // de FV"). El boton queda para volver a buscar. Una vez por archivo.
+  const buscadoEn = useRef<PreviewAltaResult | null>(null);
+  useEffect(() => {
+    if (!prev?.ok || buscadoEn.current === prev) return;
+    buscadoEn.current = prev;
+    if (elegidosDeFV().length > 0) traerTodoDeFV();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev]);
 
   function editar(itemCode: string, cambio: Edicion) {
     setEdiciones((e) => ({ ...e, [itemCode]: { ...e[itemCode], ...cambio } }));
@@ -458,7 +470,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
                       } discontinuados), ${
                         deFV.filter((a) => fv[a.itemCode] && !fv[a.itemCode].encontrado).length
                       } no. Revisá títulos y fotos antes de crear.`
-                    : "Busca cada código en la página de FV y propone el título y la foto oficial. No se guarda nada hasta que apretás Crear."}
+                    : "Busca cada código en la página de FV y trae el título y la foto oficial. Arranca solo al subir el Excel. No se guarda nada hasta que apretás Crear."}
               </span>
             </div>
           )}
@@ -619,8 +631,10 @@ function Ficha({
           aria-label={`Dar de alta ${a.itemCode}`}
         />
         <div className="min-w-0 flex-1">
+          {/* El SKU es el codigo de GBP: con ese se guarda el articulo y va
+              tambien en el titulo de los FV. */}
           <p className="font-mono text-xs text-[var(--muted)]">
-            Código {a.itemCode}
+            SKU <strong className="text-foreground">{a.itemCode}</strong>
           </p>
           <input
             type="text"

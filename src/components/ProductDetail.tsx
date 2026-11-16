@@ -1,5 +1,6 @@
 "use client";
 
+import { rutaProducto } from "@/lib/rutas-producto";
 import Link from "next/link";
 import { etiquetasDe, TONOS_ETIQUETA, opcionesDe } from "@/lib/etiquetas";
 import Image from "next/image";
@@ -180,7 +181,7 @@ export function ProductDetail({
       // Sin sessionStorage preferimos no contar antes que contar de mas
       return;
     }
-    fetch(`/api/productos/${product.itemId}/visita`, {
+    fetch(`/api/productos/${encodeURIComponent(product.itemId)}/visita`, {
       method: "POST",
       keepalive: true,
     }).catch(() => {
@@ -846,7 +847,7 @@ function RelatedCard({
 
   return (
     <Link
-      href={`/tienda/${p.itemId}`}
+      href={rutaProducto(p.itemId)}
       className="group flex flex-col overflow-hidden rounded-xl bg-white ring-1 ring-[var(--border)] transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="relative aspect-square bg-white">

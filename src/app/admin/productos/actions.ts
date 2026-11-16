@@ -1,5 +1,6 @@
 "use server";
 
+import { rutaAdminProducto, rutaFoto, rutaProducto } from "@/lib/rutas-producto";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { getAdminSession } from "@/lib/admin-auth";
@@ -295,9 +296,9 @@ export async function updateProduct(
   // el precio viejo. Ver src/lib/espejo-sucursal.ts.
   await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
-  revalidatePath(`/admin/productos/${itemId}`);
+  revalidatePath(rutaAdminProducto(itemId));
   revalidatePath("/tienda");
-  revalidatePath(`/tienda/${itemId}`);
+  revalidatePath(rutaProducto(itemId));
   revalidatePath("/");
 
   return { ok: true };
@@ -388,9 +389,9 @@ export async function quickUpdate(
   // el precio viejo. Ver src/lib/espejo-sucursal.ts.
   await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
-  revalidatePath(`/admin/productos/${itemId}`);
+  revalidatePath(rutaAdminProducto(itemId));
   revalidatePath("/tienda");
-  revalidatePath(`/tienda/${itemId}`);
+  revalidatePath(rutaProducto(itemId));
   revalidatePath("/");
 
   return { ok: true };
@@ -429,7 +430,7 @@ export async function addHistoricalPrice(
       source: "manual",
     },
   });
-  revalidatePath(`/admin/productos/${itemId}`);
+  revalidatePath(rutaAdminProducto(itemId));
   return { ok: true };
 }
 
@@ -441,7 +442,7 @@ export async function deleteHistoryEntry(
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   await prisma.priceHistory.delete({ where: { id: entryId } });
-  revalidatePath(`/admin/productos/${itemId}`);
+  revalidatePath(rutaAdminProducto(itemId));
   return { ok: true };
 }
 
@@ -837,7 +838,7 @@ export async function restoreFromBackup(
           await prisma.product.update({
             where: { id: productId },
             data: {
-              imageUrl: `/api/productos/${p.itemId}/imagen?v=${Date.now()}`,
+              imageUrl: rutaFoto(p.itemId, Date.now()),
             },
           });
         }
@@ -927,7 +928,7 @@ export async function duplicateProduct(
       await prisma.product.update({
         where: { id: copia.id },
         data: {
-          imageUrl: `/api/productos/${nuevoItemId}/imagen?v=${Date.now()}`,
+          imageUrl: rutaFoto(nuevoItemId, Date.now()),
         },
       });
     }
@@ -1314,7 +1315,7 @@ async function syncMainImageUrl(itemId: string, productId: string) {
     where: { itemId },
     data: {
       imageUrl: main
-        ? `/api/productos/${itemId}/imagen?v=${Date.now()}`
+        ? rutaFoto(itemId, Date.now())
         : null,
     },
   });
@@ -1326,9 +1327,9 @@ async function revalidateProduct(itemId: string) {
   // el precio viejo. Ver src/lib/espejo-sucursal.ts.
   await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
-  revalidatePath(`/admin/productos/${itemId}`);
+  revalidatePath(rutaAdminProducto(itemId));
   revalidatePath("/tienda");
-  revalidatePath(`/tienda/${itemId}`);
+  revalidatePath(rutaProducto(itemId));
   revalidatePath("/");
 }
 
@@ -1388,7 +1389,7 @@ export async function uploadProductImage(
     await syncMainImageUrl(itemId, product.id);
     await revalidateProduct(itemId);
 
-    const imageUrl = `/api/productos/${itemId}/imagen?v=${Date.now()}`;
+    const imageUrl = rutaFoto(itemId, Date.now());
     return { ok: true, imageUrl, count: toAdd.length };
   } catch (e) {
     return { error: `No se pudo guardar: ${(e as Error).message}` };
@@ -1632,7 +1633,7 @@ export async function setProductBrand(
   // el precio viejo. Ver src/lib/espejo-sucursal.ts.
   await sincronizarSucursalPrincipal();
   revalidatePath("/admin/productos");
-    revalidatePath(`/tienda/${itemId}`);
+    revalidatePath(rutaProducto(itemId));
     return { ok: true };
   } catch (e) {
     return { error: `Error: ${(e as Error).message}` };

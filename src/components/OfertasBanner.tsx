@@ -1,3 +1,4 @@
+import { rutaProducto } from "@/lib/rutas-producto";
 import Link from "next/link";
 import Image from "next/image";
 import { Tag, ArrowRight } from "lucide-react";
@@ -118,7 +119,7 @@ export function OfertasBanner({
           {destacadas.map((p, i) => (
             <Link
               key={p.itemId}
-              href={`/tienda/${p.itemId}`}
+              href={rutaProducto(p.itemId)}
               className={`group flex flex-col overflow-hidden rounded-xl bg-white text-foreground shadow-lg transition-transform hover:-translate-y-1 ${
                 i >= 2 ? "hidden sm:flex" : ""
               } lg:w-40`}

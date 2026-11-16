@@ -1,3 +1,4 @@
+import { rutaProducto } from "@/lib/rutas-producto";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -67,7 +68,7 @@ export default async function EditProductPage({
       username={session.username}
       active="productos"
       sucursal
-      verTienda={`/tienda/${product.itemId}`}
+      verTienda={rutaProducto(product.itemId)}
     >
       <Link
         href={hrefVolver}
@@ -88,6 +89,7 @@ export default async function EditProductPage({
               itemId={product.itemId}
               category={product.category}
               initialImages={images}
+              deFV={product.brand === "fv"}
             />
           </div>
           <h3 className="mt-4 line-clamp-3 font-display text-sm font-bold leading-tight">
@@ -116,7 +118,7 @@ export default async function EditProductPage({
             )}
           </div>
           <Link
-            href={`/tienda/${product.itemId}`}
+            href={rutaProducto(product.itemId)}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold text-[var(--brand-red)] hover:underline"

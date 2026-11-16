@@ -1,5 +1,6 @@
 "use client";
 
+import { rutaProducto } from "@/lib/rutas-producto";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MARCAS_BASE, nombreMarca, porNombre, type Marca } from "@/lib/marcas";
 import { Search, Package, Tag, SlidersHorizontal } from "lucide-react";
@@ -513,7 +514,7 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
 
   return (
     <Link
-      href={`/tienda/${p.itemId}`}
+      href={rutaProducto(p.itemId)}
       className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
         hasDiscount
           ? "border-emerald-500/60 shadow-emerald-500/10 ring-1 ring-emerald-400/40"

@@ -1,5 +1,6 @@
 "use server";
 
+import { rutaFoto } from "@/lib/rutas-producto";
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
@@ -117,7 +118,7 @@ export async function uploadOneImage(
     });
     await prisma.product.update({
       where: { itemId },
-      data: { imageUrl: `/api/productos/${itemId}/imagen?v=${Date.now()}` },
+      data: { imageUrl: rutaFoto(itemId, Date.now()) },
     });
     return { ok: true };
   } catch (e) {

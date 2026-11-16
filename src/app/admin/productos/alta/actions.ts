@@ -13,7 +13,7 @@ import { getRecargosMp } from "@/lib/settings";
 import { descuentoDelRecargo } from "@/lib/precios";
 import { rubroSugerido, tituloSugerido } from "@/lib/alta-articulos";
 import { subrubroSugerido, subrubroValido } from "@/lib/subrubros";
-import { armarTitulo } from "@/lib/fv-ficha";
+import { armarTitulo, tituloFVDesdeGBP } from "@/lib/fv-ficha";
 import { buscarEnFV, guardarFotoDeFV } from "@/lib/fv";
 import { business } from "@/lib/business";
 
@@ -193,6 +193,22 @@ export async function previsualizarAlta(
     const r = rubroSugerido(t.titulo, f.subcategoria, f.categoria, laMarca);
     const sr = subrubroSugerido(r.slug, f.hoja, t.titulo);
 
+    // FV: el titulo arranca ya con el formato de siempre (rubro, subrubro y
+    // el codigo completo), armado con lo que dice GBP. Antes quedaba
+    // "ALLEGRO LAVARROPAS FV", sin el codigo ni "Grifería", hasta que se
+    // apretaba "Traer de FV" y solo si FV lo encontraba. Ver fv-ficha.ts.
+    const titulo =
+      marca === "fv"
+        ? armarTitulo({
+            rubroNombre: rubrosDeLaTienda().find((x) => x.slug === r.slug)?.name ?? "",
+            rubro: r.slug,
+            subrubro: sr.slug,
+            fv: tituloFVDesdeGBP(f.descripcion, f.itemCode, r.slug, sr.slug),
+            codigo: f.itemCode,
+            descripcionGBP: f.descripcion,
+          })
+        : t.titulo;
+
     // Un renglon sin precio no se puede dar de alta (en un archivo con
     // precios, es un codigo que vino solo con stock).
     if (f.precio === null) continue;
@@ -206,7 +222,7 @@ export async function previsualizarAlta(
     nuevos.push({
       itemCode: f.itemCode,
       descripcionGBP: f.descripcion,
-      titulo: t.titulo,
+      titulo,
       marca,
       marcaGBP: f.marca,
       categoria: r.slug,

@@ -2,6 +2,32 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.79.0 - Fotos de los FV: se veian rotas; titulos FV completos desde el
+//            Excel; traer la foto de FV a articulos ya cargados.
+//            FOTOS ROTAS: Damian, 16/11/2026: "las fotos no termino subiendolas,
+//            ahi lo cree, fijate". Las fotos de FV SI se guardaron (la del
+//            0167/17-CR pesa los mismos 17.502 bytes que la de fvsa.com), pero
+//            la direccion se armaba con la barra del codigo sin codificar:
+//            "/api/productos/0167/17-CR/imagen" daba 404. Ahora todas las
+//            direcciones de un articulo (foto, ficha de la tienda, ficha del
+//            panel) salen de src/lib/rutas-producto.ts con el codigo
+//            codificado. Sin esto, al publicar los FV su ficha tambien daba
+//            404. Migracion 40: corrige la direccion anotada en los que ya
+//            estan (solo esa columna).
+//            TITULOS FV: "no me estas trayendo los SKU y al titulo hay que
+//            agregarle Griferia, en el caso de FV". El titulo con el rubro y
+//            el codigo salia solo si FV encontraba el articulo; si no,
+//            "ALLEGRO LAVARROPAS FV". Ahora todo FV arranca armado con lo que
+//            dice GBP (tituloFVDesdeGBP en fv-ficha.ts): "Grifería Lavarropas
+//            – Allegro FV 0401/15-CR Cromo". Probado con los 121 de FV
+//            PAGINA.xlsx: todos con Griferia y con el codigo. Y la busqueda en
+//            la pagina de FV arranca sola al subir el Excel.
+//            FOTOS DE FV para articulos ya cargados: "podes hacer que levante
+//            por el codigo fotos del modelo desde la pagina de FV?". Boton
+//            "Traer foto de FV" en la ficha del panel (la agrega a la galeria;
+//            si ya la tiene, no la repite) y pantalla "Fotos de FV" para
+//            todos los FV sin foto, de a cuatro y con el avance. FV tiene una
+//            foto por modelo y terminacion: no hay galeria para traer.
 // V.0.78.3 - En la compu el ultimo renglon del pie se corre a la izquierda
 //            (sm:pr-20) en vez de subirlo: los dos botones flotantes ocupan
 //            la columna derecha y al subirlo lo tapaba la flecha.
@@ -819,7 +845,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.78.3";
+export const APP_VERSION = "V.0.79.0";
 
 export type VersionEntry = {
   version: string;

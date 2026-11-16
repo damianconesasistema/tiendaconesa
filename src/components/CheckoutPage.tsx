@@ -1,5 +1,6 @@
 "use client";
 
+import { rutaProducto } from "@/lib/rutas-producto";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -311,7 +312,7 @@ export function CheckoutPage({
         <Link
           href={
             directa.activa && items[0]
-              ? `/tienda/${items[0].itemId}`
+              ? rutaProducto(items[0].itemId)
               : "/tienda/carrito"
           }
           className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--brand-red)]"

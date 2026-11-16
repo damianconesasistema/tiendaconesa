@@ -1,5 +1,6 @@
 "use client";
 
+import { rutaAdminProducto } from "@/lib/rutas-producto";
 import { useActionState, useEffect, useState } from "react";
 import { SHIPPING_TYPES } from "@/lib/shipping";
 import { subrubrosDe } from "@/lib/subrubros";
@@ -40,7 +41,7 @@ export function NewProductForm({
   // Al crear OK, redirigir a la ficha para subir la foto
   useEffect(() => {
     if (state && "ok" in state && state.ok && state.itemId) {
-      router.push(`/admin/productos/${state.itemId}`);
+      router.push(rutaAdminProducto(state.itemId));
     }
   }, [state, router]);
 

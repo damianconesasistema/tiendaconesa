@@ -234,7 +234,9 @@ export function armarTitulo(a: ArmarTitulo): string {
   const adelante = [a.rubroNombre, sub].filter(Boolean).join(" ");
   const atras = [
     tipo,
-    ...calificativos(a.fv.tipo, a.descripcionGBP),
+    // Tambien mira la linea: el titulo armado desde GBP ya los pone ahi
+    // ("Malena para embutir") y no tienen que salir dos veces.
+    ...calificativos(`${a.fv.tipo} ${a.fv.linea}`, a.descripcionGBP),
     lineaSinRepetir(a.fv.linea, a.fv.tipo),
     "FV",
     a.codigo.trim(),
@@ -242,5 +244,111 @@ export function armarTitulo(a: ArmarTitulo): string {
   ]
     .filter(Boolean)
     .join(" ");
-  return `${adelante} – ${atras}`.replace(/\s+/g, " ").trim();
+  // Mayuscula al arrancar: sin tipo, puede empezar por "para embutir".
+  const atrasCap = atras.charAt(0).toUpperCase() + atras.slice(1);
+  return `${adelante} – ${atrasCap}`.replace(/\s+/g, " ").trim();
+}
+
+// ---------------------------------------------------------------------------
+// El titulo de un FV SIN la pagina de FV, con lo que dice el sistema.
+//
+// Damian, 16/11/2026: "no me estas trayendo los SKU y al titulo hay que
+// agregarle Griferia, en el caso de FV". El titulo con el rubro y el codigo
+// solo se armaba si se apretaba "Traer de FV" y FV lo encontraba; si no,
+// quedaba el de GBP sin el codigo ("ALLEGRO LAVARROPAS FV"). Ahora todo FV
+// arranca con el mismo formato, armado con la descripcion de GBP:
+//   "ALLEGRO LAVARROPAS FV 0401/15-CR"  ->  linea Allegro, tipo (nada: ya
+//   lo dice el subrubro)  ->  "Grifería Lavarropas – Allegro FV 0401/15-CR Cromo"
+// Si despues FV lo encuentra, se reemplaza por el de la ficha oficial.
+// ---------------------------------------------------------------------------
+
+/** Lo que es el articulo cuando el subrubro no alcanza para decirlo. */
+const TIPOS_SUELTOS = new Set([
+  "jabonera", "jabonero", "percha", "portarrollo", "portarrollos", "portavaso",
+  "portacepillo", "toallero", "toallera", "barral", "repisa", "gancho",
+  "dispenser", "canilla", "llave", "grifo", "valvula", "sifon", "flor", "brazo",
+]);
+
+const enTitulo = (w: string) =>
+  w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+
+export function tituloFVDesdeGBP(
+  descripcion: string,
+  codigo: string,
+  rubro: string,
+  subrubro: string | null,
+): TituloFV {
+  const texto = String(descripcion || "").replace(/\s+/g, " ").trim();
+  // El codigo no va en el nombre: armarTitulo lo pone completo despues de
+  // "FV". A veces GBP lo escribe partido ("106/L2 CR") o sin "FV" adelante.
+  const base = normCodigo(codigoBase(codigo));
+  const esCodigo = (w: string) => {
+    const n = normCodigo(w);
+    return n === normCodigo(codigo) || (n.length >= 4 && base.endsWith(n.replace(/^0+/, "")));
+  };
+  // GBP escribe "LINEA TIPO FV CODIGO extra": lo de antes de "FV" es el
+  // nombre; lo de despues, el codigo y alguna aclaracion.
+  const m = texto.match(/^(.*?)\s*\bFV\b\s*(.*)$/i);
+  const antes = (m ? m[1] : texto).trim();
+  const despues = m ? m[2] : "";
+
+  const sub = subrubrosDe(rubro).find((x) => x.slug === subrubro);
+  const delSub = new Set(
+    sub
+      ? [...plano(sub.name).split(" "), ...sub.palabras.flatMap((p) => plano(p).split(" "))]
+      : [],
+  );
+  // Lo que dice que es ("Jabonera") se queda aunque el subrubro lo use para
+  // reconocerse: "Accesorios – Allegro" no dice que es una jabonera.
+  const repiteSub = (w: string) =>
+    delSub.has(plano(w)) && !TIPOS_SUELTOS.has(plano(w));
+  const califica = (w: string) => /^(EMBUT|EXTERIOR$)/i.test(w);
+
+  const palabras = antes.split(" ").filter((w) => w && !esCodigo(w));
+  // El tipo es la cola: las ultimas palabras que dicen que es.
+  let corte = palabras.length;
+  while (corte > 0) {
+    const w = plano(palabras[corte - 1]);
+    if (delSub.has(w) || TIPOS_SUELTOS.has(w)) corte--;
+    else break;
+  }
+  // En el nombre tampoco se repite el subrubro ("Newport Cocina ..." en
+  // Cocina), salvo la primera palabra, que es el nombre de la linea.
+  let linea = palabras
+    .slice(0, corte)
+    .filter((w, i) => i === 0 || (!repiteSub(w) && !califica(w)));
+  // Lo que ya dice el subrubro no se repite ("Lavatorio – Lavatorio ...").
+  let tipo = palabras.slice(corte).filter((w) => !repiteSub(w));
+  if (linea.length === 0 && palabras.length > 0) {
+    // "DUCHAMATIC FV 0119": no hay otra palabra que sea el nombre.
+    linea = palabras.slice(0, 1);
+    tipo = palabras.slice(1).filter((w) => !repiteSub(w));
+  }
+
+  // Aclaraciones despues del codigo: van detras del nombre, como las pone
+  // FV ("Arizona Monocomando", "Alerce Pared"). "SIN DUCHA" va entero: solo
+  // "Ducha" diria lo contrario. Las abreviadas con barra ("BAÑ/LAVAT/BIDE")
+  // no se entienden y quedan afuera.
+  const resto = despues.split(" ").filter((w) => w && !esCodigo(w));
+  const extras: string[] = [];
+  for (let i = 0; i < resto.length; i++) {
+    const w = resto[i];
+    if (/^(SIN|CON)$/i.test(w) && resto[i + 1]) {
+      extras.push(`${w.toLowerCase()} ${resto[i + 1].toLowerCase()}`);
+      i++;
+    } else if (/^[A-ZÁÉÍÓÚÑ]{4,}$/i.test(w) && !califica(w)) {
+      extras.push(enTitulo(w));
+    }
+  }
+  // Para embutir y exterior, tambien detras del nombre ("Malena para
+  // embutir"). armarTitulo ve que ya estan y no los repite.
+  const calif: string[] = [];
+  if (/\bEMBUT/i.test(texto)) calif.push("para embutir");
+  if (/\bEXTERIOR\b/i.test(texto)) calif.push("exterior");
+
+  return {
+    codigo: codigoBase(codigo),
+    linea: [...linea.map(enTitulo), ...extras, ...calif].join(" "),
+    tipo: tipo.map(enTitulo).join(" "),
+  };
 }

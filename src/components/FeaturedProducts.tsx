@@ -1,5 +1,6 @@
 "use client";
 
+import { rutaProducto } from "@/lib/rutas-producto";
 import Link from "next/link";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
@@ -151,7 +152,7 @@ function FeaturedCard({
 
   return (
     <Link
-      href={`/tienda/${p.itemId}`}
+      href={rutaProducto(p.itemId)}
       className={`card-lift group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${
         hasSale
           ? "border-emerald-500/60 shadow-emerald-500/10 ring-1 ring-emerald-400/40"

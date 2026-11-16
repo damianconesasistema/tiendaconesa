@@ -1,5 +1,6 @@
 "use client";
 
+import { rutaFoto, rutaProducto } from "@/lib/rutas-producto";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -96,7 +97,7 @@ export function CartPage({
                   className="flex gap-4 py-5 first:pt-0 last:pb-0"
                 >
                   <Link
-                    href={`/tienda/${it.itemId}`}
+                    href={rutaProducto(it.itemId)}
                     className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-[var(--surface)] sm:h-24 sm:w-24"
                   >
                     <FotoCarrito
@@ -107,7 +108,7 @@ export function CartPage({
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col">
                     <Link
-                      href={`/tienda/${it.itemId}`}
+                      href={rutaProducto(it.itemId)}
                       className="uppercase text-sm font-semibold leading-snug hover:text-[var(--brand-red)] sm:text-base"
                     >
                       {it.title}
@@ -290,7 +291,7 @@ function FotoCarrito({
   const [falla, setFalla] = useState(false);
   return (
     <Image
-      src={falla ? `/categories/${category}.jpg` : `/api/productos/${itemId}/imagen`}
+      src={falla ? `/categories/${category}.jpg` : rutaFoto(itemId)}
       alt={title}
       fill
       sizes="96px"

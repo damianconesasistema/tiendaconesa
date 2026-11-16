@@ -1,5 +1,7 @@
+import { rutaFoto } from "@/lib/rutas-producto";
 import { prisma } from "@/lib/db";
 import { processProductImage } from "@/lib/image-processing";
+import { MAX_PRODUCT_IMAGES } from "@/lib/product-images";
 import {
   FV_HOST,
   codigoBase,
@@ -109,6 +111,29 @@ export function esFotoDeFV(url: string | null | undefined): url is string {
   }
 }
 
+/** Baja una foto de FV y la deja lista para guardar (achicada y en el
+ *  formato de la tienda). null si no es de FV, no baja o no es una imagen. */
+async function bajarFotoDeFV(
+  url: string,
+): Promise<{ data: Buffer; contentType: string } | null> {
+  if (!esFotoDeFV(url)) return null;
+  try {
+    const r = await fetch(url, {
+      headers: { "User-Agent": UA },
+      signal: AbortSignal.timeout(ESPERA_MAX),
+      cache: "no-store",
+    });
+    const tipo = r.headers.get("content-type") || "";
+    if (!r.ok || !tipo.startsWith("image/")) return null;
+    const crudo = Buffer.from(await r.arrayBuffer());
+    if (crudo.length === 0 || crudo.length > 10 * 1024 * 1024) return null;
+    const { data, contentType } = await processProductImage(crudo);
+    return { data: Buffer.from(data), contentType };
+  } catch {
+    return null;
+  }
+}
+
 /** Descarga la foto de FV y la deja como foto principal del articulo, si el
  *  articulo todavia no tiene ninguna. Devuelve si quedo guardada. Nunca
  *  tira: una foto que no baja no puede voltear el alta del articulo. */
@@ -124,26 +149,94 @@ export async function guardarFotoDeFV(
     });
     if (!producto || producto._count.images > 0) return false;
 
-    const r = await fetch(url, {
-      headers: { "User-Agent": UA },
-      signal: AbortSignal.timeout(ESPERA_MAX),
-      cache: "no-store",
-    });
-    const tipo = r.headers.get("content-type") || "";
-    if (!r.ok || !tipo.startsWith("image/")) return false;
-    const crudo = Buffer.from(await r.arrayBuffer());
-    if (crudo.length === 0 || crudo.length > 10 * 1024 * 1024) return false;
-
-    const { data, contentType } = await processProductImage(crudo);
+    const foto = await bajarFotoDeFV(url);
+    if (!foto) return false;
     await prisma.productImage.create({
-      data: { productId: producto.id, data, contentType, position: 0 },
+      data: { productId: producto.id, data: foto.data, contentType: foto.contentType, position: 0 },
     });
     await prisma.product.update({
       where: { itemId },
-      data: { imageUrl: `/api/productos/${itemId}/imagen?v=${Date.now()}` },
+      data: { imageUrl: rutaFoto(itemId, Date.now()) },
     });
     return true;
   } catch {
     return false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Foto de FV para un articulo YA CARGADO.
+//
+// Damian, 16/11/2026: "podes hacer que levante por el codigo fotos del
+// modelo desde la pagina de FV?". Al crear por Excel ya la traia; esto es
+// para los que ya estan (el boton de la ficha del panel y la pantalla
+// "Fotos de FV"). FV tiene UNA foto por modelo y terminacion (revisado en
+// 0103/L8, 0207, 0181, 0411 y 0119): no hay galeria para traer.
+//
+// Se AGREGA a la galeria, no reemplaza: si no tenia ninguna queda de
+// principal; si ya tenia, va al final y se elige desde la ficha. Si FV solo
+// tiene la de otra terminacion (pidio negro y hay cromo), no se agrega salvo
+// que se pida: un cromo en la ficha de un negro es mostrar otro producto.
+// ---------------------------------------------------------------------------
+
+/** Mismo tope que la galeria del panel. */
+const MAX_FOTOS = MAX_PRODUCT_IMAGES;
+
+export type ResultadoFotoFV =
+  | { ok: true; principal: boolean; discontinuado?: boolean; ficha?: string }
+  | {
+      ok: false;
+      motivo: string;
+      /** FV la tiene, pero en otra terminacion: se puede pedir igual. */
+      deOtraTerminacion?: boolean;
+      ficha?: string;
+    };
+
+export async function agregarFotoDeFV(
+  itemId: string,
+  opciones: { aunqueSeaDeOtraTerminacion?: boolean } = {},
+): Promise<ResultadoFotoFV> {
+  const producto = await prisma.product.findUnique({
+    where: { itemId },
+    select: { id: true, images: { select: { data: true } } },
+  });
+  if (!producto) return { ok: false, motivo: "no está el artículo" };
+  if (producto.images.length >= MAX_FOTOS)
+    return { ok: false, motivo: `ya tiene ${MAX_FOTOS} fotos, el máximo` };
+
+  const d = await buscarEnFV(itemId);
+  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? "FV no lo tiene" };
+  if (!d.foto)
+    return { ok: false, motivo: "FV no tiene foto de este modelo", ficha: d.ficha };
+  if (d.fotoDeOtraTerminacion && !opciones.aunqueSeaDeOtraTerminacion)
+    return {
+      ok: false,
+      motivo: "FV tiene la foto de este modelo pero en otra terminación",
+      deOtraTerminacion: true,
+      ficha: d.ficha,
+    };
+
+  const foto = await bajarFotoDeFV(d.foto);
+  if (!foto) return { ok: false, motivo: "la foto de FV no se pudo bajar", ficha: d.ficha };
+
+  // Apretar dos veces no la carga dos veces: la misma foto de FV, achicada
+  // igual, da exactamente los mismos bytes.
+  if (producto.images.some((i) => Buffer.from(i.data).equals(foto.data)))
+    return { ok: false, motivo: "ya tiene esa foto de FV", ficha: d.ficha };
+
+  const principal = producto.images.length === 0;
+  await prisma.productImage.create({
+    data: {
+      productId: producto.id,
+      data: foto.data,
+      contentType: foto.contentType,
+      position: producto.images.length,
+    },
+  });
+  if (principal)
+    await prisma.product.update({
+      where: { itemId },
+      data: { imageUrl: rutaFoto(itemId, Date.now()) },
+    });
+  return { ok: true, principal, discontinuado: d.discontinuado, ficha: d.ficha };
 }

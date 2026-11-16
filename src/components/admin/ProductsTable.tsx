@@ -1,5 +1,6 @@
 "use client";
 
+import { rutaAdminProducto, rutaProducto } from "@/lib/rutas-producto";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -112,7 +113,7 @@ export function ProductsTable({
   const router = useRouter();
   // La ficha recibe por donde volver; si no hay filtros, es la lista pelada.
   const fichaDe = (itemId: string) =>
-    `/admin/productos/${itemId}` +
+    rutaAdminProducto(itemId) +
     (volver ? `?volver=${encodeURIComponent(volver)}` : "");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
@@ -714,7 +715,7 @@ export function ProductsTable({
                         ensanchar la tabla ni estirar el alto de la fila. */}
                     <div className="inline-flex flex-nowrap items-center justify-end gap-0.5">
                       <Link
-                        href={`/tienda/${p.itemId}`}
+                        href={rutaProducto(p.itemId)}
                         target="_blank"
                         rel="noopener"
                         title="Ver en tienda (como lo ve el cliente)"

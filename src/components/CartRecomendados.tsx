@@ -1,5 +1,6 @@
 "use client";
 
+import { rutaProducto } from "@/lib/rutas-producto";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -74,7 +75,7 @@ export function CartRecomendados() {
             key={r.itemId}
             className="flex flex-col overflow-hidden rounded-xl bg-white ring-1 ring-[var(--border)] transition-shadow hover:shadow-md"
           >
-            <Link href={`/tienda/${r.itemId}`} className="group">
+            <Link href={rutaProducto(r.itemId)} className="group">
               <div className="relative aspect-square bg-white">
                 <Image
                   src={r.imageUrl || `/categories/${r.category}.jpg`}
@@ -90,7 +91,7 @@ export function CartRecomendados() {
               <span className="w-fit rounded-full bg-sky-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-sky-700">
                 {r.motivo}
               </span>
-              <Link href={`/tienda/${r.itemId}`}>
+              <Link href={rutaProducto(r.itemId)}>
                 <h3 className="mt-2 uppercase text-xs font-semibold leading-snug hover:text-[var(--brand-red)]">
                   {r.title}
                 </h3>
@@ -106,7 +107,7 @@ export function CartRecomendados() {
                     // Los que piden elegir algo (tipo de gas) van a la
                     // ficha: desde aca no hay donde elegirlo.
                     if (opcionesDe(r.title)) {
-                      router.push(`/tienda/${r.itemId}`);
+                      router.push(rutaProducto(r.itemId));
                       return;
                     }
                     add({

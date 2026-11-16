@@ -9,7 +9,10 @@ import {
   AlertCircle,
   Star,
   GripVertical,
+  Download,
+  ExternalLink,
 } from "lucide-react";
+import { traerFotoFV } from "@/app/admin/productos/fotos-fv/actions";
 import {
   uploadProductImage,
   deleteProductImageById,
@@ -31,10 +34,14 @@ export function ProductImageUpload({
   itemId,
   category,
   initialImages,
+  deFV = false,
 }: {
   itemId: string;
   category: string;
   initialImages: Img[];
+  /** Si el articulo es de FV: muestra "Traer foto de FV", que la busca por
+   *  el codigo en fvsa.com (src/lib/fv.ts). */
+  deFV?: boolean;
 }) {
   const [images, setImages] = useState<Img[]>(initialImages);
   const [busy, setBusy] = useState(false);
@@ -50,6 +57,13 @@ export function ProductImageUpload({
   const [sacarFondo, setSacarFondo] = useState(false);
   const [fondoProg, setFondoProg] = useState<ProgresoFondo | null>(null);
   const puedeSacarFondo = soportaQuitarFondo();
+  // Lo que contesto la busqueda en FV, para mostrarlo abajo del boton.
+  const [fv, setFv] = useState<{
+    ok: boolean;
+    texto: string;
+    ficha?: string;
+    otraTerminacion?: boolean;
+  } | null>(null);
 
   async function refresh() {
     const r = await listProductImages(itemId);
@@ -169,6 +183,35 @@ export function ProductImageUpload({
       else {
         setError(r.error ?? "No se pudo reordenar");
         await refresh();
+      }
+      setBusy(false);
+    });
+  }
+
+  // Busca el articulo en la pagina de FV por su codigo y agrega la foto a
+  // la galeria (principal si no tenia ninguna). Ver src/lib/fv.ts.
+  function onTraerDeFV(aunqueSeaDeOtraTerminacion = false) {
+    startTransition(async () => {
+      setBusy(true);
+      setError(null);
+      setFv(null);
+      const r = await traerFotoFV(itemId, aunqueSeaDeOtraTerminacion);
+      if (r.ok) {
+        await refresh();
+        setFv({
+          ok: true,
+          texto: r.principal
+            ? "Listo: la foto de FV quedó como principal."
+            : "Listo: la foto de FV se agregó al final. Si la querés de principal, tocá la estrellita.",
+          ficha: r.ficha,
+        });
+      } else {
+        setFv({
+          ok: false,
+          texto: `No se agregó: ${r.motivo}.`,
+          ficha: r.ficha,
+          otraTerminacion: r.deOtraTerminacion,
+        });
       }
       setBusy(false);
     });
@@ -320,6 +363,59 @@ export function ProductImageUpload({
             ? "Subir fotos"
             : "Agregar más fotos"}
       </button>
+
+      {deFV && (
+        <div className="mt-2">
+          <button
+            type="button"
+            onClick={() => onTraerDeFV(false)}
+            disabled={busy || full}
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--brand-red)] bg-white px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white disabled:opacity-60"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Traer foto de FV
+          </button>
+          {fv && (
+            <div
+              className={`mt-2 rounded-lg p-2.5 text-[11px] leading-snug ${
+                fv.ok
+                  ? "bg-emerald-50 text-emerald-900"
+                  : "bg-amber-50 text-amber-900"
+              }`}
+            >
+              <p className="font-bold">{fv.texto}</p>
+              {fv.otraTerminacion && (
+                <p className="mt-1">
+                  Es el mismo modelo en otra terminación (por ejemplo, cromo en
+                  vez de negro). Mirala en FV antes de usarla.
+                </p>
+              )}
+              <div className="mt-1.5 flex flex-wrap items-center gap-3">
+                {fv.ficha && (
+                  <a
+                    href={fv.ficha}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-bold underline"
+                  >
+                    Ver en FV <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+                {fv.otraTerminacion && (
+                  <button
+                    type="button"
+                    onClick={() => onTraerDeFV(true)}
+                    disabled={busy}
+                    className="font-bold underline disabled:opacity-60"
+                  >
+                    Usarla igual
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Quitar fondo con IA: corre en ESTE navegador, no en el servidor */}
       {puedeSacarFondo && (

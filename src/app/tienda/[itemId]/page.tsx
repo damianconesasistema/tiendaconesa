@@ -1,3 +1,4 @@
+import { rutaProducto } from "@/lib/rutas-producto";
 import type { Metadata } from "next";
 import { contactoDeLaVenta } from "@/lib/sucursal";
 import { notFound, redirect } from "next/navigation";
@@ -50,7 +51,7 @@ export async function generateMetadata(
     openGraph: {
       title: titulo,
       description: desc,
-      url: `${base}/tienda/${itemId}`,
+      url: `${base}${rutaProducto(itemId)}`,
       siteName: "Sanitarios Conesa",
       type: "website",
       locale: "es_AR",
@@ -75,7 +76,7 @@ export default async function ProductoPage({ params }: RouteProps) {
     const nuevo = product ? null : codigoDeAhora(itemId);
     if (nuevo) {
       const otro = await articuloEnVenta([nuevo]);
-      if (otro?.active) redirect(`/tienda/${nuevo}`);
+      if (otro?.active) redirect(rutaProducto(nuevo));
     }
     notFound();
   }
