@@ -1,7 +1,7 @@
 "use client";
 
 import { rutaAdminProducto } from "@/lib/rutas-producto";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { SHIPPING_TYPES } from "@/lib/shipping";
 import { subrubrosDe } from "@/lib/subrubros";
 import { useRouter } from "next/navigation";
@@ -45,8 +45,18 @@ export function NewProductForm({
     }
   }, [state, router]);
 
+  // A mano y no con <form action={...}>: con action, React vacia el
+  // formulario al terminar, y si el alta volvia con un error (falta el
+  // precio, codigo repetido) se perdia todo lo cargado. Ver ProductForm.
+  const [, startCrear] = useTransition();
+  function enviar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    startCrear(() => formAction(fd));
+  }
+
   return (
-    <form action={formAction} className="mt-6 space-y-5">
+    <form onSubmit={enviar} className="mt-6 space-y-5">
       <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
         <div>
           <Label>Título *</Label>

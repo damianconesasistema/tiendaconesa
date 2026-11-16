@@ -2,6 +2,25 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.80.3 - Al guardar la ficha, rubro, subrubro y marca volvian al valor
+//            viejo en pantalla. Damian, 16/11/2026: "cuando guardo, la
+//            categoria, el subrubro y la marca se resetea". Con <form
+//            action={...}>, React 19 reinicia el formulario al terminar de
+//            guardar: los textos se actualizan, pero los desplegables vuelven
+//            a lo que tenian al abrir la pantalla. Se guardaba bien, pero el
+//            siguiente "Guardar" mandaba lo viejo y lo pisaba. Ahora la ficha
+//            (y "Publicar articulo", que con un error vaciaba todo lo cargado)
+//            manda los datos a mano, sin reiniciar.
+// V.0.80.2 - Los accesorios no llevan "Grifería Accesorios –" en el titulo.
+//            Damian, 16/11/2026, sobre "Grifería Accesorios – Jabonera Mikka
+//            FV 0168/31-CR Cromo": "eso de Grifería Accesorios no deberia
+//            estar en el titulo, sino el resto como sigue". Queda "Jabonera
+//            Mikka FV 0168/31-CR Cromo". Las canillas siguen con "Grifería
+//            Lavatorio – ..." (lo habia pedido el mismo dia). En fv-ficha.ts,
+//            SIN_RUBRO_ADELANTE; sin el subrubro adelante no se le saca
+//            "Accesorios" al nombre ("Arizona Kit 5 Accesorios").
+//            Migracion 41: a los accesorios ya creados les saca solo ese
+//            comienzo del titulo.
 // V.0.80.1 - "Traer de FV" pasa a ser "Buscar en la web", para todas las
 //            marcas. Damian, 16/11/2026: "ojo con eso porque hay muchas marcas,
 //            ponele buscar en la web". Si el articulo es FV prueba primero la
@@ -867,7 +886,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.80.1";
+export const APP_VERSION = "V.0.80.3";
 
 export type VersionEntry = {
   version: string;

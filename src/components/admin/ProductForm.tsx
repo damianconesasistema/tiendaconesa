@@ -299,10 +299,25 @@ export function ProductForm({
     });
   }
 
+  // Se manda a mano y NO con <form action={...}>. Con action, React vuelve
+  // el formulario a como estaba al abrir la pantalla apenas termina de
+  // guardar: los cuadros de texto se actualizan solos, pero los
+  // desplegables (rubro, subrubro, marca) volvian al valor viejo. Lo
+  // elegido SI se guardaba, pero la pantalla mostraba lo de antes, y el
+  // siguiente "Guardar" volvia a mandar lo viejo y lo pisaba. Damian,
+  // 16/11/2026: "cuando guardo, la categoria, el subrubro y la marca se
+  // resetea". Asi lo que queda en pantalla es lo que se guardo.
+  const [, startGuardar] = useTransition();
+  function enviar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    startGuardar(() => formAction(fd));
+  }
+
   return (
     <form
       ref={formRef}
-      action={formAction}
+      onSubmit={enviar}
       onChange={guardarBorrador}
       className="mt-6 space-y-5"
     >

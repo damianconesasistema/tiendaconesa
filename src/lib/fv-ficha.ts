@@ -227,11 +227,21 @@ export type ArmarTitulo = {
   descripcionGBP: string;
 };
 
-/** "Grifería Lavatorio – Juego Triades FV 0207/C3-CR Cromo" */
+/** Subrubros cuyo titulo NO lleva "Rubro Subrubro –" adelante. Damian,
+ *  16/11/2026, sobre "Grifería Accesorios – Jabonera Mikka FV 0168/31-CR
+ *  Cromo": "eso de Grifería Accesorios no deberia estar en el titulo, sino
+ *  el resto como sigue". Una jabonera no es griferia: el titulo arranca por
+ *  lo que es. En las canillas ("Grifería Lavatorio – ...") si va. */
+const SIN_RUBRO_ADELANTE = new Set(["accesorios"]);
+
+/** "Grifería Lavatorio – Juego Triades FV 0207/C3-CR Cromo"; en accesorios,
+ *  "Jabonera Mikka FV 0168/31-CR Cromo". */
 export function armarTitulo(a: ArmarTitulo): string {
   const sub = nombreSubrubro(a.rubro, a.subrubro);
-  const tipo = sinRepetirSubrubro(a.fv.tipo, a.rubro, a.subrubro);
-  const adelante = [a.rubroNombre, sub].filter(Boolean).join(" ");
+  const sinAdelante = SIN_RUBRO_ADELANTE.has(a.subrubro ?? "");
+  // Sin el subrubro adelante no hay nada que se repita: el tipo va entero.
+  const tipo = sinAdelante ? a.fv.tipo : sinRepetirSubrubro(a.fv.tipo, a.rubro, a.subrubro);
+  const adelante = sinAdelante ? "" : [a.rubroNombre, sub].filter(Boolean).join(" ");
   const atras = [
     tipo,
     // Tambien mira la linea: el titulo armado desde GBP ya los pone ahi
@@ -246,7 +256,7 @@ export function armarTitulo(a: ArmarTitulo): string {
     .join(" ");
   // Mayuscula al arrancar: sin tipo, puede empezar por "para embutir".
   const atrasCap = atras.charAt(0).toUpperCase() + atras.slice(1);
-  return `${adelante} – ${atrasCap}`.replace(/\s+/g, " ").trim();
+  return (adelante ? `${adelante} – ${atrasCap}` : atrasCap).replace(/\s+/g, " ").trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -292,7 +302,11 @@ export function tituloFVDesdeGBP(
   const antes = (m ? m[1] : texto).trim();
   const despues = m ? m[2] : "";
 
-  const sub = subrubrosDe(rubro).find((x) => x.slug === subrubro);
+  // Si el titulo no lleva el subrubro adelante (accesorios), no hay nada que
+  // se repita: "Kit 5 Accesorios" se queda entero.
+  const sub = SIN_RUBRO_ADELANTE.has(subrubro ?? "")
+    ? undefined
+    : subrubrosDe(rubro).find((x) => x.slug === subrubro);
   const delSub = new Set(
     sub
       ? [...plano(sub.name).split(" "), ...sub.palabras.flatMap((p) => plano(p).split(" "))]
