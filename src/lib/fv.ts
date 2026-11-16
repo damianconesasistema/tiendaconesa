@@ -102,14 +102,19 @@ export async function buscarEnFV(codigo: string): Promise<DatosFV> {
   return datos;
 }
 
-/** Una foto es de FV si es https y del dominio de FV. Nada mas se descarga. */
+/** Las paginas oficiales de las que se bajan fotos: FV y Piazza
+ *  (src/lib/piazza.ts). Ninguna otra. */
+const HOSTS_DE_FOTOS = [FV_HOST, "piazzagriferia.com"];
+
+/** Una foto se baja solo si es https y de la pagina oficial de un
+ *  fabricante de la lista. Nada mas. */
 export function esFotoDeFV(url: string | null | undefined): url is string {
   if (!url) return false;
   try {
     const u = new URL(url);
     return (
       u.protocol === "https:" &&
-      (u.hostname === FV_HOST || u.hostname.endsWith(`.${FV_HOST}`))
+      HOSTS_DE_FOTOS.some((h) => u.hostname === h || u.hostname.endsWith(`.${h}`))
     );
   } catch {
     return false;

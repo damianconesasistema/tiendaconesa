@@ -259,6 +259,27 @@ export function armarTitulo(a: ArmarTitulo): string {
   return (adelante ? `${adelante} – ${atrasCap}` : atrasCap).replace(/\s+/g, " ").trim();
 }
 
+/** El titulo con el nombre de la ficha oficial de otro fabricante (Piazza),
+ *  con el mismo formato que FV: "Grifería Ducha y bañera – Novara Bañera De
+ *  Embutir C/ Transf. Piazza 21006". Los accesorios, sin rubro adelante. */
+export function armarTituloDeFabricante(a: {
+  rubroNombre: string;
+  rubro: string;
+  subrubro: string | null;
+  /** El nombre como lo escribe el fabricante. */
+  nombre: string;
+  /** "Piazza" */
+  marca: string;
+  /** El codigo del fabricante ("21006"), no el de GBP. */
+  codigo: string;
+}): string {
+  const sinAdelante = SIN_RUBRO_ADELANTE.has(a.subrubro ?? "");
+  const sub = nombreSubrubro(a.rubro, a.subrubro);
+  const adelante = sinAdelante ? "" : [a.rubroNombre, sub].filter(Boolean).join(" ");
+  const atras = [a.nombre.trim(), a.marca, a.codigo.trim()].filter(Boolean).join(" ");
+  return (adelante ? `${adelante} – ${atras}` : atras).replace(/\s+/g, " ").trim();
+}
+
 // ---------------------------------------------------------------------------
 // El titulo de un FV SIN la pagina de FV, con lo que dice el sistema.
 //

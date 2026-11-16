@@ -68,6 +68,10 @@ const REGLAS: { slug: string; palabras: string[] }[] = [
       "receptaculo",
       "mampara",
       "box de ducha",
+      // Antes que "ducha" de Griferia: una cabina o un plato de ducha no
+      // son canillas.
+      "cabina",
+      "plato de ducha",
       "toallero",
       "jabonera",
       "portarrollo",
@@ -152,6 +156,22 @@ const REGLAS: { slug: string; palabras: string[] }[] = [
   },
 ];
 
+/** Palabras que dicen que el articulo es una pieza (loza, acrilico, bacha)
+ *  y no griferia, aunque la marca figure como de griferia. */
+const PIEZAS = [
+  "inodoro",
+  "deposito",
+  "mochila",
+  "pedestal",
+  "mingitorio",
+  "bacha",
+  "acrilico",
+  "plato de ducha",
+  "cabina",
+  "mampara",
+  "receptaculo",
+];
+
 export type RubroSugerido = {
   /** El slug de la tienda. "otros" cuando no se pudo deducir. */
   slug: string;
@@ -182,8 +202,22 @@ export function rubroSugerido(
   categoria: string | null,
   marca?: { name: string; rubro?: string } | null,
 ): RubroSugerido {
-  if (marca?.rubro)
+  // La marca manda, salvo que el titulo diga que es una PIEZA y no una
+  // canilla. Piazza figura como griferia pero tambien hace inodoros,
+  // bidets de loza, bachas, bañeras de acrilico y platos de ducha (Damian,
+  // 16/11/2026, subiendo "pagina srl piazza.xlsx"). Con la marca adelante,
+  // "PADOVA INODORO LARGO" quedaba en Griferia. A FV no le cambia nada: sus
+  // titulos no traen estas palabras ("BAÑERA" sola es la canilla de bañera).
+  if (marca?.rubro) {
+    const t = plano(titulo);
+    const esPieza =
+      !t.includes("valvula") &&
+      (PIEZAS.some((p) => t.includes(p)) || /\bbidet?\b.*\bagujeros?\b/.test(t));
+    const porPalabras = esPieza ? buscarRubro(titulo) : null;
+    if (porPalabras && porPalabras !== marca.rubro)
+      return { slug: porPalabras, motivo: "de las palabras del título (no es grifería)" };
     return { slug: marca.rubro, motivo: "de la marca: " + marca.name };
+  }
 
   const porSub = subcategoria ? buscarRubro(subcategoria) : null;
   if (porSub)

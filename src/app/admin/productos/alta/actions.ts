@@ -13,7 +13,8 @@ import { getRecargosMp } from "@/lib/settings";
 import { descuentoDelRecargo } from "@/lib/precios";
 import { rubroSugerido, tituloSugerido } from "@/lib/alta-articulos";
 import { subrubroSugerido, subrubroValido } from "@/lib/subrubros";
-import { armarTitulo, tituloFVDesdeGBP } from "@/lib/fv-ficha";
+import { armarTitulo, armarTituloDeFabricante, tituloFVDesdeGBP } from "@/lib/fv-ficha";
+import { buscarEnPiazza, rubroDePiazza } from "@/lib/piazza";
 import { buscarEnFV, guardarFotoDeFV } from "@/lib/fv";
 import { business } from "@/lib/business";
 
@@ -318,7 +319,16 @@ export type RespuestaFV = {
   ficha?: string;
   /** La descripcion armada con la ficha de FV. */
   descripcion?: string | null;
+  /** De que pagina salio: "FV" o "Piazza". */
+  fabricante?: string;
+  /** El rubro y subrubro que dice la pagina del fabricante, cuando lo dice
+   *  claro (Piazza: "Inodoros" es Sanitarios). La pantalla los aplica. */
+  categoria?: string;
+  subrubro?: string | null;
 };
+
+/** Las marcas que tienen pagina oficial que se sabe leer. */
+const CON_PAGINA = new Set(["fv", "piazza"]);
 
 /** De a pocos por vez: la pantalla los va pidiendo y muestra el avance. Asi
  *  ningun pedido queda colgado minutos, y a FV no le llegan cien de golpe. */
@@ -330,13 +340,59 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
   const rubros = rubrosDeLaTienda();
   const salida: RespuestaFV[] = [];
   for (const p of pedidos.slice(0, FV_POR_TANDA)) {
-    if (p.marca !== "fv") {
-      salida.push({ itemCode: p.itemCode, encontrado: false, motivo: "no es de FV" });
+    if (!p.marca || !CON_PAGINA.has(p.marca)) {
+      salida.push({
+        itemCode: p.itemCode,
+        encontrado: false,
+        motivo: "esta marca no tiene una página que se sepa leer",
+      });
       continue;
     }
+
+    // Piazza: el codigo del fabricante sale de la descripcion de GBP
+    // (src/lib/piazza.ts). Trae nombre, foto, descripcion y el rubro.
+    if (p.marca === "piazza") {
+      const d = await buscarEnPiazza(p.descripcionGBP, p.itemCode);
+      if (!d.encontrado || !d.nombre || !d.codigo) {
+        salida.push({
+          itemCode: p.itemCode,
+          encontrado: false,
+          motivo: d.motivo,
+          fabricante: "Piazza",
+        });
+        continue;
+      }
+      const sug = rubroDePiazza(d.categoria, d.codigo, d.nombre);
+      const categoria = sug?.rubro ?? p.categoria;
+      const subrubro = subrubroValido(
+        categoria,
+        sug ? sug.subrubro : subrubroSugerido(categoria, null, d.nombre).slug ?? p.subrubro,
+      );
+      salida.push({
+        itemCode: p.itemCode,
+        encontrado: true,
+        fabricante: "Piazza",
+        titulo: armarTituloDeFabricante({
+          rubroNombre: rubros.find((r) => r.slug === categoria)?.name ?? "",
+          rubro: categoria,
+          subrubro,
+          nombre: d.nombre,
+          marca: "Piazza",
+          codigo: d.codigo,
+        }),
+        nombreFV: `${d.codigo} – ${d.nombre}`,
+        foto: d.foto ?? null,
+        ficha: d.ficha,
+        descripcion: d.descripcion ?? null,
+        categoria,
+        subrubro,
+      });
+      continue;
+    }
+
     const d = await buscarEnFV(p.itemCode);
     if (!d.encontrado || !d.fv) {
-      salida.push({ itemCode: p.itemCode, encontrado: false, motivo: d.motivo });
+      salida.push({ itemCode: p.itemCode, encontrado: false, motivo: d.motivo, fabricante: "FV" });
       continue;
     }
     const rubroNombre =
@@ -358,6 +414,7 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
       discontinuado: d.discontinuado,
       ficha: d.ficha,
       descripcion: d.descripcion ?? null,
+      fabricante: "FV",
     });
   }
   return salida;

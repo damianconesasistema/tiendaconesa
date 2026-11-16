@@ -2,6 +2,29 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.82.0 - Crear por Excel: Piazza se busca en su pagina oficial, y "marca
+//            para todos". Damian, 16/11/2026, subiendo "pagina srl
+//            piazza.xlsx": "deberia buscar bien en la web, como se puede hacer
+//            para que la carga sea mas facil".
+//            PIAZZA (src/lib/piazza.ts): en GBP el item_code de Piazza es
+//            interno ("10001", "9935"); el del fabricante viene en la
+//            descripcion ("(10330)", "21006", "B0900", "P03-31400T", "BO904"
+//            con O). Se prueba piazzagriferia.com/producto/<codigo>/ y trae
+//            nombre, foto, descripcion y el rubro de su categoria (Inodoros ->
+//            Sanitarios, Receptaculos y platos -> Bañeras, Bachas -> Piletas,
+//            bidets de loza "B0..." -> Sanitarios, el resto Griferia con el
+//            subrubro del nombre). Con su Excel: 37 de 68 encontrados; los otros
+//            son Hydros (otra marca) o modelos que Piazza ya no publica. El
+//            titulo, con el formato de FV: "Grifería Ducha y bañera – Novara
+//            Bañera De Embutir C/ Transf. Piazza 21006". El SKU sigue siendo el
+//            del sistema. "Traer titulo y foto de FV" pasa a "Buscar en la web"
+//            (FV y Piazza) y arranca solo al subir el Excel.
+//            MARCA PARA TODOS: 51 de 68 sin marca. Selector para ponerla de una
+//            a los que no tienen, que propone la del nombre del archivo, y
+//            recalcula el rubro con esa marca.
+//            RUBRO: una marca de "griferia" ya no manda si el titulo dice que es
+//            una pieza (inodoro, deposito, bacha, acrilico, plato de ducha,
+//            cabina, bidet de agujeros): "PADOVA INODORO" iba a Griferia.
 // V.0.81.0 - "Buscar descripciones en la web" para muchos productos a la vez.
 //            Damian, 16/11/2026: "se puede hacer que busquen en la web
 //            masivamente, para no hacer uno por uno". Pantalla nueva
@@ -897,7 +920,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.81.0";
+export const APP_VERSION = "V.0.82.0";
 
 export type VersionEntry = {
   version: string;

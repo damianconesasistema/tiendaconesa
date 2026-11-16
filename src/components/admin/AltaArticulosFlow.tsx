@@ -24,7 +24,9 @@ import {
   type RespuestaFV,
 } from "@/app/admin/productos/alta/actions";
 import { formatPrice } from "@/lib/order";
-import { subrubrosDe } from "@/lib/subrubros";
+import { subrubrosDe, subrubroSugerido } from "@/lib/subrubros";
+import { rubroSugerido } from "@/lib/alta-articulos";
+import { MARCAS_BASE } from "@/lib/marcas";
 
 /** Cuantas fichas se dibujan de una. El archivo del sistema puede traer
  *  miles de filas; pintarlas todas cuelga el navegador. */
@@ -128,13 +130,57 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
     });
   }
 
-  /** Los de FV que estan tildados. */
+  // --- Marca para todos los que no tienen ---
+  // Damian, 16/11/2026, con "pagina srl piazza.xlsx": 51 de 68 sin marca,
+  // porque GBP no trae la columna y la descripcion casi nunca la nombra. De
+  // entrada se propone la que dice el nombre del archivo.
+  const [marcaParaTodos, setMarcaParaTodos] = useState("");
+  useEffect(() => {
+    if (!prev?.ok || !nombreArchivo) return;
+    const archivo = nombreArchivo.toLowerCase();
+    const m = (prev.marcas ?? []).find(
+      (x) => archivo.includes(x.id.toLowerCase()) || archivo.includes(x.name.toLowerCase()),
+    );
+    setMarcaParaTodos(m?.id ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prev]);
+
+  const sinMarcaTildados = nuevos.filter(
+    (a) => !excluidos.has(a.itemCode) && !conEdicion(a).marca,
+  );
+
+  /** Les pone la marca elegida a los tildados que no tienen. Si el rubro no
+   *  lo toco nadie, se recalcula con la marca: una canilla Piazza que por las
+   *  palabras habia caido en Sanitarios ("LAVATORIO") vuelve a Griferia. */
+  function ponerMarcaATodos() {
+    if (!marcaParaTodos) return;
+    const marca = MARCAS_BASE.find((m) => m.id === marcaParaTodos) ?? null;
+    setEdiciones((prevEd) => {
+      const n = { ...prevEd };
+      for (const a of sinMarcaTildados) {
+        const e = n[a.itemCode] ?? {};
+        const cambio: Edicion = { marca: marcaParaTodos };
+        if (e.categoria === undefined && marca) {
+          const r = rubroSugerido(a.titulo, null, null, marca);
+          if (r.slug !== "otros") {
+            cambio.categoria = r.slug;
+            cambio.subrubro = subrubroSugerido(r.slug, a.hoja ?? null, a.titulo).slug ?? null;
+          }
+        }
+        n[a.itemCode] = { ...e, ...cambio };
+      }
+      return n;
+    });
+  }
+
+  /** Los tildados de una marca con pagina oficial que se sabe leer: FV y
+   *  Piazza (src/lib/fv.ts, src/lib/piazza.ts). */
   const deFV = elegidosDeFV();
   function elegidosDeFV() {
     return nuevos
       .filter((a) => !excluidos.has(a.itemCode))
       .map(conEdicion)
-      .filter((a) => a.marca === "fv");
+      .filter((a) => a.marca === "fv" || a.marca === "piazza");
   }
 
   /** Va a la pagina de FV de a pocos y completa titulo y foto.
@@ -174,6 +220,9 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
               // La descripcion de la ficha va tildada sola: es la del
               // fabricante para ESE codigo.
               descripcion: r.descripcion ?? null,
+              // El rubro que dice la pagina (Piazza: "Inodoros" es
+              // Sanitarios), si lo dijo claro.
+              ...(r.categoria ? { categoria: r.categoria, subrubro: r.subrubro ?? null } : {}),
             };
           }
           return n;
@@ -452,6 +501,38 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
             </Chip>
           </div>
 
+          {sinMarcaTildados.length > 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 py-3">
+              <span className="text-sm">
+                <strong>{sinMarcaTildados.length}</strong> sin marca. Ponerles:
+              </span>
+              <select
+                value={marcaParaTodos}
+                onChange={(e) => setMarcaParaTodos(e.target.value)}
+                className="h-9 rounded-lg border border-[var(--border)] bg-white px-2 text-sm"
+              >
+                <option value="">Elegí una marca</option>
+                {(prev?.marcas ?? []).map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={ponerMarcaATodos}
+                disabled={!marcaParaTodos}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 font-display text-xs font-bold uppercase tracking-wider hover:border-[var(--brand-red)] disabled:opacity-40"
+              >
+                Aplicar a los {sinMarcaTildados.length}
+              </button>
+              <span className="text-xs text-[var(--muted)]">
+                Después se puede cambiar una por una. Los de otra marca (por
+                ejemplo Hydros) corregilos en su ficha.
+              </span>
+            </div>
+          )}
+
           {deFV.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 py-3">
               <button
@@ -464,20 +545,20 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
                 ) : (
                   <Globe className="h-4 w-4" />
                 )}
-                Traer título y foto de FV ({deFV.length})
+                Buscar en la web ({deFV.length})
               </button>
               <span className="text-xs text-[var(--muted)]">
                 {avanceFV && avanceFV.hechos < avanceFV.total
-                  ? `Buscando en la página de FV… ${avanceFV.hechos} de ${avanceFV.total}`
+                  ? `Buscando en la web… ${avanceFV.hechos} de ${avanceFV.total}`
                   : avanceFV
                     ? `Listo: ${
                         deFV.filter((a) => fv[a.itemCode]?.encontrado).length
-                      } encontrados en FV (${
+                      } encontrados en la página del fabricante (${
                         deFV.filter((a) => fv[a.itemCode]?.discontinuado).length
                       } discontinuados), ${
                         deFV.filter((a) => fv[a.itemCode] && !fv[a.itemCode].encontrado).length
                       } no. Revisá títulos y fotos antes de crear.`
-                    : "Busca cada código en la página de FV y trae el título y la foto oficial. Arranca solo al subir el Excel. No se guarda nada hasta que apretás Crear."}
+                    : "Busca cada artículo de FV y Piazza en la página oficial de la marca y trae título, foto y descripción. Arranca solo al subir el Excel. No se guarda nada hasta que apretás Crear."}
               </span>
             </div>
           )}
@@ -664,7 +745,7 @@ function Ficha({
 
           {deFV && !deFV.encontrado && (
             <p className="mt-1 text-xs text-amber-700">
-              FV: {deFV.motivo ?? "no se encontró"}. Queda el título de arriba.
+              {deFV.fabricante ?? "FV"}: {deFV.motivo ?? "no se encontró"}. Queda el título de arriba.
             </p>
           )}
           {deFV?.encontrado && (
@@ -686,7 +767,7 @@ function Ficha({
               )}
               <div className="min-w-0 text-xs">
                 <p className="text-[var(--muted)]">
-                  FV lo llama: <span className="text-foreground">{deFV.nombreFV}</span>
+                  {deFV.fabricante ?? "FV"} lo llama: <span className="text-foreground">{deFV.nombreFV}</span>
                   {deFV.ficha && (
                     <>
                       {" · "}
