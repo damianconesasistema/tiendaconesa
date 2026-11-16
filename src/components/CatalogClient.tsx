@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice as fmtPrice } from "@/lib/order";
 import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
 import { etiquetasDe, TONOS_ETIQUETA, opcionesDe } from "@/lib/etiquetas";
+import { subrubrosDe, nombreSubrubro } from "@/lib/subrubros";
 
 type Product = {
   itemId: string;
@@ -19,6 +20,7 @@ type Product = {
   condition: string | null;
   status: string | null;
   category: string;
+  subcategory?: string | null;
   mlUrl: string;
   imageUrl: string | null;
   brand: string | null;
@@ -34,6 +36,7 @@ type Props = {
   products: Product[];
   categories: Category[];
   initialCat?: string;
+  initialSub?: string;
   initialMarca?: string;
   initialQuery?: string;
   initialOrden?: string;
@@ -89,6 +92,7 @@ export function CatalogClient({
   products,
   categories,
   initialCat = "all",
+  initialSub = "all",
   initialMarca = "all",
   initialQuery = "",
   initialOrden = "",
@@ -98,6 +102,9 @@ export function CatalogClient({
 }: Props) {
   const [query, setQuery] = useState(initialQuery);
   const [activeCat, setActiveCat] = useState<string>(initialCat);
+  // El subrubro va siempre colgado de una categoria: sin categoria elegida
+  // no hay subrubro ("Lavatorio" solo tiene sentido dentro de Griferia).
+  const [activeSub, setActiveSub] = useState<string>(initialSub);
   const [activeMarca, setActiveMarca] = useState<string>(initialMarca);
   // Cuantos productos se muestran. Arranca en una tanda y crece con el boton
   // "Mostrar mas".
@@ -118,6 +125,8 @@ export function CatalogClient({
     const p = new URLSearchParams(window.location.search);
     const cat = p.get("cat");
     if (cat) setActiveCat(cat);
+    const sub = p.get("sub");
+    if (sub) setActiveSub(sub);
     const marca = p.get("marca");
     if (marca) setActiveMarca(marca);
     const q = p.get("q");
@@ -146,6 +155,7 @@ export function CatalogClient({
       else p.delete(clave);
     };
     poner("cat", activeCat === "all" ? "" : activeCat);
+    poner("sub", activeCat === "all" || activeSub === "all" ? "" : activeSub);
     poner("marca", activeMarca === "all" ? "" : activeMarca);
     poner("q", query.trim());
     poner("orden", orden === "recomendados" ? "" : orden);
@@ -160,7 +170,7 @@ export function CatalogClient({
     }
     if (url !== window.location.pathname + window.location.search)
       window.history.replaceState(null, "", url);
-  }, [activeCat, activeMarca, query, orden, visibles]);
+  }, [activeCat, activeSub, activeMarca, query, orden, visibles]);
 
   // En el celular la columna de filtros arranca plegada.
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
@@ -174,8 +184,18 @@ export function CatalogClient({
 
   // Lo que dice el boton de Filtrar cuando esta plegado: si no, en el
   // celular no hay forma de saber que hay un filtro puesto.
+  // El subrubro elegido, solo si existe en la categoria elegida. Un link viejo
+  // o escrito a mano con un sub que no corresponde muestra la categoria
+  // entera en vez de una grilla vacia.
+  const subVigente =
+    activeCat !== "all" && activeSub !== "all" && nombreSubrubro(activeCat, activeSub)
+      ? activeSub
+      : "all";
+  const nombreSub = subVigente !== "all" ? nombreSubrubro(activeCat, subVigente) : null;
+
   const resumenFiltros = [
     activeCat !== "all" ? CAT_LABELS[activeCat] || activeCat : null,
+    nombreSub,
     activeMarca !== "all" ? nombreMarca(activeMarca, marcas) : null,
   ]
     .filter(Boolean)
@@ -185,6 +205,7 @@ export function CatalogClient({
     const q = query.trim().toLowerCase();
     const base = products.filter((p) => {
       if (activeCat !== "all" && p.category !== activeCat) return false;
+      if (subVigente !== "all" && p.subcategory !== subVigente) return false;
       if (activeMarca !== "all" && p.brand !== activeMarca) return false;
       if (q && !p.title.toLowerCase().includes(q)) return false;
       return true;
@@ -196,10 +217,27 @@ export function CatalogClient({
     if (orden === "descuento") return base.sort((a, b) => descuentoDe(b) - descuentoDe(a));
     if (orden === "nombre") return base.sort((a, b) => a.title.localeCompare(b.title, "es"));
     return base;
-  }, [products, query, activeCat, activeMarca, orden]);
+  }, [products, query, activeCat, subVigente, activeMarca, orden]);
 
   const counts: Record<string, number> = { all: products.length };
   for (const p of products) counts[p.category] = (counts[p.category] || 0) + 1;
+
+  // Los subrubros de la categoria abierta que tienen algo publicado. Uno en 0
+  // no lleva a ningun lado, igual que una categoria en 0.
+  const subCounts: Record<string, number> = {};
+  if (activeCat !== "all")
+    for (const p of products)
+      if (p.category === activeCat && p.subcategory)
+        subCounts[p.subcategory] = (subCounts[p.subcategory] || 0) + 1;
+  const subrubrosConProductos = subrubrosDe(activeCat).filter(
+    (s) => (subCounts[s.slug] || 0) > 0,
+  );
+
+  const elegirCategoria = (id: string) =>
+    resetear(() => {
+      setActiveCat(id);
+      setActiveSub("all");
+    });
 
   const marcaCounts: Record<string, number> = {};
   for (const p of products) {
@@ -270,7 +308,7 @@ export function CatalogClient({
             <ul className="mt-2 space-y-0.5">
               <FiltroItem
                 active={activeCat === "all"}
-                onClick={() => resetear(() => setActiveCat("all"))}
+                onClick={() => elegirCategoria("all")}
                 label="Todos"
                 count={counts.all}
               />
@@ -281,16 +319,33 @@ export function CatalogClient({
                 .map((c) => (
                   <FiltroItem
                     key={c.id}
-                    active={activeCat === c.id}
-                    onClick={() => resetear(() => setActiveCat(c.id))}
+                    active={activeCat === c.id && subVigente === "all"}
+                    onClick={() => elegirCategoria(c.id)}
                     label={CAT_LABELS[c.id] || c.label}
                     count={counts[c.id] || 0}
-                  />
+                  >
+                    {/* Los subrubros se abren debajo de la categoria
+                        elegida, no todos a la vez: con todas abiertas la
+                        columna se vuelve una lista de cuarenta renglones. */}
+                    {activeCat === c.id && subrubrosConProductos.length > 0 && (
+                      <ul className="ml-3 mt-0.5 space-y-0.5 border-l border-[var(--border)] pl-2">
+                        {subrubrosConProductos.map((s) => (
+                          <FiltroItem
+                            key={s.slug}
+                            active={subVigente === s.slug}
+                            onClick={() => resetear(() => setActiveSub(s.slug))}
+                            label={s.name}
+                            count={subCounts[s.slug]}
+                          />
+                        ))}
+                      </ul>
+                    )}
+                  </FiltroItem>
                 ))}
               {(counts.otros || 0) > 0 && (
                 <FiltroItem
                   active={activeCat === "otros"}
-                  onClick={() => resetear(() => setActiveCat("otros"))}
+                  onClick={() => elegirCategoria("otros")}
                   label="Otros"
                   count={counts.otros || 0}
                 />
@@ -330,7 +385,8 @@ export function CatalogClient({
         <p className="text-sm text-[var(--muted)]">
           <strong className="text-foreground">{filtered.length}</strong>{" "}
           {filtered.length === 1 ? "producto" : "productos"}
-          {activeCat !== "all" && ` en ${CAT_LABELS[activeCat] || activeCat}`}
+          {activeCat !== "all" &&
+            ` en ${CAT_LABELS[activeCat] || activeCat}${nombreSub ? ` · ${nombreSub}` : ""}`}
           {activeMarca !== "all" && ` de ${nombreMarca(activeMarca, marcas)}`}
           {query && ` que coinciden con "${query}"`}
         </p>
@@ -404,11 +460,14 @@ function FiltroItem({
   onClick,
   label,
   count,
+  children,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
   count?: number;
+  /** Lo que se abre debajo (los subrubros de una categoria). */
+  children?: React.ReactNode;
 }) {
   return (
     <li>
@@ -432,6 +491,7 @@ function FiltroItem({
           </span>
         )}
       </button>
+      {children}
     </li>
   );
 }

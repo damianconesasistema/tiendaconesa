@@ -170,15 +170,21 @@ function buscarRubro(texto: string): string | null {
 
 /** De que rubro es el articulo, mirando primero lo que mas sabe.
  *
- *  La subcategoria del sistema es la que de verdad dice que es la cosa
- *  ("FERRUM VANITORIS/MUEBLES"). La categoria, en cambio, suele traer el
- *  PROVEEDOR ("FERRUM SA CERAMICA Y METALURGICA"), asi que se mira ultima y
- *  casi nunca aporta. */
+ *  Primero la marca, cuando la marca hace una sola cosa: FV es griferia, y
+ *  "TRIADES LAVATORIO FV" por las palabras caia en Sanitarios, que es donde
+ *  va el lavatorio de loza. Despues la subcategoria del sistema, que es la
+ *  que de verdad dice que es la cosa ("FERRUM VANITORIS/MUEBLES"). La
+ *  categoria, en cambio, suele traer el PROVEEDOR ("FERRUM SA CERAMICA Y
+ *  METALURGICA"), asi que se mira ultima y casi nunca aporta. */
 export function rubroSugerido(
   titulo: string,
   subcategoria: string | null,
   categoria: string | null,
+  marca?: { name: string; rubro?: string } | null,
 ): RubroSugerido {
+  if (marca?.rubro)
+    return { slug: marca.rubro, motivo: "de la marca: " + marca.name };
+
   const porSub = subcategoria ? buscarRubro(subcategoria) : null;
   if (porSub)
     return { slug: porSub, motivo: "de la subcategoría: " + subcategoria };

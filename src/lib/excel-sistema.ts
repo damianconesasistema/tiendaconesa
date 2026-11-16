@@ -47,6 +47,10 @@ export type FilaDelSistema = {
    *  tienda no lo guarda. */
   costo: number | null;
   fila: number;
+  /** El nombre de la pestaña de donde salio ("DUCHAS 109"). Cuando el Excel
+   *  se arma a mano por linea, la pestaña dice que es el articulo: de ahi
+   *  sale el subrubro. */
+  hoja: string;
 };
 
 export type LecturaDelSistema = {
@@ -263,6 +267,7 @@ export function leerExportDelSistema(
       subcategoria: string | null;
       costo: number | null;
       fila: number;
+      hoja: string;
     }
   >();
 
@@ -323,6 +328,7 @@ export function leerExportDelSistema(
           anterior?.costo ??
           null,
         fila: anterior?.fila ?? i + 1,
+        hoja: anterior?.hoja ?? hoja.nombre,
       });
     }
   }
@@ -354,6 +360,7 @@ export function leerExportDelSistema(
       subcategoria: d.subcategoria,
       costo: d.costo !== null ? Math.round(d.costo) : null,
       fila: d.fila,
+      hoja: d.hoja,
     });
   }
 

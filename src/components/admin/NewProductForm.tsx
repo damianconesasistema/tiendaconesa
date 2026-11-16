@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { SHIPPING_TYPES } from "@/lib/shipping";
+import { subrubrosDe } from "@/lib/subrubros";
 import { useRouter } from "next/navigation";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
@@ -29,6 +30,8 @@ export function NewProductForm({
   marcas?: readonly Marca[];
 } = {}) {
   const router = useRouter();
+  const [rubro, setRubro] = useState("otros");
+  const subrubros = subrubrosDe(rubro);
   const [state, formAction, isPending] = useActionState<State, FormData>(
     createProduct as (prev: State, fd: FormData) => Promise<State>,
     null,
@@ -62,13 +65,37 @@ export function NewProductForm({
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <Label>Categoría</Label>
-          <select name="category" defaultValue="otros" className="input">
+          <select
+            name="category"
+            defaultValue="otros"
+            onChange={(e) => setRubro(e.target.value)}
+            className="input"
+          >
             {CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.label}
               </option>
             ))}
           </select>
+          <div className="mt-3">
+            <Label>Subrubro</Label>
+            <select
+              key={rubro}
+              name="subcategory"
+              defaultValue=""
+              disabled={subrubros.length === 0}
+              className="input disabled:opacity-60"
+            >
+              <option value="">
+                {subrubros.length === 0 ? "Este rubro no tiene subrubros" : "Sin subrubro"}
+              </option>
+              {subrubros.map((s) => (
+                <option key={s.slug} value={s.slug}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div>
           <Label>Marca</Label>

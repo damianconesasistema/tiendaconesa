@@ -27,6 +27,10 @@ model Product {
   title        String
   description  String? // Opcional, para la ficha
   category     String // sanitarios, griferia, banera, etc.
+  // El subrubro dentro del rubro ("lavatorio" dentro de griferia). Es del
+  // articulo, no del local: un juego de lavatorio es de lavatorio en las dos
+  // sucursales. La lista de cada rubro esta en src/lib/subrubros.ts.
+  subcategory  String?
   brand        String? // slug de marca (fv, ferrum, piazza...). Ver src/lib/marcas.ts
   // Como lo llama el sistema de Conesa ("3674"). Sirve para importar la
   // lista tal cual sale de ahi sin tener que adivinar por el prefijo del
@@ -50,6 +54,7 @@ model Product {
   images       ProductImage[]
 
   @@index([category])
+  @@index([subcategory])
   @@index([brand])
   @@index([active])
   @@index([featured])

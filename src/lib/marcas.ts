@@ -17,13 +17,22 @@ export type Marca = {
   grande?: boolean;
   /** Variantes de escritura que buscamos en el título. */
   alias?: string[];
+  /** El rubro de TODO lo que hace la marca, si es uno solo.
+   *
+   *  Hace falta porque el titulo no alcanza: "TRIADES LAVATORIO FV" es la
+   *  griferia del lavatorio, y "LAVATORIO FERRUM" es la loza. Las mismas
+   *  palabras, dos rubros. Solo se pone en marcas que no hacen otra cosa:
+   *  Ferrum hace loza Y griferia, asi que no lleva. */
+  rubro?: string;
 };
 
 export const MARCAS_BASE: readonly Marca[] = [
   { id: "ferrum", name: "Ferrum", logo: "/brand/marcas/ferrum.png" },
-  { id: "fv", name: "FV", logo: "/brand/marcas/fv.png", invert: true },
-  { id: "piazza", name: "Piazza", logo: "/brand/marcas/piazza.png" },
-  { id: "hydros", name: "Hydros", logo: "/brand/marcas/hydros.png" },
+  // Griferia: es lo que dice la propia tienda del rubro ("Piazza, Hydros y
+  // más marcas"), y Damian pidio los FV en Griferia, accesorios incluidos.
+  { id: "fv", name: "FV", logo: "/brand/marcas/fv.png", invert: true, rubro: "griferia" },
+  { id: "piazza", name: "Piazza", logo: "/brand/marcas/piazza.png", rubro: "griferia" },
+  { id: "hydros", name: "Hydros", logo: "/brand/marcas/hydros.png", rubro: "griferia" },
   { id: "flowater", name: "Flowater", logo: "/brand/marcas/flowater.png", alias: ["flow water"] },
   { id: "tst", name: "TST", logo: "/brand/marcas/tst.png", invert: true },
   { id: "pringles", name: "Pringles", logo: "/brand/marcas/pringles.jpg", grande: true },

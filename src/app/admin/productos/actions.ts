@@ -18,6 +18,7 @@ import {
   agregarALaSucursal,
   todaviaNoPorSucursal,
 } from "@/lib/precios-sucursal";
+import { subrubroValido } from "@/lib/subrubros";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -49,6 +50,10 @@ export async function createProduct(
 
   let category = String(formData.get("category") || "otros").trim();
   if (!VALID_CATEGORIES_CREATE.has(category)) category = "otros";
+  const subcategory = subrubroValido(
+    category,
+    String(formData.get("subcategory") || "").trim() || null,
+  );
 
   const description =
     String(formData.get("description") || "").trim() || null;
@@ -104,6 +109,7 @@ export async function createProduct(
         sku,
         title,
         category,
+        subcategory,
         brand,
         description,
         price,
@@ -202,6 +208,12 @@ export async function updateProduct(
 
   const title = String(formData.get("title") || "").trim();
   const category = String(formData.get("category") || "otros");
+  // Solo si es un subrubro de ESE rubro: si se cambio el rubro y quedo uno
+  // viejo colgado, se guarda vacio.
+  const subcategory = subrubroValido(
+    category,
+    String(formData.get("subcategory") || "").trim() || null,
+  );
   const brandRaw = String(formData.get("brand") || "").trim();
   const brand = brandRaw && (await marcaValidaDB(brandRaw)) ? brandRaw : null;
   const description = String(formData.get("description") || "").trim() || null;
@@ -253,6 +265,7 @@ export async function updateProduct(
         title,
         sku,
         category,
+        subcategory,
         brand,
         description,
         featured,

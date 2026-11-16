@@ -5,6 +5,7 @@ import { Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
 import { redactarDescripcionIA } from "@/app/admin/productos/actions";
+import { subrubrosDe } from "@/lib/subrubros";
 
 type Product = {
   itemId: string;
@@ -12,6 +13,7 @@ type Product = {
   title: string;
   description: string | null;
   category: string;
+  subcategory: string | null;
   brand: string | null;
   price: number;
   salePrice: number | null;
@@ -69,6 +71,22 @@ export function ProductForm({
   const CLAVE_BORRADOR = `conesa.borrador.${product.itemId}`;
   const VIDA_BORRADOR = 6 * 60 * 60 * 1000;
   const [borradorRecuperado, setBorradorRecuperado] = useState(false);
+
+  // El rubro elegido, para saber que subrubros ofrecer. El desplegable del
+  // rubro sigue siendo libre (lo maneja el borrador); esto solo lo escucha.
+  const [rubro, setRubro] = useState(product.category);
+  const subrubros = subrubrosDe(rubro);
+  // Si el borrador traia otro rubro, su subrubro se repone recien cuando el
+  // desplegable ya tiene las opciones de ese rubro.
+  const subrubroPendiente = useRef<string | null>(null);
+  useEffect(() => {
+    const valor = subrubroPendiente.current;
+    if (valor === null) return;
+    subrubroPendiente.current = null;
+    const sel = formRef.current?.elements.namedItem("subcategory");
+    if (sel instanceof HTMLSelectElement) sel.value = valor;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rubro]);
 
   function claveDe(campo: HTMLInputElement) {
     return campo.type === "checkbox" ? `${campo.name}::${campo.value}` : campo.name;
@@ -141,6 +159,14 @@ export function ProductForm({
           campo.value = valor;
           cambio = true;
         }
+      }
+      // El rubro se repuso tocando el desplegable por fuera de React: hay que
+      // avisarle, para que el subrubro muestre las opciones de ese rubro.
+      const cat = form.elements.namedItem("category");
+      if (cat instanceof HTMLSelectElement && cat.value !== product.category) {
+        const sub = datos["subcategory"];
+        subrubroPendiente.current = typeof sub === "string" ? sub : "";
+        setRubro(cat.value);
       }
       if (cambio) setBorradorRecuperado(true);
       else sessionStorage.removeItem(CLAVE_BORRADOR);
@@ -274,6 +300,7 @@ export function ProductForm({
           <select
             name="category"
             defaultValue={product.category}
+            onChange={(e) => setRubro(e.target.value)}
             className="input"
           >
             {CATEGORIES.map((c) => (
@@ -282,6 +309,29 @@ export function ProductForm({
               </option>
             ))}
           </select>
+          {/* Cambia con el rubro: "Lavatorio" es de Grifería, no de
+              Sanitarios. Al cambiar de rubro arranca vacio. Sin subrubros
+              queda deshabilitado, y un campo deshabilitado no se manda: el
+              articulo queda sin subrubro. */}
+          <div className="mt-3">
+            <Label>Subrubro</Label>
+            <select
+              key={rubro}
+              name="subcategory"
+              defaultValue={rubro === product.category ? (product.subcategory ?? "") : ""}
+              disabled={subrubros.length === 0}
+              className="input disabled:opacity-60"
+            >
+              <option value="">
+                {subrubros.length === 0 ? "Este rubro no tiene subrubros" : "Sin subrubro"}
+              </option>
+              {subrubros.map((s) => (
+                <option key={s.slug} value={s.slug}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div>
           <Label>Marca</Label>

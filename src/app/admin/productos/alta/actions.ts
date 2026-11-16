@@ -12,6 +12,9 @@ import { leerExportDelSistema } from "@/lib/excel-sistema";
 import { getRecargosMp } from "@/lib/settings";
 import { descuentoDelRecargo } from "@/lib/precios";
 import { rubroSugerido, tituloSugerido } from "@/lib/alta-articulos";
+import { subrubroSugerido, subrubroValido } from "@/lib/subrubros";
+import { armarTitulo } from "@/lib/fv-ficha";
+import { buscarEnFV, guardarFotoDeFV } from "@/lib/fv";
 import { business } from "@/lib/business";
 
 // Alta de articulos nuevos desde el Excel de GBP.
@@ -38,6 +41,11 @@ export type ArticuloNuevo = {
   marcaGBP: string | null;
   categoria: string;
   motivoCategoria: string;
+  /** Slug del subrubro (src/lib/subrubros.ts), o null. */
+  subrubro: string | null;
+  motivoSubrubro: string;
+  /** La pestaña del Excel de donde salio. */
+  hoja: string;
   /** Lo que va a mostrar la tienda con tarjeta. Sale de Lista 2. */
   unPago: number;
   /** Lo que se guarda: transferencia. */
@@ -166,14 +174,15 @@ export async function previsualizarAlta(
     }
     if (!marca) marca = detectarMarca(f.descripcion, marcas);
 
-    const nombreMarca = marca
-      ? (marcas.find((m) => m.id === marca)?.name ?? null)
-      : null;
+    const laMarca = marca ? (marcas.find((m) => m.id === marca) ?? null) : null;
+    const nombreMarca = laMarca?.name ?? null;
     const t = tituloSugerido(f.descripcion, nombreMarca);
     // El rubro se busca sobre el titulo YA desabreviado, no sobre lo que vino
     // del sistema: "TERMOT ELECTRICO 80 LTS" no tiene ninguna palabra que se
-    // reconozca, y "TERMOTANQUE ELÉCTRICO 80 LTS" si.
-    const r = rubroSugerido(t.titulo, f.subcategoria, f.categoria);
+    // reconozca, y "TERMOTANQUE ELÉCTRICO 80 LTS" si. Antes que eso, la
+    // marca, si hace una sola cosa (FV: griferia).
+    const r = rubroSugerido(t.titulo, f.subcategoria, f.categoria, laMarca);
+    const sr = subrubroSugerido(r.slug, f.hoja, t.titulo);
 
     const unPago = Math.round(f.precio);
     const contado = Math.round(unPago / (1 + recargo / 100));
@@ -190,6 +199,9 @@ export async function previsualizarAlta(
       marcaGBP: f.marca,
       categoria: r.slug,
       motivoCategoria: r.motivo,
+      subrubro: sr.slug,
+      motivoSubrubro: sr.motivo,
+      hoja: f.hoja,
       unPago,
       contado,
       stock: f.stock ?? 0,
@@ -230,19 +242,93 @@ export type AltaElegida = {
   titulo: string;
   marca: string | null;
   categoria: string;
+  subrubro: string | null;
   /** El precio de 1 pago. De aca sale el de contado, que es el que se guarda. */
   unPago: number;
   stock: number;
   /** La descripcion cruda de GBP. Va al ayuda memoria. */
   descripcionGBP: string;
+  /** La foto de FV que se eligio en pantalla. Se vuelve a validar que sea de
+   *  fvsa.com antes de bajarla (ver src/lib/fv.ts). */
+  fotoFV?: string | null;
 };
 
 export type AltaResult = {
   ok: boolean;
   error?: string;
   creados?: number;
+  /** Cuantas fotos de FV quedaron guardadas, y cuantas no bajaron. */
+  fotos?: number;
+  fotosFallidas?: number;
   omitidos?: { itemCode: string; motivo: string }[];
 };
+
+// ------------------------------------------------------------- traer de FV
+
+export type PedidoFV = {
+  itemCode: string;
+  descripcionGBP: string;
+  marca: string | null;
+  categoria: string;
+  subrubro: string | null;
+};
+
+export type RespuestaFV = {
+  itemCode: string;
+  encontrado: boolean;
+  motivo?: string;
+  /** El titulo armado: rubro, subrubro y lo que dice la ficha de FV. */
+  titulo?: string;
+  /** Como lo titula FV, para mostrarlo al lado. */
+  nombreFV?: string;
+  foto?: string | null;
+  fotoDeOtraTerminacion?: boolean;
+  /** FV ya no lo fabrica. */
+  discontinuado?: boolean;
+  ficha?: string;
+};
+
+/** De a pocos por vez: la pantalla los va pidiendo y muestra el avance. Asi
+ *  ningun pedido queda colgado minutos, y a FV no le llegan cien de golpe. */
+const FV_POR_TANDA = 4;
+
+export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
+  const session = await getAdminSession();
+  if (!session) return [];
+  const rubros = rubrosDeLaTienda();
+  const salida: RespuestaFV[] = [];
+  for (const p of pedidos.slice(0, FV_POR_TANDA)) {
+    if (p.marca !== "fv") {
+      salida.push({ itemCode: p.itemCode, encontrado: false, motivo: "no es de FV" });
+      continue;
+    }
+    const d = await buscarEnFV(p.itemCode);
+    if (!d.encontrado || !d.fv) {
+      salida.push({ itemCode: p.itemCode, encontrado: false, motivo: d.motivo });
+      continue;
+    }
+    const rubroNombre =
+      rubros.find((r) => r.slug === p.categoria)?.name ?? "";
+    salida.push({
+      itemCode: p.itemCode,
+      encontrado: true,
+      titulo: armarTitulo({
+        rubroNombre,
+        rubro: p.categoria,
+        subrubro: subrubroValido(p.categoria, p.subrubro),
+        fv: d.fv,
+        codigo: p.itemCode,
+        descripcionGBP: p.descripcionGBP,
+      }),
+      nombreFV: [d.fv.codigo, d.fv.linea, d.fv.tipo].filter(Boolean).join(" – "),
+      foto: d.foto ?? null,
+      fotoDeOtraTerminacion: d.fotoDeOtraTerminacion,
+      discontinuado: d.discontinuado,
+      ficha: d.ficha,
+    });
+  }
+  return salida;
+}
 
 export async function crearArticulos(
   items: AltaElegida[],
@@ -259,6 +345,8 @@ export async function crearArticulos(
   const marcas = await getMarcas();
 
   let creados = 0;
+  let fotos = 0;
+  let fotosFallidas = 0;
   const omitidos: { itemCode: string; motivo: string }[] = [];
 
   for (const it of items) {
@@ -292,6 +380,7 @@ export async function crearArticulos(
           sku: it.itemCode,
           title: titulo,
           category: categoria,
+          subcategory: subrubroValido(categoria, it.subrubro),
           brand: marca,
           price: contado,
           salePrice: null,
@@ -321,6 +410,13 @@ export async function crearArticulos(
       { crearSiFalta: true },
     );
 
+    // La foto de FV, si se eligio una. Si no baja, el articulo queda igual,
+    // con la foto generica del rubro, y se cuenta para avisar.
+    if (it.fotoFV) {
+      if (await guardarFotoDeFV(it.itemCode, it.fotoFV)) fotos++;
+      else fotosFallidas++;
+    }
+
     creados++;
   }
 
@@ -329,5 +425,5 @@ export async function crearArticulos(
   revalidatePath("/tienda");
   revalidatePath("/");
 
-  return { ok: true, creados, omitidos };
+  return { ok: true, creados, fotos, fotosFallidas, omitidos };
 }

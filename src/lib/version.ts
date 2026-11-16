@@ -2,6 +2,39 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.74.0 - Subrubros, y titulo y foto traidos de la pagina de FV.
+//            SUBRUBROS: columna nueva Product.subcategory (migracion 37) con
+//            la lista fija de cada rubro en src/lib/subrubros.ts. Griferia:
+//            Ducha y bañera, Lavatorio, Bidet, Cocina, Kit de baño,
+//            Lavarropas y Accesorios (Damian puso los accesorios FV en
+//            Griferia). En el alta se sugiere por la pestaña del Excel y si
+//            no dice nada, por el titulo. Se elige tambien en la ficha y en el
+//            producto nuevo. En la tienda se abren debajo de la categoria
+//            elegida (/tienda?cat=griferia&sub=lavatorio). Con el Excel de FV:
+//            31 ducha y bañera, 22 lavatorio, 20 bidet, 35 accesorios, 7
+//            cocina, 4 kit de baño, 2 lavarropas; ninguno sin subrubro.
+//            RUBRO POR MARCA: "TRIADES LAVATORIO FV" caia en Sanitarios,
+//            donde va el lavatorio de loza. FV, Piazza e Hydros llevan ahora
+//            rubro griferia y el alta lo toma de la marca; Ferrum no, porque
+//            hace las dos cosas.
+//            TRAER DE FV: boton en el alta que busca cada codigo en fvsa.com
+//            (src/lib/fv.ts y fv-ficha.ts) y propone titulo y foto. Titulo:
+//            rubro, subrubro y lo que dice la ficha de FV, con el codigo
+//            COMPLETO como lo escribe FV (el CCC es parte del codigo) y la
+//            terminacion en palabras solo si es segura (CR Cromo, NG Negro
+//            mate). Nunca el nombre de otra tienda. La foto se elige por el
+//            codigo exacto de la variante; si FV solo tiene la de otra
+//            terminacion se muestra marcada y SIN tildar. Nada se guarda
+//            hasta apretar Crear, y todo nace pausado igual que antes.
+//            FV deja en su pagina lo que ya no fabrica con "DISCONTINUADO –"
+//            adelante: se lee igual (tiene nombre y foto, y Conesa tiene
+//            stock), la palabra no va al titulo y se avisa en pantalla. No se
+//            repiten palabras: "Libby Monocomando" + "Juego monocomando" queda
+//            "Juego monocomando Libby", y "Juego para bidé" en Bidet queda
+//            "Juego". Probado en vivo con los 121 codigos del Excel de FV.
+//            El alta ahora se manda de a 10 con el avance a la vista: con las
+//            fotos, 121 articulos de una pasaban los 120 s del servidor.
+//            Tambien: el precio del alta dice "LISTA 2 - PRECIO 1 PAGO".
 // V.0.73.5 - El Excel del sistema se lee en TODAS sus pestañas, y lo nuevo
 //            que se importa entra pausado.
 //            El lector ya recorria todas las hojas, pero descartaba en
@@ -655,7 +688,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.73.5";
+export const APP_VERSION = "V.0.74.0";
 
 export type VersionEntry = {
   version: string;

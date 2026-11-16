@@ -22,6 +22,8 @@ export const dynamic = "force-dynamic";
 type SearchParams = Promise<{
   filter?: string;
   cat?: string;
+  // El subrubro dentro de la categoria: /tienda?cat=griferia&sub=lavatorio
+  sub?: string;
   marca?: string;
   // Los pone el propio catalogo al filtrar, para que el boton "atras" del
   // navegador devuelva la grilla como estaba.
@@ -38,6 +40,7 @@ export default async function Catalogo({
   const sp = await searchParams;
   const onlySale = sp.filter === "on-sale";
   const initialCat = sp.cat ?? "all";
+  const initialSub = sp.sub ?? "all";
   const initialMarca = sp.marca ?? "all";
   const initialQuery = sp.q ?? "";
   const initialOrden = sp.orden ?? "";
@@ -68,6 +71,7 @@ export default async function Catalogo({
       products={compat}
       categories={categories}
       initialCat={initialCat}
+      initialSub={initialSub}
       initialMarca={initialMarca}
       initialQuery={initialQuery}
       initialOrden={initialOrden}

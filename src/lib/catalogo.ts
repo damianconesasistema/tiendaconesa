@@ -92,6 +92,7 @@ export function paraLaVitrina(p: ArticuloEnVenta) {
     salePrice: p.salePrice,
     stock: p.stock,
     category: p.category,
+    subcategory: p.subcategory,
     brand: p.brand,
     imageUrl: p.imageUrl,
   };
