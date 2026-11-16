@@ -2,21 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Download, Loader2, Check, X, ExternalLink } from "lucide-react";
+import { Download, Loader2, Check, X, ExternalLink, Minus } from "lucide-react";
 import {
-  traerFotosFVEnTanda,
-  terminarFotosFV,
-  type SinFoto,
+  completarFVEnTanda,
+  terminarFV,
+  type Incompleto,
   type ResultadoTanda,
 } from "@/app/admin/productos/fotos-fv/actions";
+import { rutaAdminProducto } from "@/lib/rutas-producto";
 
-// La pantalla "Fotos de FV": recorre los articulos de FV sin foto de a
-// cuatro (lo que acepta el servidor por pedido) y va mostrando el avance y
-// que paso con cada uno. Ver src/lib/fv.ts.
+// La pantalla "Fotos y descripción de FV": recorre los articulos de FV a los
+// que les falta foto o descripcion, de a cuatro (lo que acepta el servidor
+// por pedido), y va mostrando el avance y que paso con cada uno.
+// Ver src/lib/fv.ts.
 
 const POR_TANDA = 4;
 
-export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
+export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
   const [corriendo, setCorriendo] = useState(false);
   const [hechos, setHechos] = useState(0);
   const [resultados, setResultados] = useState<ResultadoTanda[]>([]);
@@ -26,6 +28,8 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
   const [otraTerminacion, setOtraTerminacion] = useState(false);
 
   const titulo = new Map(pendientes.map((p) => [p.itemId, p.title]));
+  const sinFoto = pendientes.filter((p) => p.faltaFoto).length;
+  const sinDescripcion = pendientes.filter((p) => p.faltaDescripcion).length;
 
   async function arrancar() {
     setCorriendo(true);
@@ -33,12 +37,16 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
     setHechos(0);
     setResultados([]);
     for (let i = 0; i < pendientes.length; i += POR_TANDA) {
-      const tanda = pendientes.slice(i, i + POR_TANDA).map((p) => p.itemId);
-      const r = await traerFotosFVEnTanda(tanda, otraTerminacion);
+      const tanda = pendientes.slice(i, i + POR_TANDA).map((p) => ({
+        itemId: p.itemId,
+        faltaFoto: p.faltaFoto,
+        faltaDescripcion: p.faltaDescripcion,
+      }));
+      const r = await completarFVEnTanda(tanda, otraTerminacion);
       setResultados((prev) => [...prev, ...r]);
       setHechos(Math.min(i + POR_TANDA, pendientes.length));
     }
-    await terminarFotosFV();
+    await terminarFV();
     setCorriendo(false);
     setTerminado(true);
   }
@@ -48,24 +56,27 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
       <div className="mt-8 rounded-2xl border border-[var(--border)] bg-white p-8 text-center">
         <Check className="mx-auto h-8 w-8 text-emerald-600" />
         <p className="mt-3 font-display text-sm font-bold uppercase tracking-wider">
-          Todos los artículos de FV ya tienen foto
+          Todos los artículos de FV tienen foto y descripción
         </p>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Para cambiar una en particular, entrá al artículo y usá &quot;Traer foto
-          de FV&quot;.
+          Para cambiar alguno en particular, entrá al artículo: ahí están
+          &quot;Traer foto de FV&quot; y, al lado de la descripción, &quot;Traer de
+          FV&quot;.
         </p>
       </div>
     );
 
-  const conFoto = resultados.filter((r) => r.ok).length;
-  const sinFoto = resultados.length - conFoto;
+  const fotosPuestas = resultados.filter((r) => r.foto?.ok).length;
+  const descripcionesPuestas = resultados.filter((r) => r.descripcion?.ok).length;
 
   return (
     <div className="mt-8 space-y-6">
       <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
         <p className="text-sm">
           Hay <strong>{pendientes.length}</strong> artículo
-          {pendientes.length === 1 ? "" : "s"} de FV sin foto.
+          {pendientes.length === 1 ? "" : "s"} de FV para completar:{" "}
+          <strong>{sinFoto}</strong> sin foto y <strong>{sinDescripcion}</strong>{" "}
+          sin descripción.
         </p>
 
         <label className="mt-4 flex cursor-pointer items-start gap-2 text-sm">
@@ -96,7 +107,7 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
           ) : (
             <Download className="h-4 w-4" />
           )}
-          {corriendo ? "Buscando en FV…" : "Traer fotos de FV"}
+          {corriendo ? "Buscando en FV…" : "Traer de FV"}
         </button>
 
         {(corriendo || terminado) && (
@@ -106,7 +117,9 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
                 {hechos} de {pendientes.length}
               </span>
               <span className="text-[var(--muted)]">
-                {conFoto} con foto · {sinFoto} sin foto
+                {fotosPuestas} foto{fotosPuestas === 1 ? "" : "s"} ·{" "}
+                {descripcionesPuestas} descripci
+                {descripcionesPuestas === 1 ? "ón" : "ones"}
               </span>
             </div>
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--surface)]">
@@ -117,8 +130,9 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
             </div>
             {terminado && (
               <p className="mt-3 text-sm font-semibold text-emerald-700">
-                Terminado: {conFoto} artículo{conFoto === 1 ? "" : "s"} con foto
-                nueva.
+                Terminado: {fotosPuestas} foto{fotosPuestas === 1 ? "" : "s"} y{" "}
+                {descripcionesPuestas} descripci
+                {descripcionesPuestas === 1 ? "ón" : "ones"} nuevas.
               </p>
             )}
           </div>
@@ -132,15 +146,16 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
               <tr>
                 <th className="px-4 py-2.5">Código</th>
                 <th className="px-4 py-2.5">Artículo</th>
-                <th className="px-4 py-2.5">Resultado</th>
+                <th className="px-4 py-2.5">Foto</th>
+                <th className="px-4 py-2.5">Descripción</th>
               </tr>
             </thead>
             <tbody>
               {resultados.map((r) => (
-                <tr key={r.itemId} className="border-t border-[var(--border)]">
+                <tr key={r.itemId} className="border-t border-[var(--border)] align-top">
                   <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs">
                     <Link
-                      href={`/admin/productos/${encodeURIComponent(r.itemId)}`}
+                      href={rutaAdminProducto(r.itemId)}
                       className="hover:text-[var(--brand-red)] hover:underline"
                     >
                       {r.itemId}
@@ -148,31 +163,10 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
                   </td>
                   <td className="px-4 py-2.5 text-xs">{titulo.get(r.itemId)}</td>
                   <td className="px-4 py-2.5 text-xs">
-                    {r.ok ? (
-                      <span className="inline-flex items-center gap-1 font-bold text-emerald-700">
-                        <Check className="h-3.5 w-3.5" /> Foto puesta
-                        {r.discontinuado && (
-                          <span className="font-normal text-amber-700">
-                            {" "}
-                            · FV lo marca discontinuado
-                          </span>
-                        )}
-                      </span>
-                    ) : (
-                      <span className="inline-flex flex-wrap items-center gap-x-2 text-amber-800">
-                        <X className="h-3.5 w-3.5" /> {r.motivo}
-                        {r.ficha && (
-                          <a
-                            href={r.ficha}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-0.5 font-bold underline"
-                          >
-                            ver en FV <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </span>
-                    )}
+                    <Celda r={r.foto} hecho="Puesta" />
+                  </td>
+                  <td className="px-4 py-2.5 text-xs">
+                    <Celda r={r.descripcion} hecho="Puesta" />
                   </td>
                 </tr>
               ))}
@@ -181,5 +175,43 @@ export function FotosFVMasivo({ pendientes }: { pendientes: SinFoto[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Que paso con la foto o con la descripcion de un articulo. Sin resultado:
+ *  no le faltaba, no se toco. */
+function Celda({
+  r,
+  hecho,
+}: {
+  r?: { ok: boolean; motivo?: string; ficha?: string };
+  hecho: string;
+}) {
+  if (!r)
+    return (
+      <span className="inline-flex items-center gap-1 text-[var(--muted)]">
+        <Minus className="h-3.5 w-3.5" /> Ya tenía
+      </span>
+    );
+  if (r.ok)
+    return (
+      <span className="inline-flex items-center gap-1 font-bold text-emerald-700">
+        <Check className="h-3.5 w-3.5" /> {hecho}
+      </span>
+    );
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-2 text-amber-800">
+      <X className="h-3.5 w-3.5" /> {r.motivo}
+      {r.ficha && (
+        <a
+          href={r.ficha}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-0.5 font-bold underline"
+        >
+          ver en FV <ExternalLink className="h-3 w-3" />
+        </a>
+      )}
+    </span>
   );
 }

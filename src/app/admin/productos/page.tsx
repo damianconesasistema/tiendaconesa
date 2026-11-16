@@ -290,7 +290,7 @@ export default async function ProductosAdmin({
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <ImageDown className="h-4 w-4" />
-            Fotos de FV
+            Fotos y descripción FV
           </Link>
           <Link
             href="/admin/productos/nuevo"

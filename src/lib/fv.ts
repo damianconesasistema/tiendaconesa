@@ -7,6 +7,7 @@ import {
   codigoBase,
   elegirResultado,
   fotoDeVariante,
+  leerDescripcion,
   leerResultados,
   partirTitulo,
   type TituloFV,
@@ -35,6 +36,8 @@ export type DatosFV = {
   fotoDeOtraTerminacion?: boolean;
   /** FV ya no lo fabrica: es stock que no se repone. */
   discontinuado?: boolean;
+  /** La descripcion armada con la ficha de FV (fv-ficha.ts, leerDescripcion). */
+  descripcion?: string | null;
 };
 
 async function pedir(url: string): Promise<string | null> {
@@ -77,9 +80,10 @@ export async function buscarEnFV(codigo: string): Promise<DatosFV> {
   } else {
     let foto = r.foto;
     let otra = false;
+    // La ficha se pide siempre: de ahi sale la descripcion. Si tiene varias
+    // terminaciones, tambien la foto de la de este codigo.
+    const ficha = await pedir(r.ficha);
     if (r.variable) {
-      // Varias terminaciones: la foto buena esta en la ficha, por codigo.
-      const ficha = await pedir(r.ficha);
       const propia = ficha ? fotoDeVariante(ficha, completo) : null;
       if (propia) foto = propia;
       else otra = foto !== null;
@@ -91,6 +95,7 @@ export async function buscarEnFV(codigo: string): Promise<DatosFV> {
       foto,
       fotoDeOtraTerminacion: otra,
       discontinuado: r.discontinuado,
+      descripcion: ficha ? leerDescripcion(ficha, completo) : null,
     };
   }
   memoria.set(completo.toUpperCase(), { cuando: Date.now(), datos });
@@ -239,4 +244,41 @@ export async function agregarFotoDeFV(
       data: { imageUrl: rutaFoto(itemId, Date.now()) },
     });
   return { ok: true, principal, discontinuado: d.discontinuado, ficha: d.ficha };
+}
+
+// ---------------------------------------------------------------------------
+// Descripcion de FV para un articulo YA CARGADO.
+//
+// Damian, 16/11/2026: "faltaria que me traigas la descripcion de los
+// articulos desde la pagina o internet". Solo si el articulo no tiene: una
+// descripcion escrita a mano no se pisa nunca desde aca. Para cambiar una que
+// ya esta, la ficha del panel tiene "Traer de FV", que la pone en el cuadro
+// para revisarla antes de guardar.
+// ---------------------------------------------------------------------------
+
+export type ResultadoDescripcionFV =
+  | { ok: true; descripcion: string; ficha?: string }
+  | { ok: false; motivo: string; ficha?: string };
+
+export async function agregarDescripcionDeFV(
+  itemId: string,
+): Promise<ResultadoDescripcionFV> {
+  const producto = await prisma.product.findUnique({
+    where: { itemId },
+    select: { description: true },
+  });
+  if (!producto) return { ok: false, motivo: "no está el artículo" };
+  if (producto.description?.trim())
+    return { ok: false, motivo: "ya tiene descripción" };
+
+  const d = await buscarEnFV(itemId);
+  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? "FV no lo tiene" };
+  if (!d.descripcion)
+    return { ok: false, motivo: "la ficha de FV no trae descripción", ficha: d.ficha };
+
+  await prisma.product.update({
+    where: { itemId },
+    data: { description: d.descripcion },
+  });
+  return { ok: true, descripcion: d.descripcion, ficha: d.ficha };
 }

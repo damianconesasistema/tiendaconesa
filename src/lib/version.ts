@@ -2,6 +2,21 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.80.0 - Descripcion de los FV desde la pagina de FV.
+//            Damian, 16/11/2026: "faltaria que me traigas la descripcion de
+//            los articulos desde la pagina o internet". De la ficha de FV
+//            sale el parrafo de la pestaña Descripcion y la tabla de
+//            caracteristicas (tipo, instalacion, diseño, tecnologia,
+//            prestaciones, caudal), mas la terminacion y el codigo FV
+//            (fv-ficha.ts, leerDescripcion). El color de la tabla no va: lista
+//            todas las terminaciones. Probado con 13 de los 121 de FV PAGINA:
+//            los 13 con descripcion.
+//            - Crear por Excel: llega junto con titulo y foto, tildada.
+//            - Pantalla "Fotos y descripcion FV": completa foto y descripcion
+//              a los FV que no las tienen. Nunca pisa una escrita a mano.
+//            - Ficha del panel: boton "Traer de FV" al lado de "Escribir con
+//              IA"; la pone en el cuadro para revisar y guardar.
+//            Para las otras marcas sigue "Escribir con IA" (busca en internet).
 // V.0.79.0 - Fotos de los FV: se veian rotas; titulos FV completos desde el
 //            Excel; traer la foto de FV a articulos ya cargados.
 //            FOTOS ROTAS: Damian, 16/11/2026: "las fotos no termino subiendolas,
@@ -845,7 +860,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.79.0";
+export const APP_VERSION = "V.0.80.0";
 
 export type VersionEntry = {
   version: string;

@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState, useRef, useTransition } from "react";
-import { Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
+import { Check, AlertCircle, Sparkles, Loader2, Download } from "lucide-react";
+import { descripcionDeFV } from "@/app/admin/productos/fotos-fv/actions";
 import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
 import { redactarDescripcionIA } from "@/app/admin/productos/actions";
@@ -188,6 +189,35 @@ export function ProductForm({
   const [iaError, setIaError] = useState<string | null>(null);
   const [iaFuentes, setIaFuentes] = useState<string[] | null>(null);
   const [iaSinBusqueda, setIaSinBusqueda] = useState(false);
+
+  // --- Descripcion desde la pagina de FV ---
+  // Solo para los FV. Igual que la IA: pone el texto en el cuadro y NO
+  // guarda; se revisa y se guarda con el boton de siempre. La diferencia es
+  // que sale de la ficha oficial del fabricante, no de una redaccion.
+  const [fvPending, startFV] = useTransition();
+  const [fvMsg, setFvMsg] = useState<{ ok: boolean; texto: string } | null>(null);
+
+  function traerDescripcionDeFV() {
+    const actual = descRef.current?.value.trim();
+    if (actual) {
+      const ok = window.confirm(
+        "Este producto ya tiene descripción.\n\n" +
+          "Si seguís, se reemplaza por la de la página de FV y lo que está escrito se pierde (recién cuando apretás Guardar).\n\n" +
+          "¿Reemplazar igual?",
+      );
+      if (!ok) return;
+    }
+    setFvMsg(null);
+    startFV(async () => {
+      const r = await descripcionDeFV(product.itemId);
+      if (r.ok && descRef.current) {
+        descRef.current.value = r.texto;
+        setFvMsg({ ok: true, texto: "Traída de la ficha de FV. Revisala y apretá Guardar." });
+      } else if (!r.ok) {
+        setFvMsg({ ok: false, texto: `No se pudo: ${r.motivo}.` });
+      }
+    });
+  }
 
   function escribirConIA() {
     // Si ya hay texto escrito a mano, preguntamos antes de pisarlo.
@@ -417,6 +447,22 @@ export function ProductForm({
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Label>Descripción (opcional)</Label>
+          <div className="flex flex-wrap items-center gap-2">
+          {product.brand === "fv" && (
+            <button
+              type="button"
+              onClick={traerDescripcionDeFV}
+              disabled={fvPending}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brand-red)]/40 bg-white px-3 py-1.5 font-display text-[11px] font-bold uppercase tracking-wider text-[var(--brand-red)] transition-colors hover:bg-[var(--brand-red)] hover:text-white disabled:opacity-50"
+            >
+              {fvPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="h-3.5 w-3.5" />
+              )}
+              {fvPending ? "Buscando en FV…" : "Traer de FV"}
+            </button>
+          )}
           {iaDisponible && (
             <button
               type="button"
@@ -432,6 +478,7 @@ export function ProductForm({
               {iaPending ? "Buscando en internet…" : "Escribir con IA"}
             </button>
           )}
+          </div>
         </div>
         <textarea
           ref={descRef}
@@ -441,6 +488,20 @@ export function ProductForm({
           placeholder="Marca, medidas, color, incluye, etc."
           className="input resize-y leading-relaxed"
         />
+        {fvMsg && (
+          <p
+            className={`mt-1 inline-flex items-start gap-1.5 text-[11px] font-bold ${
+              fvMsg.ok ? "text-emerald-700" : "text-red-500"
+            }`}
+          >
+            {fvMsg.ok ? (
+              <Check className="mt-0.5 h-3 w-3 shrink-0" />
+            ) : (
+              <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+            )}
+            {fvMsg.texto}
+          </p>
+        )}
         {iaError && (
           <p className="mt-1 inline-flex items-start gap-1.5 text-[11px] font-bold text-red-500">
             <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />

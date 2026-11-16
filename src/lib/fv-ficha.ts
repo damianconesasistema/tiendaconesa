@@ -352,3 +352,107 @@ export function tituloFVDesdeGBP(
     tipo: tipo.map(enTitulo).join(" "),
   };
 }
+
+// ---------------------------------------------------------------------------
+// La descripcion, sacada de la ficha de FV.
+//
+// Damian, 16/11/2026: "faltaria que me traigas la descripcion de los
+// articulos desde la pagina o internet". La ficha de FV tiene un parrafo
+// ("Juego monocomando para lavatorio. Desagüe con tapita.") y una tabla de
+// caracteristicas. Se arma un texto simple, con saltos de linea, que es como
+// la tienda muestra la descripcion (whitespace-pre-line en ProductDetail).
+//
+// De la tabla NO van:
+// - Color: lista los de todas las terminaciones ("Negro Mate, Brushed
+//   Brass, Cromo") y el articulo es uno solo. Va la terminacion del codigo.
+// - Linea y Estilos: la linea ya esta en el titulo; estilos es de la web.
+// ---------------------------------------------------------------------------
+
+/** Los rotulos de la tabla de FV, en el orden en que se muestran. */
+const CARACTERISTICAS = [
+  "Tipo",
+  "Instalación",
+  "Diseño",
+  "Tecnología",
+  "Prestaciones",
+  "Caudal",
+] as const;
+
+const sinAcento = (s: string) =>
+  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
+function textoDe(html: string): string {
+  return decodificar(html.replace(/<br\s*\/?>/gi, " ").replace(/<[^>]+>/g, " "))
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.;:])/g, "$1")
+    .trim();
+}
+
+/** El parrafo de la pestaña "Descripción". Si no esta, el resumen corto de
+ *  arriba de la ficha. */
+function parrafoDescripcion(html: string): string | null {
+  // El panel de la pestaña "Descripción": se lo encuentra por su titulo
+  // (el h4 del panel, no la lista de pestañas de arriba) y se corta en el
+  // panel siguiente.
+  const titulo = html.match(
+    /<h4 class="vc_tta-panel-title">[\s\S]{0,300}?Descripci(ó|o|&oacute;)n[\s\S]*?<\/h4>/i,
+  );
+  const i = titulo?.index ?? -1;
+  if (titulo && i >= 0) {
+    const resto = html.slice(i + titulo[0].length);
+    const fin = resto.search(/<div class="vc_tta-panel[ "]/);
+    const panel = fin >= 0 ? resto.slice(0, fin) : resto.slice(0, 8000);
+    // Solo la primera columna de texto: despues vienen "Otros productos de
+    // esta linea" y cosas de la web.
+    const col = panel.match(/<div class="wpb_text_column[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/i);
+    const parrafos = [...(col ? col[1] : "").matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)]
+      .map((m) => textoDe(m[1]))
+      .filter(Boolean);
+    if (parrafos.length) return parrafos.join("\n");
+  }
+  const corta = html.match(
+    /<div[^>]*woocommerce-product-details__short-description[^>]*>([\s\S]*?)<\/div>/i,
+  );
+  const t = corta ? textoDe(corta[1]) : "";
+  return t || null;
+}
+
+/** Las filas de la tabla de caracteristicas: [rotulo, valor]. */
+function tablaDeCaracteristicas(html: string): [string, string][] {
+  const tabla = html.match(/<table[^>]*shop_attributes[^>]*>([\s\S]*?)<\/table>/i);
+  if (!tabla) return [];
+  return [...tabla[1].matchAll(/<th[^>]*>([\s\S]*?)<\/th>\s*<td[^>]*>([\s\S]*?)<\/td>/gi)]
+    .map((m) => [textoDe(m[1]), textoDe(m[2])] as [string, string])
+    .filter(([r, v]) => r && v);
+}
+
+/** Primera letra en mayuscula y el resto en minuscula: FV mezcla
+ *  ("Cierre Cerámico", "Fácil limpieza") y en la tienda queda desparejo. */
+const prolijo = (v: string) => {
+  const t = v.toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+
+/** La descripcion lista para guardar, o null si la ficha no trae nada. */
+export function leerDescripcion(html: string, codigo: string): string | null {
+  const parrafo = parrafoDescripcion(html);
+  const filas = tablaDeCaracteristicas(html);
+  const lineas: string[] = [];
+  const dichos = new Set<string>();
+  for (const rotulo of CARACTERISTICAS) {
+    const fila = filas.find(([r]) => sinAcento(r) === sinAcento(rotulo));
+    if (!fila) continue;
+    // FV pone "Cierre cerámico" en Tipo y en Tecnologia: una vez alcanza.
+    const valor = prolijo(fila[1]);
+    if (dichos.has(sinAcento(valor))) continue;
+    dichos.add(sinAcento(valor));
+    lineas.push(`• ${rotulo}: ${valor}`);
+  }
+  const terminacion = terminacionDe(codigo);
+  if (terminacion) lineas.push(`• Terminación: ${terminacion}`);
+  if (!parrafo && lineas.length === 0) return null;
+  lineas.push(`• Código FV: ${String(codigo || "").trim()}`);
+  return [parrafo, lineas.length ? `Características:\n${lineas.join("\n")}` : null]
+    .filter(Boolean)
+    .join("\n\n");
+}

@@ -45,6 +45,8 @@ type Edicion = {
   stock?: number;
   /** La foto de FV elegida. null = sin foto. */
   fotoFV?: string | null;
+  /** La descripcion de la ficha de FV. null = sin descripcion. */
+  descripcion?: string | null;
 };
 
 type Avance = { hechos: number; total: number } | null;
@@ -94,6 +96,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
       stock: e.stock ?? a.stock,
       contado: Math.round(unPago / (1 + recargo / 100)),
       fotoFV: e.fotoFV ?? null,
+      descripcion: e.descripcion ?? null,
     };
   };
 
@@ -168,6 +171,9 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
               ...n[r.itemCode],
               titulo: r.titulo,
               fotoFV: r.foto && !r.fotoDeOtraTerminacion ? r.foto : null,
+              // La descripcion de la ficha va tildada sola: es la del
+              // fabricante para ESE codigo.
+              descripcion: r.descripcion ?? null,
             };
           }
           return n;
@@ -219,6 +225,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
         stock: c.stock,
         descripcionGBP: c.descripcionGBP,
         fotoFV: c.fotoFV,
+        descripcion: c.descripcion,
       };
     });
     startTransition(async () => {
@@ -604,7 +611,7 @@ function Ficha({
   onAlternar,
   onEditar,
 }: {
-  a: ArticuloNuevo & { fotoFV: string | null };
+  a: ArticuloNuevo & { fotoFV: string | null; descripcion: string | null };
   original: ArticuloNuevo;
   incluido: boolean;
   rubros: { slug: string; name: string }[];
@@ -712,6 +719,26 @@ function Ficha({
                     Ojo: esta foto es de otra terminación. FV no tiene la de
                     este código.
                   </p>
+                )}
+                {deFV.descripcion && (
+                  <div className="mt-1.5">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={a.descripcion === deFV.descripcion}
+                        onChange={(e) =>
+                          onEditar({
+                            descripcion: e.target.checked ? (deFV.descripcion ?? null) : null,
+                          })
+                        }
+                        className="h-4 w-4"
+                      />
+                      Usar la descripción de FV
+                    </label>
+                    <p className="mt-1 line-clamp-3 whitespace-pre-line text-[var(--muted)]">
+                      {deFV.descripcion}
+                    </p>
+                  </div>
                 )}
                 {deFV.discontinuado && (
                   <p className="mt-1 text-amber-700">

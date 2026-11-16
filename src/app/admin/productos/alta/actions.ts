@@ -279,6 +279,8 @@ export type AltaElegida = {
   /** La foto de FV que se eligio en pantalla. Se vuelve a validar que sea de
    *  fvsa.com antes de bajarla (ver src/lib/fv.ts). */
   fotoFV?: string | null;
+  /** La descripcion de la ficha de FV, si se dejo tildada. */
+  descripcion?: string | null;
 };
 
 export type AltaResult = {
@@ -314,6 +316,8 @@ export type RespuestaFV = {
   /** FV ya no lo fabrica. */
   discontinuado?: boolean;
   ficha?: string;
+  /** La descripcion armada con la ficha de FV. */
+  descripcion?: string | null;
 };
 
 /** De a pocos por vez: la pantalla los va pidiendo y muestra el avance. Asi
@@ -353,6 +357,7 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
       fotoDeOtraTerminacion: d.fotoDeOtraTerminacion,
       discontinuado: d.discontinuado,
       ficha: d.ficha,
+      descripcion: d.descripcion ?? null,
     });
   }
   return salida;
@@ -420,6 +425,9 @@ export async function crearArticulos(
           // sigue apareciendo buscandolo como se lo nombra en el mostrador
           // ("PTA LAVAT", "JT103-BD"), que es como se lo busco siempre.
           memo: it.descripcionGBP,
+          // La de la ficha de FV, si se dejo tildada. Texto: se corta por las
+          // dudas, una descripcion no necesita mas.
+          description: it.descripcion?.trim().slice(0, 4000) || null,
         },
       });
     } catch {
