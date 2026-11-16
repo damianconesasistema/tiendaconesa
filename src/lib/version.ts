@@ -2,6 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.78.1 - Pie de pagina ordenado en el celular.
+//            Damian, 16/11/2026: "acomoda eso del final que se ve
+//            desordenado". Los tres links legales iban dos en un renglon y el
+//            tercero abajo; ahora uno abajo del otro. Cada titular en su
+//            bloque (sucursal, razon social, CUIT) y el CUIT ya no se corta a
+//            la mitad ("30-" / "71132164-7"). El iPhone tomaba el CUIT por un
+//            telefono y lo subrayaba: formatDetection.telephone en false (los
+//            telefonos de verdad ya son links tel:). Mas aire abajo para que
+//            los botones flotantes no tapen el ultimo renglon.
 // V.0.78.0 - Boton "Comprar" en las tarjetas; checkout con todos los datos
 //            obligatorios; "Cordoba - Traslasierra" en Nuestras sucursales.
 //            COMPRAR: Damian, 16/11/2026: "poner agregar o comprar, porque
@@ -805,7 +814,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.78.0";
+export const APP_VERSION = "V.0.78.1";
 
 export type VersionEntry = {
   version: string;

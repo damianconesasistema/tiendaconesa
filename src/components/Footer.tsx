@@ -23,7 +23,7 @@ export async function Footer() {
   const sucursales = await sucursalesParaElPie(sub);
   const contacto = await contactoActual();
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-16">
+    <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 pb-32 pt-16 sm:pb-16">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr]">
           {/* Marca + redes */}
@@ -89,10 +89,15 @@ export async function Footer() {
 
         {/* LEGALES: el boton de arrepentimiento tiene que estar visible en
             el inicio (Res. 424/2020) y el QR de Data Fiscal es obligatorio
-            para quien vende por internet. */}
-        <div className="mt-12 flex flex-col items-center gap-6 border-t border-[var(--border)] pt-8 sm:flex-row sm:items-start sm:justify-between">
-          <div className="text-center sm:text-left">
-            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium sm:justify-start">
+            para quien vende por internet.
+            En el celular iba todo en renglones corridos y quedaba
+            desordenado: dos links en una linea y el tercero abajo, y el CUIT
+            cortado a la mitad ("30-" / "71132164-7"). Ahora los links van
+            uno abajo del otro y cada titular en su bloque: sucursal, razon
+            social y CUIT, sin cortar el numero (Damian, 16/11/2026). */}
+        <div className="mt-12 flex flex-col items-center gap-8 border-t border-[var(--border)] pt-8 sm:flex-row sm:items-start sm:justify-between">
+          <div className="w-full text-center sm:w-auto sm:text-left">
+            <div className="flex flex-col items-center gap-3 text-sm font-medium sm:flex-row sm:flex-wrap sm:gap-x-5 sm:gap-y-2 sm:text-xs">
               <Link href="/arrepentimiento" className="inline-flex items-center gap-1.5 font-bold text-[var(--brand-red)] hover:underline">
                 <Undo2 className="h-3.5 w-3.5" />
                 Botón de arrepentimiento
@@ -110,23 +115,23 @@ export async function Footer() {
               </a>
             </div>
             {titulares.length > 0 ? (
-              <div className="mt-3 space-y-1 text-xs text-[var(--muted)]">
+              <div className="mt-6 grid gap-4 text-xs text-[var(--muted)] sm:grid-cols-2 sm:gap-8">
                 {titulares.map((t) => (
-                  <p key={t.cuit ?? t.name}>
-                    <span className="font-semibold">{t.name}:</span>{" "}
-                    {t.razonSocial}
-                    {t.razonSocial && t.cuit && " · "}
-                    {t.cuit && <>CUIT {t.cuit}</>}
-                  </p>
+                  <div key={t.cuit ?? t.name} className="space-y-0.5">
+                    <p className="font-display text-[11px] font-bold uppercase tracking-wider text-foreground">
+                      {t.name}
+                    </p>
+                    {t.razonSocial && <p>{t.razonSocial}</p>}
+                    {t.cuit && <p className="whitespace-nowrap">CUIT {t.cuit}</p>}
+                  </div>
                 ))}
               </div>
             ) : (
               (legales.razonSocial || legales.cuit) && (
-                <p className="mt-3 text-xs text-[var(--muted)]">
-                  {legales.razonSocial}
-                  {legales.razonSocial && legales.cuit && " · "}
-                  {legales.cuit && <>CUIT {legales.cuit}</>}
-                </p>
+                <div className="mt-6 space-y-0.5 text-xs text-[var(--muted)]">
+                  {legales.razonSocial && <p>{legales.razonSocial}</p>}
+                  {legales.cuit && <p className="whitespace-nowrap">CUIT {legales.cuit}</p>}
+                </div>
               )
             )}
           </div>

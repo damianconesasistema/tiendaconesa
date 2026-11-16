@@ -86,10 +86,14 @@ export const metadata: Metadata = {
   classification: "Comercio minorista de sanitarios y materiales de construcción",
   applicationName: business.name,
   referrer: "origin-when-cross-origin",
+  // telephone en false: el iPhone tomaba el CUIT del pie (30-71132164-7)
+  // como un telefono, lo subrayaba y al tocarlo llamaba. Los telefonos de
+  // verdad del sitio ya son links tel: (cabecera, sucursales, pie), asi que
+  // no se pierde nada (Damian, 16/11/2026: "se ve desordenado").
   formatDetection: {
     email: true,
     address: true,
-    telephone: true,
+    telephone: false,
   },
   alternates: {
     canonical: SITE_URL,
