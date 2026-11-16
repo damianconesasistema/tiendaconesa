@@ -454,6 +454,10 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
                 Dar de alta los códigos que no estén en la tienda
               </div>
               <div className="mt-0.5 text-xs text-[var(--muted)]">
+                Los que se dan de alta entran <strong>pausados</strong>: no
+                aparecen en la tienda hasta que los publiques vos.
+              </div>
+              <div className="mt-0.5 text-xs text-[var(--muted)]">
                 Sin esto, lo que el archivo traiga y la tienda no tenga se
                 saltea y queda listado al final. Para una lista de precios
                 suele ser lo que querés: un código que no está casi siempre es
@@ -827,7 +831,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
               <TemplateCol col="oferta / precio_oferta" field="Precio oferta (opcional, menor al precio)" ex="135000" />
               <TemplateCol col="stock" field="Unidades disponibles" ex="12" />
               <TemplateCol col="categoria" field="sanitarios, griferia, banera, salamandras, calefones, accesorios, piletas, materiales, herramientas, cocina, otros" ex="sanitarios" />
-              <TemplateCol col="activo" field="Publicado (SI/NO)" ex="SI" />
+              <TemplateCol col="activo" field="Publicado (SI/NO). Si queda vacío, un producto nuevo entra pausado." ex="SI" />
               <TemplateCol col="destacado" field="Aparece en home (SI/NO)" ex="SI" />
               <TemplateCol col="descripcion" field="Detalle" ex="Taza + depósito" />
               <TemplateCol col="memo" field="Nota privada (solo la ves vos en el panel)" ex="Proveedor FV - remito 1234" />

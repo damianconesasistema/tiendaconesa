@@ -2,6 +2,35 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.73.5 - El Excel del sistema se lee en TODAS sus pestañas, y lo nuevo
+//            que se importa entra pausado.
+//            El lector ya recorria todas las hojas, pero descartaba en
+//            silencio las que no tenian la fila de titulos (item_code,
+//            item_desc...). Asi venia el de FV: la primera pestaña con
+//            titulos y otras cuatro por linea (duchas, bidet, accesorios,
+//            lavatorios) con los productos pegados directo. Se leian 13 de
+//            121. Ahora una hoja sin titulos se lee con las columnas de la
+//            primera que si los tiene, SOLO si sus primeras filas encajan
+//            (codigo, descripcion con letras, precio mayor a cero, stock
+//            numerico o vacio). Si no encajan, la hoja no se lee y se avisa
+//            en la vista previa: leerla con las columnas corridas pondria el
+//            stock como precio. Probado con el archivo real: 121 de 121, con
+//            precio y stock de cada pestaña verificados contra la celda.
+//            Arregla tambien el alta de articulos, que usa el mismo lector.
+//            Lo segundo: el importador daba de alta lo nuevo PUBLICADO
+//            cuando el archivo no traia columna "activo", y el Excel del
+//            sistema nunca la trae. Subir una lista de proveedor publicaba
+//            todo lo que no estaba cargado sin que nadie lo eligiera. Ahora
+//            nace pausado. Lo que ya existe no cambia de estado salvo que el
+//            archivo traiga la columna. Damian: "no actives nada".
+//            Lo tercero, el mas peligroso: cuando un local empezaba a llevar
+//            un articulo que ya existia (guardarComercial creando la fila),
+//            la fila copiaba el estado del ARTICULO, que es el catalogo de
+//            Traslasierra y esta activo. Importar la lista de FV en el panel
+//            de Buenos Aires le habria creado publicados todos los FV ya
+//            cargados. Ahora una fila nueva nace pausada salvo que se diga
+//            otra cosa; el alta a mano pasa la casilla "Activo" del
+//            formulario explicitamente, asi que eso sigue igual.
 // V.0.73.4 - Se volvio atras la 0.73.3: la principal sigue siendo
 //            Traslasierra.
 //            La 0.73.3 movia "la sucursal principal" a Buenos Aires, y con
@@ -626,7 +655,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.73.4";
+export const APP_VERSION = "V.0.73.5";
 
 export type VersionEntry = {
   version: string;

@@ -525,7 +525,15 @@ export async function previewExcel(
         parsed.featured !== undefined &&
         parsed.featured !== null &&
         String(parsed.featured).trim() !== "";
-      const active = hasActive ? toBool(parsed.active) : true;
+      // Sin columna "activo", lo NUEVO nace pausado. Antes nacia publicado, y
+      // el Excel del sistema nunca trae esa columna: subir una lista de un
+      // proveedor publicaba en la tienda todo lo que no estaba cargado, sin
+      // que nadie lo eligiera. Damian lo dijo derecho: "no actives nada".
+      // Publicar es su decision, producto por producto o en lote desde la
+      // lista. A lo que YA existe esto no lo toca: el estado de un producto
+      // cargado se cambia solo si el archivo trae la columna (ver
+      // `__hasActive` mas abajo).
+      const active = hasActive ? toBool(parsed.active) : false;
       const featured = hasFeatured ? toBool(parsed.featured) : false;
       const description = parsed.description
         ? String(parsed.description).trim()

@@ -116,8 +116,9 @@ export async function createProduct(
       },
     });
     // El articulo queda dado de alta en el local que se esta editando: sin
-    // fila no aparece ni en su panel ni en su tienda.
-    await agregarALaSucursal([itemId]);
+    // fila no aparece ni en su panel ni en su tienda. Publicado o no, segun
+    // la casilla "Activo" del formulario.
+    await agregarALaSucursal([itemId], active);
 
     // Primer registro en el historial de precios
     await prisma.priceHistory.create({

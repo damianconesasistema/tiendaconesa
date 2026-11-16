@@ -49,6 +49,13 @@ export async function sucursalDeEdicion(): Promise<SucursalDeEdicion | null> {
  *  ahora lo lleva". Para crearla hace falta un precio, asi que cuando no
  *  viene se toma el del articulo.
  *
+ *  Lo que NO se toma del articulo es si esta activo: una fila nueva nace
+ *  PAUSADA salvo que `datos.active` diga otra cosa. "Este local lo lleva" no
+ *  es "este local lo publica". Antes se copiaba el estado del articulo, que
+ *  es el catalogo de Traslasierra y esta activo: importar una lista en el
+ *  panel de Buenos Aires le creaba las filas publicadas, sin que nadie lo
+ *  eligiera. Damian: "no actives nada".
+ *
  *  Con `crearSiFalta: false` toca solo lo que el local ya tiene cargado y
  *  devuelve el resto en `sinFila`. Eso es para actualizar precios o stock de
  *  una lista: si el local no lleva ese articulo, no hay precio de este local
@@ -105,7 +112,7 @@ export async function guardarComercial(
         price: datos.price ?? p.price,
         salePrice: datos.salePrice !== undefined ? datos.salePrice : p.salePrice,
         stock: datos.stock ?? p.stock,
-        active: datos.active ?? p.active,
+        active: datos.active ?? false,
       },
     });
     guardados.push(p.itemId);
@@ -123,11 +130,15 @@ export async function guardarComercial(
   return { guardados, sinFila };
 }
 
-/** Da de alta estos articulos en el local del panel, copiando lo que tenga el
- *  articulo. Se usa al publicar o duplicar: sin fila, el producto no aparece
- *  en el panel de ese local ni en su tienda. */
-export async function agregarALaSucursal(itemIds: string[]): Promise<void> {
-  await guardarComercial(itemIds, {});
+/** Da de alta estos articulos en el local del panel, con el precio y el stock
+ *  del articulo. Sin fila, el producto no aparece en el panel de ese local ni
+ *  en su tienda. Si queda publicado se dice aca y no se hereda: es lo que
+ *  eligio el que lo cargo, no lo que tenia el articulo. */
+export async function agregarALaSucursal(
+  itemIds: string[],
+  active: boolean,
+): Promise<void> {
+  await guardarComercial(itemIds, { active });
 }
 
 /** Para las pantallas que todavia no saben de sucursales.

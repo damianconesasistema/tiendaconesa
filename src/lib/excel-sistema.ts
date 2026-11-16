@@ -156,6 +156,42 @@ function mapearHoja(filas: unknown[][]): Mapa | null {
   return null;
 }
 
+/** Si una hoja SIN fila de titulos tiene la misma forma que el molde.
+ *
+ *  Pasa cuando se arma un archivo a mano copiando del sistema: la primera
+ *  pestaña conserva los titulos (item_code, item_desc, Stk, Lista 2) y en las
+ *  demas se pegan solo los productos. Asi venia el de FV, con cinco pestañas
+ *  por linea: se leian 13 productos de 121 y las otras cuatro hojas se
+ *  descartaban sin avisar.
+ *
+ *  Se mira que las primeras filas encajen: codigo, una descripcion con
+ *  letras, un precio mayor a cero y, si hay stock, un numero o nada. Es a
+ *  proposito estricto: si no encaja, la hoja NO se lee y se avisa. Leer una
+ *  hoja con las columnas corridas pondria el stock como precio. */
+function pareceDeLaMisma(filas: unknown[][], molde: Mapa): boolean {
+  const columnaPrecio = molde.lista2 ?? molde.contado;
+  if (columnaPrecio === null || filas.length === 0) return false;
+  for (const f of filas.slice(0, 5)) {
+    const code = String(f[molde.code] ?? "").trim();
+    if (!code || norm(code) === "item_code") return false;
+    if (!/[a-z]/i.test(String(f[molde.desc] ?? ""))) return false;
+    const precio = numeroDelSistema(f[columnaPrecio]);
+    if (precio === null || precio <= 0) return false;
+    if (molde.stock !== null) {
+      const s = f[molde.stock];
+      const vacio = s === null || s === undefined || String(s).trim() === "";
+      if (!vacio && numeroDelSistema(s) === null) return false;
+    }
+  }
+  return true;
+}
+
+/** "DUCHAS", "BIDET" y "LAVATORIO" */
+function enumerar(nombres: string[]): string {
+  const q = nombres.map((n) => `"${n}"`);
+  return q.length <= 1 ? (q[0] ?? "") : `${q.slice(0, -1).join(", ")} y ${q[q.length - 1]}`;
+}
+
 /** Lee el libro entero. Devuelve null si no parece un export del sistema. */
 export function leerExportDelSistema(
   wb: XLSX.WorkBook,
@@ -169,13 +205,49 @@ export function leerExportDelSistema(
     }),
   }));
 
-  const leidas = hojas
-    .map((h) => ({ hoja: h, mapa: mapearHoja(h.filas) }))
-    .filter((x): x is { hoja: Hoja; mapa: Mapa } => x.mapa !== null);
+  const mapeadas = hojas.map((h) => ({
+    hoja: h,
+    mapa: mapearHoja(h.filas) as Mapa | null,
+  }));
 
-  if (leidas.length === 0) return null;
+  // Hace falta al menos una hoja con titulos: es lo que dice que esto es un
+  // export del sistema y que columna es cada cosa.
+  const molde = mapeadas.find((x) => x.mapa !== null);
+  if (!molde || !molde.mapa) return null;
 
   const avisos: string[] = [];
+
+  // Las hojas sin titulos se leen con las columnas del molde, si encajan.
+  // cabecera -1: los productos arrancan en la primera fila.
+  const prestadas: string[] = [];
+  const salteadas: string[] = [];
+  for (const x of mapeadas) {
+    if (x.mapa !== null || x.hoja.filas.length === 0) continue;
+    const nombre = x.hoja.nombre.trim();
+    if (pareceDeLaMisma(x.hoja.filas, molde.mapa)) {
+      x.mapa = { ...molde.mapa, cabecera: -1 };
+      prestadas.push(nombre);
+    } else {
+      salteadas.push(nombre);
+    }
+  }
+  const nombreMolde = molde.hoja.nombre.trim();
+  if (prestadas.length > 0)
+    avisos.push(
+      prestadas.length === 1
+        ? `La hoja ${enumerar(prestadas)} no tiene la fila de títulos: la leí con las mismas columnas que "${nombreMolde}".`
+        : `Las hojas ${enumerar(prestadas)} no tienen la fila de títulos: las leí con las mismas columnas que "${nombreMolde}".`,
+    );
+  if (salteadas.length > 0)
+    avisos.push(
+      salteadas.length === 1
+        ? `La hoja ${enumerar(salteadas)} NO se leyó: no tiene la fila de títulos y sus columnas no coinciden con las de "${nombreMolde}". Si tiene productos, copiale arriba la fila de títulos.`
+        : `Las hojas ${enumerar(salteadas)} NO se leyeron: no tienen la fila de títulos y sus columnas no coinciden con las de "${nombreMolde}". Si tienen productos, copiales arriba la fila de títulos.`,
+    );
+
+  const leidas = mapeadas.filter(
+    (x): x is { hoja: Hoja; mapa: Mapa } => x.mapa !== null,
+  );
 
   // Algunos archivos traen la lista en una hoja y el contado en otra (asi
   // viene el de los termotanques). Se juntan por codigo.
