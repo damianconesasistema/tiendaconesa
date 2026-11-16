@@ -23,7 +23,7 @@ export async function Footer() {
   const sucursales = await sucursalesParaElPie(sub);
   const contacto = await contactoActual();
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 pb-32 pt-16">
+    <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 pb-32 pt-16 sm:pb-16">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr]">
           {/* Marca + redes */}
@@ -138,7 +138,10 @@ export async function Footer() {
           <DataFiscal className="shrink-0" />
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-[var(--border)] pt-6 text-center text-xs text-[var(--muted)] sm:flex-row sm:justify-between sm:text-left">
+        {/* sm:pr-20: en la compu los botones flotantes (WhatsApp y volver
+            arriba) van en columna sobre el borde derecho y tapaban "Admin".
+            En el celular el renglon va centrado y lo resuelve el pb-32. */}
+        <div className="mt-12 flex flex-col gap-3 border-t border-[var(--border)] pt-6 text-center text-xs text-[var(--muted)] sm:flex-row sm:justify-between sm:pr-20 sm:text-left">
           <p>
             © {new Date().getFullYear()} {business.name}. Todos los derechos reservados.
           </p>
