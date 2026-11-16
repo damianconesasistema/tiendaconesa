@@ -23,7 +23,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useCart } from "@/lib/cart";
+import { useCart, prepararCompraDirecta, CHECKOUT_DIRECTO } from "@/lib/cart";
 import { gaVerProducto } from "@/lib/ga";
 import { formatPrice } from "@/lib/order";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
@@ -230,9 +230,25 @@ export function ProductDetail({
     setTimeout(() => setAdded(false), 2000);
   };
 
+  // "Comprar ahora" paga SOLO este producto (con la cantidad y la opcion
+  // elegidas) y no toca el carrito, como en Mercado Libre. Antes lo sumaba
+  // al carrito y mandaba a pagar todo junto (src/lib/cart.ts).
   const handleBuyNow = () => {
-    if (!alCarrito()) return;
-    router.push("/tienda/checkout");
+    if (opciones && !opcion) {
+      setFaltaOpcion(true);
+      return;
+    }
+    prepararCompraDirecta(
+      {
+        itemId: product.itemId,
+        title: product.title,
+        price: effectivePrice,
+        category: product.category,
+        opcion,
+      },
+      qty,
+    );
+    router.push(CHECKOUT_DIRECTO);
   };
 
   return (

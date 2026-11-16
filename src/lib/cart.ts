@@ -97,3 +97,59 @@ export function useCartState() {
 
   return { items, count, add, remove, setQty, clear };
 }
+
+// ---------------------------------------------------------------------------
+// Compra directa ("Comprar"): un solo producto, sin pasar por el carrito.
+//
+// Damian, 16/11/2026: "estaria bueno hacer carrito, pero si quiero comprar
+// solo 1 producto". Como el "Comprar ahora" de Mercado Libre: se paga ESE
+// producto y lo que haya en el carrito queda guardado, no se mezcla ni se
+// borra. El producto viaja en sessionStorage (solo esta pestaña) y el
+// checkout lo usa cuando la direccion trae ?directo=1. Sin esa marca, el
+// checkout sigue usando el carrito como siempre.
+// ---------------------------------------------------------------------------
+
+const DIRECTA_KEY = "conesa.compra-directa.v1";
+export const CHECKOUT_DIRECTO = "/tienda/checkout?directo=1";
+
+/** Guarda el producto de la compra directa. Despues hay que ir a
+ *  CHECKOUT_DIRECTO. */
+export function prepararCompraDirecta(item: Omit<CartItem, "qty">, qty = 1) {
+  gaAgregarAlCarrito({ ...item, qty });
+  try {
+    sessionStorage.setItem(DIRECTA_KEY, JSON.stringify([{ ...item, qty }]));
+  } catch {}
+}
+
+/** Lo que usa el checkout. `activa` es true solo si la direccion dice
+ *  ?directo=1 y hay un producto guardado; si no, el checkout usa el carrito.
+ *  `listo` avisa que ya se leyo (en el primer render todavia no se sabe). */
+export function useCompraDirecta() {
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [activa, setActiva] = useState(false);
+  const [listo, setListo] = useState(false);
+
+  useEffect(() => {
+    try {
+      const pide =
+        new URLSearchParams(window.location.search).get("directo") === "1";
+      const raw = pide ? sessionStorage.getItem(DIRECTA_KEY) : null;
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setItems(parsed);
+        setActiva(true);
+      }
+    } catch {}
+    setListo(true);
+  }, []);
+
+  /** Al terminar la compra: se borra la compra directa, no el carrito. */
+  const terminar = useCallback(() => {
+    try {
+      sessionStorage.removeItem(DIRECTA_KEY);
+    } catch {}
+    setItems([]);
+  }, []);
+
+  return { activa, items, listo, terminar };
+}

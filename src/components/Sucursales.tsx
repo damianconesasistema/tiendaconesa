@@ -19,13 +19,25 @@ export type SucursalInfo = {
   whatsapp: string | null;
   hours: string | null;
   tiendaActiva: boolean;
+  /** Si el local tiene tienda online. Traslasierra sigue como sucursal pero
+   *  sin tienda desde el 16/11/2026: se muestra, sin el boton de comprar. */
+  tiendaOnline: boolean;
   instagram: string | null;
   cubreTodoElPais: boolean;
   zonaEnvio: string | null;
 };
 
+// El titulo de la tarjeta. Traslasierra sola no le dice nada al que no es de
+// la zona: con la provincia adelante se entiende donde queda (Damian,
+// 16/11/2026: "ahi pone Cordoba - Traslasierra"). Va solo aca y no en el
+// nombre de la sucursal, que usa el panel y los pedidos.
+const TITULO_DE_LA_TARJETA: Record<string, string> = {
+  traslasierra: "Córdoba - Traslasierra",
+};
+
 export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
   if (sucursales.length === 0) return null;
+  const conTienda = sucursales.filter((s) => s.tiendaOnline && s.tiendaActiva);
 
   return (
     <section className="border-b border-[var(--border)] bg-white px-6 py-20">
@@ -41,8 +53,14 @@ export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
             {/* Decia "el mismo catalogo", y no es cierto: cada local lleva
                 lo suyo y los precios no son los mismos. Prometer un
                 catalogo igual es prometer un producto que capaz no esta. */}
-            Dos locales. Comprás online en cualquiera de los dos o pasás a
-            retirar.
+            {/* La tienda online es una sola (la de Buenos Aires desde el
+                16/11/2026): no decir "comprás en cualquiera de los dos". */}
+            {sucursales.length > 1 ? `${sucursales.length} locales. ` : ""}
+            {conTienda.length === 1
+              ? `La tienda online es la de ${conTienda[0].name}: comprás y elegís envío o retiro en el local.`
+              : conTienda.length > 1
+                ? "Comprás online o pasás a retirar."
+                : "Consultanos por WhatsApp o pasá por el local."}
           </p>
         </div>
 
@@ -55,7 +73,7 @@ export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
               <div className="flex items-center gap-2">
                 <Store className="h-5 w-5 text-[var(--brand-red)]" />
                 <h3 className="font-display text-2xl font-black uppercase leading-none">
-                  {s.name}
+                  {TITULO_DE_LA_TARJETA[s.slug] ?? s.name}
                 </h3>
               </div>
 
@@ -106,7 +124,7 @@ export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
                   abierta. Mandar a comprar a una tienda que todavia no
                   cobra ni factura con lo suyo es peor que no ofrecerla:
                   el pedido entraria en la cuenta del otro local. */}
-              {s.tiendaActiva ? (
+              {s.tiendaActiva && s.tiendaOnline ? (
                 <Link
                   href={`/tienda?sucursal=${s.slug}`}
                   className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brand-black)] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-[var(--brand-red)]"
@@ -116,12 +134,13 @@ export function Sucursales({ sucursales }: { sucursales: SucursalInfo[] }) {
               ) : (
                 <div className="mt-7">
                   <p className="text-sm text-[var(--muted)]">
-                    La tienda online de este local abre pronto. Mientras
-                    tanto, el pedido se toma por WhatsApp.
+                    {s.tiendaOnline
+                      ? "La tienda online de este local abre pronto. Mientras tanto, el pedido se toma por WhatsApp."
+                      : "Atención en el local. Consultas y pedidos por WhatsApp."}
                   </p>
                   {s.whatsapp && (
                     <a
-                      href={`https://api.whatsapp.com/send?phone=${s.whatsapp.replace(/D/g, "")}`}
+                      href={`https://api.whatsapp.com/send?phone=${s.whatsapp.replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#1DA851]"

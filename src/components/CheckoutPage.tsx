@@ -12,7 +12,7 @@ import {
   MessageCircle,
   CreditCard,
 } from "lucide-react";
-import { useCart, lineaDe } from "@/lib/cart";
+import { useCart, useCompraDirecta, lineaDe } from "@/lib/cart";
 import { gaArrancarCheckout } from "@/lib/ga";
 import { useCustomer, emptyCustomer } from "@/lib/customer";
 import { localidadesPorZona } from "@/lib/traslasierra";
@@ -71,7 +71,13 @@ export function CheckoutPage({
   preciosEnvio?: PreciosEnvio | null;
 }) {
   const router = useRouter();
-  const { items, clear } = useCart();
+  // "Comprar" en una tarjeta o en la ficha trae UN producto aparte, sin
+  // tocar el carrito (src/lib/cart.ts, useCompraDirecta). Si no vino de ahi,
+  // se paga el carrito como siempre.
+  const carrito = useCart();
+  const directa = useCompraDirecta();
+  const items = directa.activa ? directa.items : carrito.items;
+  const clear = directa.activa ? directa.terminar : carrito.clear;
   const { customer, setCustomer, hydrated } = useCustomer();
   const { total: subtotal, hasUnpriced } = cartTotal(items);
   const enMapa = modoEnvio === "mapa" && !!preciosEnvio;
@@ -158,12 +164,12 @@ export function CheckoutPage({
     subtotal > 0 ? Math.round((ahorroContado / subtotal) * 100) : 0;
 
   useEffect(() => {
-    if (hydrated && items.length === 0 && !sent) {
+    if (hydrated && directa.listo && items.length === 0 && !sent) {
       router.replace("/tienda/carrito");
     }
-  }, [hydrated, items.length, sent, router]);
+  }, [hydrated, directa.listo, items.length, sent, router]);
 
-  if (hydrated && items.length === 0 && !sent) {
+  if (hydrated && directa.listo && items.length === 0 && !sent) {
     return null;
   }
 
@@ -171,14 +177,11 @@ export function CheckoutPage({
     const e: Record<string, string> = {};
     if (!customer.firstName.trim()) e.firstName = "Requerido";
     if (!customer.lastName.trim()) e.lastName = "Requerido";
-    // El DNI es opcional para RETIRAR: hace falta para la factura, no para
-    // tomar el pedido, y pedirlo antes de la primera compra espanta. Para un
-    // ENVIO es obligatorio: va en la etiqueta y lo pide el que entrega
-    // (Damian, 16/11/2026: "siempre solicitar todos los datos para envio").
-    const dniEscrito = customer.dni.trim() !== "";
-    if (customer.shipping === "envio" && !dniEscrito)
-      e.dni = "Requerido para el envío";
-    else if (dniEscrito && !/^\d{7,8}$/.test(customer.dni.replace(/\D/g, "")))
+    // Todos los datos son obligatorios, retire o se lo enviemos (Damian,
+    // 16/11/2026: "todos los campos obligatorios"). Antes el DNI era opcional
+    // para retirar; ahora va siempre: va en la factura y en el recibo.
+    if (!customer.dni.trim()) e.dni = "Requerido";
+    else if (!/^\d{7,8}$/.test(customer.dni.replace(/\D/g, "")))
       e.dni = "DNI inválido (7 u 8 dígitos)";
     if (!customer.email.trim()) e.email = "Requerido";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email))
@@ -204,6 +207,8 @@ export function CheckoutPage({
         e.postalCode = "Consultá el envío por WhatsApp";
       if (!customer.street.trim()) e.street = "Requerido";
       if (!customer.streetNumber.trim()) e.streetNumber = "Requerido";
+      if (enMapa && !customer.piso.trim()) e.piso = "Si es casa, poné Casa";
+      if (!customer.reference.trim()) e.reference = "Requerido";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -304,11 +309,15 @@ export function CheckoutPage({
     <main className="min-h-screen bg-[var(--surface)] px-4 py-6 sm:px-6 sm:py-10">
       <div className="mx-auto max-w-6xl">
         <Link
-          href="/tienda/carrito"
+          href={
+            directa.activa && items[0]
+              ? `/tienda/${items[0].itemId}`
+              : "/tienda/carrito"
+          }
           className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--brand-red)]"
         >
           <ArrowLeft className="h-4 w-4" />
-          Volver al carrito
+          {directa.activa ? "Volver al producto" : "Volver al carrito"}
         </Link>
 
         <h1 className="mt-6 font-display text-3xl font-black uppercase tracking-tight sm:text-4xl">
@@ -317,6 +326,13 @@ export function CheckoutPage({
         <p className="mt-1 text-sm text-[var(--muted)]">
           Dejanos tus datos y confirmamos tu pedido por WhatsApp.
         </p>
+        {/* Que no se asuste si tenia cosas en el carrito: no se perdieron. */}
+        {directa.activa && carrito.items.length > 0 && (
+          <p className="mt-3 rounded-xl bg-white px-3 py-2 text-sm text-foreground ring-1 ring-[var(--border)]">
+            Estás comprando solo este producto. Lo que tenés en el carrito
+            queda guardado para después.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="space-y-6">
@@ -341,12 +357,12 @@ export function CheckoutPage({
                   autoComplete="family-name"
                 />
                 <Field
-                  label={customer.shipping === "envio" ? "DNI" : "DNI (opcional)"}
+                  label="DNI"
                   value={customer.dni}
                   onChange={(v) => setCustomer({ ...customer, dni: v })}
                   error={errors.dni}
                   inputMode="numeric"
-                  placeholder="Solo si querés factura a tu nombre"
+                  placeholder="Sin puntos. Ej: 30123456"
                 />
                 <Field
                   label="Teléfono"
@@ -499,13 +515,15 @@ export function CheckoutPage({
                       label="Piso / depto"
                       value={customer.piso}
                       onChange={(v) => setCustomer({ ...customer, piso: v })}
-                      placeholder="Ej: 3° B"
+                      error={errors.piso}
+                      placeholder="Ej: 3° B o Casa"
                     />
                   </div>
                   <Field
                     label="Entre calles / referencia"
                     value={customer.reference}
                     onChange={(v) => setCustomer({ ...customer, reference: v })}
+                    error={errors.reference}
                     placeholder="Entre tal y tal, portón negro, etc."
                   />
                 </div>
@@ -630,11 +648,12 @@ export function CheckoutPage({
                     />
                   </div>
                   <Field
-                    label="Referencia (opcional)"
+                    label="Entre calles / referencia"
                     value={customer.reference}
                     onChange={(v) =>
                       setCustomer({ ...customer, reference: v })
                     }
+                    error={errors.reference}
                     placeholder="Entre tal y tal, casa amarilla, etc."
                   />
                 </div>

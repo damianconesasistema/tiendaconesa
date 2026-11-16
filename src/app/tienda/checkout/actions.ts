@@ -59,9 +59,16 @@ export async function createOrder(
   const enMapa = modoDeEnvio(vende?.slug) === "mapa";
   const zona =
     enMapa && customer.shipping === "envio" ? zonaDelCP(customer.postalCode) : null;
+  // El DNI va siempre, retire o se lo enviemos (Damian, 16/11/2026: "todos
+  // los campos obligatorios"). Con el DNI la factura B sale a su nombre: es
+  // el mismo camino que ya usaba el que lo escribia, no cambia nada en ARCA.
+  if (!/^\d{7,8}$/.test(String(customer.dni ?? "").replace(/\D/g, "")))
+    return { ok: false, error: "Falta el DNI (7 u 8 números)." };
   if (customer.shipping === "envio") {
-    if (!/^\d{7,8}$/.test(String(customer.dni ?? "").replace(/\D/g, "")))
-      return { ok: false, error: "Para el envío hace falta el DNI." };
+    if (enMapa && !String(customer.piso ?? "").trim())
+      return { ok: false, error: "Falta el piso / depto (si es casa, poné Casa)." };
+    if (!String(customer.reference ?? "").trim())
+      return { ok: false, error: "Faltan las entre calles o una referencia." };
     if (!/^\d{4}$/.test(String(customer.postalCode ?? "").replace(/\D/g, "")))
       return { ok: false, error: "Para el envío hace falta el código postal." };
     if (!String(customer.streetNumber ?? "").trim())

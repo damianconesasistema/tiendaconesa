@@ -100,6 +100,7 @@ export default async function Home() {
         hours: true,
         instagram: true,
         tiendaActiva: true,
+        tiendaOnline: true,
         cubreTodoElPais: true,
         zonaEnvio: true,
       },

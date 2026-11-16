@@ -2,6 +2,28 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.78.0 - Boton "Comprar" en las tarjetas; checkout con todos los datos
+//            obligatorios; "Cordoba - Traslasierra" en Nuestras sucursales.
+//            COMPRAR: Damian, 16/11/2026: "poner agregar o comprar, porque
+//            tambien estaria bueno hacer carrito, pero si quiero comprar solo
+//            1 producto". Las tarjetas de la portada y de la tienda tienen
+//            "Comprar" y "Agregar" (src/components/BotonesCompra.tsx).
+//            Comprar paga SOLO ese producto y no toca el carrito, como en
+//            Mercado Libre: viaja en sessionStorage y el checkout lo usa con
+//            ?directo=1 (src/lib/cart.ts). El "Comprar ahora" de la ficha
+//            hace lo mismo; antes lo sumaba al carrito y cobraba todo junto.
+//            CHECKOUT: "todos los campos obligatorios". El DNI va siempre
+//            (antes era opcional para retirar); en el envio, piso/depto ("si
+//            es casa, pone Casa") y entre calles. Las notas siguen opcionales.
+//            Con DNI la factura B sale a su nombre: es el camino que ya
+//            existia, no cambia nada de ARCA. La pantalla y el servidor piden
+//            lo mismo.
+//            SUCURSALES: la tarjeta dice "Cordoba - Traslasierra" (solo el
+//            titulo; el nombre de la sucursal no cambia). Sin "comprás en
+//            cualquiera de los dos": la tienda online es la de Buenos Aires,
+//            y Traslasierra dice "Atencion en el local. Consultas y pedidos
+//            por WhatsApp". El boton de WhatsApp de esas tarjetas sacaba las
+//            letras D del numero en vez de lo que no es numero.
 // V.0.77.0 - Se abre la tienda de Buenos Aires; la de Traslasierra se apaga
 //            (sigue como sucursal).
 //            Damian, 16/11/2026: "la tienda de Traslasierra sacala, no va
@@ -783,7 +805,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.77.0";
+export const APP_VERSION = "V.0.78.0";
 
 export type VersionEntry = {
   version: string;

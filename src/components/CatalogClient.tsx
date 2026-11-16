@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MARCAS_BASE, nombreMarca, porNombre, type Marca } from "@/lib/marcas";
-import { Search, Package, ShoppingCart, Check, Tag, SlidersHorizontal } from "lucide-react";
+import { Search, Package, Tag, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useCart } from "@/lib/cart";
+import { BotonesCompra } from "@/components/BotonesCompra";
 import { formatPrice as fmtPrice } from "@/lib/order";
 import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
-import { etiquetasDe, TONOS_ETIQUETA, opcionesDe } from "@/lib/etiquetas";
+import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
 import { subrubrosDe, nombreSubrubro } from "@/lib/subrubros";
 
 type Product = {
@@ -498,8 +498,6 @@ function FiltroItem({
 
 function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number }) {
   const [imgError, setImgError] = useState(false);
-  const [added, setAdded] = useState(false);
-  const { add } = useCart();
   const photoPath = p.imageUrl || `/categories/${p.category}.jpg`;
   // contado = lo guardado en la base. vitrina = lo que se muestra.
   const contado = p.salePrice ?? p.price;
@@ -512,21 +510,6 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
     : 0;
   const outOfStock = p.stock <= 0;
 
-  const handleAdd = (e: React.MouseEvent) => {
-    // Si el producto pide elegir algo (el tipo de gas), no se agrega de
-    // una: dejamos que el Link siga a la ficha, que es donde se elige.
-    if (opcionesDe(p.title)) return;
-    e.preventDefault();
-    e.stopPropagation();
-    add({
-      itemId: p.itemId,
-      title: p.title,
-      price: effectivePrice,
-      category: p.category,
-    });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
-  };
 
   return (
     <Link
@@ -636,26 +619,14 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
               Sin stock
             </span>
           ) : (
-            <button
-              onClick={handleAdd}
-              className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
-                added
-                  ? "bg-green-500 text-white"
-                  : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
-              }`}
-            >
-              {added ? (
-                <>
-                  <Check className="h-3.5 w-3.5" />
-                  Agregado
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="h-3.5 w-3.5" />
-                  Agregar al carrito
-                </>
-              )}
-            </button>
+            <BotonesCompra
+              item={{
+                itemId: p.itemId,
+                title: p.title,
+                price: effectivePrice,
+                category: p.category,
+              }}
+            />
           )}
         </div>
       </div>

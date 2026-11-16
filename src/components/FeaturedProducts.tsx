@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
-import { opcionesDe } from "@/lib/etiquetas";
+import { BotonesCompra } from "@/components/BotonesCompra";
 import Image from "next/image";
 import { useState } from "react";
-import { Package, ArrowRight, ShoppingCart, Check, Tag } from "lucide-react";
-import { useCart } from "@/lib/cart";
+import { Package, ArrowRight, Tag } from "lucide-react";
 import { formatPrice } from "@/lib/order";
 import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
 
@@ -138,8 +137,6 @@ function FeaturedCard({
   tiendaAbierta?: boolean;
 }) {
   const [imgError, setImgError] = useState(false);
-  const [added, setAdded] = useState(false);
-  const { add } = useCart();
   const photoPath = p.imageUrl || `/categories/${p.category}.jpg`;
   // La base guarda el contado; la vitrina muestra el de 1 pago.
   const contado = p.salePrice ?? p.price;
@@ -151,22 +148,6 @@ function FeaturedCard({
     ? Math.round(((p.price - p.salePrice!) / p.price) * 100)
     : 0;
   const outOfStock = p.stock <= 0;
-
-  const handleAdd = (e: React.MouseEvent) => {
-    // Si el producto pide elegir algo (el tipo de gas), no se agrega de
-    // una: dejamos que el Link siga a la ficha, que es donde se elige.
-    if (opcionesDe(p.title)) return;
-    e.preventDefault();
-    e.stopPropagation();
-    add({
-      itemId: p.itemId,
-      title: p.title,
-      price: effectivePrice,
-      category: p.category,
-    });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
-  };
 
   return (
     <Link
@@ -268,26 +249,15 @@ function FeaturedCard({
               Consultá por WhatsApp
             </span>
           ) : (
-            <button
-              onClick={handleAdd}
-              className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-full px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wider transition-colors sm:text-xs ${
-                added
-                  ? "bg-green-500 text-white"
-                  : "bg-[var(--brand-red)] text-white hover:bg-[var(--brand-red-hover)]"
-              }`}
-            >
-              {added ? (
-                <>
-                  <Check className="h-3 w-3" />
-                  Agregado
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="h-3 w-3" />
-                  Agregar
-                </>
-              )}
-            </button>
+            <BotonesCompra
+              item={{
+                itemId: p.itemId,
+                title: p.title,
+                price: effectivePrice,
+                category: p.category,
+              }}
+              tamano="chico"
+            />
           )}
         </div>
       </div>
