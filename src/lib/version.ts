@@ -2,6 +2,8 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.78.2 - El aire de abajo del pie tambien en la compu: el boton de
+//            WhatsApp tapaba el link "Admin" del ultimo renglon.
 // V.0.78.1 - Pie de pagina ordenado en el celular.
 //            Damian, 16/11/2026: "acomoda eso del final que se ve
 //            desordenado". Los tres links legales iban dos en un renglon y el
@@ -814,7 +816,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.78.1";
+export const APP_VERSION = "V.0.78.2";
 
 export type VersionEntry = {
   version: string;

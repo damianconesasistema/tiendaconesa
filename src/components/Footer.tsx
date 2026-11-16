@@ -23,7 +23,7 @@ export async function Footer() {
   const sucursales = await sucursalesParaElPie(sub);
   const contacto = await contactoActual();
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 pb-32 pt-16 sm:pb-16">
+    <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 pb-32 pt-16">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr]">
           {/* Marca + redes */}
