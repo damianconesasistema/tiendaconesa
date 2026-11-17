@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.93.0 - Rubros y subrubros a mano. Damian, 17/11/2026: "en equipamiento de
+//            baño tambien agregame subrubro accesorios y tambien agregame la
+//            posibilidad de agregar a mano cualquier rubro o subrubro". Cada
+//            desplegable de rubro y subrubro (Crear por Excel, la ficha, el
+//            alta a mano) tiene "+ Agregar rubro / subrubro nuevo...": pide el
+//            nombre y queda guardado (tabla Setting, como las marcas). La
+//            tienda los muestra en el filtro apenas tienen algo publicado.
+//            Los rubros salen de UNA lista (src/lib/rubros.ts): antes habia
+//            cinco y el mismo rubro decia "Bañeras" en la tienda y
+//            "Equipamiento de baño" en el inicio; ahora dice esto ultimo en
+//            todos lados. Subrubro "Accesorios" en Equipamiento de baño.
 // V.0.92.0 - Crear por Excel: "Buscar y reemplazar" en los titulos (Damian,
 //            17/11/2026: "agregame un buscar y reemplazar aca en esta pagina,
 //            para editar los textos masivamente"). Va sobre los tildados de la
@@ -1107,7 +1118,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.92.0";
+export const APP_VERSION = "V.0.93.0";
 
 export type VersionEntry = {
   version: string;

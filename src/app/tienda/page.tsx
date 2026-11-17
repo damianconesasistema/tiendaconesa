@@ -3,6 +3,7 @@ import categoriesData from "@/data/categories.json";
 import { CatalogClient } from "@/components/CatalogClient";
 import { getRecargosMp } from "@/lib/settings";
 import { getMarcas } from "@/lib/marcas-server";
+import { getRubrosExtra } from "@/lib/rubros-server";
 import { articulosEnVenta, paraLaVitrina } from "@/lib/catalogo";
 
 export const metadata: Metadata = {
@@ -63,8 +64,20 @@ export default async function Catalogo({
     mlUrl: "",
   }));
 
-  const categories = categoriesData as Category[];
-  const [recargos, marcas] = await Promise.all([getRecargosMp(), getMarcas()]);
+  const [recargos, marcas, rubrosExtra] = await Promise.all([
+    getRecargosMp(),
+    getMarcas(),
+    getRubrosExtra(),
+  ]);
+  // Los rubros de siempre y los agregados a mano desde el panel.
+  const base = categoriesData as Category[];
+  const ids = new Set(base.map((c) => c.id));
+  const categories: Category[] = [
+    ...base,
+    ...rubrosExtra.rubros
+      .filter((r) => !ids.has(r.slug))
+      .map((r) => ({ id: r.slug, label: r.name, keywords: [] })),
+  ];
   return (
     <>
     <CatalogClient
@@ -78,6 +91,7 @@ export default async function Catalogo({
       initialVer={initialVer}
       marcas={marcas}
       comisionUnPago={recargos.unPago}
+      rubrosExtra={rubrosExtra}
     />
     </>
   );

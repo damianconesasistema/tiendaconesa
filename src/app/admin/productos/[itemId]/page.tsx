@@ -1,3 +1,4 @@
+import { getRubrosExtra } from "@/lib/rubros-server";
 import QRCode from "qrcode";
 import { TIENDA_URL } from "@/lib/dominio";
 import { rutaAdminProducto } from "@/lib/rutas-producto";
@@ -196,6 +197,7 @@ export default async function EditProductPage({
             action={updateProduct}
             iaDisponible={geminiConfigurado()}
             mercadoLibre={await mlConectado()}
+            rubrosExtra={await getRubrosExtra()}
           />
         </section>
       </div>

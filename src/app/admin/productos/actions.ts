@@ -21,25 +21,14 @@ import {
   sucursalDeEdicion,
 } from "@/lib/precios-sucursal";
 import { subrubroValido } from "@/lib/subrubros";
+import { todosLosRubros } from "@/lib/rubros";
+import { getRubrosExtra } from "@/lib/rubros-server";
 import { whereDelLocal } from "@/lib/filtro-productos";
 
 type UpdateResult = { ok?: true; error?: string };
 
 // Crear un producto manualmente desde el panel.
 // Devuelve el itemId generado para poder redirigir a la ficha (y subir foto).
-const VALID_CATEGORIES_CREATE = new Set([
-  "sanitarios",
-  "griferia",
-  "banera",
-  "accesorios",
-  "salamandras",
-  "calefones",
-  "materiales",
-  "piletas",
-  "herramientas",
-  "cocina",
-  "otros",
-]);
 
 export async function createProduct(
   prevState: unknown,
@@ -51,11 +40,14 @@ export async function createProduct(
   const title = String(formData.get("title") || "").trim();
   if (!title) return { error: "El título es obligatorio" };
 
+  // Los rubros de la lista y los agregados a mano (src/lib/rubros.ts).
+  const rubrosExtra = await getRubrosExtra();
   let category = String(formData.get("category") || "otros").trim();
-  if (!VALID_CATEGORIES_CREATE.has(category)) category = "otros";
+  if (!todosLosRubros(rubrosExtra).some((r) => r.slug === category)) category = "otros";
   const subcategory = subrubroValido(
     category,
     String(formData.get("subcategory") || "").trim() || null,
+    rubrosExtra,
   );
 
   const description =
@@ -216,6 +208,7 @@ export async function updateProduct(
   const subcategory = subrubroValido(
     category,
     String(formData.get("subcategory") || "").trim() || null,
+    await getRubrosExtra(),
   );
   const brandRaw = String(formData.get("brand") || "").trim();
   const brand = brandRaw && (await marcaValidaDB(brandRaw)) ? brandRaw : null;

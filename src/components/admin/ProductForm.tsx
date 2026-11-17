@@ -7,6 +7,8 @@ import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
 import { redactarDescripcionIA } from "@/app/admin/productos/actions";
 import { subrubrosDe } from "@/lib/subrubros";
+import { OPCION_NUEVO, SIN_EXTRAS, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
+import { useRubrosAMano } from "@/components/admin/useRubrosAMano";
 
 type Product = {
   itemId: string;
@@ -27,28 +29,17 @@ type Product = {
 
 type State = { ok?: true } | { error: string } | null;
 
-const CATEGORIES = [
-  { id: "sanitarios", label: "Sanitarios" },
-  { id: "griferia", label: "Grifería" },
-  { id: "banera", label: "Bañeras" },
-  { id: "accesorios", label: "Accesorios" },
-  { id: "salamandras", label: "Salamandras" },
-  { id: "calefones", label: "Termotanques y Calefones" },
-  { id: "materiales", label: "Tanques" },
-  { id: "piletas", label: "Piletas" },
-  { id: "herramientas", label: "Herramientas" },
-  { id: "cocina", label: "Cocina y Ventilación" },
-  { id: "otros", label: "Otros" },
-];
-
 
 export function ProductForm({
+  rubrosExtra = SIN_EXTRAS,
   product,
   action,
   iaDisponible = false,
   marcas = MARCAS_BASE,
   mercadoLibre = false,
 }: {
+  /** Los rubros y subrubros agregados a mano. */
+  rubrosExtra?: RubrosExtra;
   product: Product;
   marcas?: readonly Marca[];
   action: (prev: unknown, fd: FormData) => Promise<State>;
@@ -79,7 +70,26 @@ export function ProductForm({
   // El rubro elegido, para saber que subrubros ofrecer. El desplegable del
   // rubro sigue siendo libre (lo maneja el borrador); esto solo lo escucha.
   const [rubro, setRubro] = useState(product.category);
-  const subrubros = subrubrosDe(rubro);
+  // Los rubros y subrubros, con los agregados a mano y la opcion de sumar
+  // uno nuevo desde el mismo desplegable (src/lib/rubros.ts).
+  const { extra, pedirRubro, pedirSubrubro } = useRubrosAMano(rubrosExtra);
+  const subrubros = subrubrosDe(rubro, extra);
+  const rubrosLista = todosLosRubros(extra);
+  if (!rubrosLista.some((r) => r.slug === product.category))
+    rubrosLista.push({ slug: product.category, name: product.category });
+  // El recien agregado se elige apenas aparece en el desplegable. Se avisa
+  // con un "change" de verdad para que lo vea tambien el borrador.
+  const nuevoPendiente = useRef<{ campo: "category" | "subcategory"; valor: string } | null>(null);
+  useEffect(() => {
+    const p = nuevoPendiente.current;
+    if (!p) return;
+    nuevoPendiente.current = null;
+    const sel = formRef.current?.elements.namedItem(p.campo);
+    if (sel instanceof HTMLSelectElement) {
+      sel.value = p.valor;
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }, [extra]);
   // Si el borrador traia otro rubro, su subrubro se repone recien cuando el
   // desplegable ya tiene las opciones de ese rubro.
   const subrubroPendiente = useRef<string | null>(null);
@@ -426,14 +436,20 @@ export function ProductForm({
           <select
             name="category"
             defaultValue={product.category}
-            onChange={(e) => setRubro(e.target.value)}
+            onChange={(e) => {
+              const sel = e.currentTarget;
+              if (sel.value !== OPCION_NUEVO) return setRubro(sel.value);
+              sel.value = rubro;
+              void pedirRubro((slug) => (nuevoPendiente.current = { campo: "category", valor: slug }));
+            }}
             className="input"
           >
-            {CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
+            {rubrosLista.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.name}
               </option>
             ))}
+            <option value={OPCION_NUEVO}>+ Agregar rubro nuevo…</option>
           </select>
           {/* Cambia con el rubro: "Lavatorio" es de Grifería, no de
               Sanitarios. Al cambiar de rubro arranca vacio. Sin subrubros
@@ -445,8 +461,13 @@ export function ProductForm({
               key={rubro}
               name="subcategory"
               defaultValue={rubro === product.category ? (product.subcategory ?? "") : ""}
-              disabled={subrubros.length === 0}
-              className="input disabled:opacity-60"
+              onChange={(e) => {
+                const sel = e.currentTarget;
+                if (sel.value !== OPCION_NUEVO) return;
+                sel.value = "";
+                void pedirSubrubro(rubro, (slug) => (nuevoPendiente.current = { campo: "subcategory", valor: slug }));
+              }}
+              className="input"
             >
               <option value="">
                 {subrubros.length === 0 ? "Este rubro no tiene subrubros" : "Sin subrubro"}
@@ -456,6 +477,7 @@ export function ProductForm({
                   {s.name}
                 </option>
               ))}
+              <option value={OPCION_NUEVO}>+ Agregar subrubro nuevo…</option>
             </select>
           </div>
         </div>

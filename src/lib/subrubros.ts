@@ -10,6 +10,10 @@
 // botones distintos en la tienda. En la base se guarda el slug.
 //
 // Este archivo no toca la base: lo usan la tienda, el panel y el alta.
+// Los subrubros agregados a mano desde el panel llegan como `extra` (ver
+// src/lib/rubros.ts): se suman a los de aca.
+
+import { SIN_EXTRAS, type RubrosExtra } from "@/lib/rubros";
 
 export type Subrubro = {
   slug: string;
@@ -55,6 +59,24 @@ export const SUBRUBROS: Readonly<Record<string, readonly Subrubro[]>> = {
       name: "Asientos",
       palabras: ["asiento", "asiu", "tapa inodoro", "tapa de inodoro"],
     },
+    // Damian, 17/11/2026: "en equipamiento de baño tambien agregame subrubro
+    // accesorios". Los accesorios de FV siguen en Griferia (decision suya).
+    {
+      slug: "accesorios",
+      name: "Accesorios",
+      palabras: [
+        "accesorio",
+        "acces",
+        "toallero",
+        "jabonera",
+        "percha",
+        "portarrollo",
+        "porta rollo",
+        "portavaso",
+        "repisa",
+        "barral",
+      ],
+    },
   ],
 };
 
@@ -84,16 +106,30 @@ const plano = (s: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
-export function subrubrosDe(rubro: string | null | undefined): readonly Subrubro[] {
-  return (rubro && SUBRUBROS[rubro]) || [];
+export function subrubrosDe(
+  rubro: string | null | undefined,
+  extra: RubrosExtra = SIN_EXTRAS,
+): readonly Subrubro[] {
+  const base = (rubro && SUBRUBROS[rubro]) || [];
+  const aMano = (rubro && extra.subrubros[rubro]) || [];
+  if (aMano.length === 0) return base;
+  const ids = new Set(base.map((s) => s.slug));
+  return [
+    ...base,
+    // Uno agregado a mano se reconoce por su propio nombre en el titulo.
+    ...aMano
+      .filter((s) => !ids.has(s.slug))
+      .map((s) => ({ slug: s.slug, name: s.name, palabras: [plano(s.name)] })),
+  ];
 }
 
 export function nombreSubrubro(
   rubro: string | null | undefined,
   slug: string | null | undefined,
+  extra: RubrosExtra = SIN_EXTRAS,
 ): string | null {
   if (!slug) return null;
-  return subrubrosDe(rubro).find((s) => s.slug === slug)?.name ?? null;
+  return subrubrosDe(rubro, extra).find((s) => s.slug === slug)?.name ?? null;
 }
 
 /** El slug si existe en ese rubro; null si no. Para no guardar un subrubro de
@@ -101,15 +137,18 @@ export function nombreSubrubro(
 export function subrubroValido(
   rubro: string | null | undefined,
   slug: string | null | undefined,
+  extra: RubrosExtra = SIN_EXTRAS,
 ): string | null {
-  return nombreSubrubro(rubro, slug) ? (slug as string) : null;
+  return nombreSubrubro(rubro, slug, extra) ? (slug as string) : null;
 }
 
-function buscar(rubro: string, texto: string): string | null {
+function buscar(rubro: string, texto: string, extra: RubrosExtra): string | null {
   const t = ` ${plano(texto)} `;
   if (t.trim() === "") return null;
-  const lista = subrubrosDe(rubro);
-  const orden = PRIORIDAD[rubro] ?? lista.map((s) => s.slug);
+  const lista = subrubrosDe(rubro, extra);
+  // Los de PRIORIDAD primero; los demas (y los agregados a mano), despues.
+  const primero = PRIORIDAD[rubro] ?? [];
+  const orden = [...primero, ...lista.map((s) => s.slug).filter((s) => !primero.includes(s))];
   for (const slug of orden) {
     const s = lista.find((x) => x.slug === slug);
     if (!s) continue;
@@ -131,11 +170,12 @@ export function subrubroSugerido(
   rubro: string,
   hoja: string | null,
   titulo: string,
+  extra: RubrosExtra = SIN_EXTRAS,
 ): SubrubroSugerido {
-  if (subrubrosDe(rubro).length === 0) return { slug: null, motivo: "" };
-  const porHoja = hoja ? buscar(rubro, hoja) : null;
+  if (subrubrosDe(rubro, extra).length === 0) return { slug: null, motivo: "" };
+  const porHoja = hoja ? buscar(rubro, hoja, extra) : null;
   if (porHoja) return { slug: porHoja, motivo: `de la pestaña "${hoja?.trim()}"` };
-  const porTitulo = buscar(rubro, titulo);
+  const porTitulo = buscar(rubro, titulo, extra);
   if (porTitulo) return { slug: porTitulo, motivo: "de las palabras del título" };
   return { slug: null, motivo: "no se pudo deducir: elegilo vos" };
 }

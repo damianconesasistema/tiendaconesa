@@ -4,6 +4,8 @@ import { rutaAdminProducto } from "@/lib/rutas-producto";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { SHIPPING_TYPES } from "@/lib/shipping";
 import { subrubrosDe } from "@/lib/subrubros";
+import { OPCION_NUEVO, SIN_EXTRAS, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
+import { useRubrosAMano } from "@/components/admin/useRubrosAMano";
 import { useRouter } from "next/navigation";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
@@ -11,28 +13,19 @@ import { createProduct } from "@/app/admin/productos/actions";
 
 type State = { ok?: true; itemId?: string; error?: string } | null;
 
-const CATEGORIES = [
-  { id: "sanitarios", label: "Sanitarios" },
-  { id: "griferia", label: "Grifería" },
-  { id: "banera", label: "Bañeras" },
-  { id: "accesorios", label: "Accesorios" },
-  { id: "salamandras", label: "Salamandras" },
-  { id: "calefones", label: "Termotanques y Calefones" },
-  { id: "materiales", label: "Tanques" },
-  { id: "piletas", label: "Piletas" },
-  { id: "herramientas", label: "Herramientas" },
-  { id: "cocina", label: "Cocina y Ventilación" },
-  { id: "otros", label: "Otros" },
-];
-
 export function NewProductForm({
   marcas = MARCAS_BASE,
+  rubrosExtra = SIN_EXTRAS,
 }: {
   marcas?: readonly Marca[];
+  /** Los rubros y subrubros agregados a mano. */
+  rubrosExtra?: RubrosExtra;
 } = {}) {
   const router = useRouter();
   const [rubro, setRubro] = useState("otros");
-  const subrubros = subrubrosDe(rubro);
+  const [sub, setSub] = useState("");
+  const { extra, pedirRubro, pedirSubrubro } = useRubrosAMano(rubrosExtra);
+  const subrubros = subrubrosDe(rubro, extra);
   const [state, formAction, isPending] = useActionState<State, FormData>(
     createProduct as (prev: State, fd: FormData) => Promise<State>,
     null,
@@ -78,24 +71,41 @@ export function NewProductForm({
           <Label>Categoría</Label>
           <select
             name="category"
-            defaultValue="otros"
-            onChange={(e) => setRubro(e.target.value)}
+            value={rubro}
+            onChange={async (e) => {
+              const v = e.target.value;
+              if (v !== OPCION_NUEVO) {
+                setRubro(v);
+                setSub("");
+                return;
+              }
+              const nuevo = await pedirRubro();
+              if (nuevo) {
+                setRubro(nuevo);
+                setSub("");
+              }
+            }}
             className="input"
           >
-            {CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
+            {todosLosRubros(extra).map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.name}
               </option>
             ))}
+            <option value={OPCION_NUEVO}>+ Agregar rubro nuevo…</option>
           </select>
           <div className="mt-3">
             <Label>Subrubro</Label>
             <select
-              key={rubro}
               name="subcategory"
-              defaultValue=""
-              disabled={subrubros.length === 0}
-              className="input disabled:opacity-60"
+              value={sub}
+              onChange={async (e) => {
+                const v = e.target.value;
+                if (v !== OPCION_NUEVO) return setSub(v);
+                const nuevo = await pedirSubrubro(rubro);
+                if (nuevo) setSub(nuevo);
+              }}
+              className="input"
             >
               <option value="">
                 {subrubros.length === 0 ? "Este rubro no tiene subrubros" : "Sin subrubro"}
@@ -105,6 +115,7 @@ export function NewProductForm({
                   {s.name}
                 </option>
               ))}
+              <option value={OPCION_NUEVO}>+ Agregar subrubro nuevo…</option>
             </select>
           </div>
         </div>

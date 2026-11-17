@@ -1,3 +1,5 @@
+import { nombreRubro } from "@/lib/rubros";
+import { getRubrosExtra } from "@/lib/rubros-server";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -82,20 +84,6 @@ function buildOrderBy(
   }
 }
 
-const CAT_LABELS: Record<string, string> = {
-  sanitarios: "Sanitarios",
-  griferia: "Grifería",
-  banera: "Bañeras",
-  accesorios: "Accesorios",
-  salamandras: "Salamandras",
-  calefones: "Termotanques y Calefones",
-  materiales: "Tanques",
-  piletas: "Piletas",
-  herramientas: "Herramientas",
-  cocina: "Cocina y Ventilación",
-  otros: "Otros",
-};
-
 export default async function ProductosAdmin({
   searchParams,
 }: {
@@ -105,6 +93,7 @@ export default async function ProductosAdmin({
   if (!session) redirect("/admin/login");
 
   const sp = await searchParams;
+  const rubrosExtra = await getRubrosExtra();
   const q = sp.q?.trim() || "";
   const cat = sp.cat || "";
   const marca = sp.marca || "";
@@ -220,7 +209,7 @@ export default async function ProductosAdmin({
     );
   const categories = [...porCategoria.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([id, count]) => ({ id, label: CAT_LABELS[id] || id, count }));
+    .map(([id, count]) => ({ id, label: nombreRubro(id, rubrosExtra), count }));
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -356,6 +345,7 @@ export default async function ProductosAdmin({
         </div>
       ) : (
         <ProductsTable
+          rubrosExtra={rubrosExtra}
           products={products}
           total={total}
           volver={volver}

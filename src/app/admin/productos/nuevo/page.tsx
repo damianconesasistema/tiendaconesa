@@ -1,3 +1,4 @@
+import { getRubrosExtra } from "@/lib/rubros-server";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -37,7 +38,7 @@ export default async function NuevoProductoPage() {
         </p>
 
         <section className="mt-6 rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm sm:p-8">
-          <NewProductForm marcas={await getMarcas()} />
+          <NewProductForm marcas={await getMarcas()} rubrosExtra={await getRubrosExtra()} />
         </section>
       </div>
     </AdminShell>

@@ -30,6 +30,8 @@ import {
 import { uploadOneImage, finishImageBulk } from "@/app/admin/productos/imagenes/actions";
 import { formatPrice } from "@/lib/order";
 import { subrubrosDe, subrubroSugerido } from "@/lib/subrubros";
+import { OPCION_NUEVO, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
+import { useRubrosAMano } from "@/components/admin/useRubrosAMano";
 import { rubroSugerido } from "@/lib/alta-articulos";
 import { MARCAS_BASE } from "@/lib/marcas";
 
@@ -109,6 +111,9 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
   }, []);
 
   const nuevos = prev?.nuevos ?? [];
+  // Los rubros y subrubros agregados a mano (los del Excel subido y los que
+  // se suman aca con "+ Agregar..."). Ver src/lib/rubros.ts.
+  const { extra: rubrosExtra, pedirRubro, pedirSubrubro } = useRubrosAMano(prev?.rubrosExtra);
 
   /** La lista de marcas para elegir: la de la tienda mas las que se
    *  agregaron aca, de la A a la Z (el orden del codigo es el del home y en
@@ -138,7 +143,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
     // "Lavatorio" no es un subrubro de Sanitarios. Ahi queda vacio.
     const sub = e.subrubro !== undefined ? e.subrubro : a.subrubro;
     const subrubro =
-      sub && subrubrosDe(categoria).some((x) => x.slug === sub) ? sub : null;
+      sub && subrubrosDe(categoria, rubrosExtra).some((x) => x.slug === sub) ? sub : null;
     return {
       ...a,
       titulo: e.titulo ?? a.titulo,
@@ -250,7 +255,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
           const r = rubroSugerido(a.titulo, null, null, marca);
           if (r.slug !== "otros") {
             cambio.categoria = r.slug;
-            cambio.subrubro = subrubroSugerido(r.slug, a.hoja ?? null, a.titulo).slug ?? null;
+            cambio.subrubro = subrubroSugerido(r.slug, a.hoja ?? null, a.titulo, rubrosExtra).slug ?? null;
           }
         }
         n[a.itemCode] = { ...e, ...cambio };
@@ -615,7 +620,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
   // ------------------------------------------------------------ revisar
 
   const s = prev?.stats;
-  const rubros = prev?.rubros ?? [];
+  const rubros = prev ? todosLosRubros(rubrosExtra) : [];
   const conFoto = elegidos.filter((a) => fotosPropias[a.itemCode]).length;
 
   return (
@@ -778,6 +783,9 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
                 original={a}
                 incluido={!excluidos.has(a.itemCode)}
                 rubros={rubros}
+                rubrosExtra={rubrosExtra}
+                onNuevoRubro={pedirRubro}
+                onNuevoSubrubro={pedirSubrubro}
                 marcas={marcas}
                 dctoContado={dctoContado}
                 deFV={fv[a.itemCode]}
@@ -900,6 +908,9 @@ function Ficha({
   original,
   incluido,
   rubros,
+  rubrosExtra,
+  onNuevoRubro,
+  onNuevoSubrubro,
   marcas,
   dctoContado,
   deFV,
@@ -915,6 +926,10 @@ function Ficha({
   original: ArticuloNuevo;
   incluido: boolean;
   rubros: { slug: string; name: string }[];
+  rubrosExtra: RubrosExtra;
+  /** "+ Agregar rubro / subrubro nuevo": devuelve el slug, o null. */
+  onNuevoRubro: () => Promise<string | null>;
+  onNuevoSubrubro: (rubro: string) => Promise<string | null>;
   marcas: MarcaDeLista[];
   dctoContado: number;
   deFV?: RespuestaFV;
@@ -929,7 +944,7 @@ function Ficha({
   onLink: (url: string) => Promise<string | null>;
 }) {
   const margenFlojo = a.margenPct !== null && a.margenPct < 10;
-  const subrubros = subrubrosDe(a.categoria);
+  const subrubros = subrubrosDe(a.categoria, rubrosExtra);
   const [errorFoto, setErrorFoto] = useState<string | null>(null);
   const [errorMarcaGBP, setErrorMarcaGBP] = useState<string | null>(null);
   const [agregandoGBP, startAgregarGBP] = useTransition();
@@ -1156,12 +1171,15 @@ function Ficha({
           <label className="text-xs text-[var(--muted)]">Rubro</label>
           <select
             value={a.categoria}
-            onChange={(e) =>
+            onChange={async (e) => {
+              let v: string | null = e.target.value;
+              if (v === OPCION_NUEVO) v = await onNuevoRubro();
+              if (!v) return;
               onEditar({
-                categoria: e.target.value,
-                subrubro: subrubroSugerido(e.target.value, original.hoja ?? null, a.titulo).slug,
-              })
-            }
+                categoria: v,
+                subrubro: subrubroSugerido(v, original.hoja ?? null, a.titulo, rubrosExtra).slug,
+              });
+            }}
             className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
             {rubros.map((r) => (
@@ -1169,6 +1187,7 @@ function Ficha({
                 {r.name}
               </option>
             ))}
+            <option value={OPCION_NUEVO}>+ Agregar rubro nuevo…</option>
           </select>
           <p className="mt-1 truncate text-xs text-[var(--muted)]">
             {original.motivoCategoria}
@@ -1178,9 +1197,15 @@ function Ficha({
           <label className="text-xs text-[var(--muted)]">Subrubro</label>
           <select
             value={a.subrubro ?? ""}
-            onChange={(e) => onEditar({ subrubro: e.target.value || null })}
-            disabled={subrubros.length === 0}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:bg-[var(--surface)] disabled:text-[var(--muted)]"
+            onChange={async (e) => {
+              let v: string | null = e.target.value;
+              if (v === OPCION_NUEVO) {
+                v = await onNuevoSubrubro(a.categoria);
+                if (!v) return;
+              }
+              onEditar({ subrubro: v || null });
+            }}
+            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
             <option value="">
               {subrubros.length === 0 ? "Este rubro no tiene" : "Sin subrubro"}
@@ -1190,6 +1215,7 @@ function Ficha({
                 {s.name}
               </option>
             ))}
+            <option value={OPCION_NUEVO}>+ Agregar subrubro nuevo…</option>
           </select>
           <p className="mt-1 truncate text-xs text-[var(--muted)]">
             {a.categoria === original.categoria ? original.motivoSubrubro : ""}

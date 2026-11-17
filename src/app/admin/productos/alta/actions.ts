@@ -13,12 +13,13 @@ import { getRecargosMp } from "@/lib/settings";
 import { descuentoDelRecargo } from "@/lib/precios";
 import { rubroSugerido, tituloSugerido } from "@/lib/alta-articulos";
 import { subrubroSugerido, subrubroValido } from "@/lib/subrubros";
+import { todosLosRubros, type RubrosExtra } from "@/lib/rubros";
+import { getRubrosExtra } from "@/lib/rubros-server";
 import { armarTitulo, armarTituloDeFabricante, tituloFVDesdeGBP } from "@/lib/fv-ficha";
 import { buscarEnPiazza, rubroDePiazza } from "@/lib/piazza";
 import { buscarArticuloDeLaMarca, codigosDelArticulo, leerLink } from "@/lib/web-de-marca";
 import { buscarEnMercadoLibre, mlConectado } from "@/lib/mercadolibre";
 import { buscarEnFV, guardarFotoDeFV } from "@/lib/fv";
-import { business } from "@/lib/business";
 
 // Alta de articulos nuevos desde el Excel de GBP.
 //
@@ -89,23 +90,17 @@ export type PreviewAltaResult = {
   /** MercadoLibre conectado: se busca tambien en su catalogo. */
   mercadoLibre?: boolean;
   rubros?: { slug: string; name: string }[];
+  /** Los rubros y subrubros agregados a mano, para los desplegables. */
+  rubrosExtra?: RubrosExtra;
   sucursal?: string;
 };
 
 /** Por debajo de esto el articulo se marca en rojo. No frena nada: avisa. */
 const MARGEN_FLOJO = 10;
 
-function rubrosDeLaTienda(): { slug: string; name: string }[] {
-  const base: { slug: string; name: string }[] = business.categories.map(
-    (c) => ({ slug: c.slug, name: c.name }),
-  );
-  // Estos dos no estan en el menu de la tienda pero si son rubros validos de
-  // un articulo, asi que tienen que poder elegirse.
-  return base.concat([
-    { slug: "calefones", name: "Termotanques y Calefones" },
-    { slug: "piletas", name: "Piletas y bachas" },
-    { slug: "otros", name: "Otros" },
-  ]);
+function rubrosDeLaTienda(extra: RubrosExtra): { slug: string; name: string }[] {
+  // Una sola lista para todo, con los agregados a mano (src/lib/rubros.ts).
+  return todosLosRubros(extra);
 }
 
 /** Lee el Excel y arma la ficha de cada articulo que todavia no esta. */
@@ -114,6 +109,7 @@ export async function previsualizarAlta(
 ): Promise<PreviewAltaResult> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "Sesión vencida. Entrá de nuevo." };
+  const extraR = await getRubrosExtra();
 
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0)
@@ -196,7 +192,7 @@ export async function previsualizarAlta(
     // reconozca, y "TERMOTANQUE ELÉCTRICO 80 LTS" si. Antes que eso, la
     // marca, si hace una sola cosa (FV: griferia).
     const r = rubroSugerido(t.titulo, f.subcategoria, f.categoria, laMarca);
-    const sr = subrubroSugerido(r.slug, f.hoja, t.titulo);
+    const sr = subrubroSugerido(r.slug, f.hoja, t.titulo, extraR);
 
     // FV: el titulo arranca ya con el formato de siempre (rubro, subrubro y
     // el codigo completo), armado con lo que dice GBP. Antes quedaba
@@ -205,7 +201,7 @@ export async function previsualizarAlta(
     const titulo =
       marca === "fv"
         ? armarTitulo({
-            rubroNombre: rubrosDeLaTienda().find((x) => x.slug === r.slug)?.name ?? "",
+            rubroNombre: rubrosDeLaTienda(extraR).find((x) => x.slug === r.slug)?.name ?? "",
             rubro: r.slug,
             subrubro: sr.slug,
             fv: tituloFVDesdeGBP(f.descripcion, f.itemCode, r.slug, sr.slug),
@@ -265,7 +261,8 @@ export async function previsualizarAlta(
     recargoUnPago: recargo,
     marcas: marcas.map((m) => ({ id: m.id, name: m.name, web: !!m.web })),
     mercadoLibre: await mlConectado(),
-    rubros: rubrosDeLaTienda(),
+    rubros: rubrosDeLaTienda(extraR),
+    rubrosExtra: extraR,
     sucursal: suc?.nombre,
   };
 }
@@ -388,7 +385,8 @@ const FV_POR_TANDA = 2;
 export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
   const session = await getAdminSession();
   if (!session) return [];
-  const rubros = rubrosDeLaTienda();
+  const extraR = await getRubrosExtra();
+  const rubros = rubrosDeLaTienda(extraR);
   const conWeb = await marcasConWeb();
   const todas = await getMarcas();
   const ml = await mlConectado();
@@ -409,7 +407,8 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
         : null;
     const subrubro = subrubroValido(
       p.categoria,
-      p.subrubro ?? subrubroSugerido(p.categoria, null, d.nombre).slug ?? null,
+      p.subrubro ?? subrubroSugerido(p.categoria, null, d.nombre, extraR).slug ?? null,
+      extraR,
     );
     return {
       itemCode: p.itemCode,
@@ -462,7 +461,8 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
       }
       const subrubro = subrubroValido(
         p.categoria,
-        p.subrubro ?? subrubroSugerido(p.categoria, null, d.nombre).slug ?? null,
+        p.subrubro ?? subrubroSugerido(p.categoria, null, d.nombre, extraR).slug ?? null,
+        extraR,
       );
       salida.push({
         itemCode: p.itemCode,
@@ -507,7 +507,8 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
       const categoria = sug?.rubro ?? p.categoria;
       const subrubro = subrubroValido(
         categoria,
-        sug ? sug.subrubro : subrubroSugerido(categoria, null, d.nombre).slug ?? p.subrubro,
+        sug ? sug.subrubro : subrubroSugerido(categoria, null, d.nombre, extraR).slug ?? p.subrubro,
+        extraR,
       );
       salida.push({
         itemCode: p.itemCode,
@@ -548,7 +549,7 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
       titulo: armarTitulo({
         rubroNombre,
         rubro: p.categoria,
-        subrubro: subrubroValido(p.categoria, p.subrubro),
+        subrubro: subrubroValido(p.categoria, p.subrubro, extraR),
         fv: d.fv,
         codigo: p.itemCode,
         descripcionGBP: p.descripcionGBP,
@@ -576,7 +577,8 @@ export async function crearArticulos(
 
   const recargo = (await getRecargosMp()).unPago;
   const suc = await sucursalDeEdicion();
-  const rubros = new Set(rubrosDeLaTienda().map((r) => r.slug));
+  const extraR = await getRubrosExtra();
+  const rubros = new Set(rubrosDeLaTienda(extraR).map((r) => r.slug));
   const marcas = await getMarcas();
 
   let creados = 0;
@@ -615,7 +617,7 @@ export async function crearArticulos(
           sku: it.itemCode,
           title: titulo,
           category: categoria,
-          subcategory: subrubroValido(categoria, it.subrubro),
+          subcategory: subrubroValido(categoria, it.subrubro, extraR),
           brand: marca,
           price: contado,
           salePrice: null,

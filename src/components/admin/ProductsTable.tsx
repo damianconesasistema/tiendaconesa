@@ -1,5 +1,6 @@
 "use client";
 
+import { nombreRubro, SIN_EXTRAS, type RubrosExtra } from "@/lib/rubros";
 import { rutaAdminProducto, rutaProducto } from "@/lib/rutas-producto";
 import { useState, useTransition } from "react";
 import Link from "next/link";
@@ -63,20 +64,6 @@ type Product = {
   views: number;
 };
 
-const CAT_LABELS: Record<string, string> = {
-  sanitarios: "Sanitarios",
-  griferia: "Grifería",
-  banera: "Bañeras",
-  accesorios: "Accesorios",
-  salamandras: "Salamandras",
-  calefones: "Termotanques y Calefones",
-  materiales: "Tanques",
-  piletas: "Piletas",
-  herramientas: "Herramientas",
-  cocina: "Cocina y Ventilación",
-  otros: "Otros",
-};
-
 /** Si el SKU dice lo mismo que el codigo del articulo, con o sin la marca
  *  adelante y con otros separadores: "TST-10633" y "10633", o
  *  "COMBO-PRIN-3440-3443-3442" y "3440+3443+3442". Solo letras y numeros. */
@@ -96,6 +83,7 @@ export function ProductsTable({
   sort = "",
   dir = "desc",
   recargoUnPago = 0,
+  rubrosExtra = SIN_EXTRAS,
 }: {
   products: Product[];
   total?: number;
@@ -109,6 +97,8 @@ export function ProductsTable({
   /** Para mostrar el precio de 1 pago, que es el que ve el cliente.
    *  La tabla guarda el de transferencia y de ahi sale todo lo demas. */
   recargoUnPago?: number;
+  /** Para el nombre de los rubros agregados a mano. */
+  rubrosExtra?: RubrosExtra;
 }) {
   const router = useRouter();
   // La ficha recibe por donde volver; si no hay filtros, es la lista pelada.
@@ -646,7 +636,7 @@ export function ProductsTable({
                     </div>
                   </td>
                   <td className="px-2 py-3 hidden lg:table-cell text-xs text-[var(--muted)]">
-                    {CAT_LABELS[p.category] || p.category}
+                    {nombreRubro(p.category, rubrosExtra)}
                   </td>
                   <td className="px-2 py-3 hidden lg:table-cell text-xs">
                     {p.brand ? (

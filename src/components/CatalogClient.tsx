@@ -11,6 +11,7 @@ import { formatPrice as fmtPrice } from "@/lib/order";
 import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
 import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
 import { subrubrosDe, nombreSubrubro } from "@/lib/subrubros";
+import { nombreRubro, SIN_EXTRAS, type RubrosExtra } from "@/lib/rubros";
 
 type Product = {
   itemId: string;
@@ -34,6 +35,8 @@ type Category = {
 };
 
 type Props = {
+  /** Los rubros y subrubros agregados a mano desde el panel. */
+  rubrosExtra?: RubrosExtra;
   products: Product[];
   categories: Category[];
   initialCat?: string;
@@ -50,20 +53,6 @@ type Props = {
 // Cuantos productos entran por tanda. 24 llena varias filas en cualquier
 // pantalla sin hacer esperar de mas en un celular.
 const POR_TANDA = 24;
-
-const CAT_LABELS: Record<string, string> = {
-  sanitarios: "Sanitarios",
-  griferia: "Grifería",
-  banera: "Bañeras",
-  accesorios: "Accesorios",
-  salamandras: "Salamandras",
-  calefones: "Termotanques y Calefones",
-  materiales: "Tanques",
-  piletas: "Piletas",
-  herramientas: "Herramientas",
-  cocina: "Cocina y Ventilación",
-  otros: "Otros",
-};
 
 
 // Opciones de orden que ve el cliente. "Recomendados" respeta el orden que
@@ -100,6 +89,7 @@ export function CatalogClient({
   initialVer = 0,
   marcas = MARCAS_BASE,
   comisionUnPago = 10,
+  rubrosExtra = SIN_EXTRAS,
 }: Props) {
   const [query, setQuery] = useState(initialQuery);
   const [activeCat, setActiveCat] = useState<string>(initialCat);
@@ -189,13 +179,13 @@ export function CatalogClient({
   // o escrito a mano con un sub que no corresponde muestra la categoria
   // entera en vez de una grilla vacia.
   const subVigente =
-    activeCat !== "all" && activeSub !== "all" && nombreSubrubro(activeCat, activeSub)
+    activeCat !== "all" && activeSub !== "all" && nombreSubrubro(activeCat, activeSub, rubrosExtra)
       ? activeSub
       : "all";
-  const nombreSub = subVigente !== "all" ? nombreSubrubro(activeCat, subVigente) : null;
+  const nombreSub = subVigente !== "all" ? nombreSubrubro(activeCat, subVigente, rubrosExtra) : null;
 
   const resumenFiltros = [
-    activeCat !== "all" ? CAT_LABELS[activeCat] || activeCat : null,
+    activeCat !== "all" ? nombreRubro(activeCat, rubrosExtra) : null,
     nombreSub,
     activeMarca !== "all" ? nombreMarca(activeMarca, marcas) : null,
   ]
@@ -230,7 +220,7 @@ export function CatalogClient({
     for (const p of products)
       if (p.category === activeCat && p.subcategory)
         subCounts[p.subcategory] = (subCounts[p.subcategory] || 0) + 1;
-  const subrubrosConProductos = subrubrosDe(activeCat).filter(
+  const subrubrosConProductos = subrubrosDe(activeCat, rubrosExtra).filter(
     (s) => (subCounts[s.slug] || 0) > 0,
   );
 
@@ -322,7 +312,7 @@ export function CatalogClient({
                     key={c.id}
                     active={activeCat === c.id && subVigente === "all"}
                     onClick={() => elegirCategoria(c.id)}
-                    label={CAT_LABELS[c.id] || c.label}
+                    label={nombreRubro(c.id, rubrosExtra) || c.label}
                     count={counts[c.id] || 0}
                   >
                     {/* Los subrubros se abren debajo de la categoria
@@ -387,7 +377,7 @@ export function CatalogClient({
           <strong className="text-foreground">{filtered.length}</strong>{" "}
           {filtered.length === 1 ? "producto" : "productos"}
           {activeCat !== "all" &&
-            ` en ${CAT_LABELS[activeCat] || activeCat}${nombreSub ? ` · ${nombreSub}` : ""}`}
+            ` en ${nombreRubro(activeCat, rubrosExtra)}${nombreSub ? ` · ${nombreSub}` : ""}`}
           {activeMarca !== "all" && ` de ${nombreMarca(activeMarca, marcas)}`}
           {query && ` que coinciden con "${query}"`}
         </p>
@@ -424,7 +414,7 @@ export function CatalogClient({
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.slice(0, visibles).map((p) => (
-              <ProductCard key={p.itemId} p={p} comisionUnPago={comisionUnPago} />
+              <ProductCard key={p.itemId} p={p} comisionUnPago={comisionUnPago} rubro={nombreRubro(p.category, rubrosExtra)} />
             ))}
           </div>
         )}
@@ -497,7 +487,7 @@ function FiltroItem({
   );
 }
 
-function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number }) {
+function ProductCard({ p, comisionUnPago, rubro }: { p: Product; comisionUnPago: number; rubro: string }) {
   const [imgError, setImgError] = useState(false);
   const photoPath = p.imageUrl || `/categories/${p.category}.jpg`;
   // contado = lo guardado en la base. vitrina = lo que se muestra.
@@ -559,7 +549,7 @@ function ProductCard({ p, comisionUnPago }: { p: Product; comisionUnPago: number
         {/* La categoria arriba del titulo y no encima de la foto: adentro de
             la imagen se cortaba con los nombres largos y tapaba el producto. */}
         <span className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-          {CAT_LABELS[p.category] || p.category}
+          {rubro}
         </span>
         <h3 className="mt-1 uppercase text-sm font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)]">
           {p.title}
