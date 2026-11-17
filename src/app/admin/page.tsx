@@ -13,6 +13,8 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
+import { getCostosMpDelPanel } from "@/lib/settings";
+import { tocaRevisarCostos } from "@/lib/costos-mp";
 
 export const metadata: Metadata = {
   title: "Panel · Sanitarios Conesa",
@@ -58,6 +60,11 @@ export default async function AdminDashboard() {
     },
   });
 
+  // Los costos de Mercado Pago cambian mes a mes: si paso un mes sin
+  // revisarlos, se avisa aca (ver /admin/mercadopago).
+  const { revisados } = await getCostosMpDelPanel();
+  const revisarMp = tocaRevisarCostos(revisados);
+
   return (
     <AdminShell username={session.username} active="dashboard">
       <h1 className="font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
@@ -66,6 +73,16 @@ export default async function AdminDashboard() {
       <p className="mt-2 text-sm text-[var(--muted)]">
         Resumen general del negocio.
       </p>
+
+      {revisarMp && (
+        <Link
+          href="/admin/mercadopago"
+          className="mt-4 block rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 hover:border-amber-400"
+        >
+          <strong>Revisá los costos de Mercado Pago de este mes.</strong> Cambian mes a mes y de ellos salen
+          los precios en cuotas. Tocá acá →
+        </Link>
+      )}
 
       {/* KPIs */}
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">

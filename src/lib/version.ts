@@ -2,6 +2,20 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.97.0 - Mercado Pago · Cuotas. Damian, 17/11/2026: "en el panel puede haber
+//            una parte que diga MERCADO PAGO ... los costos, margenes que
+//            manejan, porque van cambiando mes a mes, y asi yo saber si tengo
+//            que modificar o no los precios de la financiacion". Pestaña nueva
+//            en el panel: el costo por cobrar, el IVA y el costo de cada plan
+//            de cuotas sin interes (los copia de la app: Mercado Pago no los
+//            da por su sistema), con la cuenta en vivo de lo que se lleva
+//            Mercado Pago, el recargo al cliente (hoy -> nuevo) y un ejemplo
+//            sobre $100.000. Al guardar, los precios en cuotas de la tienda
+//            pasan a ser esos (antes eran fijos de octubre y no habia donde
+//            cambiarlos). Avisa si en 1 pago se pierde plata. Si paso un mes
+//            sin revisarlos, avisa ahi y en el Dashboard; "Ya los mire: siguen
+//            igual" lo da por revisado. La cuenta vive en src/lib/costos-mp.ts
+//            y es la misma que usa la tienda.
 // V.0.96.0 - Stock de los combos por Excel. Damian, 17/11/2026: "si yo te subo un
 //            excel con los SKU y el stock en caso de una marca como Pringles,
 //            tienen que actualizarse ... un combo lo componen 2 o 3 o 4 SKU,
@@ -1172,7 +1186,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.96.0";
+export const APP_VERSION = "V.0.97.0";
 
 export type VersionEntry = {
   version: string;

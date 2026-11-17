@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
@@ -39,6 +39,7 @@ export async function AdminShell({
     | "clientes"
     | "sucursales"
     | "configuracion"
+    | "mercadopago"
     | "version";
   children: React.ReactNode;
 }) {
@@ -125,6 +126,12 @@ export async function AdminShell({
             icon={Store}
             label="Sucursales"
             active={active === "sucursales"}
+          />
+          <Tab
+            href="/admin/mercadopago"
+            icon={CreditCard}
+            label="Mercado Pago"
+            active={active === "mercadopago"}
           />
           <a
             href={verTienda}
