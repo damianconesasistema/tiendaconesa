@@ -2,6 +2,9 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.98.2 - "Volver a productos" tambien abajo del boton Guardar cambios de la
+//            ficha (Damian, 17/11/2026), con los mismos filtros que el de
+//            arriba.
 // V.0.98.1 - Filtros de la tienda. Damian, 17/11/2026: elegir Accesorios con
 //            Heineken puesta daba "sin resultados" ("si no hay productos no
 //            elija por marca sino por categoria"), y "pongo griferia, en
@@ -1212,7 +1215,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.98.1";
+export const APP_VERSION = "V.0.98.2";
 
 export type VersionEntry = {
   version: string;

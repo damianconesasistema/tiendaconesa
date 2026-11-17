@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState, useRef, useTransition } from "react";
-import { Check, AlertCircle, Sparkles, Loader2, Globe } from "lucide-react";
+import Link from "next/link";
+import { Check, AlertCircle, Sparkles, Loader2, Globe, ArrowLeft } from "lucide-react";
 import { descripcionDeFV } from "@/app/admin/productos/fotos-fv/actions";
 import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
@@ -32,6 +33,7 @@ type State = { ok?: true } | { error: string } | null;
 
 
 export function ProductForm({
+  volver,
   rubrosExtra = SIN_EXTRAS,
   product,
   action,
@@ -41,6 +43,8 @@ export function ProductForm({
 }: {
   /** Los rubros y subrubros agregados a mano. */
   rubrosExtra?: RubrosExtra;
+  /** A donde vuelve "Volver a productos" (con los filtros de la lista). */
+  volver?: string;
   product: Product;
   marcas?: readonly Marca[];
   action: (prev: unknown, fd: FormData) => Promise<State>;
@@ -720,6 +724,18 @@ export function ProductForm({
           {isPending ? "Guardando…" : "Guardar cambios"}
         </button>
       </div>
+
+      {/* El mismo de arriba, para no tener que subir toda la ficha despues de
+          guardar (Damian, 17/11/2026). */}
+      {volver && (
+        <Link
+          href={volver}
+          className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--brand-red)]"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver a productos
+        </Link>
+      )}
 
       <style>{`
         .input {

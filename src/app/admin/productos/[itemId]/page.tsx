@@ -198,6 +198,7 @@ export default async function EditProductPage({
             iaDisponible={geminiConfigurado()}
             mercadoLibre={await mlConectado()}
             rubrosExtra={await getRubrosExtra()}
+            volver={hrefVolver}
           />
         </section>
       </div>
