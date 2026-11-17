@@ -1,7 +1,7 @@
 import { lookup } from "node:dns/promises";
 import { decodificar } from "@/lib/fv-ficha";
 import { buscarLinksEnGoogle } from "@/lib/gemini";
-import { buscarEnMercadoLibre } from "@/lib/mercadolibre";
+import { buscarEnMercadoLibre, idDeLinkML, leerLinkDeMercadoLibre, mlConectado } from "@/lib/mercadolibre";
 
 // Buscar un articulo en la pagina web de SU MARCA, sea cual sea.
 //
@@ -262,8 +262,13 @@ function fotosValidas(lista: (string | null | undefined)[], web: string): string
     if (/(^|[\/_-])(share|logo|placeholder|no[-_]?image|sin[-_]?imagen|favicon)[^\/]*$/i.test(f.split("?")[0])) continue;
     // La misma foto en otro tamaño o en otra carpeta ("?v=123", "-300x300",
     // la copia achicada de Magento) cuenta una vez: se compara el archivo.
-    const archivo = (x: string) =>
-      (x.split("?")[0].split("/").pop() ?? x).toLowerCase().replace(/-\d+x\d+(?=\.\w+$)/, "");
+    const archivo = (x: string) => {
+      const nombre = (x.split("?")[0].split("/").pop() ?? x).toLowerCase();
+      // MercadoLibre: la misma foto viene chica ("D_NQ_NP_831409-MLA9552_1020-O")
+      // y grande ("D_NQ_NP_2X_831409-MLA9552_1020-F"): cuenta su numero.
+      const ml = nombre.match(/(\d+-ml[a-z]\d+_\d+)/);
+      return ml ? ml[1] : nombre.replace(/-\d+x\d+(?=\.\w+$)/, "");
+    };
     if (salida.some((x) => archivo(x) === archivo(f))) continue;
     salida.push(f);
     if (salida.length >= MAX_FOTOS_POR_ARTICULO) break;
@@ -299,7 +304,11 @@ export function limpiarDescripcion(texto: string | null | undefined): string {
  *  Se corta antes de la tabla de caracteristicas y de la pestaña siguiente,
  *  que van aparte. */
 function bloqueDeDescripcion(html: string): string | null {
+  // Sin los scripts: si "description" aparece adentro de uno, el trozo
+  // arrancaria en medio del codigo y saldria codigo en vez de texto.
+  html = html.replace(/<(script|style|noscript|template)\b[\s\S]*?<\/\1>/gi, " ");
   const inicios = [
+    /class=["'][^"']*ui-pdp-description__content[^"']*["'][^>]*>/i,
     /id=["'](tab-)?description["'][^>]*>/i,
     /itemprop=["']description["'][^>]*>/i,
     /class=["'][^"']*(product[-_]?description|descripcion)[^"']*["'][^>]*>/i,
@@ -314,6 +323,9 @@ function bloqueDeDescripcion(html: string): string | null {
       /<table|<\/section>|<h[2-4][\s>]|id=["'][^"']*(spec|attribute|review|tab-label|additional)/i,
     );
     const texto = htmlATexto(corte >= 0 ? trozo.slice(0, corte) : trozo).slice(0, 1500).trim();
+    // Si parece codigo y no texto, no sirve.
+    const simbolos = (texto.match(/[{};=<>]/g) ?? []).length;
+    if (simbolos > texto.length * 0.02 || /function\s*\(|=>|\bvar\s/.test(texto)) continue;
     if (texto.length > mejor.length) mejor = texto;
   }
   return mejor || null;
@@ -403,7 +415,11 @@ export function leerPaginaDeProducto(
 
   // Las fotos: la galeria de Magento (Ferrum) si la hay, las de la ficha
   // para Google, y la de compartir solo si no hay otra (suele ser el logo).
-  const galeria = [...html.matchAll(/"full":"(https?:[^"]+)"/g)].map((m) => m[1].replace(/\\\//g, "/"));
+  const galeria = [
+    ...[...html.matchAll(/"full":"(https?:[^"]+)"/g)].map((m) => m[1].replace(/\\\//g, "/")),
+    // La foto grande de cada miniatura (MercadoLibre y muchas galerias).
+    ...[...html.matchAll(/data-zoom="(https?:[^"]+)"/g)].map((m) => decodificar(m[1])),
+  ];
   const deLaFicha = todasLasImagenes(ld?.image);
   const base = [...galeria, ...deLaFicha];
   const fotos = (base.length ? base : [meta(html, "og:image")])
@@ -943,6 +959,17 @@ export async function leerLink(link: string): Promise<DatosDeLaWeb> {
     return { encontrado: false, motivo: "ese link no es de una página pública" };
   const web = url.origin;
 
+  // MercadoLibre no deja leer sus paginas desde un servidor: con la cuenta
+  // conectada se lee por el numero de la publicacion o de la ficha.
+  const esML = !!idDeLinkML(url.toString());
+  if (esML) {
+    const ml = await leerLinkDeMercadoLibre(url.toString());
+    if (ml?.encontrado) return { ...ml, fuente: "mercadolibre" };
+  }
+  const avisoML = esML && !(await mlConectado())
+    ? "MercadoLibre no deja leer sus páginas desde la tienda: conectá MercadoLibre (Fotos de la web → Conectar MercadoLibre) y probá de nuevo"
+    : null;
+
   // Tiendas Shopify (Mi Pileta y otras): su ficha en JSON trae todas las fotos.
   const shop = url.pathname.match(/^(.*\/products\/[^/?#]+)/);
   if (shop) {
@@ -965,10 +992,10 @@ export async function leerLink(link: string): Promise<DatosDeLaWeb> {
   }
 
   const r = await pedir(url.toString());
-  if (!r) return { encontrado: false, motivo: "la página no contestó" };
-  if (r.status !== 200) return { encontrado: false, motivo: `la página contestó ${r.status}` };
+  if (!r) return { encontrado: false, motivo: avisoML ?? "la página no contestó" };
+  if (r.status !== 200) return { encontrado: false, motivo: avisoML ?? `la página contestó ${r.status}` };
   const datos = leerPaginaDeProducto(r.texto, r.url);
-  if (!datos) return { encontrado: false, motivo: "no encontré un producto en esa página" };
+  if (!datos) return { encontrado: false, motivo: avisoML ?? "no encontré un producto en esa página" };
   const fotos = fotosValidas([datos.foto, ...datos.fotos], web);
   return {
     encontrado: true,

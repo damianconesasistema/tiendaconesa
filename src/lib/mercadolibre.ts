@@ -336,3 +336,76 @@ export async function buscarEnMercadoLibre(a: { marca: string; codigos: string[]
   memoria.set(clave, { cuando: Date.now(), datos });
   return datos;
 }
+
+// ------------------------------------------------- un link de MercadoLibre
+
+type ItemML = {
+  id?: string;
+  title?: string;
+  pictures?: { url?: string; secure_url?: string }[];
+  attributes?: Atributo[];
+  catalog_product_id?: string | null;
+};
+
+/** El numero de un link de MercadoLibre: "/p/MLA21097034" es una ficha de
+ *  catalogo; "MLA-1234567890" o "/MLA1234567890" es una publicacion. */
+export function idDeLinkML(link: string): { tipo: "producto" | "item"; id: string } | null {
+  let u: URL;
+  try {
+    u = new URL(link);
+  } catch {
+    return null;
+  }
+  if (!/(^|\.)mercadoli(b|v)re\.com(\.ar)?$/i.test(u.hostname)) return null;
+  const p = u.pathname.match(/\/p\/(MLA\d+)/i);
+  if (p) return { tipo: "producto", id: p[1].toUpperCase() };
+  const i = (u.pathname + u.search).match(/MLA-?(\d{6,})/i);
+  if (i) return { tipo: "item", id: `MLA${i[1]}` };
+  return null;
+}
+
+/** Lee un link de MercadoLibre por su numero, con la cuenta conectada (la
+ *  pagina misma no se deja leer desde un servidor). null si no se puede. */
+export async function leerLinkDeMercadoLibre(link: string): Promise<DatosDeML | null> {
+  const id = idDeLinkML(link);
+  if (!id || !(await mlConectado())) return null;
+
+  const fotosDe = (lista?: { url?: string; secure_url?: string }[]) =>
+    [
+      ...new Set(
+        (lista ?? [])
+          .map((f) => (f.secure_url || f.url || "").replace(/^http:\/\//, "https://"))
+          .filter(fotoDeMercadoLibre),
+      ),
+    ].slice(0, 6);
+
+  if (id.tipo === "producto") {
+    const p = await api<ProductoML>(`/products/${id.id}`);
+    if (!p?.name) return null;
+    const fotos = fotosDe(p.pictures);
+    return {
+      encontrado: true,
+      nombre: p.name,
+      foto: fotos[0] ?? null,
+      fotos,
+      descripcion: armarDescripcion(p),
+      ficha: link,
+    };
+  }
+
+  const it = await api<ItemML>(`/items/${id.id}`);
+  if (!it?.title) return null;
+  const desc = await api<{ plain_text?: string }>(`/items/${id.id}/description`);
+  const fotos = fotosDe(it.pictures);
+  return {
+    encontrado: true,
+    nombre: it.title,
+    foto: fotos[0] ?? null,
+    fotos,
+    descripcion: armarDescripcion({
+      short_description: { content: String(desc?.plain_text ?? "").trim() },
+      attributes: it.attributes,
+    }),
+    ficha: link,
+  };
+}

@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.90.1 - Links de MercadoLibre. Damian pego uno de la bacha 443 y salio "no
+//            encontre un producto en esa pagina": MercadoLibre no deja leer sus
+//            paginas desde un servidor (desde una casa si). Ahora: con
+//            MercadoLibre conectado, el link se lee por su numero (/p/MLA... es
+//            ficha de catalogo, MLA-... es publicacion) con la API; sin
+//            conectar, si la pagina no se deja leer, el aviso dice que hay que
+//            conectarlo. Y cuando la pagina se lee: todas las fotos de la
+//            galeria (data-zoom), sin repetir la misma en dos tamaños, y la
+//            descripcion de su bloque (antes salia codigo de la pagina: se
+//            sacan los scripts antes de buscarla y se descarta lo que parece
+//            codigo).
 // V.0.90.0 - Traer foto y descripcion desde un link. Damian, 17/11/2026: "agregame
 //            que pueda poner una url para que saque informacion, foto y
 //            descripcion" y "agregalo abajo del boton de traer fotos desde la
@@ -1064,7 +1075,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.90.0";
+export const APP_VERSION = "V.0.90.1";
 
 export type VersionEntry = {
   version: string;
