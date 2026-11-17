@@ -4,13 +4,16 @@
 // llamarlo de mas no cuesta nada. Ver src/lib/chequeo-diario.ts.
 import { NextResponse } from "next/server";
 import { chequeoDiarioSiToca } from "@/lib/chequeo-diario";
+import { titulosAMayusculasUnaVez } from "@/lib/titulos-mayusculas";
 
 export const dynamic = "force-dynamic";
 
 export async function POST() {
   try {
+    // Los titulos de antes a mayusculas, una sola vez (despues no hace nada).
+    const titulos = await titulosAMayusculasUnaVez().catch(() => -1);
     const r = await chequeoDiarioSiToca();
-    return NextResponse.json(r);
+    return NextResponse.json({ ...r, titulos });
   } catch {
     return NextResponse.json({ corrio: false, error: "no se pudo correr" }, { status: 500 });
   }

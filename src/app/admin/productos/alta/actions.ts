@@ -13,6 +13,7 @@ import { getRecargosMp } from "@/lib/settings";
 import { descuentoDelRecargo } from "@/lib/precios";
 import { rubroSugerido, tituloSugerido } from "@/lib/alta-articulos";
 import { subrubroSugerido, subrubroValido } from "@/lib/subrubros";
+import { tituloEnLinea } from "@/lib/titulo-en-linea";
 import { todosLosRubros, type RubrosExtra } from "@/lib/rubros";
 import { getRubrosExtra } from "@/lib/rubros-server";
 import { armarTitulo, armarTituloDeFabricante, tituloFVDesdeGBP } from "@/lib/fv-ficha";
@@ -621,7 +622,7 @@ export async function crearArticulos(
           itemId: it.itemCode,
           codigoSistema: it.itemCode,
           sku: it.itemCode,
-          title: titulo,
+          title: tituloEnLinea(titulo),
           category: categoria,
           subcategory: subrubroValido(categoria, it.subrubro, extraR),
           brand: marca,

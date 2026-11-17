@@ -9,6 +9,7 @@ import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
 import { LeyendaNovedades } from "@/components/admin/LeyendaNovedades";
 import { novedadesRecientes } from "@/lib/novedades";
 import { chequeoDiarioSiToca } from "@/lib/chequeo-diario";
+import { titulosAMayusculasUnaVez } from "@/lib/titulos-mayusculas";
 
 export async function AdminShell({
   username,
@@ -55,6 +56,7 @@ export async function AdminShell({
   // novedades de la semana para la leyenda de arriba: las de este local y las
   // generales. Si algo falla, la pantalla sale igual, sin leyenda.
   void chequeoDiarioSiToca().catch(() => {});
+  void titulosAMayusculasUnaVez().catch(() => {});
   const localDelPanel = await sucursalDelPanel().catch(() => null);
   const novedades = (await novedadesRecientes(7).catch(() => []))
     .filter((n) => !n.sucursal || !localDelPanel || n.sucursal === localDelPanel.slug)

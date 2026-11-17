@@ -10,6 +10,7 @@ import { detectarMarca, marcaPorId } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 import { agregarNovedades, nombrar } from "@/lib/novedades";
+import { tituloEnLinea } from "@/lib/titulo-en-linea";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { leerExportDelSistema, depositoDeOtroLocal } from "@/lib/excel-sistema";
 import {
@@ -537,7 +538,7 @@ export async function previewExcel(
       const itemId = String(parsed.itemId ?? "").trim();
       if (!itemId) errors.push("la fila no trae código: no se sabe qué artículo es");
 
-      const title = String(parsed.title ?? "").trim();
+      const title = tituloEnLinea(String(parsed.title ?? ""));
 
       // Lo obligatorio depende de lo que se vino a hacer; se decide mas
       // abajo, cuando ya se sabe si el articulo esta en la tienda.

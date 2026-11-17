@@ -421,7 +421,7 @@ export function ProductForm({
             name="title"
             defaultValue={product.title}
             required
-            className="input"
+            className="input uppercase"
           />
         </div>
         <div>

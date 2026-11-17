@@ -1007,7 +1007,7 @@ function Ficha({
             type="text"
             value={a.titulo}
             onChange={(e) => onEditar({ titulo: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm uppercase"
             aria-label="Título"
           />
           <p className="mt-1 text-xs text-[var(--muted)]">

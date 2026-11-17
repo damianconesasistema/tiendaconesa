@@ -21,6 +21,7 @@ import {
   sucursalDeEdicion,
 } from "@/lib/precios-sucursal";
 import { subrubroValido } from "@/lib/subrubros";
+import { tituloEnLinea } from "@/lib/titulo-en-linea";
 import { todosLosRubros } from "@/lib/rubros";
 import { getRubrosExtra } from "@/lib/rubros-server";
 import { whereDelLocal } from "@/lib/filtro-productos";
@@ -37,7 +38,7 @@ export async function createProduct(
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
 
-  const title = String(formData.get("title") || "").trim();
+  const title = tituloEnLinea(String(formData.get("title") || ""));
   if (!title) return { error: "El título es obligatorio" };
 
   // Los rubros de la lista y los agregados a mano (src/lib/rubros.ts).
@@ -201,7 +202,7 @@ export async function updateProduct(
   const bloqueado = await assertUnlocked(itemId);
   if (bloqueado) return { error: bloqueado };
 
-  const title = String(formData.get("title") || "").trim();
+  const title = tituloEnLinea(String(formData.get("title") || ""));
   const category = String(formData.get("category") || "otros");
   // Solo si es un subrubro de ESE rubro: si se cambio el rubro y quedo uno
   // viejo colgado, se guarda vacio.

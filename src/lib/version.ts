@@ -2,6 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.0 - Titulos en mayusculas. Damian, 17/11/2026: "los titulos ponemelos
+//            todos iguales, si queda en minuscula le pones mayuscula ...
+//            mantengamos una linea en los titulos". Todo titulo que se guarda
+//            (alta a mano, ficha, Crear por Excel, precios y stock por Excel)
+//            queda en mayusculas, con sus tildes (src/lib/titulo-en-linea.ts),
+//            y los cuadros del titulo ya lo muestran asi mientras se escribe.
+//            Los que ya estaban se pasan una sola vez desde el programa (no
+//            como migracion: si falla, la tienda sigue igual), guardando antes
+//            los originales en Setting "titulos_antes_de_mayusculas".
 // V.0.98.2 - "Volver a productos" tambien abajo del boton Guardar cambios de la
 //            ficha (Damian, 17/11/2026), con los mismos filtros que el de
 //            arriba.
@@ -1215,7 +1224,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.98.2";
+export const APP_VERSION = "V.0.99.0";
 
 export type VersionEntry = {
   version: string;
