@@ -16,7 +16,7 @@ import { rutaAdminProducto } from "@/lib/rutas-producto";
 // por pedido), y va mostrando el avance y que paso con cada uno.
 // Ver src/lib/fv.ts.
 
-const POR_TANDA = 4;
+const POR_TANDA = 2;
 
 export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
   const [corriendo, setCorriendo] = useState(false);
@@ -62,7 +62,7 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
       <div className="mt-8 rounded-2xl border border-[var(--border)] bg-white p-8 text-center">
         <Check className="mx-auto h-8 w-8 text-emerald-600" />
         <p className="mt-3 font-display text-sm font-bold uppercase tracking-wider">
-          Todos los artículos de FV y Piazza tienen foto y descripción
+          Todos los artículos de las marcas con página tienen foto y descripción
         </p>
         <p className="mt-1 text-sm text-[var(--muted)]">
           Para cambiar alguno en particular, entrá al artículo: ahí están
@@ -85,6 +85,7 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
           sin descripción.
         </p>
 
+        {marcas.includes("FV") && (
         <label className="mt-4 flex cursor-pointer items-start gap-2 text-sm">
           <input
             type="checkbox"
@@ -101,6 +102,7 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
             </span>
           </span>
         </label>
+        )}
 
         <button
           type="button"

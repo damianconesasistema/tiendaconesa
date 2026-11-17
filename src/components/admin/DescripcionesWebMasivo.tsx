@@ -1,6 +1,5 @@
 "use client";
 
-import { fabricanteConPagina } from "@/lib/marcas-con-pagina";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { Globe, Loader2, Check, AlertTriangle, Square, Save } from "lucide-react";
@@ -39,9 +38,12 @@ const ETIQUETA: Record<Fuente, string> = {
 export function DescripcionesWebMasivo({
   pendientes,
   iaDisponible,
+  marcasConWeb = [],
 }: {
   pendientes: Pendiente[];
   iaDisponible: boolean;
+  /** Las marcas con su pagina web cargada en Marcas: de ahi se busca primero. */
+  marcasConWeb?: string[];
 }) {
   const [corriendo, setCorriendo] = useState(false);
   const [hechos, setHechos] = useState(0);
@@ -52,7 +54,7 @@ export function DescripcionesWebMasivo({
   const parar = useRef(false);
 
   const titulo = new Map(pendientes.map((p) => [p.itemId, p.title]));
-  const sinFV = pendientes.filter((p) => !fabricanteConPagina(p.brand)).length;
+  const sinFV = pendientes.filter((p) => !p.brand || !marcasConWeb.includes(p.brand)).length;
 
   async function buscar() {
     parar.current = false;
@@ -146,7 +148,7 @@ export function DescripcionesWebMasivo({
         {!iaDisponible && sinFV > 0 && (
           <p className="mt-2 text-sm text-amber-800">
             La búsqueda en internet no está configurada: solo se van a poder
-            completar los de FV y Piazza, desde la página de cada marca.
+            completar los de las marcas con su página cargada en Marcas.
           </p>
         )}
         <p className="mt-2 text-xs text-[var(--muted)]">

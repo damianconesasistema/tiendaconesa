@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
-import { Plus, Trash2, Lock } from "lucide-react";
-import { crearMarca, borrarMarca } from "@/app/admin/marcas/actions";
+import { Plus, Trash2, Lock, Check, ExternalLink } from "lucide-react";
+import { crearMarca, borrarMarca, cambiarWebDeMarca } from "@/app/admin/marcas/actions";
 
 type Fila = {
   id: string;
   name: string;
   logo: string | null;
+  /** Su pagina oficial: de ahi se traen fotos y descripciones. */
+  web: string | null;
   /** Las que vienen en el codigo no se borran desde el panel. */
   editable: boolean;
   productos: number;
@@ -58,7 +60,7 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
         <h2 className="font-display text-sm font-bold uppercase tracking-wider">
           Agregar marca
         </h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_1.4fr_auto]">
+        <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_1.2fr_1.2fr_auto]">
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
               Nombre
@@ -81,6 +83,16 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
               className="mt-1.5 h-10 w-full rounded-lg border border-[var(--border)] px-3 text-sm outline-none focus:border-[var(--brand-red)]"
             />
           </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+              Página web (opcional)
+            </label>
+            <input
+              name="web"
+              placeholder="narf.com.ar"
+              className="mt-1.5 h-10 w-full rounded-lg border border-[var(--border)] px-3 text-sm outline-none focus:border-[var(--brand-red)]"
+            />
+          </div>
           <button
             type="submit"
             disabled={pendiente}
@@ -92,7 +104,9 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
         </div>
         <p className="mt-3 text-[11px] text-[var(--muted)]">
           Sin logo la marca funciona igual como filtro, pero no sale en la
-          grilla de marcas del inicio.
+          grilla de marcas del inicio. Con la página web, &quot;Fotos de la
+          web&quot; y &quot;Crear por Excel&quot; buscan ahí la foto y la
+          descripción de cada artículo por su código.
         </p>
         {error && (
           <p className="mt-3 text-xs font-medium text-[var(--brand-red)]">{error}</p>
@@ -101,11 +115,12 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
       </form>
 
       <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-        <table className="w-full min-w-[34rem] text-sm">
+        <table className="w-full min-w-[46rem] text-sm">
           <thead className="bg-[var(--surface)] text-left text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
             <tr>
               <th className="px-4 py-3">Marca</th>
               <th className="px-4 py-3">Identificador</th>
+              <th className="px-4 py-3">Página web</th>
               <th className="px-4 py-3 text-right">Productos</th>
               <th className="px-4 py-3" />
             </tr>
@@ -134,6 +149,9 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-[var(--muted)]">
                   {m.id}
+                </td>
+                <td className="px-4 py-3">
+                  <WebDeMarca id={m.id} inicial={m.web} />
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">
                   {m.productos > 0 ? (
@@ -172,6 +190,69 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+/** La pagina web de una marca, editable en la misma fila: se escribe y se
+ *  aprieta Guardar (o Enter). Vacia, la marca queda sin pagina. */
+function WebDeMarca({ id, inicial }: { id: string; inicial: string | null }) {
+  const [valor, setValor] = useState(inicial ?? "");
+  const [guardada, setGuardada] = useState(inicial ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [pendiente, iniciar] = useTransition();
+  const cambio = valor.trim() !== guardada;
+
+  function guardar() {
+    setError(null);
+    iniciar(async () => {
+      const r = await cambiarWebDeMarca(id, valor);
+      if (r.error) setError(r.error);
+      else {
+        setGuardada(r.web ?? "");
+        setValor(r.web ?? "");
+      }
+    });
+  }
+
+  return (
+    <div className="min-w-[14rem]">
+      <div className="flex items-center gap-1.5">
+        <input
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (cambio) guardar();
+            }
+          }}
+          placeholder="sin página"
+          className="h-8 w-full rounded-lg border border-[var(--border)] px-2 text-xs outline-none focus:border-[var(--brand-red)]"
+        />
+        {cambio ? (
+          <button
+            type="button"
+            onClick={guardar}
+            disabled={pendiente}
+            className="h-8 shrink-0 rounded-full bg-[var(--brand-red)] px-3 text-[11px] font-bold uppercase text-white disabled:opacity-50"
+          >
+            Guardar
+          </button>
+        ) : guardada ? (
+          <a
+            href={guardada}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Abrir la página"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--muted)] hover:text-[var(--brand-red)]"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        ) : null}
+        {!cambio && guardada && !pendiente && <Check className="h-3.5 w-3.5 shrink-0 text-green-600" />}
+      </div>
+      {error && <p className="mt-1 text-[11px] text-[var(--brand-red)]">{error}</p>}
     </div>
   );
 }

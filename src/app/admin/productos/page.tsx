@@ -285,7 +285,7 @@ export default async function ProductosAdmin({
           </Link>
           {/* Fotos (y descripcion) de la pagina oficial de la marca, por el
               codigo, para los que ya estan cargados. FV y Piazza por ahora
-              (src/lib/marcas-con-pagina.ts). Damian, 17/11/2026: "que no diga
+              y toda marca con su web cargada en Marcas. Damian, 17/11/2026: "que no diga
               FV porque va a ser para todas las marcas". */}
           <Link
             href="/admin/productos/fotos-fv"

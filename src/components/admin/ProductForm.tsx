@@ -1,6 +1,5 @@
 "use client";
 
-import { fabricanteConPagina } from "@/lib/marcas-con-pagina";
 import { useActionState, useEffect, useState, useRef, useTransition } from "react";
 import { Check, AlertCircle, Sparkles, Loader2, Globe } from "lucide-react";
 import { descripcionDeFV } from "@/app/admin/productos/fotos-fv/actions";
@@ -203,7 +202,10 @@ export function ProductForm({
   // con el boton de siempre.
   const [webPending, startWeb] = useTransition();
   const [webMsg, setWebMsg] = useState<{ ok: boolean; texto: string } | null>(null);
-  const puedeBuscarEnLaWeb = iaDisponible || fabricanteConPagina(product.brand) !== null;
+  // La marca con su pagina web cargada (Marcas): de ahi se busca primero.
+  const fabricanteDe = (id: string | null | undefined) =>
+    (id && marcas.find((m) => m.id === id && m.web)?.name) || null;
+  const puedeBuscarEnLaWeb = iaDisponible || fabricanteDe(product.brand) !== null;
 
   function buscarEnLaWeb() {
     const actual = descRef.current?.value.trim();
@@ -226,18 +228,20 @@ export function ProductForm({
     startWeb(async () => {
       try {
         let noEstaEnFV = false;
-        // FV y Piazza: primero su pagina oficial (src/lib/marcas-con-pagina.ts).
-        const fabricante = fabricanteConPagina(marca);
+        // Primero la pagina oficial de la marca, si la tiene cargada en
+        // Marcas (FV, Piazza o cualquier otra; src/lib/web-de-marca.ts).
+        let fabricante = fabricanteDe(marca);
         if (fabricante) {
           const r = await descripcionDeFV(product.itemId);
           if (r.ok && descRef.current) {
             descRef.current.value = r.texto;
             setWebMsg({
               ok: true,
-              texto: `Sacada de la página oficial de ${fabricante}. Revisala y apretá Guardar.`,
+              texto: `Sacada de la página oficial de ${r.fabricante}. Revisala y apretá Guardar.`,
             });
             return;
           }
+          if (!r.ok && r.fabricante) fabricante = r.fabricante;
           noEstaEnFV = true;
         }
         if (!iaDisponible) {

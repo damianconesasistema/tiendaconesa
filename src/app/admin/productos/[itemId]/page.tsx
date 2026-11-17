@@ -1,4 +1,3 @@
-import { fabricanteConPagina } from "@/lib/marcas-con-pagina";
 import { rutaProducto } from "@/lib/rutas-producto";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
@@ -9,7 +8,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { codigoDeLaUrl } from "@/lib/codigo-viejo";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { getMarcas } from "@/lib/marcas-server";
+import { getMarcas, marcasConWeb } from "@/lib/marcas-server";
 import { ProductImageUpload } from "@/components/admin/ProductImageUpload";
 import { PriceHistoryPanel } from "@/components/admin/PriceHistoryPanel";
 import { formatPrice } from "@/lib/order";
@@ -90,7 +89,7 @@ export default async function EditProductPage({
               itemId={product.itemId}
               category={product.category}
               initialImages={images}
-              fabricante={fabricanteConPagina(product.brand)}
+              fabricante={(product.brand && (await marcasConWeb()).get(product.brand)?.name) || null}
             />
           </div>
           <h3 className="mt-4 line-clamp-3 font-display text-sm font-bold leading-tight">

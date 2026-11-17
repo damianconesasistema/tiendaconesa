@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
-import { agregarMarca, getMarcas } from "@/lib/marcas-server";
+import { agregarMarca, getMarcas, marcasConWeb } from "@/lib/marcas-server";
 import { detectarMarca, slugMarca } from "@/lib/marcas";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
@@ -15,6 +15,7 @@ import { rubroSugerido, tituloSugerido } from "@/lib/alta-articulos";
 import { subrubroSugerido, subrubroValido } from "@/lib/subrubros";
 import { armarTitulo, armarTituloDeFabricante, tituloFVDesdeGBP } from "@/lib/fv-ficha";
 import { buscarEnPiazza, rubroDePiazza } from "@/lib/piazza";
+import { buscarArticuloDeLaMarca, codigosDelArticulo } from "@/lib/web-de-marca";
 import { buscarEnFV, guardarFotoDeFV } from "@/lib/fv";
 import { business } from "@/lib/business";
 
@@ -83,7 +84,7 @@ export type PreviewAltaResult = {
    *  y no el descuento redondeado, asi el contado que se ve es el que se
    *  guarda. */
   recargoUnPago?: number;
-  marcas?: { id: string; name: string }[];
+  marcas?: { id: string; name: string; web?: boolean }[];
   rubros?: { slug: string; name: string }[];
   sucursal?: string;
 };
@@ -259,7 +260,7 @@ export async function previsualizarAlta(
     },
     descuentoContado: descuentoDelRecargo(recargo),
     recargoUnPago: recargo,
-    marcas: marcas.map((m) => ({ id: m.id, name: m.name })),
+    marcas: marcas.map((m) => ({ id: m.id, name: m.name, web: !!m.web })),
     rubros: rubrosDeLaTienda(),
     sucursal: suc?.nombre,
   };
@@ -366,24 +367,64 @@ export type RespuestaFV = {
   subrubro?: string | null;
 };
 
-/** Las marcas que tienen pagina oficial que se sabe leer. */
-const CON_PAGINA = new Set(["fv", "piazza"]);
-
 /** De a pocos por vez: la pantalla los va pidiendo y muestra el avance. Asi
- *  ningun pedido queda colgado minutos, y a FV no le llegan cien de golpe. */
-const FV_POR_TANDA = 4;
+ *  ningun pedido queda colgado minutos, y a la pagina de la marca no le
+ *  llegan cien de golpe. De a 2: una pagina lenta puede llevar 40 segundos
+ *  por articulo (src/lib/web-de-marca.ts) y el servidor corta a los 120. */
+const FV_POR_TANDA = 2;
 
 export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
   const session = await getAdminSession();
   if (!session) return [];
   const rubros = rubrosDeLaTienda();
+  const conWeb = await marcasConWeb();
   const salida: RespuestaFV[] = [];
   for (const p of pedidos.slice(0, FV_POR_TANDA)) {
-    if (!p.marca || !CON_PAGINA.has(p.marca)) {
+    const laMarca = p.marca ? conWeb.get(p.marca) : undefined;
+    if (!p.marca || !laMarca) {
       salida.push({
         itemCode: p.itemCode,
         encontrado: false,
-        motivo: "esta marca no tiene una página que se sepa leer",
+        motivo: "esta marca no tiene su página web cargada (se carga en Marcas)",
+      });
+      continue;
+    }
+
+    // Cualquier marca que no sea FV ni Piazza: su pagina web, con el lector
+    // general, y si ahi no esta, Google (src/lib/web-de-marca.ts). Damian,
+    // 17/11/2026: "podes buscar en la web de la marca que buscamos con el
+    // modelo, hacelo mas generico".
+    if (p.marca !== "fv" && p.marca !== "piazza") {
+      const d = await buscarArticuloDeLaMarca({
+        web: laMarca.web,
+        marca: laMarca.name,
+        codigos: codigosDelArticulo(p.descripcionGBP, p.itemCode),
+        titulo: p.descripcionGBP,
+      });
+      if (!d.encontrado || !d.nombre) {
+        salida.push({ itemCode: p.itemCode, encontrado: false, motivo: d.motivo, fabricante: laMarca.name });
+        continue;
+      }
+      const subrubro = subrubroValido(
+        p.categoria,
+        p.subrubro ?? subrubroSugerido(p.categoria, null, d.nombre).slug ?? null,
+      );
+      salida.push({
+        itemCode: p.itemCode,
+        encontrado: true,
+        fabricante: laMarca.name,
+        titulo: armarTituloDeFabricante({
+          rubroNombre: rubros.find((r) => r.slug === p.categoria)?.name ?? "",
+          rubro: p.categoria,
+          subrubro,
+          nombre: d.nombre,
+          marca: laMarca.name,
+          codigo: d.codigo ?? p.itemCode,
+        }),
+        nombreFV: d.codigo ? `${d.codigo} – ${d.nombre}` : d.nombre,
+        foto: d.foto ?? null,
+        ficha: d.ficha,
+        descripcion: d.descripcion ?? null,
       });
       continue;
     }

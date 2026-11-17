@@ -24,15 +24,20 @@ export type Marca = {
    *  palabras, dos rubros. Solo se pone en marcas que no hacen otra cosa:
    *  Ferrum hace loza Y griferia, asi que no lleva. */
   rubro?: string;
+  /** La pagina web oficial de la marca: de ahi se traen foto y descripcion
+   *  por el codigo (src/lib/web-de-marca.ts). Damian, 17/11/2026: "estaria
+   *  bueno poner la web de la marca para ver si puede sacar info de ahi". Se
+   *  cambia desde el panel, en Marcas; la de aca es la de arranque. */
+  web?: string;
 };
 
 export const MARCAS_BASE: readonly Marca[] = [
-  { id: "ferrum", name: "Ferrum", logo: "/brand/marcas/ferrum.png" },
+  { id: "ferrum", name: "Ferrum", logo: "/brand/marcas/ferrum.png", web: "https://ferrum.com" },
   // Griferia: es lo que dice la propia tienda del rubro ("Piazza, Hydros y
   // más marcas"), y Damian pidio los FV en Griferia, accesorios incluidos.
-  { id: "fv", name: "FV", logo: "/brand/marcas/fv.png", invert: true, rubro: "griferia" },
-  { id: "piazza", name: "Piazza", logo: "/brand/marcas/piazza.png", rubro: "griferia" },
-  { id: "hydros", name: "Hydros", logo: "/brand/marcas/hydros.png", rubro: "griferia" },
+  { id: "fv", name: "FV", logo: "/brand/marcas/fv.png", invert: true, rubro: "griferia", web: "https://fvsa.com" },
+  { id: "piazza", name: "Piazza", logo: "/brand/marcas/piazza.png", rubro: "griferia", web: "https://www.piazzagriferia.com" },
+  { id: "hydros", name: "Hydros", logo: "/brand/marcas/hydros.png", rubro: "griferia", web: "https://www.hydros.com.ar" },
   { id: "flowater", name: "Flowater", logo: "/brand/marcas/flowater.png", alias: ["flow water"] },
   { id: "tst", name: "TST", logo: "/brand/marcas/tst.png", invert: true },
   { id: "pringles", name: "Pringles", logo: "/brand/marcas/pringles.jpg", grande: true },
@@ -54,9 +59,9 @@ export const MARCAS_BASE: readonly Marca[] = [
   { id: "dogo", name: "Dogo" },
   { id: "narf", name: "Narf" },
   { id: "johnson", name: "Johnson", alias: ["johnson acero"] },
-  { id: "roca", name: "Roca" },
+  { id: "roca", name: "Roca", web: "https://www.roca.com.ar" },
   { id: "nuke", name: "Ñuke", alias: ["nuke"] },
-  { id: "peirano", name: "Peirano" },
+  { id: "peirano", name: "Peirano", web: "https://griferiapeirano.com" },
   { id: "genrod", name: "Genrod" },
   { id: "sanitarios-conesa", name: "Conesa" },
 ] as const;

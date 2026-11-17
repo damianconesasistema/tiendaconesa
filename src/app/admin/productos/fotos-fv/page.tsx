@@ -5,8 +5,8 @@ import { ArrowLeft, Download } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { FotosFVMasivo } from "@/components/admin/FotosFVMasivo";
-import { fvIncompletos } from "./actions";
-import { nombresConPagina } from "@/lib/marcas-con-pagina";
+import { fvIncompletos, marcasSinWebConFaltantes } from "./actions";
+import { marcasConWeb } from "@/lib/marcas-server";
 
 export const metadata: Metadata = {
   title: "Fotos de la web · Panel Admin",
@@ -23,7 +23,12 @@ export default async function FotosFVPage() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
 
-  const incompletos = await fvIncompletos();
+  const [incompletos, sinWeb, conWeb] = await Promise.all([
+    fvIncompletos(),
+    marcasSinWebConFaltantes(),
+    marcasConWeb(),
+  ]);
+  const nombres = [...conWeb.values()].map((m) => m.name).sort((a, b) => a.localeCompare(b, "es"));
 
   return (
     <AdminShell username={session.username} active="productos">
@@ -41,17 +46,30 @@ export default async function FotosFVPage() {
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Busca cada artículo en la <strong>página oficial de su marca</strong>{" "}
-        por su <strong>código</strong> y completa lo que le falte: la{" "}
+        por su <strong>código</strong> (y si ahí no está, en Google, pero solo
+        páginas de esa marca) y completa lo que le falte: la{" "}
         <strong>foto</strong> del modelo y la <strong>descripción</strong> con
         sus características. Lo que ya está cargado no se toca (una descripción
         escrita a mano no se pisa), y ningún producto se activa.
       </p>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Por ahora se sabe leer la página de <strong>{nombresConPagina()}</strong>.
-        Las otras marcas no tienen de dónde traer la foto; su descripción se
-        busca en internet desde &quot;Descripciones de la web&quot;.
+        Marcas con su página cargada: <strong>{nombres.join(", ")}</strong>.
+        Para sumar otra, poné su página web en{" "}
+        <Link href="/admin/marcas" className="font-bold text-[var(--brand-red)] underline">
+          Marcas
+        </Link>
+        .
       </p>
-
+      {sinWeb.length > 0 && (
+        <p className="mt-2 max-w-2xl rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Sin página cargada y con artículos sin foto:{" "}
+          {sinWeb
+            .slice(0, 8)
+            .map((m) => `${m.name} (${m.sinFoto})`)
+            .join(", ")}
+          {sinWeb.length > 8 ? "…" : ""}. Cargales la web en Marcas y aparecen acá.
+        </p>
+      )}
       <FotosFVMasivo pendientes={incompletos} />
     </AdminShell>
   );

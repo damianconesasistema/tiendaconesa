@@ -145,6 +145,7 @@ export default async function DescripcionesPage({
         key={`${marca}|${cat}`}
         pendientes={pendientes}
         iaDisponible={geminiConfigurado()}
+        marcasConWeb={(await getMarcas()).filter((m) => m.web).map((m) => m.id)}
       />
     </AdminShell>
   );

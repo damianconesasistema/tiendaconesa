@@ -2,6 +2,33 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.87.0 - Fotos y descripcion de la pagina de CUALQUIER marca, y Google.
+//            Damian, 17/11/2026: "aca deberia ser no FV o Piazza, podes buscar
+//            en la web de la marca que buscamos con el modelo, hacelo mas
+//            generico", "estaria bueno poner la web de la marca", "ademas de
+//            Google o internet que busca" y "podria estar cuando se hace la
+//            precarga por Excel, si no funciona del todo bien que uno pueda
+//            editarlo luego".
+//            WEB DE LA MARCA: Marcas tiene la columna "Pagina web" (tambien al
+//            agregar una). Se guarda en Setting "marcas_web" y pisa la del
+//            codigo (FV, Piazza, Ferrum, Hydros, Roca y Peirano vienen cargadas).
+//            LECTOR GENERAL (src/lib/web-de-marca.ts): WooCommerce, VTEX y
+//            Shopify por su buscador en JSON; cualquier otra por su buscador
+//            comun o el formulario de la portada, entrando a los resultados que
+//            nombran el codigo. De la ficha lee el JSON-LD "Product" o las og:,
+//            el bloque de descripcion y la tabla de caracteristicas; corta los
+//            "productos similares". Un resultado vale solo si nombra el codigo.
+//            Si no esta, pregunta a Google (busqueda de Gemini) y sigue sus
+//            links solo si llevan al sitio de la marca. Fotos: solo del sitio
+//            de la marca o del servidor de fotos de su plataforma. Tope de 40 s
+//            por articulo; las pantallas piden de a 2.
+//            Probado: Peirano (A1452NI) y Ferrum (BAR-IN-011-BL, BAR-CL-001-BL)
+//            con foto, descripcion y caracteristicas. Hydros y el codigo AS de
+//            Ferrum ("IKLM-B") no aparecen en su buscador: quedan para Google.
+//            DONDE: Crear por Excel (busca solo al subir, todo editable antes de
+//            crear), Fotos de la web, "Traer foto de <marca>" y "Buscar en la
+//            web" de la ficha, y Descripciones de la web. FV y Piazza siguen con
+//            sus lectores propios.
 // V.0.86.0 - "Fotos y descripcion FV" pasa a "Fotos de la web" y anda tambien
 //            con Piazza. Damian, 17/11/2026: "eso que no diga fv porque va a
 //            ser para todas las marcas". Las marcas cuya pagina oficial se sabe
@@ -963,7 +990,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.86.0";
+export const APP_VERSION = "V.0.87.0";
 
 export type VersionEntry = {
   version: string;

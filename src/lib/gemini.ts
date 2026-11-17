@@ -209,3 +209,64 @@ ${comun}
     return { error: `No se pudo contactar a Google: ${(e as Error).message}` };
   }
 }
+
+// ---------------------------------------------------------------------------
+// Buscar en Google la pagina de un producto.
+//
+// Damian, 17/11/2026: "ademas de Google o internet que busca, se entiende?".
+// Cuando el buscador de la pagina de la marca no lo encuentra, se le pide a
+// Google (la busqueda de Gemini) y se devuelven los links que uso. Esos links
+// son redirecciones de Google: los sigue src/lib/web-de-marca.ts
+// (leerPaginaDeLaMarca), que solo entra si llevan al sitio de la marca.
+//
+// Usa el mismo cupo de busqueda que las descripciones, que es chico: si
+// Google lo corta, se deja de pedir un rato (busquedaCortadaHasta).
+// ---------------------------------------------------------------------------
+
+export async function buscarLinksEnGoogle(
+  consulta: string,
+): Promise<{ links: string[]; error?: string }> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return { links: [], error: "la búsqueda en Google no está configurada" };
+  if (Date.now() <= busquedaCortadaHasta)
+    return { links: [], error: "Google no está dando búsquedas por un rato (se terminó el cupo)" };
+  try {
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `Buscá en Google: ${consulta}\nContestá solo con el link de la página de ese producto en el sitio oficial de la marca.`,
+                },
+              ],
+            },
+          ],
+          tools: [{ google_search: {} }],
+          generationConfig: { temperature: 0, maxOutputTokens: 300 },
+        }),
+        signal: AbortSignal.timeout(30_000),
+      },
+    );
+    if (r.status === 429 || r.status === 403) {
+      busquedaCortadaHasta = Date.now() + VENTANA_SIN_BUSQUEDA;
+      return { links: [], error: "Google cortó la búsqueda por cupo" };
+    }
+    const data = await r.json();
+    if (!r.ok) return { links: [], error: data?.error?.message || `Google respondió ${r.status}` };
+    const chunks: { web?: { uri?: string } }[] =
+      data?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const links = chunks
+      .map((c) => c?.web?.uri)
+      .filter((u): u is string => typeof u === "string" && /^https:\/\//.test(u))
+      .slice(0, 5);
+    return { links };
+  } catch (e) {
+    return { links: [], error: `no se pudo buscar en Google: ${(e as Error).message}` };
+  }
+}

@@ -13,6 +13,8 @@ import {
   type TituloFV,
 } from "@/lib/fv-ficha";
 import { buscarEnPiazza } from "@/lib/piazza";
+import { marcasConWeb } from "@/lib/marcas-server";
+import { buscarArticuloDeLaMarca, codigosDelArticulo, fotoDeLaMarca } from "@/lib/web-de-marca";
 
 // Ir a buscar a la web de FV. La lectura de las paginas esta en fv-ficha.ts;
 // aca solo se piden y se guarda la foto.
@@ -126,8 +128,9 @@ export function esFotoDeFV(url: string | null | undefined): url is string {
  *  formato de la tienda). null si no es de FV, no baja o no es una imagen. */
 async function bajarFotoDeFV(
   url: string,
+  web?: string | null,
 ): Promise<{ data: Buffer; contentType: string } | null> {
-  if (!esFotoDeFV(url)) return null;
+  if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web)) return null;
   try {
     const r = await fetch(url, {
       headers: { "User-Agent": UA },
@@ -152,15 +155,17 @@ export async function guardarFotoDeFV(
   itemId: string,
   url: string,
 ): Promise<boolean> {
-  if (!esFotoDeFV(url)) return false;
   try {
     const producto = await prisma.product.findUnique({
       where: { itemId },
-      select: { id: true, _count: { select: { images: true } } },
+      select: { id: true, brand: true, _count: { select: { images: true } } },
     });
     if (!producto || producto._count.images > 0) return false;
+    // De FV o Piazza, o de la pagina de la marca del articulo. Nada mas.
+    const web = producto.brand ? (await marcasConWeb()).get(producto.brand)?.web : undefined;
+    if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web)) return false;
 
-    const foto = await bajarFotoDeFV(url);
+    const foto = await bajarFotoDeFV(url, web);
     if (!foto) return false;
     await prisma.productImage.create({
       data: { productId: producto.id, data: foto.data, contentType: foto.contentType, position: 0 },
@@ -180,18 +185,34 @@ export async function guardarFotoDeFV(
 //
 // Damian, 17/11/2026, sobre el boton "Fotos y descripcion FV": "que no diga
 // FV porque va a ser para todas las marcas". Hoy se sabe leer la pagina de FV
-// y la de Piazza (src/lib/marcas-con-pagina.ts). La foto y la descripcion de
+// y la de Piazza, y cualquier marca con su pagina web cargada en Marcas
+// (src/lib/web-de-marca.ts). La foto y la descripcion de
 // abajo pasan por aca, asi andan para las dos.
 // ---------------------------------------------------------------------------
 
-export type FichaDeFabricante = DatosFV & { fabricante: string };
+export type FichaDeFabricante = DatosFV & {
+  fabricante: string;
+  /** La pagina web de la marca, para validar de donde se baja la foto. */
+  web?: string;
+  /** La marca no tiene pagina cargada: no se busco en ningun lado. */
+  sinPagina?: boolean;
+};
 
+/** Donde buscar un articulo ya cargado, segun su marca:
+ *  - FV y Piazza: sus lectores propios, que conocen esas paginas a fondo.
+ *  - Cualquier otra con su pagina web cargada en Marcas: el lector general
+ *    (src/lib/web-de-marca.ts) y, si ahi no esta, Google.
+ *  - Sin pagina cargada: no se busca. */
 export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabricante> {
   const p = await prisma.product.findUnique({
     where: { itemId },
     select: { brand: true, title: true, memo: true },
   });
-  if (p?.brand === "piazza") {
+  if (!p) return { encontrado: false, motivo: "no está el artículo", fabricante: "la marca" };
+  const conWeb = await marcasConWeb();
+  const marca = p.brand ? conWeb.get(p.brand) : undefined;
+
+  if (p.brand === "piazza") {
     // El codigo de Piazza no es el SKU: viene en la descripcion de GBP (que
     // queda en memo al crear por Excel) o en el titulo ("... Piazza 21006").
     const conMemo = p.memo?.trim() ? await buscarEnPiazza(p.memo, itemId) : null;
@@ -204,10 +225,35 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
       foto: r.foto ?? null,
       descripcion: r.descripcion ?? null,
       fabricante: "Piazza",
+      web: marca?.web,
     };
   }
-  // FV: el SKU es el codigo de FV. Cualquier otra marca, como antes.
-  return { ...(await buscarEnFV(itemId)), fabricante: "FV" };
+  // FV: el SKU es el codigo de FV.
+  if (p.brand === "fv") return { ...(await buscarEnFV(itemId)), fabricante: "FV", web: marca?.web };
+
+  if (!marca)
+    return {
+      encontrado: false,
+      sinPagina: true,
+      motivo: "la marca no tiene cargada su página web (se carga en Marcas)",
+      fabricante: "la marca",
+    };
+
+  const d = await buscarArticuloDeLaMarca({
+    web: marca.web,
+    marca: marca.name,
+    codigos: codigosDelArticulo(`${p.memo ?? ""} ${p.title}`, itemId),
+    titulo: p.title,
+  });
+  return {
+    encontrado: d.encontrado,
+    motivo: d.motivo,
+    ficha: d.ficha,
+    foto: d.foto ?? null,
+    descripcion: d.descripcion ?? null,
+    fabricante: marca.name,
+    web: marca.web,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -262,7 +308,7 @@ export async function agregarFotoDeFV(
       ficha: d.ficha,
     };
 
-  const foto = await bajarFotoDeFV(d.foto);
+  const foto = await bajarFotoDeFV(d.foto, d.web);
   if (!foto) return { ok: false, motivo: `la foto de ${d.fabricante} no se pudo bajar`, ficha: d.ficha };
 
   // Apretar dos veces no la carga dos veces: la misma foto de FV, achicada

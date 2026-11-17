@@ -11,10 +11,10 @@ import {
   type ResultadoDescripcionFV,
   type ResultadoFotoFV,
 } from "@/lib/fv";
-import { MARCAS_CON_PAGINA, fabricanteConPagina } from "@/lib/marcas-con-pagina";
+import { getMarcas, marcasConWeb } from "@/lib/marcas-server";
 
 // Traer de la pagina oficial de la marca (FV y Piazza, ver
-// src/lib/marcas-con-pagina.ts), por el codigo, la foto y la descripcion de
+// src/lib/web-de-marca.ts), por el codigo, la foto y la descripcion de
 // articulos ya cargados. La busqueda y la descarga estan en src/lib/fv.ts;
 // aca solo se piden y se refrescan las pantallas. Foto y descripcion son del
 // ARTICULO (compartido entre los locales), asi que no depende del panel.
@@ -47,13 +47,19 @@ export async function traerFotoFV(
  *  se guarda con el boton de siempre (igual que el de la IA). */
 export async function descripcionDeFV(
   itemId: string,
-): Promise<{ ok: true; texto: string; ficha?: string } | { ok: false; motivo: string }> {
+): Promise<
+  | { ok: true; texto: string; ficha?: string; fabricante: string }
+  | { ok: false; motivo: string; fabricante?: string; sinPagina?: boolean }
+> {
   const session = await getAdminSession();
   if (!session) return { ok: false, motivo: "no autorizado" };
   const d = await fichaDelFabricante(itemId);
-  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? `${d.fabricante} no lo tiene` };
-  if (!d.descripcion) return { ok: false, motivo: `la ficha de ${d.fabricante} no trae descripción` };
-  return { ok: true, texto: d.descripcion, ficha: d.ficha };
+  if (d.sinPagina) return { ok: false, motivo: d.motivo ?? "sin página", sinPagina: true };
+  if (!d.encontrado)
+    return { ok: false, motivo: d.motivo ?? `${d.fabricante} no lo tiene`, fabricante: d.fabricante };
+  if (!d.descripcion)
+    return { ok: false, motivo: `la ficha de ${d.fabricante} no trae descripción`, fabricante: d.fabricante };
+  return { ok: true, texto: d.descripcion, ficha: d.ficha, fabricante: d.fabricante };
 }
 
 export type Incompleto = {
@@ -71,9 +77,10 @@ export type Incompleto = {
 export async function fvIncompletos(): Promise<Incompleto[]> {
   const session = await getAdminSession();
   if (!session) return [];
+  const conWeb = await marcasConWeb();
   const filas = await prisma.product.findMany({
     where: {
-      brand: { in: [...MARCAS_CON_PAGINA.keys()] },
+      brand: { in: [...conWeb.keys()] },
       OR: [
         { images: { none: {} } },
         { description: null },
@@ -94,13 +101,13 @@ export async function fvIncompletos(): Promise<Incompleto[]> {
     title: p.title,
     faltaFoto: p._count.images === 0,
     faltaDescripcion: !p.description?.trim(),
-    marca: fabricanteConPagina(p.brand) ?? "",
+    marca: (p.brand && conWeb.get(p.brand)?.name) || "",
   }));
 }
 
 /** De a pocos por vez, igual que al crear por Excel: la pantalla los va
  *  pidiendo y muestra el avance, y a FV no le llegan cien pedidos juntos. */
-const POR_TANDA = 4;
+const POR_TANDA = 2;
 
 export type ResultadoTanda = {
   itemId: string;
@@ -138,4 +145,26 @@ export async function terminarFV(): Promise<void> {
   const session = await getAdminSession();
   if (!session) return;
   refrescar();
+}
+
+/** Las marcas SIN pagina web cargada que tienen articulos sin foto: para
+ *  avisar en la pantalla que, cargandoles la web en Marcas, tambien se
+ *  pueden buscar. */
+export async function marcasSinWebConFaltantes(): Promise<{ id: string; name: string; sinFoto: number }[]> {
+  const session = await getAdminSession();
+  if (!session) return [];
+  const [marcas, conWeb] = await Promise.all([getMarcas(), marcasConWeb()]);
+  const filas = await prisma.product.groupBy({
+    by: ["brand"],
+    where: { brand: { not: null, notIn: [...conWeb.keys()] }, images: { none: {} } },
+    _count: { _all: true },
+  });
+  return filas
+    .filter((f) => f.brand)
+    .map((f) => ({
+      id: f.brand as string,
+      name: marcas.find((m) => m.id === f.brand)?.name ?? (f.brand as string),
+      sinFoto: f._count._all,
+    }))
+    .sort((a, b) => b.sinFoto - a.sinFoto);
 }

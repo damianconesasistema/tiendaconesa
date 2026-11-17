@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getAdminSession } from "@/lib/admin-auth";
 import { fichaDelFabricante } from "@/lib/fv";
-import { fabricanteConPagina } from "@/lib/marcas-con-pagina";
+import { marcasConWeb } from "@/lib/marcas-server";
 import { geminiConfigurado, redactarDescripcion } from "@/lib/gemini";
 
 // "Buscar descripciones en la web" en tanda. Damian, 16/11/2026: "se puede
@@ -39,6 +39,7 @@ export async function buscarDescripcionesEnTanda(
   if (!session) return [];
   const conIA = geminiConfigurado();
   const salida: Encontrada[] = [];
+  const conWeb = await marcasConWeb();
 
   for (const itemId of itemIds.slice(0, POR_TANDA)) {
     try {
@@ -58,7 +59,7 @@ export async function buscarDescripcionesEnTanda(
       // FV y Piazza: primero la ficha oficial del fabricante. La fuente
       // sigue llamandose "fv" por compatibilidad: quiere decir "la pagina
       // oficial de la marca".
-      if (fabricanteConPagina(p.brand)) {
+      if (p.brand && conWeb.has(p.brand)) {
         const d = await fichaDelFabricante(itemId);
         if (d.descripcion) {
           salida.push({ itemId, ok: true, texto: d.descripcion, fuente: "fv" });

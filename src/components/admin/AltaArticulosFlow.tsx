@@ -38,7 +38,7 @@ const DE_A = 25;
 /** De a cuantos se le piden a FV y de a cuantos se crean. El servidor corta
  *  un pedido a los 120 segundos, y crear un articulo con su foto de FV lleva
  *  uno o dos: de a 10 queda lejos del corte y se ve avanzar. */
-const FV_DE_A = 4;
+const FV_DE_A = 2;
 const CREAR_DE_A = 10;
 
 /** El mismo tope que pone el servidor al subir una foto
@@ -50,7 +50,7 @@ const FOTO_MAX = 10 * 1024 * 1024;
  *  guarda en memoria del navegador y se sube recien despues de crearlo. */
 type FotoPropia = { file: File; url: string };
 
-type MarcaDeLista = { id: string; name: string };
+type MarcaDeLista = { id: string; name: string; /** Tiene su pagina web cargada en Marcas. */ web?: boolean };
 
 type Edicion = {
   titulo?: string;
@@ -276,7 +276,8 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
     return nuevos
       .filter((a) => !excluidos.has(a.itemCode))
       .map(conEdicion)
-      .filter((a) => a.marca === "fv" || a.marca === "piazza");
+      // Toda marca con su pagina web cargada en Marcas (FV, Piazza, Ferrum...).
+      .filter((a) => !!a.marca && marcas.some((m) => m.id === a.marca && m.web));
   }
 
   /** Va a la pagina de FV de a pocos y completa titulo y foto.
@@ -705,7 +706,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
                       } discontinuados), ${
                         deFV.filter((a) => fv[a.itemCode] && !fv[a.itemCode].encontrado).length
                       } no. Revisá títulos y fotos antes de crear.`
-                    : "Busca cada artículo de FV y Piazza en la página oficial de la marca y trae título, foto y descripción. Arranca solo al subir el Excel. No se guarda nada hasta que apretás Crear."}
+                    : "Busca cada artículo en la página oficial de su marca (la que está cargada en Marcas) y, si ahí no está, en Google. Trae título, foto y descripción, que podés corregir o destildar. Arranca solo al subir el Excel. No se guarda nada hasta que apretás Crear."}
               </span>
             </div>
           )}
@@ -1024,7 +1025,7 @@ function Ficha({
                         }
                         className="h-4 w-4"
                       />
-                      Usar la descripción de FV
+                      Usar la descripción de {deFV.fabricante ?? "la marca"}
                     </label>
                     <p className="mt-1 line-clamp-3 whitespace-pre-line text-[var(--muted)]">
                       {deFV.descripcion}

@@ -276,7 +276,14 @@ export function armarTituloDeFabricante(a: {
   const sinAdelante = SIN_RUBRO_ADELANTE.has(a.subrubro ?? "");
   const sub = nombreSubrubro(a.rubro, a.subrubro);
   const adelante = sinAdelante ? "" : [a.rubroNombre, sub].filter(Boolean).join(" ");
-  const atras = [a.nombre.trim(), a.marca, a.codigo.trim()].filter(Boolean).join(" ");
+  // Si el nombre de la pagina ya dice la marca o el codigo ("Inodoro Ferrum
+  // Bari BAR-IN-011"), no se repiten.
+  const nombre = a.nombre.trim();
+  const norm = (x: string) => ` ${x.toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim()} `;
+  const dice = (x: string) => !!x.trim() && norm(nombre).includes(norm(x));
+  const atras = [nombre, dice(a.marca) ? "" : a.marca, dice(a.codigo) ? "" : a.codigo.trim()]
+    .filter(Boolean)
+    .join(" ");
   return (adelante ? `${adelante} – ${atras}` : atras).replace(/\s+/g, " ").trim();
 }
 

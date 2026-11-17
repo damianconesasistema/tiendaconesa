@@ -43,6 +43,7 @@ export default async function MarcasPage() {
           id: m.id,
           name: m.name,
           logo: m.logo ?? null,
+          web: m.web ?? null,
           editable: idsExtra.has(m.id),
           productos: conteo[m.id] ?? 0,
         }))}
