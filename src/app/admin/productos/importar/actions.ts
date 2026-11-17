@@ -22,7 +22,12 @@ import {
   SETTING_MOSTRAR_DCTO,
 } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
-import { calcularCombos, type ComboCalculado } from "@/lib/combos";
+import {
+  calcularCombos,
+  calcularStockDeCombos,
+  type ComboCalculado,
+  type ComboStock,
+} from "@/lib/combos";
 
 // Que se vino a cambiar. Lo elige el que importa, antes de subir el
 // archivo, y de ahi en adelante manda: una lista de precios de una marca no
@@ -142,6 +147,9 @@ export type ParseResult = {
    *  filas porque no salen del archivo: salen de cruzar el archivo con lo
    *  que ya esta armado en la tienda. */
   combos?: ComboCalculado[];
+  /** El stock de los combos segun el de sus piezas (solo los que tienen
+   *  alguna pieza en el archivo). Los que quedan en 0 se pausan. */
+  combosStock?: ComboStock[];
   /** El descuento que se le hizo a la Lista 2. */
   descuentoLista?: number;
   /** La rebaja propia del combo, la que le deja precio tachado. */
@@ -318,6 +326,18 @@ function preciosParaCombos(filas: ParsedRow[]): Map<string, number> {
   return m;
 }
 
+/** El stock de cada codigo del archivo, para el de los combos. Igual que el
+ *  precio: por el codigo del sitio y por el del sistema. */
+function stockParaCombos(filas: ParsedRow[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const r of filas) {
+    if (!r.__traeStock) continue;
+    m.set(r.itemId, r.stock);
+    if (r.codigoSistema && !m.has(r.codigoSistema)) m.set(r.codigoSistema, r.stock);
+  }
+  return m;
+}
+
 export async function previewExcel(
   formData: FormData,
   modo: ModoImport = "ambos",
@@ -357,6 +377,11 @@ export async function previewExcel(
       const canonical = COL_ALIASES[norm(k)];
       if (canonical) keyMap[k] = canonical;
     }
+    // Un Excel con "SKU" y "Stock" y sin columna de codigo (Damian,
+    // 17/11/2026, la lista de Pringles): el SKU hace de codigo. Mas abajo se
+    // busca por el codigo del sitio, el del sistema o el SKU interno.
+    if (!Object.values(keyMap).includes("itemId"))
+      for (const [k, v] of Object.entries(keyMap)) if (v === "sku") keyMap[k] = "itemId";
 
     const tocaPrecios = modo !== "stock";
     const tocaStock = modo !== "precios";
@@ -597,6 +622,34 @@ export async function previewExcel(
       });
     }
 
+    // El codigo puede venir como el del sitio, el del sistema o el SKU
+    // interno: se lleva al del sitio, que es con el que se guarda.
+    {
+      const codigos = [...new Set(normalized.map((r) => r.itemId).filter(Boolean))];
+      const directos = new Set(
+        (
+          await prisma.product.findMany({
+            where: { itemId: { in: codigos } },
+            select: { itemId: true },
+          })
+        ).map((p) => p.itemId),
+      );
+      const faltan = codigos.filter((c) => !directos.has(c));
+      if (faltan.length) {
+        const otros = await prisma.product.findMany({
+          where: { OR: [{ codigoSistema: { in: faltan } }, { sku: { in: faltan } }] },
+          select: { itemId: true, codigoSistema: true, sku: true },
+        });
+        const alSitio = new Map<string, string>();
+        for (const p of otros) if (p.codigoSistema) alSitio.set(p.codigoSistema, p.itemId);
+        for (const p of otros) if (p.sku && !alSitio.has(p.sku)) alSitio.set(p.sku, p.itemId);
+        for (const r of normalized) {
+          const delSitio = alSitio.get(r.itemId);
+          if (delSitio) r.itemId = delSitio;
+        }
+      }
+    }
+
     // Marcar cuáles ya existen
     const ids = normalized.map((r) => r.itemId).filter(Boolean);
     const existing = await prisma.product.findMany({
@@ -659,11 +712,17 @@ export async function previewExcel(
           branchId: suc?.id,
         })
       : [];
+    // Y el stock de los combos, con el de sus piezas.
+    const combosStock =
+      tocaStock && suc
+        ? await calcularStockDeCombos({ stockDelArchivo: stockParaCombos(valid), branchId: suc.id })
+        : [];
 
     return {
       ok: true,
       rows: normalized,
       combos,
+      combosStock,
       descuentoLista: descLista,
       descuentoCombo: descCombo,
       mostrarDcto: mostrar,
@@ -733,10 +792,14 @@ export type ImportResult = {
     combosIncompletos: number;
     /** Articulos y combos con candado. No se tocaron. */
     bloqueados: number;
+    /** Combos a los que se les puso el stock de sus piezas. */
+    combosConStock?: number;
+    /** Combos pausados porque les falta una pieza. */
+    combosPausados?: number;
   };
   /** Los primeros codigos que quedaron afuera, para poder revisarlos sin
    *  tener que adivinar cuales fueron. */
-  ejemplos?: { nuevos: string[]; sinCargar: string[] };
+  ejemplos?: { nuevos: string[]; sinCargar: string[]; pausados?: string[] };
 };
 
 export async function importExcel(
@@ -747,6 +810,9 @@ export async function importExcel(
     altas?: boolean;
     /** Recalcular los combos con las piezas de este archivo. */
     combos?: boolean;
+    /** Ponerle a los combos el stock de sus piezas (y pausar los que no se
+     *  pueden armar). */
+    combosStock?: boolean;
     /** El descuento sobre Lista 2. Si viene, queda guardado para la proxima. */
     descuentoLista?: number;
     /** La rebaja propia del combo. Tambien queda guardada. */
@@ -1030,6 +1096,36 @@ export async function importExcel(
       await setSetting(SETTING_MOSTRAR_DCTO, String(options.mostrarDcto));
   }
 
+  // El stock de los combos, despues del de las piezas: tantos como la pieza
+  // que menos hay. Si falta una, se pausa. Nunca se activa uno solo: eso lo
+  // decide Damian ("no actives nada").
+  let combosConStock = 0;
+  let combosPausados = 0;
+  const pausados: string[] = [];
+  if (tocaStock && suc && (options.combosStock ?? true)) {
+    const cs = await calcularStockDeCombos({ stockDelArchivo: stockParaCombos(valid), branchId: suc.id });
+    for (const c of cs) {
+      if (c.stockAntes === null) continue; // este local no lo lleva
+      if (conCandado.has(c.itemId)) {
+        bloqueados++;
+        continue;
+      }
+      const pausar = c.stockAhora === 0 && c.activoAntes === true;
+      if (c.stockAhora === c.stockAntes && !pausar) continue;
+      const g = await guardarComercial(
+        [c.itemId],
+        { stock: c.stockAhora, ...(c.stockAhora === 0 ? { active: false } : {}) },
+        { crearSiFalta: false },
+      );
+      if (g.guardados.length === 0) continue;
+      combosConStock++;
+      if (pausar) {
+        combosPausados++;
+        if (pausados.length < 20) pausados.push(c.title);
+      }
+    }
+  }
+
   // El panel lee los precios de la tabla de la sucursal, asi que despues
   // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
   // el precio viejo. Ver src/lib/espejo-sucursal.ts.
@@ -1051,7 +1147,9 @@ export async function importExcel(
       combosActualizados,
       combosIncompletos,
       bloqueados,
+      combosConStock,
+      combosPausados,
     },
-    ejemplos: { nuevos: ejemploNuevos, sinCargar: ejemploSinCargar },
+    ejemplos: { nuevos: ejemploNuevos, sinCargar: ejemploSinCargar, pausados },
   };
 }

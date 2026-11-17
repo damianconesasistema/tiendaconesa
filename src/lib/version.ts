@@ -2,6 +2,18 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.96.0 - Stock de los combos por Excel. Damian, 17/11/2026: "si yo te subo un
+//            excel con los SKU y el stock en caso de una marca como Pringles,
+//            tienen que actualizarse ... un combo lo componen 2 o 3 o 4 SKU,
+//            vos tenes que fijarte que haya 1 de cada 1 para poder formar ese
+//            combo; si falta uno ... hay que pausarlo". Al subir stock, cada
+//            combo que tiene alguna pieza en el archivo queda con tantos como
+//            la pieza que menos hay (las que no vinieron, con su stock de
+//            hoy); si a uno le falta una pieza, se pausa. Ninguno se activa
+//            solo. Se ve antes de aplicar ("Stock de los combos") y se puede
+//            destildar. Un Excel con "SKU" y "Stock" sin columna de codigo
+//            tambien sirve: el codigo se busca como el del sitio, el del
+//            sistema o el SKU interno.
 // V.0.95.0 - Codigo de fabricante. Damian, 17/11/2026: "faltaria que la ficha del
 //            producto tenga el campo CODIGO DE FABRICANTE ... eso deberia
 //            levantar cuando se hace la carga del mismo y tambien editarse
@@ -1160,7 +1172,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.95.0";
+export const APP_VERSION = "V.0.96.0";
 
 export type VersionEntry = {
   version: string;

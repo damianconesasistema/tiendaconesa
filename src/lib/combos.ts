@@ -185,3 +185,98 @@ export async function calcularCombos(opciones: {
     return db - da;
   });
 }
+
+// ------------------------------------------------------------ el stock
+
+export type ComboStock = {
+  itemId: string;
+  title: string;
+  /** Cada pieza con su stock: el del archivo si vino, si no el de hoy en
+   *  este local (0 si este local no la tiene). */
+  piezas: { codigo: string; stock: number; enArchivo: boolean }[];
+  /** El stock de hoy del combo en este local. null: este local no lo lleva. */
+  stockAntes: number | null;
+  /** Si hoy esta publicado en este local. */
+  activoAntes: boolean | null;
+  /** Cuantos combos se pueden armar: tantos como la pieza que menos hay. */
+  stockAhora: number;
+  /** Las piezas que faltan (sin stock o que la tienda no tiene). Con una
+   *  sola, el combo se pausa. */
+  sinPieza: string[];
+};
+
+/** El stock de cada combo segun el de sus piezas.
+ *
+ *  Damian, 17/11/2026: "un combo lo componen 2 o 3 o 4 SKU, vos tenes que
+ *  fijarte que haya 1 de cada 1 para poder formar ese combo; si falta uno
+ *  ... hay que pausarlo". Un combo lleva una de cada pieza, asi que se pueden
+ *  armar tantos como la pieza que menos hay. Solo los combos que tienen
+ *  alguna pieza en el archivo: una lista de stock de Pringles no tiene por
+ *  que tocar los combos de otra marca.
+ *
+ *  No escribe nada: devuelve la cuenta para mirarla antes de aplicar. */
+export async function calcularStockDeCombos(opciones: {
+  /** Codigo de la pieza (el del sitio y el del sistema) -> su stock en el
+   *  archivo. */
+  stockDelArchivo: Map<string, number>;
+  branchId: string;
+}): Promise<ComboStock[]> {
+  const { stockDelArchivo, branchId } = opciones;
+  if (stockDelArchivo.size === 0) return [];
+
+  const candidatos = await prisma.product.findMany({
+    where: { OR: [{ itemId: { contains: "+" } }, { itemId: { contains: "-" } }] },
+    select: { id: true, itemId: true, title: true },
+  });
+  const combos = candidatos
+    .map((p) => ({ p, piezas: piezasDelCombo(p.itemId) }))
+    .filter((x): x is { p: (typeof candidatos)[number]; piezas: string[] } => x.piezas !== null);
+  if (combos.length === 0) return [];
+
+  // Cada pieza, por su codigo del sitio o del sistema.
+  const codigos = [...new Set(combos.flatMap((c) => c.piezas))];
+  const productos = await prisma.product.findMany({
+    where: { OR: [{ itemId: { in: codigos } }, { codigoSistema: { in: codigos } }] },
+    select: { id: true, itemId: true, codigoSistema: true },
+  });
+  const porCodigo = new Map<string, { id: string; itemId: string }>();
+  for (const p of productos) porCodigo.set(p.itemId, p);
+  for (const p of productos) if (p.codigoSistema && !porCodigo.has(p.codigoSistema)) porCodigo.set(p.codigoSistema, p);
+
+  const delArchivo = (codigo: string): number | undefined => {
+    if (stockDelArchivo.has(codigo)) return stockDelArchivo.get(codigo);
+    const p = porCodigo.get(codigo);
+    return p ? stockDelArchivo.get(p.itemId) : undefined;
+  };
+  const tocados = combos.filter((c) => c.piezas.some((x) => delArchivo(x) !== undefined));
+  if (tocados.length === 0) return [];
+
+  const filas = await prisma.branchProduct.findMany({
+    where: {
+      branchId,
+      productId: { in: [...tocados.map((c) => c.p.id), ...productos.map((p) => p.id)] },
+    },
+    select: { productId: true, stock: true, active: true },
+  });
+  const filaDe = new Map(filas.map((f) => [f.productId, f]));
+
+  return tocados.map(({ p, piezas }) => {
+    const lista = piezas.map((codigo) => {
+      const delA = delArchivo(codigo);
+      if (delA !== undefined) return { codigo, stock: Math.max(0, delA), enArchivo: true };
+      const prod = porCodigo.get(codigo);
+      const f = prod ? filaDe.get(prod.id) : undefined;
+      return { codigo, stock: Math.max(0, f?.stock ?? 0), enArchivo: false };
+    });
+    const fc = filaDe.get(p.id);
+    return {
+      itemId: p.itemId,
+      title: p.title,
+      piezas: lista,
+      stockAntes: fc ? fc.stock : null,
+      activoAntes: fc ? fc.active : null,
+      stockAhora: Math.min(...lista.map((x) => x.stock)),
+      sinPieza: lista.filter((x) => x.stock <= 0).map((x) => x.codigo),
+    };
+  });
+}

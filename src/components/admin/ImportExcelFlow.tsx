@@ -52,6 +52,8 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   // El archivo se guarda para poder rehacer la cuenta con otro porcentaje
   // sin tener que volver a subirlo.
   const [recalcCombos, setRecalcCombos] = useState(true);
+  // El stock de los combos con el de sus piezas (y pausar los incompletos).
+  const [stockCombos, setStockCombos] = useState(true);
   const [descuento, setDescuento] = useState<string>("");
   // La rebaja por llevarse el combo armado. Es OTRA cosa que la de la
   // lista: esta es la unica que le deja precio tachado al combo.
@@ -118,6 +120,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
         modo,
         altas,
         combos: recalcCombos,
+        combosStock: stockCombos,
         descuentoLista: Number(descuento) || undefined,
         // El 0 es un valor valido (combo sin rebaja), asi que no se puede
         // usar || : convertiria el 0 en undefined y se guardaria el de antes.
@@ -245,6 +248,23 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
                 Otros {s.combosIncompletos} quedaron como estaban: les falta
                 alguna pieza en este archivo. Sumar solo las que vinieron
                 daría un precio más barato que el real.
+              </p>
+            )}
+          </div>
+        )}
+
+        {((s.combosConStock ?? 0) > 0 || (s.combosPausados ?? 0) > 0) && (
+          <div className="mx-auto mt-4 max-w-2xl rounded-xl border border-blue-200 bg-blue-50 p-4 text-left">
+            <div className="font-display text-xs font-black uppercase tracking-wider text-blue-900">
+              {s.combosConStock} combos con el stock de sus piezas
+            </div>
+            {(s.combosPausados ?? 0) > 0 && (
+              <p className="mt-2 text-sm text-blue-900">
+                {s.combosPausados} quedaron pausados porque les falta una pieza
+                {importResult.ejemplos?.pausados?.length
+                  ? `: ${importResult.ejemplos.pausados.join(" · ")}`
+                  : ""}
+                . Cuando vuelva la pieza, activalos a mano.
               </p>
             )}
           </div>
@@ -615,6 +635,81 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* El stock de los combos: tantos como la pieza que menos hay. Damian,
+            17/11/2026: "si falta uno ... hay que pausarlo". */}
+        {parse.combosStock && parse.combosStock.length > 0 && (
+          <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-6 py-3">
+              <div className="font-display text-xs font-black uppercase tracking-wider text-[var(--muted)]">
+                Stock de los combos (una de cada pieza)
+              </div>
+              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold">
+                <input
+                  type="checkbox"
+                  checked={stockCombos}
+                  onChange={(e) => setStockCombos(e.target.checked)}
+                  className="h-4 w-4 accent-[var(--brand-red)]"
+                />
+                Actualizar
+              </label>
+            </div>
+            <p className="px-6 pt-3 text-xs text-[var(--muted)]">
+              Cada combo queda con tantos como la pieza que menos hay. Si a uno
+              le falta una pieza, se pausa. Ninguno se activa solo: cuando
+              vuelva la pieza, lo activás vos.
+            </p>
+            <table className="mt-2 w-full min-w-[640px] text-sm">
+              <thead className="bg-[var(--surface)] text-left text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                <tr>
+                  <th className="px-4 py-2">Combo</th>
+                  <th className="px-4 py-2">Piezas (stock)</th>
+                  <th className="px-4 py-2 text-right">Hoy</th>
+                  <th className="px-4 py-2 text-right">Nuevo</th>
+                  <th className="px-4 py-2" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {parse.combosStock.map((c) => (
+                  <tr key={c.itemId}>
+                    <td className="px-4 py-2">
+                      <div className="font-medium">{c.title}</div>
+                      <div className="font-mono text-[11px] text-[var(--muted)]">{c.itemId}</div>
+                    </td>
+                    <td className="px-4 py-2 font-mono text-[11px]">
+                      {c.piezas.map((x) => (
+                        <span
+                          key={x.codigo}
+                          className={`mr-2 inline-block ${x.stock <= 0 ? "font-bold text-red-600" : ""}`}
+                          title={x.enArchivo ? "del archivo" : "el de hoy (no vino en el archivo)"}
+                        >
+                          {x.codigo}: {x.stock}
+                          {x.enArchivo ? "" : "*"}
+                        </span>
+                      ))}
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums">{c.stockAntes ?? "—"}</td>
+                    <td className="px-4 py-2 text-right font-bold tabular-nums">
+                      {c.stockAntes === null ? "—" : c.stockAhora}
+                    </td>
+                    <td className="px-4 py-2 text-xs">
+                      {c.stockAntes === null ? (
+                        <span className="text-[var(--muted)]">este local no lo lleva</span>
+                      ) : c.stockAhora === 0 && c.activoAntes ? (
+                        <span className="rounded bg-red-50 px-1.5 py-0.5 font-bold text-red-700">se pausa</span>
+                      ) : c.stockAhora === 0 ? (
+                        <span className="text-[var(--muted)]">ya pausado</span>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="px-6 pb-3 pt-2 text-[11px] text-[var(--muted)]">
+              * Esa pieza no vino en el archivo: se usa el stock que tiene hoy.
+            </p>
           </div>
         )}
 
