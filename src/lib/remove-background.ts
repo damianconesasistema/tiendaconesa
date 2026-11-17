@@ -11,6 +11,8 @@
 // objetos y no solo para personas). Son ~109 MB que el navegador baja UNA
 // vez y despues quedan cacheados.
 
+import { prepararFotoParaSubir } from "@/lib/image-client";
+
 const CDN =
   "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.min.js";
 const MODELO = "onnx-community/BiRefNet_lite-ONNX";
@@ -160,7 +162,21 @@ async function quitarFondoUnaVez(
 
   onProgress?.({ etapa: "procesando" });
 
-  const url = URL.createObjectURL(file);
+  // Primero se achica, a lo mismo que despues se sube (1600 px de lado).
+  // Damian, 17/11/2026: "porque me tira eso cuando quiero subir una foto a
+  // veces?" ("This page couldn't load": Chrome cerro la pestaña por falta de
+  // memoria). Una foto de celular de 12 megapixeles abierta ocupa ~50 MB y
+  // aca se copiaba varias veces; con unas cuantas seguidas no alcanzaba.
+  const entrada = await prepararFotoParaSubir(file);
+
+  // Lo que ocupa memoria fuera de JavaScript (los tensores de la IA, la foto
+  // abierta, los lienzos) se suelta al terminar, salga bien o mal. Antes
+  // quedaba colgado de cada foto y se iba juntando.
+  type Soltable = { dispose?: () => void } | null | undefined;
+  const tensores: Soltable[] = [];
+  const lienzos: HTMLCanvasElement[] = [];
+  let bitmap: ImageBitmap | null = null;
+  const url = URL.createObjectURL(entrada);
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const RI = RawImage as any;
@@ -168,21 +184,27 @@ async function quitarFondoUnaVez(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { pixel_values } = await (processor as any)(imagen);
+    tensores.push(pixel_values);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const salida = await (model as any)({ input_image: pixel_values });
+    const salidas = Object.values(salida) as Soltable[];
+    tensores.push(...salidas);
 
     // El nombre del tensor de salida cambia segun el export del modelo,
     // asi que agarramos el primero que venga.
-    const tensor = Object.values(salida)[0] as {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sigmoid: () => any;
-    };
-    const mascara = await RI.fromTensor(
-      tensor.sigmoid().mul(255).to("uint8")[0],
-    ).resize(imagen.width, imagen.height);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tensor = salidas[0] as any;
+    const sig = tensor.sigmoid();
+    tensores.push(sig);
+    const por255 = sig.mul(255);
+    tensores.push(por255);
+    const u8 = por255.to("uint8");
+    tensores.push(u8);
+    const mascara = await RI.fromTensor(u8[0]).resize(imagen.width, imagen.height);
 
     // Componer: original sobre fondo blanco, usando la mascara como alfa.
     const canvas = document.createElement("canvas");
+    lienzos.push(canvas);
     canvas.width = imagen.width;
     canvas.height = imagen.height;
     const ctx = canvas.getContext("2d");
@@ -193,8 +215,9 @@ async function quitarFondoUnaVez(
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Dibujar la foto y recortarla con la mascara
-    const bitmap = await createImageBitmap(file);
+    bitmap = await createImageBitmap(entrada);
     const recorte = document.createElement("canvas");
+    lienzos.push(recorte);
     recorte.width = imagen.width;
     recorte.height = imagen.height;
     const rctx = recorte.getContext("2d");
@@ -221,5 +244,18 @@ async function quitarFondoUnaVez(
     return new File([blob], nombre, { type: "image/jpeg" });
   } finally {
     URL.revokeObjectURL(url);
+    bitmap?.close();
+    // Un lienzo en 0x0 suelta su memoria enseguida, sin esperar al recolector.
+    for (const c of lienzos) {
+      c.width = 0;
+      c.height = 0;
+    }
+    for (const t of tensores) {
+      try {
+        t?.dispose?.();
+      } catch {
+        /* ya estaba suelto */
+      }
+    }
   }
 }

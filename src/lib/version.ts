@@ -2,6 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.1 - Subir fotos con "Quitar fondo" cerraba la pestaña a veces. Damian,
+//            17/11/2026: "porque me tira eso cuando quiero subir una foto a
+//            veces?" ("This page couldn't load": Chrome la cierra cuando se
+//            queda sin memoria). La IA trabajaba con la foto entera (una de
+//            celular de 12 megapixeles abierta son ~50 MB, y se copiaba varias
+//            veces) y no soltaba su memoria despues de cada foto, asi que con
+//            unas cuantas seguidas no alcanzaba. Ahora la foto se achica antes
+//            (1600 px, lo mismo que se sube) y al terminar cada una se sueltan
+//            los tensores, la foto abierta y los lienzos.
 // V.0.99.0 - Titulos en mayusculas. Damian, 17/11/2026: "los titulos ponemelos
 //            todos iguales, si queda en minuscula le pones mayuscula ...
 //            mantengamos una linea en los titulos". Todo titulo que se guarda
@@ -1224,7 +1233,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.0";
+export const APP_VERSION = "V.0.99.1";
 
 export type VersionEntry = {
   version: string;
