@@ -47,12 +47,15 @@ export function ProductForm({
   action,
   iaDisponible = false,
   marcas = MARCAS_BASE,
+  mercadoLibre = false,
 }: {
   product: Product;
   marcas?: readonly Marca[];
   action: (prev: unknown, fd: FormData) => Promise<State>;
   // true solo si GEMINI_API_KEY esta cargada en el server
   iaDisponible?: boolean;
+  /** MercadoLibre conectado: cualquier marca se puede buscar en su catalogo. */
+  mercadoLibre?: boolean;
 }) {
   const [state, formAction, isPending] = useActionState<State, FormData>(
     action as (prev: State, fd: FormData) => Promise<State>,
@@ -204,7 +207,7 @@ export function ProductForm({
   const [webMsg, setWebMsg] = useState<{ ok: boolean; texto: string } | null>(null);
   // La marca con su pagina web cargada (Marcas): de ahi se busca primero.
   const fabricanteDe = (id: string | null | undefined) =>
-    (id && marcas.find((m) => m.id === id && m.web)?.name) || null;
+    (id && marcas.find((m) => m.id === id && (m.web || mercadoLibre))?.name) || null;
   const puedeBuscarEnLaWeb = iaDisponible || fabricanteDe(product.brand) !== null;
 
   function buscarEnLaWeb() {

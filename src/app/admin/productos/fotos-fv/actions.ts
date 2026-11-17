@@ -12,6 +12,7 @@ import {
   type ResultadoFotoFV,
 } from "@/lib/fv";
 import { getMarcas, marcasConWeb } from "@/lib/marcas-server";
+import { mlConectado } from "@/lib/mercadolibre";
 
 // Traer de la pagina oficial de la marca (FV y Piazza, ver
 // src/lib/web-de-marca.ts), por el codigo, la foto y la descripcion de
@@ -84,9 +85,12 @@ export async function fvIncompletos(
   const session = await getAdminSession();
   if (!session) return [];
   const conWeb = await marcasConWeb();
+  // Con MercadoLibre conectado se puede buscar cualquier marca; sin, solo las
+  // que tienen su pagina cargada.
+  const ml = await mlConectado();
   const filas = await prisma.product.findMany({
     where: {
-      brand: { in: [...conWeb.keys()] },
+      brand: ml ? { not: null } : { in: [...conWeb.keys()] },
       ...(galeria
         ? {}
         : {
@@ -110,7 +114,7 @@ export async function fvIncompletos(
     fotos: p._count.images,
     faltaFoto: galeria ? p._count.images < 2 : p._count.images === 0,
     faltaDescripcion: !p.description?.trim(),
-    marca: (p.brand && conWeb.get(p.brand)?.name) || "",
+    marca: (p.brand && (conWeb.get(p.brand)?.name ?? (ml ? "MercadoLibre" : ""))) || "",
   }));
 }
 
@@ -162,6 +166,8 @@ export async function terminarFV(): Promise<void> {
 export async function marcasSinWebConFaltantes(): Promise<{ id: string; name: string; sinFoto: number }[]> {
   const session = await getAdminSession();
   if (!session) return [];
+  // Con MercadoLibre conectado no hay a quien avisar: se buscan todas.
+  if (await mlConectado()) return [];
   const [marcas, conWeb] = await Promise.all([getMarcas(), marcasConWeb()]);
   const filas = await prisma.product.groupBy({
     by: ["brand"],

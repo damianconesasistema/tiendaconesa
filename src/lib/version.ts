@@ -2,6 +2,26 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.89.0 - MercadoLibre de respaldo para fotos y ficha. Damian, 17/11/2026: "si
+//            no busca en la web de la marca, que busque en mercadolibre, pero
+//            tiene que ser exacto la buscada ahi porque puede traer cualquier
+//            cosa". Con la cuenta de MercadoLibre de Sanitarios Conesa (dijo que
+//            tiene la suya; la de IKORA no se toca). Desde 2025 MercadoLibre no
+//            deja buscar sin cuenta (403), asi que hay una pantalla nueva,
+//            Productos -> Fotos de la web -> Conectar MercadoLibre
+//            (/admin/productos/mercadolibre): se carga el App ID y la clave de
+//            la aplicacion (la clave no se vuelve a mostrar) y se da el permiso
+//            entrando a MercadoLibre (OAuth; vuelve a
+//            tienda.conesa.com.ar/api/admin/mercadolibre/callback). El token
+//            dura 6 h y se renueva solo, de a una renovacion por vez (el
+//            refresh de MercadoLibre se quema al usarlo). Todo en Setting.
+//            Busca en el CATALOGO (fichas de producto, fotos de la marca), no en
+//            publicaciones de vendedores, y solo si es EXACTO: misma marca
+//            (atributo BRAND o en el nombre) y el codigo igual al Modelo o
+//            Numero de pieza, o como palabra entera en el nombre ("445E" no es
+//            "445"). Orden: pagina de la marca -> Google -> MercadoLibre; las
+//            marcas sin pagina van directo a MercadoLibre; FV y Piazza, si sus
+//            paginas no lo tienen. Las fotos de ahi se marcan "(MercadoLibre)".
 // V.0.88.2 - El boton de la ficha dice "Traer fotos desde la web de la marca"
 //            (Damian, 17/11/2026: "sino cambialo a traer fotos desde la web de
 //            la marca"). Aparece en todo articulo con marca; si la marca no
@@ -1025,7 +1045,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.88.2";
+export const APP_VERSION = "V.0.89.0";
 
 export type VersionEntry = {
   version: string;

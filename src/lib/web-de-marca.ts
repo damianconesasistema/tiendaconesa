@@ -1,5 +1,6 @@
 import { decodificar } from "@/lib/fv-ficha";
 import { buscarLinksEnGoogle } from "@/lib/gemini";
+import { buscarEnMercadoLibre } from "@/lib/mercadolibre";
 
 // Buscar un articulo en la pagina web de SU MARCA, sea cual sea.
 //
@@ -48,6 +49,8 @@ export type DatosDeLaWeb = {
   ficha?: string;
   /** Con que codigo aparecio. */
   codigo?: string;
+  /** De donde salio: la pagina de la marca o el catalogo de MercadoLibre. */
+  fuente?: "web" | "mercadolibre";
 };
 
 // ------------------------------------------------------------- utilidades
@@ -844,10 +847,14 @@ async function conGoogle(
     const d = await leerPaginaDeLaMarca(link, a.web, a.codigos);
     if (d) return d;
   }
+  // Ultimo recurso: el catalogo de MercadoLibre, solo si es exacto
+  // (src/lib/mercadolibre.ts).
+  const ml = await buscarEnMercadoLibre({ marca: a.marca, codigos: a.codigos });
+  if (ml.encontrado) return { ...ml, fuente: "mercadolibre" };
   return {
     encontrado: false,
     motivo: `${enLaPagina.motivo ?? `no está en ${dominio}`}; en Google ${
       g.error ?? "tampoco apareció"
-    }`,
+    }; ${ml.motivo ?? "en MercadoLibre tampoco"}`,
   };
 }

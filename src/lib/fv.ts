@@ -13,7 +13,8 @@ import {
   type TituloFV,
 } from "@/lib/fv-ficha";
 import { buscarEnPiazza } from "@/lib/piazza";
-import { marcasConWeb } from "@/lib/marcas-server";
+import { getMarcas, marcasConWeb } from "@/lib/marcas-server";
+import { buscarEnMercadoLibre, fotoDeMercadoLibre, mlConectado } from "@/lib/mercadolibre";
 import { buscarArticuloDeLaMarca, codigosDelArticulo, fotoDeLaMarca } from "@/lib/web-de-marca";
 
 // Ir a buscar a la web de FV. La lectura de las paginas esta en fv-ficha.ts;
@@ -133,7 +134,7 @@ async function bajarFotoDeFV(
   url: string,
   web?: string | null,
 ): Promise<{ data: Buffer; contentType: string } | null> {
-  if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web)) return null;
+  if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web) && !fotoDeMercadoLibre(url)) return null;
   try {
     const r = await fetch(url, {
       headers: { "User-Agent": UA },
@@ -168,7 +169,7 @@ export async function guardarFotoDeFV(
     if (!producto || producto._count.images > 0) return false;
     // De FV o Piazza, o de la pagina de la marca del articulo. Nada mas.
     const web = producto.brand ? (await marcasConWeb()).get(producto.brand)?.web : undefined;
-    if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web)) return false;
+    if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web) && !fotoDeMercadoLibre(url)) return false;
 
     const foto = await bajarFotoDeFV(url, web);
     if (!foto) return false;
@@ -179,7 +180,7 @@ export async function guardarFotoDeFV(
     const yaTiene: Buffer[] = [foto.data];
     let posicion = 1;
     for (const otra of extras.slice(0, 5)) {
-      if (!esFotoDeFV(otra) && !fotoDeLaMarca(otra, web)) continue;
+      if (!esFotoDeFV(otra) && !fotoDeLaMarca(otra, web) && !fotoDeMercadoLibre(otra)) continue;
       const f = await bajarFotoDeFV(otra, web);
       if (!f || yaTiene.some((b) => b.equals(f.data))) continue;
       await prisma.productImage.create({
@@ -229,12 +230,42 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
   const conWeb = await marcasConWeb();
   const marca = p.brand ? conWeb.get(p.brand) : undefined;
 
+  // MercadoLibre de respaldo: si la pagina de la marca no lo tiene, o la
+  // marca no tiene pagina, se busca la ficha EXACTA en su catalogo
+  // (src/lib/mercadolibre.ts). Damian, 17/11/2026: "si no busca en la web de
+  // la marca, que busque en mercadolibre, pero tiene que ser exacto".
+  const nombreDeLaMarca =
+    marca?.name ?? (p.brand ? (await getMarcas()).find((m) => m.id === p.brand)?.name : undefined);
+  const enMercadoLibre = async (motivoAntes?: string): Promise<FichaDeFabricante | null> => {
+    if (!nombreDeLaMarca || !(await mlConectado())) return null;
+    const ml = await buscarEnMercadoLibre({
+      marca: nombreDeLaMarca,
+      codigos: codigosDelArticulo(`${p.memo ?? ""} ${p.title}`, itemId),
+    });
+    if (!ml.encontrado)
+      return motivoAntes
+        ? { encontrado: false, motivo: `${motivoAntes}; ${ml.motivo}`, fabricante: nombreDeLaMarca }
+        : null;
+    return {
+      encontrado: true,
+      ficha: ml.ficha,
+      foto: ml.foto ?? null,
+      fotos: ml.fotos,
+      descripcion: ml.descripcion ?? null,
+      fabricante: `${nombreDeLaMarca} (MercadoLibre)`,
+    };
+  };
+
   if (p.brand === "piazza") {
     // El codigo de Piazza no es el SKU: viene en la descripcion de GBP (que
     // queda en memo al crear por Excel) o en el titulo ("... Piazza 21006").
     const conMemo = p.memo?.trim() ? await buscarEnPiazza(p.memo, itemId) : null;
     const d = conMemo?.encontrado ? conMemo : await buscarEnPiazza(p.title, itemId);
     const r = d.encontrado || !conMemo ? d : conMemo;
+    if (!r.encontrado) {
+      const ml = await enMercadoLibre(r.motivo);
+      if (ml) return ml;
+    }
     return {
       encontrado: r.encontrado,
       motivo: r.motivo,
@@ -247,15 +278,26 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
     };
   }
   // FV: el SKU es el codigo de FV.
-  if (p.brand === "fv") return { ...(await buscarEnFV(itemId)), fabricante: "FV", web: marca?.web };
+  if (p.brand === "fv") {
+    const d = await buscarEnFV(itemId);
+    if (!d.encontrado) {
+      const ml = await enMercadoLibre(d.motivo);
+      if (ml) return ml;
+    }
+    return { ...d, fabricante: "FV", web: marca?.web };
+  }
 
-  if (!marca)
+  if (!marca) {
+    // Sin pagina cargada: directo a MercadoLibre, si esta conectado.
+    const ml = await enMercadoLibre("la marca no tiene cargada su página web");
+    if (ml) return ml;
     return {
       encontrado: false,
       sinPagina: true,
-      motivo: "la marca no tiene cargada su página web (se carga en Marcas)",
+      motivo: "la marca no tiene cargada su página web (se carga en Marcas) y MercadoLibre no está conectado",
       fabricante: "la marca",
     };
+  }
 
   const d = await buscarArticuloDeLaMarca({
     web: marca.web,
@@ -270,7 +312,7 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
     foto: d.foto ?? null,
     fotos: d.fotos,
     descripcion: d.descripcion ?? null,
-    fabricante: marca.name,
+    fabricante: d.fuente === "mercadolibre" ? `${marca.name} (MercadoLibre)` : marca.name,
     web: marca.web,
   };
 }

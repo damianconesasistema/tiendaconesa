@@ -16,6 +16,7 @@ import { subrubroSugerido, subrubroValido } from "@/lib/subrubros";
 import { armarTitulo, armarTituloDeFabricante, tituloFVDesdeGBP } from "@/lib/fv-ficha";
 import { buscarEnPiazza, rubroDePiazza } from "@/lib/piazza";
 import { buscarArticuloDeLaMarca, codigosDelArticulo } from "@/lib/web-de-marca";
+import { buscarEnMercadoLibre, mlConectado } from "@/lib/mercadolibre";
 import { buscarEnFV, guardarFotoDeFV } from "@/lib/fv";
 import { business } from "@/lib/business";
 
@@ -85,6 +86,8 @@ export type PreviewAltaResult = {
    *  guarda. */
   recargoUnPago?: number;
   marcas?: { id: string; name: string; web?: boolean }[];
+  /** MercadoLibre conectado: se busca tambien en su catalogo. */
+  mercadoLibre?: boolean;
   rubros?: { slug: string; name: string }[];
   sucursal?: string;
 };
@@ -261,6 +264,7 @@ export async function previsualizarAlta(
     descuentoContado: descuentoDelRecargo(recargo),
     recargoUnPago: recargo,
     marcas: marcas.map((m) => ({ id: m.id, name: m.name, web: !!m.web })),
+    mercadoLibre: await mlConectado(),
     rubros: rubrosDeLaTienda(),
     sucursal: suc?.nombre,
   };
@@ -383,15 +387,58 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
   if (!session) return [];
   const rubros = rubrosDeLaTienda();
   const conWeb = await marcasConWeb();
+  const todas = await getMarcas();
+  const ml = await mlConectado();
   const salida: RespuestaFV[] = [];
+
+  /** El catalogo de MercadoLibre, exacto (src/lib/mercadolibre.ts): para las
+   *  marcas sin pagina y cuando la pagina de la marca no lo tiene. */
+  async function porMercadoLibre(p: PedidoFV, motivoAntes?: string): Promise<RespuestaFV | null> {
+    const nombre = todas.find((m) => m.id === p.marca)?.name;
+    if (!ml || !nombre) return null;
+    const d = await buscarEnMercadoLibre({
+      marca: nombre,
+      codigos: codigosDelArticulo(p.descripcionGBP, p.itemCode),
+    });
+    if (!d.encontrado || !d.nombre)
+      return motivoAntes
+        ? { itemCode: p.itemCode, encontrado: false, motivo: `${motivoAntes}; ${d.motivo}`, fabricante: nombre }
+        : null;
+    const subrubro = subrubroValido(
+      p.categoria,
+      p.subrubro ?? subrubroSugerido(p.categoria, null, d.nombre).slug ?? null,
+    );
+    return {
+      itemCode: p.itemCode,
+      encontrado: true,
+      fabricante: "MercadoLibre",
+      titulo: armarTituloDeFabricante({
+        rubroNombre: rubros.find((r) => r.slug === p.categoria)?.name ?? "",
+        rubro: p.categoria,
+        subrubro,
+        nombre: d.nombre,
+        marca: nombre,
+        codigo: d.codigo ?? p.itemCode,
+      }),
+      nombreFV: d.nombre,
+      foto: d.foto ?? null,
+      fotos: d.fotos,
+      ficha: d.ficha,
+      descripcion: d.descripcion ?? null,
+    };
+  }
+
   for (const p of pedidos.slice(0, FV_POR_TANDA)) {
     const laMarca = p.marca ? conWeb.get(p.marca) : undefined;
     if (!p.marca || !laMarca) {
-      salida.push({
-        itemCode: p.itemCode,
-        encontrado: false,
-        motivo: "esta marca no tiene su página web cargada (se carga en Marcas)",
-      });
+      const r = await porMercadoLibre(p, "esta marca no tiene su página web cargada");
+      salida.push(
+        r ?? {
+          itemCode: p.itemCode,
+          encontrado: false,
+          motivo: "esta marca no tiene su página web cargada (se carga en Marcas)",
+        },
+      );
       continue;
     }
 
@@ -417,7 +464,7 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
       salida.push({
         itemCode: p.itemCode,
         encontrado: true,
-        fabricante: laMarca.name,
+        fabricante: d.fuente === "mercadolibre" ? "MercadoLibre" : laMarca.name,
         titulo: armarTituloDeFabricante({
           rubroNombre: rubros.find((r) => r.slug === p.categoria)?.name ?? "",
           rubro: p.categoria,
@@ -440,6 +487,11 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
     if (p.marca === "piazza") {
       const d = await buscarEnPiazza(p.descripcionGBP, p.itemCode);
       if (!d.encontrado || !d.nombre || !d.codigo) {
+        const r = await porMercadoLibre(p, d.motivo);
+        if (r?.encontrado) {
+          salida.push(r);
+          continue;
+        }
         salida.push({
           itemCode: p.itemCode,
           encontrado: false,
@@ -479,7 +531,10 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
 
     const d = await buscarEnFV(p.itemCode);
     if (!d.encontrado || !d.fv) {
-      salida.push({ itemCode: p.itemCode, encontrado: false, motivo: d.motivo, fabricante: "FV" });
+      const r = await porMercadoLibre(p, d.motivo);
+      salida.push(
+        r?.encontrado ? r : { itemCode: p.itemCode, encontrado: false, motivo: d.motivo, fabricante: "FV" },
+      );
       continue;
     }
     const rubroNombre =

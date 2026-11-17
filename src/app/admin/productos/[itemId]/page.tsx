@@ -15,6 +15,7 @@ import { formatPrice } from "@/lib/order";
 import { updateProduct } from "@/app/admin/productos/actions";
 import { geminiConfigurado } from "@/lib/gemini";
 import { sucursalDeEdicion } from "@/lib/precios-sucursal";
+import { mlConectado } from "@/lib/mercadolibre";
 
 export const metadata: Metadata = {
   title: "Editar producto · Panel Admin",
@@ -114,7 +115,7 @@ export default async function EditProductPage({
               category={product.category}
               initialImages={images}
               fabricante={(product.brand && (await getMarcas()).find((m) => m.id === product.brand)?.name) || null}
-              marcaConWeb={!!product.brand && (await marcasConWeb()).has(product.brand)}
+              marcaConWeb={!!product.brand && ((await marcasConWeb()).has(product.brand) || (await mlConectado()))}
             />
           </div>
           <h3 className="mt-4 line-clamp-3 font-display text-sm font-bold leading-tight">
@@ -166,6 +167,7 @@ export default async function EditProductPage({
             product={product}
             action={updateProduct}
             iaDisponible={geminiConfigurado()}
+            mercadoLibre={await mlConectado()}
           />
         </section>
       </div>

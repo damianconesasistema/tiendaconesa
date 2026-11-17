@@ -278,7 +278,11 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
       .filter((a) => !excluidos.has(a.itemCode))
       .map(conEdicion)
       // Toda marca con su pagina web cargada en Marcas (FV, Piazza, Ferrum...).
-      .filter((a) => !!a.marca && marcas.some((m) => m.id === a.marca && m.web));
+      .filter(
+        (a) =>
+          !!a.marca &&
+          (!!prev?.mercadoLibre || marcas.some((m) => m.id === a.marca && m.web)),
+      );
   }
 
   /** Va a la pagina de FV de a pocos y completa titulo y foto.

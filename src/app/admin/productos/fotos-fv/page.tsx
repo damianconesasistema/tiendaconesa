@@ -7,6 +7,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { FotosFVMasivo } from "@/components/admin/FotosFVMasivo";
 import { fvIncompletos, marcasSinWebConFaltantes } from "./actions";
 import { marcasConWeb } from "@/lib/marcas-server";
+import { estadoML } from "@/lib/mercadolibre";
 
 export const metadata: Metadata = {
   title: "Fotos de la web · Panel Admin",
@@ -33,6 +34,7 @@ export default async function FotosFVPage({
     marcasSinWebConFaltantes(),
     marcasConWeb(),
   ]);
+  const ml = await estadoML();
   const nombres = [...conWeb.values()].map((m) => m.name).sort((a, b) => a.localeCompare(b, "es"));
 
   return (
@@ -64,6 +66,20 @@ export default async function FotosFVPage({
           Marcas
         </Link>
         .
+      </p>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
+        {ml.conectado ? (
+          <>
+            <strong>MercadoLibre conectado</strong>
+            {ml.nickname ? ` (${ml.nickname})` : ""}: si la página de la marca no
+            lo tiene, se busca la ficha exacta en su catálogo.{" "}
+          </>
+        ) : (
+          <>Si la página de la marca no lo tiene, también se puede buscar en MercadoLibre. </>
+        )}
+        <Link href="/admin/productos/mercadolibre" className="font-bold text-[var(--brand-red)] underline">
+          {ml.conectado ? "Ver conexión" : "Conectar MercadoLibre"}
+        </Link>
       </p>
       {sinWeb.length > 0 && (
         <p className="mt-2 max-w-2xl rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
