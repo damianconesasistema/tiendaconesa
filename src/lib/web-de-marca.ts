@@ -1,7 +1,7 @@
 import { lookup } from "node:dns/promises";
 import { decodificar } from "@/lib/fv-ficha";
 import { buscarLinksEnGoogle } from "@/lib/gemini";
-import { buscarEnMercadoLibre, idDeLinkML, leerLinkDeMercadoLibre, mlConectado } from "@/lib/mercadolibre";
+import { buscarEnMercadoLibre, esLinkDeMercadoLibre, leerLinkDeMercadoLibre, mlConectado } from "@/lib/mercadolibre";
 
 // Buscar un articulo en la pagina web de SU MARCA, sea cual sea.
 //
@@ -954,21 +954,26 @@ export async function leerLink(link: string): Promise<DatosDeLaWeb> {
   } catch {
     return { encontrado: false, motivo: "eso no es un link (tiene que empezar con https://)" };
   }
+  // MercadoLibre pone el numero de la publicacion despues del # ("wid=MLA...").
+  const conNumeral = url.toString();
   url.hash = "";
   if (!(await urlPublica(url.toString())))
     return { encontrado: false, motivo: "ese link no es de una página pública" };
   const web = url.origin;
 
-  // MercadoLibre no deja leer sus paginas desde un servidor: con la cuenta
-  // conectada se lee por el numero de la publicacion o de la ficha.
-  const esML = !!idDeLinkML(url.toString());
-  if (esML) {
-    const ml = await leerLinkDeMercadoLibre(url.toString());
-    if (ml?.encontrado) return { ...ml, fuente: "mercadolibre" };
+  // MercadoLibre no deja abrir sus paginas desde un servidor (manda a una
+  // pantalla de "verificacion de cuenta"): un link suyo se lee solo por su
+  // numero, con la cuenta de Conesa conectada. Abrir la pagina no sirve.
+  if (esLinkDeMercadoLibre(conNumeral)) {
+    if (!(await mlConectado()))
+      return {
+        encontrado: false,
+        motivo:
+          "MercadoLibre no deja que la tienda lea sus páginas. Hay que conectar una sola vez la cuenta de MercadoLibre de Conesa (Productos → Fotos de la web → Conectar MercadoLibre) y después los links andan",
+      };
+    const ml = await leerLinkDeMercadoLibre(conNumeral);
+    return ml.encontrado ? { ...ml, fuente: "mercadolibre" } : { encontrado: false, motivo: ml.motivo };
   }
-  const avisoML = esML && !(await mlConectado())
-    ? "MercadoLibre no deja leer sus páginas desde la tienda: conectá MercadoLibre (Fotos de la web → Conectar MercadoLibre) y probá de nuevo"
-    : null;
 
   // Tiendas Shopify (Mi Pileta y otras): su ficha en JSON trae todas las fotos.
   const shop = url.pathname.match(/^(.*\/products\/[^/?#]+)/);
@@ -992,10 +997,10 @@ export async function leerLink(link: string): Promise<DatosDeLaWeb> {
   }
 
   const r = await pedir(url.toString());
-  if (!r) return { encontrado: false, motivo: avisoML ?? "la página no contestó" };
-  if (r.status !== 200) return { encontrado: false, motivo: avisoML ?? `la página contestó ${r.status}` };
+  if (!r) return { encontrado: false, motivo: "la página no contestó" };
+  if (r.status !== 200) return { encontrado: false, motivo: `la página contestó ${r.status}` };
   const datos = leerPaginaDeProducto(r.texto, r.url);
-  if (!datos) return { encontrado: false, motivo: avisoML ?? "no encontré un producto en esa página" };
+  if (!datos) return { encontrado: false, motivo: "no encontré un producto en esa página" };
   const fotos = fotosValidas([datos.foto, ...datos.fotos], web);
   return {
     encontrado: true,

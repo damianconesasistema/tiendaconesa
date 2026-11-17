@@ -1505,7 +1505,14 @@ function PegarLink({ onLink }: { onLink: (url: string) => Promise<string | null>
           Cancelar
         </button>
       </div>
-      {error && <p className="mt-1 text-xs text-amber-700">{error}</p>}
+      {error && (
+        <p className="mt-1 text-xs text-amber-700">
+          {error}
+          {/conect/i.test(error) && (
+            <Link href="/admin/productos/mercadolibre" className="ml-1 underline">Conectar MercadoLibre</Link>
+          )}
+        </p>
+      )}
     </div>
   );
 }

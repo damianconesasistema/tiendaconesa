@@ -2,6 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.91.1 - Links de MercadoLibre, de nuevo. Damian: "no me funciona desde ml".
+//            Probado: desde un servidor, MercadoLibre manda TODA pagina suya a
+//            una pantalla de "verificacion de cuenta"; leerla no sirve nunca.
+//            Ahora un link de MercadoLibre no intenta abrir la pagina: sin la
+//            cuenta conectada lo dice enseguida, con el boton "Conectar
+//            MercadoLibre"; conectada, lo lee por su numero y si no puede dice
+//            que contesto MercadoLibre. Entiende tambien los links de
+//            publicacion nuevos (/up/MLAU..., wid=MLA... despues del #) y los
+//            cortos que arma la app del celular (meli.la, /sec/).
 // V.0.91.0 - Sacarle la foto con el celular. Damian, 17/11/2026: "subir foto desde
 //            el celular ... si ya lo tengo precargado que tenga la opcion de
 //            entrar con el celular para sacarle foto al producto, me elimine el
@@ -1087,7 +1096,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.91.0";
+export const APP_VERSION = "V.0.91.1";
 
 export type VersionEntry = {
   version: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import {
   Upload,
@@ -568,6 +569,9 @@ export function ProductImageUpload({
             }`}
           >
             {linkMsg.texto}
+            {!linkMsg.ok && /conect/i.test(linkMsg.texto) && (
+              <Link href="/admin/productos/mercadolibre" className="ml-1 underline">Conectar MercadoLibre</Link>
+            )}
           </p>
         )}
       </div>

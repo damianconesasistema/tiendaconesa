@@ -191,20 +191,29 @@ async function tokenVigente(): Promise<string | null> {
   return renovando;
 }
 
-async function api<T>(ruta: string): Promise<T | null> {
+/** Una consulta a MercadoLibre con la cuenta conectada. estado: lo que
+ *  contesto (0 = no hay conexion o se corto; -1 = no contesto). */
+async function pedirML<T>(ruta: string): Promise<{ datos: T | null; estado: number }> {
   const token = await tokenVigente();
-  if (!token) return null;
+  if (!token) return { datos: null, estado: 0 };
   try {
     const r = await fetch(`${API}${ruta}`, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       signal: AbortSignal.timeout(ESPERA_MAX),
       cache: "no-store",
     });
-    if (!r.ok) return null;
-    return (await r.json()) as T;
+    if (!r.ok) {
+      console.warn(`[MercadoLibre] ${ruta.split("?")[0]} contesto ${r.status}`);
+      return { datos: null, estado: r.status };
+    }
+    return { datos: (await r.json()) as T, estado: r.status };
   } catch {
-    return null;
+    return { datos: null, estado: -1 };
   }
+}
+
+async function api<T>(ruta: string): Promise<T | null> {
+  return (await pedirML<T>(ruta)).datos;
 }
 
 // --------------------------------------------------------------- busqueda
@@ -339,38 +348,137 @@ export async function buscarEnMercadoLibre(a: { marca: string; codigos: string[]
 
 // ------------------------------------------------- un link de MercadoLibre
 
+type FotoML = { id?: string; url?: string; secure_url?: string };
+
 type ItemML = {
   id?: string;
   title?: string;
-  pictures?: { url?: string; secure_url?: string }[];
+  pictures?: FotoML[];
   attributes?: Atributo[];
   catalog_product_id?: string | null;
 };
 
-/** El numero de un link de MercadoLibre: "/p/MLA21097034" es una ficha de
- *  catalogo; "MLA-1234567890" o "/MLA1234567890" es una publicacion. */
-export function idDeLinkML(link: string): { tipo: "producto" | "item"; id: string } | null {
+type UserProductML = {
+  id?: string;
+  name?: string;
+  pictures?: FotoML[];
+  attributes?: Atributo[];
+  catalog_product_id?: string | null;
+};
+
+const HOST_ML = /(^|\.)mercadoli(b|v)re\.com(\.ar)?$/i;
+const HOST_CORTO = /^(www\.)?meli\.la$/i;
+
+/** Es un link de MercadoLibre (tambien los cortos que arma la app del
+ *  celular al compartir: meli.la/... o mercadolibre.com/sec/...). */
+export function esLinkDeMercadoLibre(link: string): boolean {
+  try {
+    const h = new URL(link).hostname;
+    return HOST_ML.test(h) || HOST_CORTO.test(h);
+  } catch {
+    return false;
+  }
+}
+
+/** Los numeros que trae un link de MercadoLibre:
+ *  - "/p/MLA21097034": la ficha de catalogo del producto;
+ *  - "MLA-1234567890" en la direccion, o "item_id:MLA..." / "wid=MLA..." (este
+ *    va despues del #): una publicacion;
+ *  - "/up/MLAU123...": el "producto del vendedor".
+ *  La pantalla de verificacion de MercadoLibre trae el link original en "go". */
+export type NumerosML = { producto?: string; item?: string; up?: string };
+
+export function numerosDeLinkML(link: string): NumerosML | null {
   let u: URL;
   try {
     u = new URL(link);
   } catch {
     return null;
   }
-  if (!/(^|\.)mercadoli(b|v)re\.com(\.ar)?$/i.test(u.hostname)) return null;
+  if (!HOST_ML.test(u.hostname)) return null;
+  const go = u.searchParams.get("go");
+  if (go && go !== link) {
+    const delGo = numerosDeLinkML(go);
+    if (delGo) return delGo;
+  }
+  let resto = u.search + u.hash;
+  try {
+    resto = decodeURIComponent(resto);
+  } catch {
+    /* queda como vino */
+  }
+  const n: NumerosML = {};
   const p = u.pathname.match(/\/p\/(MLA\d+)/i);
-  if (p) return { tipo: "producto", id: p[1].toUpperCase() };
-  const i = (u.pathname + u.search).match(/MLA-?(\d{6,})/i);
-  if (i) return { tipo: "item", id: `MLA${i[1]}` };
-  return null;
+  if (p) n.producto = p[1].toUpperCase();
+  const i =
+    u.pathname.replace(/\/p\/MLA\d+/i, "").match(/MLA-?(\d{6,})/i) ??
+    resto.match(/(?:item_id[:=]|wid=)MLA-?(\d{6,})/i);
+  if (i) n.item = `MLA${i[1]}`;
+  const up = u.pathname.match(/\/up\/(MLAU\d+)/i);
+  if (up) n.up = up[1].toUpperCase();
+  return n.producto || n.item || n.up ? n : null;
 }
 
-/** Lee un link de MercadoLibre por su numero, con la cuenta conectada (la
- *  pagina misma no se deja leer desde un servidor). null si no se puede. */
-export async function leerLinkDeMercadoLibre(link: string): Promise<DatosDeML | null> {
-  const id = idDeLinkML(link);
-  if (!id || !(await mlConectado())) return null;
+/** Los links cortos no dicen el numero: se sigue la redireccion (sin abrir
+ *  la pagina, que MercadoLibre no deja leer) hasta un link que lo diga.
+ *  Solo salta entre direcciones de MercadoLibre. */
+async function resolverLinkML(link: string): Promise<string> {
+  let actual = link;
+  for (let salto = 0; salto < 5; salto++) {
+    if (numerosDeLinkML(actual)) return actual;
+    let destino: string | null = null;
+    try {
+      const r = await fetch(actual, {
+        redirect: "manual",
+        headers: { Accept: "text/html" },
+        signal: AbortSignal.timeout(ESPERA_MAX),
+        cache: "no-store",
+      });
+      destino = r.headers.get("location");
+      await r.body?.cancel().catch(() => {});
+    } catch {
+      return actual;
+    }
+    if (!destino) return actual;
+    let siguiente: string;
+    try {
+      siguiente = new URL(destino, actual).toString();
+    } catch {
+      return actual;
+    }
+    if (!esLinkDeMercadoLibre(siguiente)) return actual;
+    actual = siguiente;
+  }
+  return actual;
+}
 
-  const fotosDe = (lista?: { url?: string; secure_url?: string }[]) =>
+/** Por que no se pudo, dicho para Damian. */
+function motivoML(estado: number, n: NumerosML): string {
+  if (estado === 0)
+    return "la conexión con MercadoLibre se cortó: volvé a conectarla (Productos → Fotos de la web → Conectar MercadoLibre) y probá de nuevo";
+  if (estado === 404) return "MercadoLibre dice que esa publicación ya no existe";
+  if (estado === 401 || estado === 403)
+    return n.producto
+      ? `MercadoLibre no dejó leer esa ficha con la cuenta conectada (contestó ${estado}). Volvé a conectar MercadoLibre y probá de nuevo`
+      : `MercadoLibre no dejó leer esa publicación (contestó ${estado}). Probá con el link de la ficha del producto: el que tiene "/p/MLA" en la dirección`;
+  return estado > 0
+    ? `MercadoLibre contestó ${estado}: probá de nuevo en un rato`
+    : "MercadoLibre no contestó: probá de nuevo en un rato";
+}
+
+/** Lee un link de MercadoLibre por su numero, con la cuenta conectada.
+ *  Desde un servidor, MercadoLibre no deja abrir sus paginas: manda a una
+ *  pantalla de "verificacion de cuenta" (probado el 17/11/2026). */
+export async function leerLinkDeMercadoLibre(link: string): Promise<DatosDeML> {
+  const n = numerosDeLinkML(await resolverLinkML(link));
+  if (!n)
+    return {
+      encontrado: false,
+      motivo:
+        "no encontré el número de la publicación en ese link. Abrila en MercadoLibre y copiá la dirección de arriba (la que tiene MLA)",
+    };
+
+  const fotosDe = (lista?: FotoML[]) =>
     [
       ...new Set(
         (lista ?? [])
@@ -379,8 +487,11 @@ export async function leerLinkDeMercadoLibre(link: string): Promise<DatosDeML | 
       ),
     ].slice(0, 6);
 
-  if (id.tipo === "producto") {
-    const p = await api<ProductoML>(`/products/${id.id}`);
+  let estado = -1;
+  const deLaFicha = async (id: string): Promise<DatosDeML | null> => {
+    const r = await pedirML<ProductoML>(`/products/${id}`);
+    estado = r.estado;
+    const p = r.datos;
     if (!p?.name) return null;
     const fotos = fotosDe(p.pictures);
     return {
@@ -391,21 +502,62 @@ export async function leerLinkDeMercadoLibre(link: string): Promise<DatosDeML | 
       descripcion: armarDescripcion(p),
       ficha: link,
     };
+  };
+
+  // 1. La ficha de catalogo: la mas completa.
+  if (n.producto) {
+    const d = await deLaFicha(n.producto);
+    if (d) return d;
   }
 
-  const it = await api<ItemML>(`/items/${id.id}`);
-  if (!it?.title) return null;
-  const desc = await api<{ plain_text?: string }>(`/items/${id.id}/description`);
-  const fotos = fotosDe(it.pictures);
-  return {
-    encontrado: true,
-    nombre: it.title,
-    foto: fotos[0] ?? null,
-    fotos,
-    descripcion: armarDescripcion({
-      short_description: { content: String(desc?.plain_text ?? "").trim() },
-      attributes: it.attributes,
-    }),
-    ficha: link,
-  };
+  // 2. La publicacion de un vendedor.
+  if (n.item) {
+    const r = await pedirML<ItemML>(`/items/${n.item}`);
+    estado = r.estado;
+    const it = r.datos;
+    if (it?.title) {
+      const desc = (await pedirML<{ plain_text?: string }>(`/items/${n.item}/description`)).datos;
+      const fotos = fotosDe(it.pictures);
+      return {
+        encontrado: true,
+        nombre: it.title,
+        foto: fotos[0] ?? null,
+        fotos,
+        descripcion: armarDescripcion({
+          short_description: { content: String(desc?.plain_text ?? "").trim() },
+          attributes: it.attributes,
+        }),
+        ficha: link,
+      };
+    }
+    if (it?.catalog_product_id && !n.producto) {
+      const d = await deLaFicha(it.catalog_product_id);
+      if (d) return d;
+    }
+  }
+
+  // 3. El "producto del vendedor" (/up/MLAU...): si esta en catalogo, la
+  //    ficha; si no, lo que diga de si mismo.
+  if (n.up) {
+    const r = await pedirML<UserProductML>(`/user-products/${n.up}`);
+    estado = r.estado;
+    const up = r.datos;
+    if (up?.catalog_product_id && !n.producto) {
+      const d = await deLaFicha(up.catalog_product_id);
+      if (d) return d;
+    }
+    const fotos = fotosDe(up?.pictures);
+    if (up?.name && fotos.length) {
+      return {
+        encontrado: true,
+        nombre: up.name,
+        foto: fotos[0] ?? null,
+        fotos,
+        descripcion: armarDescripcion({ attributes: up.attributes }),
+        ficha: link,
+      };
+    }
+  }
+
+  return { encontrado: false, motivo: motivoML(estado, n) };
 }
