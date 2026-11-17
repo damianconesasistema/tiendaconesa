@@ -201,9 +201,14 @@ export function ProductImageUpload({
         await refresh();
         setFv({
           ok: true,
-          texto: r.principal
-            ? `Listo: la foto de ${fabricante} quedó como principal.`
-            : `Listo: la foto de ${fabricante} se agregó al final. Si la querés de principal, tocá la estrellita.`,
+          texto:
+            r.agregadas > 1
+              ? `Listo: se agregaron ${r.agregadas} fotos de ${fabricante}${
+                  r.principal ? "; la primera quedó como principal" : ", al final de la galería"
+                }.`
+              : r.principal
+                ? `Listo: la foto de ${fabricante} quedó como principal.`
+                : `Listo: la foto de ${fabricante} se agregó al final. Si la querés de principal, tocá la estrellita.`,
           ficha: r.ficha,
         });
       } else {
@@ -374,7 +379,7 @@ export function ProductImageUpload({
             className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--brand-red)] bg-white px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" />
-            Traer foto de {fabricante}
+            Traer fotos de {fabricante}
           </button>
           {fv && (
             <div

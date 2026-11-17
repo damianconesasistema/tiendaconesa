@@ -32,6 +32,8 @@ export type DatosPiazza = {
   nombre?: string;
   ficha?: string;
   foto?: string | null;
+  /** Todas las fotos de la galeria del producto, la principal primero. */
+  fotos?: string[];
   /** La categoria de la pagina: "Grifería", "Inodoros", "Bidet"... */
   categoria?: string | null;
   descripcion?: string | null;
@@ -117,6 +119,12 @@ export function leerFichaPiazza(html: string, url: string): DatosPiazza | null {
     nombre,
     ficha: url,
     foto: foto ? decodificar(foto) : null,
+    // La galeria entera: cada foto grande viene en un data-large_image.
+    fotos: [
+      ...new Set(
+        [...html.matchAll(/data-large_image="([^"]+)"/gi)].map((m) => decodificar(m[1])),
+      ),
+    ].slice(0, 6),
     categoria: categoria || null,
     descripcion,
   };

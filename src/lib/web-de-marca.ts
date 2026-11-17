@@ -29,6 +29,9 @@ import { buscarLinksEnGoogle } from "@/lib/gemini";
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36";
 const ESPERA_MAX = 15_000;
+/** Cuantas fotos de un modelo se traen como mucho. La galeria de la tienda
+ *  admite 10; con 6 ya se ve el producto de todos lados sin llenarla. */
+export const MAX_FOTOS_POR_ARTICULO = 6;
 const TOPE_PAGINA = 3 * 1024 * 1024;
 
 export type DatosDeLaWeb = {
@@ -37,6 +40,9 @@ export type DatosDeLaWeb = {
   /** El nombre que le da la marca: "Monocomando Lavatorio Bari". */
   nombre?: string;
   foto?: string | null;
+  /** Todas las fotos del modelo que tiene la pagina, la principal primero.
+   *  Damian, 17/11/2026: "podes hacer que traiga mas de 1 foto del modelo?". */
+  fotos?: string[];
   descripcion?: string | null;
   /** La pagina del producto. */
   ficha?: string;
@@ -229,6 +235,38 @@ function primeraImagen(img: unknown): string | null {
   return null;
 }
 
+/** Todas las fotos de un campo "image" de la ficha para Google (puede ser un
+ *  texto, una lista o un objeto con url). */
+function todasLasImagenes(img: unknown): string[] {
+  if (!img) return [];
+  if (typeof img === "string") return [img];
+  if (Array.isArray(img)) return img.flatMap(todasLasImagenes);
+  if (typeof img === "object") {
+    const o = img as { url?: unknown; contentUrl?: unknown };
+    return todasLasImagenes(o.url ?? o.contentUrl);
+  }
+  return [];
+}
+
+/** Las fotos que valen, sin repetir y con tope: solo del sitio de la marca o
+ *  del servidor de fotos de su plataforma. */
+function fotosValidas(lista: (string | null | undefined)[], web: string): string[] {
+  const salida: string[] = [];
+  for (const f of lista) {
+    if (!f || !fotoDeLaMarca(f, web)) continue;
+    // Las de compartir, logos y "sin imagen" no son fotos del producto.
+    if (/(^|[\/_-])(share|logo|placeholder|no[-_]?image|sin[-_]?imagen|favicon)[^\/]*$/i.test(f.split("?")[0])) continue;
+    // La misma foto en otro tamaño o en otra carpeta ("?v=123", "-300x300",
+    // la copia achicada de Magento) cuenta una vez: se compara el archivo.
+    const archivo = (x: string) =>
+      (x.split("?")[0].split("/").pop() ?? x).toLowerCase().replace(/-\d+x\d+(?=\.\w+$)/, "");
+    if (salida.some((x) => archivo(x) === archivo(f))) continue;
+    salida.push(f);
+    if (salida.length >= MAX_FOTOS_POR_ARTICULO) break;
+  }
+  return salida;
+}
+
 function absoluta(url: string | null | undefined, base: string): string | null {
   if (!url) return null;
   try {
@@ -310,7 +348,13 @@ function armarDescripcion(texto: string | null, caracteristicas: string[]): stri
 export function leerPaginaDeProducto(
   html: string,
   url: string,
-): { nombre: string; foto: string | null; descripcion: string | null; sku: string | null } | null {
+): {
+  nombre: string;
+  foto: string | null;
+  fotos: string[];
+  descripcion: string | null;
+  sku: string | null;
+} | null {
   const ld = productosLd(html)[0];
   const nombre =
     htmlATexto(ld?.name ?? "") ||
@@ -330,9 +374,18 @@ export function leerPaginaDeProducto(
     .filter(Boolean);
   const texto = textos.sort((a, b) => b.length - a.length)[0] ?? null;
 
+  // Las fotos: la galeria de Magento (Ferrum) si la hay, las de la ficha
+  // para Google, y la de compartir solo si no hay otra (suele ser el logo).
+  const galeria = [...html.matchAll(/"full":"(https?:[^"]+)"/g)].map((m) => m[1].replace(/\\\//g, "/"));
+  const deLaFicha = todasLasImagenes(ld?.image);
+  const base = [...galeria, ...deLaFicha];
+  const fotos = (base.length ? base : [meta(html, "og:image")])
+    .map((f) => absoluta(f, url))
+    .filter((f): f is string => !!f);
   return {
     nombre,
-    foto: absoluta(primeraImagen(ld?.image) ?? meta(html, "og:image"), url),
+    foto: fotos[0] ?? null,
+    fotos: [...new Set(fotos)],
     descripcion: armarDescripcion(texto, especificaciones(html)),
     sku: ld?.sku ?? ld?.mpn ?? null,
   };
@@ -373,6 +426,7 @@ async function porWooCommerce(base: URL, codigo: string): Promise<Hallazgo | nul
   return {
     nombre: htmlATexto(p.name),
     foto: p.images?.[0]?.src ?? null,
+    fotos: (p.images ?? []).map((i) => i.src).filter((f): f is string => !!f),
     descripcion: armarDescripcion(
       [...new Set([p.short_description, p.description].map((x) => limpiarDescripcion(htmlATexto(x ?? ""))))]
         .filter(Boolean)
@@ -413,6 +467,7 @@ async function porVtex(base: URL, codigo: string): Promise<Hallazgo | null> {
   return {
     nombre: htmlATexto(p.productName),
     foto: p.items?.[0]?.images?.[0]?.imageUrl ?? null,
+    fotos: (p.items?.[0]?.images ?? []).map((i) => i.imageUrl).filter((f): f is string => !!f),
     descripcion: htmlATexto(p.description ?? "") || null,
     ficha: p.link,
     codigo,
@@ -446,10 +501,11 @@ async function porShopify(base: URL, codigo: string): Promise<Hallazgo | null> {
     const coincide =
       (p.variants ?? []).some((v) => nombraElCodigo(v.sku, codigo)) || nombraElCodigo(p.title, codigo);
     if (!coincide) continue;
-    const foto = p.images?.[0] ?? null;
+    const fotos = (p.images ?? []).map((f) => (f.startsWith("//") ? `https:${f}` : f));
     return {
       nombre: htmlATexto(p.title),
-      foto: foto ? (foto.startsWith("//") ? `https:${foto}` : foto) : null,
+      foto: fotos[0] ?? null,
+      fotos,
       descripcion: htmlATexto(p.description ?? "") || null,
       ficha: `${base.origin}${ruta}`,
       codigo,
@@ -656,11 +712,8 @@ export async function buscarEnWebDeMarca(
     else if (plataforma === "shopify") h = await porShopify(base, codigo);
     if (!h) h = await porBuscadorComun(base, codigo, hasta);
     if (h) {
-      const datos: DatosDeLaWeb = {
-        encontrado: true,
-        ...h,
-        foto: h.foto && fotoDeLaMarca(h.foto, web) ? h.foto : null,
-      };
+      const fotos = fotosValidas([h.foto, ...(h.fotos ?? [])], web);
+      const datos: DatosDeLaWeb = { encontrado: true, ...h, foto: fotos[0] ?? null, fotos };
       memoria.set(clave, { cuando: Date.now(), datos });
       return datos;
     }
@@ -709,10 +762,12 @@ export async function leerPaginaDeLaMarca(
   if (!codigo) return null;
   const datos = leerPaginaDeProducto(p.texto, p.url);
   if (!datos) return null;
+  const fotos = fotosValidas([datos.foto, ...datos.fotos], web);
   return {
     encontrado: true,
     nombre: datos.nombre,
-    foto: datos.foto && fotoDeLaMarca(datos.foto, web) ? datos.foto : null,
+    foto: fotos[0] ?? null,
+    fotos,
     descripcion: datos.descripcion,
     ficha: p.url,
     codigo,

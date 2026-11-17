@@ -19,12 +19,17 @@ export const metadata: Metadata = {
 // "faltaria que me traigas la descripcion de los articulos". Uno por uno,
 // en la ficha de cada articulo estan "Traer foto de FV" y "Buscar en la web".
 
-export default async function FotosFVPage() {
+export default async function FotosFVPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ galeria?: string }>;
+}) {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
+  const galeria = (await searchParams).galeria === "1";
 
   const [incompletos, sinWeb, conWeb] = await Promise.all([
-    fvIncompletos(),
+    fvIncompletos(galeria),
     marcasSinWebConFaltantes(),
     marcasConWeb(),
   ]);
@@ -70,7 +75,26 @@ export default async function FotosFVPage() {
           {sinWeb.length > 8 ? "…" : ""}. Cargales la web en Marcas y aparecen acá.
         </p>
       )}
-      <FotosFVMasivo pendientes={incompletos} />
+      <div className="mt-4 flex flex-wrap gap-2 text-sm">
+        <Link
+          href="/admin/productos/fotos-fv"
+          className={`rounded-full border px-4 py-1.5 ${
+            galeria ? "border-[var(--border)] bg-white" : "border-[var(--brand-red)] bg-[var(--brand-red)] text-white"
+          }`}
+        >
+          Sin foto o sin descripción
+        </Link>
+        <Link
+          href="/admin/productos/fotos-fv?galeria=1"
+          className={`rounded-full border px-4 py-1.5 ${
+            galeria ? "border-[var(--brand-red)] bg-[var(--brand-red)] text-white" : "border-[var(--border)] bg-white"
+          }`}
+        >
+          Con una sola foto: sumarles las otras del modelo
+        </Link>
+      </div>
+
+      <FotosFVMasivo key={galeria ? "galeria" : "faltan"} pendientes={incompletos} galeria={galeria} />
     </AdminShell>
   );
 }

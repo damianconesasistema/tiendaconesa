@@ -2,6 +2,19 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.88.0 - Todas las fotos del modelo, no solo una. Damian, 17/11/2026: "podes
+//            hacer que traiga mas de 1 foto del modelo?". El lector junta la
+//            galeria entera (Shopify, WooCommerce, VTEX, la galeria de Magento,
+//            la ficha para Google; Piazza sus data-large_image), sin repetir la
+//            misma foto en otro tamaño o carpeta, sin logos ni la imagen de
+//            compartir, hasta 6. Se suman a la galeria del articulo (hasta 10),
+//            la primera de principal si no tenia ninguna. Probado: Mi Pileta 5
+//            fotos (104EC, 304), Ferrum 4 (Bari, con el plano), Piazza 2,
+//            Peirano 1. Donde: Crear por Excel ("Usar estas 5 fotos", con las
+//            miniaturas; se crea de a 5), "Traer fotos de <marca>" en la ficha,
+//            y Fotos de la web, que suma "Con una sola foto: sumarles las otras
+//            del modelo" para los que ya tienen la primera. FV sigue con una
+//            (tiene una por terminacion).
 // V.0.87.1 - Codigos cortos entre parentesis. Las bachas Mi Pileta (Damian,
 //            17/11/2026: "aca quiero buscar las fotos, como hacemos para hacer
 //            eso masivamente") traen el codigo asi: "(304)", "(406)". Se pedian 4
@@ -998,7 +1011,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.87.1";
+export const APP_VERSION = "V.0.88.0";
 
 export type VersionEntry = {
   version: string;

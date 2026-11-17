@@ -281,6 +281,9 @@ export type AltaElegida = {
   /** La foto de FV que se eligio en pantalla. Se vuelve a validar que sea de
    *  fvsa.com antes de bajarla (ver src/lib/fv.ts). */
   fotoFV?: string | null;
+  /** Las otras fotos del modelo de la misma pagina, si se dejo tildada la
+   *  principal. Se validan igual que esa. */
+  fotosExtraFV?: string[] | null;
   /** La descripcion de la ficha de FV, si se dejo tildada. */
   descripcion?: string | null;
 };
@@ -353,6 +356,8 @@ export type RespuestaFV = {
   /** Como lo titula FV, para mostrarlo al lado. */
   nombreFV?: string;
   foto?: string | null;
+  /** Todas las fotos del modelo, la principal primero. */
+  fotos?: string[];
   fotoDeOtraTerminacion?: boolean;
   /** FV ya no lo fabrica. */
   discontinuado?: boolean;
@@ -423,6 +428,7 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
         }),
         nombreFV: d.codigo ? `${d.codigo} – ${d.nombre}` : d.nombre,
         foto: d.foto ?? null,
+        fotos: d.fotos,
         ficha: d.ficha,
         descripcion: d.descripcion ?? null,
       });
@@ -462,6 +468,7 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
         }),
         nombreFV: `${d.codigo} – ${d.nombre}`,
         foto: d.foto ?? null,
+        fotos: d.fotos,
         ficha: d.ficha,
         descripcion: d.descripcion ?? null,
         categoria,
@@ -586,7 +593,7 @@ export async function crearArticulos(
     // La foto de FV, si se eligio una. Si no baja, el articulo queda igual,
     // con la foto generica del rubro, y se cuenta para avisar.
     if (it.fotoFV) {
-      if (await guardarFotoDeFV(it.itemCode, it.fotoFV)) fotos++;
+      if (await guardarFotoDeFV(it.itemCode, it.fotoFV, it.fotosExtraFV ?? [])) fotos++;
       else fotosFallidas++;
     }
 

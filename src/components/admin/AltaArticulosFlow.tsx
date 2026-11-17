@@ -39,7 +39,8 @@ const DE_A = 25;
  *  un pedido a los 120 segundos, y crear un articulo con su foto de FV lleva
  *  uno o dos: de a 10 queda lejos del corte y se ve avanzar. */
 const FV_DE_A = 2;
-const CREAR_DE_A = 10;
+// De a 5: con varias fotos por articulo, crear uno lleva unos segundos.
+const CREAR_DE_A = 5;
 
 /** El mismo tope que pone el servidor al subir una foto
  *  (src/app/admin/productos/imagenes/actions.ts). Se avisa al elegirla, no
@@ -375,6 +376,8 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
         stock: c.stock,
         descripcionGBP: c.descripcionGBP,
         fotoFV: c.fotoFV,
+        // Las otras fotos del modelo van con la principal.
+        fotosExtraFV: c.fotoFV ? (fv[c.itemCode]?.fotos ?? []).filter((f) => f !== c.fotoFV) : [],
         descripcion: c.descripcion,
       };
     });
@@ -1003,8 +1006,22 @@ function Ficha({
                       }
                       className="h-4 w-4"
                     />
-                    Usar esta foto
+                    {(deFV.fotos?.length ?? 0) > 1 ? `Usar estas ${deFV.fotos!.length} fotos` : "Usar esta foto"}
                   </label>
+                )}
+                {(deFV.fotos?.length ?? 0) > 1 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {deFV.fotos!.slice(1).map((f) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={f}
+                        src={f}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                        className="h-10 w-10 rounded border border-[var(--border)] bg-white object-contain"
+                      />
+                    ))}
+                  </div>
                 )}
                 {deFV.fotoDeOtraTerminacion && (
                   <p className="mt-1 text-amber-700">

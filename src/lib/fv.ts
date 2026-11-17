@@ -41,6 +41,9 @@ export type DatosFV = {
   discontinuado?: boolean;
   /** La descripcion armada con la ficha de FV (fv-ficha.ts, leerDescripcion). */
   descripcion?: string | null;
+  /** Todas las fotos del modelo (Piazza y las otras marcas traen varias; FV
+   *  tiene una por terminacion). */
+  fotos?: string[];
 };
 
 async function pedir(url: string): Promise<string | null> {
@@ -154,6 +157,8 @@ async function bajarFotoDeFV(
 export async function guardarFotoDeFV(
   itemId: string,
   url: string,
+  /** Las otras fotos del modelo, despues de la principal. */
+  extras: string[] = [],
 ): Promise<boolean> {
   try {
     const producto = await prisma.product.findUnique({
@@ -170,6 +175,18 @@ export async function guardarFotoDeFV(
     await prisma.productImage.create({
       data: { productId: producto.id, data: foto.data, contentType: foto.contentType, position: 0 },
     });
+    // Las demas del modelo, atras. Si alguna no baja, no pasa nada.
+    const yaTiene: Buffer[] = [foto.data];
+    let posicion = 1;
+    for (const otra of extras.slice(0, 5)) {
+      if (!esFotoDeFV(otra) && !fotoDeLaMarca(otra, web)) continue;
+      const f = await bajarFotoDeFV(otra, web);
+      if (!f || yaTiene.some((b) => b.equals(f.data))) continue;
+      await prisma.productImage.create({
+        data: { productId: producto.id, data: f.data, contentType: f.contentType, position: posicion++ },
+      });
+      yaTiene.push(f.data);
+    }
     await prisma.product.update({
       where: { itemId },
       data: { imageUrl: rutaFoto(itemId, Date.now()) },
@@ -223,6 +240,7 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
       motivo: r.motivo,
       ficha: r.ficha,
       foto: r.foto ?? null,
+      fotos: r.fotos,
       descripcion: r.descripcion ?? null,
       fabricante: "Piazza",
       web: marca?.web,
@@ -250,6 +268,7 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
     motivo: d.motivo,
     ficha: d.ficha,
     foto: d.foto ?? null,
+    fotos: d.fotos,
     descripcion: d.descripcion ?? null,
     fabricante: marca.name,
     web: marca.web,
@@ -275,7 +294,7 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
 const MAX_FOTOS = MAX_PRODUCT_IMAGES;
 
 export type ResultadoFotoFV =
-  | { ok: true; principal: boolean; discontinuado?: boolean; ficha?: string }
+  | { ok: true; principal: boolean; agregadas: number; discontinuado?: boolean; ficha?: string }
   | {
       ok: false;
       motivo: string;
@@ -308,29 +327,45 @@ export async function agregarFotoDeFV(
       ficha: d.ficha,
     };
 
-  const foto = await bajarFotoDeFV(d.foto, d.web);
-  if (!foto) return { ok: false, motivo: `la foto de ${d.fabricante} no se pudo bajar`, ficha: d.ficha };
-
-  // Apretar dos veces no la carga dos veces: la misma foto de FV, achicada
-  // igual, da exactamente los mismos bytes.
-  if (producto.images.some((i) => Buffer.from(i.data).equals(foto.data)))
-    return { ok: false, motivo: `ya tiene esa foto de ${d.fabricante}`, ficha: d.ficha };
+  // Todas las del modelo, no solo la primera (Damian, 17/11/2026: "podes
+  // hacer que traiga mas de 1 foto del modelo?"). Hasta llenar la galeria.
+  const lista = [...new Set([d.foto, ...(d.fotos ?? [])].filter((f): f is string => !!f))].slice(0, 6);
+  const yaTiene: Buffer[] = producto.images.map((i) => Buffer.from(i.data));
+  let posicion = producto.images.length;
+  let agregadas = 0;
+  let fallidas = 0;
+  for (const url of lista) {
+    if (posicion >= MAX_FOTOS) break;
+    const foto = await bajarFotoDeFV(url, d.web);
+    if (!foto) {
+      fallidas++;
+      continue;
+    }
+    // Apretar dos veces no las carga dos veces: la misma foto, achicada
+    // igual, da exactamente los mismos bytes.
+    if (yaTiene.some((b) => b.equals(foto.data))) continue;
+    await prisma.productImage.create({
+      data: { productId: producto.id, data: foto.data, contentType: foto.contentType, position: posicion++ },
+    });
+    yaTiene.push(foto.data);
+    agregadas++;
+  }
+  if (agregadas === 0)
+    return {
+      ok: false,
+      motivo: fallidas
+        ? `las fotos de ${d.fabricante} no se pudieron bajar`
+        : `ya tiene las fotos de ${d.fabricante}`,
+      ficha: d.ficha,
+    };
 
   const principal = producto.images.length === 0;
-  await prisma.productImage.create({
-    data: {
-      productId: producto.id,
-      data: foto.data,
-      contentType: foto.contentType,
-      position: producto.images.length,
-    },
-  });
   if (principal)
     await prisma.product.update({
       where: { itemId },
       data: { imageUrl: rutaFoto(itemId, Date.now()) },
     });
-  return { ok: true, principal, discontinuado: d.discontinuado, ficha: d.ficha };
+  return { ok: true, principal, agregadas, discontinuado: d.discontinuado, ficha: d.ficha };
 }
 
 // ---------------------------------------------------------------------------

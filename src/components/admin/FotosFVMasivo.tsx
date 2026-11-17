@@ -18,7 +18,14 @@ import { rutaAdminProducto } from "@/lib/rutas-producto";
 
 const POR_TANDA = 2;
 
-export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
+export function FotosFVMasivo({
+  pendientes,
+  galeria = false,
+}: {
+  pendientes: Incompleto[];
+  /** Modo "sumarles las otras fotos" a los que tienen una sola. */
+  galeria?: boolean;
+}) {
   const [corriendo, setCorriendo] = useState(false);
   const [hechos, setHechos] = useState(0);
   const [resultados, setResultados] = useState<ResultadoTanda[]>([]);
@@ -72,7 +79,7 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
       </div>
     );
 
-  const fotosPuestas = resultados.filter((r) => r.foto?.ok).length;
+  const fotosPuestas = resultados.reduce((n, r) => n + (r.foto?.ok ? r.foto.agregadas : 0), 0);
   const descripcionesPuestas = resultados.filter((r) => r.descripcion?.ok).length;
 
   return (
@@ -81,8 +88,9 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
         <p className="text-sm">
           Hay <strong>{pendientes.length}</strong> artículo
           {pendientes.length === 1 ? "" : "s"} de {deMarcas} para completar:{" "}
-          <strong>{sinFoto}</strong> sin foto y <strong>{sinDescripcion}</strong>{" "}
-          sin descripción.
+          <strong>{sinFoto}</strong> {galeria ? "con menos de 2 fotos" : "sin foto"} y{" "}
+          <strong>{sinDescripcion}</strong> sin descripción. Trae todas las fotos
+          del modelo que tenga la página (hasta 6).
         </p>
 
         {marcas.includes("FV") && (
@@ -171,7 +179,14 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
                   </td>
                   <td className="px-4 py-2.5 text-xs">{titulo.get(r.itemId)}</td>
                   <td className="px-4 py-2.5 text-xs">
-                    <Celda r={r.foto} hecho="Puesta" />
+                    <Celda
+                      r={r.foto}
+                      hecho={
+                        r.foto?.ok
+                          ? `${r.foto.agregadas} foto${r.foto.agregadas === 1 ? "" : "s"}`
+                          : "Puesta"
+                      }
+                    />
                   </td>
                   <td className="px-4 py-2.5 text-xs">
                     <Celda r={r.descripcion} hecho="Puesta" />

@@ -67,6 +67,8 @@ export type Incompleto = {
   title: string;
   faltaFoto: boolean;
   faltaDescripcion: boolean;
+  /** Cuantas fotos tiene ya. */
+  fotos: number;
   /** El fabricante: "FV", "Piazza". */
   marca: string;
 };
@@ -74,18 +76,22 @@ export type Incompleto = {
 /** Los articulos de las marcas con pagina (FV, Piazza) sin foto o sin
  *  descripcion. Se guia por la marca cargada (Product.brand), no por el
  *  titulo. */
-export async function fvIncompletos(): Promise<Incompleto[]> {
+export async function fvIncompletos(
+  /** Tambien los que tienen UNA sola foto, para sumarles las otras del
+   *  modelo (Damian, 17/11/2026: "que traiga mas de 1 foto del modelo"). */
+  galeria = false,
+): Promise<Incompleto[]> {
   const session = await getAdminSession();
   if (!session) return [];
   const conWeb = await marcasConWeb();
   const filas = await prisma.product.findMany({
     where: {
       brand: { in: [...conWeb.keys()] },
-      OR: [
-        { images: { none: {} } },
-        { description: null },
-        { description: "" },
-      ],
+      ...(galeria
+        ? {}
+        : {
+            OR: [{ images: { none: {} } }, { description: null }, { description: "" }],
+          }),
     },
     select: {
       itemId: true,
@@ -96,10 +102,13 @@ export async function fvIncompletos(): Promise<Incompleto[]> {
     },
     orderBy: { itemId: "asc" },
   });
-  return filas.map((p) => ({
+  return filas
+    .filter((p) => !galeria || p._count.images < 2 || !p.description?.trim())
+    .map((p) => ({
     itemId: p.itemId,
     title: p.title,
-    faltaFoto: p._count.images === 0,
+    fotos: p._count.images,
+    faltaFoto: galeria ? p._count.images < 2 : p._count.images === 0,
     faltaDescripcion: !p.description?.trim(),
     marca: (p.brand && conWeb.get(p.brand)?.name) || "",
   }));
