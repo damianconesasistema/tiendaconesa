@@ -14,6 +14,7 @@ import { PriceHistoryPanel } from "@/components/admin/PriceHistoryPanel";
 import { formatPrice } from "@/lib/order";
 import { updateProduct } from "@/app/admin/productos/actions";
 import { geminiConfigurado } from "@/lib/gemini";
+import { sucursalDeEdicion } from "@/lib/precios-sucursal";
 
 export const metadata: Metadata = {
   title: "Editar producto · Panel Admin",
@@ -46,10 +47,33 @@ export default async function EditProductPage({
   // in() y no findUnique: los combos llevan + en el codigo y Next lo
   // entrega como espacio en los parametros de una pagina. Ver
   // codigoDeLaUrl.
-  const product = await prisma.product.findFirst({
+  const articulo = await prisma.product.findFirst({
     where: { itemId: { in: codigoDeLaUrl(itemId) } },
   });
-  if (!product) notFound();
+  if (!articulo) notFound();
+
+  // El precio, la oferta, el stock y si esta activo son del LOCAL que se esta
+  // editando (su fila en BranchProduct), no del articulo: el articulo guarda
+  // los de Traslasierra. Asi se GUARDAN (updateProduct -> guardarComercial),
+  // y asi se tienen que MOSTRAR. Antes la ficha leia los del articulo: un
+  // producto de Buenos Aires activo aparecia "Inactivo" con el tilde
+  // apagado, y al refrescarse la pagina (por ejemplo al traer fotos) y
+  // guardar, se pausaba. Damian, 17/11/2026: "cuando le pongo traer fotos
+  // me desactiva el producto, deberia quedar activo como estaba".
+  // Si este local no lo lleva todavia, se muestra pausado: guardar le crea
+  // la fila con lo que diga el formulario.
+  const local = await sucursalDeEdicion();
+  const fila = local
+    ? await prisma.branchProduct.findUnique({
+        where: { branchId_productId: { branchId: local.id, productId: articulo.id } },
+        select: { price: true, salePrice: true, stock: true, active: true },
+      })
+    : null;
+  const product = fila
+    ? { ...articulo, ...fila }
+    : local
+      ? { ...articulo, active: false }
+      : articulo;
 
   const history = await prisma.priceHistory.findMany({
     where: { productId: product.id },

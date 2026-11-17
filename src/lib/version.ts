@@ -2,6 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.88.1 - La ficha del producto muestra los datos del LOCAL. Damian,
+//            17/11/2026: "cuando le pongo traer fotos me desactiva el producto,
+//            deberia quedar activo como estaba". La ficha leia precio, stock y
+//            activo del articulo (que son los de Traslasierra) y al guardar los
+//            escribe en la fila del local (BranchProduct). Un producto de Buenos
+//            Aires activo se veia "Inactivo" con el tilde apagado; al
+//            refrescarse la pagina (traer fotos) y guardar, quedaba pausado.
+//            Ahora la ficha lee la fila del local que se edita, igual que la
+//            lista; si el local no lo lleva, lo muestra pausado.
 // V.0.88.0 - Todas las fotos del modelo, no solo una. Damian, 17/11/2026: "podes
 //            hacer que traiga mas de 1 foto del modelo?". El lector junta la
 //            galeria entera (Shopify, WooCommerce, VTEX, la galeria de Magento,
@@ -1011,7 +1020,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.88.0";
+export const APP_VERSION = "V.0.88.1";
 
 export type VersionEntry = {
   version: string;
