@@ -2,6 +2,11 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.88.2 - El boton de la ficha dice "Traer fotos desde la web de la marca"
+//            (Damian, 17/11/2026: "sino cambialo a traer fotos desde la web de
+//            la marca"). Aparece en todo articulo con marca; si la marca no
+//            tiene su pagina web cargada, avisa que se carga en Marcas en vez
+//            de buscar.
 // V.0.88.1 - La ficha del producto muestra los datos del LOCAL. Damian,
 //            17/11/2026: "cuando le pongo traer fotos me desactiva el producto,
 //            deberia quedar activo como estaba". La ficha leia precio, stock y
@@ -1020,7 +1025,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.88.1";
+export const APP_VERSION = "V.0.88.2";
 
 export type VersionEntry = {
   version: string;

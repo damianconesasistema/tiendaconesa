@@ -113,7 +113,8 @@ export default async function EditProductPage({
               itemId={product.itemId}
               category={product.category}
               initialImages={images}
-              fabricante={(product.brand && (await marcasConWeb()).get(product.brand)?.name) || null}
+              fabricante={(product.brand && (await getMarcas()).find((m) => m.id === product.brand)?.name) || null}
+              marcaConWeb={!!product.brand && (await marcasConWeb()).has(product.brand)}
             />
           </div>
           <h3 className="mt-4 line-clamp-3 font-display text-sm font-bold leading-tight">

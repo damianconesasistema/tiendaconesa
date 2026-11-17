@@ -35,6 +35,7 @@ export function ProductImageUpload({
   category,
   initialImages,
   fabricante = null,
+  marcaConWeb = false,
 }: {
   itemId: string;
   category: string;
@@ -43,6 +44,9 @@ export function ProductImageUpload({
    *  muestra "Traer foto de FV/Piazza", que la busca por el codigo
    *  (src/lib/fv.ts, fichaDelFabricante). */
   fabricante?: string | null;
+  /** Si la marca tiene su pagina web cargada en Marcas. Sin pagina, el boton
+   *  avisa que hay que cargarla en vez de buscar. */
+  marcaConWeb?: boolean;
 }) {
   const [images, setImages] = useState<Img[]>(initialImages);
   const [busy, setBusy] = useState(false);
@@ -192,6 +196,13 @@ export function ProductImageUpload({
   // Busca el articulo en la pagina de FV por su codigo y agrega la foto a
   // la galeria (principal si no tenia ninguna). Ver src/lib/fv.ts.
   function onTraerDeFV(aunqueSeaDeOtraTerminacion = false) {
+    if (!marcaConWeb) {
+      setFv({
+        ok: false,
+        texto: `${fabricante} no tiene cargada su página web. Cargala en Panel → Marcas ("Página web") y volvé a tocar el botón.`,
+      });
+      return;
+    }
     startTransition(async () => {
       setBusy(true);
       setError(null);
@@ -379,7 +390,7 @@ export function ProductImageUpload({
             className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--brand-red)] bg-white px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" />
-            Traer fotos de {fabricante}
+            Traer fotos desde la web de la marca
           </button>
           {fv && (
             <div
