@@ -141,7 +141,7 @@ export function htmlATexto(html: string): string {
     .trim();
 }
 
-async function pedir(
+export async function pedir(
   url: string,
   opciones: { json?: boolean; metodo?: "GET" | "POST"; cuerpo?: string } = {},
 ): Promise<{ status: number; url: string; texto: string } | null> {
@@ -173,7 +173,7 @@ async function pedir(
   }
 }
 
-function json<T>(texto: string): T | null {
+export function json<T>(texto: string): T | null {
   try {
     return JSON.parse(texto) as T;
   } catch {
@@ -228,7 +228,7 @@ function productosLd(html: string): ProductoLd[] {
   return salida;
 }
 
-function primeraImagen(img: unknown): string | null {
+export function primeraImagen(img: unknown): string | null {
   if (!img) return null;
   if (typeof img === "string") return img;
   if (Array.isArray(img)) return primeraImagen(img[0]);
@@ -276,7 +276,7 @@ function fotosValidas(lista: (string | null | undefined)[], web: string): string
   return salida;
 }
 
-function absoluta(url: string | null | undefined, base: string): string | null {
+export function absoluta(url: string | null | undefined, base: string): string | null {
   if (!url) return null;
   try {
     return new URL(decodificar(url), base).toString();

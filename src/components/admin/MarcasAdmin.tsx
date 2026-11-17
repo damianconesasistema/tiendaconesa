@@ -2,13 +2,24 @@
 
 import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
-import { Plus, Trash2, Lock, Check, ExternalLink } from "lucide-react";
-import { crearMarca, borrarMarca, cambiarWebDeMarca } from "@/app/admin/marcas/actions";
+import { Plus, Trash2, Lock, Check, ExternalLink, Download, Loader2 } from "lucide-react";
+import {
+  crearMarca,
+  borrarMarca,
+  cambiarWebDeMarca,
+  traerLogo,
+  traerLogosQueFaltan,
+  sacarLogo,
+} from "@/app/admin/marcas/actions";
 
 type Fila = {
   id: string;
   name: string;
   logo: string | null;
+  /** El logo del codigo es blanco: se muestra en negro. */
+  invert: boolean;
+  /** El logo se trajo de su pagina: se puede sacar. */
+  logoDeLaWeb: boolean;
   /** Su pagina oficial: de ahi se traen fotos y descripciones. */
   web: string | null;
   /** Las que vienen en el codigo no se borran desde el panel. */
@@ -36,6 +47,46 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
         setOk("Marca agregada");
         form.current?.reset();
       }
+    });
+  }
+
+  // Los logos que se pueden traer de la pagina de la marca.
+  const faltanLogo = marcas.filter((m) => m.web && !m.logo);
+  const [trayendo, setTrayendo] = useState<string | null>(null);
+
+  function unLogo(f: Fila) {
+    setError(null);
+    setOk(null);
+    setTrayendo(f.id);
+    iniciar(async () => {
+      const r = await traerLogo(f.id);
+      setTrayendo(null);
+      if (r.error) setError(`${f.name}: ${r.error}`);
+      else setOk(`Logo de ${f.name} traído de su página.`);
+    });
+  }
+
+  function todosLosLogos() {
+    setError(null);
+    setOk(null);
+    setTrayendo("todos");
+    iniciar(async () => {
+      const r = await traerLogosQueFaltan();
+      setTrayendo(null);
+      if ("error" in r) return setError(r.error);
+      setOk(`Listo: ${r.traidos} ${r.traidos === 1 ? "logo traído" : "logos traídos"}.`);
+      if (r.fallaron.length) setError(`No se pudieron traer: ${r.fallaron.join("; ")}.`);
+    });
+  }
+
+  function sinLogo(f: Fila) {
+    setError(null);
+    setOk(null);
+    if (!confirm(`¿Sacar el logo de ${f.name} que se trajo de su página?`)) return;
+    iniciar(async () => {
+      const r = await sacarLogo(f.id);
+      if (r.error) setError(r.error);
+      else setOk(`Se sacó el logo de ${f.name}.`);
     });
   }
 
@@ -114,6 +165,24 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
         {ok && <p className="mt-3 text-xs font-medium text-green-700">{ok}</p>}
       </form>
 
+      {faltanLogo.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-white p-4 shadow-sm">
+          <button
+            type="button"
+            onClick={todosLosLogos}
+            disabled={pendiente}
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 font-display text-xs font-bold uppercase tracking-wider text-white disabled:opacity-50"
+          >
+            {trayendo === "todos" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Traer los logos que faltan ({faltanLogo.length})
+          </button>
+          <span className="text-xs text-[var(--muted)]">
+            De la página web de cada marca: {faltanLogo.map((m) => m.name).join(", ")}. Las que no tienen
+            página cargada no se pueden traer solas: cargales la página abajo, y el logo viene solo.
+          </span>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white shadow-sm">
         <table className="w-full min-w-[46rem] text-sm">
           <thead className="bg-[var(--surface)] text-left text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
@@ -130,20 +199,42 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
               <tr key={m.id} className="border-t border-[var(--border)]">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    {m.logo ? (
-                      <Image
-                        src={m.logo}
-                        alt=""
-                        width={64}
-                        height={24}
-                        unoptimized
-                        className="h-6 w-auto max-w-[64px] object-contain"
-                      />
-                    ) : (
-                      <span className="inline-flex h-6 w-16 items-center justify-center rounded bg-[var(--surface)] text-[9px] uppercase text-[var(--muted)]">
-                        sin logo
-                      </span>
-                    )}
+                    <div className="flex w-16 shrink-0 flex-col items-center gap-0.5">
+                      {m.logo ? (
+                        <Image
+                          src={m.logo}
+                          alt=""
+                          width={64}
+                          height={24}
+                          unoptimized
+                          className={`h-6 w-auto max-w-[64px] object-contain ${m.invert ? "brightness-0" : ""}`}
+                        />
+                      ) : (
+                        <span className="inline-flex h-6 w-16 items-center justify-center rounded bg-[var(--surface)] text-[9px] uppercase text-[var(--muted)]">
+                          sin logo
+                        </span>
+                      )}
+                      {!m.logo && m.web && (
+                        <button
+                          type="button"
+                          onClick={() => unLogo(m)}
+                          disabled={pendiente}
+                          className="text-[10px] font-bold text-[var(--brand-red)] underline disabled:opacity-50"
+                        >
+                          {trayendo === m.id ? "trayendo…" : "traer logo"}
+                        </button>
+                      )}
+                      {m.logoDeLaWeb && (
+                        <button
+                          type="button"
+                          onClick={() => sinLogo(m)}
+                          disabled={pendiente}
+                          className="text-[10px] text-[var(--muted)] underline disabled:opacity-50"
+                        >
+                          sacar
+                        </button>
+                      )}
+                    </div>
                     <span className="font-medium">{m.name}</span>
                   </div>
                 </td>

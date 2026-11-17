@@ -253,7 +253,9 @@ export default async function Home() {
                 <Image
                   src={marca.logo!}
                   alt={marca.name}
-                  unoptimized={!marca.logo!.startsWith("/")}
+                  // Los traidos de la pagina de la marca (/api/marcas/logo/...)
+                  // ya vienen achicados, y su ?v= el optimizador no lo acepta.
+                  unoptimized={!marca.logo!.startsWith("/") || marca.logo!.startsWith("/api/")}
                   width={200}
                   height={80}
                   className={`w-auto max-w-full object-contain transition-all group-hover:scale-105 ${

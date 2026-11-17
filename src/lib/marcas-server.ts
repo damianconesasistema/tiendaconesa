@@ -65,18 +65,54 @@ async function leerExtras(): Promise<Marca[]> {
 
 /** Todas las marcas: las del codigo primero, despues las que agrego el admin. */
 export async function getMarcas(): Promise<Marca[]> {
-  const [extras, webs] = await Promise.all([leerExtras(), leerWebs()]);
+  const [extras, webs, logos] = await Promise.all([leerExtras(), leerWebs(), versionesDeLogos()]);
   const base = MARCAS_BASE.map((m) => ({ ...m }));
   const ids = new Set(base.map((m) => m.id));
   // Si alguien cargo una que ya existe en el codigo, gana la del codigo:
   // esa trae logo y alias.
   return base.concat(extras.filter((m) => !ids.has(m.id))).map((m) => {
-    if (!(m.id in webs)) return m;
-    const web = webs[m.id];
-    const { web: _codigo, ...resto } = m;
-    void _codigo;
-    return web ? { ...resto, web } : resto;
+    let r: Marca = m;
+    if (m.id in webs) {
+      const web = webs[m.id];
+      const { web: _codigo, ...resto } = m;
+      void _codigo;
+      r = web ? { ...resto, web } : resto;
+    }
+    // El logo traido de su pagina (src/lib/logo-de-marca.ts) gana: viene en
+    // color, asi que sin el "invert" del de codigo.
+    if (logos[m.id]) r = { ...r, logo: rutaDelLogo(m.id, logos[m.id]), invert: false, logoDeLaWeb: true };
+    return r;
   });
+}
+
+// ------------------------------------------------- logos traidos de la web
+
+/** {id: version}: que marcas tienen logo traido de su pagina. */
+export const SETTING_MARCAS_LOGO = "marcas_logo";
+export const claveDelLogo = (id: string) => `marca_logo:${id}`;
+
+export async function versionesDeLogos(): Promise<Record<string, number>> {
+  const raw = await getSetting(SETTING_MARCAS_LOGO);
+  try {
+    const o = JSON.parse(raw || "{}");
+    if (!o || typeof o !== "object" || Array.isArray(o)) return {};
+    const salida: Record<string, number> = {};
+    for (const [id, v] of Object.entries(o)) if (typeof v === "number" && v > 0) salida[id] = v;
+    return salida;
+  } catch {
+    return {};
+  }
+}
+
+export const rutaDelLogo = (id: string, version: number) =>
+  `/api/marcas/logo/${encodeURIComponent(id)}?v=${version}`;
+
+/** El logo guardado (PNG), para servirlo. */
+export async function logoGuardado(id: string): Promise<Buffer | null> {
+  const raw = await getSetting(claveDelLogo(id));
+  if (!raw) return null;
+  const b = Buffer.from(raw, "base64");
+  return b.length ? b : null;
 }
 
 /** Las marcas con pagina web cargada: id -> {nombre, web}. */

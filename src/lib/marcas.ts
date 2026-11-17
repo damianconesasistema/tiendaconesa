@@ -29,6 +29,8 @@ export type Marca = {
    *  bueno poner la web de la marca para ver si puede sacar info de ahi". Se
    *  cambia desde el panel, en Marcas; la de aca es la de arranque. */
   web?: string;
+  /** El logo se trajo de su pagina web desde el panel (y se puede sacar). */
+  logoDeLaWeb?: boolean;
 };
 
 export const MARCAS_BASE: readonly Marca[] = [

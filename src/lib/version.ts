@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.94.0 - Logos de marca traidos de su pagina. Damian, 17/11/2026: "a estas
+//            marcas le podes agregar el logo de la misma pagina
+//            automaticamente". En Marcas: "Traer los logos que faltan" (todas
+//            las que tienen pagina y no logo), "traer logo" en cada una y
+//            "sacar" si trajo otra imagen. Al cargarle la pagina a una marca
+//            sin logo, el logo viene solo. Se busca el que la empresa declara
+//            para Google y las imagenes "logo" del encabezado; se prefiere el
+//            de fondo transparente y no el blanco (no se veria). Probado con
+//            Daccord, Roca, Peirano, Mi Pileta y Piazza. Se guarda en la base
+//            y se sirve en /api/marcas/logo/<id>. En la lista de Marcas el
+//            logo blanco de FV ahora se ve (en negro, como en el inicio).
 // V.0.93.1 - Producto equivocado al traer de la web. Damian, 17/11/2026: "me trajo
 //            un producto que no es, se puede ... buscar nuevamente el
 //            producto". Daccord escribe el codigo como familia + variante
@@ -1129,7 +1140,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.93.1";
+export const APP_VERSION = "V.0.94.0";
 
 export type VersionEntry = {
   version: string;
