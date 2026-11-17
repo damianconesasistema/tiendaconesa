@@ -12,17 +12,20 @@ import {
   Plus,
   RotateCcw,
   Globe,
+  ImagePlus,
 } from "lucide-react";
 import {
   previsualizarAlta,
   crearArticulos,
   traerDeFV,
+  agregarMarcaDesdeAlta,
   type PreviewAltaResult,
   type ArticuloNuevo,
   type AltaResult,
   type AltaElegida,
   type RespuestaFV,
 } from "@/app/admin/productos/alta/actions";
+import { uploadOneImage, finishImageBulk } from "@/app/admin/productos/imagenes/actions";
 import { formatPrice } from "@/lib/order";
 import { subrubrosDe, subrubroSugerido } from "@/lib/subrubros";
 import { rubroSugerido } from "@/lib/alta-articulos";
@@ -37,6 +40,17 @@ const DE_A = 25;
  *  uno o dos: de a 10 queda lejos del corte y se ve avanzar. */
 const FV_DE_A = 4;
 const CREAR_DE_A = 10;
+
+/** El mismo tope que pone el servidor al subir una foto
+ *  (src/app/admin/productos/imagenes/actions.ts). Se avisa al elegirla, no
+ *  recien al crear. */
+const FOTO_MAX = 10 * 1024 * 1024;
+
+/** Una foto elegida en la compu para un articulo que todavia no existe. Se
+ *  guarda en memoria del navegador y se sube recien despues de crearlo. */
+type FotoPropia = { file: File; url: string };
+
+type MarcaDeLista = { id: string; name: string };
 
 type Edicion = {
   titulo?: string;
@@ -71,8 +85,40 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
   const [fv, setFv] = useState<Record<string, RespuestaFV>>({});
   const [avanceFV, setAvanceFV] = useState<Avance>(null);
   const [avanceAlta, setAvanceAlta] = useState<Avance>(null);
+  const [avanceFotos, setAvanceFotos] = useState<Avance>(null);
+  /** Las marcas que se agregaron desde esta pantalla. */
+  const [marcasNuevas, setMarcasNuevas] = useState<MarcaDeLista[]>([]);
+  /** La foto que se eligio en la compu para cada codigo. */
+  const [fotosPropias, setFotosPropias] = useState<Record<string, FotoPropia>>({});
+  // Para leerlas desde lo que corre en segundo plano (la busqueda en la web)
+  // y para soltar la memoria al salir de la pantalla.
+  const fotosPropiasRef = useRef(fotosPropias);
+  useEffect(() => {
+    fotosPropiasRef.current = fotosPropias;
+  }, [fotosPropias]);
+  useEffect(() => {
+    const fotos = fotosPropiasRef;
+    return () => {
+      for (const f of Object.values(fotos.current)) URL.revokeObjectURL(f.url);
+    };
+  }, []);
 
   const nuevos = prev?.nuevos ?? [];
+
+  /** La lista de marcas para elegir: la de la tienda mas las que se
+   *  agregaron aca, de la A a la Z (el orden del codigo es el del home y en
+   *  un desplegable no le dice nada a nadie). */
+  const marcas = useMemo(() => {
+    const base = prev?.marcas ?? [];
+    const ids = new Set(base.map((m) => m.id));
+    return [...base, ...marcasNuevas.filter((m) => !ids.has(m.id))].sort((a, b) =>
+      a.name.localeCompare(b.name, "es"),
+    );
+  }, [prev, marcasNuevas]);
+
+  function sumarMarca(m: MarcaDeLista) {
+    setMarcasNuevas((l) => (l.some((x) => x.id === m.id) ? l : [...l, m]));
+  }
   // El mismo recargo con el que el servidor va a hacer la cuenta. Se usa el
   // de verdad y no el descuento redondeado, para que el numero que se ve en
   // pantalla sea exactamente el que se guarda.
@@ -126,24 +172,50 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
       setFiltro("todos");
       setVisibles(DE_A);
       setFv({});
+      soltarFotos();
+      setMarcaParaTodos(r.ok ? marcaDelArchivo(file.name, r.marcas ?? []) : "");
       if (r.ok) setStage("revisar");
     });
+  }
+
+  // --- Fotos propias ---
+  // Damian, 17/11/2026: "el tema de las fotos, ahi en la precarga se puede
+  // hacer algo o solo cuando estamos ya creado el articulo?". Se eligen aca
+  // (archivo, arrastrada o pegada con Ctrl+V) y se suben al crear.
+
+  /** Pone o saca la foto de un articulo. Devuelve el error para mostrarlo en
+   *  la ficha, o null si quedo. */
+  function ponerFoto(itemCode: string, file: File | null): string | null {
+    if (file) {
+      if (!file.type.startsWith("image/")) return "Eso no es una imagen.";
+      if (file.size > FOTO_MAX) return "Pesa más de 10 MB. Elegí una más liviana.";
+    }
+    const vieja = fotosPropias[itemCode];
+    if (vieja) URL.revokeObjectURL(vieja.url);
+    const nueva = file ? { file, url: URL.createObjectURL(file) } : null;
+    setFotosPropias((p) => {
+      const n = { ...p };
+      if (nueva) n[itemCode] = nueva;
+      else delete n[itemCode];
+      return n;
+    });
+    // La que se elige a mano manda: la de la pagina del fabricante se
+    // destilda (se puede volver a tildar y van las dos).
+    if (file) editar(itemCode, { fotoFV: null });
+    return null;
+  }
+
+  function soltarFotos() {
+    for (const f of Object.values(fotosPropiasRef.current)) URL.revokeObjectURL(f.url);
+    setFotosPropias({});
   }
 
   // --- Marca para todos los que no tienen ---
   // Damian, 16/11/2026, con "pagina srl piazza.xlsx": 51 de 68 sin marca,
   // porque GBP no trae la columna y la descripcion casi nunca la nombra. De
-  // entrada se propone la que dice el nombre del archivo.
+  // entrada se propone la que dice el nombre del archivo (se elige al subirlo,
+  // en subir()).
   const [marcaParaTodos, setMarcaParaTodos] = useState("");
-  useEffect(() => {
-    if (!prev?.ok || !nombreArchivo) return;
-    const archivo = nombreArchivo.toLowerCase();
-    const m = (prev.marcas ?? []).find(
-      (x) => archivo.includes(x.id.toLowerCase()) || archivo.includes(x.name.toLowerCase()),
-    );
-    setMarcaParaTodos(m?.id ?? "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prev]);
 
   const sinMarcaTildados = nuevos.filter(
     (a) => !excluidos.has(a.itemCode) && !conEdicion(a).marca,
@@ -171,6 +243,30 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
       }
       return n;
     });
+  }
+
+  /** La marca que trae la columna del sistema y no esta en la lista: se
+   *  agrega y se les pone a todos los que la traen y siguen sin marca. */
+  async function agregarMarcaDelSistema(nombreGBP: string): Promise<string | null> {
+    try {
+      const r = await agregarMarcaDesdeAlta(nombreGBP);
+      if (!r.ok) return r.error;
+      sumarMarca(r.marca);
+      const igual = nombreGBP.trim().toLowerCase();
+      setEdiciones((prevEd) => {
+        const n = { ...prevEd };
+        for (const a of nuevos) {
+          if ((a.marcaGBP ?? "").trim().toLowerCase() !== igual) continue;
+          const e = n[a.itemCode] ?? {};
+          const actual = e.marca !== undefined ? e.marca : a.marca;
+          if (!actual) n[a.itemCode] = { ...e, marca: r.marca.id };
+        }
+        return n;
+      });
+      return null;
+    } catch {
+      return "No se pudo guardar. Probá de nuevo.";
+    }
   }
 
   /** Los tildados de una marca con pagina oficial que se sabe leer: FV y
@@ -216,7 +312,11 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
             n[r.itemCode] = {
               ...n[r.itemCode],
               titulo: r.titulo,
-              fotoFV: r.foto && !r.fotoDeOtraTerminacion ? r.foto : null,
+              // Si ya le eligieron una foto a mano, esa manda.
+              fotoFV:
+                r.foto && !r.fotoDeOtraTerminacion && !fotosPropiasRef.current[r.itemCode]
+                  ? r.foto
+                  : null,
               // La descripcion de la ficha va tildada sola: es la del
               // fabricante para ESE codigo.
               descripcion: r.descripcion ?? null,
@@ -277,17 +377,24 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
         descripcion: c.descripcion,
       };
     });
+    // Las fotos elegidas en la compu, de los que se van a crear.
+    const fotos = fotosPropias;
+    const conFotoPropia = lista.filter((it) => fotos[it.itemCode]).length;
     startTransition(async () => {
       const total: AltaResult = {
         ok: true,
         creados: 0,
         fotos: 0,
         fotosFallidas: 0,
+        fotosPropias: 0,
+        fotosPropiasFallidas: 0,
         omitidos: [],
       };
+      let fotosHechas = 0;
       setAvanceAlta({ hechos: 0, total: lista.length });
       for (let i = 0; i < lista.length; i += CREAR_DE_A) {
-        const r = await crearArticulos(lista.slice(i, i + CREAR_DE_A), { publicar });
+        const tanda = lista.slice(i, i + CREAR_DE_A);
+        const r = await crearArticulos(tanda, { publicar });
         if (!r.ok) {
           total.ok = false;
           total.error =
@@ -300,9 +407,41 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
         total.fotos = (total.fotos ?? 0) + (r.fotos ?? 0);
         total.fotosFallidas = (total.fotosFallidas ?? 0) + (r.fotosFallidas ?? 0);
         total.omitidos = [...(total.omitidos ?? []), ...(r.omitidos ?? [])];
+
+        // Recien ahora el articulo existe y se le puede subir la foto. Los
+        // que quedaron afuera (el codigo ya existia) no: esa foto iria a
+        // parar a otro articulo.
+        const afuera = new Set((r.omitidos ?? []).map((o) => o.itemCode));
+        for (const it of tanda) {
+          const foto = fotos[it.itemCode];
+          if (!foto) continue;
+          fotosHechas++;
+          if (afuera.has(it.itemCode)) continue;
+          setAvanceFotos({ hechos: fotosHechas, total: conFotoPropia });
+          let subio = false;
+          try {
+            const fd = new FormData();
+            fd.append("image", foto.file);
+            subio = (await uploadOneImage(it.itemCode, fd)).ok;
+          } catch {
+            subio = false;
+          }
+          if (subio) total.fotosPropias = (total.fotosPropias ?? 0) + 1;
+          else total.fotosPropiasFallidas = (total.fotosPropiasFallidas ?? 0) + 1;
+        }
+        setAvanceFotos(null);
         setAvanceAlta({ hechos: Math.min(i + CREAR_DE_A, lista.length), total: lista.length });
       }
+      // La tienda y el panel se refrescan una vez, al final de las fotos.
+      if ((total.fotosPropias ?? 0) > 0) {
+        try {
+          await finishImageBulk();
+        } catch {
+          // Las fotos ya quedaron guardadas; se ven al recargar.
+        }
+      }
       setAvanceAlta(null);
+      setAvanceFotos(null);
       setResultado(total);
       if (total.ok) setStage("listo");
     });
@@ -317,6 +456,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
     setNombreArchivo(null);
     setFv({});
     setAvanceFV(null);
+    soltarFotos();
   }
 
   // ------------------------------------------------------------- subir
@@ -383,11 +523,21 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
               ? "Quedaron publicados en la tienda."
               : "Quedaron ocultos: se ven en el panel, el cliente todavía no los ve. Revisalos y publicalos cuando quieras."}
           </p>
-          {((resultado.fotos ?? 0) > 0 || (resultado.fotosFallidas ?? 0) > 0) && (
+          {((resultado.fotos ?? 0) > 0 ||
+            (resultado.fotosFallidas ?? 0) > 0 ||
+            (resultado.fotosPropias ?? 0) > 0 ||
+            (resultado.fotosPropiasFallidas ?? 0) > 0) && (
             <p className="mt-1 text-sm text-[var(--muted)]">
-              {resultado.fotos ?? 0} con la foto de FV.
+              {(resultado.fotos ?? 0) > 0 &&
+                `${resultado.fotos} con la foto de la página del fabricante. `}
+              {(resultado.fotosPropias ?? 0) > 0 &&
+                `${resultado.fotosPropias} con la foto que elegiste. `}
               {(resultado.fotosFallidas ?? 0) > 0 &&
-                ` ${resultado.fotosFallidas} fotos no se pudieron bajar: esos quedaron con la foto genérica del rubro.`}
+                `${resultado.fotosFallidas} fotos de la web no se pudieron bajar. `}
+              {(resultado.fotosPropiasFallidas ?? 0) > 0 &&
+                `${resultado.fotosPropiasFallidas} de tus fotos no se pudieron subir: agregáselas desde la ficha del producto. `}
+              {((resultado.fotosFallidas ?? 0) > 0 || (resultado.fotosPropiasFallidas ?? 0) > 0) &&
+                "Esos quedaron con la foto genérica del rubro."}
             </p>
           )}
 
@@ -429,7 +579,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
 
   const s = prev?.stats;
   const rubros = prev?.rubros ?? [];
-  const marcas = prev?.marcas ?? [];
+  const conFoto = elegidos.filter((a) => fotosPropias[a.itemCode]).length;
 
   return (
     <div className="mt-8">
@@ -506,18 +656,14 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
               <span className="text-sm">
                 <strong>{sinMarcaTildados.length}</strong> sin marca. Ponerles:
               </span>
-              <select
+              <SelectorDeMarca
                 value={marcaParaTodos}
-                onChange={(e) => setMarcaParaTodos(e.target.value)}
+                marcas={marcas}
+                vacio="Elegí una marca"
+                onChange={setMarcaParaTodos}
+                onNueva={sumarMarca}
                 className="h-9 rounded-lg border border-[var(--border)] bg-white px-2 text-sm"
-              >
-                <option value="">Elegí una marca</option>
-                {(prev?.marcas ?? []).map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+              />
               <button
                 type="button"
                 onClick={ponerMarcaATodos}
@@ -527,8 +673,9 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
                 Aplicar a los {sinMarcaTildados.length}
               </button>
               <span className="text-xs text-[var(--muted)]">
-                Después se puede cambiar una por una. Los de otra marca (por
-                ejemplo Hydros) corregilos en su ficha.
+                Si no está en la lista, elegí “+ Agregar marca nueva”. Después
+                se puede cambiar una por una. Los de otra marca (por ejemplo
+                Hydros) corregilos en su ficha.
               </span>
             </div>
           )}
@@ -563,7 +710,18 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
             </div>
           )}
 
-          <div className="mt-4 space-y-3">
+          <p className="mt-4 flex items-start gap-2 text-xs text-[var(--muted)]">
+            <ImagePlus className="h-4 w-4 shrink-0" />
+            <span>
+              Fotos: en cada artículo podés elegir una de la compu, arrastrarla
+              al cuadrito o pegarla con Ctrl+V (en la web: clic derecho sobre la
+              foto → “Copiar imagen”, y después Ctrl+V sobre el artículo). Se
+              guardan cuando apretás Crear.
+              {conFoto > 0 && ` Van ${conFoto} con foto.`}
+            </span>
+          </p>
+
+          <div className="mt-3 space-y-3">
             {filtrados.slice(0, visibles).map((a) => (
               <Ficha
                 key={a.itemCode}
@@ -574,8 +732,12 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
                 marcas={marcas}
                 dctoContado={dctoContado}
                 deFV={fv[a.itemCode]}
+                fotoPropia={fotosPropias[a.itemCode]}
                 onAlternar={() => alternar(a.itemCode)}
                 onEditar={(c) => editar(a.itemCode, c)}
+                onFoto={(f) => ponerFoto(a.itemCode, f)}
+                onNuevaMarca={sumarMarca}
+                onAgregarMarcaGBP={agregarMarcaDelSistema}
               />
             ))}
           </div>
@@ -615,9 +777,11 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
               ) : (
                 <Plus className="h-4 w-4" />
               )}
-              {avanceAlta
-                ? `Creando… ${avanceAlta.hechos} de ${avanceAlta.total}`
-                : `Crear ${elegidos.length} artículo${elegidos.length === 1 ? "" : "s"}`}
+              {avanceFotos
+                ? `Subiendo fotos… ${avanceFotos.hechos} de ${avanceFotos.total}`
+                : avanceAlta
+                  ? `Creando… ${avanceAlta.hechos} de ${avanceAlta.total}`
+                  : `Crear ${elegidos.length} artículo${elegidos.length === 1 ? "" : "s"}`}
             </button>
           </div>
         </>
@@ -689,24 +853,70 @@ function Ficha({
   marcas,
   dctoContado,
   deFV,
+  fotoPropia,
   onAlternar,
   onEditar,
+  onFoto,
+  onNuevaMarca,
+  onAgregarMarcaGBP,
 }: {
   a: ArticuloNuevo & { fotoFV: string | null; descripcion: string | null };
   original: ArticuloNuevo;
   incluido: boolean;
   rubros: { slug: string; name: string }[];
-  marcas: { id: string; name: string }[];
+  marcas: MarcaDeLista[];
   dctoContado: number;
   deFV?: RespuestaFV;
+  fotoPropia?: FotoPropia;
   onAlternar: () => void;
   onEditar: (c: Edicion) => void;
+  /** Devuelve el error para mostrar, o null si la foto quedo. */
+  onFoto: (f: File | null) => string | null;
+  onNuevaMarca: (m: MarcaDeLista) => void;
+  onAgregarMarcaGBP: (nombre: string) => Promise<string | null>;
 }) {
   const margenFlojo = a.margenPct !== null && a.margenPct < 10;
   const subrubros = subrubrosDe(a.categoria);
+  const [errorFoto, setErrorFoto] = useState<string | null>(null);
+  const [errorMarcaGBP, setErrorMarcaGBP] = useState<string | null>(null);
+  const [agregandoGBP, startAgregarGBP] = useTransition();
+
+  function elegirFoto(f: File | null) {
+    setErrorFoto(onFoto(f));
+  }
+
+  // La marca del sistema que no esta en la lista: si ya se agrego (desde
+  // esta ficha o desde otra), no se ofrece de nuevo.
+  const marcaGBPFalta =
+    !original.marca &&
+    !!original.marcaGBP &&
+    !marcas.some((m) => m.name.toLowerCase() === original.marcaGBP!.trim().toLowerCase());
+
   return (
     <div
-      className={`rounded-xl border bg-white p-4 ${
+      // Se puede pegar una foto (Ctrl+V) con el foco en cualquier parte de
+      // la ficha, incluso escribiendo el titulo: si lo pegado es texto, sigue
+      // de largo como siempre.
+      tabIndex={-1}
+      onPaste={(e) => {
+        const f = imagenDe(e.clipboardData);
+        if (!f) return;
+        e.preventDefault();
+        elegirFoto(f);
+      }}
+      // Un archivo soltado sobre la ficha (fuera del cuadrito) tambien vale.
+      // Si no se ataja, el navegador abre la imagen y se pierde la carga.
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes("Files")) e.preventDefault();
+      }}
+      onDrop={(e) => {
+        if (!e.dataTransfer.types.includes("Files")) return;
+        e.preventDefault();
+        const f = imagenDe(e.dataTransfer);
+        if (f) elegirFoto(f);
+        else setErrorFoto("Eso no es una imagen.");
+      }}
+      className={`rounded-xl border bg-white p-4 outline-none focus:border-[var(--brand-red)] ${
         incluido ? "border-[var(--border)]" : "border-dashed border-[var(--border)] opacity-50"
       }`}
     >
@@ -830,30 +1040,49 @@ function Ficha({
             </div>
           )}
         </div>
+
+        <CuadroFoto foto={fotoPropia} error={errorFoto} onElegir={elegirFoto} onError={setErrorFoto} />
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <div>
           <label className="text-xs text-[var(--muted)]">Marca</label>
-          <select
-            value={a.marca ?? ""}
-            onChange={(e) => onEditar({ marca: e.target.value || null })}
-            className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
-            <option value="">Sin marca</option>
-            {marcas.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          <div className="mt-1">
+            <SelectorDeMarca
+              value={a.marca ?? ""}
+              marcas={marcas}
+              vacio="Sin marca"
+              onChange={(id) => onEditar({ marca: id || null })}
+              onNueva={onNuevaMarca}
+              className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            />
+          </div>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            {original.marca
-              ? "de la columna del sistema"
-              : original.marcaGBP
-                ? `el sistema dice "${original.marcaGBP}", que no está en tu lista de marcas`
-                : "el archivo no trae marca"}
+            {original.marca ? (
+              "de la columna del sistema"
+            ) : marcaGBPFalta ? (
+              <>
+                el sistema dice &quot;{original.marcaGBP}&quot;, que no está en tu lista de marcas
+                <button
+                  type="button"
+                  disabled={agregandoGBP}
+                  onClick={() =>
+                    startAgregarGBP(async () => {
+                      setErrorMarcaGBP(await onAgregarMarcaGBP(original.marcaGBP!));
+                    })
+                  }
+                  className="ml-2 font-medium text-[var(--brand-red)] disabled:opacity-40"
+                >
+                  {agregandoGBP ? "agregando…" : "agregarla"}
+                </button>
+              </>
+            ) : original.marcaGBP ? (
+              `el sistema dice "${original.marcaGBP}"`
+            ) : (
+              "el archivo no trae marca"
+            )}
           </p>
+          {errorMarcaGBP && <p className="mt-1 text-xs text-red-700">{errorMarcaGBP}</p>}
         </div>
         <div>
           <label className="text-xs text-[var(--muted)]">Rubro</label>
@@ -942,5 +1171,227 @@ function Ficha({
         </div>
       )}
     </div>
+  );
+}
+
+/** La marca que nombra el archivo ("pagina srl piazza.xlsx" → Piazza), o "". */
+function marcaDelArchivo(nombre: string, marcas: MarcaDeLista[]): string {
+  const archivo = nombre.toLowerCase();
+  const m = marcas.find(
+    (x) => archivo.includes(x.id.toLowerCase()) || archivo.includes(x.name.toLowerCase()),
+  );
+  return m?.id ?? "";
+}
+
+/** La imagen que trae un pegado o un arrastre, si trae una. Chrome pone la
+ *  copiada ("Copiar imagen") en files; algunos navegadores solo en items. */
+function imagenDe(dt: DataTransfer | null): File | null {
+  if (!dt) return null;
+  for (const f of Array.from(dt.files ?? [])) if (f.type.startsWith("image/")) return f;
+  for (const it of Array.from(dt.items ?? [])) {
+    if (it.kind === "file" && it.type.startsWith("image/")) {
+      const f = it.getAsFile();
+      if (f) return f;
+    }
+  }
+  return null;
+}
+
+/** El cuadrito de la foto de cada articulo: clic para elegir, arrastrar un
+ *  archivo o pegar con Ctrl+V (eso lo escucha la ficha entera). */
+function CuadroFoto({
+  foto,
+  error,
+  onElegir,
+  onError,
+}: {
+  foto?: FotoPropia;
+  error: string | null;
+  onElegir: (f: File | null) => void;
+  onError: (e: string | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [encima, setEncima] = useState(false);
+  return (
+    <div className="w-24 shrink-0 text-center">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setEncima(true);
+        }}
+        onDragLeave={() => setEncima(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          // La ficha tambien escucha el soltar: que no la ponga dos veces.
+          e.stopPropagation();
+          setEncima(false);
+          const f = imagenDe(e.dataTransfer);
+          if (f) onElegir(f);
+          // Arrastrada desde otra pagina llega el link, no la imagen: el
+          // navegador no deja leerla. Copiar y pegar si funciona.
+          else
+            onError(
+              "Desde otra página no se puede arrastrar. Clic derecho en la foto → “Copiar imagen” y pegala acá con Ctrl+V.",
+            );
+        }}
+        title="Elegí una foto, arrastrala acá o pegala con Ctrl+V"
+        className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-lg border transition-colors hover:border-[var(--brand-red)] ${
+          encima
+            ? "border-[var(--brand-red)] bg-red-50"
+            : foto
+              ? "border-[var(--border)] bg-white"
+              : "border-dashed border-[var(--border)] bg-[var(--surface)]"
+        }`}
+      >
+        {foto ? (
+          // Es la foto elegida en la compu, todavia sin subir: el
+          // optimizador de imagenes de Next no la puede ver.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={foto.url} alt="" className="h-full w-full object-contain" />
+        ) : (
+          <span className="flex flex-col items-center gap-1 px-1 text-[10px] leading-tight text-[var(--muted)]">
+            <ImagePlus className="h-5 w-5" />
+            Foto: elegir, arrastrar o pegar
+          </span>
+        )}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onElegir(f);
+          // Para poder volver a elegir el mismo archivo despues de quitarlo.
+          e.target.value = "";
+        }}
+      />
+      {foto && (
+        <button
+          type="button"
+          onClick={() => onElegir(null)}
+          className="mt-1 text-[11px] font-medium text-[var(--brand-red)]"
+        >
+          quitar
+        </button>
+      )}
+      {error && <p className="mt-1 text-left text-[11px] leading-tight text-red-700">{error}</p>}
+    </div>
+  );
+}
+
+const MARCA_NUEVA = "__nueva__";
+
+/** El desplegable de marcas con una opcion mas al final: "+ Agregar marca
+ *  nueva…". Al elegirla aparece el campo para escribirla; se guarda en la
+ *  lista de marcas de la tienda (la misma de la pantalla Marcas) y queda
+ *  elegida. Damian, 17/11/2026: "esa marca no la tengo, deberia poder
+ *  agregarse la misma manualmente". */
+function SelectorDeMarca({
+  value,
+  marcas,
+  vacio,
+  onChange,
+  onNueva,
+  className,
+}: {
+  value: string;
+  marcas: MarcaDeLista[];
+  vacio: string;
+  onChange: (id: string) => void;
+  onNueva: (m: MarcaDeLista) => void;
+  className: string;
+}) {
+  const [creando, setCreando] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [guardando, startGuardar] = useTransition();
+
+  function cancelar() {
+    setCreando(false);
+    setNombre("");
+    setError(null);
+  }
+
+  function guardar() {
+    if (!nombre.trim() || guardando) return;
+    setError(null);
+    startGuardar(async () => {
+      try {
+        const r = await agregarMarcaDesdeAlta(nombre);
+        if (!r.ok) {
+          setError(r.error);
+          return;
+        }
+        onNueva(r.marca);
+        onChange(r.marca.id);
+        cancelar();
+      } catch {
+        setError("No se pudo guardar. Probá de nuevo.");
+      }
+    });
+  }
+
+  if (creando)
+    return (
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            autoFocus
+            type="text"
+            value={nombre}
+            maxLength={40}
+            placeholder="Nombre de la marca"
+            onChange={(e) => setNombre(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                guardar();
+              } else if (e.key === "Escape") cancelar();
+            }}
+            className="h-9 min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-white px-2 text-sm"
+            aria-label="Nombre de la marca nueva"
+          />
+          <button
+            type="button"
+            onClick={guardar}
+            disabled={guardando || !nombre.trim()}
+            className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-red)] px-3 py-1.5 font-display text-[11px] font-bold uppercase tracking-wider text-white disabled:opacity-40"
+          >
+            {guardando && <Loader2 className="h-3 w-3 animate-spin" />}
+            Agregar
+          </button>
+          <button
+            type="button"
+            onClick={cancelar}
+            className="text-xs text-[var(--muted)] hover:text-foreground"
+          >
+            Cancelar
+          </button>
+        </div>
+        {error && <p className="mt-1 text-xs text-red-700">{error}</p>}
+      </div>
+    );
+
+  return (
+    <select
+      value={value}
+      onChange={(e) => {
+        if (e.target.value === MARCA_NUEVA) setCreando(true);
+        else onChange(e.target.value);
+      }}
+      className={className}
+    >
+      <option value="">{vacio}</option>
+      {marcas.map((m) => (
+        <option key={m.id} value={m.id}>
+          {m.name}
+        </option>
+      ))}
+      <option value={MARCA_NUEVA}>+ Agregar marca nueva…</option>
+    </select>
   );
 }

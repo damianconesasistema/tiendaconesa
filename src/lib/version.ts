@@ -2,6 +2,23 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.85.0 - Crear por Excel: marca nueva a mano y fotos antes de crear.
+//            Damian, 17/11/2026, con un Excel de bachas (SKU A03-02) sin
+//            marca: "esa marca no la tengo, deberia poder agregarse la misma
+//            manualmente" y "el tema de las fotos, ahi en la precarga se puede
+//            hacer algo o solo cuando estamos ya creado el articulo?".
+//            MARCA: los desplegables de marca (el de "marca para todos" y el de
+//            cada articulo) tienen al final "+ Agregar marca nueva…". Se
+//            escribe y queda en la lista de Marcas de la tienda (ahi despues se
+//            le pone el logo) y elegida. Si ya estaba, se elige esa. Si la
+//            columna del sistema trae una marca que no esta, boton "agregarla",
+//            que se la pone a todos los que la traen. La lista va de la A a la Z.
+//            FOTOS: cada articulo tiene un cuadrito de foto: clic para elegirla
+//            de la compu, arrastrar el archivo, o pegarla con Ctrl+V (en la
+//            web: clic derecho, "Copiar imagen"). Queda en el navegador y se
+//            sube recien al crear, despues de cada tanda (uploadOneImage, la de
+//            "Cargar fotos por carpeta"). La elegida a mano destilda la de la
+//            pagina del fabricante. Al final dice cuantos quedaron con foto.
 // V.0.84.0 - La tienda pasa a tienda.conesa.com.ar. Damian, 17/11/2026: "los
 //            subdominios no deberian estar mas, la idea es que sea
 //            tienda.conesa.com.ar y esa es la global". Se cargo la direccion en
@@ -935,7 +952,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.84.0";
+export const APP_VERSION = "V.0.85.0";
 
 export type VersionEntry = {
   version: string;

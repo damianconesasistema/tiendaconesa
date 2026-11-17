@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
-import { getMarcas } from "@/lib/marcas-server";
+import { agregarMarca, getMarcas } from "@/lib/marcas-server";
 import { detectarMarca, slugMarca } from "@/lib/marcas";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
@@ -291,8 +291,47 @@ export type AltaResult = {
   /** Cuantas fotos de FV quedaron guardadas, y cuantas no bajaron. */
   fotos?: number;
   fotosFallidas?: number;
+  /** Las fotos que se eligieron en la compu. Las sube la pantalla despues
+   *  de crear cada tanda (ver AltaArticulosFlow), asi que estos dos los
+   *  completa ella, no el servidor. */
+  fotosPropias?: number;
+  fotosPropiasFallidas?: number;
   omitidos?: { itemCode: string; motivo: string }[];
 };
+
+// ------------------------------------------------------- marca nueva
+
+/** Suma una marca a la lista sin salir de la carga.
+ *
+ *  Damian, 17/11/2026, con un Excel de bachas sin marca: "esa marca no la
+ *  tengo, deberia poder agregarse la misma manualmente". Es la misma lista de
+ *  la pantalla Marcas (src/lib/marcas-server.ts): ahi despues se le puede
+ *  poner el logo. Si ya estaba (mismo nombre o mismo identificador), se
+ *  devuelve esa en vez de dar error: lo que se quiere es elegirla. */
+export async function agregarMarcaDesdeAlta(
+  nombre: string,
+): Promise<{ ok: true; marca: { id: string; name: string } } | { ok: false; error: string }> {
+  const session = await getAdminSession();
+  if (!session) return { ok: false, error: "Sesión vencida. Entrá de nuevo." };
+
+  const name = String(nombre || "").trim().replace(/\s+/g, " ");
+  if (!name) return { ok: false, error: "Escribí el nombre de la marca" };
+
+  const id = slugMarca(name);
+  const ya = (await getMarcas()).find(
+    (m) => m.id === id || m.name.toLowerCase() === name.toLowerCase(),
+  );
+  if (ya) return { ok: true, marca: { id: ya.id, name: ya.name } };
+
+  const r = await agregarMarca(name);
+  if (r.error || !r.id) return { ok: false, error: r.error ?? "No se pudo agregar la marca" };
+
+  revalidatePath("/admin/marcas");
+  revalidatePath("/admin/productos");
+  revalidatePath("/tienda");
+  revalidatePath("/");
+  return { ok: true, marca: { id: r.id, name } };
+}
 
 // ------------------------------------------------------------- traer de FV
 
