@@ -283,14 +283,16 @@ export default async function ProductosAdmin({
             <PackagePlus className="h-4 w-4" />
             Crear por Excel
           </Link>
-          {/* Fotos de FV por el codigo, para los que ya estan cargados sin
-              foto. Uno por uno esta en la ficha de cada articulo. */}
+          {/* Fotos (y descripcion) de la pagina oficial de la marca, por el
+              codigo, para los que ya estan cargados. FV y Piazza por ahora
+              (src/lib/marcas-con-pagina.ts). Damian, 17/11/2026: "que no diga
+              FV porque va a ser para todas las marcas". */}
           <Link
             href="/admin/productos/fotos-fv"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-foreground transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
           >
             <ImageDown className="h-4 w-4" />
-            Fotos y descripción FV
+            Fotos de la web
           </Link>
           {/* La descripcion de muchos a la vez, de cualquier marca: lo mismo
               que "Buscar en la web" de la ficha, en tanda y con revision. */}

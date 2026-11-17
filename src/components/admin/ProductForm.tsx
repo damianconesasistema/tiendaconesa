@@ -1,5 +1,6 @@
 "use client";
 
+import { fabricanteConPagina } from "@/lib/marcas-con-pagina";
 import { useActionState, useEffect, useState, useRef, useTransition } from "react";
 import { Check, AlertCircle, Sparkles, Loader2, Globe } from "lucide-react";
 import { descripcionDeFV } from "@/app/admin/productos/fotos-fv/actions";
@@ -202,7 +203,7 @@ export function ProductForm({
   // con el boton de siempre.
   const [webPending, startWeb] = useTransition();
   const [webMsg, setWebMsg] = useState<{ ok: boolean; texto: string } | null>(null);
-  const puedeBuscarEnLaWeb = iaDisponible || product.brand === "fv";
+  const puedeBuscarEnLaWeb = iaDisponible || fabricanteConPagina(product.brand) !== null;
 
   function buscarEnLaWeb() {
     const actual = descRef.current?.value.trim();
@@ -225,13 +226,15 @@ export function ProductForm({
     startWeb(async () => {
       try {
         let noEstaEnFV = false;
-        if (marca === "fv") {
+        // FV y Piazza: primero su pagina oficial (src/lib/marcas-con-pagina.ts).
+        const fabricante = fabricanteConPagina(marca);
+        if (fabricante) {
           const r = await descripcionDeFV(product.itemId);
           if (r.ok && descRef.current) {
             descRef.current.value = r.texto;
             setWebMsg({
               ok: true,
-              texto: "Sacada de la página oficial de FV. Revisala y apretá Guardar.",
+              texto: `Sacada de la página oficial de ${fabricante}. Revisala y apretá Guardar.`,
             });
             return;
           }
@@ -241,7 +244,7 @@ export function ProductForm({
           setWebMsg({
             ok: false,
             texto: noEstaEnFV
-              ? "No está en la página de FV, y la búsqueda en internet no está configurada."
+              ? `No está en la página de ${fabricante}, y la búsqueda en internet no está configurada.`
               : "La búsqueda en internet no está configurada.",
           });
           return;
@@ -254,7 +257,7 @@ export function ProductForm({
           setWebMsg({
             ok: true,
             texto: noEstaEnFV
-              ? "No estaba en la página de FV: la busqué en el resto de internet. Revisala y apretá Guardar."
+              ? `No estaba en la página de ${fabricante}: la busqué en el resto de internet. Revisala y apretá Guardar.`
               : "Buscada en internet. Revisala y apretá Guardar.",
           });
         } else {

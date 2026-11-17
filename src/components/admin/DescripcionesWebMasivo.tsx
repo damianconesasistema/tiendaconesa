@@ -1,5 +1,6 @@
 "use client";
 
+import { fabricanteConPagina } from "@/lib/marcas-con-pagina";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { Globe, Loader2, Check, AlertTriangle, Square, Save } from "lucide-react";
@@ -30,7 +31,7 @@ type Fila = {
 };
 
 const ETIQUETA: Record<Fuente, string> = {
-  fv: "Página oficial de FV",
+  fv: "Página oficial de la marca",
   web: "Buscada en internet",
   titulo: "Sin búsqueda en internet: escrita solo con el título. Revisala bien.",
 };
@@ -51,7 +52,7 @@ export function DescripcionesWebMasivo({
   const parar = useRef(false);
 
   const titulo = new Map(pendientes.map((p) => [p.itemId, p.title]));
-  const sinFV = pendientes.filter((p) => p.brand !== "fv").length;
+  const sinFV = pendientes.filter((p) => !fabricanteConPagina(p.brand)).length;
 
   async function buscar() {
     parar.current = false;
@@ -145,7 +146,7 @@ export function DescripcionesWebMasivo({
         {!iaDisponible && sinFV > 0 && (
           <p className="mt-2 text-sm text-amber-800">
             La búsqueda en internet no está configurada: solo se van a poder
-            completar los FV, desde la página de FV.
+            completar los de FV y Piazza, desde la página de cada marca.
           </p>
         )}
         <p className="mt-2 text-xs text-[var(--muted)]">

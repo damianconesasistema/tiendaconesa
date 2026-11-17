@@ -34,14 +34,15 @@ export function ProductImageUpload({
   itemId,
   category,
   initialImages,
-  deFV = false,
+  fabricante = null,
 }: {
   itemId: string;
   category: string;
   initialImages: Img[];
-  /** Si el articulo es de FV: muestra "Traer foto de FV", que la busca por
-   *  el codigo en fvsa.com (src/lib/fv.ts). */
-  deFV?: boolean;
+  /** Si la marca tiene pagina oficial que se sabe leer ("FV", "Piazza"):
+   *  muestra "Traer foto de FV/Piazza", que la busca por el codigo
+   *  (src/lib/fv.ts, fichaDelFabricante). */
+  fabricante?: string | null;
 }) {
   const [images, setImages] = useState<Img[]>(initialImages);
   const [busy, setBusy] = useState(false);
@@ -201,8 +202,8 @@ export function ProductImageUpload({
         setFv({
           ok: true,
           texto: r.principal
-            ? "Listo: la foto de FV quedó como principal."
-            : "Listo: la foto de FV se agregó al final. Si la querés de principal, tocá la estrellita.",
+            ? `Listo: la foto de ${fabricante} quedó como principal.`
+            : `Listo: la foto de ${fabricante} se agregó al final. Si la querés de principal, tocá la estrellita.`,
           ficha: r.ficha,
         });
       } else {
@@ -364,7 +365,7 @@ export function ProductImageUpload({
             : "Agregar más fotos"}
       </button>
 
-      {deFV && (
+      {fabricante && (
         <div className="mt-2">
           <button
             type="button"
@@ -373,7 +374,7 @@ export function ProductImageUpload({
             className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--brand-red)] bg-white px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" />
-            Traer foto de FV
+            Traer foto de {fabricante}
           </button>
           {fv && (
             <div
@@ -387,7 +388,7 @@ export function ProductImageUpload({
               {fv.otraTerminacion && (
                 <p className="mt-1">
                   Es el mismo modelo en otra terminación (por ejemplo, cromo en
-                  vez de negro). Mirala en FV antes de usarla.
+                  vez de negro). Mirala en {fabricante} antes de usarla.
                 </p>
               )}
               <div className="mt-1.5 flex flex-wrap items-center gap-3">
@@ -398,7 +399,7 @@ export function ProductImageUpload({
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 font-bold underline"
                   >
-                    Ver en FV <ExternalLink className="h-3 w-3" />
+                    Ver en {fabricante} <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
                 {fv.otraTerminacion && (

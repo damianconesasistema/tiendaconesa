@@ -12,6 +12,7 @@ import {
   partirTitulo,
   type TituloFV,
 } from "@/lib/fv-ficha";
+import { buscarEnPiazza } from "@/lib/piazza";
 
 // Ir a buscar a la web de FV. La lectura de las paginas esta en fv-ficha.ts;
 // aca solo se piden y se guarda la foto.
@@ -175,6 +176,41 @@ export async function guardarFotoDeFV(
 }
 
 // ---------------------------------------------------------------------------
+// La ficha del fabricante de un articulo YA CARGADO, segun su marca.
+//
+// Damian, 17/11/2026, sobre el boton "Fotos y descripcion FV": "que no diga
+// FV porque va a ser para todas las marcas". Hoy se sabe leer la pagina de FV
+// y la de Piazza (src/lib/marcas-con-pagina.ts). La foto y la descripcion de
+// abajo pasan por aca, asi andan para las dos.
+// ---------------------------------------------------------------------------
+
+export type FichaDeFabricante = DatosFV & { fabricante: string };
+
+export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabricante> {
+  const p = await prisma.product.findUnique({
+    where: { itemId },
+    select: { brand: true, title: true, memo: true },
+  });
+  if (p?.brand === "piazza") {
+    // El codigo de Piazza no es el SKU: viene en la descripcion de GBP (que
+    // queda en memo al crear por Excel) o en el titulo ("... Piazza 21006").
+    const conMemo = p.memo?.trim() ? await buscarEnPiazza(p.memo, itemId) : null;
+    const d = conMemo?.encontrado ? conMemo : await buscarEnPiazza(p.title, itemId);
+    const r = d.encontrado || !conMemo ? d : conMemo;
+    return {
+      encontrado: r.encontrado,
+      motivo: r.motivo,
+      ficha: r.ficha,
+      foto: r.foto ?? null,
+      descripcion: r.descripcion ?? null,
+      fabricante: "Piazza",
+    };
+  }
+  // FV: el SKU es el codigo de FV. Cualquier otra marca, como antes.
+  return { ...(await buscarEnFV(itemId)), fabricante: "FV" };
+}
+
+// ---------------------------------------------------------------------------
 // Foto de FV para un articulo YA CARGADO.
 //
 // Damian, 16/11/2026: "podes hacer que levante por el codigo fotos del
@@ -214,25 +250,25 @@ export async function agregarFotoDeFV(
   if (producto.images.length >= MAX_FOTOS)
     return { ok: false, motivo: `ya tiene ${MAX_FOTOS} fotos, el máximo` };
 
-  const d = await buscarEnFV(itemId);
-  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? "FV no lo tiene" };
+  const d = await fichaDelFabricante(itemId);
+  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? `${d.fabricante} no lo tiene` };
   if (!d.foto)
-    return { ok: false, motivo: "FV no tiene foto de este modelo", ficha: d.ficha };
+    return { ok: false, motivo: `${d.fabricante} no tiene foto de este modelo`, ficha: d.ficha };
   if (d.fotoDeOtraTerminacion && !opciones.aunqueSeaDeOtraTerminacion)
     return {
       ok: false,
-      motivo: "FV tiene la foto de este modelo pero en otra terminación",
+      motivo: `${d.fabricante} tiene la foto de este modelo pero en otra terminación`,
       deOtraTerminacion: true,
       ficha: d.ficha,
     };
 
   const foto = await bajarFotoDeFV(d.foto);
-  if (!foto) return { ok: false, motivo: "la foto de FV no se pudo bajar", ficha: d.ficha };
+  if (!foto) return { ok: false, motivo: `la foto de ${d.fabricante} no se pudo bajar`, ficha: d.ficha };
 
   // Apretar dos veces no la carga dos veces: la misma foto de FV, achicada
   // igual, da exactamente los mismos bytes.
   if (producto.images.some((i) => Buffer.from(i.data).equals(foto.data)))
-    return { ok: false, motivo: "ya tiene esa foto de FV", ficha: d.ficha };
+    return { ok: false, motivo: `ya tiene esa foto de ${d.fabricante}`, ficha: d.ficha };
 
   const principal = producto.images.length === 0;
   await prisma.productImage.create({
@@ -276,10 +312,10 @@ export async function agregarDescripcionDeFV(
   if (producto.description?.trim())
     return { ok: false, motivo: "ya tiene descripción" };
 
-  const d = await buscarEnFV(itemId);
-  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? "FV no lo tiene" };
+  const d = await fichaDelFabricante(itemId);
+  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? `${d.fabricante} no lo tiene` };
   if (!d.descripcion)
-    return { ok: false, motivo: "la ficha de FV no trae descripción", ficha: d.ficha };
+    return { ok: false, motivo: `la ficha de ${d.fabricante} no trae descripción`, ficha: d.ficha };
 
   await prisma.product.update({
     where: { itemId },

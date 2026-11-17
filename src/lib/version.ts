@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.86.0 - "Fotos y descripcion FV" pasa a "Fotos de la web" y anda tambien
+//            con Piazza. Damian, 17/11/2026: "eso que no diga fv porque va a
+//            ser para todas las marcas". Las marcas cuya pagina oficial se sabe
+//            leer quedan en un solo lugar (src/lib/marcas-con-pagina.ts: FV y
+//            Piazza), y fichaDelFabricante (src/lib/fv.ts) elige el lector por
+//            la marca del articulo. Piazza busca su codigo en la descripcion de
+//            GBP (memo) y si no en el titulo ("... Piazza 21006"). Con eso, para
+//            Piazza tambien: la pantalla masiva, "Traer foto de Piazza" en la
+//            ficha, "Buscar en la web" de la descripcion (primero la pagina
+//            oficial) y "Descripciones de la web". Las otras marcas no tienen
+//            de donde traer foto; la pantalla lo explica.
 // V.0.85.0 - Crear por Excel: marca nueva a mano y fotos antes de crear.
 //            Damian, 17/11/2026, con un Excel de bachas (SKU A03-02) sin
 //            marca: "esa marca no la tengo, deberia poder agregarse la misma
@@ -952,7 +963,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.85.0";
+export const APP_VERSION = "V.0.86.0";
 
 export type VersionEntry = {
   version: string;

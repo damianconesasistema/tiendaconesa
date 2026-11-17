@@ -6,9 +6,10 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { FotosFVMasivo } from "@/components/admin/FotosFVMasivo";
 import { fvIncompletos } from "./actions";
+import { nombresConPagina } from "@/lib/marcas-con-pagina";
 
 export const metadata: Metadata = {
-  title: "Fotos y descripción de FV · Panel Admin",
+  title: "Fotos de la web · Panel Admin",
   robots: { index: false, follow: false },
 };
 
@@ -36,14 +37,19 @@ export default async function FotosFVPage() {
 
       <h1 className="mt-6 flex items-center gap-3 font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
         <Download className="h-8 w-8 text-[var(--brand-red)]" />
-        Fotos y descripción de FV
+        Fotos de la web
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Busca cada artículo de FV en la página de FV (fvsa.com) por su{" "}
-        <strong>código</strong> y completa lo que le falte: la{" "}
+        Busca cada artículo en la <strong>página oficial de su marca</strong>{" "}
+        por su <strong>código</strong> y completa lo que le falte: la{" "}
         <strong>foto</strong> del modelo y la <strong>descripción</strong> con
         sus características. Lo que ya está cargado no se toca (una descripción
         escrita a mano no se pisa), y ningún producto se activa.
+      </p>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
+        Por ahora se sabe leer la página de <strong>{nombresConPagina()}</strong>.
+        Las otras marcas no tienen de dónde traer la foto; su descripción se
+        busca en internet desde &quot;Descripciones de la web&quot;.
       </p>
 
       <FotosFVMasivo pendientes={incompletos} />

@@ -7,12 +7,14 @@ import { getAdminSession } from "@/lib/admin-auth";
 import {
   agregarDescripcionDeFV,
   agregarFotoDeFV,
-  buscarEnFV,
+  fichaDelFabricante,
   type ResultadoDescripcionFV,
   type ResultadoFotoFV,
 } from "@/lib/fv";
+import { MARCAS_CON_PAGINA, fabricanteConPagina } from "@/lib/marcas-con-pagina";
 
-// Traer de la pagina de FV, por el codigo, la foto y la descripcion de
+// Traer de la pagina oficial de la marca (FV y Piazza, ver
+// src/lib/marcas-con-pagina.ts), por el codigo, la foto y la descripcion de
 // articulos ya cargados. La busqueda y la descarga estan en src/lib/fv.ts;
 // aca solo se piden y se refrescan las pantallas. Foto y descripcion son del
 // ARTICULO (compartido entre los locales), asi que no depende del panel.
@@ -48,9 +50,9 @@ export async function descripcionDeFV(
 ): Promise<{ ok: true; texto: string; ficha?: string } | { ok: false; motivo: string }> {
   const session = await getAdminSession();
   if (!session) return { ok: false, motivo: "no autorizado" };
-  const d = await buscarEnFV(itemId);
-  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? "FV no lo tiene" };
-  if (!d.descripcion) return { ok: false, motivo: "la ficha de FV no trae descripción" };
+  const d = await fichaDelFabricante(itemId);
+  if (!d.encontrado) return { ok: false, motivo: d.motivo ?? `${d.fabricante} no lo tiene` };
+  if (!d.descripcion) return { ok: false, motivo: `la ficha de ${d.fabricante} no trae descripción` };
   return { ok: true, texto: d.descripcion, ficha: d.ficha };
 }
 
@@ -59,16 +61,19 @@ export type Incompleto = {
   title: string;
   faltaFoto: boolean;
   faltaDescripcion: boolean;
+  /** El fabricante: "FV", "Piazza". */
+  marca: string;
 };
 
-/** Los articulos de FV sin foto o sin descripcion. Se guia por la marca
- *  cargada (Product.brand = "fv"), no por el titulo. */
+/** Los articulos de las marcas con pagina (FV, Piazza) sin foto o sin
+ *  descripcion. Se guia por la marca cargada (Product.brand), no por el
+ *  titulo. */
 export async function fvIncompletos(): Promise<Incompleto[]> {
   const session = await getAdminSession();
   if (!session) return [];
   const filas = await prisma.product.findMany({
     where: {
-      brand: "fv",
+      brand: { in: [...MARCAS_CON_PAGINA.keys()] },
       OR: [
         { images: { none: {} } },
         { description: null },
@@ -78,6 +83,7 @@ export async function fvIncompletos(): Promise<Incompleto[]> {
     select: {
       itemId: true,
       title: true,
+      brand: true,
       description: true,
       _count: { select: { images: true } },
     },
@@ -88,6 +94,7 @@ export async function fvIncompletos(): Promise<Incompleto[]> {
     title: p.title,
     faltaFoto: p._count.images === 0,
     faltaDescripcion: !p.description?.trim(),
+    marca: fabricanteConPagina(p.brand) ?? "",
   }));
 }
 

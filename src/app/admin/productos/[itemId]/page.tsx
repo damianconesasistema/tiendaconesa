@@ -1,3 +1,4 @@
+import { fabricanteConPagina } from "@/lib/marcas-con-pagina";
 import { rutaProducto } from "@/lib/rutas-producto";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
@@ -89,7 +90,7 @@ export default async function EditProductPage({
               itemId={product.itemId}
               category={product.category}
               initialImages={images}
-              deFV={product.brand === "fv"}
+              fabricante={fabricanteConPagina(product.brand)}
             />
           </div>
           <h3 className="mt-4 line-clamp-3 font-display text-sm font-bold leading-tight">

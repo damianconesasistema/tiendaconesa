@@ -11,8 +11,8 @@ import {
 } from "@/app/admin/productos/fotos-fv/actions";
 import { rutaAdminProducto } from "@/lib/rutas-producto";
 
-// La pantalla "Fotos y descripción de FV": recorre los articulos de FV a los
-// que les falta foto o descripcion, de a cuatro (lo que acepta el servidor
+// La pantalla "Fotos de la web": recorre los articulos de las marcas con
+// pagina oficial (FV, Piazza) a los que les falta foto o descripcion, de a cuatro (lo que acepta el servidor
 // por pedido), y va mostrando el avance y que paso con cada uno.
 // Ver src/lib/fv.ts.
 
@@ -30,6 +30,12 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
   const titulo = new Map(pendientes.map((p) => [p.itemId, p.title]));
   const sinFoto = pendientes.filter((p) => p.faltaFoto).length;
   const sinDescripcion = pendientes.filter((p) => p.faltaDescripcion).length;
+  // "FV y Piazza": las marcas que de verdad hay en la lista.
+  const marcas = [...new Set(pendientes.map((p) => p.marca).filter(Boolean))];
+  const deMarcas =
+    marcas.length > 1
+      ? `${marcas.slice(0, -1).join(", ")} y ${marcas[marcas.length - 1]}`
+      : (marcas[0] ?? "");
 
   async function arrancar() {
     setCorriendo(true);
@@ -56,12 +62,12 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
       <div className="mt-8 rounded-2xl border border-[var(--border)] bg-white p-8 text-center">
         <Check className="mx-auto h-8 w-8 text-emerald-600" />
         <p className="mt-3 font-display text-sm font-bold uppercase tracking-wider">
-          Todos los artículos de FV tienen foto y descripción
+          Todos los artículos de FV y Piazza tienen foto y descripción
         </p>
         <p className="mt-1 text-sm text-[var(--muted)]">
           Para cambiar alguno en particular, entrá al artículo: ahí están
-          &quot;Traer foto de FV&quot; y, al lado de la descripción, &quot;Buscar
-          en la web&quot;.
+          &quot;Traer foto&quot; de la marca y, al lado de la descripción,
+          &quot;Buscar en la web&quot;.
         </p>
       </div>
     );
@@ -74,7 +80,7 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
       <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
         <p className="text-sm">
           Hay <strong>{pendientes.length}</strong> artículo
-          {pendientes.length === 1 ? "" : "s"} de FV para completar:{" "}
+          {pendientes.length === 1 ? "" : "s"} de {deMarcas} para completar:{" "}
           <strong>{sinFoto}</strong> sin foto y <strong>{sinDescripcion}</strong>{" "}
           sin descripción.
         </p>
@@ -107,7 +113,7 @@ export function FotosFVMasivo({ pendientes }: { pendientes: Incompleto[] }) {
           ) : (
             <Download className="h-4 w-4" />
           )}
-          {corriendo ? "Buscando en FV…" : "Traer de FV"}
+          {corriendo ? "Buscando en la web…" : "Buscar en la web"}
         </button>
 
         {(corriendo || terminado) && (
@@ -209,7 +215,7 @@ function Celda({
           rel="noopener noreferrer"
           className="inline-flex items-center gap-0.5 font-bold underline"
         >
-          ver en FV <ExternalLink className="h-3 w-3" />
+          ver ficha <ExternalLink className="h-3 w-3" />
         </a>
       )}
     </span>
