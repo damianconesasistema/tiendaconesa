@@ -2,6 +2,16 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.94.1 - Quitar fondo. Damian, 17/11/2026: "el borrar fondo de la imagen no
+//            funciono" (std::bad_alloc: en WebAssembly el navegador le da poca
+//            memoria y BiRefNet no entra) "hay alguna forma de volver a editar
+//            la foto una vez cargada?". Ahora la IA corre en la placa de video
+//            (WebGPU) cuando el navegador puede, y si falla prueba una vez en
+//            WebAssembly; el error se explica en castellano. Y a una foto ya
+//            cargada se le saca el fondo: la goma en cada miniatura, y "Quitar
+//            el fondo de la foto principal" abajo de la grande. Queda en el
+//            mismo lugar de la galeria (con id nuevo, para que el navegador no
+//            muestre la vieja).
 // V.0.94.0 - Logos de marca traidos de su pagina. Damian, 17/11/2026: "a estas
 //            marcas le podes agregar el logo de la misma pagina
 //            automaticamente". En Marcas: "Traer los logos que faltan" (todas
@@ -1140,7 +1150,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.94.0";
+export const APP_VERSION = "V.0.94.1";
 
 export type VersionEntry = {
   version: string;

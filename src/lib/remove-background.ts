@@ -29,6 +29,30 @@ let cargando: Promise<{
   RawImage: unknown;
 }> | null = null;
 
+// Donde corre. Damian, 17/11/2026: en su compu fallo con "std::bad_alloc":
+// en WebAssembly el navegador le da poca memoria y BiRefNet no entra. Con
+// WebGPU corre en la placa de video, que tiene la suya (y es mucho mas
+// rapido). Si el navegador no tiene WebGPU, o falla ahi, se usa WebAssembly
+// como antes.
+let soloWasm = false;
+
+async function dispositivo(): Promise<{ device: "webgpu" | "wasm"; dtype: "fp16" | "fp32" }> {
+  if (!soloWasm) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gpu = (navigator as any).gpu;
+      const adaptador = gpu ? await gpu.requestAdapter() : null;
+      // Sin "shader-f16" la placa no corre la version liviana: va la
+      // completa (pesa el doble, 213 MB, una sola vez).
+      if (adaptador)
+        return { device: "webgpu", dtype: adaptador.features?.has?.("shader-f16") ? "fp16" : "fp32" };
+    } catch {
+      /* sin WebGPU */
+    }
+  }
+  return { device: "wasm", dtype: "fp16" };
+}
+
 /** ¿El navegador puede correr esto? */
 export function soportaQuitarFondo(): boolean {
   if (typeof window === "undefined") return false;
@@ -62,11 +86,21 @@ async function cargarModelo(onProgress?: (p: ProgresoFondo) => void) {
       }
     };
 
-    // fp16 para que pese la mitad (109 MB en vez de 213 MB).
-    const model = await AutoModel.from_pretrained(MODELO, {
-      dtype: "fp16",
-      progress_callback: reportar,
-    });
+    // fp16 para que pese la mitad (109 MB en vez de 213 MB), salvo que la
+    // placa de video no lo soporte.
+    const donde = await dispositivo();
+    let model;
+    try {
+      model = await AutoModel.from_pretrained(MODELO, { ...donde, progress_callback: reportar });
+    } catch (e) {
+      if (donde.device !== "webgpu") throw e;
+      soloWasm = true;
+      model = await AutoModel.from_pretrained(MODELO, {
+        device: "wasm",
+        dtype: "fp16",
+        progress_callback: reportar,
+      });
+    }
     const processor = await AutoProcessor.from_pretrained(MODELO, {
       progress_callback: reportar,
     });
@@ -87,6 +121,38 @@ async function cargarModelo(onProgress?: (p: ProgresoFondo) => void) {
  * por blanco. Si algo falla, lanza error y el llamador sube la original.
  */
 export async function quitarFondo(
+  file: File,
+  onProgress?: (p: ProgresoFondo) => void,
+): Promise<File> {
+  try {
+    return await quitarFondoUnaVez(file, onProgress);
+  } catch (e) {
+    const msg = String((e as Error)?.message ?? e);
+    // Si fallo en la placa de video, una vez mas en WebAssembly.
+    if (!soloWasm) {
+      soloWasm = true;
+      cargando = null;
+      try {
+        return await quitarFondoUnaVez(file, onProgress);
+      } catch (e2) {
+        throw explicar(e2);
+      }
+    }
+    throw explicar(new Error(msg));
+  }
+}
+
+/** "std::bad_alloc" no le dice nada a nadie. */
+function explicar(e: unknown): Error {
+  const msg = String((e as Error)?.message ?? e);
+  if (/bad_alloc|out of memory|memory/i.test(msg))
+    return new Error(
+      "a la computadora no le alcanzó la memoria del navegador para la IA. Probá con Chrome actualizado, cerrando otras pestañas",
+    );
+  return e instanceof Error ? e : new Error(msg);
+}
+
+async function quitarFondoUnaVez(
   file: File,
   onProgress?: (p: ProgresoFondo) => void,
 ): Promise<File> {

@@ -1389,6 +1389,46 @@ export async function uploadProductImage(
   }
 }
 
+/** Cambia UNA foto por otra version de si misma (la misma sin fondo), en el
+ *  mismo lugar de la galeria. Damian, 17/11/2026: "hay alguna forma de volver
+ *  a editar la foto una vez cargada?". Va con id nuevo y no pisando la
+ *  vieja: la direccion de cada foto queda guardada un año en los
+ *  navegadores, y con el mismo id se seguiria viendo la de antes. */
+export async function reemplazarImagen(
+  imageId: string,
+  itemId: string,
+  formData: FormData,
+): Promise<UpdateResult & { id?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  const f = formData.get("image");
+  if (!(f instanceof File) || f.size === 0) return { error: "No se recibió la imagen" };
+  if (f.size > 10 * 1024 * 1024) return { error: "La imagen supera los 10 MB" };
+  if (!f.type.startsWith("image/")) return { error: "No es una imagen" };
+  try {
+    const product = await prisma.product.findUnique({ where: { itemId }, select: { id: true } });
+    if (!product) return { error: "Producto no encontrado" };
+    const vieja = await prisma.productImage.findFirst({
+      where: { id: imageId, productId: product.id },
+      select: { position: true },
+    });
+    if (!vieja) return { error: "Esa foto ya no está" };
+    const { data, contentType } = await processProductImage(Buffer.from(await f.arrayBuffer()));
+    const nueva = await prisma.$transaction(async (tx) => {
+      await tx.productImage.delete({ where: { id: imageId } });
+      return tx.productImage.create({
+        data: { productId: product.id, data, contentType, position: vieja.position },
+        select: { id: true },
+      });
+    });
+    await syncMainImageUrl(itemId, product.id);
+    await revalidateProduct(itemId);
+    return { ok: true, id: nueva.id };
+  } catch (e) {
+    return { error: `No se pudo guardar: ${(e as Error).message}` };
+  }
+}
+
 // Lista las imagenes (solo ids + posicion) para armar la galeria en el admin.
 export async function listProductImages(
   itemId: string,

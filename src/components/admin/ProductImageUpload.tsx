@@ -13,11 +13,13 @@ import {
   Download,
   ExternalLink,
   Camera,
+  Eraser,
 } from "lucide-react";
 import { traerFotoFV, traerDeUnLink } from "@/app/admin/productos/fotos-fv/actions";
 import {
   uploadProductImage,
   deleteProductImageById,
+  reemplazarImagen,
   setMainProductImage,
   reorderProductImages,
   listProductImages,
@@ -182,6 +184,32 @@ export function ProductImageUpload({
       if (r.ok) await refresh();
       else setError(r.error ?? "Error al eliminar");
       setBusy(false);
+    });
+  }
+
+  /** Le saca el fondo a una foto que ya esta cargada y la deja en su lugar. */
+  function onSacarFondo(id: string) {
+    if (!puedeSacarFondo || busy) return;
+    startTransition(async () => {
+      setBusy(true);
+      setError(null);
+      try {
+        const r = await fetch(`/api/productos/img/${id}?v=${bust}`);
+        if (!r.ok) throw new Error("no se pudo leer la foto");
+        const blob = await r.blob();
+        const original = new File([blob], "foto.jpg", { type: blob.type || "image/jpeg" });
+        const sinFondo = await prepararFotoParaSubir(await quitarFondo(original, setFondoProg));
+        const fd = new FormData();
+        fd.append("image", sinFondo);
+        const g = await reemplazarImagen(id, itemId, fd);
+        if (!g.ok) throw new Error(g.error ?? "no se pudo guardar");
+        await refresh();
+      } catch (e) {
+        setError(`No se pudo quitar el fondo: ${(e as Error).message}. La foto quedó como estaba.`);
+      } finally {
+        setFondoProg(null);
+        setBusy(false);
+      }
     });
   }
 
@@ -384,6 +412,21 @@ export function ProductImageUpload({
         </div>
       )}
 
+      {/* Volver a editar la foto ya cargada: sacarle el fondo. Tambien esta
+          en cada miniatura (la goma), pero ahi solo aparece al pasar el
+          mouse. */}
+      {mainId && puedeSacarFondo && (
+        <button
+          type="button"
+          onClick={() => onSacarFondo(mainId)}
+          disabled={busy}
+          className="mt-2 inline-flex w-full items-center justify-center gap-1.5 text-[11px] font-bold text-[var(--brand-red)] underline disabled:opacity-50"
+        >
+          <Eraser className="h-3 w-3" />
+          Quitar el fondo de la foto principal
+        </button>
+      )}
+
       {/* Miniaturas de la galeria (arrastrables) */}
       {images.length > 0 && (
         <div className="mt-3 grid grid-cols-5 gap-2">
@@ -428,6 +471,16 @@ export function ProductImageUpload({
                     className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-[var(--brand-red)] hover:scale-110"
                   >
                     <Star className="h-2.5 w-2.5" />
+                  </button>
+                )}
+                {puedeSacarFondo && (
+                  <button
+                    type="button"
+                    onClick={() => onSacarFondo(img.id)}
+                    title="Quitar el fondo de esta foto"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-[var(--brand-red)] hover:scale-110"
+                  >
+                    <Eraser className="h-2.5 w-2.5" />
                   </button>
                 )}
                 <button
