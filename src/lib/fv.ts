@@ -15,7 +15,12 @@ import {
 import { buscarEnPiazza } from "@/lib/piazza";
 import { getMarcas, marcasConWeb } from "@/lib/marcas-server";
 import { buscarEnMercadoLibre, fotoDeMercadoLibre, mlConectado } from "@/lib/mercadolibre";
-import { buscarArticuloDeLaMarca, codigosDelArticulo, fotoDeLaMarca } from "@/lib/web-de-marca";
+import {
+  buscarArticuloDeLaMarca,
+  codigosDelArticulo,
+  fotoDeLaMarca,
+  urlPublica,
+} from "@/lib/web-de-marca";
 
 // Ir a buscar a la web de FV. La lectura de las paginas esta en fv-ficha.ts;
 // aca solo se piden y se guarda la foto.
@@ -135,6 +140,8 @@ async function bajarFotoDeFV(
   web?: string | null,
 ): Promise<{ data: Buffer; contentType: string } | null> {
   if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web) && !fotoDeMercadoLibre(url)) return null;
+  // Nunca a la red interna del servidor, aunque el nombre lo disfrace.
+  if (!(await urlPublica(url))) return null;
   try {
     const r = await fetch(url, {
       headers: { "User-Agent": UA },
@@ -160,6 +167,8 @@ export async function guardarFotoDeFV(
   url: string,
   /** Las otras fotos del modelo, despues de la principal. */
   extras: string[] = [],
+  /** La pagina de donde salieron, si se pego un link: valen sus fotos. */
+  otraWeb?: string | null,
 ): Promise<boolean> {
   try {
     const producto = await prisma.product.findUnique({
@@ -169,9 +178,10 @@ export async function guardarFotoDeFV(
     if (!producto || producto._count.images > 0) return false;
     // De FV o Piazza, o de la pagina de la marca del articulo. Nada mas.
     const web = producto.brand ? (await marcasConWeb()).get(producto.brand)?.web : undefined;
-    if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web) && !fotoDeMercadoLibre(url)) return false;
+    const valeDe = fotoDeLaMarca(url, web) ? web : otraWeb && fotoDeLaMarca(url, otraWeb) ? otraWeb : web;
+    if (!esFotoDeFV(url) && !fotoDeLaMarca(url, valeDe) && !fotoDeMercadoLibre(url)) return false;
 
-    const foto = await bajarFotoDeFV(url, web);
+    const foto = await bajarFotoDeFV(url, valeDe);
     if (!foto) return false;
     await prisma.productImage.create({
       data: { productId: producto.id, data: foto.data, contentType: foto.contentType, position: 0 },
@@ -180,8 +190,8 @@ export async function guardarFotoDeFV(
     const yaTiene: Buffer[] = [foto.data];
     let posicion = 1;
     for (const otra of extras.slice(0, 5)) {
-      if (!esFotoDeFV(otra) && !fotoDeLaMarca(otra, web) && !fotoDeMercadoLibre(otra)) continue;
-      const f = await bajarFotoDeFV(otra, web);
+      if (!esFotoDeFV(otra) && !fotoDeLaMarca(otra, valeDe) && !fotoDeMercadoLibre(otra)) continue;
+      const f = await bajarFotoDeFV(otra, valeDe);
       if (!f || yaTiene.some((b) => b.equals(f.data))) continue;
       await prisma.productImage.create({
         data: { productId: producto.id, data: f.data, contentType: f.contentType, position: posicion++ },
@@ -445,4 +455,44 @@ export async function agregarDescripcionDeFV(
     data: { description: d.descripcion },
   });
   return { ok: true, descripcion: d.descripcion, ficha: d.ficha };
+}
+
+// ---------------------------------------------------------------------------
+// Fotos de un link pegado a mano (src/lib/web-de-marca.ts, leerLink). Se
+// SUMAN a la galeria como las de la pagina de la marca: sin repetir, hasta
+// llenarla, la primera de principal si no tenia ninguna.
+// ---------------------------------------------------------------------------
+
+export async function agregarFotosDeUnLink(
+  itemId: string,
+  fotos: string[],
+  web: string,
+): Promise<{ agregadas: number; principal: boolean; fallidas: number }> {
+  const producto = await prisma.product.findUnique({
+    where: { itemId },
+    select: { id: true, images: { select: { data: true } } },
+  });
+  if (!producto) return { agregadas: 0, principal: false, fallidas: 0 };
+  const yaTiene: Buffer[] = producto.images.map((i) => Buffer.from(i.data));
+  let posicion = producto.images.length;
+  let agregadas = 0;
+  let fallidas = 0;
+  for (const url of fotos.slice(0, 6)) {
+    if (posicion >= MAX_FOTOS) break;
+    const foto = await bajarFotoDeFV(url, web);
+    if (!foto) {
+      fallidas++;
+      continue;
+    }
+    if (yaTiene.some((b) => b.equals(foto.data))) continue;
+    await prisma.productImage.create({
+      data: { productId: producto.id, data: foto.data, contentType: foto.contentType, position: posicion++ },
+    });
+    yaTiene.push(foto.data);
+    agregadas++;
+  }
+  const principal = producto.images.length === 0 && agregadas > 0;
+  if (principal)
+    await prisma.product.update({ where: { itemId }, data: { imageUrl: rutaFoto(itemId, Date.now()) } });
+  return { agregadas, principal, fallidas };
 }

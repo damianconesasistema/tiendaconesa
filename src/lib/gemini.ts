@@ -14,6 +14,91 @@
 // cambiar sin tocar codigo: basta con setear GEMINI_MODEL en Railway.
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
+// Si el modelo configurado no existe (Google los da de baja, o se cargo mal:
+// el 17/11/2026 GEMINI_MODEL decia "gemini-3.8-flash-lite" y Google contestaba
+// "is not found"), se le pregunta a Google cuales hay y se usa uno "flash"
+// que si exista. Asi "Escribir con IA", "Descripciones de la web" y la
+// busqueda en Google no quedan muertas por un nombre mal puesto.
+let modeloDeRepuesto: { nombre: string; cuando: number } | null = null;
+
+function modeloActual(): string {
+  if (modeloDeRepuesto && Date.now() - modeloDeRepuesto.cuando < 6 * 60 * 60 * 1000)
+    return modeloDeRepuesto.nombre;
+  return MODEL;
+}
+
+async function buscarModeloQueExista(key: string): Promise<string | null> {
+  try {
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", {
+      headers: { "x-goog-api-key": key },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!r.ok) return null;
+    const d = (await r.json()) as {
+      models?: { name?: string; supportedGenerationMethods?: string[] }[];
+    };
+    const version = (n: string) => Number(n.match(/gemini-(\d+(?:\.\d+)?)/)?.[1] ?? 0);
+    const sirven = (d.models ?? [])
+      .map((m) => ({ nombre: String(m.name ?? "").replace(/^models\//, ""), metodos: m.supportedGenerationMethods ?? [] }))
+      .filter(
+        (m) =>
+          m.metodos.includes("generateContent") &&
+          /^gemini-[\d.]+-flash/.test(m.nombre) &&
+          !/(image|tts|audio|live|embedding|exp|thinking|preview)/.test(m.nombre),
+      )
+      // Primero los "flash-lite" (los mas baratos y con mas cupo), y de cada
+      // tipo la version mas nueva.
+      .sort((x, y) => {
+        const lx = x.nombre.includes("lite") ? 1 : 0;
+        const ly = y.nombre.includes("lite") ? 1 : 0;
+        return ly - lx || version(y.nombre) - version(x.nombre);
+      });
+    const elegido = sirven[0]?.nombre ?? null;
+    if (elegido) {
+      modeloDeRepuesto = { nombre: elegido, cuando: Date.now() };
+      console.warn(`[gemini] el modelo "${MODEL}" no existe; uso "${elegido}". Corregí GEMINI_MODEL.`);
+    }
+    return elegido;
+  } catch {
+    return null;
+  }
+}
+
+/** Una llamada a generateContent. Si Google dice que el modelo no existe,
+ *  busca uno que si y prueba de nuevo, una vez. */
+type RespuestaGemini = {
+  error?: { message?: string };
+  candidates?: {
+    content?: { parts?: { text?: string }[] };
+    groundingMetadata?: { groundingChunks?: { web?: { uri?: string; title?: string } }[] };
+  }[];
+};
+
+async function generar(
+  key: string,
+  cuerpo: unknown,
+  espera?: number,
+): Promise<{ r: Response; data: RespuestaGemini }> {
+  const pedir = async (modelo: string) => {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify(cuerpo),
+      ...(espera ? { signal: AbortSignal.timeout(espera) } : {}),
+    });
+    return { r, data: (await r.json().catch(() => ({}))) as RespuestaGemini };
+  };
+  let res = await pedir(modeloActual());
+  const noExiste =
+    res.r.status === 404 ||
+    (res.r.status === 400 && /not found|is not supported/i.test(String(res.data?.error?.message ?? "")));
+  if (noExiste) {
+    const otro = await buscarModeloQueExista(key);
+    if (otro) res = await pedir(otro);
+  }
+  return res;
+}
+
 export function geminiConfigurado(): boolean {
   return !!process.env.GEMINI_API_KEY;
 }
@@ -101,29 +186,16 @@ ${comun}
 
   // Una llamada a Gemini. `conBusqueda` activa el grounding con Google Search.
   async function llamar(conBusqueda: boolean) {
-    const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": key!,
+    return generar(key!, {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: conBusqueda ? promptConBusqueda : promptSinBusqueda }],
         },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { text: conBusqueda ? promptConBusqueda : promptSinBusqueda },
-              ],
-            },
-          ],
-          ...(conBusqueda ? { tools: [{ google_search: {} }] } : {}),
-          generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
-        }),
-      },
-    );
-    return { r, data: await r.json() };
+      ],
+      ...(conBusqueda ? { tools: [{ google_search: {} }] } : {}),
+      generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
+    });
   }
 
   try {
@@ -174,7 +246,7 @@ ${comun}
       if (r.status === 429) {
         return {
           error:
-            `Google cortó por límite de uso con el modelo "${MODEL}" ` +
+            `Google cortó por límite de uso con el modelo "${modeloActual()}" ` +
             `(ya probé también sin búsqueda web). Esperá un rato y probá de ` +
             `nuevo, o cambiá la variable GEMINI_MODEL en Railway por otro ` +
             `modelo. Detalle de Google: ${msg}`,
@@ -231,33 +303,28 @@ export async function buscarLinksEnGoogle(
   if (Date.now() <= busquedaCortadaHasta)
     return { links: [], error: "Google no está dando búsquedas por un rato (se terminó el cupo)" };
   try {
-    const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+    const { r, data } = await generar(
+      key,
       {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `Buscá en Google: ${consulta}\nContestá solo con el link de la página de ese producto en el sitio oficial de la marca.`,
-                },
-              ],
-            },
-          ],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0, maxOutputTokens: 300 },
-        }),
-        signal: AbortSignal.timeout(30_000),
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: `Buscá en Google: ${consulta}\nContestá solo con el link de la página de ese producto en el sitio oficial de la marca.`,
+              },
+            ],
+          },
+        ],
+        tools: [{ google_search: {} }],
+        generationConfig: { temperature: 0, maxOutputTokens: 300 },
       },
+      30_000,
     );
     if (r.status === 429 || r.status === 403) {
       busquedaCortadaHasta = Date.now() + VENTANA_SIN_BUSQUEDA;
       return { links: [], error: "Google cortó la búsqueda por cupo" };
     }
-    const data = await r.json();
     if (!r.ok) return { links: [], error: data?.error?.message || `Google respondió ${r.status}` };
     const chunks: { web?: { uri?: string } }[] =
       data?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];

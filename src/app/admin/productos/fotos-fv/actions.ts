@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getAdminSession } from "@/lib/admin-auth";
 import {
+  agregarFotosDeUnLink,
   agregarDescripcionDeFV,
   agregarFotoDeFV,
   fichaDelFabricante,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/fv";
 import { getMarcas, marcasConWeb } from "@/lib/marcas-server";
 import { mlConectado } from "@/lib/mercadolibre";
+import { leerLink } from "@/lib/web-de-marca";
 
 // Traer de la pagina oficial de la marca (FV y Piazza, ver
 // src/lib/web-de-marca.ts), por el codigo, la foto y la descripcion de
@@ -182,4 +184,37 @@ export async function marcasSinWebConFaltantes(): Promise<{ id: string; name: st
       sinFoto: f._count._all,
     }))
     .sort((a, b) => b.sinFoto - a.sinFoto);
+}
+
+/** "Traer desde un link" de la ficha: lee la pagina que pego Damian, suma sus
+ *  fotos a la galeria y devuelve la descripcion para el cuadro (no la guarda:
+ *  se revisa y se guarda con el boton de siempre). */
+export async function traerDeUnLink(
+  itemId: string,
+  link: string,
+): Promise<
+  | { ok: true; agregadas: number; principal: boolean; descripcion: string | null; nombre: string; ficha: string }
+  | { ok: false; motivo: string }
+> {
+  const session = await getAdminSession();
+  if (!session) return { ok: false, motivo: "no autorizado" };
+  const d = await leerLink(link);
+  if (!d.encontrado || !d.nombre) return { ok: false, motivo: d.motivo ?? "no se pudo leer esa página" };
+  const ficha = d.ficha ?? link;
+  let web = "";
+  try {
+    web = new URL(ficha).origin;
+  } catch {
+    /* sin web, no se bajan fotos */
+  }
+  const fotos = web ? await agregarFotosDeUnLink(itemId, d.fotos ?? [], web) : { agregadas: 0, principal: false };
+  if (fotos.agregadas > 0) refrescar(itemId);
+  return {
+    ok: true,
+    agregadas: fotos.agregadas,
+    principal: fotos.principal,
+    descripcion: d.descripcion ?? null,
+    nombre: d.nombre,
+    ficha,
+  };
 }

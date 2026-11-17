@@ -15,6 +15,7 @@ import {
   ImagePlus,
 } from "lucide-react";
 import {
+  leerLinkParaAlta,
   previsualizarAlta,
   crearArticulos,
   traerDeFV,
@@ -62,6 +63,8 @@ type Edicion = {
   stock?: number;
   /** La foto de FV elegida. null = sin foto. */
   fotoFV?: string | null;
+  /** Si las fotos salieron de un link pegado: esa pagina. */
+  origenFotos?: string | null;
   /** La descripcion de la ficha de FV. null = sin descripcion. */
   descripcion?: string | null;
 };
@@ -350,6 +353,21 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prev]);
 
+  /** "Pegar link" de una fila: lee la pagina y la muestra como si la hubiera
+   *  encontrado "Buscar en la web" (foto, las otras fotos, descripcion), todo
+   *  tildado y editable. El titulo no se toca. */
+  async function traerDeLink(itemCode: string, url: string): Promise<string | null> {
+    const r = await leerLinkParaAlta(itemCode, url);
+    if (!r.encontrado) return r.motivo ?? "no se pudo leer esa página";
+    setFv((prev) => ({ ...prev, [itemCode]: r }));
+    editar(itemCode, {
+      fotoFV: r.foto && !fotosPropiasRef.current[itemCode] ? r.foto : null,
+      descripcion: r.descripcion ?? null,
+      origenFotos: r.ficha ?? url,
+    });
+    return null;
+  }
+
   function editar(itemCode: string, cambio: Edicion) {
     setEdiciones((e) => ({ ...e, [itemCode]: { ...e[itemCode], ...cambio } }));
   }
@@ -382,6 +400,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
         fotoFV: c.fotoFV,
         // Las otras fotos del modelo van con la principal.
         fotosExtraFV: c.fotoFV ? (fv[c.itemCode]?.fotos ?? []).filter((f) => f !== c.fotoFV) : [],
+        origenFotos: ediciones[c.itemCode]?.origenFotos ?? null,
         descripcion: c.descripcion,
       };
     });
@@ -746,6 +765,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
                 onFoto={(f) => ponerFoto(a.itemCode, f)}
                 onNuevaMarca={sumarMarca}
                 onAgregarMarcaGBP={agregarMarcaDelSistema}
+                onLink={(url) => traerDeLink(a.itemCode, url)}
               />
             ))}
           </div>
@@ -867,6 +887,7 @@ function Ficha({
   onFoto,
   onNuevaMarca,
   onAgregarMarcaGBP,
+  onLink,
 }: {
   a: ArticuloNuevo & { fotoFV: string | null; descripcion: string | null };
   original: ArticuloNuevo;
@@ -882,6 +903,8 @@ function Ficha({
   onFoto: (f: File | null) => string | null;
   onNuevaMarca: (m: MarcaDeLista) => void;
   onAgregarMarcaGBP: (nombre: string) => Promise<string | null>;
+  /** Lee un link pegado a mano. Devuelve el error para mostrar, o null. */
+  onLink: (url: string) => Promise<string | null>;
 }) {
   const margenFlojo = a.margenPct !== null && a.margenPct < 10;
   const subrubros = subrubrosDe(a.categoria);
@@ -1061,6 +1084,7 @@ function Ficha({
               </div>
             </div>
           )}
+          <PegarLink onLink={onLink} />
         </div>
 
         <CuadroFoto foto={fotoPropia} error={errorFoto} onElegir={elegirFoto} onError={setErrorFoto} />
@@ -1415,5 +1439,73 @@ function SelectorDeMarca({
       ))}
       <option value={MARCA_NUEVA}>+ Agregar marca nueva…</option>
     </select>
+  );
+}
+
+/** "Pegar link": para el articulo que no aparecio solo. Se pega la pagina del
+ *  producto (de la marca, de MercadoLibre, de un distribuidor) y trae nombre,
+ *  fotos y descripcion. Damian, 17/11/2026: "agregame que pueda poner una url
+ *  para que saque informacion, foto y descripcion". */
+function PegarLink({ onLink }: { onLink: (url: string) => Promise<string | null> }) {
+  const [abierto, setAbierto] = useState(false);
+  const [url, setUrl] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [leyendo, startLeer] = useTransition();
+
+  function traer() {
+    const u = url.trim();
+    if (!u) return;
+    setError(null);
+    startLeer(async () => {
+      const e = await onLink(u);
+      if (e) setError(e);
+      else {
+        setUrl("");
+        setAbierto(false);
+      }
+    });
+  }
+
+  if (!abierto)
+    return (
+      <button
+        type="button"
+        onClick={() => setAbierto(true)}
+        className="mt-1.5 text-xs font-medium text-[var(--brand-red)]"
+      >
+        Pegar link de la página del producto
+      </button>
+    );
+  return (
+    <div className="mt-1.5">
+      <div className="flex gap-1.5">
+        <input
+          autoFocus
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              traer();
+            }
+            if (e.key === "Escape") setAbierto(false);
+          }}
+          placeholder="https://… (de la marca, MercadoLibre o un distribuidor)"
+          className="h-8 w-full min-w-0 rounded-lg border border-[var(--border)] px-2 text-xs outline-none focus:border-[var(--brand-red)]"
+        />
+        <button
+          type="button"
+          onClick={traer}
+          disabled={leyendo || !url.trim()}
+          className="h-8 shrink-0 rounded-full bg-[var(--brand-red)] px-3 text-[11px] font-bold uppercase text-white disabled:opacity-50"
+        >
+          {leyendo ? "Leyendo…" : "Traer"}
+        </button>
+        <button type="button" onClick={() => setAbierto(false)} className="text-xs text-[var(--muted)]">
+          Cancelar
+        </button>
+      </div>
+      {error && <p className="mt-1 text-xs text-amber-700">{error}</p>}
+    </div>
   );
 }

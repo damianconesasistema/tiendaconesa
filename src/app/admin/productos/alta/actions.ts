@@ -15,7 +15,7 @@ import { rubroSugerido, tituloSugerido } from "@/lib/alta-articulos";
 import { subrubroSugerido, subrubroValido } from "@/lib/subrubros";
 import { armarTitulo, armarTituloDeFabricante, tituloFVDesdeGBP } from "@/lib/fv-ficha";
 import { buscarEnPiazza, rubroDePiazza } from "@/lib/piazza";
-import { buscarArticuloDeLaMarca, codigosDelArticulo } from "@/lib/web-de-marca";
+import { buscarArticuloDeLaMarca, codigosDelArticulo, leerLink } from "@/lib/web-de-marca";
 import { buscarEnMercadoLibre, mlConectado } from "@/lib/mercadolibre";
 import { buscarEnFV, guardarFotoDeFV } from "@/lib/fv";
 import { business } from "@/lib/business";
@@ -288,6 +288,9 @@ export type AltaElegida = {
   /** Las otras fotos del modelo de la misma pagina, si se dejo tildada la
    *  principal. Se validan igual que esa. */
   fotosExtraFV?: string[] | null;
+  /** Si las fotos salieron de un link pegado a mano: esa pagina. Sus fotos
+   *  se validan contra ella (y contra que sea un sitio publico). */
+  origenFotos?: string | null;
   /** La descripcion de la ficha de FV, si se dejo tildada. */
   descripcion?: string | null;
 };
@@ -648,7 +651,7 @@ export async function crearArticulos(
     // La foto de FV, si se eligio una. Si no baja, el articulo queda igual,
     // con la foto generica del rubro, y se cuenta para avisar.
     if (it.fotoFV) {
-      if (await guardarFotoDeFV(it.itemCode, it.fotoFV, it.fotosExtraFV ?? [])) fotos++;
+      if (await guardarFotoDeFV(it.itemCode, it.fotoFV, it.fotosExtraFV ?? [], it.origenFotos ?? null)) fotos++;
       else fotosFallidas++;
     }
 
@@ -661,4 +664,30 @@ export async function crearArticulos(
   revalidatePath("/");
 
   return { ok: true, creados, fotos, fotosFallidas, omitidos };
+}
+
+/** "Pegar link" de una fila de Crear por Excel: lee la pagina que pego Damian
+ *  y devuelve nombre, fotos y descripcion para mostrar. No guarda nada: se
+ *  guarda al apretar Crear, como lo que trae "Buscar en la web". */
+export async function leerLinkParaAlta(itemCode: string, link: string): Promise<RespuestaFV> {
+  const session = await getAdminSession();
+  if (!session) return { itemCode, encontrado: false, motivo: "Sesión vencida. Entrá de nuevo." };
+  const d = await leerLink(link);
+  if (!d.encontrado || !d.nombre) return { itemCode, encontrado: false, motivo: d.motivo, fabricante: "El link" };
+  let sitio = "el link";
+  try {
+    sitio = new URL(d.ficha ?? link).hostname.replace(/^www\./, "");
+  } catch {
+    /* queda "el link" */
+  }
+  return {
+    itemCode,
+    encontrado: true,
+    fabricante: sitio,
+    nombreFV: d.nombre,
+    foto: d.foto ?? null,
+    fotos: d.fotos,
+    ficha: d.ficha ?? link,
+    descripcion: d.descripcion ?? null,
+  };
 }

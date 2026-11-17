@@ -1,3 +1,4 @@
+import { lookup } from "node:dns/promises";
 import { decodificar } from "@/lib/fv-ficha";
 import { buscarLinksEnGoogle } from "@/lib/gemini";
 import { buscarEnMercadoLibre } from "@/lib/mercadolibre";
@@ -90,7 +91,7 @@ function mismoSitio(host: string, base: URL): boolean {
 
 /** Servidores de fotos de las plataformas: ahi guardan las fotos las tiendas
  *  VTEX, Shopify y los WordPress con el CDN de WordPress. */
-const CDN_DE_FOTOS = ["vteximg.com.br", "vtexassets.com", "cdn.shopify.com", "wp.com"];
+const CDN_DE_FOTOS = ["vteximg.com.br", "vtexassets.com", "cdn.shopify.com", "wp.com", "mlstatic.com"];
 
 /** Una foto se baja solo si es del sitio de la marca o del servidor de
  *  fotos de su plataforma. */
@@ -347,6 +348,26 @@ function armarDescripcion(texto: string | null, caracteristicas: string[]): stri
   return d ? d.slice(0, 4000) : null;
 }
 
+/** Saca el nombre del sitio que algunas paginas pegan al final del titulo:
+ *  "Novara Bañera De Embutir - Piazza", "Caño de Ducha | Griferia Peirano". */
+function sinNombreDelSitio(nombre: string, html: string, url: string): string {
+  const plano = (x: string) =>
+    x.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Z0-9]+/g, " ").trim();
+  let host = "";
+  try {
+    host = plano(sinWww(new URL(url).hostname).split(".")[0]).replace(/ /g, "");
+  } catch {
+    /* sin host */
+  }
+  const sitio = plano(meta(html, "og:site_name") ?? "");
+  return nombre.replace(/\s+[|\-–—]\s+([^|\-–—]+)$/, (todo, cola: string) => {
+    const c = plano(cola);
+    const delSitio =
+      (sitio && c === sitio) || (host && c.split(" ").some((w) => w.length > 3 && host.includes(w)));
+    return delSitio ? "" : todo;
+  });
+}
+
 /** Lo que dice de si misma una pagina de producto. null si no parece una. */
 export function leerPaginaDeProducto(
   html: string,
@@ -359,10 +380,13 @@ export function leerPaginaDeProducto(
   sku: string | null;
 } | null {
   const ld = productosLd(html)[0];
-  const nombre =
+  const nombre = sinNombreDelSitio(
     htmlATexto(ld?.name ?? "") ||
-    meta(html, "og:title") ||
-    htmlATexto(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? "");
+      meta(html, "og:title") ||
+      htmlATexto(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? ""),
+    html,
+    url,
+  );
   if (!nombre) return null;
 
   // El texto mas completo de los que haya: el de la ficha para Google suele
@@ -856,5 +880,102 @@ async function conGoogle(
     motivo: `${enLaPagina.motivo ?? `no está en ${dominio}`}; en Google ${
       g.error ?? "tampoco apareció"
     }; ${ml.motivo ?? "en MercadoLibre tampoco"}`,
+  };
+}
+
+// ---------------------------------------------------------- desde un link
+
+// Damian, 17/11/2026: "agregame que pueda poner una url para que saque
+// informacion, foto y descripcion". Para cuando no lo encuentra solo: se pega
+// el link de la pagina del producto (la de la marca, MercadoLibre, un
+// distribuidor) y de ahi se leen nombre, fotos y descripcion.
+//
+// Es la unica busqueda donde la direccion la pone una persona. Por eso, antes
+// de pedirla, se mira a donde apunta de verdad: solo sitios publicos de
+// internet, nunca la red interna del servidor (ni 10.x, ni 192.168.x, ni la
+// direccion de configuracion de Google Cloud).
+
+function ipPublica(ip: string): boolean {
+  const v = ip.toLowerCase();
+  if (v.includes(":")) {
+    if (v === "::1" || v === "::") return false;
+    if (/^f[cd]/.test(v) || /^fe[89ab]/.test(v)) return false;
+    const mapeada = v.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+    return mapeada ? ipPublica(mapeada[1]) : true;
+  }
+  const [a, b] = v.split(".").map(Number);
+  if ([a, b].some((n) => !Number.isFinite(n))) return false;
+  if (a === 0 || a === 10 || a === 127 || a >= 224) return false;
+  if (a === 169 && b === 254) return false;
+  if (a === 172 && b >= 16 && b <= 31) return false;
+  if (a === 192 && b === 168) return false;
+  if (a === 100 && b >= 64 && b <= 127) return false;
+  if (a === 198 && (b === 18 || b === 19)) return false;
+  return true;
+}
+
+/** Que la direccion sea de un sitio publico de internet: http(s), con nombre
+ *  (no una IP suelta) y que ese nombre apunte solo a IPs publicas. */
+export async function urlPublica(url: string): Promise<boolean> {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    if (!hostPublico(u.hostname)) return false;
+    const ips = await lookup(u.hostname, { all: true });
+    return ips.length > 0 && ips.every((x) => ipPublica(x.address));
+  } catch {
+    return false;
+  }
+}
+
+type ShopifyDeLink = { title?: string; description?: string; images?: string[] };
+
+/** Lee la pagina de un producto que pego una persona. */
+export async function leerLink(link: string): Promise<DatosDeLaWeb> {
+  let url: URL;
+  try {
+    url = new URL(String(link || "").trim());
+  } catch {
+    return { encontrado: false, motivo: "eso no es un link (tiene que empezar con https://)" };
+  }
+  url.hash = "";
+  if (!(await urlPublica(url.toString())))
+    return { encontrado: false, motivo: "ese link no es de una página pública" };
+  const web = url.origin;
+
+  // Tiendas Shopify (Mi Pileta y otras): su ficha en JSON trae todas las fotos.
+  const shop = url.pathname.match(/^(.*\/products\/[^/?#]+)/);
+  if (shop) {
+    const r = await pedir(`${url.origin}${shop[1].replace(/\.js$/, "")}.js`, { json: true });
+    const p = r?.status === 200 ? json<ShopifyDeLink>(r.texto) : null;
+    if (p?.title) {
+      const fotos = fotosValidas(
+        (p.images ?? []).map((f) => (f.startsWith("//") ? `https:${f}` : f)),
+        web,
+      );
+      return {
+        encontrado: true,
+        nombre: htmlATexto(p.title),
+        foto: fotos[0] ?? null,
+        fotos,
+        descripcion: armarDescripcion(htmlATexto(p.description ?? "") || null, []),
+        ficha: url.toString(),
+      };
+    }
+  }
+
+  const r = await pedir(url.toString());
+  if (!r) return { encontrado: false, motivo: "la página no contestó" };
+  if (r.status !== 200) return { encontrado: false, motivo: `la página contestó ${r.status}` };
+  const datos = leerPaginaDeProducto(r.texto, r.url);
+  if (!datos) return { encontrado: false, motivo: "no encontré un producto en esa página" };
+  const fotos = fotosValidas([datos.foto, ...datos.fotos], web);
+  return {
+    encontrado: true,
+    nombre: datos.nombre,
+    foto: fotos[0] ?? null,
+    fotos,
+    descripcion: datos.descripcion,
+    ficha: r.url,
   };
 }

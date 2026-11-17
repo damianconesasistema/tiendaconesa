@@ -210,6 +210,30 @@ export function ProductForm({
     (id && marcas.find((m) => m.id === id && (m.web || mercadoLibre))?.name) || null;
   const puedeBuscarEnLaWeb = iaDisponible || fabricanteDe(product.brand) !== null;
 
+  // La descripcion que trajo "Traer desde un link" (ProductImageUpload, a la
+  // izquierda): va al cuadro como la de "Buscar en la web", sin guardar. Si ya
+  // habia texto escrito, se pregunta antes de pisarlo.
+  useEffect(() => {
+    function recibir(e: Event) {
+      const d = (e as CustomEvent<{ itemId: string; texto: string }>).detail;
+      if (!d || d.itemId !== product.itemId || !descRef.current) return;
+      const actual = descRef.current.value.trim();
+      if (
+        actual &&
+        !window.confirm(
+          "Este producto ya tiene descripción.\n\n¿La reemplazo por la del link? (Recién se guarda cuando apretás Guardar.)",
+        )
+      )
+        return;
+      descRef.current.value = d.texto;
+      guardarBorrador();
+      setWebMsg({ ok: true, texto: "Descripción traída del link. Revisala y apretá Guardar." });
+    }
+    window.addEventListener("conesa:descripcion-de-link", recibir);
+    return () => window.removeEventListener("conesa:descripcion-de-link", recibir);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.itemId]);
+
   function buscarEnLaWeb() {
     const actual = descRef.current?.value.trim();
     if (actual) {

@@ -12,7 +12,7 @@ import {
   Download,
   ExternalLink,
 } from "lucide-react";
-import { traerFotoFV } from "@/app/admin/productos/fotos-fv/actions";
+import { traerFotoFV, traerDeUnLink } from "@/app/admin/productos/fotos-fv/actions";
 import {
   uploadProductImage,
   deleteProductImageById,
@@ -195,6 +195,47 @@ export function ProductImageUpload({
 
   // Busca el articulo en la pagina de FV por su codigo y agrega la foto a
   // la galeria (principal si no tenia ninguna). Ver src/lib/fv.ts.
+  // --- Traer desde un link ---
+  // Damian, 17/11/2026: "agregame que pueda poner una url para que saque
+  // informacion, foto y descripcion", "abajo del boton de traer fotos desde
+  // la web de la marca". Las fotos se suman a la galeria; la descripcion va
+  // al cuadro de la derecha (ProductForm la recibe por un evento) para
+  // revisarla y guardarla con el boton de siempre.
+  const [link, setLink] = useState("");
+  const [linkMsg, setLinkMsg] = useState<{ ok: boolean; texto: string } | null>(null);
+  function onTraerDeLink() {
+    const url = link.trim();
+    if (!url) return;
+    setLinkMsg(null);
+    startTransition(async () => {
+      setBusy(true);
+      try {
+        const r = await traerDeUnLink(itemId, url);
+        if (!r.ok) {
+          setLinkMsg({ ok: false, texto: `No se pudo: ${r.motivo}.` });
+          return;
+        }
+        if (r.agregadas > 0) await refresh();
+        if (r.descripcion)
+          window.dispatchEvent(
+            new CustomEvent("conesa:descripcion-de-link", { detail: { itemId, texto: r.descripcion } }),
+          );
+        const partes = [
+          r.agregadas > 0
+            ? `${r.agregadas} foto${r.agregadas === 1 ? "" : "s"} agregada${r.agregadas === 1 ? "" : "s"}${
+                r.principal ? " (la primera quedó como principal)" : ""
+              }`
+            : "ninguna foto nueva",
+          r.descripcion ? "la descripción quedó en el cuadro de la derecha para revisar y Guardar" : "sin descripción",
+        ];
+        setLinkMsg({ ok: true, texto: `Listo, de "${r.nombre}": ${partes.join("; ")}.` });
+        setLink("");
+      } finally {
+        setBusy(false);
+      }
+    });
+  }
+
   function onTraerDeFV(aunqueSeaDeOtraTerminacion = false) {
     if (!marcaConWeb) {
       setFv({
@@ -433,6 +474,46 @@ export function ProductImageUpload({
           )}
         </div>
       )}
+
+      <div className="mt-2 rounded-lg border border-[var(--border)] p-2.5">
+        <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+          Traer desde un link
+        </label>
+        <div className="mt-1.5 flex gap-1.5">
+          <input
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onTraerDeLink();
+              }
+            }}
+            placeholder="Pegá el link de la página del producto"
+            className="h-9 w-full min-w-0 rounded-lg border border-[var(--border)] px-2.5 text-xs outline-none focus:border-[var(--brand-red)]"
+          />
+          <button
+            type="button"
+            onClick={onTraerDeLink}
+            disabled={busy || full || !link.trim()}
+            className="h-9 shrink-0 rounded-full bg-[var(--brand-red)] px-4 font-display text-[11px] font-bold uppercase tracking-wider text-white disabled:opacity-50"
+          >
+            Traer
+          </button>
+        </div>
+        <p className="mt-1 text-[11px] text-[var(--muted)]">
+          De la marca, de MercadoLibre o de un distribuidor: trae las fotos y la descripción.
+        </p>
+        {linkMsg && (
+          <p
+            className={`mt-1.5 rounded-md p-2 text-[11px] font-bold leading-snug ${
+              linkMsg.ok ? "bg-emerald-50 text-emerald-900" : "bg-amber-50 text-amber-900"
+            }`}
+          >
+            {linkMsg.texto}
+          </p>
+        )}
+      </div>
 
       {/* Quitar fondo con IA: corre en ESTE navegador, no en el servidor */}
       {puedeSacarFondo && (

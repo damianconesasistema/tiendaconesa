@@ -2,6 +2,25 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.90.0 - Traer foto y descripcion desde un link. Damian, 17/11/2026: "agregame
+//            que pueda poner una url para que saque informacion, foto y
+//            descripcion" y "agregalo abajo del boton de traer fotos desde la
+//            web de la marca". En la ficha, "Traer desde un link": suma las
+//            fotos a la galeria y pone la descripcion en el cuadro para revisar
+//            y Guardar (si ya habia texto, pregunta). En Crear por Excel, cada
+//            fila tiene "Pegar link de la pagina del producto", que lo muestra
+//            como lo que trae "Buscar en la web" (todo editable). Lee Shopify
+//            por su JSON y cualquier otra por su ficha para Google, la galeria
+//            de Magento, el bloque de descripcion y la tabla de caracteristicas;
+//            saca el "- Piazza" del final del nombre. Seguridad: solo sitios
+//            publicos; antes de pedir la pagina o una foto se resuelve el nombre
+//            y se rechaza la red interna (10.x, 192.168.x, 169.254.x, localhost,
+//            metadata.google.internal). Probado: Mi Pileta 406E (6 fotos),
+//            Ferrum Bari (4), Peirano, Piazza 21006.
+//            Y la IA: GEMINI_MODEL decia "gemini-3.8-flash-lite", que no existe
+//            (Google: "is not found"), y caian Escribir con IA, Descripciones
+//            de la web y la busqueda en Google. Si el modelo no existe, se le
+//            pregunta a Google cuales hay y se usa el flash mas nuevo.
 // V.0.89.0 - MercadoLibre de respaldo para fotos y ficha. Damian, 17/11/2026: "si
 //            no busca en la web de la marca, que busque en mercadolibre, pero
 //            tiene que ser exacto la buscada ahi porque puede traer cualquier
@@ -1045,7 +1064,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.89.0";
+export const APP_VERSION = "V.0.90.0";
 
 export type VersionEntry = {
   version: string;
