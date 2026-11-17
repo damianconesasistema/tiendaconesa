@@ -1,3 +1,4 @@
+import { TIENDA_URL } from "@/lib/dominio";
 import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import Script from "next/script";
@@ -36,7 +37,9 @@ const montserrat = Montserrat({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const SITE_URL = "https://conesa.com.ar";
+// La direccion oficial: la que va en Google y en los links que se
+// comparten. Ver src/lib/dominio.ts.
+const SITE_URL = TIENDA_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -182,7 +185,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   // no tiene otra forma de saber que le pidieron.
   const ruta = (await headers()).get("x-ruta") ?? "";
   if (!ruta.startsWith("/admin") && (await tiendaSinHabilitar()))
-    redirect("https://conesa.com.ar");
+    redirect(TIENDA_URL);
 
   // Con NINGUNA tienda abierta no se puede comprar en ningun lado. Las
   // pantallas de la tienda mandan a la portada, que en ese caso ofrece

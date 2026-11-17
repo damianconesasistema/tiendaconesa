@@ -1,3 +1,4 @@
+import { TIENDA_URL } from "@/lib/dominio";
 import { prisma } from "@/lib/db";
 import { business } from "@/lib/business";
 
@@ -15,7 +16,9 @@ import { business } from "@/lib/business";
 // En el subdominio de una sucursal se publica solo esa: la tienda de
 // Balvanera no tiene por que decir que atiende en Villa Cura Brochero.
 
-const SITIO = "https://conesa.com.ar";
+// La direccion oficial (src/lib/dominio.ts). Desde el 17/11/2026 no hay
+// una por sucursal: la de cada local tambien es esta.
+const SITIO = TIENDA_URL;
 
 function local(s: {
   slug: string;
@@ -31,7 +34,7 @@ function local(s: {
   lng: number | null;
   instagram: string | null;
 }) {
-  const url = s.subdominio ? `https://${s.subdominio}.conesa.com.ar` : SITIO;
+  const url = SITIO;
 
   return {
     "@type": ["Store", "LocalBusiness"],

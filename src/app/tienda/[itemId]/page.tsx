@@ -1,3 +1,4 @@
+import { TIENDA_URL } from "@/lib/dominio";
 import { rutaProducto } from "@/lib/rutas-producto";
 import type { Metadata } from "next";
 import { contactoDeLaVenta } from "@/lib/sucursal";
@@ -31,7 +32,8 @@ export async function generateMetadata(
   const p = await articuloEnVenta(codigoDeLaUrl(itemId));
   if (!p) return { title: "Producto no encontrado · Sanitarios Conesa" };
 
-  const base = (process.env.SITE_URL || "https://conesa.com.ar").replace(/\/$/, "");
+  // La direccion oficial (src/lib/dominio.ts): la del link que se comparte.
+  const base = TIENDA_URL;
   const recargos = await getRecargosMp();
   const contado = p.salePrice ?? p.price;
   const vitrina = precioVitrina(contado, recargos.unPago);

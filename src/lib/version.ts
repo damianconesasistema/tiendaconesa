@@ -2,6 +2,21 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.84.0 - La tienda pasa a tienda.conesa.com.ar. Damian, 17/11/2026: "los
+//            subdominios no deberian estar mas, la idea es que sea
+//            tienda.conesa.com.ar y esa es la global". Se cargo la direccion en
+//            Cloudflare (A 136.71.13.107, con proxy, como las otras) y abre lo
+//            mismo que conesa.com.ar. El que entra por conesa.com.ar, www,
+//            buenosaires, traslasierra o balvanera va a la misma pagina en
+//            tienda.conesa.com.ar (301, src/middleware.ts y src/lib/dominio.ts):
+//            los links viejos no se rompen. Siguen donde estan, sin redirigir:
+//            /api (el aviso de pago de MercadoPago no sigue redirecciones), /admin
+//            (el panel de cada sucursal, por el CUIT con que factura), /sistema
+//            (Punto), los archivos y todo lo que no sea GET. Google, los links
+//            que se comparten y los datos para buscadores dicen
+//            tienda.conesa.com.ar. La variable SITE_URL del servidor NO se toca:
+//            de ella salen el dominio "de casa" de MercadoPago y la direccion de
+//            los paneles.
 // V.0.82.0 - Crear por Excel: Piazza se busca en su pagina oficial, y "marca
 //            para todos". Damian, 16/11/2026, subiendo "pagina srl
 //            piazza.xlsx": "deberia buscar bien en la web, como se puede hacer
@@ -920,7 +935,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.82.0";
+export const APP_VERSION = "V.0.84.0";
 
 export type VersionEntry = {
   version: string;

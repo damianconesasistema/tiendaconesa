@@ -232,7 +232,7 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
           nombre="orden"
           tipo="number"
           valor={String(sucursal.orden)}
-          ayuda="La de número más chico va primero en el pie, en la portada y es la que atiende conesa.com.ar."
+          ayuda="La de número más chico va primero en el pie, en la portada y es la que atiende tienda.conesa.com.ar."
         />
         <Campo
           etiqueta="Subdominio"
@@ -240,7 +240,7 @@ export function SucursalFicha({ sucursal }: { sucursal: Sucursal }) {
           valor={sucursal.subdominio}
           ayuda={
             sucursal.subdominio
-              ? `La tienda vive en ${sucursal.subdominio}.conesa.com.ar`
+              ? `Su panel vive en ${sucursal.subdominio}.conesa.com.ar/admin. La tienda, para todos, en tienda.conesa.com.ar`
               : "Sin esto la sucursal no tiene tienda propia."
           }
         />

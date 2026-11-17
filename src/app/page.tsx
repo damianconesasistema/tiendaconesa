@@ -539,7 +539,7 @@ export default async function Home() {
               </h3>
               <p className="mt-5 text-balance text-base text-[var(--muted)]">
                 El catálogo completo, con precios al día, en{" "}
-                <span className="font-semibold text-foreground">conesa.com.ar</span>.
+                <span className="font-semibold text-foreground">tienda.conesa.com.ar</span>.
                 Elegís el local que te queda cómodo y listo.
               </p>
 

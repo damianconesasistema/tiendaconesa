@@ -40,6 +40,9 @@ async function buscarSucursal() {
     .split(":")[0];
   const partes = host.split(".");
   if (partes.length > 2) subdominio = partes[0];
+  // tienda.conesa.com.ar es la pagina general, igual que www: no es una
+  // sucursal (src/lib/dominio.ts).
+  if (subdominio === "www" || subdominio === "tienda") subdominio = "";
 
   // La base se consulta adentro de un try a proposito. Esto lo llama el pie
   // de pagina, que esta en TODAS las pantallas: si la consulta falla y se
@@ -130,7 +133,7 @@ export const subdominioActual = cache(async (): Promise<string | null> => {
   const primero = partes[0];
   // "www" no es una sucursal, y cualquier otro subdominio que no este en la
   // base tampoco: los dos tienen que caer en la pagina general.
-  if (primero === "www") return null;
+  if (primero === "www" || primero === "tienda") return null;
   try {
     const existe = await prisma.branch.findFirst({
       where: { subdominio: primero, active: true },
