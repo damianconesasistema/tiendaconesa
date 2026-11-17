@@ -13,6 +13,7 @@ import {
   RotateCcw,
   Globe,
   ImagePlus,
+  Search,
 } from "lucide-react";
 import {
   leerLinkParaAlta,
@@ -228,6 +229,15 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
   /** Les pone la marca elegida a los tildados que no tienen. Si el rubro no
    *  lo toco nadie, se recalcula con la marca: una canilla Piazza que por las
    *  palabras habia caido en Sanitarios ("LAVATORIO") vuelve a Griferia. */
+  /** Los titulos que cambio "Buscar y reemplazar" (o su deshacer). */
+  function ponerTitulos(titulos: Record<string, string>) {
+    setEdiciones((prevEd) => {
+      const n = { ...prevEd };
+      for (const [codigo, titulo] of Object.entries(titulos)) n[codigo] = { ...n[codigo], titulo };
+      return n;
+    });
+  }
+
   function ponerMarcaATodos() {
     if (!marcaParaTodos) return;
     const marca = MARCAS_BASE.find((m) => m.id === marcaParaTodos) ?? null;
@@ -677,6 +687,18 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
               Margen flojo ({s?.margenFlojo ?? 0})
             </Chip>
           </div>
+
+          <BuscarYReemplazar
+            articulos={filtrados
+              .filter((a) => !excluidos.has(a.itemCode))
+              .map((a) => ({ itemCode: a.itemCode, titulo: conEdicion(a).titulo }))}
+            ocupado={
+              pendiente ||
+              (!!avanceFV && avanceFV.hechos < avanceFV.total) ||
+              (!!avanceAlta && avanceAlta.hechos < avanceAlta.total)
+            }
+            onAplicar={ponerTitulos}
+          />
 
           {sinMarcaTildados.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 py-3">
@@ -1134,7 +1156,12 @@ function Ficha({
           <label className="text-xs text-[var(--muted)]">Rubro</label>
           <select
             value={a.categoria}
-            onChange={(e) => onEditar({ categoria: e.target.value })}
+            onChange={(e) =>
+              onEditar({
+                categoria: e.target.value,
+                subrubro: subrubroSugerido(e.target.value, original.hoja ?? null, a.titulo).slug,
+              })
+            }
             className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
             {rubros.map((r) => (
@@ -1512,6 +1539,160 @@ function PegarLink({ onLink }: { onLink: (url: string) => Promise<string | null>
             <Link href="/admin/productos/mercadolibre" className="ml-1 underline">Conectar MercadoLibre</Link>
           )}
         </p>
+      )}
+    </div>
+  );
+}
+
+/** Buscar y reemplazar en los titulos. Damian, 17/11/2026: "agregame un
+ *  buscar y reemplazar aca en esta pagina, para editar los textos
+ *  masivamente". Va sobre los tildados de la lista que se esta viendo (Todos,
+ *  Sin rubro...). Al buscar da igual mayusculas o minusculas; lo que se pone
+ *  va tal cual se escribio. Por defecto solo palabras enteras: GBP abrevia
+ *  ("BL") con letras que tambien son el principio de otras ("BLANCO"). */
+function BuscarYReemplazar({
+  articulos,
+  ocupado,
+  onAplicar,
+}: {
+  articulos: { itemCode: string; titulo: string }[];
+  /** Mientras busca en la web o crea: lo que llega pisaria el reemplazo. */
+  ocupado: boolean;
+  onAplicar: (titulos: Record<string, string>) => void;
+}) {
+  const [buscar, setBuscar] = useState("");
+  const [poner, setPoner] = useState("");
+  const [entera, setEntera] = useState(true);
+  const [deshacer, setDeshacer] = useState<Record<string, string> | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+
+  let patron: RegExp | null = null;
+  const b = buscar.trim();
+  if (b) {
+    const esc = b.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const letra = "A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ";
+    patron = new RegExp(entera ? `(?<![${letra}])${esc}(?![${letra}])` : esc, "gi");
+  }
+
+  // Lo que va a quedar en cada titulo donde aparece. Con una funcion y no
+  // con el texto: un "$" en lo que se pone no se interpreta.
+  const cambios: Record<string, string> = {};
+  let aparece = 0;
+  if (patron) {
+    for (const a of articulos) {
+      if (a.titulo.search(patron) < 0) continue;
+      aparece++;
+      const nuevo = a.titulo
+        .replace(patron, () => poner)
+        .replace(/\s{2,}/g, " ")
+        .trim();
+      if (nuevo !== a.titulo) cambios[a.itemCode] = nuevo;
+    }
+  }
+  const cuantos = Object.keys(cambios).length;
+  const ejemplos = articulos.filter((a) => cambios[a.itemCode] !== undefined).slice(0, 3);
+
+  function aplicar() {
+    if (!cuantos || ocupado) return;
+    const antes: Record<string, string> = {};
+    for (const a of articulos) if (cambios[a.itemCode] !== undefined) antes[a.itemCode] = a.titulo;
+    onAplicar(cambios);
+    setDeshacer(antes);
+    setAviso(`Listo: cambiado en ${cuantos} ${cuantos === 1 ? "título" : "títulos"}.`);
+  }
+
+  const alEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      aplicar();
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-[var(--border)] bg-white px-4 py-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="min-w-[180px] flex-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+            Buscar en los títulos
+          </span>
+          <input
+            value={buscar}
+            onChange={(e) => {
+              setBuscar(e.target.value);
+              setAviso(null);
+            }}
+            onKeyDown={alEnter}
+            placeholder="Por ejemplo: ASIUREA"
+            className="mt-1 h-9 w-full rounded-lg border border-[var(--border)] px-3 text-sm outline-none focus:border-[var(--brand-red)]"
+          />
+        </label>
+        <label className="min-w-[180px] flex-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+            Reemplazar por
+          </span>
+          <input
+            value={poner}
+            onChange={(e) => {
+              setPoner(e.target.value);
+              setAviso(null);
+            }}
+            onKeyDown={alEnter}
+            placeholder="Vacío = lo borra"
+            className="mt-1 h-9 w-full rounded-lg border border-[var(--border)] px-3 text-sm outline-none focus:border-[var(--brand-red)]"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={aplicar}
+          disabled={!cuantos || ocupado}
+          className="inline-flex h-9 items-center gap-2 rounded-full bg-[var(--brand-red)] px-4 font-display text-xs font-bold uppercase tracking-wider text-white disabled:opacity-40"
+        >
+          <Search className="h-4 w-4" />
+          Reemplazar{cuantos ? ` en ${cuantos}` : ""}
+        </button>
+        {deshacer && (
+          <button
+            type="button"
+            onClick={() => {
+              onAplicar(deshacer);
+              setDeshacer(null);
+              setAviso("Deshecho: los títulos volvieron a como estaban.");
+            }}
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 font-display text-xs font-bold uppercase tracking-wider hover:border-[var(--brand-red)]"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Deshacer
+          </button>
+        )}
+      </div>
+      <label className="mt-2 inline-flex items-center gap-2 text-xs">
+        <input type="checkbox" checked={entera} onChange={(e) => setEntera(e.target.checked)} />
+        Solo palabras enteras (así “BL” no toca “BLANCO”)
+      </label>
+      <p className="mt-1 text-xs text-[var(--muted)]">
+        {aviso ??
+          (!patron
+            ? "Cambia un texto en todos los títulos tildados de la lista que estás viendo. Al buscar da igual mayúsculas o minúsculas."
+            : aparece === 0
+              ? "No aparece en ningún título tildado de esta lista."
+              : ocupado
+                ? `Aparece en ${aparece}. Esperá que termine la búsqueda en la web: lo que llega pisaría el cambio.`
+                : cuantos === 0
+                  ? `Aparece en ${aparece}, pero ya queda igual.`
+                  : `Aparece en ${aparece} ${aparece === 1 ? "título" : "títulos"}. Así quedarían:`)}
+      </p>
+      {!aviso && !ocupado && ejemplos.length > 0 && (
+        <ul className="mt-1 space-y-0.5 text-xs">
+          {ejemplos.map((a) => (
+            <li key={a.itemCode}>
+              <span className="text-[var(--muted)] line-through">{a.titulo}</span>{" "}
+              → <strong>{cambios[a.itemCode]}</strong>
+            </li>
+          ))}
+          {cuantos > ejemplos.length && (
+            <li className="text-[var(--muted)]">y {cuantos - ejemplos.length} más.</li>
+          )}
+        </ul>
       )}
     </div>
   );

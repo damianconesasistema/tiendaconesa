@@ -46,6 +46,16 @@ export const SUBRUBROS: Readonly<Record<string, readonly Subrubro[]>> = {
       ],
     },
   ],
+  // Equipamiento de baño. Damian, 17/11/2026, cargando Daccord: "aca faltara
+  // en equipamiento de baño subrubro asientos". GBP los abrevia "ASIUREA"
+  // (asiento de urea): "asiu" engancha el comienzo de esa palabra.
+  banera: [
+    {
+      slug: "asientos",
+      name: "Asientos",
+      palabras: ["asiento", "asiu", "tapa inodoro", "tapa de inodoro"],
+    },
+  ],
 };
 
 /** En que orden se prueban, que no es el de la tienda.

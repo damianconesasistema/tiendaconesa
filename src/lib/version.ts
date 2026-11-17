@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.92.0 - Crear por Excel: "Buscar y reemplazar" en los titulos (Damian,
+//            17/11/2026: "agregame un buscar y reemplazar aca en esta pagina,
+//            para editar los textos masivamente"). Va sobre los tildados de la
+//            lista que se ve, sin importar mayusculas al buscar, por defecto
+//            solo palabras enteras ("BL" no toca "BLANCO"), muestra como
+//            quedan antes de aplicar y tiene Deshacer. Subrubro "Asientos" en
+//            Equipamiento de baño ("aca faltara en equipamiento de baño
+//            subrubro asientos"); los asientos de inodoro y Daccord ya caen
+//            ahi solos, y al cambiar el rubro a mano el subrubro se deduce del
+//            titulo. Publicar: si falla, el registro dice por que (memoria,
+//            disco, reinicios y errores de la tienda), sin entrar a la maquina.
 // V.0.91.1 - Links de MercadoLibre, de nuevo. Damian: "no me funciona desde ml".
 //            Probado: desde un servidor, MercadoLibre manda TODA pagina suya a
 //            una pantalla de "verificacion de cuenta"; leerla no sirve nunca.
@@ -1096,7 +1107,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.91.1";
+export const APP_VERSION = "V.0.92.0";
 
 export type VersionEntry = {
   version: string;

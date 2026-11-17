@@ -144,3 +144,24 @@ jobs:
           echo "No contesto despues de dos minutos. Para ver que paso:"
           echo "  gcloud compute ssh conesa --zone us-central1-a --command 'journalctl -u conesa -n 50'"
           exit 1
+
+      # Si algo fallo, que el registro diga POR QUE sin tener que entrar a la
+      # maquina: memoria, disco, cuantas veces se reinicio la tienda y sus
+      # ultimos errores. El repositorio es publico y este registro tambien:
+      # solo lineas de error, y cualquier cosa con forma de clave o de
+      # direccion con usuario se tapa.
+      - name: Que paso en el servidor
+        if: failure()
+        run: |
+          $SSH "sudo bash -c '
+            echo \"== hora y carga\"; uptime
+            echo \"== memoria\"; free -m
+            echo \"== disco\"; df -h / | tail -1
+            echo \"== la tienda\"; systemctl show conesa -p ActiveState -p SubState -p NRestarts -p Result
+            echo \"== memoria agotada (kernel)\"; journalctl -k --since \"-30min\" --no-pager 2>/dev/null | grep -iE \"out of memory|killed process\" | tail -5
+            echo \"== errores de la tienda (ultimos 30 min)\"
+            journalctl -u conesa --since \"-30min\" --no-pager -o cat 2>/dev/null \
+              | grep -iE \"error|fail|killed|memory|heap|ENOSPC|EADDRINUSE|exit|ready|started\" \
+              | sed -E \"s#[a-z]+://[^ @]*@#<oculto>@#g; s#[A-Za-z0-9_-]{32,}#<oculto>#g\" \
+              | tail -40
+          '" || echo "(no se pudo entrar al servidor)"

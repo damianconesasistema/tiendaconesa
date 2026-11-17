@@ -76,6 +76,14 @@ const REGLAS: { slug: string; palabras: string[] }[] = [
       "jabonera",
       "portarrollo",
       "percha",
+      // Asientos de inodoro (Daccord solo hace eso). "asiento" a secas queda
+      // en Accesorios: tambien es el de una valvula.
+      "asiento de inodoro",
+      "asiento para inodoro",
+      "asiento inodoro",
+      "asiurea",
+      "asiento urea",
+      "daccord",
     ],
   },
   { slug: "piletas", palabras: ["pileta", "bacha", "lavadero", "pileton"] },
