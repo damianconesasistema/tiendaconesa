@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   Upload,
   Trash2,
@@ -11,6 +11,7 @@ import {
   GripVertical,
   Download,
   ExternalLink,
+  Camera,
 } from "lucide-react";
 import { traerFotoFV, traerDeUnLink } from "@/app/admin/productos/fotos-fv/actions";
 import {
@@ -36,6 +37,7 @@ export function ProductImageUpload({
   initialImages,
   fabricante = null,
   marcaConWeb = false,
+  modoCelular = false,
 }: {
   itemId: string;
   category: string;
@@ -47,6 +49,9 @@ export function ProductImageUpload({
   /** Si la marca tiene su pagina web cargada en Marcas. Sin pagina, el boton
    *  avisa que hay que cargarla en vez de buscar. */
   marcaConWeb?: boolean;
+  /** Se abrio desde el QR "Sacale la foto con el celular": la camara va
+   *  primero y grande. */
+  modoCelular?: boolean;
 }) {
   const [images, setImages] = useState<Img[]>(initialImages);
   const [busy, setBusy] = useState(false);
@@ -55,6 +60,15 @@ export function ProductImageUpload({
     null,
   );
   const inputRef = useRef<HTMLInputElement>(null);
+  // La camara del celular (Damian, 17/11/2026: "subir foto desde el celular
+  // ... sacarle foto al producto, me elimine el fondo y arme la
+  // publicacion"). capture="environment" abre la camara de atras; en una
+  // compu abre el elegir archivo de siempre.
+  const camaraRef = useRef<HTMLInputElement>(null);
+  const bloqueCamaraRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (modoCelular) bloqueCamaraRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [modoCelular]);
   const [, startTransition] = useTransition();
   const [bust, setBust] = useState(Date.now());
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -78,7 +92,11 @@ export function ProductImageUpload({
 
   // Subimos de a UNA foto: así mostramos progreso real y evitamos superar
   // el límite de tamaño del request (varias fotos juntas lo rompían).
-  function onFiles(fileList: FileList) {
+  function onFiles(
+    fileList: FileList,
+    opciones: { fondo?: boolean; principal?: boolean } = {},
+  ) {
+    const conFondo = opciones.fondo ?? sacarFondo;
     const files = Array.from(fileList).filter((f) =>
       f.type.startsWith("image/"),
     );
@@ -101,7 +119,7 @@ export function ProductImageUpload({
 
         // Quitar fondo ANTES de subir. Si falla, subimos la original: no
         // queremos que un problema de la IA te impida cargar la foto.
-        if (sacarFondo) {
+        if (conFondo) {
           try {
             archivo = await quitarFondo(archivo, setFondoProg);
           } catch (e) {
@@ -135,6 +153,15 @@ export function ProductImageUpload({
         setProgress({ done: i + 1, total: toUpload.length });
       }
       await refresh();
+      // La foto de la camara es la del producto de verdad: va de principal.
+      if (opciones.principal && failed < toUpload.length) {
+        const l = await listProductImages(itemId);
+        const ultima = l.ok && l.images?.length ? [...l.images].sort((a, b) => b.position - a.position)[0] : null;
+        if (ultima && ultima.position > 0) {
+          await setMainProductImage(ultima.id, itemId);
+          await refresh();
+        }
+      }
       setProgress(null);
       setFondoProg(null);
       setBusy(false);
@@ -395,6 +422,36 @@ export function ProductImageUpload({
           ))}
         </div>
       )}
+
+      <input
+        ref={camaraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files) onFiles(e.target.files, { fondo: puedeSacarFondo, principal: true });
+          e.target.value = "";
+        }}
+      />
+      <div ref={bloqueCamaraRef} className={modoCelular ? "mt-3 rounded-xl bg-[var(--surface)] p-3" : "mt-3"}>
+        <button
+          type="button"
+          onClick={() => camaraRef.current?.click()}
+          disabled={busy || full}
+          className={`flex w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-red)] font-display font-bold uppercase tracking-wider text-white disabled:opacity-60 ${
+            modoCelular ? "px-4 py-4 text-sm" : "px-3 py-2 text-xs"
+          }`}
+        >
+          <Camera className={modoCelular ? "h-5 w-5" : "h-3.5 w-3.5"} />
+          Sacar foto con la cámara
+        </button>
+        <p className="mt-1 text-center text-[11px] text-[var(--muted)]">
+          {puedeSacarFondo
+            ? "Le saca el fondo (queda sobre blanco) y la deja de principal. La primera vez baja ~110 MB: mejor con Wi-Fi."
+            : "La deja de principal. Este navegador no puede sacar el fondo."}
+        </p>
+      </div>
 
       <input
         ref={inputRef}

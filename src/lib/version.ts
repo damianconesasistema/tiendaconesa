@@ -2,6 +2,18 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.91.0 - Sacarle la foto con el celular. Damian, 17/11/2026: "subir foto desde
+//            el celular ... si ya lo tengo precargado que tenga la opcion de
+//            entrar con el celular para sacarle foto al producto, me elimine el
+//            fondo y arme la publicacion". En la ficha: "Sacar foto con la
+//            camara" (input con capture="environment": en el celular abre la
+//            camara de atras; en la compu, elegir archivo). Le saca el fondo
+//            con la IA que ya corre en el navegador (BiRefNet_lite fp16, ~110
+//            MB la primera vez; no hay version mas chica) y la deja de
+//            principal. En la compu, la ficha muestra un QR que abre esa misma
+//            ficha en el celular con la camara primero y grande (?celular=1);
+//            si el celular no entro al panel, el login vuelve a la ficha
+//            (?volver=, solo rutas /admin/).
 // V.0.90.1 - Links de MercadoLibre. Damian pego uno de la bacha 443 y salio "no
 //            encontre un producto en esa pagina": MercadoLibre no deja leer sus
 //            paginas desde un servidor (desde una casa si). Ahora: con
@@ -1075,7 +1087,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.90.1";
+export const APP_VERSION = "V.0.91.0";
 
 export type VersionEntry = {
   version: string;

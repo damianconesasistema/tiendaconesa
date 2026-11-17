@@ -26,7 +26,9 @@ export function LoginForm() {
         setError(data.error || "Error");
         return;
       }
-      router.push("/admin");
+      // Solo una ruta del panel: nunca a otro sitio.
+      const volver = new URLSearchParams(window.location.search).get("volver") ?? "";
+      router.push(volver.startsWith("/admin/") && !volver.startsWith("//") ? volver : "/admin");
       router.refresh();
     } catch {
       setError("No se pudo conectar. Reintentá en unos segundos.");

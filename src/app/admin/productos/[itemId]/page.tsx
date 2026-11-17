@@ -1,3 +1,6 @@
+import QRCode from "qrcode";
+import { TIENDA_URL } from "@/lib/dominio";
+import { rutaAdminProducto } from "@/lib/rutas-producto";
 import { rutaProducto } from "@/lib/rutas-producto";
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
@@ -26,7 +29,7 @@ type RouteProps = {
   params: Promise<{ itemId: string }>;
   // `volver` lo cuelga la lista: trae sus filtros para poder regresar a la
   // misma pantalla y no al catalogo entero.
-  searchParams: Promise<{ volver?: string }>;
+  searchParams: Promise<{ volver?: string; celular?: string }>;
 };
 
 export default async function EditProductPage({
@@ -34,11 +37,17 @@ export default async function EditProductPage({
   searchParams,
 }: RouteProps) {
   const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
+  if (!session) {
+    // Del QR del celular: despues de entrar, volver a ESTA ficha.
+    const { itemId: id, } = await params;
+    const { celular: cel } = await searchParams;
+    const aca = `${rutaAdminProducto(codigoDeLaUrl(id)[0] ?? id)}${cel === "1" ? "?celular=1" : ""}`;
+    redirect(`/admin/login?volver=${encodeURIComponent(aca)}`);
+  }
 
   // Solo se acepta una query string relativa: si no, un link preparado
   // podria usar este boton para mandar al admin a otro sitio.
-  const { volver } = await searchParams;
+  const { volver, celular } = await searchParams;
   const hrefVolver =
     volver && volver.startsWith("?") && !volver.includes("//")
       ? `/admin/productos${volver}`
@@ -116,7 +125,26 @@ export default async function EditProductPage({
               initialImages={images}
               fabricante={(product.brand && (await getMarcas()).find((m) => m.id === product.brand)?.name) || null}
               marcaConWeb={!!product.brand && ((await marcasConWeb()).has(product.brand) || (await mlConectado()))}
+              modoCelular={celular === "1"}
             />
+          </div>
+          {/* Para sacarle la foto con el celular: este codigo abre esta misma
+              ficha en el telefono, con la camara primero. Solo en la compu. */}
+          <div className="mt-4 hidden items-center gap-3 rounded-xl border border-[var(--border)] p-3 lg:flex">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={await QRCode.toDataURL(
+                `${TIENDA_URL}${rutaAdminProducto(product.itemId)}?celular=1`,
+                { margin: 1, width: 160 },
+              )}
+              alt="Código para abrir esta ficha en el celular"
+              className="h-28 w-28 shrink-0"
+            />
+            <p className="text-xs text-[var(--muted)]">
+              <strong className="text-foreground">Sacale la foto con el celular.</strong>{" "}
+              Apuntá la cámara del celular a este código: se abre esta ficha
+              con el botón para sacar la foto (si te lo pide, entrá al panel).
+            </p>
           </div>
           <h3 className="mt-4 line-clamp-3 font-display text-sm font-bold leading-tight">
             {product.title}
