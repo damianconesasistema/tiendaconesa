@@ -184,10 +184,22 @@ export function CatalogClient({
       : "all";
   const nombreSub = subVigente !== "all" ? nombreSubrubro(activeCat, subVigente, rubrosExtra) : null;
 
+  // La marca elegida, solo si tiene algo en la categoria elegida. Damian,
+  // 17/11/2026: elegir Accesorios con Heineken puesta daba "sin resultados".
+  // La categoria manda: si con esa marca no hay nada, se ve la categoria
+  // entera (y al elegir la categoria, la marca se saca sola).
+  const enCategoria = (p: Product) =>
+    (activeCat === "all" || p.category === activeCat) &&
+    (subVigente === "all" || p.subcategory === subVigente);
+  const marcaVigente =
+    activeMarca !== "all" && products.some((p) => enCategoria(p) && p.brand === activeMarca)
+      ? activeMarca
+      : "all";
+
   const resumenFiltros = [
     activeCat !== "all" ? nombreRubro(activeCat, rubrosExtra) : null,
     nombreSub,
-    activeMarca !== "all" ? nombreMarca(activeMarca, marcas) : null,
+    marcaVigente !== "all" ? nombreMarca(marcaVigente, marcas) : null,
   ]
     .filter(Boolean)
     .join(" · ") || "Todos";
@@ -197,7 +209,7 @@ export function CatalogClient({
     const base = products.filter((p) => {
       if (activeCat !== "all" && p.category !== activeCat) return false;
       if (subVigente !== "all" && p.subcategory !== subVigente) return false;
-      if (activeMarca !== "all" && p.brand !== activeMarca) return false;
+      if (marcaVigente !== "all" && p.brand !== marcaVigente) return false;
       if (q && !p.title.toLowerCase().includes(q)) return false;
       return true;
     });
@@ -208,18 +220,29 @@ export function CatalogClient({
     if (orden === "descuento") return base.sort((a, b) => descuentoDe(b) - descuentoDe(a));
     if (orden === "nombre") return base.sort((a, b) => a.title.localeCompare(b.title, "es"));
     return base;
-  }, [products, query, activeCat, subVigente, activeMarca, orden]);
+  }, [products, query, activeCat, subVigente, marcaVigente, orden]);
 
-  const counts: Record<string, number> = { all: products.length };
-  for (const p of products) counts[p.category] = (counts[p.category] || 0) + 1;
+  // Cuantos se ven al tocar cada categoria (o subrubro): con la marca
+  // elegida, si con ella hay algo; si no, todos los de la categoria, que es lo
+  // que queda al tocarla (la marca se saca sola).
+  const cuantosSeVen = (de: (p: Product) => boolean) => {
+    const todos = products.filter(de);
+    if (marcaVigente === "all") return todos.length;
+    const conMarca = todos.filter((p) => p.brand === marcaVigente).length;
+    return conMarca > 0 ? conMarca : todos.length;
+  };
+  const counts: Record<string, number> = { all: cuantosSeVen(() => true) };
+  for (const id of new Set(products.map((p) => p.category)))
+    counts[id] = cuantosSeVen((p) => p.category === id);
 
   // Los subrubros de la categoria abierta que tienen algo publicado. Uno en 0
   // no lleva a ningun lado, igual que una categoria en 0.
   const subCounts: Record<string, number> = {};
   if (activeCat !== "all")
-    for (const p of products)
-      if (p.category === activeCat && p.subcategory)
-        subCounts[p.subcategory] = (subCounts[p.subcategory] || 0) + 1;
+    for (const sub of new Set(
+      products.filter((p) => p.category === activeCat && p.subcategory).map((p) => p.subcategory as string),
+    ))
+      subCounts[sub] = cuantosSeVen((p) => p.category === activeCat && p.subcategory === sub);
   const subrubrosConProductos = subrubrosDe(activeCat, rubrosExtra).filter(
     (s) => (subCounts[s.slug] || 0) > 0,
   );
@@ -228,10 +251,31 @@ export function CatalogClient({
     resetear(() => {
       setActiveCat(id);
       setActiveSub("all");
+      // Si la marca elegida no tiene nada en esa categoria, la categoria manda.
+      if (
+        activeMarca !== "all" &&
+        !products.some((p) => (id === "all" || p.category === id) && p.brand === activeMarca)
+      )
+        setActiveMarca("all");
     });
 
+  const elegirSubrubro = (sub: string) =>
+    resetear(() => {
+      setActiveSub(sub);
+      if (
+        activeMarca !== "all" &&
+        !products.some((p) => p.category === activeCat && p.subcategory === sub && p.brand === activeMarca)
+      )
+        setActiveMarca("all");
+    });
+
+  // Las marcas que tienen algo en la categoria (y subrubro) elegida, con
+  // cuantos tienen ahi: elegir una nunca deja la grilla vacia.
   const marcaCounts: Record<string, number> = {};
+  let enEstaCategoria = 0;
   for (const p of products) {
+    if (!enCategoria(p)) continue;
+    enEstaCategoria++;
     if (p.brand) marcaCounts[p.brand] = (marcaCounts[p.brand] || 0) + 1;
   }
   const marcasConProductos = porNombre(marcas).filter((m) => marcaCounts[m.id] > 0);
@@ -324,7 +368,7 @@ export function CatalogClient({
                           <FiltroItem
                             key={s.slug}
                             active={subVigente === s.slug}
-                            onClick={() => resetear(() => setActiveSub(s.slug))}
+                            onClick={() => elegirSubrubro(s.slug)}
                             label={s.name}
                             count={subCounts[s.slug]}
                           />
@@ -351,14 +395,15 @@ export function CatalogClient({
               </h2>
               <ul className="mt-2 space-y-0.5">
                 <FiltroItem
-                  active={activeMarca === "all"}
+                  active={marcaVigente === "all"}
                   onClick={() => resetear(() => setActiveMarca("all"))}
                   label="Todas"
+                  count={enEstaCategoria}
                 />
                 {marcasConProductos.map((m) => (
                   <FiltroItem
                     key={m.id}
-                    active={activeMarca === m.id}
+                    active={marcaVigente === m.id}
                     onClick={() => resetear(() => setActiveMarca(m.id))}
                     label={m.name}
                     count={marcaCounts[m.id]}
@@ -378,7 +423,7 @@ export function CatalogClient({
           {filtered.length === 1 ? "producto" : "productos"}
           {activeCat !== "all" &&
             ` en ${nombreRubro(activeCat, rubrosExtra)}${nombreSub ? ` · ${nombreSub}` : ""}`}
-          {activeMarca !== "all" && ` de ${nombreMarca(activeMarca, marcas)}`}
+          {marcaVigente !== "all" && ` de ${nombreMarca(marcaVigente, marcas)}`}
           {query && ` que coinciden con "${query}"`}
         </p>
         <label className="flex items-center gap-2 text-sm">

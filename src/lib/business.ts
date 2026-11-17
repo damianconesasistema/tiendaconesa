@@ -47,7 +47,7 @@ export const business = {
   },
   // slug: cat= filter que se usa en /tienda?cat=<slug> para linkear al catalogo
   categories: [
-    { name: "Sanitarios", slug: "sanitarios", description: "Inodoros, bidets, lavatorios, mingitorios" },
+    { name: "Loza sanitaria", slug: "sanitarios", description: "Inodoros, bidets, lavatorios, mingitorios" },
     { name: "Grifería", slug: "griferia", description: "Piazza, Hydros y más marcas" },
     { name: "Equipamiento de baño", slug: "banera", description: "Vanitorys, espejos, accesorios" },
     { name: "Salamandras", slug: "salamandras", description: "Calefactores a leña para tu hogar" },

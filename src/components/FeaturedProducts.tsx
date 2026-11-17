@@ -1,6 +1,7 @@
 "use client";
 
 import { rutaProducto } from "@/lib/rutas-producto";
+import { nombreRubro } from "@/lib/rubros";
 import Link from "next/link";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
@@ -21,19 +22,6 @@ type Product = {
   stock: number;
 };
 
-const CAT_LABELS: Record<string, string> = {
-  sanitarios: "Sanitarios",
-  griferia: "Grifería",
-  banera: "Bañeras",
-  accesorios: "Accesorios",
-  salamandras: "Salamandras",
-  calefones: "Termotanques y Calefones",
-  materiales: "Tanques",
-  piletas: "Piletas",
-  herramientas: "Herramientas",
-  cocina: "Cocina y Ventilación",
-  otros: "Otros",
-};
 
 type Variant = "default" | "offers";
 
@@ -195,7 +183,7 @@ function FeaturedCard({
             en la tienda: en la foto tapaba el producto (Damian, 16/11/2026:
             "que no tape la imagen"). */}
         <span className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-          {CAT_LABELS[p.category] || p.category}
+          {nombreRubro(p.category)}
         </span>
         <h3 className="mt-1 uppercase text-xs font-semibold leading-snug text-foreground group-hover:text-[var(--brand-red)] sm:text-sm">
           {p.title}

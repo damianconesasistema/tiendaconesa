@@ -1,7 +1,7 @@
 [
   {
     "id": "sanitarios",
-    "label": "Sanitarios",
+    "label": "Loza sanitaria",
     "keywords": [
       "inodoro",
       "bidet",
@@ -104,7 +104,7 @@
   },
   {
     "id": "piletas",
-    "label": "Piletas y bombas",
+    "label": "Bacha de cocina",
     "keywords": [
       "pileta",
       "bomba",

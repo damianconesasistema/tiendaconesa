@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.98.1 - Filtros de la tienda. Damian, 17/11/2026: elegir Accesorios con
+//            Heineken puesta daba "sin resultados" ("si no hay productos no
+//            elija por marca sino por categoria"), y "pongo griferia, en
+//            marcas me deberias mostrar las marcas que vende griferia y no
+//            todas". Ahora la categoria manda: si la marca elegida no tiene
+//            nada ahi, se saca sola; la lista de marcas muestra solo las que
+//            tienen algo en la categoria (y subrubro) elegida, con cuantos; y
+//            el numero de cada categoria es lo que se ve al tocarla. Rubros
+//            renombrados: "Sanitarios" ahora es "Loza sanitaria" y "Piletas"
+//            es "Bacha de cocina" (los links no cambian); las tarjetas, la
+//            ficha y Descripciones toman el nombre de la lista unica.
 // V.0.98.0 - Novedades y chequeo diario. Damian, 17/11/2026: "podes hacer que el
 //            chequeo de las cuotas lo haga automaticamente todos los dias e
 //            informe en el panel como una leyenda de noticias, asi tambien los
@@ -1201,7 +1212,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.98.0";
+export const APP_VERSION = "V.0.98.1";
 
 export type VersionEntry = {
   version: string;

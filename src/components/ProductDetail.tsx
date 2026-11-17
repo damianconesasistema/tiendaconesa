@@ -1,6 +1,7 @@
 "use client";
 
 import { rutaProducto } from "@/lib/rutas-producto";
+import { nombreRubro } from "@/lib/rubros";
 import Link from "next/link";
 import { etiquetasDe, TONOS_ETIQUETA, opcionesDe } from "@/lib/etiquetas";
 import Image from "next/image";
@@ -51,19 +52,6 @@ type Product = {
   shippingType?: string | null;
 };
 
-const CAT_LABELS: Record<string, string> = {
-  sanitarios: "Sanitarios",
-  griferia: "Grifería",
-  banera: "Bañeras",
-  accesorios: "Accesorios",
-  salamandras: "Salamandras",
-  calefones: "Termotanques y Calefones",
-  materiales: "Tanques",
-  piletas: "Piletas",
-  herramientas: "Herramientas",
-  cocina: "Cocina y Ventilación",
-  otros: "Otros",
-};
 
 const linkWa = (numero: string, mensaje: string) =>
   `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensaje)}`;
@@ -335,7 +323,7 @@ export function ProductDetail({
             {/* La categoria va arriba del titulo y no encima de la foto: ahi
                 tapaba el producto (Damian, 16/11/2026). */}
             <span className="mt-3 block font-display text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              {CAT_LABELS[product.category] || product.category}
+              {nombreRubro(product.category)}
             </span>
             <h1 className="uppercase mt-1 font-display text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">
               {product.title}

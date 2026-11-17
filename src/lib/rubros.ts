@@ -22,14 +22,16 @@ export const SIN_EXTRAS: RubrosExtra = { rubros: [], subrubros: {} };
 
 /** Los de siempre, en el orden en que se muestran. "Otros" va al final. */
 export const RUBROS_BASE: readonly Rubro[] = [
-  { slug: "sanitarios", name: "Sanitarios" },
+  // Damian, 17/11/2026: "piletas seria BACHA DE COCINA y SANITARIOS seria
+  // LOZA SANITARIA". El slug no cambia: los links y lo guardado siguen igual.
+  { slug: "sanitarios", name: "Loza sanitaria" },
   { slug: "griferia", name: "Grifería" },
   { slug: "banera", name: "Equipamiento de baño" },
   { slug: "accesorios", name: "Accesorios" },
   { slug: "salamandras", name: "Salamandras" },
   { slug: "calefones", name: "Termotanques y Calefones" },
   { slug: "materiales", name: "Tanques" },
-  { slug: "piletas", name: "Piletas" },
+  { slug: "piletas", name: "Bacha de cocina" },
   { slug: "herramientas", name: "Herramientas" },
   { slug: "cocina", name: "Cocina y Ventilación" },
   { slug: "otros", name: "Otros" },
