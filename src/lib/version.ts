@@ -2,6 +2,14 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.87.1 - Codigos cortos entre parentesis. Las bachas Mi Pileta (Damian,
+//            17/11/2026: "aca quiero buscar las fotos, como hacemos para hacer
+//            eso masivamente") traen el codigo asi: "(304)", "(406)". Se pedian 4
+//            caracteres minimo y quedaban afuera. Ahora entre parentesis alcanza
+//            con 3; sueltos en el texto siguen siendo 4 (un "304" suelto puede
+//            ser cualquier numero). Probado con mipileta.com.ar (Shopify):
+//            104EC, 105EC y 304 con foto y descripcion. "406" no se toma por
+//            "406E" (puede ser otra variante) y "445" no esta en su pagina.
 // V.0.87.0 - Fotos y descripcion de la pagina de CUALQUIER marca, y Google.
 //            Damian, 17/11/2026: "aca deberia ser no FV o Piazza, podes buscar
 //            en la web de la marca que buscamos con el modelo, hacelo mas
@@ -990,7 +998,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.87.0";
+export const APP_VERSION = "V.0.87.1";
 
 export type VersionEntry = {
   version: string;

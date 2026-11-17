@@ -727,10 +727,12 @@ export async function leerPaginaDeLaMarca(
 export function codigosDelArticulo(texto: string, sku: string): string[] {
   const t = String(texto || "").toUpperCase();
   const encontrados: string[] = [];
-  const sumar = (c: string) => {
+  // Entre parentesis el codigo puede ser corto: "(304)" de Mi Pileta. Suelto
+  // en el texto, con 3 cifras seria cualquier numero ("BACHA 304 ACERO").
+  const sumar = (c: string, minimo = 4) => {
     const limpio = c.replace(/^[.\-/]+|[.\-/]+$/g, "");
     if (
-      limpio.length >= 4 &&
+      limpio.length >= minimo &&
       limpio.length <= 24 &&
       /\d/.test(limpio) &&
       /^[A-Z0-9][A-Z0-9.\-/]*$/.test(limpio) &&
@@ -743,7 +745,7 @@ export function codigosDelArticulo(texto: string, sku: string): string[] {
   };
   // Primero lo que esta entre parentesis ("(BAR-CL-001-BL)"), despues las
   // palabras con numeros, empezando por el final, que es donde GBP lo pone.
-  for (const m of t.matchAll(/\(([^)]+)\)/g)) sumar(m[1].trim());
+  for (const m of t.matchAll(/\(([^)]+)\)/g)) sumar(m[1].trim(), 3);
   for (const w of t.replace(/[()]/g, " ").split(/\s+/).filter(Boolean).reverse()) sumar(w);
   const propio = String(sku || "").trim().toUpperCase();
   const salida = encontrados.filter((c) => c !== propio).slice(0, 2);
