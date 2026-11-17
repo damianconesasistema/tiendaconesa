@@ -36,10 +36,11 @@ function refrescar(itemId?: string) {
 export async function traerFotoFV(
   itemId: string,
   aunqueSeaDeOtraTerminacion = false,
+  reemplazar = false,
 ): Promise<ResultadoFotoFV> {
   const session = await getAdminSession();
   if (!session) return { ok: false, motivo: "no autorizado" };
-  const r = await agregarFotoDeFV(itemId, { aunqueSeaDeOtraTerminacion });
+  const r = await agregarFotoDeFV(itemId, { aunqueSeaDeOtraTerminacion, reemplazar });
   if (r.ok) refrescar(itemId);
   return r;
 }

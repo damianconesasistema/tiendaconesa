@@ -346,7 +346,17 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
 const MAX_FOTOS = MAX_PRODUCT_IMAGES;
 
 export type ResultadoFotoFV =
-  | { ok: true; principal: boolean; agregadas: number; discontinuado?: boolean; ficha?: string }
+  | {
+      ok: true;
+      principal: boolean;
+      agregadas: number;
+      discontinuado?: boolean;
+      ficha?: string;
+      /** Con "reemplazar": la descripcion de la pagina, para el cuadro. */
+      descripcion?: string | null;
+      /** Con "reemplazar": cuantas fotos se sacaron. */
+      reemplazadas?: number;
+    }
   | {
       ok: false;
       motivo: string;
@@ -357,14 +367,14 @@ export type ResultadoFotoFV =
 
 export async function agregarFotoDeFV(
   itemId: string,
-  opciones: { aunqueSeaDeOtraTerminacion?: boolean } = {},
+  opciones: { aunqueSeaDeOtraTerminacion?: boolean; reemplazar?: boolean } = {},
 ): Promise<ResultadoFotoFV> {
   const producto = await prisma.product.findUnique({
     where: { itemId },
     select: { id: true, images: { select: { data: true } } },
   });
   if (!producto) return { ok: false, motivo: "no está el artículo" };
-  if (producto.images.length >= MAX_FOTOS)
+  if (!opciones.reemplazar && producto.images.length >= MAX_FOTOS)
     return { ok: false, motivo: `ya tiene ${MAX_FOTOS} fotos, el máximo` };
 
   const d = await fichaDelFabricante(itemId);
@@ -382,6 +392,48 @@ export async function agregarFotoDeFV(
   // Todas las del modelo, no solo la primera (Damian, 17/11/2026: "podes
   // hacer que traiga mas de 1 foto del modelo?"). Hasta llenar la galeria.
   const lista = [...new Set([d.foto, ...(d.fotos ?? [])].filter((f): f is string => !!f))].slice(0, 6);
+  // "Reemplazar con lo de la web" (Damian, 17/11/2026: "me trajo un producto
+  // que no es, se puede ... buscar nuevamente el producto"). Primero se bajan
+  // las nuevas; recien si hay alguna se sacan las que tenia. Si no encuentra
+  // el producto exacto o no baja nada, no se toca nada.
+  if (opciones.reemplazar) {
+    const nuevas: { data: Buffer; contentType: string }[] = [];
+    let fallaron = 0;
+    for (const url of lista) {
+      if (nuevas.length >= MAX_FOTOS) break;
+      const foto = await bajarFotoDeFV(url, d.web);
+      if (!foto) {
+        fallaron++;
+        continue;
+      }
+      if (!nuevas.some((n) => n.data.equals(foto.data))) nuevas.push(foto);
+    }
+    if (nuevas.length === 0)
+      return {
+        ok: false,
+        motivo: fallaron ? `las fotos de ${d.fabricante} no se pudieron bajar` : `${d.fabricante} no tiene fotos de este modelo`,
+        ficha: d.ficha,
+      };
+    await prisma.$transaction([
+      prisma.productImage.deleteMany({ where: { productId: producto.id } }),
+      ...nuevas.map((f, i) =>
+        prisma.productImage.create({
+          data: { productId: producto.id, data: f.data, contentType: f.contentType, position: i },
+        }),
+      ),
+      prisma.product.update({ where: { itemId }, data: { imageUrl: rutaFoto(itemId, Date.now()) } }),
+    ]);
+    return {
+      ok: true,
+      principal: true,
+      agregadas: nuevas.length,
+      discontinuado: d.discontinuado,
+      ficha: d.ficha,
+      descripcion: d.descripcion ?? null,
+      reemplazadas: producto.images.length,
+    };
+  }
+
   const yaTiene: Buffer[] = producto.images.map((i) => Buffer.from(i.data));
   let posicion = producto.images.length;
   let agregadas = 0;

@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.93.1 - Producto equivocado al traer de la web. Damian, 17/11/2026: "me trajo
+//            un producto que no es, se puede ... buscar nuevamente el
+//            producto". Daccord escribe el codigo como familia + variante
+//            ("AGAR0IMP 13", "BACH0LOZ 08 07"): AGAR0IMP son trece
+//            agarraderas y se buscaba solo eso, asi que venia la primera. Ahora
+//            se busca el codigo completo y la familia sola nunca: si no esta,
+//            dice que no esta. En la ficha, "¿Es otro producto? Buscar de nuevo
+//            y reemplazar fotos y descripcion": pregunta antes, baja las nuevas
+//            y recien ahi saca las de antes; si no lo encuentra, no toca nada.
+//            Las descripciones ya no repiten parrafos ni traen "Ver
+//            instructivo".
 // V.0.93.0 - Rubros y subrubros a mano. Damian, 17/11/2026: "en equipamiento de
 //            baño tambien agregame subrubro accesorios y tambien agregame la
 //            posibilidad de agregar a mano cualquier rubro o subrubro". Cada
@@ -1118,7 +1129,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.93.0";
+export const APP_VERSION = "V.0.93.1";
 
 export type VersionEntry = {
   version: string;

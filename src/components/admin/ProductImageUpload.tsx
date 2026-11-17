@@ -264,7 +264,7 @@ export function ProductImageUpload({
     });
   }
 
-  function onTraerDeFV(aunqueSeaDeOtraTerminacion = false) {
+  function onTraerDeFV(aunqueSeaDeOtraTerminacion = false, reemplazar = false) {
     if (!marcaConWeb) {
       setFv({
         ok: false,
@@ -272,12 +272,32 @@ export function ProductImageUpload({
       });
       return;
     }
+    if (
+      reemplazar &&
+      !window.confirm(
+        `Se busca de nuevo en la web de ${fabricante} con el código completo. Si encuentra el producto exacto, se sacan las ${images.length} fotos que tiene ahora y se ponen las de ahí, y la descripción va al cuadro para revisar. Si no lo encuentra, no se toca nada. ¿Seguimos?`,
+      )
+    )
+      return;
     startTransition(async () => {
       setBusy(true);
       setError(null);
       setFv(null);
-      const r = await traerFotoFV(itemId, aunqueSeaDeOtraTerminacion);
-      if (r.ok) {
+      const r = await traerFotoFV(itemId, aunqueSeaDeOtraTerminacion, reemplazar);
+      if (r.ok && reemplazar) {
+        await refresh();
+        if (r.descripcion)
+          window.dispatchEvent(
+            new CustomEvent("conesa:descripcion-de-link", { detail: { itemId, texto: r.descripcion } }),
+          );
+        setFv({
+          ok: true,
+          texto: `Listo: se sacaron las ${r.reemplazadas ?? 0} fotos de antes y quedaron ${r.agregadas} de ${fabricante}.${
+            r.descripcion ? " La descripción quedó en el cuadro de la derecha: revisala y tocá Guardar." : ""
+          }`,
+          ficha: r.ficha,
+        });
+      } else if (r.ok) {
         await refresh();
         setFv({
           ok: true,
@@ -491,6 +511,16 @@ export function ProductImageUpload({
             <Download className="h-3.5 w-3.5" />
             Traer fotos desde la web de la marca
           </button>
+          {images.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onTraerDeFV(false, true)}
+              disabled={busy}
+              className="mt-1 w-full text-center text-[11px] font-bold text-[var(--brand-red)] underline disabled:opacity-60"
+            >
+              ¿Es otro producto? Buscar de nuevo y reemplazar fotos y descripción
+            </button>
+          )}
           {fv && (
             <div
               className={`mt-2 rounded-lg p-2.5 text-[11px] leading-snug ${

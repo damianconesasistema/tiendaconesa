@@ -354,7 +354,22 @@ function especificaciones(html: string): string[] {
 /** La descripcion para la tienda: el texto de la marca y, abajo, sus
  *  caracteristicas. */
 function armarDescripcion(texto: string | null, caracteristicas: string[]): string | null {
-  const partes = [limpiarDescripcion(texto)];
+  // Sin parrafos repetidos: la descripcion corta y la larga de una tienda
+  // suelen decir lo mismo (Daccord: "Bacha de Apoyo Alumine (31x31x11cm)"
+  // dos veces). Y sin los textos de los botones ("Ver instructivo").
+  const vistos = new Set<string>();
+  const sinRepetir = String(limpiarDescripcion(texto) ?? "")
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter((p) => {
+      const clave = p.toLowerCase().replace(/\s+/g, " ");
+      if (!clave || vistos.has(clave)) return false;
+      if (/^(ver|descargar)\s+(el\s+|la\s+)?(instructivo|manual|ficha( t[eé]cnica)?)\.?$/i.test(clave)) return false;
+      vistos.add(clave);
+      return true;
+    })
+    .join("\n\n");
+  const partes = [sinRepetir];
   if (caracteristicas.length) partes.push(`Características:\n${caracteristicas.join("\n")}`);
   const d = partes.filter(Boolean).join("\n\n").trim();
   return d ? d.slice(0, 4000) : null;
@@ -841,10 +856,39 @@ export function codigosDelArticulo(texto: string, sku: string): string[] {
     )
       encontrados.push(limpio);
   };
-  // Primero lo que esta entre parentesis ("(BAR-CL-001-BL)"), despues las
-  // palabras con numeros, empezando por el final, que es donde GBP lo pone.
+  const palabras = t.replace(/[()]/g, " ").split(/\s+/).filter(Boolean);
+
+  // Codigo de familia + variante. Daccord escribe "AGAR0IMP 13" o "BACH0LOZ
+  // 08 07": AGAR0IMP son trece agarraderas distintas y el numero dice cual.
+  // Buscando la familia sola se traia la primera que apareciera (Damian,
+  // 17/11/2026: "me trajo un producto que no es"). El codigo completo va
+  // primero y la familia sola NO se busca: mejor no encontrar que traer otro.
+  const familias = new Set<string>();
+  // Un parentesis o un punto medio cortan: "PILETA 445 (304)" no es un codigo.
+  const trozos = t.replace(/[()·,;|]/g, " | ").split(/\s+/).filter(Boolean);
+  for (let i = 0; i < trozos.length; i++) {
+    const base = trozos[i];
+    if (!/^[A-Z][A-Z0-9]{4,11}$/.test(base)) continue;
+    const variante: string[] = [];
+    let j = i + 1;
+    while (j < trozos.length && variante.length < 3 && /^\d{1,3}[A-Z]?$/.test(trozos[j]))
+      variante.push(trozos[j++]);
+    if (variante.length === 0) continue;
+    // "XYZ1234 40 CM" es una medida, no una variante.
+    if (j < trozos.length && /^(MM|CM|MTS?|M|LTS?|L|KG|GR|W|V|CC|PULG|")$/.test(trozos[j])) continue;
+    // Una palabra comun con un numero ("BACHA 304", "ESPEJO 60") no es un
+    // codigo: la familia tiene que tener una cifra, o venir con dos numeros
+    // ("ASIUREA 28 01").
+    if (!/\d/.test(base) && variante.length < 2) continue;
+    const completo = `${base} ${variante.join(" ")}`;
+    if (!encontrados.includes(completo)) encontrados.push(completo);
+    familias.add(base);
+  }
+
+  // Despues lo que esta entre parentesis ("(BAR-CL-001-BL)") y las palabras
+  // con numeros, empezando por el final, que es donde GBP lo pone.
   for (const m of t.matchAll(/\(([^)]+)\)/g)) sumar(m[1].trim(), 3);
-  for (const w of t.replace(/[()]/g, " ").split(/\s+/).filter(Boolean).reverse()) sumar(w);
+  for (const w of [...palabras].reverse()) if (!familias.has(w)) sumar(w);
   const propio = String(sku || "").trim().toUpperCase();
   const salida = encontrados.filter((c) => c !== propio).slice(0, 2);
   if (propio) salida.push(propio);
