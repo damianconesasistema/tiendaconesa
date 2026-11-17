@@ -366,3 +366,24 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-logo-pop { animation: none; }
 }
+
+/* La leyenda de novedades del panel (src/components/admin/LeyendaNovedades.tsx):
+   corre de derecha a izquierda, se frena con el mouse, y queda quieta si la
+   compu pide menos movimiento. */
+.leyenda-pista {
+  animation-name: marquee-left;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.leyenda:hover .leyenda-pista,
+.leyenda:focus-within .leyenda-pista {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .leyenda-pista {
+    animation: none;
+  }
+  .leyenda {
+    overflow-x: auto;
+  }
+}

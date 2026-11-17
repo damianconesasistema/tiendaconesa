@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { detectarMarca, marcaPorId } from "@/lib/marcas";
 import { getMarcas } from "@/lib/marcas-server";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
+import { agregarNovedades, nombrar } from "@/lib/novedades";
 import { guardarComercial, sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { leerExportDelSistema, depositoDeOtroLocal } from "@/lib/excel-sistema";
 import {
@@ -1102,6 +1103,7 @@ export async function importExcel(
   let combosConStock = 0;
   let combosPausados = 0;
   const pausados: string[] = [];
+  const pausadosIds: string[] = [];
   if (tocaStock && suc && (options.combosStock ?? true)) {
     const cs = await calcularStockDeCombos({ stockDelArchivo: stockParaCombos(valid), branchId: suc.id });
     for (const c of cs) {
@@ -1121,9 +1123,22 @@ export async function importExcel(
       combosConStock++;
       if (pausar) {
         combosPausados++;
+        pausadosIds.push(c.itemId);
         if (pausados.length < 20) pausados.push(c.title);
       }
     }
+    // A las novedades, con su causa (el chequeo diario no los vuelve a contar).
+    if (pausadosIds.length)
+      await agregarNovedades([
+        {
+          tipo: "combos",
+          nivel: "aviso",
+          sucursal: suc.slug,
+          texto: `${suc.nombre}: la carga de stock pausó ${pausadosIds.length === 1 ? "un combo" : `${pausadosIds.length} combos`} porque les falta una pieza: ${nombrar(pausados)}`,
+          link: "/admin/productos?filter=inactive",
+          items: pausadosIds,
+        },
+      ]).catch(() => {});
   }
 
   // El panel lee los precios de la tabla de la sucursal, asi que despues

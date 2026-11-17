@@ -143,6 +143,18 @@ export async function getPlanesCuotas(): Promise<PlanCuotas[]> {
   }));
 }
 
+/** Los costos de un local en particular (el chequeo diario los compara con lo
+ *  que de verdad cobro Mercado Pago en su cuenta). null: los generales. */
+export async function getCostosMpDe(
+  slug: string | null,
+): Promise<CostosMp & { revisados: string | null }> {
+  const [costos, revisados] = await Promise.all([
+    leerCostosMp((clave) => leerDe(clave, slug)),
+    leerDe(SETTING_COSTOS_REVISADOS, slug),
+  ]);
+  return { ...costos, revisados: revisados?.trim() || null };
+}
+
 /** Los costos como los muestra y edita la pantalla "Mercado Pago" del panel:
  *  los de este local (mismo motivo que getRecargosDelPanel). */
 export async function getCostosMpDelPanel(): Promise<CostosMp & { revisados: string | null }> {

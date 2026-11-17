@@ -2,6 +2,21 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.98.0 - Novedades y chequeo diario. Damian, 17/11/2026: "podes hacer que el
+//            chequeo de las cuotas lo haga automaticamente todos los dias e
+//            informe en el panel como una leyenda de noticias, asi tambien los
+//            productos que se pausaron o quedaron bajo en stock etc.". Una
+//            leyenda negra corre arriba de todo el panel con las novedades de
+//            la semana (se frena con el mouse; cada una lleva a donde
+//            corresponde), y una pestaña "Novedades" con todas y "Chequear
+//            ahora". El chequeo corre solo una vez por dia (lo dispara el vigia
+//            de GitHub y tambien abrir el panel): compara cada local con la
+//            foto del dia anterior (pausados, publicados, sin stock, con 1 o
+//            2, cargados) y, para las cuotas, lo que de verdad se llevo
+//            Mercado Pago en las ventas con tarjeta de los ultimos 30 dias
+//            contra lo que calcula la tienda (Mercado Pago no publica su tabla
+//            de costos). Avisa tambien si paso un mes sin revisar los costos,
+//            y los combos que pausa una carga de stock.
 // V.0.97.0 - Mercado Pago · Cuotas. Damian, 17/11/2026: "en el panel puede haber
 //            una parte que diga MERCADO PAGO ... los costos, margenes que
 //            manejan, porque van cambiando mes a mes, y asi yo saber si tengo
@@ -1186,7 +1201,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.97.0";
+export const APP_VERSION = "V.0.98.0";
 
 export type VersionEntry = {
   version: string;

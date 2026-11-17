@@ -146,3 +146,12 @@ jobs:
           echo "  3. Casi siempre alcanza con volver a publicar:"
           echo "     la pestana Actions -> Publicar -> Run workflow."
           exit 1
+
+      # El chequeo de todos los dias (src/lib/chequeo-diario.ts): productos
+      # pausados, sin stock o con poco, y las cuotas de Mercado Pago, para la
+      # leyenda de novedades del panel. La tienda no hace nada si ya corrio en
+      # las ultimas 20 horas, asi que llamarlo cada 10 minutos no cuesta nada.
+      # Nunca hace fallar al vigia.
+      - name: Chequeo diario
+        if: always()
+        run: curl -s -m 90 -X POST https://tienda.conesa.com.ar/api/chequeo-diario || true

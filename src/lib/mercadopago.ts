@@ -229,3 +229,71 @@ export async function getPayment(
 export function publicMpConfig(sucursal?: string | null) {
   return { configured: mpConfigurado(sucursal) };
 }
+
+// ------------------------------------------- lo que de verdad cobro MP
+
+export type CobroDeLaTienda = {
+  /** Lo que pago el cliente. */
+  monto: number;
+  cuotas: number;
+  /** Lo que se llevo Mercado Pago (las comisiones que paga la tienda). */
+  costo: number;
+};
+
+type PagoBuscado = {
+  transaction_amount?: number;
+  installments?: number;
+  payment_type_id?: string;
+  external_reference?: string | null;
+  fee_details?: { amount?: number; fee_payer?: string }[];
+};
+
+/** Los cobros con tarjeta de credito de la tienda online (los que traen el
+ *  numero de pedido) de los ultimos dias, con lo que se llevo Mercado Pago
+ *  de cada uno. Solo lee. Los cobros del local (Point, QR) quedan afuera:
+ *  tienen otros costos y mezclarlos confundiria la cuenta.
+ *
+ *  Lo usa el chequeo diario de cuotas (src/lib/chequeo-diario.ts): Mercado
+ *  Pago no publica su tabla de costos para la tienda, pero si dice cuanto se
+ *  llevo de cada venta. null si no se pudo preguntar. */
+export async function cobrosDeLaTienda(
+  sucursal: string | null,
+  dias = 30,
+): Promise<CobroDeLaTienda[] | null> {
+  const token = mpToken(sucursal);
+  if (!token) return null;
+  const qs = new URLSearchParams({
+    sort: "date_created",
+    criteria: "desc",
+    range: "date_created",
+    begin_date: `NOW-${dias}DAYS`,
+    end_date: "NOW",
+    status: "approved",
+    limit: "100",
+  });
+  try {
+    const r = await fetch(`https://api.mercadopago.com/v1/payments/search?${qs}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(20_000),
+      cache: "no-store",
+    });
+    if (!r.ok) return null;
+    const j = (await r.json()) as { results?: PagoBuscado[] };
+    return (j.results ?? [])
+      .filter(
+        (p) =>
+          !!p.external_reference &&
+          p.payment_type_id === "credit_card" &&
+          (p.transaction_amount ?? 0) > 0,
+      )
+      .map((p) => ({
+        monto: Number(p.transaction_amount),
+        cuotas: Math.max(1, Number(p.installments) || 1),
+        costo: (p.fee_details ?? [])
+          .filter((f) => f.fee_payer === "collector")
+          .reduce((s, f) => s + (Number(f.amount) || 0), 0),
+      }));
+  } catch {
+    return null;
+  }
+}

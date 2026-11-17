@@ -2,10 +2,13 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
+import { LeyendaNovedades } from "@/components/admin/LeyendaNovedades";
+import { novedadesRecientes } from "@/lib/novedades";
+import { chequeoDiarioSiToca } from "@/lib/chequeo-diario";
 
 export async function AdminShell({
   username,
@@ -40,11 +43,23 @@ export async function AdminShell({
     | "sucursales"
     | "configuracion"
     | "mercadopago"
+    | "novedades"
     | "version";
   children: React.ReactNode;
 }) {
   // Solo se consulta cuando la pantalla la pide.
   const banda = sucursal ? await sucursalDelPanel() : null;
+
+  // El chequeo de todos los dias (src/lib/chequeo-diario.ts): si hoy todavia
+  // no corrio, arranca solo, sin hacer esperar a la pantalla. Y las
+  // novedades de la semana para la leyenda de arriba: las de este local y las
+  // generales. Si algo falla, la pantalla sale igual, sin leyenda.
+  void chequeoDiarioSiToca().catch(() => {});
+  const localDelPanel = await sucursalDelPanel().catch(() => null);
+  const novedades = (await novedadesRecientes(7).catch(() => []))
+    .filter((n) => !n.sucursal || !localDelPanel || n.sucursal === localDelPanel.slug)
+    .slice(0, 20)
+    .map((n) => ({ id: n.id, texto: n.texto, link: n.link, nivel: n.nivel, fecha: n.fecha }));
   // La misma pantalla en el otro panel: si estas mirando los productos de un
   // local, el link te deja en los productos del otro y no en su tapa.
   const rutaDeLaPantalla = banda
@@ -133,6 +148,12 @@ export async function AdminShell({
             label="Mercado Pago"
             active={active === "mercadopago"}
           />
+          <Tab
+            href="/admin/novedades"
+            icon={Newspaper}
+            label="Novedades"
+            active={active === "novedades"}
+          />
           <a
             href={verTienda}
             target="_blank"
@@ -184,6 +205,9 @@ export async function AdminShell({
             </div>
           </div>
         )}
+
+        {/* Las novedades del dia, corriendo. */}
+        <LeyendaNovedades novedades={novedades} />
       </div>
 
       <div
