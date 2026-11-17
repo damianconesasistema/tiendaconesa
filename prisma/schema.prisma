@@ -36,6 +36,9 @@ model Product {
   // lista tal cual sale de ahi sin tener que adivinar por el prefijo del
   // codigo del sitio.
   codigoSistema String?
+  // El codigo con que la marca nombra al producto ("AGAR0IMP 13", "0207/B1").
+  // Con este se lo busca en la pagina de la marca. Ver migracion 42.
+  codigoFabricante String?
   price        Int // en pesos argentinos (sin decimales)
   salePrice    Int? // precio con descuento (opcional)
   stock        Int             @default(0)

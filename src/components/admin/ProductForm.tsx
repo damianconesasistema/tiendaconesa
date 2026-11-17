@@ -25,6 +25,7 @@ type Product = {
   featured: boolean;
   memo: string | null;
   shippingType: string | null;
+  codigoFabricante?: string | null;
 };
 
 type State = { ok?: true } | { error: string } | null;
@@ -428,6 +429,25 @@ export function ProductForm({
             className="input"
           />
         </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-[1fr_2fr]">
+        <div>
+          <Label>Código de fabricante</Label>
+          <input
+            name="codigoFabricante"
+            defaultValue={product.codigoFabricante ?? ""}
+            placeholder="Ej: AGAR0IMP 13"
+            maxLength={40}
+            className="input"
+          />
+        </div>
+        <p className="self-end pb-2 text-[11px] text-[var(--muted)]">
+          El código con que la marca nombra al producto. Con este se lo busca
+          en su página (&quot;Traer fotos desde la web de la marca&quot;): si
+          trajo otro producto, corregí el código, guardá y buscá de nuevo. Se
+          completa solo cuando lo encuentra.
+        </p>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">

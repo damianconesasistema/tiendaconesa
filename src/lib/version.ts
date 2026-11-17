@@ -2,6 +2,16 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.95.0 - Codigo de fabricante. Damian, 17/11/2026: "faltaria que la ficha del
+//            producto tenga el campo CODIGO DE FABRICANTE ... eso deberia
+//            levantar cuando se hace la carga del mismo y tambien editarse
+//            desde la ficha". Columna nueva (migracion 42). Se completa solo:
+//            al crear por Excel (el codigo con que se lo encontro en la pagina
+//            de la marca, o el de la descripcion de GBP; en FV, el del
+//            sistema) y cada vez que se lo encuentra en la pagina de su marca
+//            si estaba vacio. Se edita en la ficha. Si esta cargado, se busca
+//            exactamente ese codigo: si trajo otro producto, se corrige el
+//            codigo y "Buscar de nuevo".
 // V.0.94.1 - Quitar fondo. Damian, 17/11/2026: "el borrar fondo de la imagen no
 //            funciono" (std::bad_alloc: en WebAssembly el navegador le da poca
 //            memoria y BiRefNet no entra) "hay alguna forma de volver a editar
@@ -1150,7 +1160,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.94.1";
+export const APP_VERSION = "V.0.95.0";
 
 export type VersionEntry = {
   version: string;

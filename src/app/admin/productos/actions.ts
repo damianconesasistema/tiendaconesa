@@ -232,6 +232,10 @@ export async function updateProduct(
     skuRaw != null && String(skuRaw).trim() !== ""
       ? String(skuRaw).trim()
       : null;
+  // El codigo de fabrica. Si el campo no vino (otra pantalla), no se toca.
+  const fabricanteRaw = formData.get("codigoFabricante");
+  const codigoFabricante =
+    fabricanteRaw === null ? undefined : String(fabricanteRaw).replace(/\s+/g, " ").trim().slice(0, 40) || null;
   const shippingType = formatShipping(
     formData.getAll("shippingType").map((v) => String(v)),
   );
@@ -267,6 +271,7 @@ export async function updateProduct(
         featured,
         memo,
         shippingType,
+        ...(codigoFabricante !== undefined ? { codigoFabricante } : {}),
       },
     });
     // El precio, la oferta, el stock y si se muestra: del local que se

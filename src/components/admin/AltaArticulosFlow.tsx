@@ -417,6 +417,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
         fotosExtraFV: c.fotoFV ? (fv[c.itemCode]?.fotos ?? []).filter((f) => f !== c.fotoFV) : [],
         origenFotos: ediciones[c.itemCode]?.origenFotos ?? null,
         descripcion: c.descripcion,
+        codigoFabricante: fv[c.itemCode]?.codigoFabricante ?? null,
       };
     });
     // Las fotos elegidas en la compu, de los que se van a crear.

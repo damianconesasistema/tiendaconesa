@@ -290,6 +290,9 @@ export type AltaElegida = {
   origenFotos?: string | null;
   /** La descripcion de la ficha de FV, si se dejo tildada. */
   descripcion?: string | null;
+  /** El codigo con que la marca nombra al producto, si se lo encontro en su
+   *  pagina. Si no, se saca de la descripcion de GBP al crear. */
+  codigoFabricante?: string | null;
 };
 
 export type AltaResult = {
@@ -374,6 +377,8 @@ export type RespuestaFV = {
    *  claro (Piazza: "Inodoros" es Sanitarios). La pantalla los aplica. */
   categoria?: string;
   subrubro?: string | null;
+  /** El codigo de fabrica con que se lo encontro. */
+  codigoFabricante?: string | null;
 };
 
 /** De a pocos por vez: la pantalla los va pidiendo y muestra el avance. Asi
@@ -481,6 +486,7 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
         fotos: d.fotos,
         ficha: d.ficha,
         descripcion: d.descripcion ?? null,
+        codigoFabricante: d.codigo && d.codigo.toUpperCase() !== p.itemCode.toUpperCase() ? d.codigo : null,
       });
       continue;
     }
@@ -629,6 +635,15 @@ export async function crearArticulos(
           // sigue apareciendo buscandolo como se lo nombra en el mostrador
           // ("PTA LAVAT", "JT103-BD"), que es como se lo busco siempre.
           memo: it.descripcionGBP,
+          // El de la pagina de la marca, si se lo encontro ahi; si no, el que
+          // se lee en la descripcion de GBP. FV: su codigo es el del sistema.
+          codigoFabricante:
+            it.codigoFabricante?.trim() ||
+            (marca === "fv"
+              ? it.itemCode
+              : codigosDelArticulo(it.descripcionGBP, it.itemCode).find(
+                  (c) => c !== it.itemCode.toUpperCase(),
+                ) ?? null),
           // La de la ficha de FV, si se dejo tildada. Texto: se corta por las
           // dudas, una descripcion no necesita mas.
           description: it.descripcion?.trim().slice(0, 4000) || null,

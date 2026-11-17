@@ -234,10 +234,21 @@ export type FichaDeFabricante = DatosFV & {
 export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabricante> {
   const p = await prisma.product.findUnique({
     where: { itemId },
-    select: { brand: true, title: true, memo: true },
+    select: { brand: true, title: true, memo: true, codigoFabricante: true },
   });
   if (!p) return { encontrado: false, motivo: "no está el artículo", fabricante: "la marca" };
   const conWeb = await marcasConWeb();
+  // El codigo de fabrica cargado manda: se busca exactamente ese. Sin el, los
+  // que se sacan de la descripcion de GBP y del titulo.
+  const fijo = p.codigoFabricante?.trim() || null;
+  const codigos = fijo ? [fijo] : codigosDelArticulo(`${p.memo ?? ""} ${p.title}`, itemId);
+  // Lo que se encontro en la pagina de la marca deja anotado su codigo, si
+  // no tenia (Damian: "eso deberia levantar"). El SKU propio no cuenta.
+  const anotar = async (codigo: string | null | undefined) => {
+    const c = String(codigo ?? "").trim();
+    if (fijo || !c || c.toUpperCase() === itemId.toUpperCase()) return;
+    await prisma.product.update({ where: { itemId }, data: { codigoFabricante: c } }).catch(() => {});
+  };
   const marca = p.brand ? conWeb.get(p.brand) : undefined;
 
   // MercadoLibre de respaldo: si la pagina de la marca no lo tiene, o la
@@ -250,7 +261,7 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
     if (!nombreDeLaMarca || !(await mlConectado())) return null;
     const ml = await buscarEnMercadoLibre({
       marca: nombreDeLaMarca,
-      codigos: codigosDelArticulo(`${p.memo ?? ""} ${p.title}`, itemId),
+      codigos,
     });
     if (!ml.encontrado)
       return motivoAntes
@@ -269,9 +280,14 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
   if (p.brand === "piazza") {
     // El codigo de Piazza no es el SKU: viene en la descripcion de GBP (que
     // queda en memo al crear por Excel) o en el titulo ("... Piazza 21006").
-    const conMemo = p.memo?.trim() ? await buscarEnPiazza(p.memo, itemId) : null;
-    const d = conMemo?.encontrado ? conMemo : await buscarEnPiazza(p.title, itemId);
+    const conMemo = fijo
+      ? await buscarEnPiazza(fijo, itemId)
+      : p.memo?.trim()
+        ? await buscarEnPiazza(p.memo, itemId)
+        : null;
+    const d = conMemo?.encontrado || fijo ? (conMemo as NonNullable<typeof conMemo>) : await buscarEnPiazza(p.title, itemId);
     const r = d.encontrado || !conMemo ? d : conMemo;
+    if (r.encontrado) await anotar(r.codigo);
     if (!r.encontrado) {
       const ml = await enMercadoLibre(r.motivo);
       if (ml) return ml;
@@ -289,7 +305,8 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
   }
   // FV: el SKU es el codigo de FV.
   if (p.brand === "fv") {
-    const d = await buscarEnFV(itemId);
+    const d = await buscarEnFV(fijo ?? itemId);
+    if (d.encontrado && !fijo) await prisma.product.update({ where: { itemId }, data: { codigoFabricante: itemId } }).catch(() => {});
     if (!d.encontrado) {
       const ml = await enMercadoLibre(d.motivo);
       if (ml) return ml;
@@ -312,9 +329,10 @@ export async function fichaDelFabricante(itemId: string): Promise<FichaDeFabrica
   const d = await buscarArticuloDeLaMarca({
     web: marca.web,
     marca: marca.name,
-    codigos: codigosDelArticulo(`${p.memo ?? ""} ${p.title}`, itemId),
+    codigos,
     titulo: p.title,
   });
+  if (d.encontrado) await anotar(d.codigo);
   return {
     encontrado: d.encontrado,
     motivo: d.motivo,
