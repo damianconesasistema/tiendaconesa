@@ -87,7 +87,7 @@ export function ProductsTable({
 }: {
   products: Product[];
   total?: number;
-  filter?: { q?: string; cat?: string; marca?: string; filter?: string };
+  filter?: { q?: string; cat?: string; marca?: string; filter?: string; conStock?: boolean };
   /** Query string de la lista, para que la ficha sepa a donde volver. */
   volver?: string;
   /** Para mostrar el nombre lindo de la marca, no el slug. */
@@ -269,6 +269,7 @@ export function ProductsTable({
     if (filter?.cat) params.set("cat", filter.cat);
     if (filter?.marca) params.set("marca", filter.marca);
     if (filter?.filter) params.set("filter", filter.filter);
+    if (filter?.conStock) params.set("constock", "1");
     const nextDir =
       sort === col ? (dir === "asc" ? "desc" : "asc") : DEFAULT_DIR[col] ?? "asc";
     params.set("sort", col);

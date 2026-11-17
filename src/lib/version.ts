@@ -2,6 +2,12 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.2 - Productos: "Ocultar sin stock" (Damian, 17/11/2026: "quisiera
+//            filtrar por los que tienen 0 en stock para no verlos"). Va aparte
+//            de los filtros rapidos y se suma a cualquiera (por ejemplo,
+//            Inactivos sin los que estan en 0); sigue puesto al cambiar de
+//            categoria, de pagina, al volver de una ficha y en las acciones en
+//            lote ("todos los que coinciden").
 // V.0.99.1 - Subir fotos con "Quitar fondo" cerraba la pestaña a veces. Damian,
 //            17/11/2026: "porque me tira eso cuando quiero subir una foto a
 //            veces?" ("This page couldn't load": Chrome la cierra cuando se
@@ -1233,7 +1239,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.1";
+export const APP_VERSION = "V.0.99.2";
 
 export type VersionEntry = {
   version: string;

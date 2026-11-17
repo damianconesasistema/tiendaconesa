@@ -26,6 +26,7 @@ type SearchParams = Promise<{
   cat?: string;
   marca?: string;
   filter?: string;
+  constock?: string;
   page?: string;
   sort?: string;
   dir?: string;
@@ -98,6 +99,7 @@ export default async function ProductosAdmin({
   const cat = sp.cat || "";
   const marca = sp.marca || "";
   const filter = sp.filter || "";
+  const conStock = sp.constock === "1";
   const page = Math.max(1, Number(sp.page) || 1);
   const sort = sp.sort || "";
   const dir: "asc" | "desc" = sp.dir === "asc" ? "asc" : "desc";
@@ -156,6 +158,7 @@ export default async function ProductosAdmin({
     if (cat) p.set("cat", cat);
     if (marca) p.set("marca", marca);
     if (filter) p.set("filter", filter);
+    if (conStock) p.set("constock", "1");
     if (page > 1) p.set("page", String(page));
     if (sp.sort) p.set("sort", sort);
     if (sp.sort) p.set("dir", dir);
@@ -169,7 +172,7 @@ export default async function ProductosAdmin({
   // El filtro es el mismo que usan las acciones en lote sobre "todos los que
   // coinciden" (src/lib/filtro-productos.ts): asi pausar los 40 de una
   // busqueda pausa esos 40 y no otros.
-  const where = whereDelLocal(suc.id, { q, cat, marca, filter });
+  const where = whereDelLocal(suc.id, { q, cat, marca, filter, conStock });
 
   const [filas, total, deLaSucursal, enLaSucursal] = await Promise.all([
     prisma.branchProduct.findMany({
@@ -312,6 +315,7 @@ export default async function ProductosAdmin({
         marca={marca}
         marcas={await getMarcas()}
         filter={filter}
+        conStock={conStock}
         categories={categories}
       />
 
@@ -350,7 +354,7 @@ export default async function ProductosAdmin({
           total={total}
           volver={volver}
           marcas={await getMarcas()}
-          filter={{ q, cat, marca, filter }}
+          filter={{ q, cat, marca, filter, conStock }}
           sort={sort}
           dir={dir}
           recargoUnPago={(await getRecargosMp()).unPago}
@@ -369,6 +373,7 @@ export default async function ProductosAdmin({
               q={q}
               cat={cat}
               filter={filter}
+              conStock={conStock}
               sort={sort}
               dir={dir}
               label="← Anterior"
@@ -379,6 +384,7 @@ export default async function ProductosAdmin({
               q={q}
               cat={cat}
               filter={filter}
+              conStock={conStock}
               sort={sort}
               dir={dir}
               label="Siguiente →"
@@ -405,6 +411,7 @@ function PageLink({
   q,
   cat,
   filter,
+  conStock,
   sort,
   dir,
   label,
@@ -414,6 +421,7 @@ function PageLink({
   q: string;
   cat: string;
   filter: string;
+  conStock: boolean;
   sort: string;
   dir: string;
   label: string;
@@ -429,6 +437,7 @@ function PageLink({
   if (q) params.set("q", q);
   if (cat) params.set("cat", cat);
   if (filter) params.set("filter", filter);
+  if (conStock) params.set("constock", "1");
   if (sort) {
     params.set("sort", sort);
     params.set("dir", dir);

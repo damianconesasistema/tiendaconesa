@@ -12,6 +12,8 @@ export type FiltroProductos = {
   cat?: string;
   marca?: string;
   filter?: string;
+  /** "Ocultar sin stock": se suma a cualquier otro filtro. */
+  conStock?: boolean;
 };
 
 export function whereDelLocal(
@@ -63,6 +65,12 @@ export function whereDelLocal(
     where.stock = { lt: 5 };
   } else if (f.filter === "inactive") where.active = false;
   else if (f.filter === "on-sale") where.salePrice = { not: null };
+
+  // Damian, 17/11/2026: "quisiera filtrar por los que tienen 0 en stock para
+  // no verlos". Va aparte de los filtros rapidos para poder sumarlo a
+  // cualquiera (por ejemplo, los inactivos que tienen stock).
+  if (f.conStock)
+    where.stock = { ...((where.stock as Prisma.IntFilter | undefined) ?? {}), gt: 0 };
 
   return where;
 }

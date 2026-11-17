@@ -11,6 +11,7 @@ export function ProductsFilters({
   marca,
   marcas = MARCAS_BASE,
   filter,
+  conStock = false,
   categories,
 }: {
   q: string;
@@ -18,6 +19,8 @@ export function ProductsFilters({
   marca: string;
   marcas?: readonly Marca[];
   filter: string;
+  /** "Ocultar sin stock" prendido. */
+  conStock?: boolean;
   categories: { id: string; label: string; count: number }[];
 }) {
   const router = useRouter();
@@ -33,12 +36,20 @@ export function ProductsFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input]);
 
-  function applyFilter(next: { q?: string; cat?: string; marca?: string; filter?: string }) {
+  function applyFilter(next: {
+    q?: string;
+    cat?: string;
+    marca?: string;
+    filter?: string;
+    conStock?: boolean;
+  }) {
     const params = new URLSearchParams();
     if (next.q) params.set("q", next.q);
     if (next.cat) params.set("cat", next.cat);
     if (next.marca) params.set("marca", next.marca);
     if (next.filter) params.set("filter", next.filter);
+    // "Ocultar sin stock" sigue puesto al cambiar los otros filtros.
+    if (next.conStock ?? conStock) params.set("constock", "1");
     router.push(`${pathname}?${params.toString()}`);
   }
 
@@ -109,6 +120,13 @@ export function ProductsFilters({
           }
         >
           Inactivos
+        </QuickFilter>
+        <span className="mx-1 h-4 w-px bg-[var(--border)]" />
+        <QuickFilter
+          active={conStock}
+          onClick={() => applyFilter({ q: input, cat, marca, filter, conStock: !conStock })}
+        >
+          Ocultar sin stock
         </QuickFilter>
       </div>
 
