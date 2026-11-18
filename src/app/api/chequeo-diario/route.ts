@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { chequeoDiarioSiToca } from "@/lib/chequeo-diario";
 import { titulosAMayusculasUnaVez } from "@/lib/titulos-mayusculas";
+import { pausarSinStock } from "@/lib/sin-stock";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,10 @@ export async function POST() {
   try {
     // Los titulos de antes a mayusculas, una sola vez (despues no hace nada).
     const titulos = await titulosAMayusculasUnaVez().catch(() => -1);
+    // Los publicados sin stock, a pausa (esto si, cada vez: es barato).
+    const pausados = await pausarSinStock().catch(() => -1);
     const r = await chequeoDiarioSiToca();
-    return NextResponse.json({ ...r, titulos });
+    return NextResponse.json({ ...r, titulos, pausados });
   } catch {
     return NextResponse.json({ corrio: false, error: "no se pudo correr" }, { status: 500 });
   }

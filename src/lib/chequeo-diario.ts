@@ -143,7 +143,9 @@ async function cambiosDeProductos(l: Local): Promise<NuevaNovedad[]> {
     (await leerNovedades())
       .filter(
         (n) =>
-          n.tipo === "combos" && n.sucursal === l.slug && new Date(n.fecha).getTime() >= desde,
+          (n.tipo === "combos" || n.tipo === "pausados-sin-stock") &&
+          n.sucursal === l.slug &&
+          new Date(n.fecha).getTime() >= desde,
       )
       .flatMap((n) => n.items ?? []),
   );

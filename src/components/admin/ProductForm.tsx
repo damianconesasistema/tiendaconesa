@@ -690,7 +690,7 @@ export function ProductForm({
         <Toggle
           name="active"
           label="Producto activo"
-          desc="Aparece en el catálogo público"
+          desc="Aparece en el catálogo público. Sin stock queda pausado: cargale stock para publicarlo."
           defaultChecked={product.active}
         />
         <Toggle

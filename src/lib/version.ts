@@ -2,6 +2,14 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.6 - Sin stock, pausado. Damian, 18/11/2026: "necesito que los
+//            productos que estan en la tienda sin stock queden pausados, no se
+//            muestren". La tienda solo muestra lo que tiene stock; guardar
+//            stock en 0 (ficha, lista, Excel) lo pausa ahi mismo, y publicar
+//            algo con 0 no se puede (queda pausado); y cada 10 minutos (el
+//            vigia, y al abrir el panel) se pausan los que hayan quedado
+//            publicados con 0, contandolo en las novedades. Nunca se publica
+//            nada solo: cuando vuelve el stock, se publica a mano.
 // V.0.99.5 - Fondos lisos sin IA. Damian, 18/11/2026, con los asientos de
 //            Daccord (blancos sobre azul marino): "estas fotos le quise
 //            eliminar el fondo y no me dejo". Antes de usar la IA se mira el
@@ -1266,7 +1274,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.5";
+export const APP_VERSION = "V.0.99.6";
 
 export type VersionEntry = {
   version: string;

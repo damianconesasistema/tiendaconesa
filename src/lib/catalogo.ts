@@ -65,7 +65,8 @@ export type Busqueda = {
   articulo?: Prisma.ProductWhereInput;
   /** Solo los que tienen oferta cargada EN ESTE LOCAL. */
   soloOferta?: boolean;
-  /** Solo los que tienen stock EN ESTE LOCAL. */
+  /** Solo los que tienen stock EN ESTE LOCAL. Por defecto si: Damian,
+   *  18/11/2026, "los productos sin stock ... no se muestren". */
   conStock?: boolean;
   orden?: Orden[];
   cuantos?: number;
@@ -135,7 +136,7 @@ export async function articulosEnVenta(
           branchId: s.id,
           active: true,
           ...(busqueda.soloOferta ? { salePrice: { not: null } } : {}),
-          ...(busqueda.conStock ? { stock: { gt: 0 } } : {}),
+          ...(busqueda.conStock !== false ? { stock: { gt: 0 } } : {}),
           product: delArticulo,
         },
         orderBy: orden.map(ordenDelLocal),
@@ -154,7 +155,7 @@ export async function articulosEnVenta(
     where: {
       active: true,
       ...(busqueda.soloOferta ? { salePrice: { not: null } } : {}),
-      ...(busqueda.conStock ? { stock: { gt: 0 } } : {}),
+      ...(busqueda.conStock !== false ? { stock: { gt: 0 } } : {}),
       ...delArticulo,
     },
     orderBy: orden.map(ordenDelArticulo),

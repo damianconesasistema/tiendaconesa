@@ -25,7 +25,8 @@ export type TipoNovedad =
   | "sin-stock"
   | "poco-stock"
   | "nuevos"
-  | "combos";
+  | "combos"
+  | "pausados-sin-stock";
 
 export type Novedad = {
   id: string;

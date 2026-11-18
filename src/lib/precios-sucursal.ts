@@ -105,21 +105,43 @@ export async function guardarComercial(
   const guardados: string[] = [];
   const sinFila: string[] = [];
 
+  // Sin stock, pausado (Damian, 18/11/2026: "los productos que estan en la
+  // tienda sin stock queden pausados, no se muestren"). Si se guarda stock en
+  // 0, se pausa; y si se pide publicar algo que tiene 0, queda pausado. Ver
+  // src/lib/sin-stock.ts.
+  const stockDeHoy =
+    datos.active === true && datos.stock === undefined
+      ? new Map(
+          (
+            await prisma.branchProduct.findMany({
+              where: { branchId: s.id, productId: { in: productos.map((p) => p.id) } },
+              select: { productId: true, stock: true },
+            })
+          ).map((f) => [f.productId, f.stock]),
+        )
+      : null;
+
+  const pausadosPorStock: string[] = [];
   for (const p of productos) {
+    const stockFinal = datos.stock ?? stockDeHoy?.get(p.id) ?? p.stock;
+    const datosDe = stockFinal <= 0 && datos.active !== false && (datos.stock !== undefined || datos.active === true)
+      ? { ...datos, active: false }
+      : datos;
+    if (datosDe !== datos) pausadosPorStock.push(p.itemId);
     if (yaCargados && !yaCargados.has(p.id)) {
       sinFila.push(p.itemId);
       continue;
     }
     await prisma.branchProduct.upsert({
       where: { branchId_productId: { branchId: s.id, productId: p.id } },
-      update: datos,
+      update: datosDe,
       create: {
         branchId: s.id,
         productId: p.id,
-        price: datos.price ?? p.price,
-        salePrice: datos.salePrice !== undefined ? datos.salePrice : p.salePrice,
-        stock: datos.stock ?? p.stock,
-        active: datos.active ?? false,
+        price: datosDe.price ?? p.price,
+        salePrice: datosDe.salePrice !== undefined ? datosDe.salePrice : p.salePrice,
+        stock: datosDe.stock ?? p.stock,
+        active: datosDe.active ?? false,
       },
     });
     guardados.push(p.itemId);
@@ -139,6 +161,14 @@ export async function guardarComercial(
       data: datos,
     });
   }
+  // Y los que se pausaron por no tener stock, tambien en el articulo: si no,
+  // la copia de arriba (con lo que se pidio) los dejaria publicados.
+  const pausadosGuardados = pausadosPorStock.filter((c) => guardados.includes(c));
+  if (s.slug === LOCAL_DEL_ARTICULO && pausadosGuardados.length > 0)
+    await prisma.product.updateMany({
+      where: { itemId: { in: pausadosGuardados } },
+      data: { active: false },
+    });
 
   return { guardados, sinFila };
 }
