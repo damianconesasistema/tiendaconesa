@@ -12,6 +12,7 @@
 // vez y despues quedan cacheados.
 
 import { prepararFotoParaSubir } from "@/lib/image-client";
+import { sacarFondoLiso } from "@/lib/fondo-liso";
 
 const CDN =
   "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.min.js";
@@ -126,6 +127,11 @@ export async function quitarFondo(
   file: File,
   onProgress?: (p: ProgresoFondo) => void,
 ): Promise<File> {
+  // Primero sin IA: si el fondo es de un color parejo y oscuro o de color
+  // (los asientos de Daccord sobre azul), se saca ahi nomas, sin bajar nada
+  // ni usar la memoria de la IA. Ver src/lib/fondo-liso.ts.
+  const liso = await conFondoLiso(file).catch(() => null);
+  if (liso) return liso;
   try {
     return await quitarFondoUnaVez(file, onProgress);
   } catch (e) {
@@ -141,6 +147,37 @@ export async function quitarFondo(
       }
     }
     throw explicar(new Error(msg));
+  }
+}
+
+/** La foto sin su fondo liso, o null si el fondo no es liso (ahi va la IA). */
+async function conFondoLiso(file: File): Promise<File | null> {
+  const entrada = await prepararFotoParaSubir(file);
+  const bitmap = await createImageBitmap(entrada);
+  const canvas = document.createElement("canvas");
+  try {
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bitmap, 0, 0);
+    const datos = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const r = sacarFondoLiso(datos.data, canvas.width, canvas.height);
+    if (!r) return null;
+    // Ya es blanco: no hay nada que sacar, queda como esta.
+    if (r.tipo === "ya-blanco") return entrada;
+    datos.data.set(r.rgba);
+    ctx.putImageData(datos, 0, 0);
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.92));
+    if (!blob) return null;
+    const nombre = file.name.replace(/\.[^.]+$/, "") + "-sin-fondo.jpg";
+    return new File([blob], nombre, { type: "image/jpeg" });
+  } finally {
+    bitmap.close();
+    canvas.width = 0;
+    canvas.height = 0;
   }
 }
 

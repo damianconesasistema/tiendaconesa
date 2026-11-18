@@ -2,6 +2,16 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.5 - Fondos lisos sin IA. Damian, 18/11/2026, con los asientos de
+//            Daccord (blancos sobre azul marino): "estas fotos le quise
+//            eliminar el fondo y no me dejo". Antes de usar la IA se mira el
+//            borde de la foto: si es de un color parejo, oscuro o de color, se
+//            saca ese color (tambien el que asoma por el agujero del asiento y
+//            las motitas de polvo), al instante y sin bajar nada ni usar la
+//            memoria de la IA (src/lib/fondo-liso.ts). Si el fondo ya es
+//            blanco, queda como esta. Sobre gris claro o fondos con cosas,
+//            sigue la IA: ahi el color parejo borraria las partes blancas del
+//            producto.
 // V.0.99.4 - Rubros y subrubros de la A a la Z, con "Otros" al final (Damian,
 //            18/11/2026: "ordename eso alfabeticamente siempre"): en los
 //            desplegables de la ficha, el alta a mano y Crear por Excel, en
@@ -1256,7 +1266,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.4";
+export const APP_VERSION = "V.0.99.5";
 
 export type VersionEntry = {
   version: string;
