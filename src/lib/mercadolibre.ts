@@ -561,3 +561,30 @@ export async function leerLinkDeMercadoLibre(link: string): Promise<DatosDeML> {
 
   return { encontrado: false, motivo: motivoML(estado, n) };
 }
+
+// ------------------------------------------- precios para el comparador
+
+type ItemDeProducto = { item_id?: string; price?: number; permalink?: string; seller_id?: number };
+
+/** Los precios a los que se vende en MercadoLibre la ficha de catalogo que
+ *  coincide EXACTO con este codigo y esta marca (la misma regla que la
+ *  busqueda de fotos). Para el comparador de precios (src/lib/comparador.ts).
+ *  [] si no esta conectado o no hay ficha exacta. Solo lee. */
+export async function preciosEnMercadoLibre(a: {
+  marca: string;
+  codigo: string;
+}): Promise<{ titulo: string; precio: number; link: string }[]> {
+  if (!(await mlConectado())) return [];
+  const q = encodeURIComponent(`${a.marca} ${a.codigo}`);
+  const busqueda = await api<{ results?: ProductoML[] }>(`/products/search?status=active&site_id=MLA&q=${q}`);
+  const ficha = (busqueda?.results ?? []).find((p) => esExacto(p, a.marca, a.codigo));
+  if (!ficha?.id) return [];
+  const items = await api<{ results?: ItemDeProducto[] }>(`/products/${ficha.id}/items?limit=10`);
+  return (items?.results ?? [])
+    .filter((i) => typeof i.price === "number" && i.price > 0)
+    .map((i) => ({
+      titulo: ficha.name ?? a.codigo,
+      precio: Math.round(i.price as number),
+      link: i.permalink || `https://www.mercadolibre.com.ar/p/${ficha.id}`,
+    }));
+}

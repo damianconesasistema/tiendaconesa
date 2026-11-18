@@ -1,0 +1,416 @@
+"use client";
+
+import { useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import { ChevronDown, ChevronUp, ExternalLink, Loader2, Search, Square } from "lucide-react";
+import { formatPrice } from "@/lib/order";
+import { buscar, indexar } from "@/lib/buscar";
+import type { Comparacion, PrecioAfuera } from "@/lib/comparador";
+import { compararPrecios } from "@/app/admin/comparador/actions";
+
+// La pantalla del comparador de precios. Ver src/lib/comparador.ts y
+// src/app/admin/comparador/page.tsx.
+
+export type FilaComparador = {
+  itemId: string;
+  titulo: string;
+  marca: string | null;
+  rubro: string;
+  imagen: string;
+  /** El que ve el cliente en la tienda: debito o 1 pago. */
+  precio: number;
+  comparacion: Comparacion | null;
+};
+
+type Filtro = "todos" | "sin-buscar" | "mismo" | "caros" | "baratos" | "nada";
+type Orden = "nombre" | "diferencia";
+
+/** De a cuantos se le piden al servidor (igual que en actions.ts). */
+const DE_A = 3;
+
+/** El mas barato de los que son el mismo modelo. */
+function mejorExacto(c: Comparacion | null): PrecioAfuera | null {
+  const exactos = (c?.resultados ?? []).filter((r) => r.exacto);
+  return exactos.length ? exactos.reduce((a, b) => (b.precio < a.precio ? b : a)) : null;
+}
+
+/** Cuanto mas caro (+) o mas barato (-) estamos que afuera, en %. */
+function diferencia(f: FilaComparador): number | null {
+  const m = mejorExacto(f.comparacion);
+  return m ? Math.round(((f.precio - m.precio) / m.precio) * 100) : null;
+}
+
+function fechaCorta(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString("es-AR", { day: "numeric", month: "numeric" }) +
+        " " +
+        d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+}
+
+export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[] }) {
+  const [comparaciones, setComparaciones] = useState<Record<string, Comparacion | null>>(() =>
+    Object.fromEntries(iniciales.map((f) => [f.itemId, f.comparacion])),
+  );
+  const filas = useMemo(
+    () => iniciales.map((f) => ({ ...f, comparacion: comparaciones[f.itemId] ?? null })),
+    [iniciales, comparaciones],
+  );
+
+  const [texto, setTexto] = useState("");
+  const [rubro, setRubro] = useState("");
+  const [filtro, setFiltro] = useState<Filtro>("todos");
+  const [orden, setOrden] = useState<Orden>("nombre");
+  const [abierto, setAbierto] = useState<string | null>(null);
+
+  // La busqueda: cuantos van, cuantos son, y si se pidio frenar.
+  const [buscando, setBuscando] = useState<{ hechos: number; total: number } | null>(null);
+  const [enCurso, setEnCurso] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+  const frenar = useRef(false);
+
+  const rubros = useMemo(
+    () => [...new Set(iniciales.map((f) => f.rubro))].sort((a, b) => a.localeCompare(b, "es")),
+    [iniciales],
+  );
+  const indice = useMemo(
+    () => iniciales.map((f) => ({ id: f.itemId, indice: indexar({ titulo: f.titulo, otros: [f.marca, f.rubro, f.itemId] }) })),
+    [iniciales],
+  );
+  const encontrados = useMemo(() => (texto.trim() ? buscar(texto, indice).puntajes : null), [texto, indice]);
+
+  const visibles = useMemo(() => {
+    const l = filas.filter((f) => {
+      if (encontrados && !encontrados.has(f.itemId)) return false;
+      if (rubro && f.rubro !== rubro) return false;
+      const d = diferencia(f);
+      switch (filtro) {
+        case "sin-buscar":
+          return !f.comparacion;
+        case "mismo":
+          return d !== null;
+        case "caros":
+          return d !== null && d > 0;
+        case "baratos":
+          return d !== null && d < 0;
+        case "nada":
+          return !!f.comparacion && f.comparacion.resultados.length === 0;
+        default:
+          return true;
+      }
+    });
+    if (orden === "diferencia")
+      l.sort((a, b) => (diferencia(b) ?? -Infinity) - (diferencia(a) ?? -Infinity));
+    return l;
+  }, [filas, encontrados, rubro, filtro, orden]);
+
+  const resumen = useMemo(() => {
+    let buscados = 0;
+    let mismo = 0;
+    let caros = 0;
+    for (const f of filas) {
+      if (f.comparacion) buscados++;
+      const d = diferencia(f);
+      if (d !== null) mismo++;
+      if (d !== null && d > 0) caros++;
+    }
+    return { buscados, mismo, caros };
+  }, [filas]);
+
+  /** Busca estos, de a poquitos, hasta terminar o hasta que se frene. */
+  async function buscarEstos(ids: string[]) {
+    if (buscando || ids.length === 0) return;
+    frenar.current = false;
+    setError(null);
+    setBuscando({ hechos: 0, total: ids.length });
+    try {
+      for (let i = 0; i < ids.length && !frenar.current; i += DE_A) {
+        const tanda = ids.slice(i, i + DE_A);
+        setEnCurso(new Set(tanda));
+        const r = await compararPrecios(tanda);
+        if (!r.ok) {
+          setError(r.error);
+          break;
+        }
+        setComparaciones((c) => ({ ...c, ...r.resultados }));
+        setBuscando({ hechos: Math.min(i + DE_A, ids.length), total: ids.length });
+      }
+    } catch {
+      setError("Se cortó la búsqueda. Lo que ya estaba buscado quedó guardado: podés seguir con los que faltan.");
+    } finally {
+      setEnCurso(new Set());
+      setBuscando(null);
+    }
+  }
+
+  const control =
+    "h-10 rounded-lg border border-[var(--border)] bg-white px-3 text-sm outline-none focus:border-[var(--brand-red)]";
+
+  return (
+    <div className="mt-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Dato titulo="Publicados" valor={filas.length} />
+        <Dato titulo="Ya buscados" valor={resumen.buscados} />
+        <Dato titulo="Con el mismo modelo afuera" valor={resumen.mismo} />
+        <Dato titulo="Más caros que afuera" valor={resumen.caros} rojo={resumen.caros > 0} />
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[200px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
+          <input
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            placeholder="Buscar producto, marca o código"
+            className={`${control} w-full pl-9`}
+          />
+        </div>
+        <select value={rubro} onChange={(e) => setRubro(e.target.value)} className={control}>
+          <option value="">Todos los rubros</option>
+          {rubros.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+        <select value={filtro} onChange={(e) => setFiltro(e.target.value as Filtro)} className={control}>
+          <option value="todos">Todos</option>
+          <option value="sin-buscar">Sin buscar todavía</option>
+          <option value="mismo">Con el mismo modelo afuera</option>
+          <option value="caros">Más caros que afuera</option>
+          <option value="baratos">Más baratos que afuera</option>
+          <option value="nada">Buscados sin resultados</option>
+        </select>
+        <select value={orden} onChange={(e) => setOrden(e.target.value as Orden)} className={control}>
+          <option value="nombre">Ordenar por nombre</option>
+          <option value="diferencia">Los más caros primero</option>
+        </select>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        {buscando ? (
+          <>
+            <span className="inline-flex items-center gap-2 text-sm font-medium">
+              <Loader2 className="h-4 w-4 animate-spin text-[var(--brand-red)]" />
+              Buscando {buscando.hechos} de {buscando.total}…
+            </span>
+            <button
+              type="button"
+              onClick={() => (frenar.current = true)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--border)] px-4 text-xs font-bold uppercase tracking-wider hover:border-[var(--brand-red)]"
+            >
+              <Square className="h-3 w-3" /> Frenar
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            disabled={visibles.length === 0}
+            onClick={() => void buscarEstos(visibles.map((f) => f.itemId))}
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 text-xs font-bold uppercase tracking-wider text-white disabled:opacity-50"
+          >
+            <Search className="h-4 w-4" />
+            Buscar precios de {visibles.length === filas.length ? "todos" : `estos ${visibles.length}`}
+          </button>
+        )}
+        <span className="text-xs text-[var(--muted)]">
+          Cada producto tarda unos segundos. Lo que se busca queda guardado: no hace falta buscar todo de
+          una vez.
+        </span>
+      </div>
+      {error && <p className="mt-2 text-sm font-medium text-red-700">{error}</p>}
+
+      <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
+        <div className="hidden grid-cols-[1fr_120px_170px_110px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
+          <span>Producto</span>
+          <span className="text-right">Nuestro precio</span>
+          <span className="text-right">Mismo modelo afuera</span>
+          <span className="text-right">Diferencia</span>
+          <span />
+        </div>
+        {visibles.length === 0 && (
+          <p className="px-4 py-10 text-center text-sm text-[var(--muted)]">No hay productos con ese filtro.</p>
+        )}
+        {visibles.map((f) => (
+          <Fila
+            key={f.itemId}
+            f={f}
+            abierto={abierto === f.itemId}
+            alternar={() => setAbierto(abierto === f.itemId ? null : f.itemId)}
+            buscandoEste={enCurso.has(f.itemId)}
+            ocupado={!!buscando}
+            buscarEste={() => void buscarEstos([f.itemId])}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Dato({ titulo, valor, rojo = false }: { titulo: string; valor: number; rojo?: boolean }) {
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-white p-3">
+      <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">{titulo}</div>
+      <div className={`mt-1 font-display text-2xl font-black ${rojo ? "text-red-700" : ""}`}>{valor}</div>
+    </div>
+  );
+}
+
+function Fila({
+  f,
+  abierto,
+  alternar,
+  buscandoEste,
+  ocupado,
+  buscarEste,
+}: {
+  f: FilaComparador;
+  abierto: boolean;
+  alternar: () => void;
+  buscandoEste: boolean;
+  ocupado: boolean;
+  buscarEste: () => void;
+}) {
+  const c = f.comparacion;
+  const mejor = mejorExacto(c);
+  const d = diferencia(f);
+  const parecidos = (c?.resultados ?? []).filter((r) => !r.exacto);
+  const exactos = (c?.resultados ?? []).filter((r) => r.exacto);
+
+  return (
+    <div className="border-b border-[var(--border)] last:border-b-0">
+      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_120px_170px_110px_90px] md:items-center">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[var(--border)] bg-white">
+            <Image
+              src={f.imagen}
+              alt=""
+              fill
+              sizes="48px"
+              unoptimized={f.imagen.startsWith("/api/")}
+              className="object-contain p-1"
+            />
+          </div>
+          <div className="min-w-0">
+            <div className="line-clamp-2 text-sm font-semibold uppercase leading-snug">{f.titulo}</div>
+            <div className="mt-0.5 text-xs text-[var(--muted)]">
+              {[f.marca, f.rubro, f.itemId].filter(Boolean).join(" · ")}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-right font-display text-sm font-black md:text-base">{formatPrice(f.precio)}</div>
+
+        <div className="col-span-2 text-sm md:col-span-1 md:text-right">
+          {buscandoEste ? (
+            <span className="inline-flex items-center gap-1.5 text-[var(--muted)]">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Buscando…
+            </span>
+          ) : mejor ? (
+            <a
+              href={mejor.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-semibold hover:text-[var(--brand-red)]"
+            >
+              {formatPrice(mejor.precio)} <span className="text-xs font-normal text-[var(--muted)]">en {mejor.tienda}</span>
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          ) : c ? (
+            <span className="text-xs text-[var(--muted)]">
+              {parecidos.length
+                ? `No está igual · ${parecidos.length} parecido${parecidos.length > 1 ? "s" : ""}`
+                : c.fallaron.length
+                  ? `No contestó ${c.fallaron.join(" ni ")}: probá de nuevo más tarde`
+                  : "No se encontró afuera"}
+            </span>
+          ) : (
+            <span className="text-xs text-[var(--muted)]">Sin buscar</span>
+          )}
+        </div>
+
+        <div className="text-sm md:text-right">
+          {d === null ? (
+            <span className="text-[var(--muted)]">—</span>
+          ) : d === 0 ? (
+            <span className="font-semibold">Igual</span>
+          ) : d > 0 ? (
+            <span className="font-bold text-red-700">{d}% más caro</span>
+          ) : (
+            <span className="font-bold text-green-700">{-d}% más barato</span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-1">
+          <button
+            type="button"
+            onClick={buscarEste}
+            disabled={ocupado}
+            title={c ? "Buscar de nuevo" : "Buscar"}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:opacity-40"
+          >
+            <Search className="h-3.5 w-3.5" />
+          </button>
+          {c && (
+            <button
+              type="button"
+              onClick={alternar}
+              title="Ver lo que se encontró"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+            >
+              {abierto ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {abierto && c && (
+        <div className="border-t border-dashed border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm">
+          <div className="text-xs text-[var(--muted)]">
+            Buscado el {fechaCorta(c.fecha)} con: <strong>{c.buscado.join(" · ") || "—"}</strong>
+            {c.fallaron.length > 0 && <> · No contestaron: {c.fallaron.join(", ")}</>}
+          </div>
+          {exactos.length > 0 && <Lista titulo="Mismo modelo" items={exactos} nuestro={f.precio} />}
+          {parecidos.length > 0 && (
+            <Lista titulo="Parecidos (no es el mismo código: solo para mirar)" items={parecidos} nuestro={f.precio} />
+          )}
+          {c.resultados.length === 0 && <p className="mt-2 text-[var(--muted)]">No apareció en ninguna tienda.</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Lista({ titulo, items, nuestro }: { titulo: string; items: PrecioAfuera[]; nuestro: number }) {
+  return (
+    <div className="mt-3">
+      <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">{titulo}</div>
+      <ul className="mt-1 divide-y divide-[var(--border)]">
+        {items.map((r) => {
+          const d = Math.round(((nuestro - r.precio) / r.precio) * 100);
+          return (
+            <li key={r.link} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
+              <a
+                href={r.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-w-0 items-center gap-1 hover:text-[var(--brand-red)]"
+              >
+                <span className="shrink-0 font-semibold">{r.tienda}:</span>
+                <span className="truncate">{r.titulo}</span>
+                <ExternalLink className="h-3 w-3 shrink-0" />
+              </a>
+              <span className="whitespace-nowrap">
+                <strong>{formatPrice(r.precio)}</strong>{" "}
+                <span className={`text-xs ${d > 0 ? "text-red-700" : d < 0 ? "text-green-700" : "text-[var(--muted)]"}`}>
+                  ({d > 0 ? `+${d}` : d}%)
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}

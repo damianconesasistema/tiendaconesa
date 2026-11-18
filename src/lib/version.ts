@@ -2,6 +2,19 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.15 - Comparador de precios, pestana nueva del panel (Damian,
+//            18/11/2026: "armame un comparador de precios con los publicados
+//            ... un panel aparte donde esten todas las publicaciones y busque
+//            por internet el mismo modelo"). Los publicados del local con el
+//            precio de debito o 1 pago, y a cuanto los venden Easy, Blaisten
+//            (catalogo publico de VTEX) y MercadoLibre (ficha exacta, cuando
+//            la cuenta de Conesa este conectada). Busca por codigo de
+//            fabricante, los codigos del titulo y la ayuda memoria (tambien
+//            sin el cero de adelante: Blaisten pone "207/B1") y por palabras
+//            del titulo. "Mismo modelo" solo si nombra el mismo codigo; lo
+//            demas, "parecido", aparte. Buscar uno, o todos los de la lista
+//            de a tres, con Frenar; queda guardado (Setting
+//            "comparador_precios"). src/lib/comparador.ts.
 // V.0.99.14 - Herramientas con subrubros (Damian, 18/11/2026: "bombas de agua
 //            sacalo de ahi y hay que ponerlo como subrubro en herramientas" y
 //            "creame en herramienta Pistola de Calor, Amoladora, Taladro,
@@ -1333,7 +1346,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.14";
+export const APP_VERSION = "V.0.99.15";
 
 export type VersionEntry = {
   version: string;

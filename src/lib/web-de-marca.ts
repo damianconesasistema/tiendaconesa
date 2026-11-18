@@ -134,7 +134,7 @@ function patronDelCodigo(codigo: string): RegExp {
   return new RegExp(`(^|[^A-Z0-9])${partes.join("[^A-Z0-9]?")}([^A-Z0-9]|$)`);
 }
 
-function nombraElCodigo(texto: string | null | undefined, codigo: string): boolean {
+export function nombraElCodigo(texto: string | null | undefined, codigo: string): boolean {
   return !!texto && patronDelCodigo(codigo).test(decodificar(texto).toUpperCase());
 }
 
