@@ -47,3 +47,5 @@ next-env.d.ts
 
 # factura de ejemplo que genera scripts/preview-factura.mts
 preview-factura.pdf
+/.next-nueva/
+/.next-vieja/

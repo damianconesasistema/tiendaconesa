@@ -111,7 +111,15 @@ jobs:
             cd /opt/conesa
             git fetch -q origin && git reset -q --hard ${{ github.sha }}
             if [ -f /tmp/mods.tgz ]; then rm -rf node_modules && tar xzf /tmp/mods.tgz && rm -f /tmp/mods.tgz; fi
-            rm -rf .next && tar xzf /tmp/next.tgz && rm -f /tmp/next.tgz
+            # La compilacion nueva se desempaqueta APARTE, en .next-nueva, y
+            # recien se pone en su lugar justo antes del reinicio. Antes se
+            # pisaba .next al principio y la version vieja seguia atendiendo
+            # medio minuto con archivos que no eran los suyos: paginas con
+            # error mientras se publicaba (Damian, 18/11/2026, con una
+            # pantalla de 502: \"porque tira eso cada vez que subis\").
+            rm -rf .next-nueva && mkdir .next-nueva
+            tar xzf /tmp/next.tgz -C .next-nueva --strip-components=1 && rm -f /tmp/next.tgz
+            test -f .next-nueva/BUILD_ID || { echo \"La compilacion nueva vino incompleta: no se toca nada.\"; exit 1; }
             # Regenerar SIEMPRE el cliente de Prisma, no solo cuando cambian
             # las dependencias: si el esquema sumo una columna y el cliente
             # quedo viejo, el codigo le pide a la base un campo que su cliente
@@ -123,8 +131,13 @@ jobs:
             # tiempo al corte. Si algo falla aca, el restart no pasa y la
             # tienda se queda con lo viejo, que es lo que se quiere.
             set -a; . /etc/conesa.env; set +a
-            node prisma/pre-start.mjs
+            node prisma/pre-start.mjs || { echo \"Fallo la preparacion de la base: queda andando la version de antes.\"; exit 1; }
+            # El cambio de archivos y el reinicio, pegados: lo unico que queda
+            # es lo que tarda en arrancar (unos nueve segundos medidos).
+            rm -rf .next-vieja
+            mv .next .next-vieja && mv .next-nueva .next || { mv .next-vieja .next 2>/dev/null; echo \"No se pudo poner la compilacion nueva: queda la de antes.\"; exit 1; }
             systemctl restart conesa
+            rm -rf .next-vieja
           '"
 
       - name: Esperar a que la tienda conteste

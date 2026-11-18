@@ -2,6 +2,13 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.19 - Publicar corta menos (Damian, 18/11/2026, con una pantalla de
+//            502: "porque tira eso cada vez que subis"). La compilacion nueva
+//            se desempaqueta aparte y se pone en su lugar recien al lado del
+//            reinicio: antes la version vieja atendia medio minuto con los
+//            archivos de la nueva. Si la base no se pudo preparar, ya no se
+//            reinicia: sigue la version de antes. Queda el arranque, unos
+//            nueve segundos (.github/workflows/publicar.yml).
 // V.0.99.18 - "Equipamiento de Baño", con B mayuscula (Damian, 18/11/2026:
 //            "poneme Baño con B mayuscula aca"), en el panel y la tienda.
 // V.0.99.17 - Comparador: solo el mismo modelo, sin "parecidos" (Damian,
@@ -1368,7 +1375,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.18";
+export const APP_VERSION = "V.0.99.19";
 
 export type VersionEntry = {
   version: string;
