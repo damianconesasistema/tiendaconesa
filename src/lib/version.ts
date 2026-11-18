@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.22 - Despues de publicar, el panel abierto ya no se rompe (Damian,
+//            18/11/2026, con "This page couldn't load": "no para de salirme
+//            esa pantalla que onda?"). Era la pestaña con la version vieja
+//            pidiendo cosas que la nueva ya no tiene. Ahora: si una pantalla
+//            falla por eso se recarga sola (una vez; si vuelve a fallar, un
+//            mensaje en castellano), y el panel pregunta cada minuto que
+//            version hay (/api/version) y, si cambio, muestra una franja para
+//            recargar antes de guardar. Comparador: no se muestran las
+//            busquedas de antes de V.0.99.17 (tomaban "2000" o una fecha como
+//            codigo: "eso no tiene nada que ver"), filtro por marca y los
+//            rubros como en Productos ("habilita los filtros ahi").
 // V.0.99.21 - Publicar sin cortar la tienda (Damian, 18/11/2026: "porque
 //            tira eso cada vez que subis" ... "Si, armalo"). Dos lugares para
 //            la tienda, conesa@3000 y conesa@3001 (deploy/conesa@.service):
@@ -1394,7 +1405,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.21";
+export const APP_VERSION = "V.0.99.22";
 
 export type VersionEntry = {
   version: string;

@@ -247,10 +247,20 @@ export async function preciosAfuera(p: {
 
 // ------------------------------------------------------------ guardado
 
+/** Lo buscado antes de esto no vale: tomaba medidas, watts y fechas como
+ *  codigos ("2000", "14/10/2026") y daba como mismo modelo cualquier cosa
+ *  (Damian, 18/11/2026, con una pistola de calor Dogo comparada con clavos:
+ *  "eso no tiene nada que ver"). Es cuando se publico V.0.99.17. */
+const VALE_DESDE = Date.parse("2026-11-18T20:10:00Z");
+
 export async function comparacionesGuardadas(): Promise<Record<string, Comparacion>> {
   try {
     const o = JSON.parse((await getSetting(S_COMPARADOR)) || "{}");
-    return o && typeof o === "object" && !Array.isArray(o) ? (o as Record<string, Comparacion>) : {};
+    if (!o || typeof o !== "object" || Array.isArray(o)) return {};
+    const validas: Record<string, Comparacion> = {};
+    for (const [id, c] of Object.entries(o as Record<string, Comparacion>))
+      if (c && Date.parse(c.fecha) >= VALE_DESDE) validas[id] = c;
+    return validas;
   } catch {
     return {};
   }

@@ -12,6 +12,8 @@ import { chequeoDiarioSiToca } from "@/lib/chequeo-diario";
 import { titulosAMayusculasUnaVez } from "@/lib/titulos-mayusculas";
 import { pausarSinStock } from "@/lib/sin-stock";
 import { herramientasUnaVez } from "@/lib/herramientas-una-vez";
+import { AvisoVersionNueva } from "@/components/AvisoVersionNueva";
+import { versionPublicada } from "@/lib/version-publicada";
 
 export async function AdminShell({
   username,
@@ -83,6 +85,9 @@ export async function AdminShell({
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
+      {/* Si se publica una version nueva con el panel abierto, una franja
+          para recargar antes de que guardar falle. */}
+      <AvisoVersionNueva version={versionPublicada()} />
       {/* Top bar */}
       <div className="sticky top-0 z-20 border-b border-[var(--border)] bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">

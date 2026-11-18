@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronDown, ChevronUp, ExternalLink, Loader2, Search, Square } from "lucide-react";
 import { formatPrice } from "@/lib/order";
 import { buscar, indexar } from "@/lib/buscar";
+import { esPorVersionNueva } from "@/lib/desfasaje";
 import type { Comparacion, PrecioAfuera } from "@/lib/comparador";
 import { compararPrecios } from "@/app/admin/comparador/actions";
 
@@ -66,6 +67,7 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
 
   const [texto, setTexto] = useState("");
   const [rubro, setRubro] = useState("");
+  const [marca, setMarca] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [orden, setOrden] = useState<Orden>("nombre");
   const [abierto, setAbierto] = useState<string | null>(null);
@@ -76,9 +78,20 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
   const [error, setError] = useState<string | null>(null);
   const frenar = useRef(false);
 
-  const rubros = useMemo(
-    () => [...new Set(iniciales.map((f) => f.rubro))].sort((a, b) => a.localeCompare(b, "es")),
-    [iniciales],
+  // Los rubros con cuantos hay de cada uno (de la marca elegida, si hay), y
+  // las marcas (del rubro elegido): igual que en Productos. Damian,
+  // 18/11/2026: "habilita los filtros ahi".
+  const rubros = useMemo(() => {
+    const n = new Map<string, number>();
+    for (const f of iniciales) if (!marca || f.marca === marca) n.set(f.rubro, (n.get(f.rubro) ?? 0) + 1);
+    return [...n.entries()].sort((a, b) => a[0].localeCompare(b[0], "es"));
+  }, [iniciales, marca]);
+  const marcas = useMemo(
+    () =>
+      [...new Set(iniciales.filter((f) => !rubro || f.rubro === rubro).map((f) => f.marca).filter((m): m is string => !!m))].sort(
+        (a, b) => a.localeCompare(b, "es"),
+      ),
+    [iniciales, rubro],
   );
   const indice = useMemo(
     () => iniciales.map((f) => ({ id: f.itemId, indice: indexar({ titulo: f.titulo, otros: [f.marca, f.rubro, f.itemId] }) })),
@@ -90,6 +103,7 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
     const l = filas.filter((f) => {
       if (encontrados && !encontrados.has(f.itemId)) return false;
       if (rubro && f.rubro !== rubro) return false;
+      if (marca && f.marca !== marca) return false;
       const d = diferencia(f);
       switch (filtro) {
         case "sin-buscar":
@@ -111,7 +125,7 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
     if (orden === "diferencia")
       l.sort((a, b) => (diferencia(b) ?? -Infinity) - (diferencia(a) ?? -Infinity));
     return l;
-  }, [filas, encontrados, rubro, filtro, orden]);
+  }, [filas, encontrados, rubro, marca, filtro, orden]);
 
   const resumen = useMemo(() => {
     let buscados = 0;
@@ -144,8 +158,12 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
         setComparaciones((c) => ({ ...c, ...r.resultados }));
         setBuscando({ hechos: Math.min(i + DE_A, ids.length), total: ids.length });
       }
-    } catch {
-      setError("Se cortó la búsqueda. Lo que ya estaba buscado quedó guardado: podés seguir con los que faltan.");
+    } catch (e) {
+      setError(
+        esPorVersionNueva(e)
+          ? "Se publicó una versión nueva del panel: recargá la página y tocá Buscar de nuevo. Lo que ya estaba buscado quedó guardado."
+          : "Se cortó la búsqueda. Lo que ya estaba buscado quedó guardado: podés seguir con los que faltan.",
+      );
     } finally {
       setEnCurso(new Set());
       setBuscando(null);
@@ -174,11 +192,11 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
             className={`${control} w-full pl-9`}
           />
         </div>
-        <select value={rubro} onChange={(e) => setRubro(e.target.value)} className={control}>
-          <option value="">Todos los rubros</option>
-          {rubros.map((r) => (
-            <option key={r} value={r}>
-              {r}
+        <select value={marca} onChange={(e) => setMarca(e.target.value)} className={control}>
+          <option value="">Todas las marcas</option>
+          {marcas.map((m) => (
+            <option key={m} value={m}>
+              {m}
             </option>
           ))}
         </select>
@@ -195,6 +213,32 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
           <option value="nombre">Ordenar por nombre</option>
           <option value="diferencia">Los más caros primero</option>
         </select>
+      </div>
+
+      {/* Los rubros, como en Productos. */}
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Chip activo={!rubro} onClick={() => setRubro("")}>
+          Todos
+        </Chip>
+        {rubros.map(([r, n]) => (
+          <Chip key={r} activo={rubro === r} onClick={() => setRubro(rubro === r ? "" : r)}>
+            {r} <span className="ml-1 text-[10px] opacity-60">{n}</span>
+          </Chip>
+        ))}
+        {(rubro || marca || texto || filtro !== "todos") && (
+          <button
+            type="button"
+            onClick={() => {
+              setRubro("");
+              setMarca("");
+              setTexto("");
+              setFiltro("todos");
+            }}
+            className="px-2 text-xs font-medium text-[var(--brand-red)] underline"
+          >
+            quitar filtros
+          </button>
+        )}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -254,6 +298,22 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
         ))}
       </div>
     </div>
+  );
+}
+
+function Chip({ activo, onClick, children }: { activo: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex h-8 items-center rounded-full border px-3 text-xs font-semibold transition-colors ${
+        activo
+          ? "border-[var(--brand-red)] bg-[var(--brand-red)] text-white"
+          : "border-[var(--border)] bg-white hover:border-[var(--brand-red)]"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
