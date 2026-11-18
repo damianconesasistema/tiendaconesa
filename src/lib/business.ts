@@ -49,7 +49,7 @@ export const business = {
   categories: [
     { name: "Loza sanitaria", slug: "sanitarios", description: "Inodoros, bidets, lavatorios, mingitorios" },
     { name: "Grifería", slug: "griferia", description: "Piazza, Hydros y más marcas" },
-    { name: "Equipamiento de baño", slug: "banera", description: "Vanitorys, espejos, accesorios" },
+    { name: "Equipamiento de Baño", slug: "banera", description: "Vanitorys, espejos, accesorios" },
     { name: "Salamandras", slug: "salamandras", description: "Calefactores a leña para tu hogar" },
     { name: "Tanques", slug: "materiales", description: "Tanques de agua y cámaras sépticas" },
     { name: "Accesorios", slug: "accesorios", description: "Grifos, flexibles, repuestos" },

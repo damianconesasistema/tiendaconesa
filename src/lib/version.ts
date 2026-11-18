@@ -2,6 +2,8 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.18 - "Equipamiento de Baño", con B mayuscula (Damian, 18/11/2026:
+//            "poneme Baño con B mayuscula aca"), en el panel y la tienda.
 // V.0.99.17 - Comparador: solo el mismo modelo, sin "parecidos" (Damian,
 //            18/11/2026: "los parecidos no esta bueno que aparezcan porque
 //            trae cualquier cosa"). Lo que no nombra el codigo con la misma
@@ -1366,7 +1368,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.17";
+export const APP_VERSION = "V.0.99.18";
 
 export type VersionEntry = {
   version: string;

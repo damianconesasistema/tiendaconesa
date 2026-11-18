@@ -26,7 +26,7 @@ export const RUBROS_BASE: readonly Rubro[] = [
   // LOZA SANITARIA". El slug no cambia: los links y lo guardado siguen igual.
   { slug: "sanitarios", name: "Loza sanitaria" },
   { slug: "griferia", name: "Grifería" },
-  { slug: "banera", name: "Equipamiento de baño" },
+  { slug: "banera", name: "Equipamiento de Baño" },
   { slug: "accesorios", name: "Accesorios" },
   { slug: "salamandras", name: "Salamandras" },
   { slug: "calefones", name: "Termotanques y Calefones" },
