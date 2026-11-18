@@ -53,9 +53,21 @@ export function MasVistos({
     const espacio = parseFloat(getComputedStyle(f).columnGap || "16") || 16;
     const paso = (tarjeta?.getBoundingClientRect().width ?? 176) + espacio;
     const fin = f.scrollWidth - f.clientWidth;
-    if (lado > 0 && f.scrollLeft >= fin - 4) f.scrollTo({ left: 0, behavior: "smooth" });
-    else if (lado < 0 && f.scrollLeft <= 4) f.scrollTo({ left: fin, behavior: "smooth" });
-    else f.scrollBy({ left: lado * paso, behavior: "smooth" });
+    const desde = f.scrollLeft;
+    const destino =
+      lado > 0
+        ? desde >= fin - 4
+          ? 0
+          : Math.min(fin, desde + paso)
+        : desde <= 4
+          ? fin
+          : Math.max(0, desde - paso);
+    f.scrollTo({ left: destino, behavior: "smooth" });
+    // Si el deslizamiento suave no arranco (un navegador viejo, el ahorro de
+    // energia), se pasa igual, de golpe.
+    setTimeout(() => {
+      if (Math.abs(f.scrollLeft - desde) < 2) f.scrollLeft = destino;
+    }, 700);
   }
 
   useEffect(() => {
