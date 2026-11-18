@@ -2,6 +2,12 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.17 - Comparador: solo el mismo modelo, sin "parecidos" (Damian,
+//            18/11/2026: "los parecidos no esta bueno que aparezcan porque
+//            trae cualquier cosa"). Lo que no nombra el codigo con la misma
+//            marca no se guarda ni se muestra (tampoco lo guardado antes). Un
+//            producto sin codigo de modelo ya no se busca: dice que le falta
+//            el codigo de fabricante, y hay un filtro para ver cuales son.
 // V.0.99.16 - Comparador: una medida ya no cuenta como codigo (Damian,
 //            18/11/2026: "se ve que esta buscando otra cosa y no el codigo
 //            que corresponde"; de "67.5 X 40.5 X 20 CM" salia "40.5" y daba
@@ -1360,7 +1366,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.16";
+export const APP_VERSION = "V.0.99.17";
 
 export type VersionEntry = {
   version: string;

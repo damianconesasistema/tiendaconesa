@@ -22,7 +22,7 @@ export type FilaComparador = {
   comparacion: Comparacion | null;
 };
 
-type Filtro = "todos" | "sin-buscar" | "mismo" | "caros" | "baratos" | "nada";
+type Filtro = "todos" | "sin-buscar" | "mismo" | "caros" | "baratos" | "nada" | "sin-codigo";
 type Orden = "nombre" | "diferencia";
 
 /** De a cuantos se le piden al servidor (igual que en actions.ts). */
@@ -101,7 +101,9 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
         case "baratos":
           return d !== null && d < 0;
         case "nada":
-          return !!f.comparacion && f.comparacion.resultados.length === 0;
+          return !!f.comparacion && !f.comparacion.sinCodigo && d === null;
+        case "sin-codigo":
+          return !!f.comparacion?.sinCodigo;
         default:
           return true;
       }
@@ -186,7 +188,8 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
           <option value="mismo">Con el mismo modelo afuera</option>
           <option value="caros">Más caros que afuera</option>
           <option value="baratos">Más baratos que afuera</option>
-          <option value="nada">Buscados sin resultados</option>
+          <option value="nada">Buscados y no está afuera</option>
+          <option value="sin-codigo">Les falta el código para buscarlos</option>
         </select>
         <select value={orden} onChange={(e) => setOrden(e.target.value as Orden)} className={control}>
           <option value="nombre">Ordenar por nombre</option>
@@ -281,9 +284,8 @@ function Fila({
   const c = f.comparacion;
   const mejor = mejorExacto(c, f.precio);
   const d = diferencia(f);
-  // Los parecidos son los que no nombran el codigo. Uno que lo nombraba pero
-  // con un precio disparatado era un error de antes: no se muestra.
-  const parecidos = (c?.resultados ?? []).filter((r) => !r.exacto);
+  // Solo el mismo modelo. Lo buscado antes del 18/11 puede tener
+  // "parecidos" guardados: no se muestran.
   const exactos = (c?.resultados ?? []).filter((r) => esMismo(r, f.precio));
 
   return (
@@ -327,11 +329,11 @@ function Fila({
             </a>
           ) : c ? (
             <span className="text-xs text-[var(--muted)]">
-              {parecidos.length
-                ? `No está igual · ${parecidos.length} parecido${parecidos.length > 1 ? "s" : ""}`
+              {c.sinCodigo
+                ? "Le falta el código de fabricante: cargalo en la ficha y buscá de nuevo"
                 : c.fallaron.length
                   ? `No contestó ${c.fallaron.join(" ni ")}: probá de nuevo más tarde`
-                  : "No se encontró afuera"}
+                  : "No lo venden igual afuera"}
             </span>
           ) : (
             <span className="text-xs text-[var(--muted)]">Sin buscar</span>
@@ -379,11 +381,15 @@ function Fila({
             Buscado el {fechaCorta(c.fecha)} con: <strong>{c.buscado.join(" · ") || "—"}</strong>
             {c.fallaron.length > 0 && <> · No contestaron: {c.fallaron.join(", ")}</>}
           </div>
-          {exactos.length > 0 && <Lista titulo="Mismo modelo" items={exactos} nuestro={f.precio} />}
-          {parecidos.length > 0 && (
-            <Lista titulo="Parecidos (no es el mismo código: solo para mirar)" items={parecidos} nuestro={f.precio} />
+          {exactos.length > 0 ? (
+            <Lista titulo="Mismo modelo" items={exactos} nuestro={f.precio} />
+          ) : (
+            <p className="mt-2 text-[var(--muted)]">
+              {c.sinCodigo
+                ? "No tiene código de modelo (ni de fabricante, ni en el título, la ayuda memoria o la descripción): sin eso no se puede saber si otro vende el mismo."
+                : "Ninguna tienda vende este mismo modelo."}
+            </p>
           )}
-          {c.resultados.length === 0 && <p className="mt-2 text-[var(--muted)]">No apareció en ninguna tienda.</p>}
         </div>
       )}
     </div>

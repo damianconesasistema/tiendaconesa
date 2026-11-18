@@ -13,9 +13,14 @@
 // codigos que se leen en el titulo y la ayuda memoria (la descripcion de GBP);
 // y si no hay ningun codigo, las palabras del titulo.
 //
-// "Mismo modelo" solo si el resultado nombra el codigo (la misma regla que
-// para traer fotos: "tiene que ser exacto"). Lo que se encontro por palabras
-// queda como "parecido", aparte: sirve para mirar, no para comparar.
+// Solo cuenta el MISMO modelo: el resultado nombra el codigo, es de la misma
+// marca y el precio tiene sentido (la misma regla que para traer fotos:
+// "tiene que ser exacto"). Lo demas no se guarda ni se muestra: Damian,
+// 18/11/2026, "los parecidos no esta bueno que aparezcan porque trae
+// cualquier cosa". Las palabras del titulo sirven solo para ENCONTRARLO
+// cuando la tienda no lo encuentra por el codigo; igual tiene que nombrarlo.
+// Un producto sin ningun codigo de modelo no se puede comparar: se avisa
+// para que se le cargue el codigo de fabricante.
 //
 // Los resultados se guardan (tabla Setting) para ver la pantalla sin volver a
 // buscar todo.
@@ -51,6 +56,8 @@ export type Comparacion = {
   resultados: PrecioAfuera[];
   /** Las tiendas que no contestaron. */
   fallaron: string[];
+  /** No tiene codigo de modelo: sin eso no hay "mismo modelo" que buscar. */
+  sinCodigo?: boolean;
 };
 
 type ProductoVtex = {
@@ -176,7 +183,9 @@ export async function preciosAfuera(p: {
         .slice(0, 2);
   const clave = palabrasClave(p.titulo, p.marca);
   const conMarca = clave && p.marca ? `${plano(p.marca)} ${clave}` : "";
-  const buscado = [...codigos, ...(clave ? [conMarca || clave] : [])];
+  if (codigos.length === 0)
+    return { fecha: new Date().toISOString(), buscado: [], resultados: [], fallaron: [], sinCodigo: true };
+  const buscado = [...codigos, ...(conMarca || clave ? [conMarca || clave] : [])];
 
   // El mismo modelo: nombra el codigo en el nombre, la referencia o el
   // detalle del producto (no en una descripcion larga, donde aparece
@@ -187,20 +196,14 @@ export async function preciosAfuera(p: {
     (!p.marca || nombraLaMarca(conMarcaYTodo, p.marca)) &&
     precioRazonable(precio);
 
-  // Para los "parecidos": cuantas palabras del titulo comparten.
-  const nuestras = new Set(palabrasDelTitulo(p.titulo, p.marca));
-  const comunes = (titulo: string) => palabrasDelTitulo(titulo, p.marca).filter((w) => nuestras.has(w)).length;
-  const minimoComun = Math.min(2, nuestras.size);
-
   // Las tiendas a la vez (cada una tarda lo suyo). Adentro de cada una: el
-  // codigo como lo escriba ella; si no aparece el mismo modelo, por palabras,
-  // para tener al menos parecidos.
+  // codigo como lo escriba ella; si no aparece, por marca y palabras, por si
+  // la tienda lo tiene pero su buscador no lo encuentra por el codigo.
   const porTienda = await Promise.all(
     TIENDAS_VTEX.map(async (t) => {
-      const deEsta: (PrecioAfuera & { comun: number })[] = [];
+      const deEsta: PrecioAfuera[] = [];
       let contesto = false;
-      // Por palabras, primero con la marca ("mi pileta bacha simple sat").
-      const preguntas = [...new Set([...terminos(codigos), conMarca, clave].filter(Boolean))];
+      const preguntas = [...new Set([...terminos(codigos), conMarca || clave].filter(Boolean))];
       for (const termino of preguntas) {
         const lista = await buscarEnVtex(t.base, termino);
         if (lista === null) continue;
@@ -213,34 +216,15 @@ export async function preciosAfuera(p: {
             .filter(Boolean)
             .join(" ");
           const texto = [fuerte, v.brand, v.description?.slice(0, 2000)].filter(Boolean).join(" ");
-          const exacto = esExacto(fuerte, texto, precio);
-          const comun = comunes(v.productName);
-          // Lo que no es el mismo modelo: de la misma marca y que se parezca
-          // de verdad (las tiendas devuelven cualquier cosa cuando no tienen).
-          if (!exacto && ((p.marca && !nombraLaMarca(texto, p.marca)) || comun < minimoComun || minimoComun === 0)) continue;
+          // Solo el mismo modelo.
+          if (!esExacto(fuerte, texto, precio)) continue;
           const link = v.link.startsWith("http") ? v.link : `${t.base}${v.link}`;
           if (deEsta.some((r) => r.link === link)) continue;
-          deEsta.push({ tienda: t.nombre, titulo: v.productName, precio: Math.round(precio), link, exacto, comun });
+          deEsta.push({ tienda: t.nombre, titulo: v.productName, precio: Math.round(precio), link, exacto: true });
         }
-        if (deEsta.some((r) => r.exacto)) break;
+        if (deEsta.length) break;
       }
-      // De los parecidos, los tres que mas se parecen.
-      const exactos = deEsta.filter((r) => r.exacto);
-      const parecidos = deEsta
-        .filter((r) => !r.exacto)
-        .sort((x, y) => y.comun - x.comun || x.precio - y.precio)
-        .slice(0, exactos.length ? 0 : 3);
-      return {
-        tienda: t.nombre,
-        deEsta: [...exactos, ...parecidos].map((r) => ({
-          tienda: r.tienda,
-          titulo: r.titulo,
-          precio: r.precio,
-          link: r.link,
-          exacto: r.exacto,
-        })),
-        contesto,
-      };
+      return { tienda: t.nombre, deEsta, contesto };
     }),
   );
   const resultados: PrecioAfuera[] = porTienda.flatMap((x) => x.deEsta);
