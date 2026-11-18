@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Camera,
   Eraser,
+  Sparkles,
 } from "lucide-react";
 import { traerFotoFV, traerDeUnLink } from "@/app/admin/productos/fotos-fv/actions";
 import {
@@ -31,6 +32,7 @@ import {
   soportaQuitarFondo,
   type ProgresoFondo,
 } from "@/lib/remove-background";
+import { mejorarFoto, type ProgresoMejora } from "@/lib/mejorar-foto";
 
 type Img = { id: string; position: number };
 
@@ -78,6 +80,11 @@ export function ProductImageUpload({
   // Quitar fondo con IA (corre en este navegador, no en el servidor)
   const [sacarFondo, setSacarFondo] = useState(false);
   const [fondoProg, setFondoProg] = useState<ProgresoFondo | null>(null);
+  // Mejorar la foto al subirla (luz, color, nitidez y, si es chica, agrandarla
+  // con IA). Prendido de entrada: Damian, 18/11/2026, "podes hacer que el
+  // subir fotos de la ficha del producto mejore la foto cuando la sube?".
+  const [mejorar, setMejorar] = useState(true);
+  const [mejoraProg, setMejoraProg] = useState<ProgresoMejora | null>(null);
   const puedeSacarFondo = soportaQuitarFondo();
   // Lo que contesto la busqueda en FV, para mostrarlo abajo del boton.
   const [fv, setFv] = useState<{
@@ -100,6 +107,7 @@ export function ProductImageUpload({
     opciones: { fondo?: boolean; principal?: boolean } = {},
   ) {
     const conFondo = opciones.fondo ?? sacarFondo;
+    const conMejora = mejorar;
     const files = Array.from(fileList).filter((f) =>
       f.type.startsWith("image/"),
     );
@@ -131,6 +139,16 @@ export function ProductImageUpload({
             );
           } finally {
             setFondoProg(null);
+          }
+        }
+
+        // Mejorar (despues de sacar el fondo: con fondo blanco tambien la
+        // centra). Si falla, sube la que habia.
+        if (conMejora) {
+          try {
+            archivo = await mejorarFoto(archivo, setMejoraProg);
+          } finally {
+            setMejoraProg(null);
           }
         }
 
@@ -208,6 +226,32 @@ export function ProductImageUpload({
         setError(`No se pudo quitar el fondo: ${(e as Error).message}. La foto quedó como estaba.`);
       } finally {
         setFondoProg(null);
+        setBusy(false);
+      }
+    });
+  }
+
+  /** Mejora una foto que ya esta cargada y la deja en su lugar. */
+  function onMejorar(id: string) {
+    if (busy) return;
+    startTransition(async () => {
+      setBusy(true);
+      setError(null);
+      try {
+        const r = await fetch(`/api/productos/img/${id}?v=${bust}`);
+        if (!r.ok) throw new Error("no se pudo leer la foto");
+        const blob = await r.blob();
+        const original = new File([blob], "foto.jpg", { type: blob.type || "image/jpeg" });
+        const mejor = await prepararFotoParaSubir(await mejorarFoto(original, setMejoraProg));
+        const fd = new FormData();
+        fd.append("image", mejor);
+        const g = await reemplazarImagen(id, itemId, fd);
+        if (!g.ok) throw new Error(g.error ?? "no se pudo guardar");
+        await refresh();
+      } catch (e) {
+        setError(`No se pudo mejorar la foto: ${(e as Error).message}. Quedó como estaba.`);
+      } finally {
+        setMejoraProg(null);
         setBusy(false);
       }
     });
@@ -415,6 +459,17 @@ export function ProductImageUpload({
       {/* Volver a editar la foto ya cargada: sacarle el fondo. Tambien esta
           en cada miniatura (la goma), pero ahi solo aparece al pasar el
           mouse. */}
+      {mainId && (
+        <button
+          type="button"
+          onClick={() => onMejorar(mainId)}
+          disabled={busy}
+          className="mt-2 inline-flex w-full items-center justify-center gap-1.5 text-[11px] font-bold text-[var(--brand-red)] underline disabled:opacity-50"
+        >
+          <Sparkles className="h-3 w-3" />
+          Mejorar la foto principal
+        </button>
+      )}
       {mainId && puedeSacarFondo && (
         <button
           type="button"
@@ -473,6 +528,14 @@ export function ProductImageUpload({
                     <Star className="h-2.5 w-2.5" />
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => onMejorar(img.id)}
+                  title="Mejorar esta foto"
+                  className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-[var(--brand-red)] hover:scale-110"
+                >
+                  <Sparkles className="h-2.5 w-2.5" />
+                </button>
                 {puedeSacarFondo && (
                   <button
                     type="button"
@@ -658,6 +721,45 @@ export function ProductImageUpload({
           </p>
         )}
       </div>
+
+      {/* Mejorar la foto al subirla. */}
+      <label
+        className={`mt-2 flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 transition-colors ${
+          mejorar
+            ? "border-[var(--brand-red)] bg-[var(--brand-red)]/5"
+            : "border-[var(--border)] bg-white hover:border-[var(--brand-red)]/50"
+        }`}
+      >
+        <input
+          type="checkbox"
+          checked={mejorar}
+          onChange={(e) => setMejorar(e.target.checked)}
+          disabled={busy}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand-red)]"
+        />
+        <span className="text-[11px] leading-snug">
+          <span className="font-bold uppercase tracking-wider">Mejorar la foto</span>
+          <span className="block text-[var(--muted)]">
+            Corrige luz y color, le da nitidez y, si tiene fondo blanco, centra el producto. Si es chica, la
+            agranda con IA (en tu computadora, gratis). Para una que ya está cargada: la estrellita mágica de
+            cada foto.
+          </span>
+        </span>
+      </label>
+
+      {/* Progreso del mejorar */}
+      {mejoraProg && (
+        <div className="mt-2 rounded-lg border border-[var(--border)] bg-white p-3 text-xs font-bold">
+          <span className="inline-flex items-center gap-1.5 text-[var(--brand-red)]">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            {mejoraProg.etapa === "descargando-ia"
+              ? `Bajando la IA para agrandar fotos (solo esta vez)…${mejoraProg.porcentaje != null ? ` ${mejoraProg.porcentaje}%` : ""}`
+              : mejoraProg.etapa === "agrandando"
+                ? "Agrandando la foto con IA…"
+                : "Mejorando la foto…"}
+          </span>
+        </div>
+      )}
 
       {/* Quitar fondo con IA: corre en ESTE navegador, no en el servidor */}
       {puedeSacarFondo && (

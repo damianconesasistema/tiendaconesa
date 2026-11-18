@@ -14,7 +14,7 @@
 import { prepararFotoParaSubir } from "@/lib/image-client";
 import { sacarFondoLiso } from "@/lib/fondo-liso";
 
-const CDN =
+export const CDN =
   "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.min.js";
 const MODELO = "onnx-community/BiRefNet_lite-ONNX";
 
@@ -39,7 +39,7 @@ let cargando: Promise<{
 // como antes.
 let soloWasm = false;
 
-async function dispositivo(): Promise<{ device: "webgpu" | "wasm"; dtype: "fp16" | "fp32" }> {
+export async function dispositivo(): Promise<{ device: "webgpu" | "wasm"; dtype: "fp16" | "fp32" }> {
   if (!soloWasm) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

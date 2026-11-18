@@ -2,6 +2,15 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.23 - Mejorar las fotos al subirlas (Damian, 18/11/2026: "podes
+//            hacer que el subir fotos de la ficha del producto mejore la foto
+//            cuando la sube? hacelo por ia si es posible"). Prendido de
+//            entrada en la ficha: el fondo gris o amarillento pasa a blanco,
+//            corrige el tono, centra el producto en un cuadrado blanco (si el
+//            fondo es blanco), si es chica la agranda al doble con IA
+//            (Swin2SR liviano, en el navegador, gratis) y le da nitidez. Para
+//            las ya cargadas: la estrellita de cada foto o "Mejorar la foto
+//            principal". src/lib/mejorar-foto.ts.
 // V.0.99.22 - Despues de publicar, el panel abierto ya no se rompe (Damian,
 //            18/11/2026, con "This page couldn't load": "no para de salirme
 //            esa pantalla que onda?"). Era la pestaña con la version vieja
@@ -1405,7 +1414,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.22";
+export const APP_VERSION = "V.0.99.23";
 
 export type VersionEntry = {
   version: string;
