@@ -557,6 +557,8 @@ export function ProductsTable({
               return (
                 <tr
                   key={p.id}
+                  // Para volver de la ficha a esta fila (RecordarLista).
+                  data-item={p.itemId}
                   className={`group text-sm transition-colors ${
                     isSelected
                       ? "bg-[var(--brand-red)]/5"

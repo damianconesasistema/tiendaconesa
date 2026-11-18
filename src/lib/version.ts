@@ -2,6 +2,14 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.20 - Volver de un producto a la lista deja todo como estaba (Damian,
+//            18/11/2026: "cuando vuelvo para atras si estoy editando un
+//            producto deberia volver al punto donde estaba ... me resetea los
+//            filtros"). Con la flecha del navegador o "Volver a productos",
+//            la lista baja hasta el producto que se edito y lo marca un
+//            momento; con la pestana PRODUCTOS de arriba, ademas vuelve a
+//            poner los filtros. Se recuerda media hora, en esa pestana del
+//            navegador. src/components/admin/RecordarLista.tsx.
 // V.0.99.19 - Publicar corta menos (Damian, 18/11/2026, con una pantalla de
 //            502: "porque tira eso cada vez que subis"). La compilacion nueva
 //            se desempaqueta aparte y se pone en su lugar recien al lado del
@@ -1375,7 +1383,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.19";
+export const APP_VERSION = "V.0.99.20";
 
 export type VersionEntry = {
   version: string;

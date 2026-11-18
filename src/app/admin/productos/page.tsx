@@ -15,6 +15,7 @@ import { getRecargosMp } from "@/lib/settings";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 import { sucursalDelPanel, sucursalesDelPanel, tituloConSucursal } from "@/lib/sucursal-panel";
 import { ElegirSucursal } from "@/components/admin/ElegirSucursal";
+import { RecordarLista } from "@/components/admin/RecordarLista";
 import { whereDelLocal } from "@/lib/filtro-productos";
 
 // Siempre fresco: el admin debe reflejar el estado real de la DB
@@ -349,6 +350,8 @@ export default async function ProductosAdmin({
           )}
         </div>
       ) : (
+        <>
+        <RecordarLista lista={volver} />
         <ProductsTable
           rubrosExtra={rubrosExtra}
           products={products}
@@ -360,6 +363,7 @@ export default async function ProductosAdmin({
           dir={dir}
           recargoUnPago={(await getRecargosMp()).unPago}
         />
+        </>
       )}
 
       {totalPages > 1 && (
