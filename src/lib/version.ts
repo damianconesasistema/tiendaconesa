@@ -2,6 +2,13 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.8 - "Lo mas visto" sin barra de desplazamiento ("ojo el scroll ese
+//            queda feo"), con una flechita en cada punta y pasando solo de a
+//            uno cada 4 segundos ("que vaya pasando solo de a 1 pero lento"),
+//            frenando con el mouse encima, y con los colores del sitio en vez
+//            del fondo negro. El orden "Recomendados" del catalogo se mezcla
+//            en cada visita, alternando categorias y marcas ("no muestres
+//            siempre los mismos").
 // V.0.99.7 - Destacados variados y "Lo mas visto". Damian, 18/11/2026:
 //            "reformulame lo que muestra destacados, hace un variete de los
 //            productos, y se puede hacer un banner en la tienda donde destaque
@@ -1282,7 +1289,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.7";
+export const APP_VERSION = "V.0.99.8";
 
 export type VersionEntry = {
   version: string;

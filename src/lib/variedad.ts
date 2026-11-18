@@ -64,3 +64,12 @@ export function conVariedad<T extends { category: string; brand: string | null }
   }
   return salida;
 }
+
+/** Una semilla distinta en cada visita: el orden "Recomendados" del catalogo
+ *  cambia cada vez que se entra (Damian, 18/11/2026: "los recomendados anda
+ *  cambiando aleatoriamente el orden, no muestres siempre los mismos"). Sale
+ *  del servidor y viaja a la pagina, asi el orden es el mismo de los dos
+ *  lados. */
+export function semillaAlAzar(): string {
+  return Math.random().toString(36).slice(2, 10);
+}

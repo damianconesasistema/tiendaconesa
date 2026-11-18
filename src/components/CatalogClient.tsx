@@ -13,6 +13,7 @@ import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
 import { subrubrosDe, nombreSubrubro } from "@/lib/subrubros";
 import { alfabetico, nombreRubro, SIN_EXTRAS, type RubrosExtra } from "@/lib/rubros";
 import { MasVistos, type MasVisto } from "@/components/MasVistos";
+import { conVariedad } from "@/lib/variedad";
 
 type Product = {
   itemId: string;
@@ -40,6 +41,8 @@ type Props = {
   rubrosExtra?: RubrosExtra;
   /** Los mas vistos, para la franja de arriba (sin filtros). */
   masVistos?: MasVisto[];
+  /** Para mezclar el orden "Recomendados", distinto en cada visita. */
+  semilla?: string;
   products: Product[];
   categories: Category[];
   initialCat?: string;
@@ -94,6 +97,7 @@ export function CatalogClient({
   comisionUnPago = 10,
   rubrosExtra = SIN_EXTRAS,
   masVistos = [],
+  semilla = "",
 }: Props) {
   const [query, setQuery] = useState(initialQuery);
   const [activeCat, setActiveCat] = useState<string>(initialCat);
@@ -223,8 +227,11 @@ export function CatalogClient({
     if (orden === "mayor-precio") return base.sort((a, b) => contadoDe(b) - contadoDe(a));
     if (orden === "descuento") return base.sort((a, b) => descuentoDe(b) - descuentoDe(a));
     if (orden === "nombre") return base.sort((a, b) => a.title.localeCompare(b.title, "es"));
-    return base;
-  }, [products, query, activeCat, subVigente, marcaVigente, orden]);
+    // "Recomendados": mezclados, alternando categorias y marcas, distinto en
+    // cada visita (src/lib/variedad.ts). Antes eran siempre los mismos
+    // primeros: las ofertas y despues por orden alfabetico.
+    return semilla ? conVariedad(base, base.length, semilla) : base;
+  }, [products, query, activeCat, subVigente, marcaVigente, orden, semilla]);
 
   // Cuantos se ven al tocar cada categoria (o subrubro): con la marca
   // elegida, si con ella hay algo; si no, todos los de la categoria, que es lo

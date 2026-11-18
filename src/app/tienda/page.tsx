@@ -5,6 +5,7 @@ import { getRecargosMp } from "@/lib/settings";
 import { getMarcas } from "@/lib/marcas-server";
 import { getRubrosExtra } from "@/lib/rubros-server";
 import { articulosEnVenta, paraLaVitrina } from "@/lib/catalogo";
+import { semillaAlAzar } from "@/lib/variedad";
 
 export const metadata: Metadata = {
   title: "Tienda",
@@ -92,6 +93,7 @@ export default async function Catalogo({
       marcas={marcas}
       comisionUnPago={recargos.unPago}
       rubrosExtra={rubrosExtra}
+      semilla={semillaAlAzar()}
       masVistos={[...products]
         .filter((p) => p.views > 0)
         .sort((a, b) => b.views - a.views)
