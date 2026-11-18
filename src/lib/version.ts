@@ -1,1445 +1,13 @@
-// Version del panel admin. Subir manualmente en cada tanda de cambios
-// significativos. Formato: V.MAYOR.MINOR.PATCH
+// Version del panel admin. Formato: V.MAYOR.MINOR.PATCH
 //
-// Changelog resumido (de arriba hacia abajo, mas reciente primero):
-// V.0.99.26 - Comparador: se ordena tocando el titulo de cada columna
-//            (producto, nuestro precio, precio afuera, diferencia; otro toque
-//            da vuelta) (Damian, 18/11/2026: "ponele filtros ahi"). Y
-//            MercadoLibre ("busca en mercadolibre no busca"): MercadoLibre ya
-//            no deja buscar sin una cuenta conectada (contesta 403), asi que
-//            la pantalla avisa y lleva a conectar la de Conesa; conectada,
-//            ademas de la ficha de catalogo busca las publicaciones comunes
-//            que nombran el mismo codigo y marca.
-// V.0.99.25 - Agencia J&M como transporte, primera y elegida de entrada al
-//            pasar un pedido a "En entrega" (Damian, 18/11/2026: "seria los
-//            envios por ahora con la Agencia J&M").
-// V.0.99.24 - Avisos de envio por mail (Damian, 18/11/2026: "cuando hay un
-//            seguimiento del envio que esta en camino, le podemos avisar
-//            tambien por mail"). En la ficha del pedido, al pasarlo a "En
-//            entrega" se elige como va (nuestro reparto, Andreani, OCA,
-//            Correo, Via Cargo, Cruz del Sur) con numero y link de
-//            seguimiento, y al cliente le llega "tu pedido esta en camino"
-//            (o "listo para retirar" si lo retira); al pasarlo a "Entregado",
-//            "gracias por tu compra". Casilla para no mandarlo; los mails
-//            mandados quedan anotados en el pedido (migracion 43). Mail de la
-//            tienda: tiendasanitariosconesa@gmail.com ("hagamos un mail para
-//            la tienda"): las respuestas de los clientes van ahi (reply-to;
-//            pedidos@conesa.com.ar no es una casilla) y ahi llega el aviso de
-//            cada venta (antes iba al de Traslasierra, tambien las de Buenos
-//            Aires). El pie de los mails lleva los datos del local que vende.
-// V.0.99.23 - Mejorar las fotos al subirlas (Damian, 18/11/2026: "podes
-//            hacer que el subir fotos de la ficha del producto mejore la foto
-//            cuando la sube? hacelo por ia si es posible"). Prendido de
-//            entrada en la ficha: el fondo gris o amarillento pasa a blanco,
-//            corrige el tono, centra el producto en un cuadrado blanco (si el
-//            fondo es blanco), si es chica la agranda al doble con IA
-//            (Swin2SR liviano, en el navegador, gratis) y le da nitidez. Para
-//            las ya cargadas: la estrellita de cada foto o "Mejorar la foto
-//            principal". src/lib/mejorar-foto.ts.
-// V.0.99.22 - Despues de publicar, el panel abierto ya no se rompe (Damian,
-//            18/11/2026, con "This page couldn't load": "no para de salirme
-//            esa pantalla que onda?"). Era la pestaña con la version vieja
-//            pidiendo cosas que la nueva ya no tiene. Ahora: si una pantalla
-//            falla por eso se recarga sola (una vez; si vuelve a fallar, un
-//            mensaje en castellano), y el panel pregunta cada minuto que
-//            version hay (/api/version) y, si cambio, muestra una franja para
-//            recargar antes de guardar. Comparador: no se muestran las
-//            busquedas de antes de V.0.99.17 (tomaban "2000" o una fecha como
-//            codigo: "eso no tiene nada que ver"), filtro por marca y los
-//            rubros como en Productos ("habilita los filtros ahi").
-// V.0.99.21 - Publicar sin cortar la tienda (Damian, 18/11/2026: "porque
-//            tira eso cada vez que subis" ... "Si, armalo"). Dos lugares para
-//            la tienda, conesa@3000 y conesa@3001 (deploy/conesa@.service):
-//            la version nueva se prende en el que esta apagado, cuando
-//            contesta nginx le pasa las visitas (reload, sin cortar) y recien
-//            ahi se apaga la vieja. Si la nueva no arranca, queda la vieja;
-//            si no alcanza la memoria (1 GB), se hace como antes. La primera
-//            vez pasa solo de la forma vieja a la nueva y, si nginx no acepta
-//            el cambio, vuelve atras. Todo en deploy/cambiar-version.sh, que
-//            usan la publicacion automatica, deploy/publicar.sh y
-//            deploy/actualizar.sh.
-// V.0.99.20 - Volver de un producto a la lista deja todo como estaba (Damian,
-//            18/11/2026: "cuando vuelvo para atras si estoy editando un
-//            producto deberia volver al punto donde estaba ... me resetea los
-//            filtros"). Con la flecha del navegador o "Volver a productos",
-//            la lista baja hasta el producto que se edito y lo marca un
-//            momento; con la pestana PRODUCTOS de arriba, ademas vuelve a
-//            poner los filtros. Se recuerda media hora, en esa pestana del
-//            navegador. src/components/admin/RecordarLista.tsx.
-// V.0.99.19 - Publicar corta menos (Damian, 18/11/2026, con una pantalla de
-//            502: "porque tira eso cada vez que subis"). La compilacion nueva
-//            se desempaqueta aparte y se pone en su lugar recien al lado del
-//            reinicio: antes la version vieja atendia medio minuto con los
-//            archivos de la nueva. Si la base no se pudo preparar, ya no se
-//            reinicia: sigue la version de antes. Queda el arranque, unos
-//            nueve segundos (.github/workflows/publicar.yml).
-// V.0.99.18 - "Equipamiento de Baño", con B mayuscula (Damian, 18/11/2026:
-//            "poneme Baño con B mayuscula aca"), en el panel y la tienda.
-// V.0.99.17 - Comparador: solo el mismo modelo, sin "parecidos" (Damian,
-//            18/11/2026: "los parecidos no esta bueno que aparezcan porque
-//            trae cualquier cosa"). Lo que no nombra el codigo con la misma
-//            marca no se guarda ni se muestra (tampoco lo guardado antes). Un
-//            producto sin codigo de modelo ya no se busca: dice que le falta
-//            el codigo de fabricante, y hay un filtro para ver cuales son.
-// V.0.99.16 - Comparador: una medida ya no cuenta como codigo (Damian,
-//            18/11/2026: "se ve que esta buscando otra cosa y no el codigo
-//            que corresponde"; de "67.5 X 40.5 X 20 CM" salia "40.5" y daba
-//            como mismo modelo una lija a $8.700, "2742% mas caro"). Mismo
-//            modelo ahora pide el codigo en el nombre o la referencia (no en
-//            una descripcion larga), la misma marca y un precio que tenga
-//            sentido; busca tambien con los codigos de la descripcion y por
-//            palabras con la marca. Mercado Pago: arriba de todo, el control
-//            automatico de todos los dias (cuando corrio y que encontro) con
-//            "Chequear ahora"; la fecha de revision a mano queda aparte
-//            ("esto no deberia preguntar todos los dias?"). Panel: las
-//            pestanas ya no tienen barra de desplazamiento; si no entran en
-//            una fila bajan a la siguiente ("hacelo adaptativo a la
-//            pantalla").
-// V.0.99.15 - Comparador de precios, pestana nueva del panel (Damian,
-//            18/11/2026: "armame un comparador de precios con los publicados
-//            ... un panel aparte donde esten todas las publicaciones y busque
-//            por internet el mismo modelo"). Los publicados del local con el
-//            precio de debito o 1 pago, y a cuanto los venden Easy, Blaisten
-//            (catalogo publico de VTEX) y MercadoLibre (ficha exacta, cuando
-//            la cuenta de Conesa este conectada). Busca por codigo de
-//            fabricante, los codigos del titulo y la ayuda memoria (tambien
-//            sin el cero de adelante: Blaisten pone "207/B1") y por palabras
-//            del titulo. "Mismo modelo" solo si nombra el mismo codigo; lo
-//            demas, "parecido", aparte. Buscar uno, o todos los de la lista
-//            de a tres, con Frenar; queda guardado (Setting
-//            "comparador_precios"). src/lib/comparador.ts.
-// V.0.99.14 - Herramientas con subrubros (Damian, 18/11/2026: "bombas de agua
-//            sacalo de ahi y hay que ponerlo como subrubro en herramientas" y
-//            "creame en herramienta Pistola de Calor, Amoladora, Taladro,
-//            Lijadora, Pulidora, Caladora y etiquetame bien los productos que
-//            tengo de DOGO"). Subrubros de fabrica en src/lib/subrubros.ts
-//            (el rotomartillo va con Taladro). Una sola vez
-//            (src/lib/herramientas-una-vez.ts): lo del rubro "Bombas de Agua"
-//            pasa a Herramientas > Bombas de Agua y ese rubro sale de la
-//            lista; todo Dogo pasa a Herramientas con el subrubro que dice su
-//            titulo; lo de Herramientas sin subrubro, el del titulo. Respaldo
-//            de rubro y subrubro anteriores en Setting "herramientas_antes".
-// V.0.99.13 - El buscador de la tienda perdona (Damian, 18/11/2026: "porque no
-//            busca cuando pongo palabras claves ... que busque con terminos
-//            mal escritos o que suenen a lo que esta buscando el cliente").
-//            Sin tildes ni signos, cada palabra por separado en el titulo, la
-//            marca, el rubro, el subrubro y el codigo; mal escritas (una letra
-//            de mas, de menos, dada vuelta), lo que suena igual (b/v, s/z/c,
-//            ll/y, k/qu, h), singular o plural, y palabras de todos los dias
-//            (canilla = griferia, bacha = pileta, tapa = asiento). Ordena por
-//            lo que mejor coincide, y si nada tiene todas las palabras,
-//            muestra lo que tiene alguna. src/lib/buscar.ts.
-// V.0.99.12 - "+ Agregar rubro / subrubro nuevo..." con una ventanita de la
-//            pagina y no la del navegador (Damian, 18/11/2026, en Crear por
-//            Excel: "aca no me deja crear subrubro"): Chrome puede bloquear
-//            las ventanas del navegador y ahi la opcion no hacia nada. Y en
-//            Crear por Excel ahora se ven los rubros y subrubros agregados a
-//            mano antes (quedaban afuera porque llegan recien al subir el
-//            archivo).
-// V.0.99.11 - Marcas: se puede sacar del listado cualquier marca sin productos
-//            (Damian, 18/11/2026: "dame posibilidad de eliminar marcas que no
-//            van del listado"). Las del codigo se esconden (Setting
-//            "marcas_ocultas") y vuelven, con su logo, si se agregan de nuevo
-//            con el mismo nombre; las que tienen productos siguen con el
-//            candado. "Lo mas visto" pasa siempre solo ("eso tiene que ir
-//            pasando automatico"): ya no se frena con el mouse encima, solo
-//            unos segundos despues de tocar una flecha o deslizarla.
-// V.0.99.10 - Marcas: "subir logo" / "cambiar logo" en cada marca, con la imagen
-//            que elige Damian en la compu (18/11/2026: "dejame editar los
-//            logos trayendo yo la imagen del logo, porque a veces carga
-//            cualquier cosa"). Sirve para cualquier marca, tenga o no pagina, y
-//            pisa el traido de la web o el del codigo; "sacar" lo deja como
-//            antes. Se recorta y se pasa a PNG igual que los de la web.
-// V.0.99.9 - "Lo mas visto": si el deslizamiento suave no arranca (navegador
-//            viejo, ahorro de energia), pasa igual de golpe.
-// V.0.99.8 - "Lo mas visto" sin barra de desplazamiento ("ojo el scroll ese
-//            queda feo"), con una flechita en cada punta y pasando solo de a
-//            uno cada 4 segundos ("que vaya pasando solo de a 1 pero lento"),
-//            frenando con el mouse encima, y con los colores del sitio en vez
-//            del fondo negro. El orden "Recomendados" del catalogo se mezcla
-//            en cada visita, alternando categorias y marcas ("no muestres
-//            siempre los mismos").
-// V.0.99.7 - Destacados variados y "Lo mas visto". Damian, 18/11/2026:
-//            "reformulame lo que muestra destacados, hace un variete de los
-//            productos, y se puede hacer un banner en la tienda donde destaque
-//            los productos que tienen mas visitas?". Destacados se reparte por
-//            categoria y marca (src/lib/variedad.ts) y cambia cada dia; si no
-//            alcanzan los marcados, se completa con los mas vistos. Banner
-//            "Lo mas visto" (el contador de visitas de cada ficha) en la
-//            portada y arriba del catalogo cuando no hay filtros.
-// V.0.99.6 - Sin stock, pausado. Damian, 18/11/2026: "necesito que los
-//            productos que estan en la tienda sin stock queden pausados, no se
-//            muestren". La tienda solo muestra lo que tiene stock; guardar
-//            stock en 0 (ficha, lista, Excel) lo pausa ahi mismo, y publicar
-//            algo con 0 no se puede (queda pausado); y cada 10 minutos (el
-//            vigia, y al abrir el panel) se pausan los que hayan quedado
-//            publicados con 0, contandolo en las novedades. Nunca se publica
-//            nada solo: cuando vuelve el stock, se publica a mano.
-// V.0.99.5 - Fondos lisos sin IA. Damian, 18/11/2026, con los asientos de
-//            Daccord (blancos sobre azul marino): "estas fotos le quise
-//            eliminar el fondo y no me dejo". Antes de usar la IA se mira el
-//            borde de la foto: si es de un color parejo, oscuro o de color, se
-//            saca ese color (tambien el que asoma por el agujero del asiento y
-//            las motitas de polvo), al instante y sin bajar nada ni usar la
-//            memoria de la IA (src/lib/fondo-liso.ts). Si el fondo ya es
-//            blanco, queda como esta. Sobre gris claro o fondos con cosas,
-//            sigue la IA: ahi el color parejo borraria las partes blancas del
-//            producto.
-// V.0.99.4 - Rubros y subrubros de la A a la Z, con "Otros" al final (Damian,
-//            18/11/2026: "ordename eso alfabeticamente siempre"): en los
-//            desplegables de la ficha, el alta a mano y Crear por Excel, en
-//            los botones de categoria del panel y en el filtro de la tienda.
-//            Solo cambia como se muestran.
-// V.0.99.3 - Paginas hechas con Tiendanube (Ariel, arielstore.com.ar). Damian,
-//            18/11/2026: "le pongo el codigo de la pagina y no lo encuentra el
-//            modelo y no me trae las fotos". Tres cosas: las fotos estan en el
-//            servidor de Tiendanube (dcdn-us.mitiendanube.com), que no estaba
-//            entre los permitidos; la pagina trae la ficha para Google de los
-//            productos relacionados y no la del suyo, y se leia la primera (el
-//            link del 226-P salia como "222-M"): ahora solo vale la que
-//            coincide con el titulo de la pagina; y las fotos grandes vienen en
-//            data-zoom-url sin "https:". Ademas la pagina de resultados de la
-//            busqueda se tomaba como si fuera el producto: ahora solo si hay un
-//            resultado o la busqueda lleva directo. Y las letras escritas
-//            "&aacute;" en las descripciones se pasan a "a" con tilde.
-// V.0.99.2 - Productos: "Ocultar sin stock" (Damian, 17/11/2026: "quisiera
-//            filtrar por los que tienen 0 en stock para no verlos"). Va aparte
-//            de los filtros rapidos y se suma a cualquiera (por ejemplo,
-//            Inactivos sin los que estan en 0); sigue puesto al cambiar de
-//            categoria, de pagina, al volver de una ficha y en las acciones en
-//            lote ("todos los que coinciden").
-// V.0.99.1 - Subir fotos con "Quitar fondo" cerraba la pestaña a veces. Damian,
-//            17/11/2026: "porque me tira eso cuando quiero subir una foto a
-//            veces?" ("This page couldn't load": Chrome la cierra cuando se
-//            queda sin memoria). La IA trabajaba con la foto entera (una de
-//            celular de 12 megapixeles abierta son ~50 MB, y se copiaba varias
-//            veces) y no soltaba su memoria despues de cada foto, asi que con
-//            unas cuantas seguidas no alcanzaba. Ahora la foto se achica antes
-//            (1600 px, lo mismo que se sube) y al terminar cada una se sueltan
-//            los tensores, la foto abierta y los lienzos.
-// V.0.99.0 - Titulos en mayusculas. Damian, 17/11/2026: "los titulos ponemelos
-//            todos iguales, si queda en minuscula le pones mayuscula ...
-//            mantengamos una linea en los titulos". Todo titulo que se guarda
-//            (alta a mano, ficha, Crear por Excel, precios y stock por Excel)
-//            queda en mayusculas, con sus tildes (src/lib/titulo-en-linea.ts),
-//            y los cuadros del titulo ya lo muestran asi mientras se escribe.
-//            Los que ya estaban se pasan una sola vez desde el programa (no
-//            como migracion: si falla, la tienda sigue igual), guardando antes
-//            los originales en Setting "titulos_antes_de_mayusculas".
-// V.0.98.2 - "Volver a productos" tambien abajo del boton Guardar cambios de la
-//            ficha (Damian, 17/11/2026), con los mismos filtros que el de
-//            arriba.
-// V.0.98.1 - Filtros de la tienda. Damian, 17/11/2026: elegir Accesorios con
-//            Heineken puesta daba "sin resultados" ("si no hay productos no
-//            elija por marca sino por categoria"), y "pongo griferia, en
-//            marcas me deberias mostrar las marcas que vende griferia y no
-//            todas". Ahora la categoria manda: si la marca elegida no tiene
-//            nada ahi, se saca sola; la lista de marcas muestra solo las que
-//            tienen algo en la categoria (y subrubro) elegida, con cuantos; y
-//            el numero de cada categoria es lo que se ve al tocarla. Rubros
-//            renombrados: "Sanitarios" ahora es "Loza sanitaria" y "Piletas"
-//            es "Bacha de cocina" (los links no cambian); las tarjetas, la
-//            ficha y Descripciones toman el nombre de la lista unica.
-// V.0.98.0 - Novedades y chequeo diario. Damian, 17/11/2026: "podes hacer que el
-//            chequeo de las cuotas lo haga automaticamente todos los dias e
-//            informe en el panel como una leyenda de noticias, asi tambien los
-//            productos que se pausaron o quedaron bajo en stock etc.". Una
-//            leyenda negra corre arriba de todo el panel con las novedades de
-//            la semana (se frena con el mouse; cada una lleva a donde
-//            corresponde), y una pestaña "Novedades" con todas y "Chequear
-//            ahora". El chequeo corre solo una vez por dia (lo dispara el vigia
-//            de GitHub y tambien abrir el panel): compara cada local con la
-//            foto del dia anterior (pausados, publicados, sin stock, con 1 o
-//            2, cargados) y, para las cuotas, lo que de verdad se llevo
-//            Mercado Pago en las ventas con tarjeta de los ultimos 30 dias
-//            contra lo que calcula la tienda (Mercado Pago no publica su tabla
-//            de costos). Avisa tambien si paso un mes sin revisar los costos,
-//            y los combos que pausa una carga de stock.
-// V.0.97.0 - Mercado Pago · Cuotas. Damian, 17/11/2026: "en el panel puede haber
-//            una parte que diga MERCADO PAGO ... los costos, margenes que
-//            manejan, porque van cambiando mes a mes, y asi yo saber si tengo
-//            que modificar o no los precios de la financiacion". Pestaña nueva
-//            en el panel: el costo por cobrar, el IVA y el costo de cada plan
-//            de cuotas sin interes (los copia de la app: Mercado Pago no los
-//            da por su sistema), con la cuenta en vivo de lo que se lleva
-//            Mercado Pago, el recargo al cliente (hoy -> nuevo) y un ejemplo
-//            sobre $100.000. Al guardar, los precios en cuotas de la tienda
-//            pasan a ser esos (antes eran fijos de octubre y no habia donde
-//            cambiarlos). Avisa si en 1 pago se pierde plata. Si paso un mes
-//            sin revisarlos, avisa ahi y en el Dashboard; "Ya los mire: siguen
-//            igual" lo da por revisado. La cuenta vive en src/lib/costos-mp.ts
-//            y es la misma que usa la tienda.
-// V.0.96.0 - Stock de los combos por Excel. Damian, 17/11/2026: "si yo te subo un
-//            excel con los SKU y el stock en caso de una marca como Pringles,
-//            tienen que actualizarse ... un combo lo componen 2 o 3 o 4 SKU,
-//            vos tenes que fijarte que haya 1 de cada 1 para poder formar ese
-//            combo; si falta uno ... hay que pausarlo". Al subir stock, cada
-//            combo que tiene alguna pieza en el archivo queda con tantos como
-//            la pieza que menos hay (las que no vinieron, con su stock de
-//            hoy); si a uno le falta una pieza, se pausa. Ninguno se activa
-//            solo. Se ve antes de aplicar ("Stock de los combos") y se puede
-//            destildar. Un Excel con "SKU" y "Stock" sin columna de codigo
-//            tambien sirve: el codigo se busca como el del sitio, el del
-//            sistema o el SKU interno.
-// V.0.95.0 - Codigo de fabricante. Damian, 17/11/2026: "faltaria que la ficha del
-//            producto tenga el campo CODIGO DE FABRICANTE ... eso deberia
-//            levantar cuando se hace la carga del mismo y tambien editarse
-//            desde la ficha". Columna nueva (migracion 42). Se completa solo:
-//            al crear por Excel (el codigo con que se lo encontro en la pagina
-//            de la marca, o el de la descripcion de GBP; en FV, el del
-//            sistema) y cada vez que se lo encuentra en la pagina de su marca
-//            si estaba vacio. Se edita en la ficha. Si esta cargado, se busca
-//            exactamente ese codigo: si trajo otro producto, se corrige el
-//            codigo y "Buscar de nuevo".
-// V.0.94.1 - Quitar fondo. Damian, 17/11/2026: "el borrar fondo de la imagen no
-//            funciono" (std::bad_alloc: en WebAssembly el navegador le da poca
-//            memoria y BiRefNet no entra) "hay alguna forma de volver a editar
-//            la foto una vez cargada?". Ahora la IA corre en la placa de video
-//            (WebGPU) cuando el navegador puede, y si falla prueba una vez en
-//            WebAssembly; el error se explica en castellano. Y a una foto ya
-//            cargada se le saca el fondo: la goma en cada miniatura, y "Quitar
-//            el fondo de la foto principal" abajo de la grande. Queda en el
-//            mismo lugar de la galeria (con id nuevo, para que el navegador no
-//            muestre la vieja).
-// V.0.94.0 - Logos de marca traidos de su pagina. Damian, 17/11/2026: "a estas
-//            marcas le podes agregar el logo de la misma pagina
-//            automaticamente". En Marcas: "Traer los logos que faltan" (todas
-//            las que tienen pagina y no logo), "traer logo" en cada una y
-//            "sacar" si trajo otra imagen. Al cargarle la pagina a una marca
-//            sin logo, el logo viene solo. Se busca el que la empresa declara
-//            para Google y las imagenes "logo" del encabezado; se prefiere el
-//            de fondo transparente y no el blanco (no se veria). Probado con
-//            Daccord, Roca, Peirano, Mi Pileta y Piazza. Se guarda en la base
-//            y se sirve en /api/marcas/logo/<id>. En la lista de Marcas el
-//            logo blanco de FV ahora se ve (en negro, como en el inicio).
-// V.0.93.1 - Producto equivocado al traer de la web. Damian, 17/11/2026: "me trajo
-//            un producto que no es, se puede ... buscar nuevamente el
-//            producto". Daccord escribe el codigo como familia + variante
-//            ("AGAR0IMP 13", "BACH0LOZ 08 07"): AGAR0IMP son trece
-//            agarraderas y se buscaba solo eso, asi que venia la primera. Ahora
-//            se busca el codigo completo y la familia sola nunca: si no esta,
-//            dice que no esta. En la ficha, "¿Es otro producto? Buscar de nuevo
-//            y reemplazar fotos y descripcion": pregunta antes, baja las nuevas
-//            y recien ahi saca las de antes; si no lo encuentra, no toca nada.
-//            Las descripciones ya no repiten parrafos ni traen "Ver
-//            instructivo".
-// V.0.93.0 - Rubros y subrubros a mano. Damian, 17/11/2026: "en equipamiento de
-//            baño tambien agregame subrubro accesorios y tambien agregame la
-//            posibilidad de agregar a mano cualquier rubro o subrubro". Cada
-//            desplegable de rubro y subrubro (Crear por Excel, la ficha, el
-//            alta a mano) tiene "+ Agregar rubro / subrubro nuevo...": pide el
-//            nombre y queda guardado (tabla Setting, como las marcas). La
-//            tienda los muestra en el filtro apenas tienen algo publicado.
-//            Los rubros salen de UNA lista (src/lib/rubros.ts): antes habia
-//            cinco y el mismo rubro decia "Bañeras" en la tienda y
-//            "Equipamiento de baño" en el inicio; ahora dice esto ultimo en
-//            todos lados. Subrubro "Accesorios" en Equipamiento de baño.
-// V.0.92.0 - Crear por Excel: "Buscar y reemplazar" en los titulos (Damian,
-//            17/11/2026: "agregame un buscar y reemplazar aca en esta pagina,
-//            para editar los textos masivamente"). Va sobre los tildados de la
-//            lista que se ve, sin importar mayusculas al buscar, por defecto
-//            solo palabras enteras ("BL" no toca "BLANCO"), muestra como
-//            quedan antes de aplicar y tiene Deshacer. Subrubro "Asientos" en
-//            Equipamiento de baño ("aca faltara en equipamiento de baño
-//            subrubro asientos"); los asientos de inodoro y Daccord ya caen
-//            ahi solos, y al cambiar el rubro a mano el subrubro se deduce del
-//            titulo. Publicar: si falla, el registro dice por que (memoria,
-//            disco, reinicios y errores de la tienda), sin entrar a la maquina.
-// V.0.91.1 - Links de MercadoLibre, de nuevo. Damian: "no me funciona desde ml".
-//            Probado: desde un servidor, MercadoLibre manda TODA pagina suya a
-//            una pantalla de "verificacion de cuenta"; leerla no sirve nunca.
-//            Ahora un link de MercadoLibre no intenta abrir la pagina: sin la
-//            cuenta conectada lo dice enseguida, con el boton "Conectar
-//            MercadoLibre"; conectada, lo lee por su numero y si no puede dice
-//            que contesto MercadoLibre. Entiende tambien los links de
-//            publicacion nuevos (/up/MLAU..., wid=MLA... despues del #) y los
-//            cortos que arma la app del celular (meli.la, /sec/).
-// V.0.91.0 - Sacarle la foto con el celular. Damian, 17/11/2026: "subir foto desde
-//            el celular ... si ya lo tengo precargado que tenga la opcion de
-//            entrar con el celular para sacarle foto al producto, me elimine el
-//            fondo y arme la publicacion". En la ficha: "Sacar foto con la
-//            camara" (input con capture="environment": en el celular abre la
-//            camara de atras; en la compu, elegir archivo). Le saca el fondo
-//            con la IA que ya corre en el navegador (BiRefNet_lite fp16, ~110
-//            MB la primera vez; no hay version mas chica) y la deja de
-//            principal. En la compu, la ficha muestra un QR que abre esa misma
-//            ficha en el celular con la camara primero y grande (?celular=1);
-//            si el celular no entro al panel, el login vuelve a la ficha
-//            (?volver=, solo rutas /admin/).
-// V.0.90.1 - Links de MercadoLibre. Damian pego uno de la bacha 443 y salio "no
-//            encontre un producto en esa pagina": MercadoLibre no deja leer sus
-//            paginas desde un servidor (desde una casa si). Ahora: con
-//            MercadoLibre conectado, el link se lee por su numero (/p/MLA... es
-//            ficha de catalogo, MLA-... es publicacion) con la API; sin
-//            conectar, si la pagina no se deja leer, el aviso dice que hay que
-//            conectarlo. Y cuando la pagina se lee: todas las fotos de la
-//            galeria (data-zoom), sin repetir la misma en dos tamaños, y la
-//            descripcion de su bloque (antes salia codigo de la pagina: se
-//            sacan los scripts antes de buscarla y se descarta lo que parece
-//            codigo).
-// V.0.90.0 - Traer foto y descripcion desde un link. Damian, 17/11/2026: "agregame
-//            que pueda poner una url para que saque informacion, foto y
-//            descripcion" y "agregalo abajo del boton de traer fotos desde la
-//            web de la marca". En la ficha, "Traer desde un link": suma las
-//            fotos a la galeria y pone la descripcion en el cuadro para revisar
-//            y Guardar (si ya habia texto, pregunta). En Crear por Excel, cada
-//            fila tiene "Pegar link de la pagina del producto", que lo muestra
-//            como lo que trae "Buscar en la web" (todo editable). Lee Shopify
-//            por su JSON y cualquier otra por su ficha para Google, la galeria
-//            de Magento, el bloque de descripcion y la tabla de caracteristicas;
-//            saca el "- Piazza" del final del nombre. Seguridad: solo sitios
-//            publicos; antes de pedir la pagina o una foto se resuelve el nombre
-//            y se rechaza la red interna (10.x, 192.168.x, 169.254.x, localhost,
-//            metadata.google.internal). Probado: Mi Pileta 406E (6 fotos),
-//            Ferrum Bari (4), Peirano, Piazza 21006.
-//            Y la IA: GEMINI_MODEL decia "gemini-3.8-flash-lite", que no existe
-//            (Google: "is not found"), y caian Escribir con IA, Descripciones
-//            de la web y la busqueda en Google. Si el modelo no existe, se le
-//            pregunta a Google cuales hay y se usa el flash mas nuevo.
-// V.0.89.0 - MercadoLibre de respaldo para fotos y ficha. Damian, 17/11/2026: "si
-//            no busca en la web de la marca, que busque en mercadolibre, pero
-//            tiene que ser exacto la buscada ahi porque puede traer cualquier
-//            cosa". Con la cuenta de MercadoLibre de Sanitarios Conesa (dijo que
-//            tiene la suya; la de IKORA no se toca). Desde 2025 MercadoLibre no
-//            deja buscar sin cuenta (403), asi que hay una pantalla nueva,
-//            Productos -> Fotos de la web -> Conectar MercadoLibre
-//            (/admin/productos/mercadolibre): se carga el App ID y la clave de
-//            la aplicacion (la clave no se vuelve a mostrar) y se da el permiso
-//            entrando a MercadoLibre (OAuth; vuelve a
-//            tienda.conesa.com.ar/api/admin/mercadolibre/callback). El token
-//            dura 6 h y se renueva solo, de a una renovacion por vez (el
-//            refresh de MercadoLibre se quema al usarlo). Todo en Setting.
-//            Busca en el CATALOGO (fichas de producto, fotos de la marca), no en
-//            publicaciones de vendedores, y solo si es EXACTO: misma marca
-//            (atributo BRAND o en el nombre) y el codigo igual al Modelo o
-//            Numero de pieza, o como palabra entera en el nombre ("445E" no es
-//            "445"). Orden: pagina de la marca -> Google -> MercadoLibre; las
-//            marcas sin pagina van directo a MercadoLibre; FV y Piazza, si sus
-//            paginas no lo tienen. Las fotos de ahi se marcan "(MercadoLibre)".
-// V.0.88.2 - El boton de la ficha dice "Traer fotos desde la web de la marca"
-//            (Damian, 17/11/2026: "sino cambialo a traer fotos desde la web de
-//            la marca"). Aparece en todo articulo con marca; si la marca no
-//            tiene su pagina web cargada, avisa que se carga en Marcas en vez
-//            de buscar.
-// V.0.88.1 - La ficha del producto muestra los datos del LOCAL. Damian,
-//            17/11/2026: "cuando le pongo traer fotos me desactiva el producto,
-//            deberia quedar activo como estaba". La ficha leia precio, stock y
-//            activo del articulo (que son los de Traslasierra) y al guardar los
-//            escribe en la fila del local (BranchProduct). Un producto de Buenos
-//            Aires activo se veia "Inactivo" con el tilde apagado; al
-//            refrescarse la pagina (traer fotos) y guardar, quedaba pausado.
-//            Ahora la ficha lee la fila del local que se edita, igual que la
-//            lista; si el local no lo lleva, lo muestra pausado.
-// V.0.88.0 - Todas las fotos del modelo, no solo una. Damian, 17/11/2026: "podes
-//            hacer que traiga mas de 1 foto del modelo?". El lector junta la
-//            galeria entera (Shopify, WooCommerce, VTEX, la galeria de Magento,
-//            la ficha para Google; Piazza sus data-large_image), sin repetir la
-//            misma foto en otro tamaño o carpeta, sin logos ni la imagen de
-//            compartir, hasta 6. Se suman a la galeria del articulo (hasta 10),
-//            la primera de principal si no tenia ninguna. Probado: Mi Pileta 5
-//            fotos (104EC, 304), Ferrum 4 (Bari, con el plano), Piazza 2,
-//            Peirano 1. Donde: Crear por Excel ("Usar estas 5 fotos", con las
-//            miniaturas; se crea de a 5), "Traer fotos de <marca>" en la ficha,
-//            y Fotos de la web, que suma "Con una sola foto: sumarles las otras
-//            del modelo" para los que ya tienen la primera. FV sigue con una
-//            (tiene una por terminacion).
-// V.0.87.1 - Codigos cortos entre parentesis. Las bachas Mi Pileta (Damian,
-//            17/11/2026: "aca quiero buscar las fotos, como hacemos para hacer
-//            eso masivamente") traen el codigo asi: "(304)", "(406)". Se pedian 4
-//            caracteres minimo y quedaban afuera. Ahora entre parentesis alcanza
-//            con 3; sueltos en el texto siguen siendo 4 (un "304" suelto puede
-//            ser cualquier numero). Probado con mipileta.com.ar (Shopify):
-//            104EC, 105EC y 304 con foto y descripcion. "406" no se toma por
-//            "406E" (puede ser otra variante) y "445" no esta en su pagina.
-// V.0.87.0 - Fotos y descripcion de la pagina de CUALQUIER marca, y Google.
-//            Damian, 17/11/2026: "aca deberia ser no FV o Piazza, podes buscar
-//            en la web de la marca que buscamos con el modelo, hacelo mas
-//            generico", "estaria bueno poner la web de la marca", "ademas de
-//            Google o internet que busca" y "podria estar cuando se hace la
-//            precarga por Excel, si no funciona del todo bien que uno pueda
-//            editarlo luego".
-//            WEB DE LA MARCA: Marcas tiene la columna "Pagina web" (tambien al
-//            agregar una). Se guarda en Setting "marcas_web" y pisa la del
-//            codigo (FV, Piazza, Ferrum, Hydros, Roca y Peirano vienen cargadas).
-//            LECTOR GENERAL (src/lib/web-de-marca.ts): WooCommerce, VTEX y
-//            Shopify por su buscador en JSON; cualquier otra por su buscador
-//            comun o el formulario de la portada, entrando a los resultados que
-//            nombran el codigo. De la ficha lee el JSON-LD "Product" o las og:,
-//            el bloque de descripcion y la tabla de caracteristicas; corta los
-//            "productos similares". Un resultado vale solo si nombra el codigo.
-//            Si no esta, pregunta a Google (busqueda de Gemini) y sigue sus
-//            links solo si llevan al sitio de la marca. Fotos: solo del sitio
-//            de la marca o del servidor de fotos de su plataforma. Tope de 40 s
-//            por articulo; las pantallas piden de a 2.
-//            Probado: Peirano (A1452NI) y Ferrum (BAR-IN-011-BL, BAR-CL-001-BL)
-//            con foto, descripcion y caracteristicas. Hydros y el codigo AS de
-//            Ferrum ("IKLM-B") no aparecen en su buscador: quedan para Google.
-//            DONDE: Crear por Excel (busca solo al subir, todo editable antes de
-//            crear), Fotos de la web, "Traer foto de <marca>" y "Buscar en la
-//            web" de la ficha, y Descripciones de la web. FV y Piazza siguen con
-//            sus lectores propios.
-// V.0.86.0 - "Fotos y descripcion FV" pasa a "Fotos de la web" y anda tambien
-//            con Piazza. Damian, 17/11/2026: "eso que no diga fv porque va a
-//            ser para todas las marcas". Las marcas cuya pagina oficial se sabe
-//            leer quedan en un solo lugar (src/lib/marcas-con-pagina.ts: FV y
-//            Piazza), y fichaDelFabricante (src/lib/fv.ts) elige el lector por
-//            la marca del articulo. Piazza busca su codigo en la descripcion de
-//            GBP (memo) y si no en el titulo ("... Piazza 21006"). Con eso, para
-//            Piazza tambien: la pantalla masiva, "Traer foto de Piazza" en la
-//            ficha, "Buscar en la web" de la descripcion (primero la pagina
-//            oficial) y "Descripciones de la web". Las otras marcas no tienen
-//            de donde traer foto; la pantalla lo explica.
-// V.0.85.0 - Crear por Excel: marca nueva a mano y fotos antes de crear.
-//            Damian, 17/11/2026, con un Excel de bachas (SKU A03-02) sin
-//            marca: "esa marca no la tengo, deberia poder agregarse la misma
-//            manualmente" y "el tema de las fotos, ahi en la precarga se puede
-//            hacer algo o solo cuando estamos ya creado el articulo?".
-//            MARCA: los desplegables de marca (el de "marca para todos" y el de
-//            cada articulo) tienen al final "+ Agregar marca nueva…". Se
-//            escribe y queda en la lista de Marcas de la tienda (ahi despues se
-//            le pone el logo) y elegida. Si ya estaba, se elige esa. Si la
-//            columna del sistema trae una marca que no esta, boton "agregarla",
-//            que se la pone a todos los que la traen. La lista va de la A a la Z.
-//            FOTOS: cada articulo tiene un cuadrito de foto: clic para elegirla
-//            de la compu, arrastrar el archivo, o pegarla con Ctrl+V (en la
-//            web: clic derecho, "Copiar imagen"). Queda en el navegador y se
-//            sube recien al crear, despues de cada tanda (uploadOneImage, la de
-//            "Cargar fotos por carpeta"). La elegida a mano destilda la de la
-//            pagina del fabricante. Al final dice cuantos quedaron con foto.
-// V.0.84.0 - La tienda pasa a tienda.conesa.com.ar. Damian, 17/11/2026: "los
-//            subdominios no deberian estar mas, la idea es que sea
-//            tienda.conesa.com.ar y esa es la global". Se cargo la direccion en
-//            Cloudflare (A 136.71.13.107, con proxy, como las otras) y abre lo
-//            mismo que conesa.com.ar. El que entra por conesa.com.ar, www,
-//            buenosaires, traslasierra o balvanera va a la misma pagina en
-//            tienda.conesa.com.ar (301, src/middleware.ts y src/lib/dominio.ts):
-//            los links viejos no se rompen. Siguen donde estan, sin redirigir:
-//            /api (el aviso de pago de MercadoPago no sigue redirecciones), /admin
-//            (el panel de cada sucursal, por el CUIT con que factura), /sistema
-//            (Punto), los archivos y todo lo que no sea GET. Google, los links
-//            que se comparten y los datos para buscadores dicen
-//            tienda.conesa.com.ar. La variable SITE_URL del servidor NO se toca:
-//            de ella salen el dominio "de casa" de MercadoPago y la direccion de
-//            los paneles.
-// V.0.82.0 - Crear por Excel: Piazza se busca en su pagina oficial, y "marca
-//            para todos". Damian, 16/11/2026, subiendo "pagina srl
-//            piazza.xlsx": "deberia buscar bien en la web, como se puede hacer
-//            para que la carga sea mas facil".
-//            PIAZZA (src/lib/piazza.ts): en GBP el item_code de Piazza es
-//            interno ("10001", "9935"); el del fabricante viene en la
-//            descripcion ("(10330)", "21006", "B0900", "P03-31400T", "BO904"
-//            con O). Se prueba piazzagriferia.com/producto/<codigo>/ y trae
-//            nombre, foto, descripcion y el rubro de su categoria (Inodoros ->
-//            Sanitarios, Receptaculos y platos -> Bañeras, Bachas -> Piletas,
-//            bidets de loza "B0..." -> Sanitarios, el resto Griferia con el
-//            subrubro del nombre). Con su Excel: 37 de 68 encontrados; los otros
-//            son Hydros (otra marca) o modelos que Piazza ya no publica. El
-//            titulo, con el formato de FV: "Grifería Ducha y bañera – Novara
-//            Bañera De Embutir C/ Transf. Piazza 21006". El SKU sigue siendo el
-//            del sistema. "Traer titulo y foto de FV" pasa a "Buscar en la web"
-//            (FV y Piazza) y arranca solo al subir el Excel.
-//            MARCA PARA TODOS: 51 de 68 sin marca. Selector para ponerla de una
-//            a los que no tienen, que propone la del nombre del archivo, y
-//            recalcula el rubro con esa marca.
-//            RUBRO: una marca de "griferia" ya no manda si el titulo dice que es
-//            una pieza (inodoro, deposito, bacha, acrilico, plato de ducha,
-//            cabina, bidet de agujeros): "PADOVA INODORO" iba a Griferia.
-// V.0.81.0 - "Buscar descripciones en la web" para muchos productos a la vez.
-//            Damian, 16/11/2026: "se puede hacer que busquen en la web
-//            masivamente, para no hacer uno por uno". Pantalla nueva
-//            (/admin/productos/descripciones, boton "Descripciones de la web"
-//            en Productos): los productos de este panel sin descripcion, con
-//            filtro por marca y rubro. Busca de a dos: FV en la pagina de FV,
-//            el resto en internet con la IA. No guarda solo: cada texto se ve
-//            en un cuadro editable y se guardan las tildadas; nunca pisa una
-//            descripcion que ya este. Si Google se queda sin cupo de busqueda,
-//            la IA escribe solo con el titulo: esas salen destildadas y
-//            marcadas. Si Google corta por limite, la tanda se frena.
-// V.0.80.3 - Al guardar la ficha, rubro, subrubro y marca volvian al valor
-//            viejo en pantalla. Damian, 16/11/2026: "cuando guardo, la
-//            categoria, el subrubro y la marca se resetea". Con <form
-//            action={...}>, React 19 reinicia el formulario al terminar de
-//            guardar: los textos se actualizan, pero los desplegables vuelven
-//            a lo que tenian al abrir la pantalla. Se guardaba bien, pero el
-//            siguiente "Guardar" mandaba lo viejo y lo pisaba. Ahora la ficha
-//            (y "Publicar articulo", que con un error vaciaba todo lo cargado)
-//            manda los datos a mano, sin reiniciar.
-// V.0.80.2 - Los accesorios no llevan "Grifería Accesorios –" en el titulo.
-//            Damian, 16/11/2026, sobre "Grifería Accesorios – Jabonera Mikka
-//            FV 0168/31-CR Cromo": "eso de Grifería Accesorios no deberia
-//            estar en el titulo, sino el resto como sigue". Queda "Jabonera
-//            Mikka FV 0168/31-CR Cromo". Las canillas siguen con "Grifería
-//            Lavatorio – ..." (lo habia pedido el mismo dia). En fv-ficha.ts,
-//            SIN_RUBRO_ADELANTE; sin el subrubro adelante no se le saca
-//            "Accesorios" al nombre ("Arizona Kit 5 Accesorios").
-//            Migracion 41: a los accesorios ya creados les saca solo ese
-//            comienzo del titulo.
-// V.0.80.1 - "Traer de FV" pasa a ser "Buscar en la web", para todas las
-//            marcas. Damian, 16/11/2026: "ojo con eso porque hay muchas marcas,
-//            ponele buscar en la web". Si el articulo es FV prueba primero la
-//            ficha oficial de fvsa.com; si FV no lo tiene (la jabonera Gran
-//            Gala 0172/42 ORO ya no esta en su pagina: daba "FV no lo tiene")
-//            o es otra marca, busca en internet con la IA. Igual que antes:
-//            pone el texto en el cuadro y se guarda con Guardar.
-// V.0.80.0 - Descripcion de los FV desde la pagina de FV.
-//            Damian, 16/11/2026: "faltaria que me traigas la descripcion de
-//            los articulos desde la pagina o internet". De la ficha de FV
-//            sale el parrafo de la pestaña Descripcion y la tabla de
-//            caracteristicas (tipo, instalacion, diseño, tecnologia,
-//            prestaciones, caudal), mas la terminacion y el codigo FV
-//            (fv-ficha.ts, leerDescripcion). El color de la tabla no va: lista
-//            todas las terminaciones. Probado con 13 de los 121 de FV PAGINA:
-//            los 13 con descripcion.
-//            - Crear por Excel: llega junto con titulo y foto, tildada.
-//            - Pantalla "Fotos y descripcion FV": completa foto y descripcion
-//              a los FV que no las tienen. Nunca pisa una escrita a mano.
-//            - Ficha del panel: boton "Traer de FV" al lado de "Escribir con
-//              IA"; la pone en el cuadro para revisar y guardar.
-//            Para las otras marcas sigue "Escribir con IA" (busca en internet).
-// V.0.79.0 - Fotos de los FV: se veian rotas; titulos FV completos desde el
-//            Excel; traer la foto de FV a articulos ya cargados.
-//            FOTOS ROTAS: Damian, 16/11/2026: "las fotos no termino subiendolas,
-//            ahi lo cree, fijate". Las fotos de FV SI se guardaron (la del
-//            0167/17-CR pesa los mismos 17.502 bytes que la de fvsa.com), pero
-//            la direccion se armaba con la barra del codigo sin codificar:
-//            "/api/productos/0167/17-CR/imagen" daba 404. Ahora todas las
-//            direcciones de un articulo (foto, ficha de la tienda, ficha del
-//            panel) salen de src/lib/rutas-producto.ts con el codigo
-//            codificado. Sin esto, al publicar los FV su ficha tambien daba
-//            404. Migracion 40: corrige la direccion anotada en los que ya
-//            estan (solo esa columna).
-//            TITULOS FV: "no me estas trayendo los SKU y al titulo hay que
-//            agregarle Griferia, en el caso de FV". El titulo con el rubro y
-//            el codigo salia solo si FV encontraba el articulo; si no,
-//            "ALLEGRO LAVARROPAS FV". Ahora todo FV arranca armado con lo que
-//            dice GBP (tituloFVDesdeGBP en fv-ficha.ts): "Grifería Lavarropas
-//            – Allegro FV 0401/15-CR Cromo". Probado con los 121 de FV
-//            PAGINA.xlsx: todos con Griferia y con el codigo. Y la busqueda en
-//            la pagina de FV arranca sola al subir el Excel.
-//            FOTOS DE FV para articulos ya cargados: "podes hacer que levante
-//            por el codigo fotos del modelo desde la pagina de FV?". Boton
-//            "Traer foto de FV" en la ficha del panel (la agrega a la galeria;
-//            si ya la tiene, no la repite) y pantalla "Fotos de FV" para
-//            todos los FV sin foto, de a cuatro y con el avance. FV tiene una
-//            foto por modelo y terminacion: no hay galeria para traer.
-// V.0.78.3 - En la compu el ultimo renglon del pie se corre a la izquierda
-//            (sm:pr-20) en vez de subirlo: los dos botones flotantes ocupan
-//            la columna derecha y al subirlo lo tapaba la flecha.
-// V.0.78.2 - El aire de abajo del pie tambien en la compu: el boton de
-//            WhatsApp tapaba el link "Admin" del ultimo renglon.
-// V.0.78.1 - Pie de pagina ordenado en el celular.
-//            Damian, 16/11/2026: "acomoda eso del final que se ve
-//            desordenado". Los tres links legales iban dos en un renglon y el
-//            tercero abajo; ahora uno abajo del otro. Cada titular en su
-//            bloque (sucursal, razon social, CUIT) y el CUIT ya no se corta a
-//            la mitad ("30-" / "71132164-7"). El iPhone tomaba el CUIT por un
-//            telefono y lo subrayaba: formatDetection.telephone en false (los
-//            telefonos de verdad ya son links tel:). Mas aire abajo para que
-//            los botones flotantes no tapen el ultimo renglon.
-// V.0.78.0 - Boton "Comprar" en las tarjetas; checkout con todos los datos
-//            obligatorios; "Cordoba - Traslasierra" en Nuestras sucursales.
-//            COMPRAR: Damian, 16/11/2026: "poner agregar o comprar, porque
-//            tambien estaria bueno hacer carrito, pero si quiero comprar solo
-//            1 producto". Las tarjetas de la portada y de la tienda tienen
-//            "Comprar" y "Agregar" (src/components/BotonesCompra.tsx).
-//            Comprar paga SOLO ese producto y no toca el carrito, como en
-//            Mercado Libre: viaja en sessionStorage y el checkout lo usa con
-//            ?directo=1 (src/lib/cart.ts). El "Comprar ahora" de la ficha
-//            hace lo mismo; antes lo sumaba al carrito y cobraba todo junto.
-//            CHECKOUT: "todos los campos obligatorios". El DNI va siempre
-//            (antes era opcional para retirar); en el envio, piso/depto ("si
-//            es casa, pone Casa") y entre calles. Las notas siguen opcionales.
-//            Con DNI la factura B sale a su nombre: es el camino que ya
-//            existia, no cambia nada de ARCA. La pantalla y el servidor piden
-//            lo mismo.
-//            SUCURSALES: la tarjeta dice "Cordoba - Traslasierra" (solo el
-//            titulo; el nombre de la sucursal no cambia). Sin "comprás en
-//            cualquiera de los dos": la tienda online es la de Buenos Aires,
-//            y Traslasierra dice "Atencion en el local. Consultas y pedidos
-//            por WhatsApp". El boton de WhatsApp de esas tarjetas sacaba las
-//            letras D del numero en vez de lo que no es numero.
-// V.0.77.0 - Se abre la tienda de Buenos Aires; la de Traslasierra se apaga
-//            (sigue como sucursal).
-//            Damian, 16/11/2026: "la tienda de Traslasierra sacala, no va
-//            mas"; "Traslasierra se menciona como sucursal, pero no la
-//            tienda, solo la de Buenos Aires"; "si volvemos a activarla la
-//            prendemos"; "ya habilita el pago de producto, el carrito etc".
-//            Migracion 39: Branch.tiendaOnline (Traslasierra en false) y
-//            tiendaActiva de Buenos Aires en true. Ningun producto se activa.
-//            Un local sin tienda online sigue en el sitio como sucursal, pero
-//            no aparece en el panel de productos (ni en el selector ni en el
-//            link al otro panel); en su propio panel de productos se avisa
-//            y se manda al de Buenos Aires.
-//            Textos: Legales tomaba la razon social de Buenos Aires con el
-//            domicilio y el contacto de Villa Cura Brochero, y ofrecia envio
-//            "al Valle de Traslasierra"; ahora todo es de la sucursal que
-//            vende. Arrepentimiento: mail y WhatsApp de la que vende. La
-//            portada arma "Quienes somos" con las sucursales activas y no con
-//            un texto fijo. Google: "envio a coordinar" -> envio a AMBA o
-//            retiro en Buenos Aires.
-//            Checkout: un codigo postal fuera del mapa dice "Consulta el
-//            envio por WhatsApp", con boton que manda el carrito y el CP.
-//            La categoria de la tarjeta ya no tapa la foto: va arriba del
-//            titulo, como en la tienda (portada y ficha del producto).
-// V.0.76.0 - Botones "Envio a AMBA" y "Retiro en sucursal Buenos Aires";
-//            activar/pausar en lote escribe en el local; vista previa entera.
-//            BOTONES: la ficha de cada producto decia "Retiro en tienda ·
-//            Villa Cura Brochero" y "Envio a Traslasierra · costo a
-//            coordinar", escrito a mano. Ahora la ficha, la portada y el
-//            checkout salen de src/lib/entrega.ts con el local que vende:
-//            "Envio a AMBA · Capital y GBA, gratis desde $100.000" y "Retiro
-//            en sucursal Buenos Aires · direccion, sin costo".
-//            EN LOTE: activar/pausar escribia el articulo (catalogo de
-//            Traslasierra), asi que en Buenos Aires no publicaba nada; y con
-//            su tienda abierta se habria destrabado igual. Ahora va a la fila
-//            del local (guardarComercial), y "todos los que coinciden" usa el
-//            mismo filtro que la lista (src/lib/filtro-productos.ts).
-//            El freno de las pantallas que todavia escriben el articulo, y el
-//            puente de guardarComercial, quedan atados a Traslasierra (el
-//            local del articulo) y no a "la que vende": abrir la tienda de
-//            Buenos Aires no destraba esas pantallas ni hace que sus precios
-//            pisen el articulo.
-//            IMPORTAR: la vista previa muestra todas las filas, no 10.
-// V.0.75.1 - "Precios y stock por Excel" lee el listado de existencias de GBP.
-//            Damian bajo de GBP el stock de Heineken: item_code, item_desc y
-//            una columna "Dep BS AS" (el deposito de Buenos Aires), sin
-//            precio. El lector buscaba "Stk" y exigia un precio, asi que lo
-//            rechazaba. Ahora: una columna "Dep ..." es stock; con varios
-//            depositos se toma el del local del panel; un archivo sin precio
-//            sirve para "Solo stock" (en "precios" avisa que elija Solo
-//            stock, y el alta lo rechaza porque sin precio no hay que
-//            publicar). Si el deposito es de otro local (subir "Dep BS AS"
-//            en el panel de Traslasierra) frena: seria vender alla lo que
-//            solo hay aca. Probado con el archivo real: 16 Heineken, los
-//            codigos con cero adelante intactos ("00662").
-// V.0.75.0 - Envios de Buenos Aires: zona por codigo postal, cobrados con la
-//            compra, gratis desde $100.000; etiqueta nueva y recibo de
-//            MercadoPago para el que retira.
-//            Lo que paso Damian el 16/11/2026 (la tienda de Traslasierra no
-//            sigue, asi que es para Buenos Aires): se envia SOLO dentro del
-//            mapa de Mercado Envios Flex, repartiendo ellos. La zona sale
-//            del codigo postal: CABA 1000-1440 $5.500, Zona 1 $7.300, Zona 2
-//            $9.100, Zona 3 $10.500 (listas en src/lib/zona-envio.ts; el
-//            1642 vino en la 1 y en la 3, quedo en la 1). El envio se cobra
-//            JUNTO con la compra y desde $100.000 (precio de lista) es
-//            gratis a todas las zonas. Precios y tope se cambian desde
-//            Configuracion (migracion 38 los carga).
-//            CHECKOUT: el cliente escribe el codigo postal y ve la zona y el
-//            precio en el momento; fuera del mapa no puede elegir envio. Para
-//            un envio son obligatorios el DNI y todos los datos; se sumo
-//            piso/depto. Ya no aparece la lista de pueblos del Valle.
-//            COBRO: el servidor recalcula zona y precio (no confia en el
-//            navegador) y lo guarda en shippingCost, que hasta hoy era
-//            siempre 0. MercadoPago lo cobra como un renglon "Envio Zona 2",
-//            sin recargo. FACTURA: el importe que va a ARCA ya era
-//            order.total, que lo incluye; el PDF suma un renglon "Envio" para
-//            que el detalle cierre (renglonesDelPedido, armar-pdf.ts). Lo de
-//            ARCA no se toco.
-//            ETIQUETA (src/lib/etiqueta-envio.ts): zona y codigo postal
-//            grandes, piso, DNI, "NO COBRAR" (gratis o ya incluido) y el
-//            remitente del local del pedido; antes era siempre Villa Cura
-//            Brochero. RECIBO DE RETIRO: el "Recibo de entrega de producto"
-//            de MercadoPago, completado sobre su PDF original (pdf-lib), con
-//            boton en el pedido cuando retira; es la prueba ante un
-//            contracargo.
-//            Tambien: el mail de confirmacion, el carrito y la pantalla del
-//            pedido decian Traslasierra en un pedido de Buenos Aires.
-// V.0.74.1 - La lista de productos muestra el codigo una sola vez.
-//            Decia "SKU TST-10633 · 10633": el SKU con la marca adelante y el
-//            codigo del articulo, el mismo numero dos veces. Lo que se carga
-//            desde el alta guarda los dos IGUALES, asi que los 121 FV iban a
-//            salir "0207/C3-CR · 0207/C3-CR". Damian: "estas duplicando el
-//            sku". Ahora, si el SKU termina en el codigo (comparando solo
-//            letras y numeros), se muestra "SKU 10633". Si es otro codigo de
-//            verdad, siguen saliendo los dos. Solo cambia lo que se ve: en
-//            la base no se toco nada.
-// V.0.74.0 - Subrubros, y titulo y foto traidos de la pagina de FV.
-//            SUBRUBROS: columna nueva Product.subcategory (migracion 37) con
-//            la lista fija de cada rubro en src/lib/subrubros.ts. Griferia:
-//            Ducha y bañera, Lavatorio, Bidet, Cocina, Kit de baño,
-//            Lavarropas y Accesorios (Damian puso los accesorios FV en
-//            Griferia). En el alta se sugiere por la pestaña del Excel y si
-//            no dice nada, por el titulo. Se elige tambien en la ficha y en el
-//            producto nuevo. En la tienda se abren debajo de la categoria
-//            elegida (/tienda?cat=griferia&sub=lavatorio). Con el Excel de FV:
-//            31 ducha y bañera, 22 lavatorio, 20 bidet, 35 accesorios, 7
-//            cocina, 4 kit de baño, 2 lavarropas; ninguno sin subrubro.
-//            RUBRO POR MARCA: "TRIADES LAVATORIO FV" caia en Sanitarios,
-//            donde va el lavatorio de loza. FV, Piazza e Hydros llevan ahora
-//            rubro griferia y el alta lo toma de la marca; Ferrum no, porque
-//            hace las dos cosas.
-//            TRAER DE FV: boton en el alta que busca cada codigo en fvsa.com
-//            (src/lib/fv.ts y fv-ficha.ts) y propone titulo y foto. Titulo:
-//            rubro, subrubro y lo que dice la ficha de FV, con el codigo
-//            COMPLETO como lo escribe FV (el CCC es parte del codigo) y la
-//            terminacion en palabras solo si es segura (CR Cromo, NG Negro
-//            mate). Nunca el nombre de otra tienda. La foto se elige por el
-//            codigo exacto de la variante; si FV solo tiene la de otra
-//            terminacion se muestra marcada y SIN tildar. Nada se guarda
-//            hasta apretar Crear, y todo nace pausado igual que antes.
-//            FV deja en su pagina lo que ya no fabrica con "DISCONTINUADO –"
-//            adelante: se lee igual (tiene nombre y foto, y Conesa tiene
-//            stock), la palabra no va al titulo y se avisa en pantalla. No se
-//            repiten palabras: "Libby Monocomando" + "Juego monocomando" queda
-//            "Juego monocomando Libby", y "Juego para bidé" en Bidet queda
-//            "Juego". Probado en vivo con los 121 codigos del Excel de FV.
-//            El alta ahora se manda de a 10 con el avance a la vista: con las
-//            fotos, 121 articulos de una pasaban los 120 s del servidor.
-//            Tambien: el precio del alta dice "LISTA 2 - PRECIO 1 PAGO".
-// V.0.73.5 - El Excel del sistema se lee en TODAS sus pestañas, y lo nuevo
-//            que se importa entra pausado.
-//            El lector ya recorria todas las hojas, pero descartaba en
-//            silencio las que no tenian la fila de titulos (item_code,
-//            item_desc...). Asi venia el de FV: la primera pestaña con
-//            titulos y otras cuatro por linea (duchas, bidet, accesorios,
-//            lavatorios) con los productos pegados directo. Se leian 13 de
-//            121. Ahora una hoja sin titulos se lee con las columnas de la
-//            primera que si los tiene, SOLO si sus primeras filas encajan
-//            (codigo, descripcion con letras, precio mayor a cero, stock
-//            numerico o vacio). Si no encajan, la hoja no se lee y se avisa
-//            en la vista previa: leerla con las columnas corridas pondria el
-//            stock como precio. Probado con el archivo real: 121 de 121, con
-//            precio y stock de cada pestaña verificados contra la celda.
-//            Arregla tambien el alta de articulos, que usa el mismo lector.
-//            Lo segundo: el importador daba de alta lo nuevo PUBLICADO
-//            cuando el archivo no traia columna "activo", y el Excel del
-//            sistema nunca la trae. Subir una lista de proveedor publicaba
-//            todo lo que no estaba cargado sin que nadie lo eligiera. Ahora
-//            nace pausado. Lo que ya existe no cambia de estado salvo que el
-//            archivo traiga la columna. Damian: "no actives nada".
-//            Lo tercero, el mas peligroso: cuando un local empezaba a llevar
-//            un articulo que ya existia (guardarComercial creando la fila),
-//            la fila copiaba el estado del ARTICULO, que es el catalogo de
-//            Traslasierra y esta activo. Importar la lista de FV en el panel
-//            de Buenos Aires le habria creado publicados todos los FV ya
-//            cargados. Ahora una fila nueva nace pausada salvo que se diga
-//            otra cosa; el alta a mano pasa la casilla "Activo" del
-//            formulario explicitamente, asi que eso sigue igual.
-// V.0.73.4 - Se volvio atras la 0.73.3: la principal sigue siendo
-//            Traslasierra.
-//            La 0.73.3 movia "la sucursal principal" a Buenos Aires, y con
-//            ella el espejo. El espejo no copia solo el precio: copia
-//            precio, oferta, stock Y si el producto esta activo. Lo que hay
-//            en Product es el catalogo de Traslasierra, que esta ACTIVO; las
-//            filas de Buenos Aires estan PAUSADAS a proposito. Apuntar el
-//            espejo a Buenos Aires le iba a copiar active = true a sus 54
-//            filas en el primer guardado de cualquier producto —incluso
-//            desde el alta o al subir una foto, que no pasan por el freno de
-//            todaviaNoPorSucursal— y despausarle el catalogo entero.
-//            No alcanzo a correr: se verificaron los 54 en Pausado despues
-//            del deploy. El precio y el stock de Buenos Aires ya eran
-//            identicos a los de Traslasierra (los dejo asi la migracion
-//            32/33), asi que el estado era lo unico que cambiaba.
-//            El error de fondo: "la principal" no es una etiqueta que se
-//            pueda mover. Las filas de Traslasierra SON una copia del
-//            articulo, y eso es un hecho de la historia. Para que Buenos
-//            Aires sea la unica tienda hay que SACAR el puente —y con el
-//            este espejo— para que Product deje de ser la fuente de nadie.
-//            Recien ahi "principal" no significa nada y no hay que elegirla.
-// V.0.73.2 - En conesa.com.ar los recargos son los de la sucursal que vende.
-//            Los recargos de MercadoPago se leian por subdominio. En
-//            conesa.com.ar no hay subdominio, asi que se leian los generales;
-//            pero la venta la toma igual la sucursal que vende, que cobra en
-//            SU cuenta y factura con SU CUIT. El mismo carrito salia a dos
-//            precios segun por que puerta entro el cliente: Buenos Aires
-//            tiene cargado 31% en cuotas y hasta 18, y los generales son
-//            25,71% y hasta 6.
-//            La pantalla de Configuracion no se movio: sigue mostrando y
-//            guardando lo mismo de antes (lo del subdominio, o lo general en
-//            conesa.com.ar). Es a proposito: si mostrara los de la sucursal
-//            que vende y guardara en los generales, entrar ahi y apretar
-//            Guardar pisaria los generales con los numeros de otro local, y
-//            los generales son los que usa la tienda que no tiene los suyos.
-//            Ahora ese cartel dice quien le cobra de verdad al cliente.
-//            Con todas las tiendas cerradas no cambia nada, porque no hay
-//            quien venda y se siguen leyendo los generales. Empieza a valer
-//            el dia que se abra una tienda.
-// V.0.73.1 - El logo de Data Fiscal enlaza por http.
-//            Se cargo el codigo del QR de la S.R.L. (F960/D del sitio
-//            https://conesa.com.ar, declarado ante ARCA el 14/11/2026), y
-//            al probarlo aparecio que https://qr.afip.gob.ar no existe: no
-//            contesta TLS. El componente armaba el enlace con https, asi
-//            que el logo habria quedado apuntando a una direccion muerta.
-//            Ahora usa http, que es lo que da el propio script del F960/D
-//            y redirige solo a serviciosweb.afip.gob.ar. La imagen sigue
-//            por https, porque por http la bloquea el navegador.
-// V.0.73.0 - Cada sucursal factura con SU certificado de ARCA.
-//            Damian decidio que la tienda online pasa a ser de Buenos
-//            Aires: cobra y factura la S.R.L. El certificado de la S.R.L.
-//            ya esta en el servidor (AFIP_CERT_BSAS / AFIP_KEY_BSAS), y
-//            este cambio es para que el sitio lo use.
-//            Las variables de ARCA ahora llevan el slug atras, igual que
-//            las de MercadoPago: AFIP_CUIT_BSAS, AFIP_PTO_VTA_BSAS,
-//            AFIP_CERT_BSAS, AFIP_KEY_BSAS. La sucursal que no tiene las
-//            suyas usa las peladas, que es lo que habia cuando la tienda
-//            era una sola: Traslasierra no se toca, y es la unica que hoy
-//            emite comprobantes con validez fiscal.
-//            Ese respaldo puede devolver el certificado del OTRO
-//            contribuyente. No es un descuido: antes de pedir el CAE se
-//            compara el CUIT de la sucursal del pedido con el que se va a
-//            usar, y si no coinciden no se emite (el freno de la 0.72.5,
-//            ahora comparando contra el que de verdad se va a usar y no
-//            contra AFIP_CUIT a secas).
-//            El ticket de acceso de ARCA se guarda por certificado y no
-//            por sitio. Un TA se le emite a UN certificado y vale para UN
-//            CUIT: compartirlo entre dos contribuyentes es pedir el CAE
-//            con el token del otro.
-//            La sucursal SIN certificado propio conserva la clave de cache
-//            de siempre, sin sufijo. Eso es a proposito: ARCA no emite un
-//            TA nuevo mientras haya uno valido ("El CEE ya posee un TA
-//            valido"), asi que cambiarle la clave a la tienda que hoy
-//            factura la dejaria sin facturar hasta 12 horas.
-//            El panel muestra el estado de ARCA del local en el que estas
-//            parado, prueba la conexion con SU certificado, y avisa cuando
-//            un local esta usando el general. Antes el panel de Buenos
-//            Aires probaba el certificado de Traslasierra y contestaba que
-//            todo andaba bien.
-// V.0.72.5 - ARCA: no se factura con el CUIT de otro contribuyente.
-//            El sitio tiene UN solo certificado de ARCA, en el servidor, y
-//            atiende dos sucursales que son dos contribuyentes distintos:
-//            Traslasierra (Conesa Carlos Daniel) y Buenos Aires (Sanitarios
-//            Conesa S.R.L.). Todo el modulo de ARCA no sabia de sucursales:
-//            pedia el CAE con el CUIT que hubiera cargado, viniera el
-//            pedido de donde viniera. Un pedido de Buenos Aires facturado
-//            con el certificado de Traslasierra sale a nombre de quien no
-//            vendio, y eso no se deshace: se anula con nota de credito, a
-//            mano, y queda en los libros de los dos.
-//            Ahora emitirFactura y emitirNotaCredito comparan el CUIT de la
-//            sucursal del pedido con el del servidor, y si son distintos no
-//            emiten: devuelven que falta cargar el certificado de esa
-//            sucursal.
-//            La nota de credito importa por su propia razon: tiene que
-//            salir del mismo CUIT que emitio la factura. El dia que se
-//            cambie el certificado del servidor, anular una factura vieja
-//            desde el nuevo seria emitir la NC de un contribuyente contra
-//            el comprobante de otro.
-//            SOLO frena cuando puede probarlo: hacen falta los dos CUIT y
-//            que sean distintos. Sin sucursal en el pedido, sin CUIT en el
-//            panel o sin AFIP_CUIT, factura igual que siempre. Un freno que
-//            salta por un dato que falta dejaria de facturar un martes
-//            cualquiera sin que nadie haya tocado nada.
-//            Traslasierra no cambia en nada: su CUIT es el del certificado
-//            cargado, asi que la comparacion da igual y sigue de largo.
-// V.0.72.4 - Los recargos de tarjeta son de cada sucursal, y entran los de
-//            Buenos Aires.
-//            Cada local cobra en SU cuenta de MercadoPago y cada cuenta tiene
-//            sus costos. Los porcentajes eran uno solo para todo el sitio, asi
-//            que cargar los de Buenos Aires movia los precios en cuotas de
-//            Traslasierra, que es la que esta vendiendo, y sin avisar.
-//            Ahora la configuracion se guarda con el nombre del local pegado
-//            atras ("mp_planes:bsas"). La clave sin nombre sigue existiendo y
-//            sigue valiendo: es la de Traslasierra y la de conesa.com.ar. Un
-//            local solo la pisa si le cargaron lo suyo, asi que esto no mueve
-//            ni un precio de los que hay hoy.
-//            Lo decide el SUBDOMINIO, no sucursalActual(): en el dominio
-//            general no hay una sucursal sino dos, y tomar los numeros de una
-//            seria cobrarle a todos con los costos de un local que a lo mejor
-//            ni vende.
-//            El panel de Configuracion ahora dice de quien son los numeros que
-//            estas mirando. Era el peor malentendido posible: creer que tocas
-//            los de uno cuando tocas los del otro. Y guardar desde el panel de
-//            una sucursal guarda los de esa sucursal y nada mas.
-//            Los de Buenos Aires (migracion 36), como los paso Damian el
-//            13/11/2026: 3 cuotas 23%, 6 cuotas 31%, 9 cuotas 42%, 12 cuotas
-//            53%, 18 cuotas 74%. Eso es lo que PAGA DE MAS EL CLIENTE, no el
-//            costo que publica MercadoPago: el confirmo cual de las dos cosas
-//            era, porque cargados como costo del plan el de 18 cuotas pasaba
-//            del 95% y el plan desaparecia solo del sitio.
-//            Sobre un articulo de $100.000 queda: 3 -> $123.000, 6 ->
-//            $131.000, 9 -> $142.000, 12 -> $153.000, 18 -> $174.000.
-//            Verificado uno por uno.
-//            Falta el recargo de 1 pago de Buenos Aires: hasta que se cargue
-//            usa el general (12% de descuento por contado). Y falta la clave
-//            de la cuenta en el servidor (MP_ACCESS_TOKEN_BSAS), que es lo
-//            unico que hace falta para que esa tienda pueda cobrar.
-// V.0.72.3 - Gas envasado sin stock, y el codigo del articulo se lee.
-//            1. No hay envasado (Damian, 13/11/2026), asi que un termotanque
-//            "a gas natural o envasado" deja de preguntar con que gas se va a
-//            usar: se vende solo como gas natural y se agrega al carrito de
-//            una, sin pasar por la ficha a contestar una pregunta con una
-//            sola respuesta.
-//            El titulo del articulo sigue diciendo "o envasado", asi que
-//            callarse no alcanza: la ficha avisa "Sin stock de envasado". El
-//            que lo quiera para garrafa se entera ANTES de comprar y no
-//            cuando se lo entregan.
-//            Es una sola perilla en src/lib/etiquetas.ts (HAY_GAS_ENVASADO).
-//            Cuando entre mercaderia se pone en true y vuelven solos el
-//            cartel y la eleccion.
-//            Los articulos que son SOLO envasado no se tocan: eso se pausa
-//            desde el panel, que es donde se maneja el stock.
-//            2. En la lista de productos del panel, el codigo que va abajo
-//            del titulo estaba en gris claro y fino, y no se leia. Ahora va
-//            en negrita y en el color del texto, y adelante aparece el SKU
-//            cuando el articulo lo tiene cargado. Es lo que se busca y lo que
-//            se dicta por telefono; el SKU ademas es con lo que se emparejan
-//            las fotos, asi que de paso se ve cual no lo tiene.
-// V.0.72.2 - Un boton para abrir y cerrar la tienda, arriba de la ficha.
-//            La casilla "Tienda abierta" estaba al fondo de una ficha larga
-//            y solo se guardaba junto con todo lo demas. Damian la destildo,
-//            apreto Guardar y el sitio siguio vendiendo igual. Eso es lo peor
-//            que puede pasar en un panel: decir una cosa y hacer otra.
-//            Ahora es un boton arriba de todo, con el estado al lado en verde
-//            o en gris, y toca ese campo y nada mas. Va aparte del Guardar a
-//            proposito: guardarSucursal valida media ficha —el CUIT, el
-//            subdominio, que alguien cubra el resto del pais— y si algo de eso
-//            no cuadra no guarda NADA. La tienda se quedaba abierta por un
-//            CUIT mal escrito, que no tiene nada que ver.
-//            La casilla se fue. Dos controles para la misma cosa terminan
-//            peleandose: el boton cierra la tienda, la casilla sigue tildada
-//            porque la pantalla no se recargo, y el proximo Guardar la vuelve
-//            a abrir sin que nadie lo pida. Por lo mismo, Guardar ya no manda
-//            ese campo.
-//            Pregunta antes de hacerlo, porque es lo unico de esa pantalla
-//            que se ve desde afuera al instante, y en la pregunta avisa lo
-//            que hay que saber: si la sucursal no tiene cargado SU
-//            MercadoPago —y entonces lo que venda se cobra en la cuenta de la
-//            otra— y, al cerrar, si es la ultima abierta, porque ahi el sitio
-//            entero pasa a atender por WhatsApp.
-// V.0.72.1 - Traslasierra cierra su tienda online, y cerrar significa
-//            cerrar.
-//            Damian pidio apagarla por el momento. Lo intento desde Panel ->
-//            Sucursales y no quedo guardado, asi que va por migracion (34).
-//            NO cierra el local: la sucursal se sigue publicando con su
-//            direccion, su telefono y sus horarios; lo unico que se apaga es
-//            la compra online. Para reabrirla alcanza con tildar "Tienda
-//            abierta" en el panel: la migracion corre una sola vez.
-//            Y se tapa lo que la 0.72.0 dejaba a la vista: con la tienda
-//            cerrada, /tienda seguia respondiendo. Mostraba un catalogo
-//            vacio —feo pero inofensivo— y, eso si, dejaba llegar al
-//            checkout. Un carrito guardado de antes podia armar un pedido a
-//            nombre de la sucursal que NO vende y cobrarlo en la cuenta de
-//            la otra: justo lo que la 0.71.0 vino a evitar.
-//            Ahora, sin ninguna tienda abierta, /tienda y todo lo que
-//            cuelga mandan a la portada, y el checkout se niega del lado del
-//            servidor, que es lo unico que no se puede saltear desde el
-//            navegador.
-//            Las tres pantallas de vuelta de MercadoPago (exito, pendiente,
-//            error) quedan abiertas a proposito: ahi cae alguien que YA
-//            pago, y mandarlo a la portada seria dejarlo sin el aviso de que
-//            su compra entro.
-//            La redireccion va a una ruta relativa y solo para /tienda:
-//            mandar el sitio entero a la portada seria un bucle, porque la
-//            portada pasa por el mismo layout.
-//            La portada y el layout preguntan lo mismo con la misma funcion
-//            (hayTiendaAbierta). Dos maneras de averiguar lo mismo terminan
-//            contestando distinto el dia menos pensado.
-//            Y Buenos Aires queda todo pausado (migracion 35). Lo copiado
-//            hasta hoy ya entro pausado; esto lo deja escrito y no depende
-//            de que las migraciones 32 y 33 hayan salido como se esperaba.
-//            Pausado es que no se muestra ni se puede comprar: el precio,
-//            el titulo y las fotos quedan intactos. No toca el stock ni
-//            toca a Traslasierra, y corre una sola vez: lo que se publique
-//            despues desde el panel queda publicado.
-// V.0.72.0 - Tienda: el precio, la oferta y el stock salen del LOCAL.
-//            Hasta hoy todo salia del articulo ("Product"). Andaba porque
-//            vendia un local solo; con dos, los dos publicarian el precio y
-//            el stock del primero. Un cliente de Buenos Aires compraria algo
-//            que esta en el deposito de Cordoba, al precio de Cordoba.
-//            Ahora todo lo que el cliente ve y paga pasa por
-//            src/lib/catalogo.ts: catalogo, portada, ficha, recomendados y
-//            checkout. El local sale de sucursalQueVende() —el que cobra, no
-//            el que se muestra— porque esto termina en una venta.
-//            Un articulo que el local no lleva no aparece en su tienda y no
-//            se puede vender ahi: ponerle el precio del otro local seria
-//            cobrar el precio de otro negocio.
-//            La migracion 31 copia el articulo a la fila de Traslasierra
-//            ANTES de que la tienda lea de ahi. Esa tabla se habia llenado
-//            una sola vez y podia estar vieja; copiando el articulo, que es
-//            exactamente lo que el cliente ve hoy, la tienda lee otra tabla
-//            y muestra los mismos numeros. Comprobado contra el sitio en el
-//            aire, articulo por articulo, antes y despues.
-//            Va contra 'traslasierra' con todas las letras y no contra "la
-//            que vende": si el dia del cambio la tienda esta cerrada, "la
-//            que vende" no es nadie y no haria nada, que es justo el caso en
-//            el que hace falta.
-//
-//            Portada: con TODAS las tiendas cerradas, solo WhatsApp.
-//            El boton grande decia "Entra a la tienda", y con la tienda
-//            cerrada es invitar a una puerta que no abre. Con ninguna tienda
-//            abierta, la portada cambia entera: el boton del hero, los dos
-//            banners, las dos secciones de productos, las marcas y los
-//            rubros llevan al WhatsApp —con la marca o el rubro ya escritos
-//            en el mensaje— y las tarjetas dejan de ofrecer "Agregar",
-//            porque no hay carrito al que agregar. El cartel "la tienda
-//            online nunca cierra" tambien se va: seria mentira escrita en la
-//            portada.
-//            Lo decide la casilla "Tienda abierta" del panel, asi que el dia
-//            que se reabra la portada vuelve sola y no hay que acordarse de
-//            deshacer nada. Los cuatro bloques que cambian se usan SOLO en
-//            la home, y la perilla entra con valor por defecto "abierta":
-//            usarlos en otra pantalla sin pasarla se porta como siempre.
-//            Cada boton de WhatsApp avisa a Analytics con su propia
-//            etiqueta, asi se ve de donde salen las consultas mientras la
-//            tienda esta cerrada.
-//
-//            Catalogo de Buenos Aires: cuatro marcas mas (migracion 33),
-//            Heineken, Hydros, Narf y Dogo, con las mismas reglas que la 32
-//            (pausados, sin stock, con el precio de hoy de arranque). Los
-//            codigos de marca se verificaron contra src/lib/marcas.ts: uno
-//            mal escrito copiaria cero articulos sin dar ningun error.
-//
-//            Queda pendiente y a la vista: con la tienda cerrada,
-//            conesa.com.ar/tienda sigue respondiendo y mostraria un catalogo
-//            vacio. Ya no hay nada en el sitio que lleve ahi, pero el que
-//            tenga el link guardado entra. Falta decidir que hace esa
-//            pantalla.
-//            Nada de esto toca el facturador de ARCA, ni MercadoPago, ni
-//            Punto.
-// V.0.71.1 - Panel: que siga guardando precios con la tienda cerrada.
-//            El espejo —el que copia el precio del articulo a la fila del
-//            local— y la "sucursal principal" del panel daban los dos por
-//            hecho que siempre hay una tienda abierta. Con Traslasierra
-//            cerrada un rato no hay ninguna: el espejo actualizaba cero
-//            filas y el panel se quedaba sin principal, asi que guardar un
-//            precio entrando por conesa.com.ar/admin no grababa nada, sin
-//            error y sin aviso. Se veia como cambiar un precio y que el
-//            panel siguiera mostrando el viejo.
-//            Los dos pasan a mirar a 'traslasierra' con todas las letras.
-//            No es lo mismo que "la que tiene la tienda abierta": lo que hay
-//            guardado en el articulo es el catalogo de Traslasierra, de
-//            cuando habia un solo local. Eso es un hecho de la historia, no
-//            una regla que cambie al destildar una casilla.
-//            Antes de esto, y sin tocar una linea de codigo, entro por
-//            migracion el catalogo de arranque de Buenos Aires: Piazza,
-//            Pringles, Ferrum y TST. Pausados, sin stock —el stock esta
-//            fisicamente en Cordoba— y con el precio de hoy como punto de
-//            partida, para editar desde el panel de Buenos Aires. Esa
-//            tienda sigue cerrada: esto no la abre.
-//            Nada de esto toca el facturador de ARCA, ni MercadoPago, ni lo
-//            que ve el cliente: el catalogo publicado quedo identico,
-//            comparado articulo por articulo antes y despues.
-// V.0.71.0 - Tienda: cada sucursal cobra en SU cuenta de MercadoPago, y el
-//            pedido guarda de que sucursal es.
-//            Hasta hoy el servidor tenia UNA sola clave de MercadoPago y la
-//            usaba para todo, sin preguntar de que tienda venia la venta.
-//            Con una sola tienda abierta no se nota; el dia que abra Buenos
-//            Aires, su plata entraria en la cuenta de Traslasierra. Son dos
-//            contribuyentes distintos: eso no es un detalle de programacion,
-//            es plata que entra a nombre de quien no vendio.
-//            Buscandolo aparecio un segundo agujero del que cuelga el
-//            primero: el pedido NO guardaba de que sucursal era. El aviso de
-//            pago lo manda MercadoPago desde sus servidores, asi que en ese
-//            pedido no viene nuestro dominio; y el boton Facturar del panel
-//            tampoco sabe por donde entro el cliente. Sin ese dato no hay
-//            forma de saber a que cuenta preguntarle por el pago ni con que
-//            CUIT facturar. Van los dos juntos.
-//            (1) Order.branchId: el pedido guarda el local que cobra y
-//            factura, tomado de sucursalQueVende() en el momento del
-//            checkout, que es el unico momento en que se sabe. Queda
-//            opcional: los pedidos que ya estaban cargados no lo tienen y no
-//            hay manera honesta de adivinarselo.
-//            (2) La clave de MercadoPago sale de la sucursal:
-//            MP_ACCESS_TOKEN_TRASLASIERRA, MP_ACCESS_TOKEN_BSAS. Si una
-//            sucursal no tiene la suya cargada, se usa MP_ACCESS_TOKEN, que
-//            es la de siempre. Ese respaldo es a proposito: mientras no se
-//            carguen las claves por sucursal, la tienda que ya vende cobra
-//            exactamente como venia cobrando. Probado con el codigo de
-//            verdad: con una sola clave cargada, las tres funciones dan lo
-//            mismo que antes.
-//            (3) El aviso de pago de MercadoPago lleva la sucursal pegada en
-//            la direccion (?suc=). Tiene que ir ahi porque el aviso no lo
-//            manda el navegador del cliente: es la unica forma de saber con
-//            que clave preguntar por el pago. Los avisos de preferencias
-//            viejas no lo traen y caen en la clave de siempre, que es la que
-//            las cobro.
-//            (4) El cliente vuelve al dominio por el que entro y no a
-//            conesa.com.ar. El dominio se toma del pedido HTTP y se acepta
-//            solo si termina en conesa.com.ar: viene en un encabezado y un
-//            encabezado lo puede escribir cualquiera.
-//            (5) El panel muestra el estado de MercadoPago sucursal por
-//            sucursal, con el nombre exacto de la variable que falta cargar,
-//            y avisa en rojo el caso peligroso: dos tiendas abiertas
-//            cobrando con la misma clave. Con una sola abierta no asusta al
-//            pedo, porque esa cuenta es la suya.
-//            Pendiente a proposito: statement_descriptor sigue diciendo
-//            "SANITARIOS CONESA" para las dos. Es lo que el cliente ve en el
-//            resumen de la tarjeta y tendria que ser el nombre del que
-//            cobra, pero cambiarlo a ojo le cambiaria el resumen a los
-//            clientes de la tienda que ya vende.
-//            Nada de esto toca el facturador de ARCA ni Punto.
-// V.0.70.0 - Punto: lo que encontro la revision de la 0.69.0, y el boton
-//            que se le subia encima al campo de al lado.
-//            (1) GRAVE, y estuvo arriba unas horas: apretar Enter despues
-//            de tocar el Descuento metia en la venta un articulo que nadie
-//            habia pedido. Al mudar el descuento adentro del bloque de
-//            campos, cambiarlo termina llamando a pintarCamposVenta(), que
-//            rehace el bloque entero con innerHTML y destruye el propio
-//            <select> que tenia el foco; el foco se cae al <body>, la
-//            guarda escribiendo(e) -que mira e.target- deja de frenar el
-//            atajo "Enter suma", y el Enter siguiente agarra el renglon
-//            marcado del buscador y lo carga, con su precio, en la factura
-//            y descontado del deposito. Lo reprodujeron dos revisores por
-//            separado con teclado de verdad. Se arregla devolviendole el
-//            foco al campo que se toco despues de repintar, y vale para
-//            TODOS los campos del bloque: desde que abre desplegado, los
-//            demas desplegables tambien estan al alcance de la mano.
-//            (2) En los renglones de la venta se cortaban Precio, Subtotal
-//            y la cruz de sacar el renglon. El codigo entero de los combos
-//            mas el nombre estirado a 460 px ensanchaban la tabla: medido
-//            en 1366, pedia 1043 contra 861 de caja. Quedaba scroll
-//            horizontal, que nadie ve. El codigo entero se queda -es lo que
-//            distingue un combo de otro- y cede el nombre, que tiene el
-//            globito con el nombre completo. Ahora se pasa 0 px.
-//            (3) El boton "Corregir" del numero se le subia encima a
-//            "Condicion de venta" -103 px afuera de su casilla-. La causa
-//            era de una linea: la regla que hace encoger lo que esta al
-//            lado de un boton decia ".con-mas select", y el numero es un
-//            <input>, asi que no la agarraba. Ahora la regla vale para los
-//            input tambien, y el boton se mudo a la linea de ayuda de
-//            abajo, que existe igual: al lado no entraba sin comerse el
-//            numero o un renglon entero de la fila.
-//            Nada de esto toca el facturador de ARCA ni la tienda.
-// V.0.69.0 - Punto: el comprobante acomodado como se mira, y dos
-//            agujeros que habia dejado la revision anterior.
-//            (1) El vendedor subio arriba, al lado de la sucursal. Las
-//            dos contestan la misma pregunta -quien vende y desde donde-
-//            y estaban separadas por media pantalla: el vendedor andaba
-//            perdido abajo, entre el numero y el deposito.
-//            (2) El descuento se mudo al lado de la condicion de venta.
-//            Son las dos cosas que se le conceden al cliente. Dejo de
-//            vivir afuera de #camposVta: ahora se rellena en cada
-//            repintado desde pintarCamposVenta() y el cambio lo agarra
-//            el listener delegado de #camposVta, que es lo unico que
-//            sobrevive a un innerHTML. La tira de un renglon tambien
-//            muestra el descuento, para cuando los campos estan cerrados.
-//            (3) El comprobante abre desplegado. Palabras de Damian:
-//            "siempre desplegado eso, no comprimido como arranca".
-//            (4) El cartel de cliente nuevo ya NO se cierra tocando
-//            afuera. "Ojo que no se cierre con foco sino con una X": se
-//            tipea un CUIT de once numeros, se toca al lado sin querer y
-//            se perdia todo lo cargado. Se cierra con la X o con Escape.
-//            (5) ARREGLO - "Guardar como borrador" dejaba el deposito
-//            pisado. Despues de guardar un borrador estando en
-//            Traslasierra con el deposito puesto en Buenos Aires, TODAS
-//            las ventas siguientes descontaban de Buenos Aires sin que
-//            nadie lo pidiera. Lo habia encontrado la revision de la
-//            0.68.0 y quedo sin arreglar: era el tercer camino, aparte
-//            de cerrar y de guardar presupuesto. Ahora el deposito se
-//            guarda adentro del borrador y vuelve al retomarlo.
-//            (6) ARREGLO - dos combos distintos se veian como el MISMO
-//            renglon. El codigo de un combo es compuesto ("3480+3641") y
-//            se mostraba solo el primer pedazo, asi que dos combos
-//            daban el mismo numero; con el nombre cortado con puntos
-//            suspensivos quedaban identicos letra por letra, mismo
-//            precio incluido. Uno lleva bidet de un agujero y el otro de
-//            tres. Ahora el codigo se muestra entero y el nombre entra
-//            100 px mas largo antes de cortarse.
-//            (7) La barra de arriba. Fuera el "· Sanitarios Conesa"
-//            escrito: el logo de al lado ya lo dice, era lo mismo dos
-//            veces. El logo, mas grande. Y la fecha pasa a ser el dato
-//            grande de la barra -mas cuerpo, negrita y con segundos-
-//            porque en el mostrador se prometen entregas y se cierran
-//            cajas por hora. En pantalla angosta ahora se esconde el
-//            dolar y NO la fecha, que es al reves de como estaba.
-//            (8) El numero del comprobante viene TRABADO, de solo
-//            lectura, con un boton "Corregir" al lado. Damian: "que
-//            venga para no modificar pero que tenga la opcion de
-//            modificarlo". Es el dato que llega a ARCA y estaba abierto
-//            todo el tiempo en el medio de una fila de campos que se
-//            tocan en cada venta: alcanzaba con apoyar el dedo. Mientras
-//            esta destrabado avisa en negrita que eso cambia la
-//            numeracion de los que siguen, y se vuelve a trabar solo
-//            apenas se corrige, al cerrar la venta, al guardar un
-//            presupuesto o un borrador y al cambiar de documento.
-//            (9) ARREGLO de lo que rompieron (7) y (3), medido en una
-//            pantalla de 1366x768: la barra se partia en dos renglones
-//            -el boton Salir se caia abajo- y el buscador quedaba 195 px
-//            por debajo del borde de la pantalla. Lo segundo tenia una
-//            causa vieja y tonta: el alto de la grilla se calculaba bien
-//            en el codigo y lo pisaba un min-height:250px escrito en el
-//            CSS, que en CSS le gana al max-height. Ahora el alto lo pone
-//            un solo lugar, ajustarGrilla(), y el piso depende de si hay
-//            algo cargado: con la venta vacia el hueco es chico y el
-//            buscador queda a la vista, que es lo que se va a tocar.
-//            OJO, queda asi a proposito: en una pantalla de 768 de alto,
-//            con el comprobante siempre desplegado, apenas se cargan
-//            renglones la pagina scrollea. No entran las dos cosas.
-//            Nada de esto toca el facturador de ARCA ni la tienda.
-// V.0.68.0 - Punto: el mostrador, como lo pidio el que lo va a usar.
-//            Nueve cosas que Damian marco mirando la pantalla, mas la
-//            regla de los depositos que conto despues.
-//            (1) La sucursal va arriba de todo, sola y en grande. De ella
-//            salen el punto de venta, la numeracion y el deposito: no es
-//            un dato mas del comprobante, es el marco de toda la venta.
-//            Mientras los campos estan abiertos se esconde la tira de
-//            arriba, que decia lo mismo dos veces.
-//            (2) Todos los datos del comprobante se pueden tocar. El
-//            numero y el vendedor estaban de solo lectura; si la
-//            numeracion queda desfasada hay que poder corregirla sin
-//            entrar al codigo.
-//            (3) El descuento se mudo de la columna del total a los datos
-//            del cliente. Es una decision sobre el cliente; el total es
-//            la consecuencia. Queda fuera de #resumenVta a proposito: ese
-//            bloque se redibuja entero y el select perderia el listener.
-//            (4) Boton "+ Cliente" al lado del desplegable, que es donde
-//            la mano ya esta. El alta sumo localidad, provincia, correo y
-//            lista de precios; el domicilio del padron se parte en calle
-//            y localidad por la ultima coma.
-//            (5) El documento dice "Presupuesto" y no "Presupuesto X
-//            cnc". La letra y la sucursal las sabe el sistema.
-//            (6) 01-Efectivo pasa a ser la condicion por defecto en
-//            mostrador, en lugar de transferencia.
-//            (7) Fuera el semaforo de "Lo que deja". Del otro lado del
-//            mostrador hay un cliente mirando la pantalla, y lo que deja
-//            la venta es un numero de gerencia.
-//            (8) Entran 20 renglones a la vista sin scrollear, 24 en
-//            pantallas altas. Apretar el padding no alcanzaba: lo que
-//            comia el lugar era el nombre del articulo, que se partia en
-//            tres lineas. Ahora va en una sola, cortado con puntos, con
-//            el nombre entero en el globito. El renglon bajo de 68 px a
-//            33.
-//            (9) El numero de pedido es propio y correlativo (P-2842),
-//            aparte del numero del comprobante: existe aunque todavia no
-//            se haya facturado y es con el que se sigue la entrega.
-//            (10) El deposito, como funciona de verdad: Traslasierra
-//            puede vender mercaderia de Buenos Aires -se la traen en el
-//            proximo viaje y se la entregan alla-, pero al reves no pasa
-//            nunca, asi que desde Buenos Aires ni se pregunta. Cuando la
-//            venta sale del otro galpon, la tira lo avisa y el stock que
-//            se busca es el de alla.
-//            (11) El puesto ya no se elige a mano: sale del usuario.
-//            Nadie se cambia de mostrador en el medio de una venta.
-//            (12) Las solapas de arriba pasaron de <button> a <a href>.
-//            Con un boton el navegador no ve ningun link y el menu del
-//            boton derecho no ofrece "abrir en una pestana nueva"; ahora
-//            se puede tener la venta en una ventana y Productos en otra,
-//            y la direccion recuerda en que solapa estabas.
-//            (13) En Creacion de articulos ya no se muestran "Margen
-//            objetivo" ni "Solo los que no llegan": no tienen nada que
-//            ver con cargar un articulo. El objetivo se mudo a
-//            Rentabilidad, que es la pantalla que lo usa; el otro se fue.
-//            (14) Un cartel de ayuda repetido menos: con la venta vacia
-//            se veian dos diciendo casi lo mismo.
-//            (15) El buscador vuelve abajo de los renglones, y arriba
-//            queda el hueco donde caen los articulos. Lo habia puesto
-//            arriba y estaba mal: la pantalla es un ticket, la lista
-//            crece de arriba para abajo y la mano escribe abajo. Con la
-//            venta vacia el hueco se ve, asi se entiende que los
-//            articulos van a aparecer ahi.
-//            (16) El alto de la grilla se mide en vez de adivinarse.
-//            Con el buscador abajo volvio el problema de siempre al
-//            reves: con 18 renglones el buscador se iba de la pantalla.
-//            Estaba atado a un "100vh - 330px" inventado, que deja de
-//            servir en cuanto la tira de arriba se parte en dos
-//            renglones o cambia el monitor. Ahora se mide donde empieza
-//            la grilla y cuanto mide el buscador, y lo que sobra es el
-//            alto. El buscador queda siempre a la vista.
-//            (17) La tira del comprobante, mas grande y toda en negrita.
-//            Tenia tres datos en gris claro -condicion, vendedor,
-//            deposito- como si valieran menos. No valen menos: son
-//            justamente los que se miran de reojo antes de emitir.
-//            (18) La fecha de la barra, entera, con dia de la semana y
-//            mes con nombre: en el mostrador se prometen entregas "para
-//            el jueves" y ese dato tiene que estar a la vista.
-//            (19) El dolar oficial al lado de la fecha, solo el numero.
-//            Sale de dolarapi.com (a dolarhoy no se le puede pegar desde
-//            el navegador: no manda el permiso de CORS). Se mira cada
-//            diez minutos y si no hay internet no se muestra nada. NO
-//            toca el dolar del formador de precios, que se pone a mano.
-//            ---- lo que encontro la revision adversarial antes de subir:
-//            (20) Habia DOS numeradores de pedido arrancando los dos en
-//            2842 -S.nroPed y PED.nro- y los dos mostrandose "P-NNNN":
-//            dos pedidos distintos con el mismo numero, y el choque se
-//            repetia en 2843, 2844. Ahora PED.nro es un getter sobre
-//            S.nroPed: un solo numerador para todo el sistema.
-//            (21) El numero de comprobante escrito a mano agarraba el
-//            ULTIMO grupo de digitos: "48.215" -como se escriben los
-//            miles aca- daba 215 y la numeracion retrocedia sin un solo
-//            aviso, o sea comprobantes repetidos en ARCA. Ahora el punto
-//            y la coma son separadores, hay tope de 8 digitos, y si el
-//            numero BAJA avisa fuerte y dice a que documento y a que
-//            sucursal le toco la numeracion.
-//            (22) El deposito pisado no se limpiaba: despues de que
-//            Traslasierra vendiera una vez de Buenos Aires, TODAS las
-//            ventas siguientes salian de Buenos Aires. Ahora se limpia al
-//            cerrar, al guardar presupuesto, al retomar un borrador y al
-//            cambiar de sucursal desde la barra de arriba (el selector de
-//            la barra no lo hacia; el del formulario si).
-//            (23) El cartel de cierre nombraba el deposito de la sucursal
-//            y no del que salio la mercaderia, y la venta no guardaba de
-//            donde habia salido. Ahora se anota dep y traida.
-//            (24) Cambiar el usuario desde la barra de arriba no movia el
-//            puesto: la caja del dia se le imputaba al mostrador del
-//            anterior.
-//            (25) Al pasar las solapas a <a> quedo un lugar buscando
-//            todavia un <button>: "Pasarlo al mostrador" tiraba
-//            TypeError, cargaba los renglones y no cambiaba de pantalla.
-//            Tambien faltaba escuchar hashchange -pegar un link con #renta
-//            con Punto ya abierto no hacia nada- y las solapas se habian
-//            quedado sin la barra espaciadora.
-//            (26) Los articulos que entran por una lista de proveedor se
-//            cargaban siempre con cero en Buenos Aires y todo en
-//            Traslasierra. Ahora entran en el deposito de la sucursal
-//            desde la que se carga.
-//            (27) La venta abre en blanco. Arrancaba con tres articulos
-//            puestos y "termotanque" escrito en el buscador, de cuando
-//            era una demo para mostrar. Damian: "sino marea". Y abrir con
-//            renglones puestos no solo marea: el dia que alguien no mire
-//            bien le suma lo del cliente nuevo arriba de la venta de otro.
-// V.0.67.0 - Punto: la pantalla de venta parece una venta, y la lectura por
-//            IA ya no se cuelga para siempre.
-//            (1) El panel de venta se rehizo. Damian lo dijo asi: "necesito
-//            que sea mas como un panel de venta de articulo, como la
-//            pantalla de un pedido que se esta vendiendo". El comprobante
-//            paso a ser una tira de datos con rotulo -sucursal, cliente,
-//            documento, condicion, vendedor, deposito- en vez de un renglon
-//            de texto corrido; el buscador subio por encima de los
-//            renglones, que es por donde entra todo; y la grilla gano el
-//            numero de renglon y el stock de cada articulo, con el mismo
-//            color que en el buscador, asi un renglon en rojo se ve antes
-//            de emitir y no despues. Con la venta vacia se ven igual los
-//            encabezados de la grilla: la pantalla parece una venta recien
-//            empezada y no una hoja en blanco.
-//            (2) La lectura por IA no tenia tope de tiempo en NINGUN lado.
-//            Si Google se colgaba, la pantalla quedaba en "la IA esta
-//            leyendo" para siempre: sin error, sin boton de reintentar y
-//            sin forma de saber si valia la pena esperar. El `maxDuration`
-//            del route no servia de nada, porque eso lo respeta Vercel y
-//            esto corre con `next start` en la VM de Google. Ahora el
-//            servidor corta a los 40 s por intento y 75 s contando los
-//            reintentos, la pagina a los 95 s, y los dos explican que paso
-//            y ofrecen cargar la lista desde el Excel.
-//            (3) El mensaje de "clave no valida" decia que la de Google
-//            empieza con AIza. Ya no: las de AI Studio ahora empiezan con
-//            AQ. y son mas largas. Decia algo falso justo cuando hay que
-//            arreglar algo.
-//            (4) Lo que se escribia en el buscador volvia al HTML sin
-//            escapar: un "<" rompia el cartel de "nada con ...".
-// V.0.66.0 - Punto: la tabla del adjunto se puede corregir a mano, y nunca
-//            se carga el total del renglon como precio de uno.
-//            Tres cosas: (1) cada celda de la vista previa es editable, asi
-//            un renglon mal leido se arregla escribiendo encima en vez de
-//            tener que empezar de nuevo; (2) si la columna que parecia el
-//            precio es en realidad cantidad x precio, se toma la del
-//            unitario y se avisa -antes, un renglon de 2 unidades entraba
-//            al doble y no se veia-; (3) un PDF escaneado ahora lo lee la
-//            IA. Eso ultimo estaba anunciado en V.0.65.0 pero no andaba:
-//            filasPdf tiraba error antes de llegar a ofrecerlo.
-// V.0.65.0 - Punto: la foto del presupuesto se lee de verdad. Antes, al
-//            adjuntar una foto salian seis renglones de ejemplo escritos a
-//            mano en el codigo (inodoros FERRUM) que no tenian nada que ver
-//            con el archivo; eso se fue. Ahora la pagina encoge la foto, la
-//            manda al servidor y la lee la IA de Google, que devuelve los
-//            renglones de verdad. Si no lee nada lo dice, y no inventa. Un
-//            PDF escaneado -sin texto adentro- tambien ofrece la IA. Hace
-//            falta GEMINI_API_KEY en el servidor; sin eso el aviso lo dice.
-// V.0.64.0 - Punto: lo ultimo del modo demo. El pie tenia tres parrafos
-//            explicando que esto era una demo; quedan dos lineas, las que
-//            no son presentacion. Ya no queda la palabra demo en pantalla.
-// V.0.63.0 - Punto: afuera el modo demo (la banda amarilla y los carteles
-//            de numeros simulados). 'Productos y costos' pasa a llamarse
-//            'Creacion de articulos'. Menos texto: once parrafos de ayuda
-//            afuera o en una linea. Las tres tarjetas rojas de esa
-//            pantalla pasan a comunes, con barrita de color en el titulo.
-// V.0.62.0 - Punto: carga por adjunto, cuando no sale ningun articulo el
-//            boton decia solo 'Cargar los articulos' y quedaba apagado.
-//            Ahora dice que falta y sale un cartel con dos preguntas
-//            (cual columna es la descripcion, cual el precio).
-// V.0.61.0 - Punto: el PDF adjuntado se lee de verdad (texto adentro del
-//            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
-//            no encuentra columna de precios tambien. Columna de precios
-//            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.26";
+// CADA VERSION NUEVA VA COMO ENTRADA EN VERSION_HISTORY (abajo, la mas nueva
+// primero), con su fecha y que cambio, y se sube APP_VERSION. La pantalla
+// "Version del panel" (/admin/version) muestra esa lista. Damian,
+// 18/11/2026: "porque no actualiza los cambios ahi": desde la V.0.61 los
+// cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
+// la V.0.60.0. Esos comentarios pasaron a la lista.
+
+export const APP_VERSION = "V.0.99.27";
 
 export type VersionEntry = {
   version: string;
@@ -1447,8 +15,652 @@ export type VersionEntry = {
   changes: string[];
 };
 
-// Historial de versiones visible en el panel (ultimas N entradas)
+// Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.27",
+    date: "2026-11-18",
+    changes: [
+      "Esta pantalla vuelve a mostrar todos los cambios (Damian, 18/11/2026: \"porque no actualiza los cambios ahi\"). Desde la V.0.61 los cambios se anotaban en otro lado y aca habia quedado la V.0.60.0: se cargaron las 91 versiones que faltaban, cada una con la fecha en que se publico. Desde ahora cada version nueva aparece aca.",
+    ],
+  },
+  {
+    version: "V.0.99.26",
+    date: "2026-11-18",
+    changes: [
+      "Comparador: se ordena tocando el titulo de cada columna (producto, nuestro precio, precio afuera, diferencia; otro toque da vuelta) (Damian, 18/11/2026: \"ponele filtros ahi\"). Y MercadoLibre (\"busca en mercadolibre no busca\"): MercadoLibre ya no deja buscar sin una cuenta conectada (contesta 403), asi que la pantalla avisa y lleva a conectar la de Conesa; conectada, ademas de la ficha de catalogo busca las publicaciones comunes que nombran el mismo codigo y marca.",
+    ],
+  },
+  {
+    version: "V.0.99.25",
+    date: "2026-11-18",
+    changes: [
+      "Agencia J&M como transporte, primera y elegida de entrada al pasar un pedido a \"En entrega\" (Damian, 18/11/2026: \"seria los envios por ahora con la Agencia J&M\").",
+    ],
+  },
+  {
+    version: "V.0.99.24",
+    date: "2026-11-18",
+    changes: [
+      "Avisos de envio por mail (Damian, 18/11/2026: \"cuando hay un seguimiento del envio que esta en camino, le podemos avisar tambien por mail\"). En la ficha del pedido, al pasarlo a \"En entrega\" se elige como va (nuestro reparto, Andreani, OCA, Correo, Via Cargo, Cruz del Sur) con numero y link de seguimiento, y al cliente le llega \"tu pedido esta en camino\" (o \"listo para retirar\" si lo retira); al pasarlo a \"Entregado\", \"gracias por tu compra\". Casilla para no mandarlo; los mails mandados quedan anotados en el pedido (migracion 43). Mail de la tienda: tiendasanitariosconesa@gmail.com (\"hagamos un mail para la tienda\"): las respuestas de los clientes van ahi (reply-to; pedidos@conesa.com.ar no es una casilla) y ahi llega el aviso de cada venta (antes iba al de Traslasierra, tambien las de Buenos Aires). El pie de los mails lleva los datos del local que vende.",
+    ],
+  },
+  {
+    version: "V.0.99.23",
+    date: "2026-11-18",
+    changes: [
+      "Mejorar las fotos al subirlas (Damian, 18/11/2026: \"podes hacer que el subir fotos de la ficha del producto mejore la foto cuando la sube? hacelo por ia si es posible\"). Prendido de entrada en la ficha: el fondo gris o amarillento pasa a blanco, corrige el tono, centra el producto en un cuadrado blanco (si el fondo es blanco), si es chica la agranda al doble con IA (Swin2SR liviano, en el navegador, gratis) y le da nitidez. Para las ya cargadas: la estrellita de cada foto o \"Mejorar la foto principal\". src/lib/mejorar-foto.ts.",
+    ],
+  },
+  {
+    version: "V.0.99.22",
+    date: "2026-11-18",
+    changes: [
+      "Despues de publicar, el panel abierto ya no se rompe (Damian, 18/11/2026, con \"This page couldn't load\": \"no para de salirme esa pantalla que onda?\"). Era la pestaña con la version vieja pidiendo cosas que la nueva ya no tiene. Ahora: si una pantalla falla por eso se recarga sola (una vez; si vuelve a fallar, un mensaje en castellano), y el panel pregunta cada minuto que version hay (/api/version) y, si cambio, muestra una franja para recargar antes de guardar. Comparador: no se muestran las busquedas de antes de V.0.99.17 (tomaban \"2000\" o una fecha como codigo: \"eso no tiene nada que ver\"), filtro por marca y los rubros como en Productos (\"habilita los filtros ahi\").",
+    ],
+  },
+  {
+    version: "V.0.99.21",
+    date: "2026-11-18",
+    changes: [
+      "Publicar sin cortar la tienda (Damian, 18/11/2026: \"porque tira eso cada vez que subis\" ... \"Si, armalo\"). Dos lugares para la tienda, conesa@3000 y conesa@3001 (deploy/conesa@.service): la version nueva se prende en el que esta apagado, cuando contesta nginx le pasa las visitas (reload, sin cortar) y recien ahi se apaga la vieja. Si la nueva no arranca, queda la vieja; si no alcanza la memoria (1 GB), se hace como antes. La primera vez pasa solo de la forma vieja a la nueva y, si nginx no acepta el cambio, vuelve atras. Todo en deploy/cambiar-version.sh, que usan la publicacion automatica, deploy/publicar.sh y deploy/actualizar.sh.",
+    ],
+  },
+  {
+    version: "V.0.99.20",
+    date: "2026-11-18",
+    changes: [
+      "Volver de un producto a la lista deja todo como estaba (Damian, 18/11/2026: \"cuando vuelvo para atras si estoy editando un producto deberia volver al punto donde estaba ... me resetea los filtros\"). Con la flecha del navegador o \"Volver a productos\", la lista baja hasta el producto que se edito y lo marca un momento; con la pestana PRODUCTOS de arriba, ademas vuelve a poner los filtros. Se recuerda media hora, en esa pestana del navegador. src/components/admin/RecordarLista.tsx.",
+    ],
+  },
+  {
+    version: "V.0.99.19",
+    date: "2026-11-18",
+    changes: [
+      "Publicar corta menos (Damian, 18/11/2026, con una pantalla de 502: \"porque tira eso cada vez que subis\"). La compilacion nueva se desempaqueta aparte y se pone en su lugar recien al lado del reinicio: antes la version vieja atendia medio minuto con los archivos de la nueva. Si la base no se pudo preparar, ya no se reinicia: sigue la version de antes. Queda el arranque, unos nueve segundos (.github/workflows/publicar.yml).",
+    ],
+  },
+  {
+    version: "V.0.99.18",
+    date: "2026-11-18",
+    changes: [
+      "\"Equipamiento de Baño\", con B mayuscula (Damian, 18/11/2026: \"poneme Baño con B mayuscula aca\"), en el panel y la tienda.",
+    ],
+  },
+  {
+    version: "V.0.99.17",
+    date: "2026-11-18",
+    changes: [
+      "Comparador: solo el mismo modelo, sin \"parecidos\" (Damian, 18/11/2026: \"los parecidos no esta bueno que aparezcan porque trae cualquier cosa\"). Lo que no nombra el codigo con la misma marca no se guarda ni se muestra (tampoco lo guardado antes). Un producto sin codigo de modelo ya no se busca: dice que le falta el codigo de fabricante, y hay un filtro para ver cuales son.",
+    ],
+  },
+  {
+    version: "V.0.99.16",
+    date: "2026-11-18",
+    changes: [
+      "Comparador: una medida ya no cuenta como codigo (Damian, 18/11/2026: \"se ve que esta buscando otra cosa y no el codigo que corresponde\"; de \"67.5 X 40.5 X 20 CM\" salia \"40.5\" y daba como mismo modelo una lija a $8.700, \"2742% mas caro\"). Mismo modelo ahora pide el codigo en el nombre o la referencia (no en una descripcion larga), la misma marca y un precio que tenga sentido; busca tambien con los codigos de la descripcion y por palabras con la marca. Mercado Pago: arriba de todo, el control automatico de todos los dias (cuando corrio y que encontro) con \"Chequear ahora\"; la fecha de revision a mano queda aparte (\"esto no deberia preguntar todos los dias?\"). Panel: las pestanas ya no tienen barra de desplazamiento; si no entran en una fila bajan a la siguiente (\"hacelo adaptativo a la pantalla\").",
+    ],
+  },
+  {
+    version: "V.0.99.15",
+    date: "2026-11-18",
+    changes: [
+      "Comparador de precios, pestana nueva del panel (Damian, 18/11/2026: \"armame un comparador de precios con los publicados ... un panel aparte donde esten todas las publicaciones y busque por internet el mismo modelo\"). Los publicados del local con el precio de debito o 1 pago, y a cuanto los venden Easy, Blaisten (catalogo publico de VTEX) y MercadoLibre (ficha exacta, cuando la cuenta de Conesa este conectada). Busca por codigo de fabricante, los codigos del titulo y la ayuda memoria (tambien sin el cero de adelante: Blaisten pone \"207/B1\") y por palabras del titulo. \"Mismo modelo\" solo si nombra el mismo codigo; lo demas, \"parecido\", aparte. Buscar uno, o todos los de la lista de a tres, con Frenar; queda guardado (Setting \"comparador_precios\"). src/lib/comparador.ts.",
+    ],
+  },
+  {
+    version: "V.0.99.14",
+    date: "2026-11-18",
+    changes: [
+      "Herramientas con subrubros (Damian, 18/11/2026: \"bombas de agua sacalo de ahi y hay que ponerlo como subrubro en herramientas\" y \"creame en herramienta Pistola de Calor, Amoladora, Taladro, Lijadora, Pulidora, Caladora y etiquetame bien los productos que tengo de DOGO\"). Subrubros de fabrica en src/lib/subrubros.ts (el rotomartillo va con Taladro). Una sola vez (src/lib/herramientas-una-vez.ts): lo del rubro \"Bombas de Agua\" pasa a Herramientas > Bombas de Agua y ese rubro sale de la lista; todo Dogo pasa a Herramientas con el subrubro que dice su titulo; lo de Herramientas sin subrubro, el del titulo. Respaldo de rubro y subrubro anteriores en Setting \"herramientas_antes\".",
+    ],
+  },
+  {
+    version: "V.0.99.13",
+    date: "2026-11-18",
+    changes: [
+      "El buscador de la tienda perdona (Damian, 18/11/2026: \"porque no busca cuando pongo palabras claves ... que busque con terminos mal escritos o que suenen a lo que esta buscando el cliente\"). Sin tildes ni signos, cada palabra por separado en el titulo, la marca, el rubro, el subrubro y el codigo; mal escritas (una letra de mas, de menos, dada vuelta), lo que suena igual (b/v, s/z/c, ll/y, k/qu, h), singular o plural, y palabras de todos los dias (canilla = griferia, bacha = pileta, tapa = asiento). Ordena por lo que mejor coincide, y si nada tiene todas las palabras, muestra lo que tiene alguna. src/lib/buscar.ts.",
+    ],
+  },
+  {
+    version: "V.0.99.12",
+    date: "2026-11-18",
+    changes: [
+      "\"+ Agregar rubro / subrubro nuevo...\" con una ventanita de la pagina y no la del navegador (Damian, 18/11/2026, en Crear por Excel: \"aca no me deja crear subrubro\"): Chrome puede bloquear las ventanas del navegador y ahi la opcion no hacia nada. Y en Crear por Excel ahora se ven los rubros y subrubros agregados a mano antes (quedaban afuera porque llegan recien al subir el archivo).",
+    ],
+  },
+  {
+    version: "V.0.99.11",
+    date: "2026-11-18",
+    changes: [
+      "Marcas: se puede sacar del listado cualquier marca sin productos (Damian, 18/11/2026: \"dame posibilidad de eliminar marcas que no van del listado\"). Las del codigo se esconden (Setting \"marcas_ocultas\") y vuelven, con su logo, si se agregan de nuevo con el mismo nombre; las que tienen productos siguen con el candado. \"Lo mas visto\" pasa siempre solo (\"eso tiene que ir pasando automatico\"): ya no se frena con el mouse encima, solo unos segundos despues de tocar una flecha o deslizarla.",
+    ],
+  },
+  {
+    version: "V.0.99.10",
+    date: "2026-11-18",
+    changes: [
+      "Marcas: \"subir logo\" / \"cambiar logo\" en cada marca, con la imagen que elige Damian en la compu (18/11/2026: \"dejame editar los logos trayendo yo la imagen del logo, porque a veces carga cualquier cosa\"). Sirve para cualquier marca, tenga o no pagina, y pisa el traido de la web o el del codigo; \"sacar\" lo deja como antes. Se recorta y se pasa a PNG igual que los de la web.",
+    ],
+  },
+  {
+    version: "V.0.99.9",
+    date: "2026-11-18",
+    changes: [
+      "\"Lo mas visto\": si el deslizamiento suave no arranca (navegador viejo, ahorro de energia), pasa igual de golpe.",
+    ],
+  },
+  {
+    version: "V.0.99.8",
+    date: "2026-11-18",
+    changes: [
+      "\"Lo mas visto\" sin barra de desplazamiento (\"ojo el scroll ese queda feo\"), con una flechita en cada punta y pasando solo de a uno cada 4 segundos (\"que vaya pasando solo de a 1 pero lento\"), frenando con el mouse encima, y con los colores del sitio en vez del fondo negro. El orden \"Recomendados\" del catalogo se mezcla en cada visita, alternando categorias y marcas (\"no muestres siempre los mismos\").",
+    ],
+  },
+  {
+    version: "V.0.99.7",
+    date: "2026-11-18",
+    changes: [
+      "Destacados variados y \"Lo mas visto\". Damian, 18/11/2026: \"reformulame lo que muestra destacados, hace un variete de los productos, y se puede hacer un banner en la tienda donde destaque los productos que tienen mas visitas?\". Destacados se reparte por categoria y marca (src/lib/variedad.ts) y cambia cada dia; si no alcanzan los marcados, se completa con los mas vistos. Banner \"Lo mas visto\" (el contador de visitas de cada ficha) en la portada y arriba del catalogo cuando no hay filtros.",
+    ],
+  },
+  {
+    version: "V.0.99.6",
+    date: "2026-11-18",
+    changes: [
+      "Sin stock, pausado. Damian, 18/11/2026: \"necesito que los productos que estan en la tienda sin stock queden pausados, no se muestren\". La tienda solo muestra lo que tiene stock; guardar stock en 0 (ficha, lista, Excel) lo pausa ahi mismo, y publicar algo con 0 no se puede (queda pausado); y cada 10 minutos (el vigia, y al abrir el panel) se pausan los que hayan quedado publicados con 0, contandolo en las novedades. Nunca se publica nada solo: cuando vuelve el stock, se publica a mano.",
+    ],
+  },
+  {
+    version: "V.0.99.5",
+    date: "2026-11-18",
+    changes: [
+      "Fondos lisos sin IA. Damian, 18/11/2026, con los asientos de Daccord (blancos sobre azul marino): \"estas fotos le quise eliminar el fondo y no me dejo\". Antes de usar la IA se mira el borde de la foto: si es de un color parejo, oscuro o de color, se saca ese color (tambien el que asoma por el agujero del asiento y las motitas de polvo), al instante y sin bajar nada ni usar la memoria de la IA (src/lib/fondo-liso.ts). Si el fondo ya es blanco, queda como esta. Sobre gris claro o fondos con cosas, sigue la IA: ahi el color parejo borraria las partes blancas del producto.",
+    ],
+  },
+  {
+    version: "V.0.99.4",
+    date: "2026-11-18",
+    changes: [
+      "Rubros y subrubros de la A a la Z, con \"Otros\" al final (Damian, 18/11/2026: \"ordename eso alfabeticamente siempre\"): en los desplegables de la ficha, el alta a mano y Crear por Excel, en los botones de categoria del panel y en el filtro de la tienda. Solo cambia como se muestran.",
+    ],
+  },
+  {
+    version: "V.0.99.3",
+    date: "2026-11-18",
+    changes: [
+      "Paginas hechas con Tiendanube (Ariel, arielstore.com.ar). Damian, 18/11/2026: \"le pongo el codigo de la pagina y no lo encuentra el modelo y no me trae las fotos\". Tres cosas: las fotos estan en el servidor de Tiendanube (dcdn-us.mitiendanube.com), que no estaba entre los permitidos; la pagina trae la ficha para Google de los productos relacionados y no la del suyo, y se leia la primera (el link del 226-P salia como \"222-M\"): ahora solo vale la que coincide con el titulo de la pagina; y las fotos grandes vienen en data-zoom-url sin \"https:\". Ademas la pagina de resultados de la busqueda se tomaba como si fuera el producto: ahora solo si hay un resultado o la busqueda lleva directo. Y las letras escritas \"&aacute;\" en las descripciones se pasan a \"a\" con tilde.",
+    ],
+  },
+  {
+    version: "V.0.99.2",
+    date: "2026-11-17",
+    changes: [
+      "Productos: \"Ocultar sin stock\" (Damian, 17/11/2026: \"quisiera filtrar por los que tienen 0 en stock para no verlos\"). Va aparte de los filtros rapidos y se suma a cualquiera (por ejemplo, Inactivos sin los que estan en 0); sigue puesto al cambiar de categoria, de pagina, al volver de una ficha y en las acciones en lote (\"todos los que coinciden\").",
+    ],
+  },
+  {
+    version: "V.0.99.1",
+    date: "2026-11-17",
+    changes: [
+      "Subir fotos con \"Quitar fondo\" cerraba la pestaña a veces. Damian, 17/11/2026: \"porque me tira eso cuando quiero subir una foto a veces?\" (\"This page couldn't load\": Chrome la cierra cuando se queda sin memoria). La IA trabajaba con la foto entera (una de celular de 12 megapixeles abierta son ~50 MB, y se copiaba varias veces) y no soltaba su memoria despues de cada foto, asi que con unas cuantas seguidas no alcanzaba. Ahora la foto se achica antes (1600 px, lo mismo que se sube) y al terminar cada una se sueltan los tensores, la foto abierta y los lienzos.",
+    ],
+  },
+  {
+    version: "V.0.99.0",
+    date: "2026-11-17",
+    changes: [
+      "Titulos en mayusculas. Damian, 17/11/2026: \"los titulos ponemelos todos iguales, si queda en minuscula le pones mayuscula ... mantengamos una linea en los titulos\". Todo titulo que se guarda (alta a mano, ficha, Crear por Excel, precios y stock por Excel) queda en mayusculas, con sus tildes (src/lib/titulo-en-linea.ts), y los cuadros del titulo ya lo muestran asi mientras se escribe. Los que ya estaban se pasan una sola vez desde el programa (no como migracion: si falla, la tienda sigue igual), guardando antes los originales en Setting \"titulos_antes_de_mayusculas\".",
+    ],
+  },
+  {
+    version: "V.0.98.2",
+    date: "2026-11-17",
+    changes: [
+      "\"Volver a productos\" tambien abajo del boton Guardar cambios de la ficha (Damian, 17/11/2026), con los mismos filtros que el de arriba.",
+    ],
+  },
+  {
+    version: "V.0.98.1",
+    date: "2026-11-17",
+    changes: [
+      "Filtros de la tienda. Damian, 17/11/2026: elegir Accesorios con Heineken puesta daba \"sin resultados\" (\"si no hay productos no elija por marca sino por categoria\"), y \"pongo griferia, en marcas me deberias mostrar las marcas que vende griferia y no todas\". Ahora la categoria manda: si la marca elegida no tiene nada ahi, se saca sola; la lista de marcas muestra solo las que tienen algo en la categoria (y subrubro) elegida, con cuantos; y el numero de cada categoria es lo que se ve al tocarla. Rubros renombrados: \"Sanitarios\" ahora es \"Loza sanitaria\" y \"Piletas\" es \"Bacha de cocina\" (los links no cambian); las tarjetas, la ficha y Descripciones toman el nombre de la lista unica.",
+    ],
+  },
+  {
+    version: "V.0.98.0",
+    date: "2026-11-17",
+    changes: [
+      "Novedades y chequeo diario. Damian, 17/11/2026: \"podes hacer que el chequeo de las cuotas lo haga automaticamente todos los dias e informe en el panel como una leyenda de noticias, asi tambien los productos que se pausaron o quedaron bajo en stock etc.\". Una leyenda negra corre arriba de todo el panel con las novedades de la semana (se frena con el mouse; cada una lleva a donde corresponde), y una pestaña \"Novedades\" con todas y \"Chequear ahora\". El chequeo corre solo una vez por dia (lo dispara el vigia de GitHub y tambien abrir el panel): compara cada local con la foto del dia anterior (pausados, publicados, sin stock, con 1 o 2, cargados) y, para las cuotas, lo que de verdad se llevo Mercado Pago en las ventas con tarjeta de los ultimos 30 dias contra lo que calcula la tienda (Mercado Pago no publica su tabla de costos). Avisa tambien si paso un mes sin revisar los costos, y los combos que pausa una carga de stock.",
+    ],
+  },
+  {
+    version: "V.0.97.0",
+    date: "2026-11-17",
+    changes: [
+      "Mercado Pago · Cuotas. Damian, 17/11/2026: \"en el panel puede haber una parte que diga MERCADO PAGO ... los costos, margenes que manejan, porque van cambiando mes a mes, y asi yo saber si tengo que modificar o no los precios de la financiacion\". Pestaña nueva en el panel: el costo por cobrar, el IVA y el costo de cada plan de cuotas sin interes (los copia de la app: Mercado Pago no los da por su sistema), con la cuenta en vivo de lo que se lleva Mercado Pago, el recargo al cliente (hoy -> nuevo) y un ejemplo sobre $100.000. Al guardar, los precios en cuotas de la tienda pasan a ser esos (antes eran fijos de octubre y no habia donde cambiarlos). Avisa si en 1 pago se pierde plata. Si paso un mes sin revisarlos, avisa ahi y en el Dashboard; \"Ya los mire: siguen igual\" lo da por revisado. La cuenta vive en src/lib/costos-mp.ts y es la misma que usa la tienda.",
+    ],
+  },
+  {
+    version: "V.0.96.0",
+    date: "2026-11-17",
+    changes: [
+      "Stock de los combos por Excel. Damian, 17/11/2026: \"si yo te subo un excel con los SKU y el stock en caso de una marca como Pringles, tienen que actualizarse ... un combo lo componen 2 o 3 o 4 SKU, vos tenes que fijarte que haya 1 de cada 1 para poder formar ese combo; si falta uno ... hay que pausarlo\". Al subir stock, cada combo que tiene alguna pieza en el archivo queda con tantos como la pieza que menos hay (las que no vinieron, con su stock de hoy); si a uno le falta una pieza, se pausa. Ninguno se activa solo. Se ve antes de aplicar (\"Stock de los combos\") y se puede destildar. Un Excel con \"SKU\" y \"Stock\" sin columna de codigo tambien sirve: el codigo se busca como el del sitio, el del sistema o el SKU interno.",
+    ],
+  },
+  {
+    version: "V.0.95.0",
+    date: "2026-11-17",
+    changes: [
+      "Codigo de fabricante. Damian, 17/11/2026: \"faltaria que la ficha del producto tenga el campo CODIGO DE FABRICANTE ... eso deberia levantar cuando se hace la carga del mismo y tambien editarse desde la ficha\". Columna nueva (migracion 42). Se completa solo: al crear por Excel (el codigo con que se lo encontro en la pagina de la marca, o el de la descripcion de GBP; en FV, el del sistema) y cada vez que se lo encuentra en la pagina de su marca si estaba vacio. Se edita en la ficha. Si esta cargado, se busca exactamente ese codigo: si trajo otro producto, se corrige el codigo y \"Buscar de nuevo\".",
+    ],
+  },
+  {
+    version: "V.0.94.1",
+    date: "2026-11-17",
+    changes: [
+      "Quitar fondo. Damian, 17/11/2026: \"el borrar fondo de la imagen no funciono\" (std::bad_alloc: en WebAssembly el navegador le da poca memoria y BiRefNet no entra) \"hay alguna forma de volver a editar la foto una vez cargada?\". Ahora la IA corre en la placa de video (WebGPU) cuando el navegador puede, y si falla prueba una vez en WebAssembly; el error se explica en castellano. Y a una foto ya cargada se le saca el fondo: la goma en cada miniatura, y \"Quitar el fondo de la foto principal\" abajo de la grande. Queda en el mismo lugar de la galeria (con id nuevo, para que el navegador no muestre la vieja).",
+    ],
+  },
+  {
+    version: "V.0.94.0",
+    date: "2026-11-17",
+    changes: [
+      "Logos de marca traidos de su pagina. Damian, 17/11/2026: \"a estas marcas le podes agregar el logo de la misma pagina automaticamente\". En Marcas: \"Traer los logos que faltan\" (todas las que tienen pagina y no logo), \"traer logo\" en cada una y \"sacar\" si trajo otra imagen. Al cargarle la pagina a una marca sin logo, el logo viene solo. Se busca el que la empresa declara para Google y las imagenes \"logo\" del encabezado; se prefiere el de fondo transparente y no el blanco (no se veria). Probado con Daccord, Roca, Peirano, Mi Pileta y Piazza. Se guarda en la base y se sirve en /api/marcas/logo/<id>. En la lista de Marcas el logo blanco de FV ahora se ve (en negro, como en el inicio).",
+    ],
+  },
+  {
+    version: "V.0.93.1",
+    date: "2026-11-17",
+    changes: [
+      "Producto equivocado al traer de la web. Damian, 17/11/2026: \"me trajo un producto que no es, se puede ... buscar nuevamente el producto\". Daccord escribe el codigo como familia + variante (\"AGAR0IMP 13\", \"BACH0LOZ 08 07\"): AGAR0IMP son trece agarraderas y se buscaba solo eso, asi que venia la primera. Ahora se busca el codigo completo y la familia sola nunca: si no esta, dice que no esta. En la ficha, \"¿Es otro producto? Buscar de nuevo y reemplazar fotos y descripcion\": pregunta antes, baja las nuevas y recien ahi saca las de antes; si no lo encuentra, no toca nada. Las descripciones ya no repiten parrafos ni traen \"Ver instructivo\".",
+    ],
+  },
+  {
+    version: "V.0.93.0",
+    date: "2026-11-17",
+    changes: [
+      "Rubros y subrubros a mano. Damian, 17/11/2026: \"en equipamiento de baño tambien agregame subrubro accesorios y tambien agregame la posibilidad de agregar a mano cualquier rubro o subrubro\". Cada desplegable de rubro y subrubro (Crear por Excel, la ficha, el alta a mano) tiene \"+ Agregar rubro / subrubro nuevo...\": pide el nombre y queda guardado (tabla Setting, como las marcas). La tienda los muestra en el filtro apenas tienen algo publicado. Los rubros salen de UNA lista (src/lib/rubros.ts): antes habia cinco y el mismo rubro decia \"Bañeras\" en la tienda y \"Equipamiento de baño\" en el inicio; ahora dice esto ultimo en todos lados. Subrubro \"Accesorios\" en Equipamiento de baño.",
+    ],
+  },
+  {
+    version: "V.0.92.0",
+    date: "2026-11-17",
+    changes: [
+      "Crear por Excel: \"Buscar y reemplazar\" en los titulos (Damian, 17/11/2026: \"agregame un buscar y reemplazar aca en esta pagina, para editar los textos masivamente\"). Va sobre los tildados de la lista que se ve, sin importar mayusculas al buscar, por defecto solo palabras enteras (\"BL\" no toca \"BLANCO\"), muestra como quedan antes de aplicar y tiene Deshacer. Subrubro \"Asientos\" en Equipamiento de baño (\"aca faltara en equipamiento de baño subrubro asientos\"); los asientos de inodoro y Daccord ya caen ahi solos, y al cambiar el rubro a mano el subrubro se deduce del titulo. Publicar: si falla, el registro dice por que (memoria, disco, reinicios y errores de la tienda), sin entrar a la maquina.",
+    ],
+  },
+  {
+    version: "V.0.91.1",
+    date: "2026-11-17",
+    changes: [
+      "Links de MercadoLibre, de nuevo. Damian: \"no me funciona desde ml\". Probado: desde un servidor, MercadoLibre manda TODA pagina suya a una pantalla de \"verificacion de cuenta\"; leerla no sirve nunca. Ahora un link de MercadoLibre no intenta abrir la pagina: sin la cuenta conectada lo dice enseguida, con el boton \"Conectar MercadoLibre\"; conectada, lo lee por su numero y si no puede dice que contesto MercadoLibre. Entiende tambien los links de publicacion nuevos (/up/MLAU..., wid=MLA... despues del #) y los cortos que arma la app del celular (meli.la, /sec/).",
+    ],
+  },
+  {
+    version: "V.0.91.0",
+    date: "2026-11-17",
+    changes: [
+      "Sacarle la foto con el celular. Damian, 17/11/2026: \"subir foto desde el celular ... si ya lo tengo precargado que tenga la opcion de entrar con el celular para sacarle foto al producto, me elimine el fondo y arme la publicacion\". En la ficha: \"Sacar foto con la camara\" (input con capture=\"environment\": en el celular abre la camara de atras; en la compu, elegir archivo). Le saca el fondo con la IA que ya corre en el navegador (BiRefNet_lite fp16, ~110 MB la primera vez; no hay version mas chica) y la deja de principal. En la compu, la ficha muestra un QR que abre esa misma ficha en el celular con la camara primero y grande (?celular=1); si el celular no entro al panel, el login vuelve a la ficha (?volver=, solo rutas /admin/).",
+    ],
+  },
+  {
+    version: "V.0.90.1",
+    date: "2026-11-17",
+    changes: [
+      "Links de MercadoLibre. Damian pego uno de la bacha 443 y salio \"no encontre un producto en esa pagina\": MercadoLibre no deja leer sus paginas desde un servidor (desde una casa si). Ahora: con MercadoLibre conectado, el link se lee por su numero (/p/MLA... es ficha de catalogo, MLA-... es publicacion) con la API; sin conectar, si la pagina no se deja leer, el aviso dice que hay que conectarlo. Y cuando la pagina se lee: todas las fotos de la galeria (data-zoom), sin repetir la misma en dos tamaños, y la descripcion de su bloque (antes salia codigo de la pagina: se sacan los scripts antes de buscarla y se descarta lo que parece codigo).",
+    ],
+  },
+  {
+    version: "V.0.90.0",
+    date: "2026-11-17",
+    changes: [
+      "Traer foto y descripcion desde un link. Damian, 17/11/2026: \"agregame que pueda poner una url para que saque informacion, foto y descripcion\" y \"agregalo abajo del boton de traer fotos desde la web de la marca\". En la ficha, \"Traer desde un link\": suma las fotos a la galeria y pone la descripcion en el cuadro para revisar y Guardar (si ya habia texto, pregunta). En Crear por Excel, cada fila tiene \"Pegar link de la pagina del producto\", que lo muestra como lo que trae \"Buscar en la web\" (todo editable). Lee Shopify por su JSON y cualquier otra por su ficha para Google, la galeria de Magento, el bloque de descripcion y la tabla de caracteristicas; saca el \"- Piazza\" del final del nombre. Seguridad: solo sitios publicos; antes de pedir la pagina o una foto se resuelve el nombre y se rechaza la red interna (10.x, 192.168.x, 169.254.x, localhost, metadata.google.internal). Probado: Mi Pileta 406E (6 fotos), Ferrum Bari (4), Peirano, Piazza 21006. Y la IA: GEMINI_MODEL decia \"gemini-3.8-flash-lite\", que no existe (Google: \"is not found\"), y caian Escribir con IA, Descripciones de la web y la busqueda en Google. Si el modelo no existe, se le pregunta a Google cuales hay y se usa el flash mas nuevo.",
+    ],
+  },
+  {
+    version: "V.0.89.0",
+    date: "2026-11-17",
+    changes: [
+      "MercadoLibre de respaldo para fotos y ficha. Damian, 17/11/2026: \"si no busca en la web de la marca, que busque en mercadolibre, pero tiene que ser exacto la buscada ahi porque puede traer cualquier cosa\". Con la cuenta de MercadoLibre de Sanitarios Conesa (dijo que tiene la suya; la de IKORA no se toca). Desde 2025 MercadoLibre no deja buscar sin cuenta (403), asi que hay una pantalla nueva, Productos -> Fotos de la web -> Conectar MercadoLibre (/admin/productos/mercadolibre): se carga el App ID y la clave de la aplicacion (la clave no se vuelve a mostrar) y se da el permiso entrando a MercadoLibre (OAuth; vuelve a tienda.conesa.com.ar/api/admin/mercadolibre/callback). El token dura 6 h y se renueva solo, de a una renovacion por vez (el refresh de MercadoLibre se quema al usarlo). Todo en Setting. Busca en el CATALOGO (fichas de producto, fotos de la marca), no en publicaciones de vendedores, y solo si es EXACTO: misma marca (atributo BRAND o en el nombre) y el codigo igual al Modelo o Numero de pieza, o como palabra entera en el nombre (\"445E\" no es \"445\"). Orden: pagina de la marca -> Google -> MercadoLibre; las marcas sin pagina van directo a MercadoLibre; FV y Piazza, si sus paginas no lo tienen. Las fotos de ahi se marcan \"(MercadoLibre)\".",
+    ],
+  },
+  {
+    version: "V.0.88.2",
+    date: "2026-11-17",
+    changes: [
+      "El boton de la ficha dice \"Traer fotos desde la web de la marca\" (Damian, 17/11/2026: \"sino cambialo a traer fotos desde la web de la marca\"). Aparece en todo articulo con marca; si la marca no tiene su pagina web cargada, avisa que se carga en Marcas en vez de buscar.",
+    ],
+  },
+  {
+    version: "V.0.88.1",
+    date: "2026-11-17",
+    changes: [
+      "La ficha del producto muestra los datos del LOCAL. Damian, 17/11/2026: \"cuando le pongo traer fotos me desactiva el producto, deberia quedar activo como estaba\". La ficha leia precio, stock y activo del articulo (que son los de Traslasierra) y al guardar los escribe en la fila del local (BranchProduct). Un producto de Buenos Aires activo se veia \"Inactivo\" con el tilde apagado; al refrescarse la pagina (traer fotos) y guardar, quedaba pausado. Ahora la ficha lee la fila del local que se edita, igual que la lista; si el local no lo lleva, lo muestra pausado.",
+    ],
+  },
+  {
+    version: "V.0.88.0",
+    date: "2026-11-17",
+    changes: [
+      "Todas las fotos del modelo, no solo una. Damian, 17/11/2026: \"podes hacer que traiga mas de 1 foto del modelo?\". El lector junta la galeria entera (Shopify, WooCommerce, VTEX, la galeria de Magento, la ficha para Google; Piazza sus data-large_image), sin repetir la misma foto en otro tamaño o carpeta, sin logos ni la imagen de compartir, hasta 6. Se suman a la galeria del articulo (hasta 10), la primera de principal si no tenia ninguna. Probado: Mi Pileta 5 fotos (104EC, 304), Ferrum 4 (Bari, con el plano), Piazza 2, Peirano 1. Donde: Crear por Excel (\"Usar estas 5 fotos\", con las miniaturas; se crea de a 5), \"Traer fotos de <marca>\" en la ficha, y Fotos de la web, que suma \"Con una sola foto: sumarles las otras del modelo\" para los que ya tienen la primera. FV sigue con una (tiene una por terminacion).",
+    ],
+  },
+  {
+    version: "V.0.87.1",
+    date: "2026-11-17",
+    changes: [
+      "Codigos cortos entre parentesis. Las bachas Mi Pileta (Damian, 17/11/2026: \"aca quiero buscar las fotos, como hacemos para hacer eso masivamente\") traen el codigo asi: \"(304)\", \"(406)\". Se pedian 4 caracteres minimo y quedaban afuera. Ahora entre parentesis alcanza con 3; sueltos en el texto siguen siendo 4 (un \"304\" suelto puede ser cualquier numero). Probado con mipileta.com.ar (Shopify): 104EC, 105EC y 304 con foto y descripcion. \"406\" no se toma por \"406E\" (puede ser otra variante) y \"445\" no esta en su pagina.",
+    ],
+  },
+  {
+    version: "V.0.87.0",
+    date: "2026-11-17",
+    changes: [
+      "Fotos y descripcion de la pagina de CUALQUIER marca, y Google. Damian, 17/11/2026: \"aca deberia ser no FV o Piazza, podes buscar en la web de la marca que buscamos con el modelo, hacelo mas generico\", \"estaria bueno poner la web de la marca\", \"ademas de Google o internet que busca\" y \"podria estar cuando se hace la precarga por Excel, si no funciona del todo bien que uno pueda editarlo luego\". WEB DE LA MARCA: Marcas tiene la columna \"Pagina web\" (tambien al agregar una). Se guarda en Setting \"marcas_web\" y pisa la del codigo (FV, Piazza, Ferrum, Hydros, Roca y Peirano vienen cargadas). LECTOR GENERAL (src/lib/web-de-marca.ts): WooCommerce, VTEX y Shopify por su buscador en JSON; cualquier otra por su buscador comun o el formulario de la portada, entrando a los resultados que nombran el codigo. De la ficha lee el JSON-LD \"Product\" o las og:, el bloque de descripcion y la tabla de caracteristicas; corta los \"productos similares\". Un resultado vale solo si nombra el codigo. Si no esta, pregunta a Google (busqueda de Gemini) y sigue sus links solo si llevan al sitio de la marca. Fotos: solo del sitio de la marca o del servidor de fotos de su plataforma. Tope de 40 s por articulo; las pantallas piden de a 2. Probado: Peirano (A1452NI) y Ferrum (BAR-IN-011-BL, BAR-CL-001-BL) con foto, descripcion y caracteristicas. Hydros y el codigo AS de Ferrum (\"IKLM-B\") no aparecen en su buscador: quedan para Google. DONDE: Crear por Excel (busca solo al subir, todo editable antes de crear), Fotos de la web, \"Traer foto de <marca>\" y \"Buscar en la web\" de la ficha, y Descripciones de la web. FV y Piazza siguen con sus lectores propios.",
+    ],
+  },
+  {
+    version: "V.0.86.0",
+    date: "2026-11-17",
+    changes: [
+      "\"Fotos y descripcion FV\" pasa a \"Fotos de la web\" y anda tambien con Piazza. Damian, 17/11/2026: \"eso que no diga fv porque va a ser para todas las marcas\". Las marcas cuya pagina oficial se sabe leer quedan en un solo lugar (src/lib/marcas-con-pagina.ts: FV y Piazza), y fichaDelFabricante (src/lib/fv.ts) elige el lector por la marca del articulo. Piazza busca su codigo en la descripcion de GBP (memo) y si no en el titulo (\"... Piazza 21006\"). Con eso, para Piazza tambien: la pantalla masiva, \"Traer foto de Piazza\" en la ficha, \"Buscar en la web\" de la descripcion (primero la pagina oficial) y \"Descripciones de la web\". Las otras marcas no tienen de donde traer foto; la pantalla lo explica.",
+    ],
+  },
+  {
+    version: "V.0.85.0",
+    date: "2026-11-17",
+    changes: [
+      "Crear por Excel: marca nueva a mano y fotos antes de crear. Damian, 17/11/2026, con un Excel de bachas (SKU A03-02) sin marca: \"esa marca no la tengo, deberia poder agregarse la misma manualmente\" y \"el tema de las fotos, ahi en la precarga se puede hacer algo o solo cuando estamos ya creado el articulo?\". MARCA: los desplegables de marca (el de \"marca para todos\" y el de cada articulo) tienen al final \"+ Agregar marca nueva…\". Se escribe y queda en la lista de Marcas de la tienda (ahi despues se le pone el logo) y elegida. Si ya estaba, se elige esa. Si la columna del sistema trae una marca que no esta, boton \"agregarla\", que se la pone a todos los que la traen. La lista va de la A a la Z. FOTOS: cada articulo tiene un cuadrito de foto: clic para elegirla de la compu, arrastrar el archivo, o pegarla con Ctrl+V (en la web: clic derecho, \"Copiar imagen\"). Queda en el navegador y se sube recien al crear, despues de cada tanda (uploadOneImage, la de \"Cargar fotos por carpeta\"). La elegida a mano destilda la de la pagina del fabricante. Al final dice cuantos quedaron con foto.",
+    ],
+  },
+  {
+    version: "V.0.84.0",
+    date: "2026-11-17",
+    changes: [
+      "La tienda pasa a tienda.conesa.com.ar. Damian, 17/11/2026: \"los subdominios no deberian estar mas, la idea es que sea tienda.conesa.com.ar y esa es la global\". Se cargo la direccion en Cloudflare (A 136.71.13.107, con proxy, como las otras) y abre lo mismo que conesa.com.ar. El que entra por conesa.com.ar, www, buenosaires, traslasierra o balvanera va a la misma pagina en tienda.conesa.com.ar (301, src/middleware.ts y src/lib/dominio.ts): los links viejos no se rompen. Siguen donde estan, sin redirigir: /api (el aviso de pago de MercadoPago no sigue redirecciones), /admin (el panel de cada sucursal, por el CUIT con que factura), /sistema (Punto), los archivos y todo lo que no sea GET. Google, los links que se comparten y los datos para buscadores dicen tienda.conesa.com.ar. La variable SITE_URL del servidor NO se toca: de ella salen el dominio \"de casa\" de MercadoPago y la direccion de los paneles.",
+    ],
+  },
+  {
+    version: "V.0.82.0",
+    date: "2026-11-16",
+    changes: [
+      "Crear por Excel: Piazza se busca en su pagina oficial, y \"marca para todos\". Damian, 16/11/2026, subiendo \"pagina srl piazza.xlsx\": \"deberia buscar bien en la web, como se puede hacer para que la carga sea mas facil\". PIAZZA (src/lib/piazza.ts): en GBP el item_code de Piazza es interno (\"10001\", \"9935\"); el del fabricante viene en la descripcion (\"(10330)\", \"21006\", \"B0900\", \"P03-31400T\", \"BO904\" con O). Se prueba piazzagriferia.com/producto/<codigo>/ y trae nombre, foto, descripcion y el rubro de su categoria (Inodoros -> Sanitarios, Receptaculos y platos -> Bañeras, Bachas -> Piletas, bidets de loza \"B0...\" -> Sanitarios, el resto Griferia con el subrubro del nombre). Con su Excel: 37 de 68 encontrados; los otros son Hydros (otra marca) o modelos que Piazza ya no publica. El titulo, con el formato de FV: \"Grifería Ducha y bañera – Novara Bañera De Embutir C/ Transf. Piazza 21006\". El SKU sigue siendo el del sistema. \"Traer titulo y foto de FV\" pasa a \"Buscar en la web\" (FV y Piazza) y arranca solo al subir el Excel. MARCA PARA TODOS: 51 de 68 sin marca. Selector para ponerla de una a los que no tienen, que propone la del nombre del archivo, y recalcula el rubro con esa marca. RUBRO: una marca de \"griferia\" ya no manda si el titulo dice que es una pieza (inodoro, deposito, bacha, acrilico, plato de ducha, cabina, bidet de agujeros): \"PADOVA INODORO\" iba a Griferia.",
+    ],
+  },
+  {
+    version: "V.0.81.0",
+    date: "2026-11-16",
+    changes: [
+      "\"Buscar descripciones en la web\" para muchos productos a la vez. Damian, 16/11/2026: \"se puede hacer que busquen en la web masivamente, para no hacer uno por uno\". Pantalla nueva (/admin/productos/descripciones, boton \"Descripciones de la web\" en Productos): los productos de este panel sin descripcion, con filtro por marca y rubro. Busca de a dos: FV en la pagina de FV, el resto en internet con la IA. No guarda solo: cada texto se ve en un cuadro editable y se guardan las tildadas; nunca pisa una descripcion que ya este. Si Google se queda sin cupo de busqueda, la IA escribe solo con el titulo: esas salen destildadas y marcadas. Si Google corta por limite, la tanda se frena.",
+    ],
+  },
+  {
+    version: "V.0.80.3",
+    date: "2026-11-16",
+    changes: [
+      "Al guardar la ficha, rubro, subrubro y marca volvian al valor viejo en pantalla. Damian, 16/11/2026: \"cuando guardo, la categoria, el subrubro y la marca se resetea\". Con <form action={...}>, React 19 reinicia el formulario al terminar de guardar: los textos se actualizan, pero los desplegables vuelven a lo que tenian al abrir la pantalla. Se guardaba bien, pero el siguiente \"Guardar\" mandaba lo viejo y lo pisaba. Ahora la ficha (y \"Publicar articulo\", que con un error vaciaba todo lo cargado) manda los datos a mano, sin reiniciar.",
+    ],
+  },
+  {
+    version: "V.0.80.2",
+    date: "2026-11-16",
+    changes: [
+      "Los accesorios no llevan \"Grifería Accesorios –\" en el titulo. Damian, 16/11/2026, sobre \"Grifería Accesorios – Jabonera Mikka FV 0168/31-CR Cromo\": \"eso de Grifería Accesorios no deberia estar en el titulo, sino el resto como sigue\". Queda \"Jabonera Mikka FV 0168/31-CR Cromo\". Las canillas siguen con \"Grifería Lavatorio – ...\" (lo habia pedido el mismo dia). En fv-ficha.ts, SIN_RUBRO_ADELANTE; sin el subrubro adelante no se le saca \"Accesorios\" al nombre (\"Arizona Kit 5 Accesorios\"). Migracion 41: a los accesorios ya creados les saca solo ese comienzo del titulo.",
+    ],
+  },
+  {
+    version: "V.0.80.1",
+    date: "2026-11-16",
+    changes: [
+      "\"Traer de FV\" pasa a ser \"Buscar en la web\", para todas las marcas. Damian, 16/11/2026: \"ojo con eso porque hay muchas marcas, ponele buscar en la web\". Si el articulo es FV prueba primero la ficha oficial de fvsa.com; si FV no lo tiene (la jabonera Gran Gala 0172/42 ORO ya no esta en su pagina: daba \"FV no lo tiene\") o es otra marca, busca en internet con la IA. Igual que antes: pone el texto en el cuadro y se guarda con Guardar.",
+    ],
+  },
+  {
+    version: "V.0.80.0",
+    date: "2026-11-16",
+    changes: [
+      "Descripcion de los FV desde la pagina de FV. Damian, 16/11/2026: \"faltaria que me traigas la descripcion de los articulos desde la pagina o internet\". De la ficha de FV sale el parrafo de la pestaña Descripcion y la tabla de caracteristicas (tipo, instalacion, diseño, tecnologia, prestaciones, caudal), mas la terminacion y el codigo FV (fv-ficha.ts, leerDescripcion). El color de la tabla no va: lista todas las terminaciones. Probado con 13 de los 121 de FV PAGINA: los 13 con descripcion. - Crear por Excel: llega junto con titulo y foto, tildada. - Pantalla \"Fotos y descripcion FV\": completa foto y descripcion a los FV que no las tienen. Nunca pisa una escrita a mano. - Ficha del panel: boton \"Traer de FV\" al lado de \"Escribir con IA\"; la pone en el cuadro para revisar y guardar. Para las otras marcas sigue \"Escribir con IA\" (busca en internet).",
+    ],
+  },
+  {
+    version: "V.0.79.0",
+    date: "2026-11-16",
+    changes: [
+      "Fotos de los FV: se veian rotas; titulos FV completos desde el Excel; traer la foto de FV a articulos ya cargados. FOTOS ROTAS: Damian, 16/11/2026: \"las fotos no termino subiendolas, ahi lo cree, fijate\". Las fotos de FV SI se guardaron (la del 0167/17-CR pesa los mismos 17.502 bytes que la de fvsa.com), pero la direccion se armaba con la barra del codigo sin codificar: \"/api/productos/0167/17-CR/imagen\" daba 404. Ahora todas las direcciones de un articulo (foto, ficha de la tienda, ficha del panel) salen de src/lib/rutas-producto.ts con el codigo codificado. Sin esto, al publicar los FV su ficha tambien daba 404. Migracion 40: corrige la direccion anotada en los que ya estan (solo esa columna). TITULOS FV: \"no me estas trayendo los SKU y al titulo hay que agregarle Griferia, en el caso de FV\". El titulo con el rubro y el codigo salia solo si FV encontraba el articulo; si no, \"ALLEGRO LAVARROPAS FV\". Ahora todo FV arranca armado con lo que dice GBP (tituloFVDesdeGBP en fv-ficha.ts): \"Grifería Lavarropas – Allegro FV 0401/15-CR Cromo\". Probado con los 121 de FV PAGINA.xlsx: todos con Griferia y con el codigo. Y la busqueda en la pagina de FV arranca sola al subir el Excel. FOTOS DE FV para articulos ya cargados: \"podes hacer que levante por el codigo fotos del modelo desde la pagina de FV?\". Boton \"Traer foto de FV\" en la ficha del panel (la agrega a la galeria; si ya la tiene, no la repite) y pantalla \"Fotos de FV\" para todos los FV sin foto, de a cuatro y con el avance. FV tiene una foto por modelo y terminacion: no hay galeria para traer.",
+    ],
+  },
+  {
+    version: "V.0.78.3",
+    date: "2026-11-16",
+    changes: [
+      "En la compu el ultimo renglon del pie se corre a la izquierda (sm:pr-20) en vez de subirlo: los dos botones flotantes ocupan la columna derecha y al subirlo lo tapaba la flecha.",
+    ],
+  },
+  {
+    version: "V.0.78.2",
+    date: "2026-11-16",
+    changes: [
+      "El aire de abajo del pie tambien en la compu: el boton de WhatsApp tapaba el link \"Admin\" del ultimo renglon.",
+    ],
+  },
+  {
+    version: "V.0.78.1",
+    date: "2026-11-16",
+    changes: [
+      "Pie de pagina ordenado en el celular. Damian, 16/11/2026: \"acomoda eso del final que se ve desordenado\". Los tres links legales iban dos en un renglon y el tercero abajo; ahora uno abajo del otro. Cada titular en su bloque (sucursal, razon social, CUIT) y el CUIT ya no se corta a la mitad (\"30-\" / \"71132164-7\"). El iPhone tomaba el CUIT por un telefono y lo subrayaba: formatDetection.telephone en false (los telefonos de verdad ya son links tel:). Mas aire abajo para que los botones flotantes no tapen el ultimo renglon.",
+    ],
+  },
+  {
+    version: "V.0.78.0",
+    date: "2026-11-16",
+    changes: [
+      "Boton \"Comprar\" en las tarjetas; checkout con todos los datos obligatorios; \"Cordoba - Traslasierra\" en Nuestras sucursales. COMPRAR: Damian, 16/11/2026: \"poner agregar o comprar, porque tambien estaria bueno hacer carrito, pero si quiero comprar solo 1 producto\". Las tarjetas de la portada y de la tienda tienen \"Comprar\" y \"Agregar\" (src/components/BotonesCompra.tsx). Comprar paga SOLO ese producto y no toca el carrito, como en Mercado Libre: viaja en sessionStorage y el checkout lo usa con ?directo=1 (src/lib/cart.ts). El \"Comprar ahora\" de la ficha hace lo mismo; antes lo sumaba al carrito y cobraba todo junto. CHECKOUT: \"todos los campos obligatorios\". El DNI va siempre (antes era opcional para retirar); en el envio, piso/depto (\"si es casa, pone Casa\") y entre calles. Las notas siguen opcionales. Con DNI la factura B sale a su nombre: es el camino que ya existia, no cambia nada de ARCA. La pantalla y el servidor piden lo mismo. SUCURSALES: la tarjeta dice \"Cordoba - Traslasierra\" (solo el titulo; el nombre de la sucursal no cambia). Sin \"comprás en cualquiera de los dos\": la tienda online es la de Buenos Aires, y Traslasierra dice \"Atencion en el local. Consultas y pedidos por WhatsApp\". El boton de WhatsApp de esas tarjetas sacaba las letras D del numero en vez de lo que no es numero.",
+    ],
+  },
+  {
+    version: "V.0.77.0",
+    date: "2026-11-16",
+    changes: [
+      "Se abre la tienda de Buenos Aires; la de Traslasierra se apaga (sigue como sucursal). Damian, 16/11/2026: \"la tienda de Traslasierra sacala, no va mas\"; \"Traslasierra se menciona como sucursal, pero no la tienda, solo la de Buenos Aires\"; \"si volvemos a activarla la prendemos\"; \"ya habilita el pago de producto, el carrito etc\". Migracion 39: Branch.tiendaOnline (Traslasierra en false) y tiendaActiva de Buenos Aires en true. Ningun producto se activa. Un local sin tienda online sigue en el sitio como sucursal, pero no aparece en el panel de productos (ni en el selector ni en el link al otro panel); en su propio panel de productos se avisa y se manda al de Buenos Aires. Textos: Legales tomaba la razon social de Buenos Aires con el domicilio y el contacto de Villa Cura Brochero, y ofrecia envio \"al Valle de Traslasierra\"; ahora todo es de la sucursal que vende. Arrepentimiento: mail y WhatsApp de la que vende. La portada arma \"Quienes somos\" con las sucursales activas y no con un texto fijo. Google: \"envio a coordinar\" -> envio a AMBA o retiro en Buenos Aires. Checkout: un codigo postal fuera del mapa dice \"Consulta el envio por WhatsApp\", con boton que manda el carrito y el CP. La categoria de la tarjeta ya no tapa la foto: va arriba del titulo, como en la tienda (portada y ficha del producto).",
+    ],
+  },
+  {
+    version: "V.0.76.0",
+    date: "2026-11-16",
+    changes: [
+      "Botones \"Envio a AMBA\" y \"Retiro en sucursal Buenos Aires\"; activar/pausar en lote escribe en el local; vista previa entera. BOTONES: la ficha de cada producto decia \"Retiro en tienda · Villa Cura Brochero\" y \"Envio a Traslasierra · costo a coordinar\", escrito a mano. Ahora la ficha, la portada y el checkout salen de src/lib/entrega.ts con el local que vende: \"Envio a AMBA · Capital y GBA, gratis desde $100.000\" y \"Retiro en sucursal Buenos Aires · direccion, sin costo\". EN LOTE: activar/pausar escribia el articulo (catalogo de Traslasierra), asi que en Buenos Aires no publicaba nada; y con su tienda abierta se habria destrabado igual. Ahora va a la fila del local (guardarComercial), y \"todos los que coinciden\" usa el mismo filtro que la lista (src/lib/filtro-productos.ts). El freno de las pantallas que todavia escriben el articulo, y el puente de guardarComercial, quedan atados a Traslasierra (el local del articulo) y no a \"la que vende\": abrir la tienda de Buenos Aires no destraba esas pantallas ni hace que sus precios pisen el articulo. IMPORTAR: la vista previa muestra todas las filas, no 10.",
+    ],
+  },
+  {
+    version: "V.0.75.1",
+    date: "2026-11-16",
+    changes: [
+      "\"Precios y stock por Excel\" lee el listado de existencias de GBP. Damian bajo de GBP el stock de Heineken: item_code, item_desc y una columna \"Dep BS AS\" (el deposito de Buenos Aires), sin precio. El lector buscaba \"Stk\" y exigia un precio, asi que lo rechazaba. Ahora: una columna \"Dep ...\" es stock; con varios depositos se toma el del local del panel; un archivo sin precio sirve para \"Solo stock\" (en \"precios\" avisa que elija Solo stock, y el alta lo rechaza porque sin precio no hay que publicar). Si el deposito es de otro local (subir \"Dep BS AS\" en el panel de Traslasierra) frena: seria vender alla lo que solo hay aca. Probado con el archivo real: 16 Heineken, los codigos con cero adelante intactos (\"00662\").",
+    ],
+  },
+  {
+    version: "V.0.75.0",
+    date: "2026-11-16",
+    changes: [
+      "Envios de Buenos Aires: zona por codigo postal, cobrados con la compra, gratis desde $100.000; etiqueta nueva y recibo de MercadoPago para el que retira. Lo que paso Damian el 16/11/2026 (la tienda de Traslasierra no sigue, asi que es para Buenos Aires): se envia SOLO dentro del mapa de Mercado Envios Flex, repartiendo ellos. La zona sale del codigo postal: CABA 1000-1440 $5.500, Zona 1 $7.300, Zona 2 $9.100, Zona 3 $10.500 (listas en src/lib/zona-envio.ts; el 1642 vino en la 1 y en la 3, quedo en la 1). El envio se cobra JUNTO con la compra y desde $100.000 (precio de lista) es gratis a todas las zonas. Precios y tope se cambian desde Configuracion (migracion 38 los carga). CHECKOUT: el cliente escribe el codigo postal y ve la zona y el precio en el momento; fuera del mapa no puede elegir envio. Para un envio son obligatorios el DNI y todos los datos; se sumo piso/depto. Ya no aparece la lista de pueblos del Valle. COBRO: el servidor recalcula zona y precio (no confia en el navegador) y lo guarda en shippingCost, que hasta hoy era siempre 0. MercadoPago lo cobra como un renglon \"Envio Zona 2\", sin recargo. FACTURA: el importe que va a ARCA ya era order.total, que lo incluye; el PDF suma un renglon \"Envio\" para que el detalle cierre (renglonesDelPedido, armar-pdf.ts). Lo de ARCA no se toco. ETIQUETA (src/lib/etiqueta-envio.ts): zona y codigo postal grandes, piso, DNI, \"NO COBRAR\" (gratis o ya incluido) y el remitente del local del pedido; antes era siempre Villa Cura Brochero. RECIBO DE RETIRO: el \"Recibo de entrega de producto\" de MercadoPago, completado sobre su PDF original (pdf-lib), con boton en el pedido cuando retira; es la prueba ante un contracargo. Tambien: el mail de confirmacion, el carrito y la pantalla del pedido decian Traslasierra en un pedido de Buenos Aires.",
+    ],
+  },
+  {
+    version: "V.0.74.1",
+    date: "2026-11-16",
+    changes: [
+      "La lista de productos muestra el codigo una sola vez. Decia \"SKU TST-10633 · 10633\": el SKU con la marca adelante y el codigo del articulo, el mismo numero dos veces. Lo que se carga desde el alta guarda los dos IGUALES, asi que los 121 FV iban a salir \"0207/C3-CR · 0207/C3-CR\". Damian: \"estas duplicando el sku\". Ahora, si el SKU termina en el codigo (comparando solo letras y numeros), se muestra \"SKU 10633\". Si es otro codigo de verdad, siguen saliendo los dos. Solo cambia lo que se ve: en la base no se toco nada.",
+    ],
+  },
+  {
+    version: "V.0.74.0",
+    date: "2026-11-16",
+    changes: [
+      "Subrubros, y titulo y foto traidos de la pagina de FV. SUBRUBROS: columna nueva Product.subcategory (migracion 37) con la lista fija de cada rubro en src/lib/subrubros.ts. Griferia: Ducha y bañera, Lavatorio, Bidet, Cocina, Kit de baño, Lavarropas y Accesorios (Damian puso los accesorios FV en Griferia). En el alta se sugiere por la pestaña del Excel y si no dice nada, por el titulo. Se elige tambien en la ficha y en el producto nuevo. En la tienda se abren debajo de la categoria elegida (/tienda?cat=griferia&sub=lavatorio). Con el Excel de FV: 31 ducha y bañera, 22 lavatorio, 20 bidet, 35 accesorios, 7 cocina, 4 kit de baño, 2 lavarropas; ninguno sin subrubro. RUBRO POR MARCA: \"TRIADES LAVATORIO FV\" caia en Sanitarios, donde va el lavatorio de loza. FV, Piazza e Hydros llevan ahora rubro griferia y el alta lo toma de la marca; Ferrum no, porque hace las dos cosas. TRAER DE FV: boton en el alta que busca cada codigo en fvsa.com (src/lib/fv.ts y fv-ficha.ts) y propone titulo y foto. Titulo: rubro, subrubro y lo que dice la ficha de FV, con el codigo COMPLETO como lo escribe FV (el CCC es parte del codigo) y la terminacion en palabras solo si es segura (CR Cromo, NG Negro mate). Nunca el nombre de otra tienda. La foto se elige por el codigo exacto de la variante; si FV solo tiene la de otra terminacion se muestra marcada y SIN tildar. Nada se guarda hasta apretar Crear, y todo nace pausado igual que antes. FV deja en su pagina lo que ya no fabrica con \"DISCONTINUADO –\" adelante: se lee igual (tiene nombre y foto, y Conesa tiene stock), la palabra no va al titulo y se avisa en pantalla. No se repiten palabras: \"Libby Monocomando\" + \"Juego monocomando\" queda \"Juego monocomando Libby\", y \"Juego para bidé\" en Bidet queda \"Juego\". Probado en vivo con los 121 codigos del Excel de FV. El alta ahora se manda de a 10 con el avance a la vista: con las fotos, 121 articulos de una pasaban los 120 s del servidor. Tambien: el precio del alta dice \"LISTA 2 - PRECIO 1 PAGO\".",
+    ],
+  },
+  {
+    version: "V.0.73.5",
+    date: "2026-11-16",
+    changes: [
+      "El Excel del sistema se lee en TODAS sus pestañas, y lo nuevo que se importa entra pausado. El lector ya recorria todas las hojas, pero descartaba en silencio las que no tenian la fila de titulos (item_code, item_desc...). Asi venia el de FV: la primera pestaña con titulos y otras cuatro por linea (duchas, bidet, accesorios, lavatorios) con los productos pegados directo. Se leian 13 de 121. Ahora una hoja sin titulos se lee con las columnas de la primera que si los tiene, SOLO si sus primeras filas encajan (codigo, descripcion con letras, precio mayor a cero, stock numerico o vacio). Si no encajan, la hoja no se lee y se avisa en la vista previa: leerla con las columnas corridas pondria el stock como precio. Probado con el archivo real: 121 de 121, con precio y stock de cada pestaña verificados contra la celda. Arregla tambien el alta de articulos, que usa el mismo lector. Lo segundo: el importador daba de alta lo nuevo PUBLICADO cuando el archivo no traia columna \"activo\", y el Excel del sistema nunca la trae. Subir una lista de proveedor publicaba todo lo que no estaba cargado sin que nadie lo eligiera. Ahora nace pausado. Lo que ya existe no cambia de estado salvo que el archivo traiga la columna. Damian: \"no actives nada\". Lo tercero, el mas peligroso: cuando un local empezaba a llevar un articulo que ya existia (guardarComercial creando la fila), la fila copiaba el estado del ARTICULO, que es el catalogo de Traslasierra y esta activo. Importar la lista de FV en el panel de Buenos Aires le habria creado publicados todos los FV ya cargados. Ahora una fila nueva nace pausada salvo que se diga otra cosa; el alta a mano pasa la casilla \"Activo\" del formulario explicitamente, asi que eso sigue igual.",
+    ],
+  },
+  {
+    version: "V.0.73.4",
+    date: "2026-11-14",
+    changes: [
+      "Se volvio atras la 0.73.3: la principal sigue siendo Traslasierra. La 0.73.3 movia \"la sucursal principal\" a Buenos Aires, y con ella el espejo. El espejo no copia solo el precio: copia precio, oferta, stock Y si el producto esta activo. Lo que hay en Product es el catalogo de Traslasierra, que esta ACTIVO; las filas de Buenos Aires estan PAUSADAS a proposito. Apuntar el espejo a Buenos Aires le iba a copiar active = true a sus 54 filas en el primer guardado de cualquier producto —incluso desde el alta o al subir una foto, que no pasan por el freno de todaviaNoPorSucursal— y despausarle el catalogo entero. No alcanzo a correr: se verificaron los 54 en Pausado despues del deploy. El precio y el stock de Buenos Aires ya eran identicos a los de Traslasierra (los dejo asi la migracion 32/33), asi que el estado era lo unico que cambiaba. El error de fondo: \"la principal\" no es una etiqueta que se pueda mover. Las filas de Traslasierra SON una copia del articulo, y eso es un hecho de la historia. Para que Buenos Aires sea la unica tienda hay que SACAR el puente —y con el este espejo— para que Product deje de ser la fuente de nadie. Recien ahi \"principal\" no significa nada y no hay que elegirla.",
+    ],
+  },
+  {
+    version: "V.0.73.2",
+    date: "2026-11-14",
+    changes: [
+      "En conesa.com.ar los recargos son los de la sucursal que vende. Los recargos de MercadoPago se leian por subdominio. En conesa.com.ar no hay subdominio, asi que se leian los generales; pero la venta la toma igual la sucursal que vende, que cobra en SU cuenta y factura con SU CUIT. El mismo carrito salia a dos precios segun por que puerta entro el cliente: Buenos Aires tiene cargado 31% en cuotas y hasta 18, y los generales son 25,71% y hasta 6. La pantalla de Configuracion no se movio: sigue mostrando y guardando lo mismo de antes (lo del subdominio, o lo general en conesa.com.ar). Es a proposito: si mostrara los de la sucursal que vende y guardara en los generales, entrar ahi y apretar Guardar pisaria los generales con los numeros de otro local, y los generales son los que usa la tienda que no tiene los suyos. Ahora ese cartel dice quien le cobra de verdad al cliente. Con todas las tiendas cerradas no cambia nada, porque no hay quien venda y se siguen leyendo los generales. Empieza a valer el dia que se abra una tienda.",
+    ],
+  },
+  {
+    version: "V.0.73.1",
+    date: "2026-11-14",
+    changes: [
+      "El logo de Data Fiscal enlaza por http. Se cargo el codigo del QR de la S.R.L. (F960/D del sitio https://conesa.com.ar, declarado ante ARCA el 14/11/2026), y al probarlo aparecio que https://qr.afip.gob.ar no existe: no contesta TLS. El componente armaba el enlace con https, asi que el logo habria quedado apuntando a una direccion muerta. Ahora usa http, que es lo que da el propio script del F960/D y redirige solo a serviciosweb.afip.gob.ar. La imagen sigue por https, porque por http la bloquea el navegador.",
+    ],
+  },
+  {
+    version: "V.0.73.0",
+    date: "2026-11-14",
+    changes: [
+      "Cada sucursal factura con SU certificado de ARCA. Damian decidio que la tienda online pasa a ser de Buenos Aires: cobra y factura la S.R.L. El certificado de la S.R.L. ya esta en el servidor (AFIP_CERT_BSAS / AFIP_KEY_BSAS), y este cambio es para que el sitio lo use. Las variables de ARCA ahora llevan el slug atras, igual que las de MercadoPago: AFIP_CUIT_BSAS, AFIP_PTO_VTA_BSAS, AFIP_CERT_BSAS, AFIP_KEY_BSAS. La sucursal que no tiene las suyas usa las peladas, que es lo que habia cuando la tienda era una sola: Traslasierra no se toca, y es la unica que hoy emite comprobantes con validez fiscal. Ese respaldo puede devolver el certificado del OTRO contribuyente. No es un descuido: antes de pedir el CAE se compara el CUIT de la sucursal del pedido con el que se va a usar, y si no coinciden no se emite (el freno de la 0.72.5, ahora comparando contra el que de verdad se va a usar y no contra AFIP_CUIT a secas). El ticket de acceso de ARCA se guarda por certificado y no por sitio. Un TA se le emite a UN certificado y vale para UN CUIT: compartirlo entre dos contribuyentes es pedir el CAE con el token del otro. La sucursal SIN certificado propio conserva la clave de cache de siempre, sin sufijo. Eso es a proposito: ARCA no emite un TA nuevo mientras haya uno valido (\"El CEE ya posee un TA valido\"), asi que cambiarle la clave a la tienda que hoy factura la dejaria sin facturar hasta 12 horas. El panel muestra el estado de ARCA del local en el que estas parado, prueba la conexion con SU certificado, y avisa cuando un local esta usando el general. Antes el panel de Buenos Aires probaba el certificado de Traslasierra y contestaba que todo andaba bien.",
+    ],
+  },
+  {
+    version: "V.0.72.5",
+    date: "2026-11-14",
+    changes: [
+      "ARCA: no se factura con el CUIT de otro contribuyente. El sitio tiene UN solo certificado de ARCA, en el servidor, y atiende dos sucursales que son dos contribuyentes distintos: Traslasierra (Conesa Carlos Daniel) y Buenos Aires (Sanitarios Conesa S.R.L.). Todo el modulo de ARCA no sabia de sucursales: pedia el CAE con el CUIT que hubiera cargado, viniera el pedido de donde viniera. Un pedido de Buenos Aires facturado con el certificado de Traslasierra sale a nombre de quien no vendio, y eso no se deshace: se anula con nota de credito, a mano, y queda en los libros de los dos. Ahora emitirFactura y emitirNotaCredito comparan el CUIT de la sucursal del pedido con el del servidor, y si son distintos no emiten: devuelven que falta cargar el certificado de esa sucursal. La nota de credito importa por su propia razon: tiene que salir del mismo CUIT que emitio la factura. El dia que se cambie el certificado del servidor, anular una factura vieja desde el nuevo seria emitir la NC de un contribuyente contra el comprobante de otro. SOLO frena cuando puede probarlo: hacen falta los dos CUIT y que sean distintos. Sin sucursal en el pedido, sin CUIT en el panel o sin AFIP_CUIT, factura igual que siempre. Un freno que salta por un dato que falta dejaria de facturar un martes cualquiera sin que nadie haya tocado nada. Traslasierra no cambia en nada: su CUIT es el del certificado cargado, asi que la comparacion da igual y sigue de largo.",
+    ],
+  },
+  {
+    version: "V.0.72.4",
+    date: "2026-11-13",
+    changes: [
+      "Los recargos de tarjeta son de cada sucursal, y entran los de Buenos Aires. Cada local cobra en SU cuenta de MercadoPago y cada cuenta tiene sus costos. Los porcentajes eran uno solo para todo el sitio, asi que cargar los de Buenos Aires movia los precios en cuotas de Traslasierra, que es la que esta vendiendo, y sin avisar. Ahora la configuracion se guarda con el nombre del local pegado atras (\"mp_planes:bsas\"). La clave sin nombre sigue existiendo y sigue valiendo: es la de Traslasierra y la de conesa.com.ar. Un local solo la pisa si le cargaron lo suyo, asi que esto no mueve ni un precio de los que hay hoy. Lo decide el SUBDOMINIO, no sucursalActual(): en el dominio general no hay una sucursal sino dos, y tomar los numeros de una seria cobrarle a todos con los costos de un local que a lo mejor ni vende. El panel de Configuracion ahora dice de quien son los numeros que estas mirando. Era el peor malentendido posible: creer que tocas los de uno cuando tocas los del otro. Y guardar desde el panel de una sucursal guarda los de esa sucursal y nada mas. Los de Buenos Aires (migracion 36), como los paso Damian el 13/11/2026: 3 cuotas 23%, 6 cuotas 31%, 9 cuotas 42%, 12 cuotas 53%, 18 cuotas 74%. Eso es lo que PAGA DE MAS EL CLIENTE, no el costo que publica MercadoPago: el confirmo cual de las dos cosas era, porque cargados como costo del plan el de 18 cuotas pasaba del 95% y el plan desaparecia solo del sitio. Sobre un articulo de $100.000 queda: 3 -> $123.000, 6 -> $131.000, 9 -> $142.000, 12 -> $153.000, 18 -> $174.000. Verificado uno por uno. Falta el recargo de 1 pago de Buenos Aires: hasta que se cargue usa el general (12% de descuento por contado). Y falta la clave de la cuenta en el servidor (MP_ACCESS_TOKEN_BSAS), que es lo unico que hace falta para que esa tienda pueda cobrar.",
+    ],
+  },
+  {
+    version: "V.0.72.3",
+    date: "2026-11-13",
+    changes: [
+      "Gas envasado sin stock, y el codigo del articulo se lee. 1. No hay envasado (Damian, 13/11/2026), asi que un termotanque \"a gas natural o envasado\" deja de preguntar con que gas se va a usar: se vende solo como gas natural y se agrega al carrito de una, sin pasar por la ficha a contestar una pregunta con una sola respuesta. El titulo del articulo sigue diciendo \"o envasado\", asi que callarse no alcanza: la ficha avisa \"Sin stock de envasado\". El que lo quiera para garrafa se entera ANTES de comprar y no cuando se lo entregan. Es una sola perilla en src/lib/etiquetas.ts (HAY_GAS_ENVASADO). Cuando entre mercaderia se pone en true y vuelven solos el cartel y la eleccion. Los articulos que son SOLO envasado no se tocan: eso se pausa desde el panel, que es donde se maneja el stock. 2. En la lista de productos del panel, el codigo que va abajo del titulo estaba en gris claro y fino, y no se leia. Ahora va en negrita y en el color del texto, y adelante aparece el SKU cuando el articulo lo tiene cargado. Es lo que se busca y lo que se dicta por telefono; el SKU ademas es con lo que se emparejan las fotos, asi que de paso se ve cual no lo tiene.",
+    ],
+  },
+  {
+    version: "V.0.72.2",
+    date: "2026-11-13",
+    changes: [
+      "Un boton para abrir y cerrar la tienda, arriba de la ficha. La casilla \"Tienda abierta\" estaba al fondo de una ficha larga y solo se guardaba junto con todo lo demas. Damian la destildo, apreto Guardar y el sitio siguio vendiendo igual. Eso es lo peor que puede pasar en un panel: decir una cosa y hacer otra. Ahora es un boton arriba de todo, con el estado al lado en verde o en gris, y toca ese campo y nada mas. Va aparte del Guardar a proposito: guardarSucursal valida media ficha —el CUIT, el subdominio, que alguien cubra el resto del pais— y si algo de eso no cuadra no guarda NADA. La tienda se quedaba abierta por un CUIT mal escrito, que no tiene nada que ver. La casilla se fue. Dos controles para la misma cosa terminan peleandose: el boton cierra la tienda, la casilla sigue tildada porque la pantalla no se recargo, y el proximo Guardar la vuelve a abrir sin que nadie lo pida. Por lo mismo, Guardar ya no manda ese campo. Pregunta antes de hacerlo, porque es lo unico de esa pantalla que se ve desde afuera al instante, y en la pregunta avisa lo que hay que saber: si la sucursal no tiene cargado SU MercadoPago —y entonces lo que venda se cobra en la cuenta de la otra— y, al cerrar, si es la ultima abierta, porque ahi el sitio entero pasa a atender por WhatsApp.",
+    ],
+  },
+  {
+    version: "V.0.72.1",
+    date: "2026-11-13",
+    changes: [
+      "Traslasierra cierra su tienda online, y cerrar significa cerrar. Damian pidio apagarla por el momento. Lo intento desde Panel -> Sucursales y no quedo guardado, asi que va por migracion (34). NO cierra el local: la sucursal se sigue publicando con su direccion, su telefono y sus horarios; lo unico que se apaga es la compra online. Para reabrirla alcanza con tildar \"Tienda abierta\" en el panel: la migracion corre una sola vez. Y se tapa lo que la 0.72.0 dejaba a la vista: con la tienda cerrada, /tienda seguia respondiendo. Mostraba un catalogo vacio —feo pero inofensivo— y, eso si, dejaba llegar al checkout. Un carrito guardado de antes podia armar un pedido a nombre de la sucursal que NO vende y cobrarlo en la cuenta de la otra: justo lo que la 0.71.0 vino a evitar. Ahora, sin ninguna tienda abierta, /tienda y todo lo que cuelga mandan a la portada, y el checkout se niega del lado del servidor, que es lo unico que no se puede saltear desde el navegador. Las tres pantallas de vuelta de MercadoPago (exito, pendiente, error) quedan abiertas a proposito: ahi cae alguien que YA pago, y mandarlo a la portada seria dejarlo sin el aviso de que su compra entro. La redireccion va a una ruta relativa y solo para /tienda: mandar el sitio entero a la portada seria un bucle, porque la portada pasa por el mismo layout. La portada y el layout preguntan lo mismo con la misma funcion (hayTiendaAbierta). Dos maneras de averiguar lo mismo terminan contestando distinto el dia menos pensado. Y Buenos Aires queda todo pausado (migracion 35). Lo copiado hasta hoy ya entro pausado; esto lo deja escrito y no depende de que las migraciones 32 y 33 hayan salido como se esperaba. Pausado es que no se muestra ni se puede comprar: el precio, el titulo y las fotos quedan intactos. No toca el stock ni toca a Traslasierra, y corre una sola vez: lo que se publique despues desde el panel queda publicado.",
+    ],
+  },
+  {
+    version: "V.0.72.0",
+    date: "2026-11-13",
+    changes: [
+      "Tienda: el precio, la oferta y el stock salen del LOCAL. Hasta hoy todo salia del articulo (\"Product\"). Andaba porque vendia un local solo; con dos, los dos publicarian el precio y el stock del primero. Un cliente de Buenos Aires compraria algo que esta en el deposito de Cordoba, al precio de Cordoba. Ahora todo lo que el cliente ve y paga pasa por src/lib/catalogo.ts: catalogo, portada, ficha, recomendados y checkout. El local sale de sucursalQueVende() —el que cobra, no el que se muestra— porque esto termina en una venta. Un articulo que el local no lleva no aparece en su tienda y no se puede vender ahi: ponerle el precio del otro local seria cobrar el precio de otro negocio. La migracion 31 copia el articulo a la fila de Traslasierra ANTES de que la tienda lea de ahi. Esa tabla se habia llenado una sola vez y podia estar vieja; copiando el articulo, que es exactamente lo que el cliente ve hoy, la tienda lee otra tabla y muestra los mismos numeros. Comprobado contra el sitio en el aire, articulo por articulo, antes y despues. Va contra 'traslasierra' con todas las letras y no contra \"la que vende\": si el dia del cambio la tienda esta cerrada, \"la que vende\" no es nadie y no haria nada, que es justo el caso en el que hace falta.",
+    ],
+  },
+  {
+    version: "V.0.71.1",
+    date: "2026-11-13",
+    changes: [
+      "Panel: que siga guardando precios con la tienda cerrada. El espejo —el que copia el precio del articulo a la fila del local— y la \"sucursal principal\" del panel daban los dos por hecho que siempre hay una tienda abierta. Con Traslasierra cerrada un rato no hay ninguna: el espejo actualizaba cero filas y el panel se quedaba sin principal, asi que guardar un precio entrando por conesa.com.ar/admin no grababa nada, sin error y sin aviso. Se veia como cambiar un precio y que el panel siguiera mostrando el viejo. Los dos pasan a mirar a 'traslasierra' con todas las letras. No es lo mismo que \"la que tiene la tienda abierta\": lo que hay guardado en el articulo es el catalogo de Traslasierra, de cuando habia un solo local. Eso es un hecho de la historia, no una regla que cambie al destildar una casilla. Antes de esto, y sin tocar una linea de codigo, entro por migracion el catalogo de arranque de Buenos Aires: Piazza, Pringles, Ferrum y TST. Pausados, sin stock —el stock esta fisicamente en Cordoba— y con el precio de hoy como punto de partida, para editar desde el panel de Buenos Aires. Esa tienda sigue cerrada: esto no la abre. Nada de esto toca el facturador de ARCA, ni MercadoPago, ni lo que ve el cliente: el catalogo publicado quedo identico, comparado articulo por articulo antes y despues.",
+    ],
+  },
+  {
+    version: "V.0.71.0",
+    date: "2026-11-13",
+    changes: [
+      "Tienda: cada sucursal cobra en SU cuenta de MercadoPago, y el pedido guarda de que sucursal es. Hasta hoy el servidor tenia UNA sola clave de MercadoPago y la usaba para todo, sin preguntar de que tienda venia la venta. Con una sola tienda abierta no se nota; el dia que abra Buenos Aires, su plata entraria en la cuenta de Traslasierra. Son dos contribuyentes distintos: eso no es un detalle de programacion, es plata que entra a nombre de quien no vendio. Buscandolo aparecio un segundo agujero del que cuelga el primero: el pedido NO guardaba de que sucursal era. El aviso de pago lo manda MercadoPago desde sus servidores, asi que en ese pedido no viene nuestro dominio; y el boton Facturar del panel tampoco sabe por donde entro el cliente. Sin ese dato no hay forma de saber a que cuenta preguntarle por el pago ni con que CUIT facturar. Van los dos juntos. (1) Order.branchId: el pedido guarda el local que cobra y factura, tomado de sucursalQueVende() en el momento del checkout, que es el unico momento en que se sabe. Queda opcional: los pedidos que ya estaban cargados no lo tienen y no hay manera honesta de adivinarselo. (2) La clave de MercadoPago sale de la sucursal: MP_ACCESS_TOKEN_TRASLASIERRA, MP_ACCESS_TOKEN_BSAS. Si una sucursal no tiene la suya cargada, se usa MP_ACCESS_TOKEN, que es la de siempre. Ese respaldo es a proposito: mientras no se carguen las claves por sucursal, la tienda que ya vende cobra exactamente como venia cobrando. Probado con el codigo de verdad: con una sola clave cargada, las tres funciones dan lo mismo que antes. (3) El aviso de pago de MercadoPago lleva la sucursal pegada en la direccion (?suc=). Tiene que ir ahi porque el aviso no lo manda el navegador del cliente: es la unica forma de saber con que clave preguntar por el pago. Los avisos de preferencias viejas no lo traen y caen en la clave de siempre, que es la que las cobro. (4) El cliente vuelve al dominio por el que entro y no a conesa.com.ar. El dominio se toma del pedido HTTP y se acepta solo si termina en conesa.com.ar: viene en un encabezado y un encabezado lo puede escribir cualquiera. (5) El panel muestra el estado de MercadoPago sucursal por sucursal, con el nombre exacto de la variable que falta cargar, y avisa en rojo el caso peligroso: dos tiendas abiertas cobrando con la misma clave. Con una sola abierta no asusta al pedo, porque esa cuenta es la suya. Pendiente a proposito: statement_descriptor sigue diciendo \"SANITARIOS CONESA\" para las dos. Es lo que el cliente ve en el resumen de la tarjeta y tendria que ser el nombre del que cobra, pero cambiarlo a ojo le cambiaria el resumen a los clientes de la tienda que ya vende. Nada de esto toca el facturador de ARCA ni Punto.",
+    ],
+  },
+  {
+    version: "V.0.70.0",
+    date: "2026-11-12",
+    changes: [
+      "Punto: lo que encontro la revision de la 0.69.0, y el boton que se le subia encima al campo de al lado. (1) GRAVE, y estuvo arriba unas horas: apretar Enter despues de tocar el Descuento metia en la venta un articulo que nadie habia pedido. Al mudar el descuento adentro del bloque de campos, cambiarlo termina llamando a pintarCamposVenta(), que rehace el bloque entero con innerHTML y destruye el propio <select> que tenia el foco; el foco se cae al <body>, la guarda escribiendo(e) -que mira e.target- deja de frenar el atajo \"Enter suma\", y el Enter siguiente agarra el renglon marcado del buscador y lo carga, con su precio, en la factura y descontado del deposito. Lo reprodujeron dos revisores por separado con teclado de verdad. Se arregla devolviendole el foco al campo que se toco despues de repintar, y vale para TODOS los campos del bloque: desde que abre desplegado, los demas desplegables tambien estan al alcance de la mano. (2) En los renglones de la venta se cortaban Precio, Subtotal y la cruz de sacar el renglon. El codigo entero de los combos mas el nombre estirado a 460 px ensanchaban la tabla: medido en 1366, pedia 1043 contra 861 de caja. Quedaba scroll horizontal, que nadie ve. El codigo entero se queda -es lo que distingue un combo de otro- y cede el nombre, que tiene el globito con el nombre completo. Ahora se pasa 0 px. (3) El boton \"Corregir\" del numero se le subia encima a \"Condicion de venta\" -103 px afuera de su casilla-. La causa era de una linea: la regla que hace encoger lo que esta al lado de un boton decia \".con-mas select\", y el numero es un <input>, asi que no la agarraba. Ahora la regla vale para los input tambien, y el boton se mudo a la linea de ayuda de abajo, que existe igual: al lado no entraba sin comerse el numero o un renglon entero de la fila. Nada de esto toca el facturador de ARCA ni la tienda.",
+    ],
+  },
+  {
+    version: "V.0.69.0",
+    date: "2026-11-12",
+    changes: [
+      "Punto: el comprobante acomodado como se mira, y dos agujeros que habia dejado la revision anterior. (1) El vendedor subio arriba, al lado de la sucursal. Las dos contestan la misma pregunta -quien vende y desde donde- y estaban separadas por media pantalla: el vendedor andaba perdido abajo, entre el numero y el deposito. (2) El descuento se mudo al lado de la condicion de venta. Son las dos cosas que se le conceden al cliente. Dejo de vivir afuera de #camposVta: ahora se rellena en cada repintado desde pintarCamposVenta() y el cambio lo agarra el listener delegado de #camposVta, que es lo unico que sobrevive a un innerHTML. La tira de un renglon tambien muestra el descuento, para cuando los campos estan cerrados. (3) El comprobante abre desplegado. Palabras de Damian: \"siempre desplegado eso, no comprimido como arranca\". (4) El cartel de cliente nuevo ya NO se cierra tocando afuera. \"Ojo que no se cierre con foco sino con una X\": se tipea un CUIT de once numeros, se toca al lado sin querer y se perdia todo lo cargado. Se cierra con la X o con Escape. (5) ARREGLO - \"Guardar como borrador\" dejaba el deposito pisado. Despues de guardar un borrador estando en Traslasierra con el deposito puesto en Buenos Aires, TODAS las ventas siguientes descontaban de Buenos Aires sin que nadie lo pidiera. Lo habia encontrado la revision de la 0.68.0 y quedo sin arreglar: era el tercer camino, aparte de cerrar y de guardar presupuesto. Ahora el deposito se guarda adentro del borrador y vuelve al retomarlo. (6) ARREGLO - dos combos distintos se veian como el MISMO renglon. El codigo de un combo es compuesto (\"3480+3641\") y se mostraba solo el primer pedazo, asi que dos combos daban el mismo numero; con el nombre cortado con puntos suspensivos quedaban identicos letra por letra, mismo precio incluido. Uno lleva bidet de un agujero y el otro de tres. Ahora el codigo se muestra entero y el nombre entra 100 px mas largo antes de cortarse. (7) La barra de arriba. Fuera el \"· Sanitarios Conesa\" escrito: el logo de al lado ya lo dice, era lo mismo dos veces. El logo, mas grande. Y la fecha pasa a ser el dato grande de la barra -mas cuerpo, negrita y con segundos- porque en el mostrador se prometen entregas y se cierran cajas por hora. En pantalla angosta ahora se esconde el dolar y NO la fecha, que es al reves de como estaba. (8) El numero del comprobante viene TRABADO, de solo lectura, con un boton \"Corregir\" al lado. Damian: \"que venga para no modificar pero que tenga la opcion de modificarlo\". Es el dato que llega a ARCA y estaba abierto todo el tiempo en el medio de una fila de campos que se tocan en cada venta: alcanzaba con apoyar el dedo. Mientras esta destrabado avisa en negrita que eso cambia la numeracion de los que siguen, y se vuelve a trabar solo apenas se corrige, al cerrar la venta, al guardar un presupuesto o un borrador y al cambiar de documento. (9) ARREGLO de lo que rompieron (7) y (3), medido en una pantalla de 1366x768: la barra se partia en dos renglones -el boton Salir se caia abajo- y el buscador quedaba 195 px por debajo del borde de la pantalla. Lo segundo tenia una causa vieja y tonta: el alto de la grilla se calculaba bien en el codigo y lo pisaba un min-height:250px escrito en el CSS, que en CSS le gana al max-height. Ahora el alto lo pone un solo lugar, ajustarGrilla(), y el piso depende de si hay algo cargado: con la venta vacia el hueco es chico y el buscador queda a la vista, que es lo que se va a tocar. OJO, queda asi a proposito: en una pantalla de 768 de alto, con el comprobante siempre desplegado, apenas se cargan renglones la pagina scrollea. No entran las dos cosas. Nada de esto toca el facturador de ARCA ni la tienda.",
+    ],
+  },
+  {
+    version: "V.0.68.0",
+    date: "2026-11-12",
+    changes: [
+      "Punto: el mostrador, como lo pidio el que lo va a usar. Nueve cosas que Damian marco mirando la pantalla, mas la regla de los depositos que conto despues. (1) La sucursal va arriba de todo, sola y en grande. De ella salen el punto de venta, la numeracion y el deposito: no es un dato mas del comprobante, es el marco de toda la venta. Mientras los campos estan abiertos se esconde la tira de arriba, que decia lo mismo dos veces. (2) Todos los datos del comprobante se pueden tocar. El numero y el vendedor estaban de solo lectura; si la numeracion queda desfasada hay que poder corregirla sin entrar al codigo. (3) El descuento se mudo de la columna del total a los datos del cliente. Es una decision sobre el cliente; el total es la consecuencia. Queda fuera de #resumenVta a proposito: ese bloque se redibuja entero y el select perderia el listener. (4) Boton \"+ Cliente\" al lado del desplegable, que es donde la mano ya esta. El alta sumo localidad, provincia, correo y lista de precios; el domicilio del padron se parte en calle y localidad por la ultima coma. (5) El documento dice \"Presupuesto\" y no \"Presupuesto X cnc\". La letra y la sucursal las sabe el sistema. (6) 01-Efectivo pasa a ser la condicion por defecto en mostrador, en lugar de transferencia. (7) Fuera el semaforo de \"Lo que deja\". Del otro lado del mostrador hay un cliente mirando la pantalla, y lo que deja la venta es un numero de gerencia. (8) Entran 20 renglones a la vista sin scrollear, 24 en pantallas altas. Apretar el padding no alcanzaba: lo que comia el lugar era el nombre del articulo, que se partia en tres lineas. Ahora va en una sola, cortado con puntos, con el nombre entero en el globito. El renglon bajo de 68 px a 33. (9) El numero de pedido es propio y correlativo (P-2842), aparte del numero del comprobante: existe aunque todavia no se haya facturado y es con el que se sigue la entrega. (10) El deposito, como funciona de verdad: Traslasierra puede vender mercaderia de Buenos Aires -se la traen en el proximo viaje y se la entregan alla-, pero al reves no pasa nunca, asi que desde Buenos Aires ni se pregunta. Cuando la venta sale del otro galpon, la tira lo avisa y el stock que se busca es el de alla. (11) El puesto ya no se elige a mano: sale del usuario. Nadie se cambia de mostrador en el medio de una venta. (12) Las solapas de arriba pasaron de <button> a <a href>. Con un boton el navegador no ve ningun link y el menu del boton derecho no ofrece \"abrir en una pestana nueva\"; ahora se puede tener la venta en una ventana y Productos en otra, y la direccion recuerda en que solapa estabas. (13) En Creacion de articulos ya no se muestran \"Margen objetivo\" ni \"Solo los que no llegan\": no tienen nada que ver con cargar un articulo. El objetivo se mudo a Rentabilidad, que es la pantalla que lo usa; el otro se fue. (14) Un cartel de ayuda repetido menos: con la venta vacia se veian dos diciendo casi lo mismo. (15) El buscador vuelve abajo de los renglones, y arriba queda el hueco donde caen los articulos. Lo habia puesto arriba y estaba mal: la pantalla es un ticket, la lista crece de arriba para abajo y la mano escribe abajo. Con la venta vacia el hueco se ve, asi se entiende que los articulos van a aparecer ahi. (16) El alto de la grilla se mide en vez de adivinarse. Con el buscador abajo volvio el problema de siempre al reves: con 18 renglones el buscador se iba de la pantalla. Estaba atado a un \"100vh - 330px\" inventado, que deja de servir en cuanto la tira de arriba se parte en dos renglones o cambia el monitor. Ahora se mide donde empieza la grilla y cuanto mide el buscador, y lo que sobra es el alto. El buscador queda siempre a la vista. (17) La tira del comprobante, mas grande y toda en negrita. Tenia tres datos en gris claro -condicion, vendedor, deposito- como si valieran menos. No valen menos: son justamente los que se miran de reojo antes de emitir. (18) La fecha de la barra, entera, con dia de la semana y mes con nombre: en el mostrador se prometen entregas \"para el jueves\" y ese dato tiene que estar a la vista. (19) El dolar oficial al lado de la fecha, solo el numero. Sale de dolarapi.com (a dolarhoy no se le puede pegar desde el navegador: no manda el permiso de CORS). Se mira cada diez minutos y si no hay internet no se muestra nada. NO toca el dolar del formador de precios, que se pone a mano. ---- lo que encontro la revision adversarial antes de subir: (20) Habia DOS numeradores de pedido arrancando los dos en 2842 -S.nroPed y PED.nro- y los dos mostrandose \"P-NNNN\": dos pedidos distintos con el mismo numero, y el choque se repetia en 2843, 2844. Ahora PED.nro es un getter sobre S.nroPed: un solo numerador para todo el sistema. (21) El numero de comprobante escrito a mano agarraba el ULTIMO grupo de digitos: \"48.215\" -como se escriben los miles aca- daba 215 y la numeracion retrocedia sin un solo aviso, o sea comprobantes repetidos en ARCA. Ahora el punto y la coma son separadores, hay tope de 8 digitos, y si el numero BAJA avisa fuerte y dice a que documento y a que sucursal le toco la numeracion. (22) El deposito pisado no se limpiaba: despues de que Traslasierra vendiera una vez de Buenos Aires, TODAS las ventas siguientes salian de Buenos Aires. Ahora se limpia al cerrar, al guardar presupuesto, al retomar un borrador y al cambiar de sucursal desde la barra de arriba (el selector de la barra no lo hacia; el del formulario si). (23) El cartel de cierre nombraba el deposito de la sucursal y no del que salio la mercaderia, y la venta no guardaba de donde habia salido. Ahora se anota dep y traida. (24) Cambiar el usuario desde la barra de arriba no movia el puesto: la caja del dia se le imputaba al mostrador del anterior. (25) Al pasar las solapas a <a> quedo un lugar buscando todavia un <button>: \"Pasarlo al mostrador\" tiraba TypeError, cargaba los renglones y no cambiaba de pantalla. Tambien faltaba escuchar hashchange -pegar un link con #renta con Punto ya abierto no hacia nada- y las solapas se habian quedado sin la barra espaciadora. (26) Los articulos que entran por una lista de proveedor se cargaban siempre con cero en Buenos Aires y todo en Traslasierra. Ahora entran en el deposito de la sucursal desde la que se carga. (27) La venta abre en blanco. Arrancaba con tres articulos puestos y \"termotanque\" escrito en el buscador, de cuando era una demo para mostrar. Damian: \"sino marea\". Y abrir con renglones puestos no solo marea: el dia que alguien no mire bien le suma lo del cliente nuevo arriba de la venta de otro.",
+    ],
+  },
+  {
+    version: "V.0.67.0",
+    date: "2026-11-12",
+    changes: [
+      "Punto: la pantalla de venta parece una venta, y la lectura por IA ya no se cuelga para siempre. (1) El panel de venta se rehizo. Damian lo dijo asi: \"necesito que sea mas como un panel de venta de articulo, como la pantalla de un pedido que se esta vendiendo\". El comprobante paso a ser una tira de datos con rotulo -sucursal, cliente, documento, condicion, vendedor, deposito- en vez de un renglon de texto corrido; el buscador subio por encima de los renglones, que es por donde entra todo; y la grilla gano el numero de renglon y el stock de cada articulo, con el mismo color que en el buscador, asi un renglon en rojo se ve antes de emitir y no despues. Con la venta vacia se ven igual los encabezados de la grilla: la pantalla parece una venta recien empezada y no una hoja en blanco. (2) La lectura por IA no tenia tope de tiempo en NINGUN lado. Si Google se colgaba, la pantalla quedaba en \"la IA esta leyendo\" para siempre: sin error, sin boton de reintentar y sin forma de saber si valia la pena esperar. El `maxDuration` del route no servia de nada, porque eso lo respeta Vercel y esto corre con `next start` en la VM de Google. Ahora el servidor corta a los 40 s por intento y 75 s contando los reintentos, la pagina a los 95 s, y los dos explican que paso y ofrecen cargar la lista desde el Excel. (3) El mensaje de \"clave no valida\" decia que la de Google empieza con AIza. Ya no: las de AI Studio ahora empiezan con AQ. y son mas largas. Decia algo falso justo cuando hay que arreglar algo. (4) Lo que se escribia en el buscador volvia al HTML sin escapar: un \"<\" rompia el cartel de \"nada con ...\".",
+    ],
+  },
+  {
+    version: "V.0.66.0",
+    date: "2026-11-07",
+    changes: [
+      "Punto: la tabla del adjunto se puede corregir a mano, y nunca se carga el total del renglon como precio de uno. Tres cosas: (1) cada celda de la vista previa es editable, asi un renglon mal leido se arregla escribiendo encima en vez de tener que empezar de nuevo; (2) si la columna que parecia el precio es en realidad cantidad x precio, se toma la del unitario y se avisa -antes, un renglon de 2 unidades entraba al doble y no se veia-; (3) un PDF escaneado ahora lo lee la IA. Eso ultimo estaba anunciado en V.0.65.0 pero no andaba: filasPdf tiraba error antes de llegar a ofrecerlo.",
+    ],
+  },
+  {
+    version: "V.0.65.0",
+    date: "2026-11-07",
+    changes: [
+      "Punto: la foto del presupuesto se lee de verdad. Antes, al adjuntar una foto salian seis renglones de ejemplo escritos a mano en el codigo (inodoros FERRUM) que no tenian nada que ver con el archivo; eso se fue. Ahora la pagina encoge la foto, la manda al servidor y la lee la IA de Google, que devuelve los renglones de verdad. Si no lee nada lo dice, y no inventa. Un PDF escaneado -sin texto adentro- tambien ofrece la IA. Hace falta GEMINI_API_KEY en el servidor; sin eso el aviso lo dice.",
+    ],
+  },
+  {
+    version: "V.0.64.0",
+    date: "2026-11-07",
+    changes: [
+      "Punto: lo ultimo del modo demo. El pie tenia tres parrafos explicando que esto era una demo; quedan dos lineas, las que no son presentacion. Ya no queda la palabra demo en pantalla.",
+    ],
+  },
+  {
+    version: "V.0.63.0",
+    date: "2026-11-07",
+    changes: [
+      "Punto: afuera el modo demo (la banda amarilla y los carteles de numeros simulados). 'Productos y costos' pasa a llamarse 'Creacion de articulos'. Menos texto: once parrafos de ayuda afuera o en una linea. Las tres tarjetas rojas de esa pantalla pasan a comunes, con barrita de color en el titulo.",
+    ],
+  },
+  {
+    version: "V.0.62.0",
+    date: "2026-11-07",
+    changes: [
+      "Punto: carga por adjunto, cuando no sale ningun articulo el boton decia solo 'Cargar los articulos' y quedaba apagado. Ahora dice que falta y sale un cartel con dos preguntas (cual columna es la descripcion, cual el precio).",
+    ],
+  },
+  {
+    version: "V.0.61.0",
+    date: "2026-11-07",
+    changes: [
+      "Punto: el PDF adjuntado se lee de verdad (texto adentro del archivo, sin servidor). Si es una hoja escaneada lo dice, y si no encuentra columna de precios tambien. Columna de precios detectada por contenido cuando el encabezado no la nombra.",
+    ],
+  },
   {
     version: "V.0.60.0",
     date: "2026-11-05",
