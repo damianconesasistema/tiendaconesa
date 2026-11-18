@@ -12,6 +12,7 @@ import { getRubrosExtra } from "@/lib/rubros-server";
 import { nombreRubro } from "@/lib/rubros";
 import { precioVitrina } from "@/lib/precios";
 import { comparacionesGuardadas } from "@/lib/comparador";
+import { mlConectado } from "@/lib/mercadolibre";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export default async function ComparadorPage() {
       </AdminShell>
     );
 
-  const [publicados, recargos, marcas, rubrosExtra, guardadas] = await Promise.all([
+  const [publicados, recargos, marcas, rubrosExtra, guardadas, conML] = await Promise.all([
     prisma.branchProduct.findMany({
       where: { branchId: suc.id, active: true },
       select: {
@@ -50,6 +51,7 @@ export default async function ComparadorPage() {
     getMarcas(),
     getRubrosExtra(),
     comparacionesGuardadas(),
+    mlConectado().catch(() => false),
   ]);
   const nombreMarca = new Map(marcas.map((m) => [m.id, m.name]));
 
@@ -79,7 +81,7 @@ export default async function ComparadorPage() {
           memoria y la descripción. Solo se muestra el <strong>mismo modelo</strong>: cuando el otro
           nombra el mismo código y es de la misma marca. Lo que no es igual no aparece.
         </p>
-        <ComparadorPrecios filas={filas} />
+        <ComparadorPrecios filas={filas} mlConectado={conML} />
       </div>
     </AdminShell>
   );

@@ -2,6 +2,14 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.26 - Comparador: se ordena tocando el titulo de cada columna
+//            (producto, nuestro precio, precio afuera, diferencia; otro toque
+//            da vuelta) (Damian, 18/11/2026: "ponele filtros ahi"). Y
+//            MercadoLibre ("busca en mercadolibre no busca"): MercadoLibre ya
+//            no deja buscar sin una cuenta conectada (contesta 403), asi que
+//            la pantalla avisa y lleva a conectar la de Conesa; conectada,
+//            ademas de la ficha de catalogo busca las publicaciones comunes
+//            que nombran el mismo codigo y marca.
 // V.0.99.25 - Agencia J&M como transporte, primera y elegida de entrada al
 //            pasar un pedido a "En entrega" (Damian, 18/11/2026: "seria los
 //            envios por ahora con la Agencia J&M").
@@ -1431,7 +1439,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.25";
+export const APP_VERSION = "V.0.99.26";
 
 export type VersionEntry = {
   version: string;

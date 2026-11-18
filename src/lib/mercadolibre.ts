@@ -588,3 +588,17 @@ export async function preciosEnMercadoLibre(a: {
       link: i.permalink || `https://www.mercadolibre.com.ar/p/${ficha.id}`,
     }));
 }
+
+type PublicacionML = { title?: string; price?: number; permalink?: string; currency_id?: string };
+
+/** Las publicaciones que salen al buscar esto en MercadoLibre, con su precio.
+ *  Para el comparador: ahi se dejan solo las que nombran el mismo codigo y la
+ *  misma marca. MercadoLibre no deja buscar sin una cuenta conectada
+ *  (contesta 403): [] si no esta conectada o no contesta. Solo lee. */
+export async function publicacionesEnMercadoLibre(q: string): Promise<{ titulo: string; precio: number; link: string }[]> {
+  if (!(await mlConectado())) return [];
+  const r = await api<{ results?: PublicacionML[] }>(`/sites/MLA/search?q=${encodeURIComponent(q)}&limit=30`);
+  return (r?.results ?? [])
+    .filter((x) => x.currency_id === "ARS" && typeof x.price === "number" && x.price > 0 && !!x.title && !!x.permalink)
+    .map((x) => ({ titulo: x.title as string, precio: Math.round(x.price as number), link: x.permalink as string }));
+}

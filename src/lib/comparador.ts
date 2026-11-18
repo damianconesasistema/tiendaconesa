@@ -27,7 +27,7 @@
 
 import { getSetting, setSetting } from "@/lib/settings";
 import { codigosDelArticulo, nombraElCodigo } from "@/lib/web-de-marca";
-import { preciosEnMercadoLibre } from "@/lib/mercadolibre";
+import { preciosEnMercadoLibre, publicacionesEnMercadoLibre } from "@/lib/mercadolibre";
 
 const S_COMPARADOR = "comparador_precios";
 const ESPERA = 10_000;
@@ -230,16 +230,26 @@ export async function preciosAfuera(p: {
   const resultados: PrecioAfuera[] = porTienda.flatMap((x) => x.deEsta);
   const fallaron = buscado.length ? porTienda.filter((x) => !x.contesto).map((x) => x.tienda) : [];
 
-  // MercadoLibre: solo exacto (marca + codigo), con la cuenta conectada.
-  if (p.marca)
+  // MercadoLibre, con la cuenta de Conesa conectada (sin ella no deja
+  // buscar). Primero la ficha de catalogo exacta (marca + codigo) con los
+  // precios de quienes la venden; si no hay, las publicaciones comunes que
+  // nombran el mismo codigo y la misma marca. Los tres mas baratos.
+  if (p.marca) {
+    const deML: PrecioAfuera[] = [];
     for (const codigo of codigos) {
-      const ml = (await preciosEnMercadoLibre({ marca: p.marca, codigo }).catch(() => []))
-        // Los tres mas baratos: todos venden la misma ficha.
-        .sort((a, b) => a.precio - b.precio)
-        .slice(0, 3);
-      for (const m of ml) resultados.push({ tienda: "MercadoLibre", titulo: m.titulo, precio: m.precio, link: m.link, exacto: true });
-      if (ml.length) break;
+      for (const m of await preciosEnMercadoLibre({ marca: p.marca, codigo }).catch(() => []))
+        deML.push({ tienda: "MercadoLibre", titulo: m.titulo, precio: m.precio, link: m.link, exacto: true });
+      if (deML.length) break;
     }
+    if (!deML.length)
+      for (const termino of terminos(codigos)) {
+        for (const m of await publicacionesEnMercadoLibre(`${p.marca} ${termino}`).catch(() => []))
+          if (esExacto(m.titulo, m.titulo, m.precio) && !deML.some((x) => x.link === m.link))
+            deML.push({ tienda: "MercadoLibre", titulo: m.titulo, precio: m.precio, link: m.link, exacto: true });
+        if (deML.length) break;
+      }
+    resultados.push(...deML.sort((a, b) => a.precio - b.precio).slice(0, 3));
+  }
 
   resultados.sort((a, b) => Number(b.exacto) - Number(a.exacto) || a.precio - b.precio);
   return { fecha: new Date().toISOString(), buscado, resultados: resultados.slice(0, 15), fallaron };

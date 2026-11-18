@@ -2,7 +2,8 @@
 
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronUp, ExternalLink, Loader2, Search, Square } from "lucide-react";
+import Link from "next/link";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronUp, ExternalLink, Loader2, Search, Square } from "lucide-react";
 import { formatPrice } from "@/lib/order";
 import { buscar, indexar } from "@/lib/buscar";
 import { esPorVersionNueva } from "@/lib/desfasaje";
@@ -24,7 +25,18 @@ export type FilaComparador = {
 };
 
 type Filtro = "todos" | "sin-buscar" | "mismo" | "caros" | "baratos" | "nada" | "sin-codigo";
-type Orden = "nombre" | "diferencia";
+/** Por que columna y para que lado. Damian, 18/11/2026: "ponele filtros
+ *  ahi" (en los titulos de las columnas): un toque ordena, otro da vuelta. */
+type Columna = "nombre" | "precio" | "afuera" | "diferencia";
+type Orden = { col: Columna; asc: boolean };
+const ORDENES: { valor: string; texto: string; orden: Orden }[] = [
+  { valor: "nombre-asc", texto: "Nombre (A-Z)", orden: { col: "nombre", asc: true } },
+  { valor: "precio-asc", texto: "Nuestro precio: menor primero", orden: { col: "precio", asc: true } },
+  { valor: "precio-desc", texto: "Nuestro precio: mayor primero", orden: { col: "precio", asc: false } },
+  { valor: "afuera-asc", texto: "Precio afuera: menor primero", orden: { col: "afuera", asc: true } },
+  { valor: "diferencia-desc", texto: "Los más caros primero", orden: { col: "diferencia", asc: false } },
+  { valor: "diferencia-asc", texto: "Los más baratos primero", orden: { col: "diferencia", asc: true } },
+];
 
 /** De a cuantos se le piden al servidor (igual que en actions.ts). */
 const DE_A = 3;
@@ -56,7 +68,14 @@ function fechaCorta(iso: string): string {
         d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[] }) {
+export function ComparadorPrecios({
+  filas: iniciales,
+  mlConectado = true,
+}: {
+  filas: FilaComparador[];
+  /** Sin la cuenta de Conesa conectada, MercadoLibre no deja buscar. */
+  mlConectado?: boolean;
+}) {
   const [comparaciones, setComparaciones] = useState<Record<string, Comparacion | null>>(() =>
     Object.fromEntries(iniciales.map((f) => [f.itemId, f.comparacion])),
   );
@@ -69,7 +88,7 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
   const [rubro, setRubro] = useState("");
   const [marca, setMarca] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
-  const [orden, setOrden] = useState<Orden>("nombre");
+  const [orden, setOrden] = useState<Orden>({ col: "nombre", asc: true });
   const [abierto, setAbierto] = useState<string | null>(null);
 
   // La busqueda: cuantos van, cuantos son, y si se pidio frenar.
@@ -122,8 +141,22 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
           return true;
       }
     });
-    if (orden === "diferencia")
-      l.sort((a, b) => (diferencia(b) ?? -Infinity) - (diferencia(a) ?? -Infinity));
+    // Lo que no tiene dato (sin buscar, sin el mismo modelo) va al final.
+    const valor = (f: FilaComparador): number | string | null =>
+      orden.col === "nombre"
+        ? f.titulo
+        : orden.col === "precio"
+          ? f.precio
+          : orden.col === "afuera"
+            ? (mejorExacto(f.comparacion, f.precio)?.precio ?? null)
+            : diferencia(f);
+    l.sort((a, b) => {
+      const x = valor(a);
+      const y = valor(b);
+      if (x === null || y === null) return x === y ? 0 : x === null ? 1 : -1;
+      const c = typeof x === "string" ? x.localeCompare(y as string, "es") : x - (y as number);
+      return orden.asc ? c : -c;
+    });
     return l;
   }, [filas, encontrados, rubro, marca, filtro, orden]);
 
@@ -182,6 +215,16 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
         <Dato titulo="Más caros que afuera" valor={resumen.caros} rojo={resumen.caros > 0} />
       </div>
 
+      {!mlConectado && (
+        <p className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
+          <strong>MercadoLibre no se está buscando:</strong> MercadoLibre solo deja buscar con una cuenta
+          conectada. Conectá la de Conesa y la próxima búsqueda ya lo incluye.{" "}
+          <Link href="/admin/productos/mercadolibre" className="font-bold underline">
+            Conectar MercadoLibre
+          </Link>
+        </p>
+      )}
+
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
@@ -209,9 +252,23 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
           <option value="nada">Buscados y no está afuera</option>
           <option value="sin-codigo">Les falta el código para buscarlos</option>
         </select>
-        <select value={orden} onChange={(e) => setOrden(e.target.value as Orden)} className={control}>
-          <option value="nombre">Ordenar por nombre</option>
-          <option value="diferencia">Los más caros primero</option>
+        <select
+          value={`${orden.col}-${orden.asc ? "asc" : "desc"}`}
+          onChange={(e) => {
+            const o = ORDENES.find((x) => x.valor === e.target.value);
+            if (o) setOrden(o.orden);
+          }}
+          className={control}
+        >
+          {/* El orden que se eligio tocando una columna y no esta en la lista. */}
+          {!ORDENES.some((x) => x.valor === `${orden.col}-${orden.asc ? "asc" : "desc"}`) && (
+            <option value={`${orden.col}-${orden.asc ? "asc" : "desc"}`}>Orden de la columna</option>
+          )}
+          {ORDENES.map((o) => (
+            <option key={o.valor} value={o.valor}>
+              {o.texto}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -276,10 +333,18 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
         <div className="hidden grid-cols-[1fr_120px_170px_110px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
-          <span>Producto</span>
-          <span className="text-right">Nuestro precio</span>
-          <span className="text-right">Mismo modelo afuera</span>
-          <span className="text-right">Diferencia</span>
+          <Titulo col="nombre" orden={orden} setOrden={setOrden}>
+            Producto
+          </Titulo>
+          <Titulo col="precio" orden={orden} setOrden={setOrden} derecha>
+            Nuestro precio
+          </Titulo>
+          <Titulo col="afuera" orden={orden} setOrden={setOrden} derecha>
+            Mismo modelo afuera
+          </Titulo>
+          <Titulo col="diferencia" orden={orden} setOrden={setOrden} derecha>
+            Diferencia
+          </Titulo>
           <span />
         </div>
         {visibles.length === 0 && (
@@ -298,6 +363,40 @@ export function ComparadorPrecios({ filas: iniciales }: { filas: FilaComparador[
         ))}
       </div>
     </div>
+  );
+}
+
+/** El titulo de una columna: tocarlo ordena por ella; otra vez, al reves. */
+function Titulo({
+  col,
+  orden,
+  setOrden,
+  derecha = false,
+  children,
+}: {
+  col: Columna;
+  orden: Orden;
+  setOrden: (o: Orden) => void;
+  derecha?: boolean;
+  children: React.ReactNode;
+}) {
+  const activa = orden.col === col;
+  // De entrada: el nombre de la A a la Z, los precios de menor a mayor y la
+  // diferencia con los mas caros primero.
+  const primero = col !== "diferencia";
+  const Icono = !activa ? ArrowUpDown : orden.asc ? ArrowUp : ArrowDown;
+  return (
+    <button
+      type="button"
+      onClick={() => setOrden({ col, asc: activa ? !orden.asc : primero })}
+      title="Ordenar por esta columna"
+      className={`inline-flex items-center gap-1 uppercase tracking-wider hover:text-[var(--brand-red)] ${
+        derecha ? "justify-self-end" : "justify-self-start"
+      } ${activa ? "text-foreground" : ""}`}
+    >
+      {children}
+      <Icono className={`h-3 w-3 ${activa ? "text-[var(--brand-red)]" : "opacity-50"}`} />
+    </button>
   );
 }
 
