@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.27";
+export const APP_VERSION = "V.0.99.28";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.28",
+    date: "2026-11-18",
+    changes: [
+      "USUARIOS: cada persona entra al panel con su propio usuario y contraseña (\"haceme un usuario para cada uno\"). Se manejan tocando \"Usuario: admin\" arriba a la derecha: admin crea, desactiva o borra usuarios y les puede cambiar la contraseña; cada uno puede cambiar la suya. Las contraseñas se guardan cifradas. Si se desactiva o se borra a alguien, deja de entrar al momento aunque tenga el panel abierto. admin sigue igual que antes.",
+      "DASHBOARD: \"Productos activos\" cuenta los de la sucursal del panel (antes contaba la lista de Traslasierra y no cambiaba al activar o pausar en Buenos Aires).",
+      "PEDIDOS (dashboard y lista): fecha y hora de cada pedido en hora argentina, con qué pagó, y lo que compró, un renglón por producto.",
+      "NOVEDADES: se actualizan cada vez que se entra al panel (si el último chequeo fue hace más de 10 minutos) y al abrir Novedades, además del chequeo de todos los días. La hora se muestra en hora argentina.",
+    ],
+  },
   {
     version: "V.0.99.27",
     date: "2026-11-18",

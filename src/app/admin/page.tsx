@@ -12,9 +12,11 @@ import {
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
-import { formatPrice } from "@/lib/order";
+import { fechaHoraPedido, formatPrice } from "@/lib/order";
+import { nombreMedioDePago } from "@/lib/mp-detalle";
 import { getCostosMpDelPanel } from "@/lib/settings";
 import { tocaRevisarCostos } from "@/lib/costos-mp";
+import { sucursalDelPanel } from "@/lib/sucursal-panel";
 
 export const metadata: Metadata = {
   title: "Panel · Sanitarios Conesa",
@@ -25,12 +27,22 @@ export default async function AdminDashboard() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
 
-  // KPIs desde DB
+  // KPIs desde DB. Los productos, los del local del panel (la tabla de la
+  // sucursal, igual que la lista de Productos). Antes salian de la tabla de
+  // articulos, que es la de Traslasierra: Damian, 18/11/2026, mirando
+  // "96/515" en Buenos Aires, "los productos activos ahi porque no
+  // actualiza?".
+  const suc = await sucursalDelPanel().catch(() => null);
+  const delLocal = suc ? { branchId: suc.id } : null;
   const [totalProducts, activeProducts, lowStock, totalOrders, pendingOrders, customers] =
     await Promise.all([
-      prisma.product.count(),
-      prisma.product.count({ where: { active: true } }),
-      prisma.product.count({ where: { active: true, stock: { lt: 5 } } }),
+      delLocal ? prisma.branchProduct.count({ where: delLocal }) : prisma.product.count(),
+      delLocal
+        ? prisma.branchProduct.count({ where: { ...delLocal, active: true } })
+        : prisma.product.count({ where: { active: true } }),
+      delLocal
+        ? prisma.branchProduct.count({ where: { ...delLocal, active: true, stock: { lt: 5 } } })
+        : prisma.product.count({ where: { active: true, stock: { lt: 5 } } }),
       prisma.order.count(),
       prisma.order.count({ where: { status: "pendiente" } }),
       prisma.customer.count(),
@@ -102,6 +114,7 @@ export default async function AdminDashboard() {
           icon={Package}
           label="Productos activos"
           value={`${activeProducts}/${totalProducts}`}
+          hint={suc ? `en ${suc.nombre}` : undefined}
           href="/admin/productos"
         />
         <KpiCard
@@ -165,9 +178,11 @@ export default async function AdminDashboard() {
               <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
                 <tr>
                   <th className="px-5 py-3">#</th>
+                  <th className="px-5 py-3">Fecha y hora</th>
                   <th className="px-5 py-3">Cliente</th>
-                  <th className="px-5 py-3">Items</th>
+                  <th className="px-5 py-3">Productos</th>
                   <th className="px-5 py-3">Total</th>
+                  <th className="px-5 py-3">Pago</th>
                   <th className="px-5 py-3">Estado</th>
                   <th className="px-5 py-3"></th>
                 </tr>
@@ -176,13 +191,24 @@ export default async function AdminDashboard() {
                 {recentOrders.map((o) => (
                   <tr key={o.id} className="text-sm hover:bg-[var(--surface)]">
                     <td className="px-5 py-3 font-display font-bold">#{o.number}</td>
+                    <td className="whitespace-nowrap px-5 py-3 text-[var(--muted)]">{fechaHoraPedido(o.createdAt)}</td>
                     <td className="px-5 py-3">
                       {o.customer.firstName} {o.customer.lastName}
                     </td>
-                    <td className="px-5 py-3 text-[var(--muted)]">
-                      {o.items.reduce((s, i) => s + i.qty, 0)}
+                    {/* Lo que compro, un renglon por producto (Damian,
+                        18/11/2026: "agrega tambien el producto que compro, si
+                        es mas de uno deberias detallarlo por linea"). */}
+                    <td className="px-5 py-3">
+                      <ul className="space-y-0.5 text-xs">
+                        {o.items.map((it) => (
+                          <li key={it.id}>
+                            <span className="font-semibold">{it.qty} ×</span> {it.title}
+                          </li>
+                        ))}
+                      </ul>
                     </td>
                     <td className="px-5 py-3 font-semibold">{formatPrice(o.total)}</td>
+                    <td className="px-5 py-3 text-xs">{nombreMedioDePago(o.paymentMethod)}</td>
                     <td className="px-5 py-3">
                       <StatusBadge status={o.status} />
                     </td>

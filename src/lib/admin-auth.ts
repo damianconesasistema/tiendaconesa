@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { sigueActivo } from "@/lib/usuarios";
 
 const COOKIE_NAME = "conesa_admin";
 const SESSION_HOURS = 24 * 7; // 7 dias
@@ -106,7 +107,11 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   const jar = await cookies();
   const token = jar.get(COOKIE_NAME)?.value;
   if (!token) return null;
-  return parseToken(token);
+  const s = parseToken(token);
+  // Un usuario desactivado o borrado deja de entrar al momento, aunque tenga
+  // la sesion abierta (src/lib/usuarios.ts).
+  if (s && !(await sigueActivo(s.username))) return null;
+  return s;
 }
 
 export function checkPassword(input: string): boolean {

@@ -106,3 +106,12 @@ export function whatsappOrderLink(message: string, phoneDigits: string): string 
   const encoded = encodeURIComponent(message);
   return `https://wa.me/${phoneDigits}?text=${encoded}`;
 }
+
+/** Fecha y hora de un pedido, en hora argentina ("18/11/2026 15:42"). Con la
+ *  zona puesta a proposito: el servidor esta en otra (UTC) y sin esto la hora
+ *  salia tres horas corrida. Damian, 18/11/2026: "al pedido le falta la fecha
+ *  y hora del mismo, siempre tiene que tener el detalle". */
+export function fechaHoraPedido(d: Date): string {
+  const zona = { timeZone: "America/Argentina/Buenos_Aires" } as const;
+  return `${d.toLocaleDateString("es-AR", { ...zona, day: "2-digit", month: "2-digit", year: "numeric" })} ${d.toLocaleTimeString("es-AR", { ...zona, hour: "2-digit", minute: "2-digit" })}`;
+}

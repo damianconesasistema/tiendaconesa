@@ -80,6 +80,17 @@ const pct = (n: number) => `${(Math.round(n * 100) / 100).toLocaleString("es-AR"
 
 let corriendo: Promise<ResumenChequeo> | null = null;
 
+/** Corre el chequeo si no corrio en los ultimos minutos. Lo usa el panel al
+ *  entrar (Damian, 18/11/2026, en Novedades: "esto cada vez que ingresar
+ *  deberia actualizar"): ademas del de todos los dias, uno cada vez que se
+ *  entra, salvo que se haya hecho hace muy poco. */
+export async function chequeoSiHaceRato(minutos: number): Promise<ResumenChequeo> {
+  const ultimo = await getSetting(S_ULTIMO);
+  if (ultimo && Date.now() - new Date(ultimo).getTime() < minutos * 60_000)
+    return { corrio: false, novedades: 0, motivo: "recien se chequeo" };
+  return chequeoDiario();
+}
+
 /** Corre el chequeo si no corrio en las ultimas 20 horas. */
 export async function chequeoDiarioSiToca(): Promise<ResumenChequeo> {
   const ultimo = await getSetting(S_ULTIMO);

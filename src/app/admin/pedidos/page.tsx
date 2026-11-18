@@ -1,3 +1,4 @@
+import { nombreMedioDePago } from "@/lib/mp-detalle";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -5,7 +6,7 @@ import { ShoppingBag, Check, Ban, Clock } from "lucide-react";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
-import { formatPrice } from "@/lib/order";
+import { formatPrice, fechaHoraPedido } from "@/lib/order";
 import { letraComprobante, numeroFormateado } from "@/lib/afip/factura";
 import { MarcarEntregado } from "@/components/admin/MarcarEntregado";
 
@@ -97,9 +98,10 @@ export default async function PedidosAdmin({
             <thead className="bg-[var(--surface)] text-left text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               <tr>
                 <th className="px-4 py-3">#</th>
-                <th className="px-4 py-3">Fecha</th>
+                <th className="px-4 py-3">Fecha y hora</th>
                 <th className="px-4 py-3">Cliente</th>
                 <th className="px-4 py-3 hidden md:table-cell">Entrega</th>
+                <th className="px-4 py-3 hidden md:table-cell">Pago</th>
                 <th className="px-4 py-3 text-right">Total</th>
                 <th className="px-4 py-3 text-center">Estado</th>
                 <th className="px-4 py-3 text-center">Factura</th>
@@ -112,18 +114,20 @@ export default async function PedidosAdmin({
                 <tr key={o.id} className="text-sm hover:bg-[var(--surface)]">
                   <td className="px-4 py-3 font-display font-bold">#{o.number}</td>
                   <td className="px-4 py-3 text-xs text-[var(--muted)]">
-                    {o.createdAt.toLocaleDateString("es-AR", {
-                      day: "2-digit",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {fechaHoraPedido(o.createdAt)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-medium">
                       {o.customer.firstName} {o.customer.lastName}
                     </div>
                     <div className="text-xs text-[var(--muted)]">{o.customer.phone}</div>
+                    <ul className="mt-1 space-y-0.5 text-xs">
+                      {o.items.map((it) => (
+                        <li key={it.id}>
+                          <span className="font-semibold">{it.qty} ×</span> {it.title}
+                        </li>
+                      ))}
+                    </ul>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-xs">
                     {o.shipping === "retiro" ? (
@@ -132,6 +136,7 @@ export default async function PedidosAdmin({
                       <span>Envío a {o.locality}</span>
                     )}
                   </td>
+                  <td className="px-4 py-3 hidden md:table-cell text-xs">{nombreMedioDePago(o.paymentMethod)}</td>
                   <td className="px-4 py-3 text-right font-display font-black">
                     {formatPrice(o.total)}
                   </td>

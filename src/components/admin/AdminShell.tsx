@@ -8,7 +8,7 @@ import { APP_VERSION } from "@/lib/version";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
 import { LeyendaNovedades } from "@/components/admin/LeyendaNovedades";
 import { novedadesRecientes } from "@/lib/novedades";
-import { chequeoDiarioSiToca } from "@/lib/chequeo-diario";
+import { chequeoSiHaceRato } from "@/lib/chequeo-diario";
 import { titulosAMayusculasUnaVez } from "@/lib/titulos-mayusculas";
 import { pausarSinStock } from "@/lib/sin-stock";
 import { herramientasUnaVez } from "@/lib/herramientas-una-vez";
@@ -60,7 +60,9 @@ export async function AdminShell({
   // no corrio, arranca solo, sin hacer esperar a la pantalla. Y las
   // novedades de la semana para la leyenda de arriba: las de este local y las
   // generales. Si algo falla, la pantalla sale igual, sin leyenda.
-  void chequeoDiarioSiToca().catch(() => {});
+  // Y uno cada vez que se entra al panel, si el ultimo fue hace mas de 10
+  // minutos ("esto cada vez que ingresar deberia actualizar").
+  void chequeoSiHaceRato(10).catch(() => {});
   void titulosAMayusculasUnaVez().catch(() => {});
   void herramientasUnaVez().catch(() => {});
   void pausarSinStock().catch(() => {});
@@ -109,10 +111,15 @@ export async function AdminShell({
           <div className="flex items-center gap-3">
             <LiveClock />
             <span className="hidden h-4 w-px bg-[var(--border)] sm:block" />
-            <span className="hidden text-sm sm:block">
+            {/* Tocandolo: los usuarios (admin) o cambiar la contraseña propia. */}
+            <Link
+              href="/admin/usuarios"
+              title="Usuarios y contraseñas"
+              className="hidden text-sm hover:text-[var(--brand-red)] sm:block"
+            >
               <span className="text-[var(--muted)]">Usuario: </span>
-              <strong>{username}</strong>
-            </span>
+              <strong className="underline decoration-dotted underline-offset-4">{username}</strong>
+            </Link>
             <LogoutButton />
           </div>
         </div>

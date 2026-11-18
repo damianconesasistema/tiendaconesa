@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { checkPassword, createAdminSession, getAdminPassword } from "@/lib/admin-auth";
+import { entrarComo, PRINCIPAL } from "@/lib/usuarios";
 
-const ADMIN_USERNAME = "admin";
+// "admin" con la contrasena de /etc/conesa.env, o cada uno con su usuario
+// (src/lib/usuarios.ts).
 
 export async function POST(request: Request) {
   const expected = getAdminPassword();
@@ -29,7 +31,13 @@ export async function POST(request: Request) {
     );
   }
 
-  if (username !== ADMIN_USERNAME || !checkPassword(password)) {
+  const quien =
+    username.toLowerCase() === PRINCIPAL
+      ? checkPassword(password)
+        ? PRINCIPAL
+        : null
+      : await entrarComo(username, password);
+  if (!quien) {
     // Pequeña demora para dificultar fuerza bruta
     await new Promise((r) => setTimeout(r, 400));
     return NextResponse.json(
@@ -38,6 +46,6 @@ export async function POST(request: Request) {
     );
   }
 
-  await createAdminSession(username);
+  await createAdminSession(quien);
   return NextResponse.json({ ok: true });
 }

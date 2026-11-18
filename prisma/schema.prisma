@@ -344,3 +344,17 @@ model BranchProduct {
   @@index([branchId])
   @@index([productId])
 }
+
+// Los usuarios del panel, uno por persona (migracion 44). "admin" no esta
+// aca: es el principal, con la contrasena de /etc/conesa.env. Ver
+// src/lib/usuarios.ts.
+model AdminUser {
+  id            String    @id @default(cuid())
+  username      String    @unique // en minusculas, sin espacios
+  nombre        String
+  passwordHash  String // scrypt$sal$hash: nunca la contrasena en si
+  activo        Boolean   @default(true)
+  ultimoIngreso DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}

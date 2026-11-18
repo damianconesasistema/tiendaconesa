@@ -6,7 +6,8 @@ import { Loader2, Lock } from "lucide-react";
 
 export function LoginForm() {
   const router = useRouter();
-  const [username, setUsername] = useState("admin");
+  // Vacio: cada uno entra con su usuario (antes venia escrito "admin").
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

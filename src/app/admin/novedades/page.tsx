@@ -5,6 +5,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ChequearAhora } from "@/components/admin/ChequearAhora";
 import { leerNovedades } from "@/lib/novedades";
+import { chequeoSiHaceRato } from "@/lib/chequeo-diario";
 import { getSetting } from "@/lib/settings";
 import { sucursalDelPanel } from "@/lib/sucursal-panel";
 
@@ -18,6 +19,10 @@ export default async function NovedadesPage() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
 
+  // Al entrar aca, el chequeo se hace en el momento (si el ultimo fue hace
+  // mas de un minuto), asi la lista esta al dia. Si falla, se muestra lo que
+  // habia.
+  await chequeoSiHaceRato(1).catch(() => null);
   const [todas, ultimo, local] = await Promise.all([
     leerNovedades(),
     getSetting("chequeo_diario_ultimo"),
@@ -33,7 +38,9 @@ export default async function NovedadesPage() {
           Todos los días se revisa solo: los productos que se pausaron, se publicaron o quedaron sin stock o con
           poco (1 o 2), los que se cargaron, y si Mercado Pago se lleva en las cuotas lo mismo que calcula la
           tienda. Lo que encuentra corre en la leyenda negra de arriba.
-          {ultimo ? ` Último chequeo: ${new Date(ultimo).toLocaleString("es-AR")}.` : ""}
+          {ultimo
+            ? ` Último chequeo: ${new Date(ultimo).toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}.`
+            : ""}
         </p>
         <div className="mt-4">
           <ChequearAhora />
@@ -46,7 +53,13 @@ export default async function NovedadesPage() {
           {lista.map((n) => (
             <li key={n.id} className={`flex gap-3 p-4 text-sm ${n.nivel === "aviso" ? "bg-amber-50" : ""}`}>
               <span className="w-24 shrink-0 text-xs tabular-nums text-[var(--muted)]">
-                {new Date(n.fecha).toLocaleDateString("es-AR")}
+                {new Date(n.fecha).toLocaleString("es-AR", {
+                  timeZone: "America/Argentina/Buenos_Aires",
+                  day: "2-digit",
+                  month: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </span>
               <span className="flex-1">
                 {n.nivel === "aviso" ? "⚠ " : ""}
