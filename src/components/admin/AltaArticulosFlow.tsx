@@ -113,7 +113,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
   const nuevos = prev?.nuevos ?? [];
   // Los rubros y subrubros agregados a mano (los del Excel subido y los que
   // se suman aca con "+ Agregar..."). Ver src/lib/rubros.ts.
-  const { extra: rubrosExtra, pedirRubro, pedirSubrubro } = useRubrosAMano(prev?.rubrosExtra);
+  const { extra: rubrosExtra, pedirRubro, pedirSubrubro, dialogo: dialogoRubro } = useRubrosAMano(prev?.rubrosExtra);
 
   /** La lista de marcas para elegir: la de la tienda mas las que se
    *  agregaron aca, de la A a la Z (el orden del codigo es el del home y en
@@ -626,6 +626,7 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
 
   return (
     <div className="mt-8">
+      {dialogoRubro}
       <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
         <FileSpreadsheet className="h-4 w-4" />
         {nombreArchivo}

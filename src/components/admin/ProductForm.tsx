@@ -77,7 +77,7 @@ export function ProductForm({
   const [rubro, setRubro] = useState(product.category);
   // Los rubros y subrubros, con los agregados a mano y la opcion de sumar
   // uno nuevo desde el mismo desplegable (src/lib/rubros.ts).
-  const { extra, pedirRubro, pedirSubrubro } = useRubrosAMano(rubrosExtra);
+  const { extra, pedirRubro, pedirSubrubro, dialogo: dialogoRubro } = useRubrosAMano(rubrosExtra);
   const subrubros = subrubrosDe(rubro, extra);
   const rubrosLista = todosLosRubros(extra);
   if (!rubrosLista.some((r) => r.slug === product.category))
@@ -370,6 +370,7 @@ export function ProductForm({
       onChange={guardarBorrador}
       className="mt-6 space-y-5"
     >
+      {dialogoRubro}
       <input type="hidden" name="itemId" value={product.itemId} />
 
       {/* Guardar tambien arriba. La ficha es larga y con la descripcion

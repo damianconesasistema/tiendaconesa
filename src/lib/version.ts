@@ -2,6 +2,13 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.12 - "+ Agregar rubro / subrubro nuevo..." con una ventanita de la
+//            pagina y no la del navegador (Damian, 18/11/2026, en Crear por
+//            Excel: "aca no me deja crear subrubro"): Chrome puede bloquear
+//            las ventanas del navegador y ahi la opcion no hacia nada. Y en
+//            Crear por Excel ahora se ven los rubros y subrubros agregados a
+//            mano antes (quedaban afuera porque llegan recien al subir el
+//            archivo).
 // V.0.99.11 - Marcas: se puede sacar del listado cualquier marca sin productos
 //            (Damian, 18/11/2026: "dame posibilidad de eliminar marcas que no
 //            van del listado"). Las del codigo se esconden (Setting
@@ -1305,7 +1312,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.11";
+export const APP_VERSION = "V.0.99.12";
 
 export type VersionEntry = {
   version: string;

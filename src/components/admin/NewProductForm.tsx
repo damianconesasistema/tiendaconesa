@@ -24,7 +24,7 @@ export function NewProductForm({
   const router = useRouter();
   const [rubro, setRubro] = useState("otros");
   const [sub, setSub] = useState("");
-  const { extra, pedirRubro, pedirSubrubro } = useRubrosAMano(rubrosExtra);
+  const { extra, pedirRubro, pedirSubrubro, dialogo: dialogoRubro } = useRubrosAMano(rubrosExtra);
   const subrubros = subrubrosDe(rubro, extra);
   const [state, formAction, isPending] = useActionState<State, FormData>(
     createProduct as (prev: State, fd: FormData) => Promise<State>,
@@ -50,6 +50,7 @@ export function NewProductForm({
 
   return (
     <form onSubmit={enviar} className="mt-6 space-y-5">
+      {dialogoRubro}
       <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
         <div>
           <Label>Título *</Label>
