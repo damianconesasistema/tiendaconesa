@@ -102,19 +102,10 @@ gcloud compute scp /tmp/next.tgz "$VM":/tmp/ --zone "$ZONA" --project "$PROYECTO
 en_la_vm "sudo bash -c '
   cd $DIR
   git fetch -q origin && git reset -q --hard origin/main
-  if [ -f /tmp/mods.tgz ]; then rm -rf node_modules && tar xzf /tmp/mods.tgz && rm -f /tmp/mods.tgz; fi
-  rm -rf .next && tar xzf /tmp/next.tgz && rm -f /tmp/next.tgz
-  # Regenerar SIEMPRE el cliente de Prisma, no solo cuando cambian las
-  # dependencias. Ese cliente se arma a partir de prisma/schema.prisma: si el
-  # esquema sumo una columna y el cliente quedo viejo, el codigo nuevo le pide
-  # a la base un campo que su cliente no conoce y la consulta falla.
-  #
-  # Paso de verdad: el sitio quedo pidiendo Branch.subdominio contra un
-  # cliente generado antes de que esa columna existiera. Como la consulta esta
-  # dentro de un try, no se vio ningun error: las dos tiendas mostraban el
-  # mismo CUIT y nada en los registros.
-  npx prisma generate >/dev/null
-  systemctl restart conesa
+  # Lo mismo que la publicacion automatica: la version nueva se prende al lado
+  # de la vieja y nginx cambia sin cortar. Tambien regenera el cliente de
+  # Prisma y prepara la base. Ver deploy/cambiar-version.sh.
+  bash deploy/cambiar-version.sh
 '"
 rm -f /tmp/next.tgz /tmp/mods.tgz
 
@@ -128,10 +119,10 @@ for i in $(seq 1 30); do
   # la tuberia y la asignacion falla. Con set -e eso corta el script entero
   # en el primer intento, sin un solo punto en pantalla: una publicacion que
   # salio bien parecia fallada. Paso el 28/10.
-  CODIGO=$(en_la_vm 'curl -s -o /dev/null -w "%{http_code}" localhost:3000' 2>/dev/null | tr -d '\r\n ' || true)
+  CODIGO=$(en_la_vm 'curl -s -o /dev/null -w "%{http_code}" localhost:$(bash /opt/conesa/deploy/cambiar-version.sh --puerto)' 2>/dev/null | tr -d '\r\n ' || true)
   if [ "$CODIGO" = "200" ]; then
     echo " OK"
-    echo "==> Listo. La tienda no se apago: solo se reinicio el programa."
+    echo "==> Listo. La tienda no se apago."
     exit 0
   fi
   echo -n "."
@@ -140,5 +131,5 @@ done
 
 echo
 echo "La tienda no contesto despues de dos minutos. Mira que paso:"
-echo "  gcloud compute ssh conesa --zone us-central1-a --command 'journalctl -u conesa -n 50'"
+echo "  gcloud compute ssh conesa --zone us-central1-a --command 'journalctl -t conesa -n 50'"
 exit 1

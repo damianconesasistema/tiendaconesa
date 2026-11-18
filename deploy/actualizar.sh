@@ -47,11 +47,13 @@ echo "==> Compilando (tarda varios minutos en esta maquina)"
 # se lleve puesta la base de datos.
 NODE_OPTIONS="--max-old-space-size=1536" npm run build
 
-echo "==> Reiniciando"
-# npm start corre las migraciones (prisma/pre-start.mjs) y despues levanta Next.
-systemctl restart conesa
-sleep 5
-systemctl --no-pager --lines=10 status conesa || true
+echo "==> Poniendo la version nueva"
+# Igual que la publicacion automatica (deploy/cambiar-version.sh), con la
+# compilacion recien hecha. Aca las dependencias se instalaron encima de las
+# que usa la tienda que atiende, asi que primero se apaga la vieja
+# (CONESA_SECUENCIAL): corta unos segundos.
+tar czf /tmp/next.tgz .next
+CONESA_SECUENCIAL=1 bash deploy/cambiar-version.sh
 
 echo
-echo "Listo. Si algo salio mal, el detalle esta en:  journalctl -u conesa -n 50"
+echo "Listo. Si algo salio mal, el detalle esta en:  journalctl -t conesa -n 50"

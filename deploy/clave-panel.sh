@@ -34,6 +34,8 @@ printf '%s\n' "$CLAVE" > /etc/conesa.admin-pass
 chmod 600 /etc/conesa.admin-pass
 shred -u "$ORIGEN"
 
-systemctl restart conesa
+# La tienda que atiende ahora (conesa@3000 o conesa@3001, ver
+# deploy/cambiar-version.sh), para que lea la clave nueva.
+systemctl restart "$(bash /opt/conesa/deploy/cambiar-version.sh --servicio)"
 echo "Contrasena cambiada (${#CLAVE} caracteres). El panel ya la pide."
 echo "Si alguna vez te la olvidas:  sudo cat /etc/conesa.admin-pass"

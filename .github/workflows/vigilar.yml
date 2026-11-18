@@ -142,7 +142,7 @@ jobs:
           echo "  1. Abrir $SITIO y ver que pasa."
           echo "  2. Si no abre, mirar el registro del servidor:"
           echo "     gcloud compute ssh conesa --zone us-central1-a \\"
-          echo "       --command 'journalctl -u conesa -n 50'"
+          echo "       --command 'journalctl -t conesa -n 50'"
           echo "  3. Casi siempre alcanza con volver a publicar:"
           echo "     la pestana Actions -> Publicar -> Run workflow."
           exit 1

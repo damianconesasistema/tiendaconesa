@@ -1,0 +1,29 @@
+[Unit]
+# La tienda, en uno de sus dos lugares: conesa@3000 o conesa@3001. Atiende uno
+# solo; al publicar se prende el otro con la version nueva y nginx cambia de
+# lugar sin cortar. Ver deploy/cambiar-version.sh.
+Description=Tienda Conesa (puerto %i)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/conesa
+EnvironmentFile=/etc/conesa.env
+# Cada lugar ve SU compilacion en /opt/conesa/.next: la de Next guarda ese
+# camino adentro, asi que no se puede correr desde otra carpeta.
+BindPaths=/opt/conesa/.next-%i:/opt/conesa/.next
+# Directo con next start: la base ya la prepara la publicacion antes de
+# cambiar de lugar (prisma/pre-start.mjs).
+ExecStart=/usr/bin/env node /opt/conesa/node_modules/next/dist/bin/next start -p %i
+Restart=always
+RestartSec=5
+# En una maquina de 1 GB, un pico de la pagina no se tiene que llevar puesta
+# la base de datos.
+MemoryMax=700M
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=conesa
+
+[Install]
+WantedBy=multi-user.target

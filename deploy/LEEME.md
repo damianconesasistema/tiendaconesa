@@ -119,8 +119,8 @@ Google Cloud Storage (5 GB gratis):
 |---|---|
 | Subir cambios | `sudo /opt/conesa/deploy/actualizar.sh` |
 | Ver si esta andando | `systemctl status conesa` |
-| Ver errores | `journalctl -u conesa -n 50` |
-| Reiniciar | `sudo systemctl restart conesa` |
+| Ver errores | `journalctl -t conesa -n 50` |
+| Reiniciar | `sudo systemctl restart $(bash /opt/conesa/deploy/cambiar-version.sh --servicio)` (la que atiende: conesa@3000 o conesa@3001) |
 | Respaldar ahora | `sudo /usr/local/bin/conesa-backup` |
 | Ver los respaldos | `ls -lh /var/backups/conesa` |
 

@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.21 - Publicar sin cortar la tienda (Damian, 18/11/2026: "porque
+//            tira eso cada vez que subis" ... "Si, armalo"). Dos lugares para
+//            la tienda, conesa@3000 y conesa@3001 (deploy/conesa@.service):
+//            la version nueva se prende en el que esta apagado, cuando
+//            contesta nginx le pasa las visitas (reload, sin cortar) y recien
+//            ahi se apaga la vieja. Si la nueva no arranca, queda la vieja;
+//            si no alcanza la memoria (1 GB), se hace como antes. La primera
+//            vez pasa solo de la forma vieja a la nueva y, si nginx no acepta
+//            el cambio, vuelve atras. Todo en deploy/cambiar-version.sh, que
+//            usan la publicacion automatica, deploy/publicar.sh y
+//            deploy/actualizar.sh.
 // V.0.99.20 - Volver de un producto a la lista deja todo como estaba (Damian,
 //            18/11/2026: "cuando vuelvo para atras si estoy editando un
 //            producto deberia volver al punto donde estaba ... me resetea los
@@ -1383,7 +1394,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.20";
+export const APP_VERSION = "V.0.99.21";
 
 export type VersionEntry = {
   version: string;
