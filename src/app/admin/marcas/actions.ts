@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { agregarMarca, getMarcas, guardarWebDeMarca, quitarMarca } from "@/lib/marcas-server";
-import { quitarLogo, traerLogoDeLaWeb } from "@/lib/logo-de-marca";
+import { guardarLogoSubido, quitarLogo, traerLogoDeLaWeb } from "@/lib/logo-de-marca";
 
 type Resultado = { ok?: true; error?: string };
 
@@ -91,7 +91,24 @@ export async function traerLogosQueFaltan(): Promise<{ traidos: number; fallaron
   return { traidos, fallaron };
 }
 
-/** Saca el logo traido de la web (si era otra imagen). */
+/** "subir logo": la imagen que elige Damian en la compu, para cualquier
+ *  marca (tenga o no pagina web, y aunque ya tenga logo). */
+export async function subirLogo(id: string, formData: FormData): Promise<{ ok?: true; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { error: "No autorizado" };
+  if (!(await getMarcas()).some((m) => m.id === id)) return { error: "No está esa marca." };
+  const f = formData.get("logo");
+  if (!(f instanceof File) || f.size === 0) return { error: "No llegó la imagen." };
+  if (f.size > 8 * 1024 * 1024) return { error: "La imagen pesa más de 8 MB." };
+  if (!/^image\//.test(f.type) && !/\.(png|jpe?g|webp|svg|gif|avif)$/i.test(f.name))
+    return { error: "Tiene que ser una imagen (PNG, JPG, WebP o SVG)." };
+  const r = await guardarLogoSubido(id, Buffer.from(await f.arrayBuffer()));
+  if (!r.ok) return { error: r.motivo };
+  refrescarLogos();
+  return { ok: true };
+}
+
+/** Saca el logo traido de la web o subido (si era otra imagen). */
 export async function sacarLogo(id: string): Promise<{ ok?: true; error?: string }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };

@@ -10,6 +10,7 @@ import {
   traerLogo,
   traerLogosQueFaltan,
   sacarLogo,
+  subirLogo,
 } from "@/app/admin/marcas/actions";
 
 type Fila = {
@@ -18,7 +19,7 @@ type Fila = {
   logo: string | null;
   /** El logo del codigo es blanco: se muestra en negro. */
   invert: boolean;
-  /** El logo se trajo de su pagina: se puede sacar. */
+  /** El logo se trajo de su pagina o se subio: se puede sacar. */
   logoDeLaWeb: boolean;
   /** Su pagina oficial: de ahi se traen fotos y descripciones. */
   web: string | null;
@@ -79,10 +80,37 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
     });
   }
 
+  // "subir logo": una sola entrada de archivo para todas las filas; se
+  // acuerda de que marca se pidio.
+  const archivo = useRef<HTMLInputElement>(null);
+  const [paraQuien, setParaQuien] = useState<Fila | null>(null);
+
+  function elegirLogo(f: Fila) {
+    setParaQuien(f);
+    archivo.current?.click();
+  }
+
+  function logoElegido(lista: FileList | null) {
+    const f = paraQuien;
+    const imagen = lista?.[0];
+    if (!f || !imagen) return;
+    setError(null);
+    setOk(null);
+    setTrayendo(f.id);
+    iniciar(async () => {
+      const fd = new FormData();
+      fd.append("logo", imagen);
+      const r = await subirLogo(f.id, fd);
+      setTrayendo(null);
+      if (r.error) setError(`${f.name}: ${r.error}`);
+      else setOk(`Logo de ${f.name} cargado.`);
+    });
+  }
+
   function sinLogo(f: Fila) {
     setError(null);
     setOk(null);
-    if (!confirm(`¿Sacar el logo de ${f.name} que se trajo de su página?`)) return;
+    if (!confirm(`¿Sacar el logo de ${f.name}?`)) return;
     iniciar(async () => {
       const r = await sacarLogo(f.id);
       if (r.error) setError(r.error);
@@ -103,6 +131,16 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
 
   return (
     <div className="mt-8 space-y-6">
+      <input
+        ref={archivo}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,image/avif"
+        className="hidden"
+        onChange={(e) => {
+          logoElegido(e.target.files);
+          e.target.value = "";
+        }}
+      />
       <form
         ref={form}
         action={agregar}
@@ -224,6 +262,14 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
                           {trayendo === m.id ? "trayendo…" : "traer logo"}
                         </button>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => elegirLogo(m)}
+                        disabled={pendiente}
+                        className="text-[10px] font-bold text-[var(--brand-red)] underline disabled:opacity-50"
+                      >
+                        {trayendo === m.id ? "subiendo…" : m.logo ? "cambiar logo" : "subir logo"}
+                      </button>
                       {m.logoDeLaWeb && (
                         <button
                           type="button"

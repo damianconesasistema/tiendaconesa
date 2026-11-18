@@ -186,6 +186,19 @@ async function guardarLogo(id: string, png: Buffer): Promise<string> {
   return rutaDelLogo(id, v[id]);
 }
 
+/** El logo que sube Damian desde la compu. Damian, 18/11/2026: "en marcas
+ *  dejame editar los logos trayendo yo la imagen del logo, porque a veces
+ *  carga cualquier cosa". Mismo tratamiento que el traido de la web: sin
+ *  borde vacio, PNG de 160 px de alto. */
+export async function guardarLogoSubido(
+  id: string,
+  imagen: Buffer,
+): Promise<{ ok: true; ruta: string } | { ok: false; motivo: string }> {
+  const listo = await prolijo(imagen);
+  if (!listo) return { ok: false, motivo: "esa imagen no se pudo leer o es demasiado chica" };
+  return { ok: true, ruta: await guardarLogo(id, listo.png) };
+}
+
 /** Saca el logo traido de la web (vuelve al del codigo, si tenia). */
 export async function quitarLogo(id: string): Promise<void> {
   const v = await versionesDeLogos();

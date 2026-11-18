@@ -2,6 +2,12 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.10 - Marcas: "subir logo" / "cambiar logo" en cada marca, con la imagen
+//            que elige Damian en la compu (18/11/2026: "dejame editar los
+//            logos trayendo yo la imagen del logo, porque a veces carga
+//            cualquier cosa"). Sirve para cualquier marca, tenga o no pagina, y
+//            pisa el traido de la web o el del codigo; "sacar" lo deja como
+//            antes. Se recorta y se pasa a PNG igual que los de la web.
 // V.0.99.9 - "Lo mas visto": si el deslizamiento suave no arranca (navegador
 //            viejo, ahorro de energia), pasa igual de golpe.
 // V.0.99.8 - "Lo mas visto" sin barra de desplazamiento ("ojo el scroll ese
@@ -1291,7 +1297,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.9";
+export const APP_VERSION = "V.0.99.10";
 
 export type VersionEntry = {
   version: string;
