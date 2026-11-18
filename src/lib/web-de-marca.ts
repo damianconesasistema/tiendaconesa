@@ -91,7 +91,20 @@ function mismoSitio(host: string, base: URL): boolean {
 
 /** Servidores de fotos de las plataformas: ahi guardan las fotos las tiendas
  *  VTEX, Shopify y los WordPress con el CDN de WordPress. */
-const CDN_DE_FOTOS = ["vteximg.com.br", "vtexassets.com", "cdn.shopify.com", "wp.com", "mlstatic.com"];
+const CDN_DE_FOTOS = [
+  "vteximg.com.br",
+  "vtexassets.com",
+  "cdn.shopify.com",
+  "wp.com",
+  "mlstatic.com",
+  // Tiendanube (Ariel: arielstore.com.ar guarda sus fotos en
+  // dcdn-us.mitiendanube.com). Damian, 18/11/2026: "le pongo el codigo de la
+  // pagina y no lo encuentra el modelo y no me trae las fotos".
+  "mitiendanube.com",
+  "nuvemshop.com.br",
+  "d26lpennugtm8s.cloudfront.net",
+  "d3ugyf2ht6aenh.cloudfront.net",
+];
 
 /** Una foto se baja solo si es del sitio de la marca o del servidor de
  *  fotos de su plataforma. */
@@ -210,6 +223,16 @@ type ProductoLd = {
   mpn?: string;
   "@graph"?: unknown[];
 };
+
+/** Para comparar titulos: sin tildes, en mayusculas, solo letras y numeros. */
+function normalTitulo(x: string): string {
+  return x
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9]+/g, " ")
+    .trim();
+}
 
 function productosLd(html: string): ProductoLd[] {
   const salida: ProductoLd[] = [];
@@ -406,7 +429,19 @@ export function leerPaginaDeProducto(
   descripcion: string | null;
   sku: string | null;
 } | null {
-  const ld = productosLd(html)[0];
+  // La ficha para Google de ESTE producto. Tiendanube pone tambien las de los
+  // productos relacionados (Ariel: en la del 226-P venian la 222-M, la 220-M
+  // y siete mas, y la del 226-P no), y antes se tomaba la primera. Con varias,
+  // o si el titulo de la pagina no la nombra, solo vale la que coincide.
+  const lds = productosLd(html);
+  const tituloPagina = normalTitulo(
+    htmlATexto(meta(html, "og:title") ?? html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? ""),
+  );
+  const coincide = (p: ProductoLd) => {
+    const n = normalTitulo(htmlATexto(p.name ?? ""));
+    return !!n && !!tituloPagina && (tituloPagina.includes(n) || n.includes(tituloPagina));
+  };
+  const ld = lds.find(coincide) ?? (lds.length === 1 && !tituloPagina ? lds[0] : undefined);
   const nombre = sinNombreDelSitio(
     htmlATexto(ld?.name ?? "") ||
       meta(html, "og:title") ||
@@ -433,7 +468,8 @@ export function leerPaginaDeProducto(
   const galeria = [
     ...[...html.matchAll(/"full":"(https?:[^"]+)"/g)].map((m) => m[1].replace(/\\\//g, "/")),
     // La foto grande de cada miniatura (MercadoLibre y muchas galerias).
-    ...[...html.matchAll(/data-zoom="(https?:[^"]+)"/g)].map((m) => decodificar(m[1])),
+    // Tiendanube: data-zoom-url="//dcdn-us.mitiendanube.com/...-1024-1024.webp".
+    ...[...html.matchAll(/data-zoom(?:-url)?="((?:https?:)?\/\/[^"]+)"/g)].map((m) => decodificar(m[1])),
   ];
   const deLaFicha = todasLasImagenes(ld?.image);
   const base = [...galeria, ...deLaFicha];
@@ -690,8 +726,19 @@ async function porBuscadorComun(base: URL, codigo: string, hasta: number): Promi
     const r = await pedir(b.url, { metodo: b.metodo, cuerpo: b.cuerpo });
     if (!r || r.status !== 200) continue;
     // A veces la busqueda con un solo resultado ya abre la pagina del producto.
+    // Pero solo si es UN producto: la pagina de resultados de Tiendanube trae
+    // la ficha para Google de cada resultado y nombra el codigo, y se tomaba
+    // como si fuera el producto (Ariel, 18/11/2026: "Resultados de busqueda",
+    // sin fotos). Vale si la busqueda llevo a otra direccion, o si hay una
+    // sola ficha.
+    const redirigio = r.url.replace(/\/+$/, "") !== b.url.replace(/\/+$/, "");
     const directa = leerPaginaDeProducto(r.texto, r.url);
-    if (directa && productosLd(r.texto).length > 0 && nombraElCodigo(htmlATexto(r.texto), codigo))
+    if (
+      directa &&
+      (redirigio || productosLd(r.texto).length === 1) &&
+      productosLd(r.texto).length > 0 &&
+      nombraElCodigo(htmlATexto(r.texto), codigo)
+    )
       return { ...directa, ficha: r.url, codigo };
     // Primero los resultados que nombran el codigo. Si ninguno lo nombra y la
     // busqueda trajo pocos productos, se entra a esos a ver si alguno lo

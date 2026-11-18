@@ -59,8 +59,27 @@ export function terminacionDe(codigo: string): string | null {
   return TERMINACIONES[partes[partes.length - 1].trim()] ?? null;
 }
 
+// Las letras escritas con nombre: "m&aacute;s" (Ariel, 18/11/2026: la
+// descripcion salia con "&aacute;" en vez de "á").
+const CON_NOMBRE: Record<string, string> = {
+  aacute: "á", eacute: "é", iacute: "í", oacute: "ó", uacute: "ú",
+  Aacute: "Á", Eacute: "É", Iacute: "Í", Oacute: "Ó", Uacute: "Ú",
+  ntilde: "ñ", Ntilde: "Ñ", uuml: "ü", Uuml: "Ü",
+  agrave: "à", egrave: "è", ograve: "ò", ccedil: "ç",
+  iexcl: "¡", iquest: "¿", ordm: "º", ordf: "ª", deg: "°", plusmn: "±",
+  laquo: "«", raquo: "»", ndash: "–", mdash: "—", hellip: "…", middot: "·",
+  bull: "•", times: "×", frac12: "½", frac14: "¼", frac34: "¾",
+  lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”", reg: "®", copy: "©",
+  trade: "™", euro: "€", sup2: "²", sup3: "³", micro: "µ",
+};
+
+function conNombre(s: string): string {
+  return s.replace(/&([a-zA-Z][a-zA-Z0-9]{1,7});/g, (todo, n: string) => CON_NOMBRE[n] ?? todo);
+}
+
 export function decodificar(s: string): string {
-  return s
+  // Dos veces las de nombre: hay paginas que las escriben "&amp;aacute;".
+  return conNombre(s)
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
     .replace(/&quot;/g, '"')
@@ -68,7 +87,8 @@ export function decodificar(s: string): string {
     .replace(/&nbsp;/g, " ")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&");
+    .replace(/&amp;/g, "&")
+    .replace(/&([a-zA-Z][a-zA-Z0-9]{1,7});/g, (todo, n: string) => CON_NOMBRE[n] ?? todo);
 }
 
 /** La foto grande: WordPress agrega "-300x300" a las chicas. */

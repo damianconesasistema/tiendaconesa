@@ -2,6 +2,18 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.3 - Paginas hechas con Tiendanube (Ariel, arielstore.com.ar). Damian,
+//            18/11/2026: "le pongo el codigo de la pagina y no lo encuentra el
+//            modelo y no me trae las fotos". Tres cosas: las fotos estan en el
+//            servidor de Tiendanube (dcdn-us.mitiendanube.com), que no estaba
+//            entre los permitidos; la pagina trae la ficha para Google de los
+//            productos relacionados y no la del suyo, y se leia la primera (el
+//            link del 226-P salia como "222-M"): ahora solo vale la que
+//            coincide con el titulo de la pagina; y las fotos grandes vienen en
+//            data-zoom-url sin "https:". Ademas la pagina de resultados de la
+//            busqueda se tomaba como si fuera el producto: ahora solo si hay un
+//            resultado o la busqueda lleva directo. Y las letras escritas
+//            "&aacute;" en las descripciones se pasan a "a" con tilde.
 // V.0.99.2 - Productos: "Ocultar sin stock" (Damian, 17/11/2026: "quisiera
 //            filtrar por los que tienen 0 en stock para no verlos"). Va aparte
 //            de los filtros rapidos y se suma a cualquiera (por ejemplo,
@@ -1239,7 +1251,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.2";
+export const APP_VERSION = "V.0.99.3";
 
 export type VersionEntry = {
   version: string;
