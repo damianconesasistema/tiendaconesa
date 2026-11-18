@@ -56,7 +56,8 @@ export function EstadoDelPedido({
   const [estado, setEstado] = useState(actual);
   // El estado elegido que espera confirmar (los que mandan mail).
   const [porGuardar, setPorGuardar] = useState<string | null>(null);
-  const [transporte, setTransporte] = useState(transporteGuardado ?? (retira ? "" : "flete"));
+  // De entrada, la agencia con la que se manda hoy (src/lib/transportes.ts).
+  const [transporte, setTransporte] = useState(transporteGuardado ?? (retira ? "" : "jym"));
   const [seguimiento, setSeguimiento] = useState(seguimientoGuardado ?? "");
   const [link, setLink] = useState(linkGuardado ?? "");
   const [avisar, setAvisar] = useState(true);

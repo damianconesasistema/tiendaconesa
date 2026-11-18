@@ -2,6 +2,9 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.25 - Agencia J&M como transporte, primera y elegida de entrada al
+//            pasar un pedido a "En entrega" (Damian, 18/11/2026: "seria los
+//            envios por ahora con la Agencia J&M").
 // V.0.99.24 - Avisos de envio por mail (Damian, 18/11/2026: "cuando hay un
 //            seguimiento del envio que esta en camino, le podemos avisar
 //            tambien por mail"). En la ficha del pedido, al pasarlo a "En
@@ -1428,7 +1431,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.24";
+export const APP_VERSION = "V.0.99.25";
 
 export type VersionEntry = {
   version: string;

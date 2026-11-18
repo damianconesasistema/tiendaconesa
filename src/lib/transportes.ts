@@ -15,6 +15,10 @@ export type Transporte = {
 };
 
 export const TRANSPORTES: readonly Transporte[] = [
+  // Damian, 18/11/2026: "seria los envios por ahora con la Agencia J&M". Va
+  // primera y elegida de entrada. Sin pagina de seguimiento conocida: si la
+  // agencia da un numero o un link, se cargan a mano.
+  { id: "jym", nombre: "Agencia J&M" },
   { id: "flete", nombre: "Nuestro reparto" },
   { id: "andreani", nombre: "Andreani", seguimiento: "https://www.andreani.com/envio/{n}" },
   { id: "oca", nombre: "OCA", seguimiento: "https://www.oca.com.ar/Busquedas/Envios" },

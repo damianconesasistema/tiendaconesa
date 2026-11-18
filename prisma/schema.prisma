@@ -144,7 +144,7 @@ model Order {
   // y lo prometido al cliente tiene que seguir siendo lo que se le prometio.
   envioGratis  Boolean     @default(false)
   // Como sale y su seguimiento: van en el mail "esta en camino" (migracion 43).
-  transporte      String? // flete | andreani | oca | correo | viacargo | cruzdelsur | otro
+  transporte      String? // jym | flete | andreani | oca | correo | viacargo | cruzdelsur | otro
   seguimiento     String? // numero de seguimiento
   linkSeguimiento String? // link directo, si el transporte lo da
   // Los mails que se le mandaron al cliente por los cambios de estado (JSON:
