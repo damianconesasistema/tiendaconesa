@@ -11,7 +11,7 @@ import { formatPrice as fmtPrice } from "@/lib/order";
 import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
 import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
 import { subrubrosDe, nombreSubrubro } from "@/lib/subrubros";
-import { nombreRubro, SIN_EXTRAS, type RubrosExtra } from "@/lib/rubros";
+import { alfabetico, nombreRubro, SIN_EXTRAS, type RubrosExtra } from "@/lib/rubros";
 
 type Product = {
   itemId: string;
@@ -349,7 +349,13 @@ export function CatalogClient({
               />
               {/* Solo las categorias que tienen algo. Una categoria en 0
                   no lleva a ningun lado. */}
-              {categories
+              {[...categories]
+                .sort((a, b) =>
+                  (nombreRubro(a.id, rubrosExtra) || a.label).localeCompare(
+                    nombreRubro(b.id, rubrosExtra) || b.label,
+                    "es",
+                  ),
+                )
                 .filter((c) => (counts[c.id] || 0) > 0)
                 .map((c) => (
                   <FiltroItem
@@ -364,7 +370,7 @@ export function CatalogClient({
                         columna se vuelve una lista de cuarenta renglones. */}
                     {activeCat === c.id && subrubrosConProductos.length > 0 && (
                       <ul className="ml-3 mt-0.5 space-y-0.5 border-l border-[var(--border)] pl-2">
-                        {subrubrosConProductos.map((s) => (
+                        {alfabetico(subrubrosConProductos).map((s) => (
                           <FiltroItem
                             key={s.slug}
                             active={subVigente === s.slug}

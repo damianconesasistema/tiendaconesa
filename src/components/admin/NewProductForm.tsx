@@ -4,7 +4,7 @@ import { rutaAdminProducto } from "@/lib/rutas-producto";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { SHIPPING_TYPES } from "@/lib/shipping";
 import { subrubrosDe } from "@/lib/subrubros";
-import { OPCION_NUEVO, SIN_EXTRAS, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
+import { alfabetico, OPCION_NUEVO, SIN_EXTRAS, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
 import { useRubrosAMano } from "@/components/admin/useRubrosAMano";
 import { useRouter } from "next/navigation";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
@@ -110,7 +110,7 @@ export function NewProductForm({
               <option value="">
                 {subrubros.length === 0 ? "Este rubro no tiene subrubros" : "Sin subrubro"}
               </option>
-              {subrubros.map((s) => (
+              {alfabetico(subrubros).map((s) => (
                 <option key={s.slug} value={s.slug}>
                   {s.name}
                 </option>

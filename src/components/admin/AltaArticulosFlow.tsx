@@ -30,7 +30,7 @@ import {
 import { uploadOneImage, finishImageBulk } from "@/app/admin/productos/imagenes/actions";
 import { formatPrice } from "@/lib/order";
 import { subrubrosDe, subrubroSugerido } from "@/lib/subrubros";
-import { OPCION_NUEVO, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
+import { alfabetico, OPCION_NUEVO, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
 import { useRubrosAMano } from "@/components/admin/useRubrosAMano";
 import { rubroSugerido } from "@/lib/alta-articulos";
 import { MARCAS_BASE } from "@/lib/marcas";
@@ -1211,7 +1211,7 @@ function Ficha({
             <option value="">
               {subrubros.length === 0 ? "Este rubro no tiene" : "Sin subrubro"}
             </option>
-            {subrubros.map((s) => (
+            {alfabetico(subrubros).map((s) => (
               <option key={s.slug} value={s.slug}>
                 {s.name}
               </option>

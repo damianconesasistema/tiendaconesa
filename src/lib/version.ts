@@ -2,6 +2,11 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.4 - Rubros y subrubros de la A a la Z, con "Otros" al final (Damian,
+//            18/11/2026: "ordename eso alfabeticamente siempre"): en los
+//            desplegables de la ficha, el alta a mano y Crear por Excel, en
+//            los botones de categoria del panel y en el filtro de la tienda.
+//            Solo cambia como se muestran.
 // V.0.99.3 - Paginas hechas con Tiendanube (Ariel, arielstore.com.ar). Damian,
 //            18/11/2026: "le pongo el codigo de la pagina y no lo encuentra el
 //            modelo y no me trae las fotos". Tres cosas: las fotos estan en el
@@ -1251,7 +1256,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.3";
+export const APP_VERSION = "V.0.99.4";
 
 export type VersionEntry = {
   version: string;

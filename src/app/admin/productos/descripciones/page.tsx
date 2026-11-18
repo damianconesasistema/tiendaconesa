@@ -1,4 +1,4 @@
-import { RUBROS_BASE } from "@/lib/rubros";
+import { todosLosRubros } from "@/lib/rubros";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 // hacer uno por uno". Los productos son los de ESTE panel (los que vende
 // este local) que todavia no tienen descripcion. Ver ./actions.ts.
 
-const RUBROS = RUBROS_BASE.map((r) => ({ id: r.slug, label: r.name }));
+const RUBROS = todosLosRubros().map((r) => ({ id: r.slug, label: r.name }));
 
 export default async function DescripcionesPage({
   searchParams,

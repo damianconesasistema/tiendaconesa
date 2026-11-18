@@ -8,7 +8,7 @@ import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
 import { redactarDescripcionIA } from "@/app/admin/productos/actions";
 import { subrubrosDe } from "@/lib/subrubros";
-import { OPCION_NUEVO, SIN_EXTRAS, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
+import { alfabetico, OPCION_NUEVO, SIN_EXTRAS, todosLosRubros, type RubrosExtra } from "@/lib/rubros";
 import { useRubrosAMano } from "@/components/admin/useRubrosAMano";
 
 type Product = {
@@ -496,7 +496,7 @@ export function ProductForm({
               <option value="">
                 {subrubros.length === 0 ? "Este rubro no tiene subrubros" : "Sin subrubro"}
               </option>
-              {subrubros.map((s) => (
+              {alfabetico(subrubros).map((s) => (
                 <option key={s.slug} value={s.slug}>
                   {s.name}
                 </option>

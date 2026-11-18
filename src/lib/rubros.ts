@@ -37,15 +37,21 @@ export const RUBROS_BASE: readonly Rubro[] = [
   { slug: "otros", name: "Otros" },
 ];
 
-/** Los de siempre mas los agregados a mano, con "Otros" al final. */
+/** De la A a la Z, con "Otros" siempre al final. Damian, 18/11/2026:
+ *  "ordename eso alfabeticamente siempre". Solo para mostrar: no cambia en
+ *  que orden se reconocen los subrubros en los titulos. */
+export function alfabetico<T extends { name: string; slug: string }>(lista: readonly T[]): T[] {
+  return [...lista].sort((a, b) =>
+    a.slug === "otros" ? 1 : b.slug === "otros" ? -1 : a.name.localeCompare(b.name, "es"),
+  );
+}
+
+/** Los de siempre mas los agregados a mano, de la A a la Z y con "Otros" al
+ *  final. */
 export function todosLosRubros(extra: RubrosExtra = SIN_EXTRAS): Rubro[] {
   const ids = new Set(RUBROS_BASE.map((r) => r.slug));
   const nuevos = extra.rubros.filter((r) => !ids.has(r.slug));
-  return [
-    ...RUBROS_BASE.filter((r) => r.slug !== "otros"),
-    ...nuevos,
-    { slug: "otros", name: "Otros" },
-  ];
+  return alfabetico([...RUBROS_BASE.filter((r) => r.slug !== "otros"), ...nuevos, { slug: "otros", name: "Otros" }]);
 }
 
 /** El nombre para mostrar. Si el slug no esta en ninguna lista, el slug. */

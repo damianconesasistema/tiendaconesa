@@ -211,8 +211,9 @@ export default async function ProductosAdmin({
       (porCategoria.get(f.product.category) ?? 0) + 1,
     );
   const categories = [...porCategoria.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([id, count]) => ({ id, label: nombreRubro(id, rubrosExtra), count }));
+    .map(([id, count]) => ({ id, label: nombreRubro(id, rubrosExtra), count }))
+    // De la A a la Z por el nombre, con "Otros" al final.
+    .sort((a, b) => (a.id === "otros" ? 1 : b.id === "otros" ? -1 : a.label.localeCompare(b.label, "es")));
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
