@@ -2,6 +2,14 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.11 - Marcas: se puede sacar del listado cualquier marca sin productos
+//            (Damian, 18/11/2026: "dame posibilidad de eliminar marcas que no
+//            van del listado"). Las del codigo se esconden (Setting
+//            "marcas_ocultas") y vuelven, con su logo, si se agregan de nuevo
+//            con el mismo nombre; las que tienen productos siguen con el
+//            candado. "Lo mas visto" pasa siempre solo ("eso tiene que ir
+//            pasando automatico"): ya no se frena con el mouse encima, solo
+//            unos segundos despues de tocar una flecha o deslizarla.
 // V.0.99.10 - Marcas: "subir logo" / "cambiar logo" en cada marca, con la imagen
 //            que elige Damian en la compu (18/11/2026: "dejame editar los
 //            logos trayendo yo la imagen del logo, porque a veces carga
@@ -1297,7 +1305,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.10";
+export const APP_VERSION = "V.0.99.11";
 
 export type VersionEntry = {
   version: string;

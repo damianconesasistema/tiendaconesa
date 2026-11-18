@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { rutaProducto } from "@/lib/rutas-producto";
 import { precioVitrina } from "@/lib/precios";
@@ -16,8 +16,10 @@ import { formatPrice } from "@/lib/order";
 // Una fila que pasa sola, de a uno y despacio, con una flechita en cada punta
 // ("hacele una flechita en cada punta y que vaya pasando solo de a 1 pero
 // lento"), sin barra de desplazamiento ("ojo el scroll ese queda feo") y con
-// los colores del sitio ("el fondo negro queda mal"). Se frena con el mouse
-// encima o al tocarla, y no se mueve sola si la compu pide menos movimiento.
+// los colores del sitio ("el fondo negro queda mal"). Pasa siempre ("eso tiene
+// que ir pasando automatico"): solo se toma unos segundos despues de que
+// alguien toca una flecha o la desliza con el dedo, y no se mueve sola si la
+// compu pide menos movimiento.
 
 export type MasVisto = {
   itemId: string;
@@ -30,6 +32,8 @@ export type MasVisto = {
 
 /** Cada cuanto pasa al siguiente. */
 const CADA = 4000;
+/** Despues de tocarla, cuanto espera antes de seguir sola. */
+const RESPIRO = 8000;
 
 export function MasVistos({
   productos,
@@ -43,7 +47,11 @@ export function MasVistos({
   compacto?: boolean;
 }) {
   const fila = useRef<HTMLDivElement>(null);
-  const [quieto, setQuieto] = useState(false);
+  // Hasta cuando se queda quieta porque alguien la toco.
+  const quietaHasta = useRef(0);
+  const tocada = () => {
+    quietaHasta.current = Date.now() + RESPIRO;
+  };
 
   /** Un lugar para un lado. Al llegar al final vuelve al principio. */
   function mover(lado: 1 | -1) {
@@ -71,11 +79,13 @@ export function MasVistos({
   }
 
   useEffect(() => {
-    if (quieto || productos.length < 3) return;
+    if (productos.length < 3) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setInterval(() => mover(1), CADA);
+    const t = setInterval(() => {
+      if (Date.now() >= quietaHasta.current) mover(1);
+    }, CADA);
     return () => clearInterval(t);
-  }, [quieto, productos.length]);
+  }, [productos.length]);
 
   // Con menos de tres no es un ranking, es una casualidad.
   if (productos.length < 3) return null;
@@ -90,9 +100,7 @@ export function MasVistos({
           ? "mb-6 rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5"
           : "border-b border-[var(--border)] bg-[var(--surface)] px-6 py-10 sm:py-12"
       }
-      onMouseEnter={() => setQuieto(true)}
-      onMouseLeave={() => setQuieto(false)}
-      onTouchStart={() => setQuieto(true)}
+      onTouchStart={tocada}
     >
       <div className={compacto ? "" : "mx-auto max-w-6xl"}>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-red)]/10 px-3 py-1 font-display text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--brand-red)]">
@@ -108,7 +116,10 @@ export function MasVistos({
         </h2>
 
         <div className="relative mt-4 px-5">
-          <button type="button" aria-label="Anterior" onClick={() => mover(-1)} className={`${flecha} left-0`}>
+          <button type="button" aria-label="Anterior" onClick={() => {
+              tocada();
+              mover(-1);
+            }} className={`${flecha} left-0`}>
             <ChevronLeft className="h-5 w-5" />
           </button>
           <div ref={fila} className="sin-barra flex snap-x snap-mandatory gap-3 overflow-x-auto py-1 sm:gap-4">
@@ -140,7 +151,10 @@ export function MasVistos({
               </Link>
             ))}
           </div>
-          <button type="button" aria-label="Siguiente" onClick={() => mover(1)} className={`${flecha} right-0`}>
+          <button type="button" aria-label="Siguiente" onClick={() => {
+              tocada();
+              mover(1);
+            }} className={`${flecha} right-0`}>
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>

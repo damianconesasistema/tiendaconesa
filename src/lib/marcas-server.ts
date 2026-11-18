@@ -64,13 +64,32 @@ async function leerExtras(): Promise<Marca[]> {
 }
 
 /** Todas las marcas: las del codigo primero, despues las que agrego el admin. */
+/** Las marcas del codigo que se sacaron del listado desde el panel (no se
+ *  pueden borrar del codigo: se esconden). Damian, 18/11/2026: "dame
+ *  posibilidad de eliminar marcas que no van del listado". */
+export const SETTING_MARCAS_OCULTAS = "marcas_ocultas";
+
+async function leerOcultas(): Promise<Set<string>> {
+  try {
+    const l = JSON.parse((await getSetting(SETTING_MARCAS_OCULTAS)) || "[]");
+    return new Set(Array.isArray(l) ? l.filter((x): x is string => typeof x === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export async function getMarcas(): Promise<Marca[]> {
-  const [extras, webs, logos] = await Promise.all([leerExtras(), leerWebs(), versionesDeLogos()]);
+  const [extras, webs, logos, ocultas] = await Promise.all([
+    leerExtras(),
+    leerWebs(),
+    versionesDeLogos(),
+    leerOcultas(),
+  ]);
   const base = MARCAS_BASE.map((m) => ({ ...m }));
   const ids = new Set(base.map((m) => m.id));
   // Si alguien cargo una que ya existe en el codigo, gana la del codigo:
   // esa trae logo y alias.
-  return base.concat(extras.filter((m) => !ids.has(m.id))).map((m) => {
+  return base.concat(extras.filter((m) => !ids.has(m.id))).filter((m) => !ocultas.has(m.id)).map((m) => {
     let r: Marca = m;
     if (m.id in webs) {
       const web = webs[m.id];
@@ -173,6 +192,14 @@ export async function agregarMarca(
   if (todas.some((m) => m.id === id))
     return { error: `"${name}" ya está en la lista` };
 
+  // Una del codigo que se habia sacado del listado: vuelve, con su logo.
+  const ocultas = await leerOcultas();
+  if (ocultas.has(id) && MARCAS_BASE.some((m) => m.id === id)) {
+    ocultas.delete(id);
+    await setSetting(SETTING_MARCAS_OCULTAS, JSON.stringify([...ocultas]));
+    return { ok: true, id };
+  }
+
   const url = (logo ?? "").trim();
   if (url && !/^https?:\/\//i.test(url) && !url.startsWith("/"))
     return { error: "El logo tiene que ser un link http(s) o una ruta del sitio" };
@@ -185,11 +212,19 @@ export async function agregarMarca(
 
 export async function quitarMarca(id: string): Promise<{ ok?: true; error?: string }> {
   const extras = await leerExtras();
-  if (!extras.some((m) => m.id === id))
-    return { error: "Esa marca viene en el código, no se puede borrar desde acá" };
-  await setSetting(
-    SETTING_MARCAS_EXTRA,
-    JSON.stringify(extras.filter((m) => m.id !== id)),
-  );
-  return { ok: true };
+  if (extras.some((m) => m.id === id)) {
+    await setSetting(
+      SETTING_MARCAS_EXTRA,
+      JSON.stringify(extras.filter((m) => m.id !== id)),
+    );
+    return { ok: true };
+  }
+  // Las del codigo no se pueden borrar de ahi: se esconden del listado.
+  if (MARCAS_BASE.some((m) => m.id === id)) {
+    const ocultas = await leerOcultas();
+    ocultas.add(id);
+    await setSetting(SETTING_MARCAS_OCULTAS, JSON.stringify([...ocultas]));
+    return { ok: true };
+  }
+  return { error: "Esa marca no está en el listado" };
 }

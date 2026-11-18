@@ -121,7 +121,14 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
   function borrar(f: Fila) {
     setError(null);
     setOk(null);
-    if (!confirm(`¿Borrar la marca "${f.name}"?`)) return;
+    if (
+      !confirm(
+        f.editable
+          ? `¿Borrar la marca "${f.name}" del listado?`
+          : `¿Sacar "${f.name}" del listado? Si algún día la necesitás, agregala de nuevo con el mismo nombre y vuelve con su logo.`,
+      )
+    )
+      return;
     iniciar(async () => {
       const r = await borrarMarca(f.id);
       if (r.error) setError(r.error);
@@ -303,19 +310,21 @@ export function MarcasAdmin({ marcas }: { marcas: Fila[] }) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  {m.editable ? (
+                  {/* Cualquier marca sin productos se puede sacar del listado.
+                      Con productos no: quedarian sin marca. */}
+                  {m.productos === 0 ? (
                     <button
                       type="button"
                       onClick={() => borrar(m)}
                       disabled={pendiente}
-                      title="Borrar marca"
+                      title="Sacar del listado"
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] hover:bg-red-50 hover:text-[var(--brand-red)] disabled:opacity-40"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   ) : (
                     <span
-                      title="Viene en el código del sitio"
+                      title={`La usan ${m.productos} ${m.productos === 1 ? "producto" : "productos"}: cambiales la marca para poder sacarla`}
                       className="inline-flex h-8 w-8 items-center justify-center text-[var(--border)]"
                     >
                       <Lock className="h-4 w-4" />
