@@ -92,6 +92,11 @@ export default async function Catalogo({
       marcas={marcas}
       comisionUnPago={recargos.unPago}
       rubrosExtra={rubrosExtra}
+      masVistos={[...products]
+        .filter((p) => p.views > 0)
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 10)
+        .map(paraLaVitrina)}
     />
     </>
   );

@@ -12,6 +12,7 @@ import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
 import { etiquetasDe, TONOS_ETIQUETA } from "@/lib/etiquetas";
 import { subrubrosDe, nombreSubrubro } from "@/lib/subrubros";
 import { alfabetico, nombreRubro, SIN_EXTRAS, type RubrosExtra } from "@/lib/rubros";
+import { MasVistos, type MasVisto } from "@/components/MasVistos";
 
 type Product = {
   itemId: string;
@@ -37,6 +38,8 @@ type Category = {
 type Props = {
   /** Los rubros y subrubros agregados a mano desde el panel. */
   rubrosExtra?: RubrosExtra;
+  /** Los mas vistos, para la franja de arriba (sin filtros). */
+  masVistos?: MasVisto[];
   products: Product[];
   categories: Category[];
   initialCat?: string;
@@ -90,6 +93,7 @@ export function CatalogClient({
   marcas = MARCAS_BASE,
   comisionUnPago = 10,
   rubrosExtra = SIN_EXTRAS,
+  masVistos = [],
 }: Props) {
   const [query, setQuery] = useState(initialQuery);
   const [activeCat, setActiveCat] = useState<string>(initialCat);
@@ -422,6 +426,10 @@ export function CatalogClient({
 
         {/* COLUMNA DE LA DERECHA: resultados y grilla */}
         <div className="min-w-0 flex-1">
+        {/* Lo mas visto, solo mirando todo: con un filtro puesto, molesta. */}
+        {activeCat === "all" && marcaVigente === "all" && !query.trim() && (
+          <MasVistos productos={masVistos} comisionUnPago={comisionUnPago} compacto />
+        )}
         {/* RESULTADOS + ORDEN */}
         <section className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[var(--muted)]">

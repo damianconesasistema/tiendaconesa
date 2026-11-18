@@ -2,6 +2,14 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.7 - Destacados variados y "Lo mas visto". Damian, 18/11/2026:
+//            "reformulame lo que muestra destacados, hace un variete de los
+//            productos, y se puede hacer un banner en la tienda donde destaque
+//            los productos que tienen mas visitas?". Destacados se reparte por
+//            categoria y marca (src/lib/variedad.ts) y cambia cada dia; si no
+//            alcanzan los marcados, se completa con los mas vistos. Banner
+//            "Lo mas visto" (el contador de visitas de cada ficha) en la
+//            portada y arriba del catalogo cuando no hay filtros.
 // V.0.99.6 - Sin stock, pausado. Damian, 18/11/2026: "necesito que los
 //            productos que estan en la tienda sin stock queden pausados, no se
 //            muestren". La tienda solo muestra lo que tiene stock; guardar
@@ -1274,7 +1282,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.6";
+export const APP_VERSION = "V.0.99.7";
 
 export type VersionEntry = {
   version: string;

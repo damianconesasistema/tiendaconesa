@@ -3,6 +3,8 @@ import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { TikTokCollage } from "@/components/TikTokCollage";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
+import { MasVistos } from "@/components/MasVistos";
+import { conVariedad, semillaDeHoy } from "@/lib/variedad";
 import { getRecargosMp, getPlanesCuotas } from "@/lib/settings";
 import { CuotasBanner } from "@/components/CuotasBanner";
 import { OfertasBanner } from "@/components/OfertasBanner";
@@ -148,29 +150,45 @@ export default async function Home() {
   // que se queria evitar de verdad.
   const yaMostrados = onSale.map((p) => p.itemId);
 
-  let featured = (
-    await articulosEnVenta({
-      articulo: { featured: true, itemId: { notIn: yaMostrados } },
-      orden: ["titulo"],
-      cuantos: 8,
-    })
-  ).map(paraLaVitrina);
+  // Variados: de todas las categorias y marcas, distinto cada dia (Damian,
+  // 18/11/2026: "reformulame lo que muestra destacados, hace un variete de
+  // los productos"). Antes eran los primeros 8 por orden alfabetico, casi
+  // siempre de la misma familia. Ver src/lib/variedad.ts.
+  const hoy = semillaDeHoy();
+  let featured = conVariedad(
+    (
+      await articulosEnVenta({
+        articulo: { featured: true, itemId: { notIn: yaMostrados } },
+        orden: ["titulo"],
+      })
+    ).map(paraLaVitrina),
+    8,
+    hoy,
+  );
 
   if (featured.length < 8) {
-    const extras = (
-      await articulosEnVenta({
-        articulo: {
-          featured: false,
-          itemId: { notIn: [...yaMostrados, ...featured.map((f) => f.itemId)] },
-        },
-        // Con stock primero: no tiene sentido destacar algo que no se puede
-        // comprar.
-        orden: ["stock", "titulo"],
-        cuantos: 8 - featured.length,
-      })
-    ).map(paraLaVitrina);
+    const extras = conVariedad(
+      (
+        await articulosEnVenta({
+          articulo: {
+            featured: false,
+            itemId: { notIn: [...yaMostrados, ...featured.map((f) => f.itemId)] },
+          },
+          // De los que mas se miran, para elegir entre buenos candidatos.
+          orden: ["visitas", "titulo"],
+          cuantos: 80,
+        })
+      ).map(paraLaVitrina),
+      8 - featured.length,
+      `${hoy}-resto`,
+    );
     featured = [...featured, ...extras];
   }
+
+  // Lo mas visto: el contador de visitas de cada ficha.
+  const masVistos = (await articulosEnVenta({ orden: ["visitas", "titulo"], cuantos: 10 }))
+    .filter((p) => p.views > 0)
+    .map(paraLaVitrina);
   return (
     <main className="relative flex-1">
 
@@ -292,6 +310,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* LO MAS VISTO */}
+      <MasVistos productos={masVistos} comisionUnPago={recargos.unPago} />
 
       {/* OFERTAS (solo si hay) */}
       {onSale.length > 0 && (

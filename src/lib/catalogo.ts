@@ -31,7 +31,7 @@ const MARCADOR = "__RESET_PRICES_MARKER__";
 /** Como ordenar la lista. Son los cuatro criterios que usa el sitio; cada uno
  *  sabe si se ordena por un dato del local o del articulo, que es justo lo
  *  que uno no quiere tener que recordar en cada pantalla. */
-export type Orden = "oferta" | "destacado" | "stock" | "titulo";
+export type Orden = "oferta" | "destacado" | "stock" | "titulo" | "visitas";
 
 function ordenDelLocal(o: Orden): Prisma.BranchProductOrderByWithRelationInput {
   switch (o) {
@@ -43,6 +43,8 @@ function ordenDelLocal(o: Orden): Prisma.BranchProductOrderByWithRelationInput {
       return { stock: "desc" };
     case "titulo":
       return { product: { title: "asc" } };
+    case "visitas":
+      return { product: { views: "desc" } };
   }
 }
 
@@ -56,6 +58,8 @@ function ordenDelArticulo(o: Orden): Prisma.ProductOrderByWithRelationInput {
       return { stock: "desc" };
     case "titulo":
       return { title: "asc" };
+    case "visitas":
+      return { views: "desc" };
   }
 }
 
