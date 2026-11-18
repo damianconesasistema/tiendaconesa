@@ -2,6 +2,16 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.13 - El buscador de la tienda perdona (Damian, 18/11/2026: "porque no
+//            busca cuando pongo palabras claves ... que busque con terminos
+//            mal escritos o que suenen a lo que esta buscando el cliente").
+//            Sin tildes ni signos, cada palabra por separado en el titulo, la
+//            marca, el rubro, el subrubro y el codigo; mal escritas (una letra
+//            de mas, de menos, dada vuelta), lo que suena igual (b/v, s/z/c,
+//            ll/y, k/qu, h), singular o plural, y palabras de todos los dias
+//            (canilla = griferia, bacha = pileta, tapa = asiento). Ordena por
+//            lo que mejor coincide, y si nada tiene todas las palabras,
+//            muestra lo que tiene alguna. src/lib/buscar.ts.
 // V.0.99.12 - "+ Agregar rubro / subrubro nuevo..." con una ventanita de la
 //            pagina y no la del navegador (Damian, 18/11/2026, en Crear por
 //            Excel: "aca no me deja crear subrubro"): Chrome puede bloquear
@@ -1312,7 +1322,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.12";
+export const APP_VERSION = "V.0.99.13";
 
 export type VersionEntry = {
   version: string;

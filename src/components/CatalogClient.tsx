@@ -14,6 +14,7 @@ import { subrubrosDe, nombreSubrubro } from "@/lib/subrubros";
 import { alfabetico, nombreRubro, SIN_EXTRAS, type RubrosExtra } from "@/lib/rubros";
 import { MasVistos, type MasVisto } from "@/components/MasVistos";
 import { conVariedad } from "@/lib/variedad";
+import { buscar, indexar } from "@/lib/buscar";
 
 type Product = {
   itemId: string;
@@ -212,13 +213,34 @@ export function CatalogClient({
     .filter(Boolean)
     .join(" · ") || "Todos";
 
+  // El buscador que perdona: sin tildes, cada palabra por separado, mal
+  // escritas, lo que suena igual y palabras de todos los dias (src/lib/buscar.ts).
+  // Mira el titulo, la marca, el rubro, el subrubro y el codigo.
+  const indice = useMemo(
+    () =>
+      products.map((p) => ({
+        id: p.itemId,
+        indice: indexar({
+          titulo: p.title,
+          otros: [
+            p.brand ? nombreMarca(p.brand, marcas) : null,
+            p.brand,
+            nombreRubro(p.category, rubrosExtra),
+            p.subcategory ? nombreSubrubro(p.category, p.subcategory, rubrosExtra) : null,
+            p.itemId,
+          ],
+        }),
+      })),
+    [products, marcas, rubrosExtra],
+  );
+  const busqueda = useMemo(() => (query.trim() ? buscar(query, indice) : null), [query, indice]);
+
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     const base = products.filter((p) => {
       if (activeCat !== "all" && p.category !== activeCat) return false;
       if (subVigente !== "all" && p.subcategory !== subVigente) return false;
       if (marcaVigente !== "all" && p.brand !== marcaVigente) return false;
-      if (q && !p.title.toLowerCase().includes(q)) return false;
+      if (busqueda && !busqueda.puntajes.has(p.itemId)) return false;
       return true;
     });
     // Array.sort es estable, asi que dentro de cada empate se mantiene el
@@ -227,11 +249,14 @@ export function CatalogClient({
     if (orden === "mayor-precio") return base.sort((a, b) => contadoDe(b) - contadoDe(a));
     if (orden === "descuento") return base.sort((a, b) => descuentoDe(b) - descuentoDe(a));
     if (orden === "nombre") return base.sort((a, b) => a.title.localeCompare(b.title, "es"));
+    // Buscando algo: primero lo que mejor coincide.
+    if (busqueda)
+      return base.sort((a, b) => (busqueda.puntajes.get(b.itemId) ?? 0) - (busqueda.puntajes.get(a.itemId) ?? 0));
     // "Recomendados": mezclados, alternando categorias y marcas, distinto en
     // cada visita (src/lib/variedad.ts). Antes eran siempre los mismos
     // primeros: las ofertas y despues por orden alfabetico.
     return semilla ? conVariedad(base, base.length, semilla) : base;
-  }, [products, query, activeCat, subVigente, marcaVigente, orden, semilla]);
+  }, [products, busqueda, activeCat, subVigente, marcaVigente, orden, semilla]);
 
   // Cuantos se ven al tocar cada categoria (o subrubro): con la marca
   // elegida, si con ella hay algo; si no, todos los de la categoria, que es lo
@@ -446,6 +471,11 @@ export function CatalogClient({
             ` en ${nombreRubro(activeCat, rubrosExtra)}${nombreSub ? ` · ${nombreSub}` : ""}`}
           {marcaVigente !== "all" && ` de ${nombreMarca(marcaVigente, marcas)}`}
           {query && ` que coinciden con "${query}"`}
+          {busqueda?.modo === "algunas" && filtered.length > 0 && (
+            <span className="block text-xs">
+              No encontramos todo lo que escribiste: estos tienen alguna de las palabras.
+            </span>
+          )}
         </p>
         <label className="flex items-center gap-2 text-sm">
           <span className="font-display text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
