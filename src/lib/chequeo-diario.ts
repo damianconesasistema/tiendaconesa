@@ -36,6 +36,39 @@ const POCO = 2;
 const TOLERANCIA = 0.5;
 
 const claveFoto = (slug: string) => `novedades_foto:${slug}`;
+/** El ultimo control de cuotas de cada local, para mostrarlo en la pantalla
+ *  de Mercado Pago (Damian, 18/11/2026, mirando "Revisados por ultima vez
+ *  el 17/11": "esto no deberia preguntar todos los dias?". Si: el control
+ *  corre todos los dias, pero esa pantalla solo decia cuando se cargaron los
+ *  costos a mano). */
+const claveControl = (slug: string) => `cuotas_control:${slug}`;
+
+export type ControlDeCuotas = { fecha: string; texto: string; nivel: "info" | "aviso" };
+
+export async function ultimoControlDeCuotas(slug: string): Promise<ControlDeCuotas | null> {
+  try {
+    const o = JSON.parse((await getSetting(claveControl(slug))) || "null");
+    return o && typeof o.fecha === "string" && typeof o.texto === "string"
+      ? { fecha: o.fecha, texto: o.texto, nivel: o.nivel === "aviso" ? "aviso" : "info" }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** "hoy a las 10:32", "ayer a las 9:05", "el 15/11 a las 8:00" (hora de
+ *  Argentina, la del servidor no importa). */
+export function cuandoFue(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const zona = { timeZone: "America/Argentina/Buenos_Aires" } as const;
+  const dia = (x: Date) => x.toLocaleDateString("es-AR", zona);
+  const hora = d.toLocaleTimeString("es-AR", { ...zona, hour: "2-digit", minute: "2-digit" });
+  const ahora = new Date();
+  if (dia(d) === dia(ahora)) return `hoy a las ${hora}`;
+  if (dia(d) === dia(new Date(ahora.getTime() - 86_400_000))) return `ayer a las ${hora}`;
+  return `el ${d.toLocaleDateString("es-AR", { ...zona, day: "numeric", month: "numeric" })} a las ${hora}`;
+}
 
 type NuevaNovedad = Omit<Novedad, "id" | "fecha">;
 type Local = { id: string; slug: string; name: string; tiendaActiva: boolean };
@@ -71,7 +104,20 @@ export function chequeoDiario(): Promise<ResumenChequeo> {
         for (const l of locales) {
           nuevas.push(...(await cambiosDeProductos(l)));
           if (l.tiendaActiva) {
-            nuevas.push(...(await chequeoDeCuotas(l)));
+            const cuotas = await chequeoDeCuotas(l);
+            const c = cuotas[0];
+            await setSetting(
+              claveControl(l.slug),
+              JSON.stringify({
+                fecha: new Date().toISOString(),
+                // Sin el nombre del local adelante: la pantalla ya es de ese local.
+                texto: c
+                  ? c.texto.replace(`${l.name}: `, "").replace(/^./, (x) => x.toUpperCase())
+                  : "La cuenta de Mercado Pago de este local no está conectada: no hay cobros para controlar.",
+                nivel: c?.nivel === "aviso" ? "aviso" : "info",
+              } satisfies ControlDeCuotas),
+            );
+            nuevas.push(...cuotas);
             nuevas.push(...(await recordatorioDeCostos(l)));
           }
         }

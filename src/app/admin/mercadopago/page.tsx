@@ -5,6 +5,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { CostosMercadoPago } from "@/components/admin/CostosMercadoPago";
 import { getCostosMpDelPanel, getRecargosDelPanel } from "@/lib/settings";
 import { sucursalDelPanel } from "@/lib/sucursal-panel";
+import { cuandoFue, ultimoControlDeCuotas } from "@/lib/chequeo-diario";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,8 @@ export default async function MercadoPagoPage() {
     sucursalDelPanel(),
   ]);
   const { revisados, ...guardados } = costos;
+  const ultimo = local ? await ultimoControlDeCuotas(local.slug) : null;
+  const control = ultimo ? { cuando: cuandoFue(ultimo.fecha), texto: ultimo.texto, aviso: ultimo.nivel === "aviso" } : null;
 
   return (
     <AdminShell username={session.username} active="mercadopago">
@@ -45,6 +48,7 @@ export default async function MercadoPagoPage() {
           revisados={revisados}
           recargoUnPago={recargos.unPago}
           local={local?.nombre ?? null}
+          control={control}
         />
       </div>
     </AdminShell>

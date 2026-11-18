@@ -3,6 +3,9 @@
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { getMarcas } from "@/lib/marcas-server";
+import { sucursalDelPanel } from "@/lib/sucursal-panel";
+import { getRecargosDelPanel } from "@/lib/settings";
+import { precioVitrina } from "@/lib/precios";
 import { guardarComparaciones, preciosAfuera, type Comparacion } from "@/lib/comparador";
 
 // Buscar a cuanto se venden afuera unos productos. La pantalla los pide de a
@@ -20,13 +23,24 @@ export async function compararPrecios(
   const pedidos = [...new Set((itemIds ?? []).map(String))].slice(0, POR_PEDIDO);
   if (pedidos.length === 0) return { ok: true, resultados: {} };
 
-  const [productos, marcas] = await Promise.all([
+  const [productos, marcas, suc, recargos] = await Promise.all([
     prisma.product.findMany({
       where: { itemId: { in: pedidos } },
-      select: { itemId: true, title: true, memo: true, codigoFabricante: true, brand: true },
+      select: { id: true, itemId: true, title: true, memo: true, description: true, codigoFabricante: true, brand: true },
     }),
     getMarcas(),
+    sucursalDelPanel(),
+    getRecargosDelPanel(),
   ]);
+  // Nuestro precio en este local (el que ve el cliente), para descartar lo
+  // que sale disparatado.
+  const precios = new Map<string, number>();
+  if (suc)
+    for (const b of await prisma.branchProduct.findMany({
+      where: { branchId: suc.id, productId: { in: productos.map((x) => x.id) } },
+      select: { productId: true, price: true, salePrice: true },
+    }))
+      precios.set(b.productId, precioVitrina(b.salePrice ?? b.price, recargos.unPago));
   const nombreMarca = new Map(marcas.map((m) => [m.id, m.name]));
 
   const resultados: Record<string, Comparacion> = {};
@@ -37,7 +51,9 @@ export async function compararPrecios(
           itemId: p.itemId,
           titulo: p.title,
           memo: p.memo,
+          descripcion: p.description,
           codigoFabricante: p.codigoFabricante,
+          precio: precios.get(p.id) ?? null,
           marca: p.brand ? (nombreMarca.get(p.brand) ?? p.brand) : null,
         });
       } catch {

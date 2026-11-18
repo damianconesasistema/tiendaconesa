@@ -2,6 +2,20 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.16 - Comparador: una medida ya no cuenta como codigo (Damian,
+//            18/11/2026: "se ve que esta buscando otra cosa y no el codigo
+//            que corresponde"; de "67.5 X 40.5 X 20 CM" salia "40.5" y daba
+//            como mismo modelo una lija a $8.700, "2742% mas caro"). Mismo
+//            modelo ahora pide el codigo en el nombre o la referencia (no en
+//            una descripcion larga), la misma marca y un precio que tenga
+//            sentido; busca tambien con los codigos de la descripcion y por
+//            palabras con la marca. Mercado Pago: arriba de todo, el control
+//            automatico de todos los dias (cuando corrio y que encontro) con
+//            "Chequear ahora"; la fecha de revision a mano queda aparte
+//            ("esto no deberia preguntar todos los dias?"). Panel: las
+//            pestanas ya no tienen barra de desplazamiento; si no entran en
+//            una fila bajan a la siguiente ("hacelo adaptativo a la
+//            pantalla").
 // V.0.99.15 - Comparador de precios, pestana nueva del panel (Damian,
 //            18/11/2026: "armame un comparador de precios con los publicados
 //            ... un panel aparte donde esten todas las publicaciones y busque
@@ -1346,7 +1360,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.15";
+export const APP_VERSION = "V.0.99.16";
 
 export type VersionEntry = {
   version: string;

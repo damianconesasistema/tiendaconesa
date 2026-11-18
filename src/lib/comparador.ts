@@ -55,6 +55,7 @@ export type Comparacion = {
 
 type ProductoVtex = {
   productName?: string;
+  brand?: string;
   productReference?: string;
   description?: string;
   link?: string;
@@ -130,6 +131,22 @@ function palabrasClave(titulo: string, marca: string | null): string {
   return (buenas.length >= 2 ? buenas : todas).slice(0, 3).join(" ");
 }
 
+/** Un codigo de modelo de verdad: letras y numeros ("410-E", "0207/B1",
+ *  "BACH0LOZ 04 02"). Un numero solo es casi siempre una medida: del titulo
+ *  "67.5 X 40.5 X 20 CM" salia "40.5" y se tomaba como "mismo modelo" una
+ *  lija de grano 40 (Damian, 18/11/2026: "se ve que esta buscando otra cosa
+ *  y no el codigo que corresponde"). */
+function esCodigoDeModelo(c: string): boolean {
+  const u = c.toUpperCase();
+  return (
+    /[A-Z]/.test(u) &&
+    /\d/.test(u) &&
+    u.replace(/[^A-Z0-9]/g, "").length >= 3 &&
+    !/^\d+([.,]\d+)?\s*[X×]\s*\d/.test(u) &&
+    !/^\d+([.,/]\d+)?\s*(MM|CM|MTS?|M|LTS?|L|KG|GR|W|V|HZ|HP|CC|PULG)$/.test(u)
+  );
+}
+
 /** Nombra la marca como palabra ("FV", no "pvc" ni "fvx"). */
 function nombraLaMarca(texto: string, marca: string): boolean {
   return ` ${plano(texto)} `.includes(` ${plano(marca)} `);
@@ -139,18 +156,36 @@ export async function preciosAfuera(p: {
   itemId: string;
   titulo: string;
   memo: string | null;
+  /** La descripcion de la ficha. */
+  descripcion?: string | null;
   codigoFabricante: string | null;
   marca: string | null;
+  /** Nuestro precio: si el de afuera es disparatado, no es el mismo producto. */
+  precio?: number | null;
 }): Promise<Comparacion> {
   const propio = p.itemId.toUpperCase();
+  // El codigo de fabricante manda. Si no hay, los codigos del titulo, despues
+  // los de la ayuda memoria y despues los de la descripcion.
   const codigos = p.codigoFabricante?.trim()
     ? [p.codigoFabricante.trim()]
-    : codigosDelArticulo(`${p.memo ?? ""} ${p.titulo}`, p.itemId)
-        .filter((c) => c !== propio)
+    : codigosDelArticulo(
+        [p.titulo, p.memo ?? "", (p.descripcion ?? "").slice(0, 600)].join(" | "),
+        p.itemId,
+      )
+        .filter((c) => c !== propio && esCodigoDeModelo(c))
         .slice(0, 2);
   const clave = palabrasClave(p.titulo, p.marca);
-  const buscado = [...codigos, ...(clave ? [clave] : [])];
-  const esExacto = (texto: string) => codigos.some((c) => variantes(c).some((v) => nombraElCodigo(texto, v)));
+  const conMarca = clave && p.marca ? `${plano(p.marca)} ${clave}` : "";
+  const buscado = [...codigos, ...(clave ? [conMarca || clave] : [])];
+
+  // El mismo modelo: nombra el codigo en el nombre, la referencia o el
+  // detalle del producto (no en una descripcion larga, donde aparece
+  // cualquier cosa); es de la misma marca; y el precio no es disparatado.
+  const precioRazonable = (precio: number) => !p.precio || (precio >= p.precio * 0.4 && precio <= p.precio * 2.5);
+  const esExacto = (fuerte: string, conMarcaYTodo: string, precio: number) =>
+    codigos.some((c) => variantes(c).some((v) => nombraElCodigo(fuerte, v))) &&
+    (!p.marca || nombraLaMarca(conMarcaYTodo, p.marca)) &&
+    precioRazonable(precio);
 
   // Para los "parecidos": cuantas palabras del titulo comparten.
   const nuestras = new Set(palabrasDelTitulo(p.titulo, p.marca));
@@ -164,7 +199,8 @@ export async function preciosAfuera(p: {
     TIENDAS_VTEX.map(async (t) => {
       const deEsta: (PrecioAfuera & { comun: number })[] = [];
       let contesto = false;
-      const preguntas = [...terminos(codigos), ...(clave ? [clave] : [])];
+      // Por palabras, primero con la marca ("mi pileta bacha simple sat").
+      const preguntas = [...new Set([...terminos(codigos), conMarca, clave].filter(Boolean))];
       for (const termino of preguntas) {
         const lista = await buscarEnVtex(t.base, termino);
         if (lista === null) continue;
@@ -173,16 +209,11 @@ export async function preciosAfuera(p: {
           const item = v.items?.[0];
           const precio = item?.sellers?.[0]?.commertialOffer?.Price ?? 0;
           if (!(precio > 0) || !v.productName || !v.link) continue;
-          const texto = [
-            v.productName,
-            v.productReference,
-            item?.name,
-            ...(item?.referenceId ?? []).map((x) => x.Value),
-            v.description?.slice(0, 2000),
-          ]
+          const fuerte = [v.productName, v.productReference, item?.name, ...(item?.referenceId ?? []).map((x) => x.Value)]
             .filter(Boolean)
             .join(" ");
-          const exacto = esExacto(texto);
+          const texto = [fuerte, v.brand, v.description?.slice(0, 2000)].filter(Boolean).join(" ");
+          const exacto = esExacto(fuerte, texto, precio);
           const comun = comunes(v.productName);
           // Lo que no es el mismo modelo: de la misma marca y que se parezca
           // de verdad (las tiendas devuelven cualquier cosa cuando no tienen).

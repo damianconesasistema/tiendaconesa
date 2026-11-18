@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { AlertTriangle, Check, Plus, Trash2, CalendarCheck } from "lucide-react";
+import { AlertTriangle, Check, Plus, Trash2, CalendarCheck, ShieldCheck } from "lucide-react";
+import { ChequearAhora } from "@/components/admin/ChequearAhora";
 import {
   costoTotalPct,
   diasDesdeRevisados,
@@ -28,6 +29,7 @@ const pct = (n: number) => `${n.toLocaleString("es-AR", { maximumFractionDigits:
 export function CostosMercadoPago({
   guardados,
   revisados,
+  control = null,
   recargoUnPago,
   local,
 }: {
@@ -39,6 +41,8 @@ export function CostosMercadoPago({
   recargoUnPago: number;
   /** El local del panel, o null en el panel general. */
   local: string | null;
+  /** El ultimo control automatico de todos los dias (src/lib/chequeo-diario.ts). */
+  control?: { cuando: string; texto: string; aviso: boolean } | null;
 }) {
   const [cobro, setCobro] = useState(String(guardados.cobro));
   const [iva, setIva] = useState(String(guardados.iva));
@@ -111,7 +115,41 @@ export function CostosMercadoPago({
 
   return (
     <div className="mt-8 space-y-6">
-      {/* Cuando se revisaron */}
+      {/* El control automatico: todos los dias compara lo que se llevo
+          Mercado Pago de cada venta con lo cargado aca. */}
+      <div
+        className={`rounded-2xl border p-4 ${
+          control?.aviso ? "border-amber-300 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          {control?.aviso ? (
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+          ) : (
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
+          )}
+          <div className="flex-1 text-sm">
+            <p className="font-bold">
+              Control automático de todos los días
+              {control ? <span className="font-normal"> · último: {control.cuando}</span> : null}
+            </p>
+            <p className="mt-0.5">
+              {control
+                ? control.texto
+                : "Todavía no corrió el primero desde este cambio: corre solo una vez por día, o tocá Chequear ahora."}
+            </p>
+            <p className="mt-1 text-xs opacity-80">
+              Compara lo que Mercado Pago se llevó de cada venta con tarjeta de los últimos 30 días con los costos
+              cargados abajo. Si se lleva más, avisa acá y en las novedades.
+            </p>
+          </div>
+        </div>
+        <div className="mt-3">
+          <ChequearAhora />
+        </div>
+      </div>
+
+      {/* Cuando se revisaron a mano */}
       <div
         className={`flex flex-wrap items-center gap-3 rounded-2xl border p-4 ${
           toca ? "border-amber-300 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"
@@ -120,9 +158,13 @@ export function CostosMercadoPago({
         {toca ? <AlertTriangle className="h-5 w-5 shrink-0" /> : <CalendarCheck className="h-5 w-5 shrink-0" />}
         <p className="flex-1 text-sm">
           {revisados
-            ? `Revisados por última vez el ${new Date(revisados).toLocaleDateString("es-AR")} (hace ${dias} ${dias === 1 ? "día" : "días"}).`
+            ? `Costos cargados a mano: revisados el ${new Date(revisados).toLocaleDateString("es-AR")} (hace ${dias} ${dias === 1 ? "día" : "días"}).`
             : "Nunca se revisaron desde el panel: son los de octubre de 2026."}{" "}
-          {toca ? <strong>Revisalos: Mercado Pago los cambia mes a mes.</strong> : "Están al día."}
+          {toca ? (
+            <strong>Revisalos: Mercado Pago los cambia mes a mes.</strong>
+          ) : (
+            "Están al día. Cuando pase un mes te avisa para que los mires de nuevo en tu cuenta."
+          )}
         </p>
         {toca && !cambio && (
           <button

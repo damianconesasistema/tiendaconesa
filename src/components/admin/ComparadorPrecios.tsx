@@ -28,15 +28,21 @@ type Orden = "nombre" | "diferencia";
 /** De a cuantos se le piden al servidor (igual que en actions.ts). */
 const DE_A = 3;
 
+/** Mismo modelo y a un precio que tiene sentido (lo buscado antes del
+ *  18/11 podia tener una medida tomada como codigo: "2742% mas caro"). */
+function esMismo(r: PrecioAfuera, nuestro: number): boolean {
+  return r.exacto && r.precio >= nuestro * 0.4 && r.precio <= nuestro * 2.5;
+}
+
 /** El mas barato de los que son el mismo modelo. */
-function mejorExacto(c: Comparacion | null): PrecioAfuera | null {
-  const exactos = (c?.resultados ?? []).filter((r) => r.exacto);
+function mejorExacto(c: Comparacion | null, nuestro: number): PrecioAfuera | null {
+  const exactos = (c?.resultados ?? []).filter((r) => esMismo(r, nuestro));
   return exactos.length ? exactos.reduce((a, b) => (b.precio < a.precio ? b : a)) : null;
 }
 
 /** Cuanto mas caro (+) o mas barato (-) estamos que afuera, en %. */
 function diferencia(f: FilaComparador): number | null {
-  const m = mejorExacto(f.comparacion);
+  const m = mejorExacto(f.comparacion, f.precio);
   return m ? Math.round(((f.precio - m.precio) / m.precio) * 100) : null;
 }
 
@@ -273,10 +279,12 @@ function Fila({
   buscarEste: () => void;
 }) {
   const c = f.comparacion;
-  const mejor = mejorExacto(c);
+  const mejor = mejorExacto(c, f.precio);
   const d = diferencia(f);
+  // Los parecidos son los que no nombran el codigo. Uno que lo nombraba pero
+  // con un precio disparatado era un error de antes: no se muestra.
   const parecidos = (c?.resultados ?? []).filter((r) => !r.exacto);
-  const exactos = (c?.resultados ?? []).filter((r) => r.exacto);
+  const exactos = (c?.resultados ?? []).filter((r) => esMismo(r, f.precio));
 
   return (
     <div className="border-b border-[var(--border)] last:border-b-0">

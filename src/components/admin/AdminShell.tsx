@@ -111,8 +111,10 @@ export async function AdminShell({
             <LogoutButton />
           </div>
         </div>
-        {/* Tabs */}
-        <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto border-t border-[var(--border)] px-4 sm:px-6">
+        {/* Tabs. Sin barra de desplazamiento (Damian, 18/11/2026: "eso no lo
+            pongas, fijate de hacerlo adaptativo a la pantalla"): si no entran
+            en una fila, bajan a la siguiente. */}
+        <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-0.5 border-t border-[var(--border)] px-2 sm:px-4">
           <Tab
             href="/admin"
             icon={LayoutDashboard}
@@ -171,7 +173,7 @@ export async function AdminShell({
             href={verTienda}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto inline-flex items-center gap-1.5 border-b-2 border-transparent px-3 py-3 text-xs font-medium uppercase tracking-wider text-[var(--muted)] hover:text-[var(--brand-red)]"
+            className="ml-auto inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-2.5 py-3 text-[11px] font-medium uppercase tracking-wider text-[var(--muted)] hover:text-[var(--brand-red)]"
           >
             Ver tienda
             <ExternalLink className="h-3 w-3" />
@@ -249,7 +251,7 @@ function Tab({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 font-display text-xs font-bold uppercase tracking-wider transition-colors ${
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-2.5 py-3 font-display text-[11px] font-bold uppercase tracking-wider transition-colors ${
         active
           ? "border-[var(--brand-red)] text-[var(--brand-red)]"
           : "border-transparent text-[var(--muted)] hover:text-foreground"
