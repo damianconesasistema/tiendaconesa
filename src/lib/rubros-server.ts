@@ -84,3 +84,26 @@ export async function agregarSubrubro(rubro: string, nombre: string): Promise<Ag
   await setSetting(S_SUBRUBROS, JSON.stringify(nuevo.subrubros));
   return { ok: true, item, extra: nuevo };
 }
+
+/** Saca un rubro agregado a mano (y sus subrubros). Lo usa el reordenamiento
+ *  de herramientas: "Bombas de Agua" paso a ser subrubro. Los productos se
+ *  mueven antes: aca solo se lo saca de la lista. */
+export async function quitarRubroAMano(slug: string): Promise<void> {
+  const extra = await getRubrosExtra();
+  const rubros = extra.rubros.filter((r) => r.slug !== slug);
+  const subrubros = { ...extra.subrubros };
+  delete subrubros[slug];
+  await setSetting(S_RUBROS, JSON.stringify(rubros));
+  await setSetting(S_SUBRUBROS, JSON.stringify(subrubros));
+}
+
+/** Saca de un rubro subrubros agregados a mano (los repetidos de uno de
+ *  fabrica). Los productos se mueven antes. */
+export async function quitarSubrubrosAMano(rubro: string, slugs: string[]): Promise<void> {
+  const extra = await getRubrosExtra();
+  const quedan = (extra.subrubros[rubro] ?? []).filter((s) => !slugs.includes(s.slug));
+  const subrubros = { ...extra.subrubros };
+  if (quedan.length) subrubros[rubro] = quedan;
+  else delete subrubros[rubro];
+  await setSetting(S_SUBRUBROS, JSON.stringify(subrubros));
+}

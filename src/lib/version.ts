@@ -2,6 +2,17 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.14 - Herramientas con subrubros (Damian, 18/11/2026: "bombas de agua
+//            sacalo de ahi y hay que ponerlo como subrubro en herramientas" y
+//            "creame en herramienta Pistola de Calor, Amoladora, Taladro,
+//            Lijadora, Pulidora, Caladora y etiquetame bien los productos que
+//            tengo de DOGO"). Subrubros de fabrica en src/lib/subrubros.ts
+//            (el rotomartillo va con Taladro). Una sola vez
+//            (src/lib/herramientas-una-vez.ts): lo del rubro "Bombas de Agua"
+//            pasa a Herramientas > Bombas de Agua y ese rubro sale de la
+//            lista; todo Dogo pasa a Herramientas con el subrubro que dice su
+//            titulo; lo de Herramientas sin subrubro, el del titulo. Respaldo
+//            de rubro y subrubro anteriores en Setting "herramientas_antes".
 // V.0.99.13 - El buscador de la tienda perdona (Damian, 18/11/2026: "porque no
 //            busca cuando pongo palabras claves ... que busque con terminos
 //            mal escritos o que suenen a lo que esta buscando el cliente").
@@ -1322,7 +1333,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.13";
+export const APP_VERSION = "V.0.99.14";
 
 export type VersionEntry = {
   version: string;

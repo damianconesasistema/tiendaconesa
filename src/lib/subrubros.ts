@@ -78,6 +78,19 @@ export const SUBRUBROS: Readonly<Record<string, readonly Subrubro[]>> = {
       ],
     },
   ],
+  // Damian, 18/11/2026: "bombas de agua sacalo de ahi y hay que ponerlo como
+  // subrubro en herramientas ... tambien creame en herramienta Pistola de
+  // Calor, Amoladora, Taladro, Lijadora, Pulidora, Caladora". El rotomartillo
+  // va con los taladros.
+  herramientas: [
+    { slug: "amoladora", name: "Amoladora", palabras: ["amoladora"] },
+    { slug: "bombas-de-agua", name: "Bombas de Agua", palabras: ["bomba", "presurizadora", "centrifuga", "periferica"] },
+    { slug: "caladora", name: "Caladora", palabras: ["caladora"] },
+    { slug: "lijadora", name: "Lijadora", palabras: ["lijadora"] },
+    { slug: "pistola-de-calor", name: "Pistola de Calor", palabras: ["pistola de calor", "decapadora", "calor"] },
+    { slug: "pulidora", name: "Pulidora", palabras: ["pulidora", "lustradora"] },
+    { slug: "taladro", name: "Taladro", palabras: ["taladro", "rotomartillo", "atornillador"] },
+  ],
 };
 
 /** En que orden se prueban, que no es el de la tienda.
@@ -87,6 +100,17 @@ export const SUBRUBROS: Readonly<Record<string, readonly Subrubro[]>> = {
  *  van primero los que se nombran con una palabra que no se presta a
  *  confusion, y al final ducha, que aparece de costado en muchos titulos. */
 const PRIORIDAD: Readonly<Record<string, readonly string[]>> = {
+  // "Pistola de calor" antes que nada (un kit puede nombrar otras cosas); la
+  // pulidora antes que la amoladora (hay "pulidora/amoladora").
+  herramientas: [
+    "pistola-de-calor",
+    "pulidora",
+    "amoladora",
+    "lijadora",
+    "caladora",
+    "taladro",
+    "bombas-de-agua",
+  ],
   griferia: [
     "kit-bano",
     "lavarropas",
