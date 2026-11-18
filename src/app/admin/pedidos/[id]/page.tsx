@@ -18,9 +18,9 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/order";
-import { OrderStatusSelect } from "@/components/admin/OrderStatusSelect";
+import { EstadoDelPedido } from "@/components/admin/EstadoDelPedido";
+import { leerAvisos } from "@/lib/transportes";
 import { DeleteOrderButton } from "@/components/admin/DeleteOrderButton";
-import { updateOrderStatus } from "@/app/admin/pedidos/actions";
 import { FacturarButton } from "@/components/admin/FacturarButton";
 import { DetalleMercadoPago } from "@/components/admin/DetalleMercadoPago";
 import { EditarDatosButton } from "@/components/admin/EditarDatosButton";
@@ -79,10 +79,15 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             estado, despues facturar (lo mas usado), despues lo auxiliar, y
             al final —separado— lo destructivo. */}
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:items-end">
-          <OrderStatusSelect
+          <EstadoDelPedido
             orderId={order.id}
-            current={order.status}
-            action={updateOrderStatus}
+            actual={order.status}
+            retira={order.shipping === "retiro"}
+            emailCliente={order.customer.email}
+            transporte={order.transporte}
+            seguimiento={order.seguimiento}
+            link={order.linkSeguimiento}
+            avisos={leerAvisos(order.avisos)}
           />
 
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">

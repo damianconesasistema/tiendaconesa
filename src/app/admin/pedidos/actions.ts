@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import { leerAvisos, linkDeSeguimiento, transporteDe, type Aviso, type TipoAviso } from "@/lib/transportes";
 
 const VALID_STATUSES = [
   "pendiente",
@@ -13,7 +14,20 @@ const VALID_STATUSES = [
   "cancelado",
 ] as const;
 
-export async function updateOrderStatus(orderId: string, status: string) {
+/** Lo que se carga al pasar a "En entrega" y si se le avisa al cliente.
+ *  Sin esto (la lista, "Marcar entregado") se cambia el estado y nada mas. */
+export type OpcionesEstado = {
+  avisar?: boolean;
+  transporte?: string;
+  seguimiento?: string;
+  link?: string;
+};
+
+export async function updateOrderStatus(
+  orderId: string,
+  status: string,
+  opciones?: OpcionesEstado,
+): Promise<{ ok?: true; error?: string; aviso?: { ok: boolean; a: string; error?: string } }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
 
@@ -21,22 +35,99 @@ export async function updateOrderStatus(orderId: string, status: string) {
     return { error: "Estado inválido" };
   }
 
+  const limpio = (x?: string, max = 300) => (x ?? "").trim().slice(0, max) || null;
+  const conEnvio = status === "en_entrega" && opciones;
   try {
     await prisma.order.update({
       where: { id: orderId },
       data: {
         status,
         paidAt: status === "entregado" ? new Date() : undefined,
+        ...(conEnvio
+          ? {
+              transporte: transporteDe(opciones.transporte)?.id ?? null,
+              seguimiento: limpio(opciones.seguimiento, 80),
+              linkSeguimiento: /^https?:\/\//i.test(opciones.link ?? "") ? limpio(opciones.link, 500) : null,
+            }
+          : {}),
       },
     });
   } catch (e) {
     return { error: `Error al guardar: ${(e as Error).message}` };
   }
 
+  // El mail al cliente, si se pidio. Si no sale, el estado igual quedo
+  // guardado: se dice que no salio y queda anotado en el pedido.
+  let aviso: { ok: boolean; a: string; error?: string } | undefined;
+  if (opciones?.avisar && (status === "en_entrega" || status === "entregado"))
+    aviso = await avisarAlCliente(orderId, status).catch((e) => ({ ok: false, a: "", error: (e as Error).message }));
+
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
   revalidatePath(`/admin/pedidos/${orderId}`);
-  return { ok: true };
+  return { ok: true, ...(aviso ? { aviso } : {}) };
+}
+
+/** Manda el mail que corresponde al estado y lo anota en el pedido. */
+async function avisarAlCliente(orderId: string, status: "en_entrega" | "entregado") {
+  const o = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      customer: true,
+      branch: { select: { name: true, address: true, city: true, hours: true, whatsapp: true, phone: true } },
+    },
+  });
+  if (!o) return { ok: false, a: "", error: "No está el pedido" };
+  const a = o.customer.email?.trim().toLowerCase() ?? "";
+  if (!a.includes("@")) return { ok: false, a, error: "El cliente no tiene mail" };
+
+  const email = await import("@/lib/email");
+  if (!email.emailConfigurado()) return { ok: false, a, error: "Los mails no están configurados" };
+
+  const local = o.branch
+    ? {
+        nombre: o.branch.name,
+        direccion: o.branch.address,
+        ciudad: o.branch.city,
+        horario: o.branch.hours,
+        whatsapp: o.branch.whatsapp,
+        telefono: o.branch.phone,
+      }
+    : undefined;
+  const nombre = o.customer.firstName?.trim() || "";
+  const retira = o.shipping === "retiro";
+  const tipo: TipoAviso = status === "entregado" ? "entregado" : retira ? "listo_retirar" : "en_camino";
+
+  let r: { ok?: true; error?: string };
+  if (tipo === "entregado") r = await email.mailEntregado({ to: a, nombre, orderNumber: o.number, local });
+  else if (tipo === "listo_retirar") r = await email.mailListoParaRetirar({ to: a, nombre, orderNumber: o.number, local });
+  else {
+    const direccion = [
+      [o.street, o.streetNumber].filter(Boolean).join(" "),
+      o.floor,
+      o.locality,
+      o.province,
+    ]
+      .filter(Boolean)
+      .join(", ");
+    r = await email.mailEnCamino({
+      to: a,
+      nombre,
+      orderNumber: o.number,
+      transporte: transporteDe(o.transporte)?.nombre ?? null,
+      seguimiento: o.seguimiento,
+      link: linkDeSeguimiento(o.transporte, o.seguimiento, o.linkSeguimiento),
+      direccion: direccion || null,
+      local,
+    });
+  }
+
+  const nuevo: Aviso = { tipo, fecha: new Date().toISOString(), a, ok: !!r.ok, ...(r.ok ? {} : { error: r.error ?? "no salió" }) };
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { avisos: JSON.stringify([...leerAvisos(o.avisos), nuevo].slice(-20)) },
+  });
+  return { ok: !!r.ok, a, ...(r.ok ? {} : { error: r.error ?? "no salió" }) };
 }
 
 // Elimina un pedido (y sus items en cascada). Para limpiar pedidos de prueba.

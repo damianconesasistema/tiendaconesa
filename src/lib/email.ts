@@ -34,6 +34,9 @@ export async function enviarEmail(opts: {
   text?: string;
   /** Archivos adjuntos. El contenido va en base64. */
   attachments?: { filename: string; content: string }[];
+  /** A donde va la respuesta si el que lo recibe contesta. Sin esto, al mail
+   *  de la tienda: el remitente (pedidos@conesa.com.ar) no es una casilla. */
+  replyTo?: string;
 }): Promise<EnvioResultado> {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.MAIL_FROM;
@@ -53,6 +56,7 @@ export async function enviarEmail(opts: {
         subject: opts.subject,
         html: opts.html,
         text: opts.text,
+        reply_to: opts.replyTo || business.emailTienda,
         ...(opts.attachments?.length ? { attachments: opts.attachments } : {}),
       }),
     });
@@ -72,7 +76,12 @@ export async function enviarEmail(opts: {
 
 const ROJO = "#E63020";
 
-function layout(contenido: string, pie?: string): string {
+/** El pie lleva los datos del local que vende (si se sabe): antes decia
+ *  siempre la direccion y el telefono de Traslasierra, tambien en las compras
+ *  de Buenos Aires. */
+function layout(contenido: string, pie?: string, local?: LocalMail): string {
+  const dir = local?.direccion ? [local.direccion, local.ciudad].filter(Boolean).join(", ") : `${business.address.street}, ${business.address.city}`;
+  const tel = local ? local.telefono || local.whatsapp || "" : business.phone.display;
   return `<!doctype html>
 <html lang="es"><body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;color:#111">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:24px 12px">
@@ -89,9 +98,9 @@ function layout(contenido: string, pie?: string): string {
         </td></tr>
         <tr><td style="padding:24px">${contenido}</td></tr>
         <tr><td style="background:#fafafa;padding:16px 24px;font-size:12px;color:#666;border-top:1px solid #eee">
-          <strong>${business.name}</strong><br>
-          ${business.address.street}, ${business.address.city}<br>
-          Tel: ${business.phone.display}<br>
+          <strong>${business.name}${local?.nombre ? ` · ${local.nombre}` : ""}</strong><br>
+          ${dir}<br>
+          ${tel ? `Tel: ${tel}<br>` : ""}
           <a href="${SITE_URL}" style="color:${ROJO}">${SITE_URL.replace(/^https?:\/\//, "")}</a>
           ${pie ? `<div style="margin-top:12px;color:#999">${pie}</div>` : ""}
         </td></tr>
@@ -141,6 +150,8 @@ export async function mailPedidoRecibido(opts: {
   /** Donde se retira: el local que vende. Antes decia siempre el pueblo de
    *  Traslasierra, tambien al que compraba en Buenos Aires. */
   dondeRetira?: string;
+  /** El local que vende, para el pie del mail. */
+  local?: LocalMail;
 }): Promise<EnvioResultado> {
   const dondeRetira = opts.dondeRetira || business.address.city;
   const queSigue = opts.retira
@@ -163,7 +174,7 @@ export async function mailPedidoRecibido(opts: {
       Cualquier duda, respondé este mail o escribinos por WhatsApp.
     </p>
     ${boton(`${SITE_URL}/tienda`, "Seguir comprando")}
-  `);
+  `, undefined, opts.local);
 
   const text = `Gracias por tu pedido, ${opts.nombre}!
 Pedido #${opts.orderNumber}
@@ -187,7 +198,7 @@ ${business.name} - ${SITE_URL}`;
  *  paga y a dónde va. Si el cliente puso una referencia o una aclaración,
  *  también viaja acá.
  *
- *  Va al mail del negocio (business.email). */
+ *  Va al mail de la tienda (business.emailTienda). */
 export async function mailVentaInterna(opts: {
   orderNumber: number;
   comprador: {
@@ -304,7 +315,10 @@ TOTAL: ${formatPrice(opts.total)}
 Panel: ${SITE_URL}/admin/pedidos`;
 
   return enviarEmail({
-    to: business.email,
+    // Al mail de la tienda (antes iba al de Traslasierra, tambien las ventas
+    // de Buenos Aires). Contestarlo le escribe al cliente.
+    to: business.emailTienda,
+    replyTo: opts.comprador.email,
     subject: `VENTA #${opts.orderNumber} · ${formatPrice(opts.total)} · ${nombreCompleto}`,
     html,
     text,
@@ -367,4 +381,122 @@ ${business.name} - ${SITE_URL}`;
       { filename: opts.nombreArchivo, content: opts.pdf.toString("base64") },
     ],
   });
+}
+
+// ------------------------------------------- avisos de los cambios de estado
+//
+// Damian, 18/11/2026: "cuando hay un seguimiento del envio que esta en
+// camino, le podemos avisar tambien por mail". Los manda el panel al pasar el
+// pedido a "En entrega" (en camino, o listo para retirar si lo retira) y a
+// "Entregado". Ver src/app/admin/pedidos/actions.ts.
+
+const esc = (x: string) =>
+  String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
+
+/** El local que vende: donde se retira y como contactarlo. */
+export type LocalMail = {
+  nombre: string;
+  direccion?: string | null;
+  ciudad?: string | null;
+  horario?: string | null;
+  whatsapp?: string | null;
+  telefono?: string | null;
+};
+
+function contacto(l?: LocalMail): string {
+  if (!l) return "Cualquier duda, escribinos por WhatsApp.";
+  const tel = l.whatsapp || l.telefono;
+  return tel ? `Cualquier duda, escribinos por WhatsApp al <strong>${esc(tel)}</strong>.` : "Cualquier duda, escribinos por WhatsApp.";
+}
+
+/** "Tu pedido esta en camino", con el transporte y el seguimiento. */
+export async function mailEnCamino(opts: {
+  to: string;
+  nombre: string;
+  orderNumber: number;
+  /** "Andreani", "Nuestro reparto"... */
+  transporte?: string | null;
+  seguimiento?: string | null;
+  link?: string | null;
+  /** A donde va, en una linea. */
+  direccion?: string | null;
+  local?: LocalMail;
+}): Promise<EnvioResultado> {
+  const filas = [
+    opts.transporte ? ["Envío", esc(opts.transporte)] : null,
+    opts.seguimiento ? ["Número de seguimiento", `<strong style="font-size:16px;letter-spacing:.5px">${esc(opts.seguimiento)}</strong>`] : null,
+    opts.direccion ? ["Dirección de entrega", esc(opts.direccion)] : null,
+  ].filter(Boolean) as [string, string][];
+  const html = layout(`
+    <h1 style="margin:0 0 8px;font-size:22px">¡Tu pedido está en camino, ${esc(opts.nombre)}!</h1>
+    <p style="margin:0 0 16px;font-size:14px;color:#555">
+      Tu pedido <strong>#${opts.orderNumber}</strong> ya salió.
+    </p>
+    ${
+      filas.length
+        ? `<table style="width:100%;border-collapse:collapse;margin:0 0 20px">${filas
+            .map(
+              ([k, v]) =>
+                `<tr><td style="padding:6px 12px 6px 0;font-size:14px;color:#666;vertical-align:top">${k}</td><td style="padding:6px 0;font-size:14px">${v}</td></tr>`,
+            )
+            .join("")}</table>`
+        : ""
+    }
+    ${opts.link ? `<p style="margin:0 0 20px">${boton(opts.link, "Seguir mi envío")}</p>` : ""}
+    <p style="margin:0;font-size:14px;color:#555">${contacto(opts.local)}</p>
+  `, undefined, opts.local);
+  const text = `Tu pedido #${opts.orderNumber} esta en camino.
+${opts.transporte ? `Envio: ${opts.transporte}\n` : ""}${opts.seguimiento ? `Numero de seguimiento: ${opts.seguimiento}\n` : ""}${opts.link ? `Seguilo en: ${opts.link}\n` : ""}${opts.direccion ? `Entrega en: ${opts.direccion}\n` : ""}${business.name} - ${SITE_URL}`;
+  return enviarEmail({ to: opts.to, subject: `Tu pedido #${opts.orderNumber} está en camino · ${business.name}`, html, text });
+}
+
+/** "Tu pedido esta listo para retirar", con donde y cuando. */
+export async function mailListoParaRetirar(opts: {
+  to: string;
+  nombre: string;
+  orderNumber: number;
+  local?: LocalMail;
+}): Promise<EnvioResultado> {
+  const l = opts.local;
+  const donde = [l?.direccion, l?.ciudad].filter(Boolean).join(", ");
+  const html = layout(`
+    <h1 style="margin:0 0 8px;font-size:22px">¡Tu pedido está listo, ${esc(opts.nombre)}!</h1>
+    <p style="margin:0 0 16px;font-size:14px;color:#555">
+      Ya podés retirar tu pedido <strong>#${opts.orderNumber}</strong>${l?.nombre ? ` en nuestro local de <strong>${esc(l.nombre)}</strong>` : ""}.
+    </p>
+    ${
+      donde || l?.horario
+        ? `<table style="width:100%;border-collapse:collapse;margin:0 0 20px">
+            ${donde ? `<tr><td style="padding:6px 12px 6px 0;font-size:14px;color:#666">Dirección</td><td style="padding:6px 0;font-size:14px"><strong>${esc(donde)}</strong></td></tr>` : ""}
+            ${l?.horario ? `<tr><td style="padding:6px 12px 6px 0;font-size:14px;color:#666;vertical-align:top">Horario</td><td style="padding:6px 0;font-size:14px">${esc(l.horario)}</td></tr>` : ""}
+          </table>`
+        : ""
+    }
+    <p style="margin:0 0 6px;font-size:14px;color:#555">Traé el número de pedido y tu DNI.</p>
+    <p style="margin:0;font-size:14px;color:#555">${contacto(l)}</p>
+  `, undefined, l);
+  const text = `Tu pedido #${opts.orderNumber} esta listo para retirar.
+${donde ? `Direccion: ${donde}\n` : ""}${l?.horario ? `Horario: ${l.horario}\n` : ""}Trae el numero de pedido y tu DNI.
+${business.name} - ${SITE_URL}`;
+  return enviarEmail({ to: opts.to, subject: `Tu pedido #${opts.orderNumber} está listo para retirar · ${business.name}`, html, text });
+}
+
+/** "Gracias por tu compra", cuando se entrega. */
+export async function mailEntregado(opts: {
+  to: string;
+  nombre: string;
+  orderNumber: number;
+  local?: LocalMail;
+}): Promise<EnvioResultado> {
+  const html = layout(`
+    <h1 style="margin:0 0 8px;font-size:22px">¡Gracias por tu compra, ${esc(opts.nombre)}!</h1>
+    <p style="margin:0 0 16px;font-size:14px;color:#555">
+      Tu pedido <strong>#${opts.orderNumber}</strong> fue entregado. Esperamos que lo disfrutes.
+    </p>
+    <p style="margin:0 0 20px;font-size:14px;color:#555">${contacto(opts.local)}</p>
+    ${boton(`${SITE_URL}/tienda`, "Ver más productos")}
+  `, undefined, opts.local);
+  const text = `Gracias por tu compra! Tu pedido #${opts.orderNumber} fue entregado.
+${business.name} - ${SITE_URL}`;
+  return enviarEmail({ to: opts.to, subject: `Pedido #${opts.orderNumber} entregado · ¡Gracias por tu compra!`, html, text });
 }

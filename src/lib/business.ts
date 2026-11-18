@@ -26,6 +26,12 @@ export const business = {
     number: "5493544430522",
   },
   email: "sanitariosconesatraslasierra@gmail.com",
+  // El mail de la tienda online. Damian, 18/11/2026: "hagamos un mail para la
+  // tienda ... tiendasanitariosconesa@gmail.com". Los mails salen de
+  // pedidos@conesa.com.ar (el dominio verificado para mandar), que no es una
+  // casilla: si el cliente contesta, la respuesta va aca (reply-to). Y aca
+  // llega el aviso de cada venta.
+  emailTienda: "tiendasanitariosconesa@gmail.com",
   hours: {
     weekdays: "Lunes a Viernes · 8:30 a 17:00",
     saturday: "Sábados · 9:00 a 14:00",

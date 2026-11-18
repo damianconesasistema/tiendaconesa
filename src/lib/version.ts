@@ -2,6 +2,20 @@
 // significativos. Formato: V.MAYOR.MINOR.PATCH
 //
 // Changelog resumido (de arriba hacia abajo, mas reciente primero):
+// V.0.99.24 - Avisos de envio por mail (Damian, 18/11/2026: "cuando hay un
+//            seguimiento del envio que esta en camino, le podemos avisar
+//            tambien por mail"). En la ficha del pedido, al pasarlo a "En
+//            entrega" se elige como va (nuestro reparto, Andreani, OCA,
+//            Correo, Via Cargo, Cruz del Sur) con numero y link de
+//            seguimiento, y al cliente le llega "tu pedido esta en camino"
+//            (o "listo para retirar" si lo retira); al pasarlo a "Entregado",
+//            "gracias por tu compra". Casilla para no mandarlo; los mails
+//            mandados quedan anotados en el pedido (migracion 43). Mail de la
+//            tienda: tiendasanitariosconesa@gmail.com ("hagamos un mail para
+//            la tienda"): las respuestas de los clientes van ahi (reply-to;
+//            pedidos@conesa.com.ar no es una casilla) y ahi llega el aviso de
+//            cada venta (antes iba al de Traslasierra, tambien las de Buenos
+//            Aires). El pie de los mails lleva los datos del local que vende.
 // V.0.99.23 - Mejorar las fotos al subirlas (Damian, 18/11/2026: "podes
 //            hacer que el subir fotos de la ficha del producto mejore la foto
 //            cuando la sube? hacelo por ia si es posible"). Prendido de
@@ -1414,7 +1428,7 @@
 //            archivo, sin servidor). Si es una hoja escaneada lo dice, y si
 //            no encuentra columna de precios tambien. Columna de precios
 //            detectada por contenido cuando el encabezado no la nombra.
-export const APP_VERSION = "V.0.99.23";
+export const APP_VERSION = "V.0.99.24";
 
 export type VersionEntry = {
   version: string;

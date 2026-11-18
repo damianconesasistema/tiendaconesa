@@ -299,6 +299,16 @@ export async function createOrder(
           envioGratis,
           costoEnvio: shippingCost,
           dondeRetira: vende?.city || undefined,
+          local: vende
+            ? {
+                nombre: vende.name,
+                direccion: vende.address,
+                ciudad: vende.city,
+                horario: vende.hours,
+                whatsapp: vende.whatsapp,
+                telefono: vende.phone,
+              }
+            : undefined,
         });
         if (!r.ok) console.error("mail pedido:", r.error);
       }
