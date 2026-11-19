@@ -673,11 +673,13 @@ function ProductCard({ p, comisionUnPago, rubro }: { p: Product; comisionUnPago:
             Sin stock
           </span>
         )}
-        {p.stock === 1 && <UltimoEnStock className="absolute bottom-3 left-3 z-10" />}
       </div>
 
       {/* Info */}
       <div className="flex flex-1 flex-col p-5">
+        {/* "Ultimo en stock" abajo de la foto, no encima: la tapaba (Damian,
+            19/11/2026: "eso se puede corregir para que no pise"). */}
+        {p.stock === 1 && <UltimoEnStock className="mb-2 self-start" />}
         {/* La categoria arriba del titulo y no encima de la foto: adentro de
             la imagen se cortaba con los nombres largos y tapaba el producto. */}
         <span className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">

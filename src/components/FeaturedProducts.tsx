@@ -178,9 +178,11 @@ function FeaturedCard({
             Sin stock
           </span>
         )}
-        {p.stock === 1 && <UltimoEnStock className="absolute bottom-3 left-3 z-10" />}
       </div>
       <div className="flex flex-1 flex-col p-4">
+        {/* "Ultimo en stock" abajo de la foto, no encima: la tapaba (Damian,
+            19/11/2026: "eso se puede corregir para que no pise"). */}
+        {p.stock === 1 && <UltimoEnStock className="mb-2 self-start" />}
         {/* La categoria arriba del titulo y no encima de la foto, igual que
             en la tienda: en la foto tapaba el producto (Damian, 16/11/2026:
             "que no tape la imagen"). */}

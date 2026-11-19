@@ -854,9 +854,11 @@ function RelatedCard({
           unoptimized={!!p.imageUrl && p.imageUrl.startsWith("/api/")}
           className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
         />
-        {p.stock === 1 && <UltimoEnStock className="absolute bottom-2 left-2 z-10" />}
       </div>
       <div className="flex flex-1 flex-col p-3">
+        {/* "Ultimo en stock" abajo de la foto, no encima: la tapaba (Damian,
+            19/11/2026: "eso se puede corregir para que no pise"). */}
+        {p.stock === 1 && <UltimoEnStock className="mb-1.5 self-start" />}
         <h3 className="uppercase text-xs font-semibold leading-snug">{p.title}</h3>
         {/* mt-auto pega el precio y el boton al piso: asi se alinean entre cards */}
         <div className="mt-auto">
