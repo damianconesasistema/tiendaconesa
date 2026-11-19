@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.39";
+export const APP_VERSION = "V.0.99.40";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.40",
+    date: "2026-11-19",
+    changes: [
+      "FOTOS DE LA FICHA (\"cuando cambio de foto deberia cargar la que hago foco\"): al tocar una miniatura se ve grande esa foto (marcada con un recuadro), con flechitas para pasar de una a otra, el cartel \"Foto 3 de 5\" y el botón \"Poner como principal\". \"Mejorar\" y \"Quitar el fondo\" de abajo trabajan sobre la que se está viendo.",
+    ],
+  },
   {
     version: "V.0.99.39",
     date: "2026-11-19",

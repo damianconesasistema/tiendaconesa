@@ -15,6 +15,8 @@ import {
   Camera,
   Eraser,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { traerFotoFV, traerDeUnLink } from "@/app/admin/productos/fotos-fv/actions";
 import {
@@ -77,6 +79,7 @@ export function ProductImageUpload({
   const [, startTransition] = useTransition();
   const [bust, setBust] = useState(Date.now());
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [enFoco, setEnFoco] = useState<string | null>(null);
   // Quitar fondo con IA (corre en este navegador, no en el servidor)
   const [sacarFondo, setSacarFondo] = useState(false);
   const [fondoProg, setFondoProg] = useState<ProgresoFondo | null>(null);
@@ -395,17 +398,22 @@ export function ProductImageUpload({
     });
   }
 
-  const mainId = images[0]?.id;
+  // La que se ve grande: la miniatura que se toco (Damian, 19/11/2026:
+  // "cuando cambio de foto deberia cargar la que hago foco"). Si no se toco
+  // ninguna, o la tocada se borro, la principal.
+  const verIdx = Math.max(0, images.findIndex((x) => x.id === enFoco));
+  const verId = images[verIdx]?.id;
+  const verEsPrincipal = verIdx === 0;
   const full = images.length >= MAX_PRODUCT_IMAGES;
 
   return (
     <div>
       {/* Imagen principal (grande) */}
       <div className="relative aspect-square overflow-hidden rounded-xl bg-white">
-        {mainId ? (
+        {verId ? (
           <Image
-            key={`${mainId}-${bust}`}
-            src={`/api/productos/img/${mainId}?v=${bust}`}
+            key={`${verId}-${bust}`}
+            src={`/api/productos/img/${verId}?v=${bust}`}
             alt=""
             fill
             sizes="400px"
@@ -420,6 +428,40 @@ export function ProductImageUpload({
             sizes="400px"
             className="object-cover"
           />
+        )}
+        {/* Cual es, y pasar de una a otra sin bajar a las miniaturas. */}
+        {images.length > 1 && (
+          <>
+            <span className="absolute left-3 top-3 z-10 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              {verEsPrincipal ? "Principal" : `Foto ${verIdx + 1} de ${images.length}`}
+            </span>
+            <button
+              type="button"
+              onClick={() => setEnFoco(images[(verIdx - 1 + images.length) % images.length].id)}
+              aria-label="Foto anterior"
+              className="absolute left-2 top-1/2 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-foreground shadow hover:bg-white"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setEnFoco(images[(verIdx + 1) % images.length].id)}
+              aria-label="Foto siguiente"
+              className="absolute right-2 top-1/2 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-foreground shadow hover:bg-white"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            {!verEsPrincipal && verId && (
+              <button
+                type="button"
+                onClick={() => onSetMain(verId)}
+                disabled={busy}
+                className="absolute bottom-3 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-[var(--brand-red)] px-3 py-1 text-[11px] font-bold text-white shadow disabled:opacity-50"
+              >
+                <Star className="h-3 w-3" /> Poner como principal
+              </button>
+            )}
+          </>
         )}
         {images.length === 0 && (
           <div className="pointer-events-none absolute inset-x-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
@@ -459,26 +501,26 @@ export function ProductImageUpload({
       {/* Volver a editar la foto ya cargada: sacarle el fondo. Tambien esta
           en cada miniatura (la goma), pero ahi solo aparece al pasar el
           mouse. */}
-      {mainId && (
+      {verId && (
         <button
           type="button"
-          onClick={() => onMejorar(mainId)}
+          onClick={() => onMejorar(verId)}
           disabled={busy}
           className="mt-2 inline-flex w-full items-center justify-center gap-1.5 text-[11px] font-bold text-[var(--brand-red)] underline disabled:opacity-50"
         >
           <Sparkles className="h-3 w-3" />
-          Mejorar la foto principal
+          {verEsPrincipal ? "Mejorar la foto principal" : "Mejorar esta foto"}
         </button>
       )}
-      {mainId && puedeSacarFondo && (
+      {verId && puedeSacarFondo && (
         <button
           type="button"
-          onClick={() => onSacarFondo(mainId)}
+          onClick={() => onSacarFondo(verId)}
           disabled={busy}
           className="mt-2 inline-flex w-full items-center justify-center gap-1.5 text-[11px] font-bold text-[var(--brand-red)] underline disabled:opacity-50"
         >
           <Eraser className="h-3 w-3" />
-          Quitar el fondo de la foto principal
+          {verEsPrincipal ? "Quitar el fondo de la foto principal" : "Quitar el fondo de esta foto"}
         </button>
       )}
 
@@ -493,11 +535,14 @@ export function ProductImageUpload({
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(i)}
               onDragEnd={() => setDragIdx(null)}
-              className={`group relative aspect-square cursor-grab overflow-hidden rounded-lg border-2 active:cursor-grabbing ${
+              // Tocarla la muestra grande arriba.
+              onClick={() => setEnFoco(img.id)}
+              title="Ver grande"
+              className={`group relative aspect-square cursor-pointer overflow-hidden rounded-lg border-2 ${
                 i === 0
                   ? "border-[var(--brand-red)]"
                   : "border-[var(--border)]"
-              } ${dragIdx === i ? "opacity-40" : ""}`}
+              } ${i === verIdx ? "ring-2 ring-[var(--brand-black)] ring-offset-2" : ""} ${dragIdx === i ? "opacity-40" : ""}`}
             >
               <Image
                 src={`/api/productos/img/${img.id}?v=${bust}`}
