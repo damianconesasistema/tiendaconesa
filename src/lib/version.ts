@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.38";
+export const APP_VERSION = "V.0.99.39";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.39",
+    date: "2026-11-19",
+    changes: [
+      "ESTRELLAS DE GOOGLE EN LA PORTADA (\"Solo estrellas, sin clave\"): \"Lo que dicen nuestros clientes\" con el mapa de Google de cada local, que trae la tarjeta oficial con el promedio de estrellas y la cantidad de opiniones (hoy Buenos Aires 4,3 con 404 y Traslasierra 4,7 con 26), siempre al día y sin clave. Abajo, \"Ver las opiniones en Google\". En el celular, por el ancho, Google muestra el mapa sin la tarjeta y queda el botón. Si algún día se carga la clave de Google, en su lugar salen las opiniones con su texto.",
+    ],
+  },
   {
     version: "V.0.99.38",
     date: "2026-11-19",

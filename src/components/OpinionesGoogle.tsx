@@ -1,4 +1,5 @@
 import { opinionesParaLaPortada, type Opinion, type PortadaOpiniones } from "@/lib/opiniones-google";
+import { fichaDelLocal, LOCALES_GOOGLE, mapaDelLocal } from "@/lib/locales-google";
 
 // Las opiniones de Google en la portada (src/lib/opiniones-google.ts).
 // Damian, 19/11/2026: "podriamos agregar las opinion de google positivas en la
@@ -81,9 +82,62 @@ function Tarjeta({ o, sucursal }: { o: Opinion; sucursal: string }) {
 }
 
 export async function OpinionesGoogle({ sucursales }: { sucursales: { slug: string; name: string }[] }) {
+  // Con clave de Google (Panel -> /admin/opiniones), las opiniones con su
+  // texto. Sin clave (Damian, 19/11/2026: "Solo estrellas, sin clave"), la
+  // tarjeta de Google de cada local con sus estrellas.
   const datos = await opinionesParaLaPortada(sucursales.map((s) => ({ slug: s.slug, nombre: s.name })));
-  if (!datos) return null;
-  return <BloqueOpiniones datos={datos} />;
+  if (datos) return <BloqueOpiniones datos={datos} />;
+  return <EstrellasDeGoogle sucursales={sucursales} />;
+}
+
+/** Las estrellas de cada local, con el mapa de Google que las trae
+ *  (src/lib/locales-google.ts). Sin clave y siempre al dia. */
+export function EstrellasDeGoogle({ sucursales }: { sucursales: { slug: string; name: string }[] }) {
+  const locales = sucursales.flatMap((s) => (LOCALES_GOOGLE[s.slug] ? [{ s, l: LOCALES_GOOGLE[s.slug] }] : []));
+  if (locales.length === 0) return null;
+  return (
+    <section className="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-16">
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center">
+          <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
+            Opiniones
+          </span>
+          <h2 className="mt-2 font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
+            Lo que dicen nuestros clientes
+          </h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Las estrellas y las opiniones de cada local, tal cual están en Google.
+          </p>
+        </div>
+        <div className={`mt-8 grid gap-6 ${locales.length > 1 ? "md:grid-cols-2" : "mx-auto max-w-2xl"}`}>
+          {locales.map(({ s, l }) => (
+            <article key={s.slug} className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+              <div className="flex items-center justify-between gap-3 px-5 py-4">
+                <h3 className="font-display text-sm font-black uppercase tracking-wider">Sucursal {s.name}</h3>
+              </div>
+              <iframe
+                title={`${l.nombre} en Google Maps`}
+                src={mapaDelLocal(l)}
+                className="block h-[400px] w-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <div className="px-5 py-4">
+                <a
+                  href={fichaDelLocal(l)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-black)] px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-white hover:bg-black"
+                >
+                  Ver las opiniones en Google
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 /** El bloque en si, con los datos ya traidos. */
