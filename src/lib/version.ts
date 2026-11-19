@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.35";
+export const APP_VERSION = "V.0.99.36";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.36",
+    date: "2026-11-19",
+    changes: [
+      "NOVEDADES ARRIBA (\"EL BOTON DE NOVEDADES PONELO ARRIBA DONDE DICE PANEL ADMIN LA VERSION Y SANITARIOS CONESA\"): sale de las pestañas y pasa a un botón al lado de la versión, con cuántas novedades hubo esta semana.",
+    ],
+  },
   {
     version: "V.0.99.35",
     date: "2026-11-19",

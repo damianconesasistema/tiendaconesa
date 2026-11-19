@@ -124,6 +124,32 @@ export async function AdminShell({
             <span className="hidden text-sm text-[var(--muted)] sm:block">
               · Sanitarios Conesa
             </span>
+            {/* Novedades arriba, al lado de la version (Damian, 19/11/2026:
+                "EL BOTON DE NOVEDADES PONELO ARRIBA DONDE DICE PANEL ADMIN LA
+                VERSION Y SANITARIOS CONESA"). Con cuantas hubo esta semana. */}
+            {puedeVer(quien.permisos, "novedades") && (
+              <Link
+                href="/admin/novedades"
+                title="El chequeo diario de productos y cuotas"
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider transition-colors ${
+                  active === "novedades"
+                    ? "border-[var(--brand-red)] bg-[var(--brand-red)] text-white"
+                    : "border-[var(--border)] bg-white text-[var(--muted)] hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+                }`}
+              >
+                <Newspaper className="h-3.5 w-3.5" />
+                Novedades
+                {novedades.length > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 text-[10px] ${
+                      active === "novedades" ? "bg-white/25" : "bg-[var(--brand-red)] text-white"
+                    }`}
+                  >
+                    {novedades.length}
+                  </span>
+                )}
+              </Link>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <LiveClock />

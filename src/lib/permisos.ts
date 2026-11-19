@@ -62,7 +62,8 @@ export const SECCIONES: readonly DatosSeccion[] = [
   { id: "sucursales", nombre: "Sucursales", href: "/admin/sucursales", ayuda: "Datos de los locales, horarios, CUIT", pestana: true },
   { id: "mercadopago", nombre: "Mercado Pago", href: "/admin/mercadopago", ayuda: "Lo que cobra en cuotas y los recargos", pestana: true },
   { id: "comparador", nombre: "Comparador", href: "/admin/comparador", ayuda: "Nuestros precios contra otras tiendas", pestana: true },
-  { id: "novedades", nombre: "Novedades", href: "/admin/novedades", ayuda: "El chequeo diario de productos y cuotas", pestana: true },
+  // Sin pestaña: va arriba, al lado de la version (src/components/admin/AdminShell.tsx).
+  { id: "novedades", nombre: "Novedades", href: "/admin/novedades", ayuda: "El chequeo diario de productos y cuotas", pestana: false },
   // Sin pestaña (Damian, 19/11/2026: "LAS OPINIONES NO TIENEN QUE ESTAR EN EL
   // PANEL SOLO QUE ESTEN EN LA WEB PRINCIPAL"): la pantalla queda solo para
   // cargar la clave una vez, entrando por la direccion.
