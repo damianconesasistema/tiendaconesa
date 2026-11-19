@@ -41,13 +41,16 @@ jobs:
     steps:
       - name: La tienda esta sana
         env:
-          # La portada general: existe siempre, este abierta o cerrada
-          # cualquier tienda. Antes esto apuntaba al subdominio de
-          # Traslasierra, que al cerrar su tienda empezo a redirigir.
-          SITIO: https://conesa.com.ar
+          # Desde el 17/11/2026 todo vive en tienda.conesa.com.ar: conesa.com.ar
+          # y los subdominios redirigen ahi (301). Apuntando a conesa.com.ar
+          # la portada daba "FALLA" siempre (contestaba la redireccion) y la
+          # tienda parecia cerrada, asi que el catalogo y el carrito no se
+          # revisaban. Antes esto apuntaba al subdominio de Traslasierra, que
+          # al cerrar su tienda empezo a redirigir.
+          SITIO: https://tienda.conesa.com.ar
           # La tienda que vende. Si esta cerrada no es una falla: se dice y
           # se saltean las pruebas que solo tienen sentido con ella abierta.
-          TIENDA: https://buenosaires.conesa.com.ar
+          TIENDA: https://tienda.conesa.com.ar
         run: |
           set -u
 
