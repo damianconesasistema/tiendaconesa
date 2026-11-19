@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.40";
+export const APP_VERSION = "V.0.99.41";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.41",
+    date: "2026-11-19",
+    changes: [
+      "FICHA DEL PRODUCTO, PRECIOS (\"el precio que mostras ahi es el precio de LISTA 2?\" / \"poneme precio con transferencia y lista 2\"): el campo que se guarda ahora se llama \"Precio con transferencia\" y al lado está \"Lista 2 · 1 pago\" (lo que paga con tarjeta, con el recargo de Mercado Pago). Escribiendo uno se calcula el otro, así se puede cargar directo la Lista 2 de GBP. Debajo de la oferta se ve cuánto queda con tarjeta.",
+    ],
+  },
   {
     version: "V.0.99.40",
     date: "2026-11-19",

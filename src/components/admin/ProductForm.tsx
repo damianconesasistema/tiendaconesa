@@ -4,6 +4,8 @@ import { useActionState, useEffect, useState, useRef, useTransition } from "reac
 import Link from "next/link";
 import { Check, AlertCircle, Sparkles, Loader2, Globe, ArrowLeft } from "lucide-react";
 import { Ayuda } from "@/components/admin/Ayuda";
+import { precioVitrina } from "@/lib/precios";
+import { formatPrice } from "@/lib/order";
 import { descripcionDeFV } from "@/app/admin/productos/fotos-fv/actions";
 import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
@@ -41,7 +43,10 @@ export function ProductForm({
   iaDisponible = false,
   marcas = MARCAS_BASE,
   mercadoLibre = false,
+  recargoUnPago = 0,
 }: {
+  /** El recargo de Mercado Pago en 1 pago (%): de ahi sale la Lista 2. */
+  recargoUnPago?: number;
   /** Los rubros y subrubros agregados a mano. */
   rubrosExtra?: RubrosExtra;
   /** A donde vuelve "Volver a productos" (con los filtros de la lista). */
@@ -54,6 +59,15 @@ export function ProductForm({
   /** MercadoLibre conectado: cualquier marca se puede buscar en su catalogo. */
   mercadoLibre?: boolean;
 }) {
+  // Precio por transferencia y Lista 2, conectados (Damian, 19/11/2026: "el
+  // precio que mostras ahi es el precio de LISTA 2?" / "poneme precio con
+  // transferencia y lista 2"). Se guarda el de transferencia; la Lista 2 es
+  // ese mas el recargo de 1 pago (src/lib/precios.ts). Escribiendo uno, el
+  // otro se calcula: asi se puede cargar directo la Lista 2 de GBP.
+  const factor = 1 + Math.max(0, recargoUnPago) / 100;
+  const [precioTransf, setPrecioTransf] = useState(String(product.price ?? ""));
+  const [lista2, setLista2] = useState(product.price ? String(precioVitrina(product.price, recargoUnPago)) : "");
+  const [oferta, setOferta] = useState(product.salePrice != null ? String(product.salePrice) : "");
   const [state, formAction, isPending] = useActionState<State, FormData>(
     action as (prev: State, fd: FormData) => Promise<State>,
     null,
@@ -176,7 +190,13 @@ export function ProductForm({
             cambio = true;
           }
         } else if (campo.value !== valor) {
-          campo.value = valor;
+          // Los precios los maneja React (estan conectados con la Lista 2):
+          // se escriben por el "setter" del navegador y se avisa con un
+          // "input", asi corre su onChange y se recalcula la otra.
+          if (campo instanceof HTMLInputElement && (campo.name === "price" || campo.name === "salePrice")) {
+            Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(campo, valor);
+            campo.dispatchEvent(new Event("input", { bubbles: true }));
+          } else campo.value = valor;
           cambio = true;
         }
       }
@@ -549,18 +569,45 @@ export function ProductForm({
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Label ayuda="El precio NORMAL, por transferencia. Si cargás una oferta, este sale TACHADO en la tienda.">Precio ARS</Label>
+          <Label ayuda="El precio NORMAL por transferencia: es el que se guarda. Si cargás una oferta, este sale TACHADO en la tienda.">
+            Precio con transferencia
+          </Label>
           <input
             name="price"
             type="number"
             min="0"
             step="1"
-            defaultValue={product.price}
+            value={precioTransf}
+            onChange={(e) => {
+              setPrecioTransf(e.target.value);
+              const n = Number(e.target.value);
+              setLista2(e.target.value && n > 0 ? String(precioVitrina(n, recargoUnPago)) : "");
+            }}
             required
             className="input"
           />
+        </div>
+        <div>
+          <Label
+            ayuda={`Lo que paga el cliente con tarjeta en 1 pago: el de transferencia más el recargo de Mercado Pago (${recargoUnPago.toLocaleString("es-AR")}%). Tiene que dar igual que la Lista 2 de GBP. Si escribís acá, el de transferencia se calcula solo.`}
+          >
+            Lista 2 · 1 pago
+          </Label>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={lista2}
+            onChange={(e) => {
+              setLista2(e.target.value);
+              const n = Number(e.target.value);
+              setPrecioTransf(e.target.value && n > 0 ? String(Math.round(n / factor)) : "");
+            }}
+            className="input"
+          />
+          <p className="mt-1 text-[11px] text-[var(--muted)]">Con tarjeta en 1 pago. Se calcula con el de transferencia.</p>
         </div>
         <div>
           <Label ayuda="El precio REBAJADO, por transferencia: lo que paga el cliente. Tiene que ser MENOR que el precio. Vacío = sin oferta.">Precio oferta (opcional)</Label>
@@ -569,12 +616,15 @@ export function ProductForm({
             type="number"
             min="0"
             step="1"
-            defaultValue={product.salePrice ?? ""}
+            value={oferta}
+            onChange={(e) => setOferta(e.target.value)}
             placeholder="Vacío = sin oferta"
             className="input"
           />
           <p className="mt-1 text-[11px] text-[var(--muted)]">
-            Menor que el precio. El precio sale tachado y este al lado.
+            {oferta && Number(oferta) > 0
+              ? `Con tarjeta en 1 pago: ${formatPrice(precioVitrina(Number(oferta), recargoUnPago))}. Menor que el precio: el precio sale tachado.`
+              : "Menor que el precio. El precio sale tachado y este al lado."}
           </p>
         </div>
         <div>

@@ -20,6 +20,7 @@ import { updateProduct } from "@/app/admin/productos/actions";
 import { geminiConfigurado } from "@/lib/gemini";
 import { sucursalDeEdicion } from "@/lib/precios-sucursal";
 import { mlConectado } from "@/lib/mercadolibre";
+import { getRecargosMp } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Editar producto · Panel Admin",
@@ -199,6 +200,7 @@ export default async function EditProductPage({
             mercadoLibre={await mlConectado()}
             rubrosExtra={await getRubrosExtra()}
             volver={hrefVolver}
+            recargoUnPago={(await getRecargosMp()).unPago}
           />
         </section>
       </div>
