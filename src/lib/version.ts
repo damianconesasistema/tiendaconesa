@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.30";
+export const APP_VERSION = "V.0.99.31";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.31",
+    date: "2026-11-19",
+    changes: [
+      "USUARIOS · ESTADO (\"poneme status de los usuarios\"): activo o desactivado, \"en el panel ahora\" si anduvo en los últimos 5 minutos, contraseña provisoria, qué partes ve, el último ingreso y la última vez que anduvo por el panel.",
+      "USUARIOS · PERMISOS (\"partes del panel que puede ver o no para tildar\"): casillas por cada parte del panel, agrupadas en Atención al cliente y Producción y mejora del panel. Lo que no tiene tildado no le aparece en las pestañas y, si escribe la dirección, el panel lo lleva a una parte que sí puede ver. Su contraseña la puede cambiar siempre. Los usuarios que ya estaban siguen viendo todo.",
+      "PESTAÑAS AGRUPADAS (\"DASHBOARD, PEDIDOS, CLIENTES eso junto al principio\"): primero Atención al cliente (Dashboard, Pedidos, Clientes), después Producción y mejora del panel (Productos, Marcas, Comparador, Qué miran, Novedades, Mercado Pago, Sucursales) y al final Usuarios.",
+    ],
+  },
   {
     version: "V.0.99.30",
     date: "2026-11-19",

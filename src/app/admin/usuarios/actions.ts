@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import { guardarPermisos as aGuardar } from "@/lib/permisos";
 import { claveProvisoria, huella, olvidarVigencia, PRINCIPAL, problemaConLaClave, usuarioLimpio } from "@/lib/usuarios";
 
 // Los usuarios del panel (src/lib/usuarios.ts). Crear, desactivar, borrar y
@@ -100,5 +101,17 @@ export async function borrarUsuario(id: string): Promise<R> {
   if (!fila) return { error: "No está ese usuario." };
   olvidarVigencia(fila.username);
   revalidatePath("/admin/usuarios");
+  return { ok: true };
+}
+
+/** Las partes del panel que ve (src/lib/permisos.ts). Todo tildado = todo,
+ *  incluidas las partes que se agreguen mas adelante. */
+export async function cambiarPermisos(id: string, secciones: string[]): Promise<R> {
+  const no = await soloPrincipal();
+  if (no) return { error: no };
+  const permisos = aGuardar(Array.isArray(secciones) ? secciones.map(String) : []);
+  const fila = await prisma.adminUser.update({ where: { id }, data: { permisos } }).catch(() => null);
+  if (!fila) return { error: "No está ese usuario." };
+  revalidatePath("/admin", "layout");
   return { ok: true };
 }

@@ -4,7 +4,8 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { CambiarMiClave, UsuariosAdmin, type FilaUsuario } from "@/components/admin/UsuariosAdmin";
 import { prisma } from "@/lib/db";
-import { PRINCIPAL } from "@/lib/usuarios";
+import { estaConectado, PRINCIPAL } from "@/lib/usuarios";
+import { leerPermisos } from "@/lib/permisos";
 import { fechaHoraPedido } from "@/lib/order";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,9 @@ export default async function UsuariosPage() {
         activo: u.activo,
         debeCambiarClave: u.debeCambiarClave,
         ultimoIngreso: u.ultimoIngreso ? fechaHoraPedido(u.ultimoIngreso) : null,
+        ultimaActividad: u.ultimaActividad ? fechaHoraPedido(u.ultimaActividad) : null,
+        conectado: estaConectado(u.ultimaActividad),
+        permisos: leerPermisos(u.permisos),
       }))
     : [];
 

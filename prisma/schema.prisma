@@ -357,7 +357,12 @@ model AdminUser {
   // La contrasena se la puso admin (al crearlo o al resetearla): al entrar,
   // el panel le pide que elija la suya (migracion 46).
   debeCambiarClave Boolean @default(false)
+  // Las partes del panel que ve, separadas por coma; null = todo
+  // (src/lib/permisos.ts, migracion 47).
+  permisos      String?
   ultimoIngreso DateTime?
+  // La ultima vez que abrio una pantalla del panel ("conectado ahora").
+  ultimaActividad DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }

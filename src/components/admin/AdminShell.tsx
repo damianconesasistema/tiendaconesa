@@ -14,7 +14,9 @@ import { pausarSinStock } from "@/lib/sin-stock";
 import { herramientasUnaVez } from "@/lib/herramientas-una-vez";
 import { AvisoVersionNueva } from "@/components/AvisoVersionNueva";
 import { versionPublicada } from "@/lib/version-publicada";
-import { debeCambiarClave } from "@/lib/usuarios";
+import { datosDelUsuario } from "@/lib/usuarios";
+import { GRUPOS, primeraPermitida, puedeVer } from "@/lib/permisos";
+import { redirect } from "next/navigation";
 import { CambiarMiClave } from "@/components/admin/UsuariosAdmin";
 
 export async function AdminShell({
@@ -91,7 +93,11 @@ export async function AdminShell({
 
   // Entro con una contrasena que le puso admin (al crearlo o al resetearla):
   // antes de usar el panel elige la suya.
-  const tieneQueElegirClave = await debeCambiarClave(username);
+  const quien = await datosDelUsuario(username);
+  const tieneQueElegirClave = quien.debeCambiarClave;
+  // Una parte que no tiene tildada en Usuarios: a la primera que si
+  // (src/lib/permisos.ts).
+  if (!tieneQueElegirClave && !puedeVer(quien.permisos, active)) redirect(primeraPermitida(quien.permisos));
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
@@ -135,72 +141,43 @@ export async function AdminShell({
             pongas, fijate de hacerlo adaptativo a la pantalla"): si no entran
             en una fila, bajan a la siguiente. */}
         <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-0.5 border-t border-[var(--border)] px-2 sm:px-4">
-          <Tab
-            href="/admin"
-            icon={LayoutDashboard}
-            label="Dashboard"
-            active={active === "dashboard"}
-          />
-          <Tab
-            href="/admin/productos"
-            icon={Package}
-            label="Productos"
-            active={active === "productos"}
-          />
-          <Tab
-            href="/admin/marcas"
-            icon={Tags}
-            label="Marcas"
-            active={active === "marcas"}
-          />
-          <Tab
-            href="/admin/pedidos"
-            icon={ShoppingBag}
-            label="Pedidos"
-            active={active === "pedidos"}
-          />
-          <Tab
-            href="/admin/clientes"
-            icon={Users}
-            label="Clientes"
-            active={active === "clientes"}
-          />
-          <Tab
-            href="/admin/visitas"
-            icon={Eye}
-            label="Qué miran"
-            active={active === "visitas"}
-          />
-          <Tab
-            href="/admin/sucursales"
-            icon={Store}
-            label="Sucursales"
-            active={active === "sucursales"}
-          />
-          <Tab
-            href="/admin/mercadopago"
-            icon={CreditCard}
-            label="Mercado Pago"
-            active={active === "mercadopago"}
-          />
-          <Tab
-            href="/admin/comparador"
-            icon={Scale}
-            label="Comparador"
-            active={active === "comparador"}
-          />
-          <Tab
-            href="/admin/novedades"
-            icon={Newspaper}
-            label="Novedades"
-            active={active === "novedades"}
-          />
-          <Tab
-            href="/admin/usuarios"
-            icon={UserCog}
-            label="Usuarios"
-            active={active === "usuarios"}
-          />
+          {/* Agrupadas (Damian, 19/11/2026): "lo que es atencion del cliente
+              junto, y lo que es produccion o mejora del panel junto" /
+              "DASHBOARD, PEDIDOS, CLIENTES eso junto al principio". Solo
+              las partes que la persona tiene tildadas (src/lib/permisos.ts). */}
+          {GRUPOS.map((g, i) => {
+            const visibles = g.secciones.filter((x) => x.pestana && puedeVer(quien.permisos, x.id));
+            if (visibles.length === 0) return null;
+            return (
+              <div
+                key={g.nombre}
+                className={`flex flex-wrap items-center gap-x-0.5 ${
+                  i > 0 ? "sm:ml-1.5 sm:border-l sm:border-[var(--border)] sm:pl-1.5" : ""
+                }`}
+              >
+                <span className="hidden px-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] opacity-70 sm:inline">
+                  {g.nombre}
+                </span>
+                {visibles.map((x) => (
+                  <Tab
+                    key={x.id}
+                    href={x.href}
+                    icon={ICONOS[x.id] ?? Settings}
+                    label={x.nombre}
+                    active={active === x.id}
+                  />
+                ))}
+              </div>
+            );
+          })}
+          <div className="flex items-center sm:ml-1.5 sm:border-l sm:border-[var(--border)] sm:pl-1.5">
+            <Tab
+              href="/admin/usuarios"
+              icon={UserCog}
+              label="Usuarios"
+              active={active === "usuarios"}
+            />
+          </div>
           <a
             href={verTienda}
             target="_blank"
@@ -254,7 +231,7 @@ export async function AdminShell({
         )}
 
         {/* Las novedades del dia, corriendo. */}
-        <LeyendaNovedades novedades={novedades} />
+        {puedeVer(quien.permisos, "novedades") && <LeyendaNovedades novedades={novedades} />}
       </div>
 
       <div
@@ -275,10 +252,23 @@ export async function AdminShell({
           children
         )}
       </div>
-      <AlertaVentas />
+      {puedeVer(quien.permisos, "pedidos") && <AlertaVentas />}
     </div>
   );
 }
+
+const ICONOS: Record<string, typeof Package> = {
+  dashboard: LayoutDashboard,
+  pedidos: ShoppingBag,
+  clientes: Users,
+  productos: Package,
+  marcas: Tags,
+  comparador: Scale,
+  visitas: Eye,
+  novedades: Newspaper,
+  mercadopago: CreditCard,
+  sucursales: Store,
+};
 
 function Tab({
   href,

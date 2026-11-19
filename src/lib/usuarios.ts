@@ -11,6 +11,7 @@
 
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db";
+import { leerPermisos, type Seccion } from "@/lib/permisos";
 
 export const PRINCIPAL = "admin";
 export const MINIMO_CLAVE = 8;
@@ -49,13 +50,34 @@ export function claveProvisoria(): string {
   return s;
 }
 
-/** Si el usuario tiene que elegir su contrasena antes de usar el panel. */
-export async function debeCambiarClave(usuario: string): Promise<boolean> {
-  if (usuario === PRINCIPAL) return false;
+/** Si anduvo por el panel en los ultimos 5 minutos. */
+export function estaConectado(ultimaActividad: Date | null): boolean {
+  return !!ultimaActividad && Date.now() - ultimaActividad.getTime() < 5 * 60_000;
+}
+
+// La ultima actividad se anota como mucho una vez por minuto por persona:
+// el panel abre muchas pantallas seguidas y no hace falta escribir en cada una.
+const anotado = new Map<string, number>();
+
+/** Lo que el panel necesita saber de quien esta adentro, en cada pantalla:
+ *  si tiene que elegir su contrasena y que partes puede ver. De paso anota
+ *  que esta activo (el "conectado ahora" de Usuarios). */
+export async function datosDelUsuario(
+  usuario: string,
+): Promise<{ debeCambiarClave: boolean; permisos: Seccion[] | null }> {
+  if (usuario === PRINCIPAL) return { debeCambiarClave: false, permisos: null };
   const fila = await prisma.adminUser
-    .findUnique({ where: { username: usuario }, select: { debeCambiarClave: true } })
+    .findUnique({ where: { username: usuario }, select: { id: true, debeCambiarClave: true, permisos: true } })
     .catch(() => null);
-  return !!fila?.debeCambiarClave;
+  if (!fila) return { debeCambiarClave: false, permisos: null };
+  const ahora = Date.now();
+  if ((anotado.get(usuario) ?? 0) < ahora - 60_000) {
+    anotado.set(usuario, ahora);
+    void prisma.adminUser
+      .update({ where: { id: fila.id }, data: { ultimaActividad: new Date(ahora) } })
+      .catch(() => {});
+  }
+  return { debeCambiarClave: fila.debeCambiarClave, permisos: leerPermisos(fila.permisos) };
 }
 
 export function problemaConLaClave(clave: string): string | null {

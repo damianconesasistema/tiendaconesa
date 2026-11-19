@@ -2,15 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, KeyRound, Loader2, Pencil, RotateCcw, Trash2, UserPlus } from "lucide-react";
+import { Check, Copy, KeyRound, Loader2, Pencil, RotateCcw, ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import {
   activarUsuario,
   borrarUsuario,
   cambiarClave,
   cambiarNombre,
+  cambiarPermisos,
   crearUsuario,
   resetearClave,
 } from "@/app/admin/usuarios/actions";
+import { GRUPOS, SECCIONES } from "@/lib/permisos";
 
 // La pantalla de usuarios del panel. Ver src/lib/usuarios.ts.
 
@@ -23,7 +25,36 @@ export type FilaUsuario = {
   debeCambiarClave: boolean;
   /** Ya armado en hora argentina, o null si nunca entro. */
   ultimoIngreso: string | null;
+  /** La ultima vez que abrio una pantalla del panel, en hora argentina. */
+  ultimaActividad: string | null;
+  /** Anduvo por el panel en los ultimos 5 minutos. */
+  conectado: boolean;
+  /** Las partes del panel que ve; null = todo (src/lib/permisos.ts). */
+  permisos: string[] | null;
 };
+
+const TODAS = SECCIONES.map((s) => s.id as string);
+
+/** "Ve todo" o "Ve: Pedidos, Productos". */
+function queVe(permisos: string[] | null): string {
+  if (permisos === null) return "Ve todo el panel";
+  if (permisos.length === 0) return "No ve ninguna parte (solo su contraseña)";
+  return `Ve: ${SECCIONES.filter((s) => permisos.includes(s.id)).map((s) => s.nombre).join(", ")}`;
+}
+
+function Etiqueta({ tono, children }: { tono: "verde" | "rojo" | "ambar" | "gris"; children: React.ReactNode }) {
+  const colores = {
+    verde: "bg-green-100 text-green-800",
+    rojo: "bg-red-100 text-red-700",
+    ambar: "bg-amber-100 text-amber-800",
+    gris: "bg-[var(--surface)] text-[var(--muted)]",
+  }[tono];
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${colores}`}>
+      {children}
+    </span>
+  );
+}
 
 const campo =
   "h-10 w-full rounded-lg border border-[var(--border)] bg-white px-3 text-sm outline-none focus:border-[var(--brand-red)]";
@@ -39,6 +70,8 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
   const [clave, setClave] = useState("");
   const [claveDe, setClaveDe] = useState<string | null>(null);
   const [claveNueva, setClaveNueva] = useState("");
+  const [permisosDe, setPermisosDe] = useState<string | null>(null);
+  const [tildadas, setTildadas] = useState<Set<string>>(new Set());
   const [nombreDe, setNombreDe] = useState<string | null>(null);
   const [nombreNuevo, setNombreNuevo] = useState("");
   // La provisoria recien generada: se muestra una sola vez, para dictarla.
@@ -64,7 +97,8 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
         <h2 className="font-display text-sm font-bold uppercase tracking-wider">Usuario nuevo</h2>
         <p className="mt-1 text-xs text-[var(--muted)]">
           Le ponés una contraseña provisoria para que entre la primera vez (mínimo 8 letras o números). Cuando
-          entre, el panel le pide que elija la suya. No hace falta mail: entra con el usuario y la contraseña.
+          entre, el panel le pide que elija la suya. No hace falta mail: entra con el usuario y la contraseña. Arranca
+          viendo todo el panel: con <strong>Permisos</strong> elegís qué partes ve.
         </p>
         <form
           className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
@@ -168,25 +202,41 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
           </li>
           {usuarios.map((u) => (
             <li key={u.id} className="px-5 py-3 text-sm">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="min-w-0 basis-full">
                   <div className="font-semibold">
                     {u.nombre} <span className="font-normal text-[var(--muted)]">· {u.username}</span>
-                    {!u.activo && (
-                      <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase text-red-700">
-                        desactivado
-                      </span>
-                    )}
-                    {u.activo && u.debeCambiarClave && (
-                      <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-800">
-                        con contraseña provisoria
-                      </span>
-                    )}
                   </div>
-                  <div className="text-xs text-[var(--muted)]">
+                  {/* El estado (Damian, 19/11/2026: "poneme status de los usuarios"). */}
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {u.activo ? <Etiqueta tono="verde">Activo</Etiqueta> : <Etiqueta tono="rojo">Desactivado</Etiqueta>}
+                    {u.activo && u.conectado && (
+                      <Etiqueta tono="verde">
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-600" /> En el panel ahora
+                      </Etiqueta>
+                    )}
+                    {u.activo && u.debeCambiarClave && <Etiqueta tono="ambar">Contraseña provisoria</Etiqueta>}
+                    <Etiqueta tono="gris">{queVe(u.permisos)}</Etiqueta>
+                  </div>
+                  <div className="mt-1 text-xs text-[var(--muted)]">
                     {u.ultimoIngreso ? `Último ingreso: ${u.ultimoIngreso}` : "Todavía no entró"}
+                    {u.ultimaActividad && !u.conectado && ` · Anduvo por el panel: ${u.ultimaActividad}`}
                   </div>
                 </div>
+                <button
+                  type="button"
+                  disabled={pendiente}
+                  title="Qué partes del panel puede ver"
+                  onClick={() => {
+                    setPermisosDe(permisosDe === u.id ? null : u.id);
+                    setTildadas(new Set(u.permisos ?? TODAS));
+                    setNombreDe(null);
+                    setClaveDe(null);
+                  }}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--border)] px-3 text-xs font-semibold hover:border-[var(--brand-red)]"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" /> Permisos
+                </button>
                 <button
                   type="button"
                   disabled={pendiente}
@@ -195,6 +245,7 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
                     setNombreDe(nombreDe === u.id ? null : u.id);
                     setNombreNuevo(u.nombre);
                     setClaveDe(null);
+                    setPermisosDe(null);
                   }}
                   className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--border)] px-3 text-xs font-semibold hover:border-[var(--brand-red)]"
                 >
@@ -229,6 +280,7 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
                     setClaveDe(claveDe === u.id ? null : u.id);
                     setClaveNueva("");
                     setNombreDe(null);
+                    setPermisosDe(null);
                   }}
                   className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--border)] px-3 text-xs font-semibold hover:border-[var(--brand-red)]"
                 >
@@ -260,6 +312,70 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
+              {permisosDe === u.id && (
+                <form
+                  className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    hacer(
+                      () => cambiarPermisos(u.id, [...tildadas]),
+                      `Listo: permisos de ${u.nombre} guardados. Le cambian al abrir la próxima pantalla.`,
+                      () => setPermisosDe(null),
+                    );
+                  }}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className={etiqueta}>Qué partes del panel puede ver {u.nombre}</div>
+                    <div className="flex gap-3 text-xs font-semibold">
+                      <button type="button" className="underline" onClick={() => setTildadas(new Set(TODAS))}>
+                        Tildar todo
+                      </button>
+                      <button type="button" className="underline" onClick={() => setTildadas(new Set())}>
+                        Destildar todo
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                    {GRUPOS.map((g) => (
+                      <fieldset key={g.nombre}>
+                        <legend className="mb-1.5 text-xs font-bold">{g.nombre}</legend>
+                        <div className="space-y-1.5">
+                          {g.secciones.map((x) => (
+                            <label key={x.id} className="flex cursor-pointer items-start gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={tildadas.has(x.id)}
+                                onChange={(e) => {
+                                  const n = new Set(tildadas);
+                                  if (e.target.checked) n.add(x.id);
+                                  else n.delete(x.id);
+                                  setTildadas(n);
+                                }}
+                                className="mt-0.5 h-4 w-4 accent-[var(--brand-red)]"
+                              />
+                              <span>
+                                <span className="font-semibold">{x.nombre}</span>
+                                <span className="block text-xs text-[var(--muted)]">{x.ayuda}</span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-xs text-[var(--muted)]">
+                    Su contraseña la puede cambiar siempre, aunque no tenga nada tildado. Lo que no tiene tildado no le
+                    aparece en las pestañas, y si escribe la dirección el panel lo lleva a una parte que sí puede ver.
+                  </p>
+                  <button
+                    type="submit"
+                    disabled={pendiente}
+                    className="mt-3 h-10 rounded-full bg-[var(--brand-red)] px-5 text-xs font-bold uppercase tracking-wider text-white disabled:opacity-50"
+                  >
+                    Guardar permisos
+                  </button>
+                </form>
+              )}
               {nombreDe === u.id && (
                 <form
                   className="mt-3 flex flex-wrap items-end gap-2"
