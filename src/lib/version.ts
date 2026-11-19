@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.29";
+export const APP_VERSION = "V.0.99.30";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,18 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.30",
+    date: "2026-11-19",
+    changes: [
+      "SEO PARA GOOGLE (\"arma tambien todo el SEO para google de la pagina tienda\"): cada producto le decía a Google que era una copia de la portada (y por eso Google no los mostraba). Ahora cada página tiene su propia dirección oficial.",
+      "Mapa del sitio para Google (tienda.conesa.com.ar/sitemap.xml) con la portada, el catálogo, cada rubro, subrubro y marca, y cada producto publicado con su foto. Se arma solo con lo que está a la venta.",
+      "robots.txt: Google no recorre el panel, el sistema, el carrito ni el pago, pero sí las fotos de los productos.",
+      "Cada producto lleva su ficha para Google: nombre, marca, código, fotos, precio, si hay stock y la devolución de 10 días sin costo. Con eso Google puede mostrar el precio y \"En stock\" en el resultado. También el camino Inicio › Tienda › Rubro › Producto.",
+      "Cada rubro, subrubro y marca del catálogo es una página para Google con su título y su descripción (por ejemplo \"Grifería FV\"), y el título grande del catálogo dice el rubro o la marca elegidos.",
+      "El carrito y el pago no aparecen en Google. La ficha de los locales va en la página desde el principio.",
+    ],
+  },
   {
     version: "V.0.99.29",
     date: "2026-11-19",

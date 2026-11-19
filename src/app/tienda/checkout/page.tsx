@@ -14,6 +14,7 @@ import { entregaDelLocal } from "@/lib/entrega";
 export const metadata: Metadata = {
   title: "Checkout",
   description: "Completá tus datos para finalizar la compra.",
+  robots: { index: false, follow: false },
 };
 
 // Los recargos salen de la configuracion (tabla Setting), asi que no se puede

@@ -1,10 +1,10 @@
 import { TIENDA_URL } from "@/lib/dominio";
 import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat } from "next/font/google";
-import Script from "next/script";
 import { Header } from "@/components/Header";
 import { Analytics } from "@/components/Analytics";
 import { esDeLosNuestros } from "@/lib/miradas";
+import { jsonLd } from "@/lib/seo";
 import { CuotasStrip } from "@/components/CuotasStrip";
 import { Footer } from "@/components/Footer";
 import { FooterGate } from "@/components/FooterGate";
@@ -99,12 +99,9 @@ export const metadata: Metadata = {
     address: true,
     telephone: false,
   },
-  alternates: {
-    canonical: SITE_URL,
-    languages: {
-      "es-AR": SITE_URL,
-    },
-  },
+  // Sin `alternates.canonical` aca: lo heredaban TODAS las paginas, y cada
+  // producto le decia a Google "soy la portada". Cada pagina pone la suya
+  // (src/lib/seo.ts).
   openGraph: {
     title:
       "Sanitarios Conesa · Tienda online de sanitarios y materiales",
@@ -230,11 +227,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         {ficha && (
-          <Script
-            id="ld-store"
+          // Va en el HTML que llega, no agregado despues por JavaScript: asi
+          // Google la lee siempre, sin tener que ejecutar la pagina.
+          <script
             type="application/ld+json"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(ficha) }}
+            dangerouslySetInnerHTML={{ __html: jsonLd(ficha) }}
           />
         )}
         <CartProvider>

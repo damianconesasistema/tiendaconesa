@@ -13,6 +13,9 @@ import { entregaDelLocal } from "@/lib/entrega";
 import { precioVitrina } from "@/lib/precios";
 import { formatPrice } from "@/lib/order";
 import { codigoDeAhora, codigoDeLaUrl } from "@/lib/codigo-viejo";
+import { getRubrosExtra } from "@/lib/rubros-server";
+import { nombreRubro } from "@/lib/rubros";
+import { jsonLd, ldMigas, ldProducto, migasDeProducto, resumen } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -46,14 +49,23 @@ export async function generateMetadata(
 
   const titulo = `${p.title} · Sanitarios Conesa`;
   const desc = `${formatPrice(vitrina)} · ${formatPrice(contado)} por transferencia. Retiralo en el local o te lo enviamos a tu domicilio.`;
+  // Para Google: la marca adelante y un pedacito de la descripcion al final.
+  // WhatsApp sigue mostrando el precio primero (openGraph, abajo).
+  const marca = nombreMarca(p.brand, await getMarcas());
+  const extra = resumen(p.description, 110);
+  const descGoogle = `${marca ? `${marca} · ` : ""}${desc}${extra ? ` ${extra}` : ""}`;
 
   return {
     title: p.title,
-    description: desc,
+    description: descGoogle,
+    // La direccion oficial es la del codigo de ahora: un link viejo (MARCA-
+    // numero) redirige, y Google tiene que quedarse con la nueva. Ver
+    // src/lib/seo.ts: antes heredaba la de la portada.
+    alternates: { canonical: rutaProducto(p.itemId) },
     openGraph: {
       title: titulo,
       description: desc,
-      url: `${base}${rutaProducto(itemId)}`,
+      url: `${base}${rutaProducto(p.itemId)}`,
       siteName: "Sanitarios Conesa",
       type: "website",
       locale: "es_AR",
@@ -171,7 +183,36 @@ export default async function ProductoPage({ params }: RouteProps) {
 
   const contacto = await contactoDeLaVenta();
 
+  // La ficha para Google (src/lib/seo.ts): el producto con su precio y stock,
+  // y el camino Inicio > Tienda > Rubro > Producto.
+  const rubrosExtra = await getRubrosExtra();
+  const contado = product.salePrice ?? product.price;
+  const fotos = imageIds.length
+    ? imageIds.map((id) => `${TIENDA_URL}/api/productos/img/${id}`)
+    : [
+        product.imageUrl
+          ? product.imageUrl.startsWith("http")
+            ? product.imageUrl
+            : `${TIENDA_URL}${product.imageUrl}`
+          : `${TIENDA_URL}/categories/${product.category}.jpg`,
+      ];
+  const ldFicha = ldProducto({
+    itemId: product.itemId,
+    title: product.title,
+    description: product.description,
+    marca: compat.brandName || null,
+    codigoFabricante: product.codigoFabricante,
+    rubro: nombreRubro(product.category, rubrosExtra),
+    fotos,
+    precio: contado > 0 ? precioVitrina(contado, recargos.unPago) : null,
+    stock: product.stock,
+  });
+  const ldCamino = ldMigas(migasDeProducto(product, rubrosExtra));
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ldFicha) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ldCamino) }} />
     <ProductDetail
       whatsappSucursal={contacto.whatsapp}
       product={compat}
@@ -181,5 +222,6 @@ export default async function ProductoPage({ params }: RouteProps) {
       planes={planes}
       entrega={entrega}
     />
+    </>
   );
 }

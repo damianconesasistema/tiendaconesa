@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Botón de arrepentimiento",
   description:
     "Arrepentite de tu compra dentro de los 10 días corridos, sin costo y sin dar explicaciones. Ley 24.240, artículo 34.",
+  alternates: { canonical: "/arrepentimiento" },
 };
 
 export const dynamic = "force-dynamic";

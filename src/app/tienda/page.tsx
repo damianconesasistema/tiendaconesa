@@ -6,12 +6,27 @@ import { getMarcas } from "@/lib/marcas-server";
 import { getRubrosExtra } from "@/lib/rubros-server";
 import { articulosEnVenta, paraLaVitrina } from "@/lib/catalogo";
 import { semillaAlAzar } from "@/lib/variedad";
+import { nombreCatalogo, rutaCatalogo } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Tienda",
-  description:
-    "Ofertas en sanitarios, grifería, salamandras, calefones y materiales de obra. Las mejores marcas de Argentina.",
-};
+// Cada rubro, subrubro y marca es una pagina para Google, con su titulo y su
+// direccion (src/lib/seo.ts). La busqueda, el orden y "mostrar mas" no hacen
+// otra pagina: su direccion oficial es la del filtro sin eso.
+export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
+  const sp = await searchParams;
+  const filtro = { cat: sp.cat, sub: sp.sub, marca: sp.marca };
+  const ruta = rutaCatalogo(filtro);
+  const nombre = nombreCatalogo(filtro, await getMarcas(), await getRubrosExtra());
+  const title = nombre ?? "Tienda online de sanitarios, grifería y materiales";
+  const description = nombre
+    ? `Comprá ${nombre} online en Sanitarios Conesa: precios actualizados, ofertas, cuotas y descuento por transferencia. Envío a AMBA o retiro en el local de Balvanera.`
+    : "Comprá online sanitarios, grifería, bañeras, calefones y materiales de obra de las mejores marcas: FV, Ferrum, Piazza, Hydros y más. Precios actualizados, cuotas y envío a AMBA.";
+  return {
+    title,
+    description,
+    alternates: { canonical: ruta },
+    openGraph: { title: `${title} · Sanitarios Conesa`, description, url: ruta, type: "website", locale: "es_AR" },
+  };
+}
 
 type Category = {
   id: string;

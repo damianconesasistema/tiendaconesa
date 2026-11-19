@@ -7,6 +7,7 @@ import { modoDeEnvio, DONDE_ENVIAMOS } from "@/lib/zona-envio";
 export const metadata: Metadata = {
   title: "Carrito",
   description: "Revisá tus productos antes de finalizar la compra.",
+  robots: { index: false, follow: true },
 };
 
 // El tope de envio gratis y los precios salen de la configuracion del local

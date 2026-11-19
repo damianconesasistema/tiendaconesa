@@ -356,8 +356,10 @@ export function CatalogClient({
           <span className="font-display text-xs font-bold uppercase tracking-[0.35em] text-[var(--brand-red)]">
             Tienda online
           </span>
+          {/* Con un rubro o una marca elegidos, el titulo grande dice cual
+              ("Grifería · FV"): es lo primero que lee Google de esa pagina. */}
           <h1 className="mt-2 font-display text-3xl font-black uppercase leading-tight sm:text-4xl">
-            {products.length}+ productos
+            {resumenFiltros !== "Todos" ? resumenFiltros : `${products.length}+ productos`}
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-[var(--muted)]">
             Explorá nuestro catálogo completo de sanitarios, grifería,

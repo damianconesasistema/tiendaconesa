@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Términos y condiciones",
   description:
     "Términos y condiciones de venta, política de devoluciones, garantía legal y protección de datos de Sanitarios Conesa.",
+  alternates: { canonical: "/legales" },
 };
 
 const DIAS = legales.diasArrepentimiento;

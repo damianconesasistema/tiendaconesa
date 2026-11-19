@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
@@ -16,6 +17,9 @@ import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcon
 
 // En runtime hay DB (Railway). En build no la tenemos → forzar dynamic
 export const dynamic = "force-dynamic";
+
+// La direccion oficial de la portada (ver src/lib/seo.ts).
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 import {
   MapPin,
   Mail,
