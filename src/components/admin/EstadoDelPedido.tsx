@@ -32,7 +32,7 @@ function fechaCorta(iso: string) {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? ""
-    : `${d.toLocaleDateString("es-AR", { day: "numeric", month: "numeric" })} ${d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}`;
+    : `${d.toLocaleDateString("es-AR", { day: "numeric", month: "numeric", timeZone: "America/Argentina/Buenos_Aires" })} ${d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Argentina/Buenos_Aires" })}`;
 }
 
 export function EstadoDelPedido({

@@ -102,8 +102,22 @@ export function puedeVer(permisos: Seccion[] | null, seccion: string): boolean {
   return permisos === null || permisos.includes(seccion);
 }
 
-/** A donde va alguien que entro a una parte que no puede ver. */
+/** A donde va alguien que entro a una parte que no puede ver: la primera
+ *  pestaña que tiene; si no tiene ninguna pero si el sistema Punto, al
+ *  sistema; y si no tiene nada, a su usuario (que le explica que pedir).
+ *  Damian, 19/11/2026: "el usuario daniel entro le pide cambiar la
+ *  contraseña la cambia guarda y le vuelve a pedir": sin pestañas, caia en
+ *  su usuario, que mostraba solo "Cambiar mi contraseña" y parecia que se la
+ *  volvia a pedir. */
 export function primeraPermitida(permisos: Seccion[] | null): string {
   const s = SECCIONES.find((x) => x.pestana && puedeVer(permisos, x.id));
-  return s?.href ?? "/admin/usuarios";
+  if (s) return s.href;
+  if (puedeVer(permisos, "sistema")) return "/sistema/demo";
+  return "/admin/usuarios";
+}
+
+/** Las partes que puede usar, para mostrarselas (pestañas, Novedades y el
+ *  sistema Punto). */
+export function partesQueVe(permisos: Seccion[] | null): DatosSeccion[] {
+  return SECCIONES.filter((x) => x.id !== "configuracion" && x.id !== "opiniones" && puedeVer(permisos, x.id));
 }

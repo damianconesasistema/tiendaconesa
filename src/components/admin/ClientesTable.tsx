@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Search, Trash2, Mail, Phone } from "lucide-react";
-import { formatPrice } from "@/lib/order";
+import { fechaHoraPedido, formatPrice } from "@/lib/order";
 import { borrarCliente } from "@/app/admin/clientes/actions";
 
 type Cliente = {
@@ -45,12 +45,10 @@ export function ClientesTable({ clientes, q }: { clientes: Cliente[]; q: string 
     });
   }
 
-  const fecha = (iso: string) =>
-    new Date(iso).toLocaleDateString("es-AR", {
-      day: "2-digit",
-      month: "short",
-      year: "2-digit",
-    });
+  // Fecha y hora completas, en hora argentina (Damian, 19/11/2026: "arregla
+  // la fecha ponele con los datos completos de fecha y hora"). Antes era
+  // "18 de nov de 26", sin hora.
+  const fecha = (iso: string) => fechaHoraPedido(new Date(iso));
 
   return (
     <div className="mt-6 space-y-4">

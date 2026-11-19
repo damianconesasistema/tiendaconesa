@@ -17,7 +17,7 @@ import {
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { prisma } from "@/lib/db";
-import { formatPrice } from "@/lib/order";
+import { fechaHoraPedido, formatPrice } from "@/lib/order";
 import { EstadoDelPedido } from "@/components/admin/EstadoDelPedido";
 import { leerAvisos } from "@/lib/transportes";
 import { DeleteOrderButton } from "@/components/admin/DeleteOrderButton";
@@ -72,13 +72,14 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             {order.createdAt.toLocaleString("es-AR", {
               dateStyle: "long",
               timeStyle: "short",
+              // El servidor esta en hora UTC: sin esto salia 3 horas
+              // adelantado (un pedido de las 22:07 decia 1:07 a. m.).
+              timeZone: "America/Argentina/Buenos_Aires",
             })}
           </p>
         </div>
-        {/* Barra de acciones. El orden es el del trabajo real: primero el
-            estado, despues facturar (lo mas usado), despues lo auxiliar, y
-            al final —separado— lo destructivo. */}
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:items-end">
+        {/* El estado, a la derecha del titulo. */}
+        <div className="w-full sm:w-auto">
           <EstadoDelPedido
             orderId={order.id}
             actual={order.status}
@@ -89,71 +90,76 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
             link={order.linkSeguimiento}
             avisos={leerAvisos(order.avisos)}
           />
+        </div>
+      </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            <FacturarButton
-              orderId={order.id}
-              cae={order.cae}
-              numero={
-                order.ptoVta && order.cbteNro
-                  ? numeroFormateado(order.ptoVta, order.cbteNro)
-                  : null
-              }
-              ncCae={order.ncCae}
-              telefono={order.customer.phone}
-              ncNumero={
-                order.ptoVta && order.ncNro
-                  ? numeroFormateado(order.ptoVta, order.ncNro)
-                  : null
-              }
-            />
-            <EditarDatosButton
-              orderId={order.id}
-              facturado={!!order.cae}
-              datos={{
-                firstName: order.customer.firstName,
-                lastName: order.customer.lastName,
-                dni: order.customer.dni,
-                email: order.customer.email,
-                phone: order.customer.phone,
-                locality: order.locality,
-                street: order.street,
-                streetNumber: order.streetNumber,
-                reference: order.reference,
-              }}
-            />
-            <a
-              href={`/api/admin/pedidos/${order.id}/etiqueta`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-[var(--brand-black)]"
-            >
-              <Tag className="h-4 w-4" />
-              Etiqueta
-            </a>
-            {/* El recibo de MercadoPago para que firme el que retira: es la
-                prueba si despues desconoce el pago con la tarjeta. */}
-            {order.shipping === "retiro" && (
-              <a
-                href={`/api/admin/pedidos/${order.id}/recibo`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-[var(--brand-black)]"
-              >
-                <Tag className="h-4 w-4" />
-                Recibo de retiro
-              </a>
-            )}
-          </div>
-
-          <div className="border-t border-[var(--border)] pt-2 sm:w-auto">
-            <DeleteOrderButton
-              orderId={order.id}
-              orderNumber={order.number}
-              confirmacionDoble={order.status !== "pendiente" || !!order.cae}
-              facturado={!!order.cae}
-            />
-          </div>
+      {/* Barra de acciones, todas alineadas en una fila (Damian, 19/11/2026:
+          "alinea eso por favor los botones que quede lindo"). El orden es el
+          del trabajo real: facturar (lo mas usado), despues lo auxiliar, y al
+          final, a la derecha y separado, lo destructivo. items-start: la
+          factura lleva el CAE abajo y con items-center los demas botones
+          quedaban corridos. */}
+      <div className="mt-5 flex flex-wrap items-start gap-2 rounded-2xl border border-[var(--border)] bg-white p-3">
+        <FacturarButton
+          orderId={order.id}
+          cae={order.cae}
+          numero={
+            order.ptoVta && order.cbteNro
+              ? numeroFormateado(order.ptoVta, order.cbteNro)
+              : null
+          }
+          ncCae={order.ncCae}
+          telefono={order.customer.phone}
+          ncNumero={
+            order.ptoVta && order.ncNro
+              ? numeroFormateado(order.ptoVta, order.ncNro)
+              : null
+          }
+        />
+        <EditarDatosButton
+          orderId={order.id}
+          facturado={!!order.cae}
+          datos={{
+            firstName: order.customer.firstName,
+            lastName: order.customer.lastName,
+            dni: order.customer.dni,
+            email: order.customer.email,
+            phone: order.customer.phone,
+            locality: order.locality,
+            street: order.street,
+            streetNumber: order.streetNumber,
+            reference: order.reference,
+          }}
+        />
+        <a
+          href={`/api/admin/pedidos/${order.id}/etiqueta`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-[var(--brand-black)]"
+        >
+          <Tag className="h-4 w-4" />
+          Etiqueta
+        </a>
+        {/* El recibo de MercadoPago para que firme el que retira: es la
+            prueba si despues desconoce el pago con la tarjeta. */}
+        {order.shipping === "retiro" && (
+          <a
+            href={`/api/admin/pedidos/${order.id}/recibo`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-[var(--brand-black)]"
+          >
+            <Tag className="h-4 w-4" />
+            Recibo de retiro
+          </a>
+        )}
+        <div className="ml-auto">
+          <DeleteOrderButton
+            orderId={order.id}
+            orderNumber={order.number}
+            confirmacionDoble={order.status !== "pendiente" || !!order.cae}
+            facturado={!!order.cae}
+          />
         </div>
       </div>
 
@@ -345,7 +351,7 @@ export default async function PedidoDetailPage({ params }: RouteProps) {
               ) : (
                 <div className="text-[var(--muted)]">
                   {order.paidAt
-                    ? `Pago confirmado el ${order.paidAt.toLocaleDateString("es-AR")}`
+                    ? `Pago confirmado el ${fechaHoraPedido(order.paidAt)}`
                     : "Pago pendiente de confirmación manual."}
                 </div>
               )}

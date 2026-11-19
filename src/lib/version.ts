@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.37";
+export const APP_VERSION = "V.0.99.38";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.38",
+    date: "2026-11-19",
+    changes: [
+      "PEDIDO: los botones en una sola fila, alineados, dentro de un recuadro (Factura, WhatsApp, Nota de crédito, Editar datos, Etiqueta, Recibo) y Eliminar a la derecha; el estado al lado del título (\"alinea eso por favor los botones que quede lindo\"). La hora de creación salía 3 horas adelantada (hora del servidor): ahora es la de Argentina, igual que \"Pago confirmado el\", que ahora tiene también la hora.",
+      "CLIENTES: la columna Desde con fecha y hora completas en hora argentina (\"arregla la fecha ponele con los datos completos de fecha y hora\"), por ejemplo 18/11/2026 14:32.",
+      "USUARIO SIN PARTES DEL PANEL (\"el usuario daniel entro le pide cambiar la contraseña la cambia guarda y le vuelve a pedir\"): la contraseña sí se guardaba, pero el que no tiene ninguna pestaña tildada caía en su usuario, que solo mostraba \"Cambiar mi contraseña\", y parecía que se la volvía a pedir. Ahora, si solo tiene el sistema Punto, va directo al sistema; y su pantalla se llama \"Mi usuario\", dice que la contraseña ya está guardada y muestra lo que puede usar (o que pida a admin que le tilde algo).",
+    ],
+  },
   {
     version: "V.0.99.37",
     date: "2026-11-19",
