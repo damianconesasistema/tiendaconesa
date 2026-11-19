@@ -99,6 +99,10 @@ export const TIENDAS_TIENDANUBE = [
   { nombre: "Sanicentro", base: "https://sanicentro.com.ar" },
   { nombre: "Cerymat La Plata", base: "https://www.cerymatlaplata.com.ar" },
   { nombre: "Totos Cerámicos", base: "https://www.totosceramicos.com.ar" },
+  // Ferreterias: herramientas (Dogo y otras). Damian, 19/11/2026, con la
+  // amoladora Dogo 900 W sin datos: "buscalo ahi mismo y traeme un precio".
+  { nombre: "Pideweb", base: "https://www.pideweb.com.ar" },
+  { nombre: "Delta Ferretería", base: "https://www.deltaferreteriaindustrial.com" },
 ] as const;
 
 export type PrecioAfuera = {
@@ -314,7 +318,8 @@ async function buscarEnTiendanube(base: string, termino: string): Promise<Candid
       if (!link) continue;
       const marca = typeof x.brand === "string" ? x.brand : x.brand?.name;
       const titulo = sinHtml(x.name);
-      const fuerte = [titulo, x.mpn].filter(Boolean).join(" ");
+      // El SKU de la tienda a veces es el codigo de fabrica (Dogo "DOG54015").
+      const fuerte = [titulo, x.mpn, x.sku].filter(Boolean).join(" ");
       salida.push({ titulo, fuerte, texto: [fuerte, marca].filter(Boolean).join(" "), precio, link });
     }
   }

@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.50";
+export const APP_VERSION = "V.0.99.51";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.51",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR CON FERRETERÍAS (\"buscalo ahi mismo y traeme un precio y link\", con la amoladora Dogo 900 W sin datos): suma Pideweb y Delta Ferretería Industrial, que venden Dogo. La amoladora DOG54015 ahora aparece en Delta a $83.000 y en Pideweb a $83.699. En las tiendas Tiendanube también se mira su código interno, que a veces es el de fábrica.",
+    ],
+  },
   {
     version: "V.0.99.50",
     date: "2026-11-19",
