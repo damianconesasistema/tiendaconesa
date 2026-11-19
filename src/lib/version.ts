@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.47";
+export const APP_VERSION = "V.0.99.48";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.48",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR POR TÍTULO (\"los termotanques Heineken podes buscar por el titulo tambien y con el resto tambien como TST\"): los productos sin código se buscan por el nombre con una regla menos estricta: el mismo tipo de producto (termotanque, campana...), la misma marca, todos sus números (50 L, 60 cm) y la mitad de las demás palabras, con precio cercano. Ejemplos: el Heineken 50 L eléctrico aparece en Sodimac y Easy; la campana TST Puelo 60 en Sanitarios San Martín y Sanicentro. Y no toma un modelo distinto cuando el nombre se contradice: conexión inferior/superior, eléctrico/gas, izquierda/derecha, simple/doble, interior/exterior, pared/mesada, monocomando/bimando.",
+    ],
+  },
   {
     version: "V.0.99.47",
     date: "2026-11-19",

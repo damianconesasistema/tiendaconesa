@@ -463,8 +463,13 @@ function mismoPorNombre(nuestro: string, marca: string, candidato: string): bool
   const palabras = palabrasDelTitulo(nuestro, marca).filter((w) => !GENERICAS.has(w));
   if (palabras.length < 2) return false;
   const raiz = (w: string) => w.replace(/(es|s)$/, "");
-  const estan = palabras.filter((w) => c.includes(` ${raiz(w)}`)).length;
-  return estan / palabras.length >= 0.75;
+  const esta = (w: string) => c.includes(` ${raiz(w)}`);
+  // Lo que es (la primera palabra: termotanque, campana, extractor) tiene
+  // que estar si o si; del resto, la mitad. Damian, 19/11/2026: "los
+  // termotanques Heineken podes buscar por el titulo tambien y con el resto
+  // tambien como TST". Con 3 de cada 4 no encontraba casi nada.
+  if (!esta(palabras[0])) return false;
+  return palabras.filter(esta).length / palabras.length >= 0.5;
 }
 
 // Los colores, por familia. "BL" es como se escribe blanco en los titulos
@@ -497,6 +502,29 @@ function colorDistinto(nuestro: string, deAfuera: string): boolean {
   const a = coloresDe(nuestro);
   const b = coloresDe(deAfuera);
   return a.size > 0 && b.size > 0 && ![...a].some((c) => b.has(c));
+}
+
+// Palabras que se contradicen: si los dos nombran algo del mismo grupo y no
+// coinciden, son modelos distintos. El termotanque Heineken 80 L de conexion
+// INFERIOR no es el de conexion SUPERIOR (Sodimac tiene el otro).
+const CONTRARIOS: string[][] = [
+  ["inferior", "superior"],
+  ["electrico", "electrica", "gas"],
+  ["izquierda", "izquierdo", "derecha", "derecho"],
+  ["simple", "doble"],
+  ["interior", "exterior"],
+  ["pared", "mesada"],
+  ["monocomando", "bimando", "bicomando"],
+];
+
+function seContradicen(nuestro: string, deAfuera: string): boolean {
+  const a = new Set(plano(nuestro).split(" "));
+  const b = new Set(plano(deAfuera).split(" "));
+  return CONTRARIOS.some((g) => {
+    const enA = g.filter((w) => a.has(w));
+    const enB = g.filter((w) => b.has(w));
+    return enA.length > 0 && enB.length > 0 && !enA.some((w) => enB.includes(w));
+  });
 }
 
 /** Nombra la marca como palabra ("FV", no "pvc" ni "fvx"). */
@@ -567,6 +595,7 @@ export async function preciosAfuera(p: {
           // Solo el mismo modelo: por el codigo o, si no tiene, por el nombre.
           const mismo =
             !colorDistinto(p.titulo, c.titulo) &&
+            !seContradicen(p.titulo, c.titulo) &&
             (porNombre ? esMismoPorNombre(c.fuerte, c.texto, c.precio) : esExacto(c.fuerte, c.texto, c.precio));
           if (!mismo) continue;
           if (deEsta.some((r) => r.link === c.link)) continue;
