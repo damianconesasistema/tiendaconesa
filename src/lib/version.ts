@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.49";
+export const APP_VERSION = "V.0.99.50";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,17 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.50",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR EN UNA COLUMNA (\"ponelo en una columna prolijo y que quede ordenado\"): las tiendas de cada fila, a la izquierda y con el precio de ancho fijo, así quedan uno debajo del otro en todas las filas.",
+      "La columna se llama \"Mismo modelo que vende la competencia\" (\"aca ponele mismo modelo que vende la competencia\").",
+      "TABLA POR MODELO (\"en cada uno de los sitios armalo tipo tabla por modelo\"): en cada producto, una tablita Sitio | Precio | %, una fila por tienda de la más barata a la más cara, con las columnas alineadas en todos los productos.",
+      "PORCENTAJE POR TIENDA (\"poneme el porcentaje en cada competencia si estoy arriba o abajo\"): al lado de cada tienda, en rojo con + si estamos más caros que ella y en verde con − si estamos más baratos.",
+      "BUSCAR EN GOOGLE (\"si no encontras en las paginas de sanitarios proba en Google\"): cuando no hay datos, un link abre Google Shopping buscando la marca y el código del producto (o su título). El programa no le puede preguntar a Google solo (no hay forma permitida sin clave paga), por eso es un link para mirarlo a mano.",
+    ],
+  },
   {
     version: "V.0.99.49",
     date: "2026-11-19",

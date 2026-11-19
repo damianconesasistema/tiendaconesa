@@ -209,7 +209,7 @@ export function ComparadorPrecios({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Dato titulo="Publicados" valor={filas.length} />
         <Dato titulo="Ya buscados" valor={resumen.buscados} />
-        <Dato titulo="Con el mismo modelo afuera" valor={resumen.mismo} />
+        <Dato titulo="Los vende la competencia" valor={resumen.mismo} />
         <Dato titulo="Más caros que afuera" valor={resumen.caros} rojo={resumen.caros > 0} />
       </div>
 
@@ -239,7 +239,7 @@ export function ComparadorPrecios({
         <select value={filtro} onChange={(e) => setFiltro(e.target.value as Filtro)} className={control}>
           <option value="todos">Todos</option>
           <option value="sin-buscar">Sin buscar todavía</option>
-          <option value="mismo">Con el mismo modelo afuera</option>
+          <option value="mismo">Los que vende la competencia</option>
           <option value="caros">Más caros que afuera</option>
           <option value="baratos">Más baratos que afuera</option>
           <option value="nada">Buscados y no está afuera</option>
@@ -325,15 +325,16 @@ export function ComparadorPrecios({
       {error && <p className="mt-2 text-sm font-medium text-red-700">{error}</p>}
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
-        <div className="hidden grid-cols-[1fr_120px_250px_110px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
+        <div className="hidden grid-cols-[1fr_120px_300px_110px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
           <Titulo col="nombre" orden={orden} setOrden={setOrden}>
             Producto
           </Titulo>
           <Titulo col="precio" orden={orden} setOrden={setOrden} derecha>
             Nuestro precio
           </Titulo>
-          <Titulo col="afuera" orden={orden} setOrden={setOrden} derecha>
-            Mismo modelo afuera
+          {/* Damian, 19/11/2026: "aca ponele mismo modelo que vende la competencia". */}
+          <Titulo col="afuera" orden={orden} setOrden={setOrden}>
+            Mismo modelo que vende la competencia
           </Titulo>
           <Titulo col="diferencia" orden={orden} setOrden={setOrden} derecha>
             Diferencia
@@ -442,7 +443,7 @@ function Fila({
 
   return (
     <div className="border-b border-[var(--border)] last:border-b-0">
-      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_120px_250px_110px_90px] md:items-center">
+      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_120px_300px_110px_90px] md:items-center">
         <div className="flex min-w-0 items-center gap-3">
           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[var(--border)] bg-white">
             <Image
@@ -464,57 +465,78 @@ function Fila({
 
         <div className="text-right font-display text-sm font-black md:text-base">{formatPrice(f.precio)}</div>
 
-        <div className="col-span-2 text-sm md:col-span-1 md:text-right">
+        <div className="col-span-2 text-sm md:col-span-1">
           {buscandoEste ? (
             <span className="inline-flex items-center gap-1.5 text-[var(--muted)]">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Buscando…
             </span>
           ) : mejor ? (
-            // Todas las tiendas que lo tienen, una por sitio, de la mas
-            // barata a la mas cara (Damian, 19/11/2026: "si aparece en mas de
-            // un lugar el producto mostrame las opciones que hay" / "si es mas
-            // de uno me la mostras por sitio").
-            // Ordenado como una tablita (Damian, 19/11/2026: "que se vea
-            // ordenado eso"): el precio alineado a la derecha y la tienda al
-            // lado, en una sola linea.
-            <ul className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2 gap-y-1 text-left">
-              {porSitio(exactos).map((r, i) => {
-                const ayuda = r.anterior ? `De la búsqueda del ${fechaCorta(r.anterior)} (esta vez no contestó)` : r.titulo;
-                return (
-                  <li key={r.link} className="contents">
-                    <a
-                      href={r.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={ayuda}
-                      className={`text-right tabular-nums hover:text-[var(--brand-red)] ${i === 0 ? "font-bold" : "text-xs"}`}
-                    >
-                      {formatPrice(r.precio)}
-                    </a>
-                    <a
-                      href={r.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={ayuda}
-                      className={`inline-flex min-w-0 items-center gap-1 text-xs hover:text-[var(--brand-red)] ${
-                        i === 0 ? "font-semibold text-foreground" : "text-[var(--muted)]"
-                      }`}
-                    >
-                      <span className="truncate">
-                        {r.tienda}
-                        {r.porNombre ? " · por nombre" : ""}
-                      </span>
-                      <ExternalLink className="h-3 w-3 shrink-0" />
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
+            // Por modelo, una tablita: Sitio | Precio | % (Damian,
+            // 19/11/2026: "si aparece en mas de un lugar mostrame las
+            // opciones", "que se vea ordenado", "ponelo en una columna
+            // prolijo", "poneme el porcentaje en cada competencia" y "en cada
+            // uno de los sitios armalo tipo tabla por modelo"). Una fila por
+            // tienda, de la mas barata a la mas cara, con anchos fijos para
+            // que las columnas queden alineadas en todos los modelos.
+            <table className="w-full table-fixed text-xs">
+              <colgroup>
+                <col />
+                <col className="w-[84px]" />
+                <col className="w-[48px]" />
+              </colgroup>
+              <tbody>
+                {porSitio(exactos).map((r, i) => {
+                  const ayuda = r.anterior
+                    ? `De la búsqueda del ${fechaCorta(r.anterior)} (esta vez no contestó)`
+                    : r.titulo;
+                  return (
+                    <tr key={r.link} className="border-b border-dotted border-[var(--border)] last:border-b-0">
+                      <td className="py-0.5 pr-2">
+                        <a
+                          href={r.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={ayuda}
+                          className={`flex min-w-0 items-center gap-1 hover:text-[var(--brand-red)] ${
+                            i === 0 ? "font-semibold text-foreground" : "text-[var(--muted)]"
+                          }`}
+                        >
+                          <span className="truncate">
+                            {r.tienda}
+                            {r.porNombre ? " · por nombre" : ""}
+                          </span>
+                          <ExternalLink className="h-3 w-3 shrink-0" />
+                        </a>
+                      </td>
+                      <td className={`py-0.5 text-right tabular-nums ${i === 0 ? "text-sm font-bold" : ""}`}>
+                        {formatPrice(r.precio)}
+                      </td>
+                      <td className="py-0.5 text-right">
+                        <PorcentajeContra nuestro={f.precio} suyo={r.precio} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           ) : c ? (
             // Sin la lista de las que no contestaron (Damian: "cuando no hay
             // data pone no hay data, no me pongas el choclo ese"). El detalle
-            // esta en la flechita.
-            <span className="text-xs text-[var(--muted)]">No hay datos</span>
+            // esta en la flechita. Y para buscarlo a mano: Google Shopping con
+            // la marca y el codigo ("si no encontras en las paginas de
+            // sanitarios proba en Google"). El programa no le puede preguntar
+            // a Google solo; esto abre la busqueda en una pestaña.
+            <span className="flex flex-wrap items-baseline gap-x-2 text-xs text-[var(--muted)]">
+              No hay datos
+              <a
+                href={enGoogle(f, c)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-semibold text-[var(--brand-red)] hover:underline"
+              >
+                Buscar en Google <ExternalLink className="h-3 w-3" />
+              </a>
+            </span>
           ) : (
             <span className="text-xs text-[var(--muted)]">Sin buscar</span>
           )}
@@ -574,6 +596,29 @@ function Fila({
       )}
     </div>
   );
+}
+
+/** "+27%": estamos mas caros que esa tienda (rojo); "−5%": mas baratos
+ *  (verde). Misma cuenta que la columna Diferencia. */
+function PorcentajeContra({ nuestro, suyo }: { nuestro: number; suyo: number }) {
+  const d = suyo > 0 ? Math.round(((nuestro - suyo) / suyo) * 100) : 0;
+  return (
+    <span
+      className={`text-right text-xs font-bold tabular-nums ${
+        d > 0 ? "text-red-700" : d < 0 ? "text-green-700" : "text-[var(--muted)]"
+      }`}
+      title={d > 0 ? `Estás ${d}% más caro` : d < 0 ? `Estás ${-d}% más barato` : "Mismo precio"}
+    >
+      {d > 0 ? `+${d}%` : d < 0 ? `−${-d}%` : "="}
+    </span>
+  );
+}
+
+/** Google Shopping con la marca y el codigo (o el titulo si no tiene). */
+function enGoogle(f: FilaComparador, c: Comparacion): string {
+  const codigo = c.buscado[0] && /\d/.test(c.buscado[0]) ? c.buscado[0] : "";
+  const q = codigo ? `${f.marca ?? ""} ${codigo}` : f.titulo;
+  return `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q.trim())}`;
 }
 
 /** Una por tienda (la mas barata de cada una), de menor a mayor precio. */
