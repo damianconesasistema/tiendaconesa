@@ -17,6 +17,13 @@
 //     JSON), Tiendanube (la busqueda trae cada producto como dato
 //     estructurado) y Sodimac (los datos de su pagina de busqueda). Probadas
 //     una por una el 19/11/2026. Las que no dejan ver precios, no estan.
+//   - Mas tiendas por marca (Damian, 19/11/2026, con los que no traian
+//     precio: "asi hace con todos", "sumala cuando termines"): casas que
+//     venden Dogo, Fluvial, Hydros, Heineken, TST, Mi Pileta, Piazza,
+//     Pringles, Ariel. Ademas de las de arriba: Odoo (CER), Magento (Rodo,
+//     Somos Rex), la tienda oficial de Dogo, Centro de Materiales y la
+//     plataforma de Foschia y Grupo Gemme, cada una leida de su pagina de
+//     busqueda.
 //   - Google no: no tiene una forma permitida de pedirle resultados con
 //     precios desde un programa.
 //   - MercadoLibre: la ficha de catalogo EXACTA (marca + codigo), con los
@@ -71,6 +78,9 @@ export const TIENDAS_WOO = [
   { nombre: "Soles Pergamino", base: "https://solespergamino.com" },
   { nombre: "Ruco Hogar", base: "https://rucohogar.com.ar" },
   { nombre: "Moro Revestimientos", base: "https://mororevestimientos.com" },
+  { nombre: "MAQPRO", base: "https://www.maqpro.com.ar" },
+  { nombre: "Gastromak", base: "https://gastromak.com.ar" },
+  { nombre: "Punto Parrilla", base: "https://puntoparrilla.com" },
 ] as const;
 
 export const TIENDAS_PRESTA = [
@@ -78,6 +88,8 @@ export const TIENDAS_PRESTA = [
   { nombre: "Sanitarios Axantra", base: "https://www.sanitariosaxantra.com" },
   { nombre: "Ferrocons", base: "https://www.ferrocons.com.ar" },
   { nombre: "SaniPlast", base: "https://www.saniplast.com.ar" },
+  { nombre: "Abelson", base: "https://abelson.com.ar" },
+  { nombre: "Mukdise", base: "https://www.mukdise.com.ar" },
 ] as const;
 
 export const TIENDAS_TIENDANUBE = [
@@ -103,6 +115,41 @@ export const TIENDAS_TIENDANUBE = [
   // amoladora Dogo 900 W sin datos: "buscalo ahi mismo y traeme un precio".
   { nombre: "Pideweb", base: "https://www.pideweb.com.ar" },
   { nombre: "Delta Ferretería", base: "https://www.deltaferreteriaindustrial.com" },
+] as const;
+
+/** Tiendanube que se encontraron buscando una marca (Damian, 19/11/2026,
+ *  con los que no traian precio: "asi hace con todos", "sumala cuando
+ *  termines"). Se les pregunta solo por esas marcas: Tiendanube corta si se
+ *  le pide mucho (ver turnoTiendanube) y preguntarle a una casa de parrillas
+ *  por una griferia FV gasta turnos de las que si la tienen. `marcas` va
+ *  junto y sin espacios ("mipileta"). */
+export const TIENDAS_TIENDANUBE_POR_MARCA: { nombre: string; base: string; marcas: string[] }[] = [
+  { nombre: "Pinturerías MM", base: "https://www.pintureriasmm.com.ar", marcas: ["dogo"] },
+  { nombre: "Proyectar Materiales", base: "https://www.proyectarmateriales.com.ar", marcas: ["hydros", "ariel", "piazza", "daccord"] },
+  { nombre: "Casa Andy", base: "https://www.casa-andy.com.ar", marcas: ["heineken"] },
+  { nombre: "Val-Mar Sanitarios", base: "https://valmarsanitarios.mitiendanube.com", marcas: ["heineken"] },
+  { nombre: "Artef", base: "https://www.artef.com.ar", marcas: ["tst"] },
+  { nombre: "Grill West", base: "https://www.grillwest.com.ar", marcas: ["tst"] },
+  { nombre: "Casa Martínez", base: "https://www.casamartinezsa.com.ar", marcas: ["tst"] },
+  { nombre: "Sanitarios Campana", base: "https://sanitarioscampana.com.ar", marcas: ["tst"] },
+  { nombre: "Domia Home", base: "https://domiahome.com.ar", marcas: ["tst"] },
+  { nombre: "Deco Miracema", base: "https://decomiracema.com.ar", marcas: ["mipileta", "piazza"] },
+  { nombre: "2448 Materiales", base: "https://2448materiales.com.ar", marcas: ["piazza"] },
+  { nombre: "Intermarble", base: "https://www.intermarble.com.ar", marcas: ["pringles"] },
+  { nombre: "Sanitarios Vera", base: "https://www.sanitariosvera.com.ar", marcas: ["ariel", "piazza"] },
+  { nombre: "Saniclick", base: "https://saniclick.com.ar", marcas: ["mipileta", "flowater", "peirano", "ferrum"] },
+];
+
+/** Magento: la busqueda trae producto por producto con el precio. */
+export const TIENDAS_MAGENTO = [
+  { nombre: "Rodo", base: "https://www.rodo.com.ar" },
+  { nombre: "Somos Rex", base: "https://somosrex.com" },
+] as const;
+
+/** La plataforma de Foschia y Grupo Gemme (tarjetas con marca y precio). */
+export const TIENDAS_DESIGN8 = [
+  { nombre: "Foschia", base: "https://foschia.com.ar" },
+  { nombre: "Grupo Gemme", base: "https://grupogemme.com.ar" },
 ] as const;
 
 export type PrecioAfuera = {
@@ -246,13 +293,14 @@ async function buscarEnWoo(base: string, termino: string): Promise<Candidato[] |
   }
 }
 
-async function pedirTexto(url: string): Promise<string | null> {
+async function pedirTexto(url: string, siFalla?: (status: number) => void): Promise<string | null> {
   try {
     const r = await fetch(url, {
       headers: { "User-Agent": UA, Accept: "text/html,application/json;q=0.9,*/*;q=0.8", "Accept-Language": "es-AR,es;q=0.9" },
       signal: AbortSignal.timeout(ESPERA),
       cache: "no-store",
     });
+    if (!r.ok) siFalla?.(r.status);
     return r.ok ? await r.text() : null;
   } catch {
     return null;
@@ -293,10 +341,39 @@ type ProductoLd = {
   offers?: { price?: string | number; url?: string; availability?: string } | { price?: string | number; url?: string; availability?: string }[];
 };
 
+// Tiendanube corta (contesta 429, "demasiados pedidos") cuando se le pide
+// mucho desde la misma maquina, a TODAS sus tiendas juntas: probado el
+// 19/11/2026, aguanta unos 30 pedidos de golpe y despues alrededor de uno
+// por segundo. Antes se le pedia todo junto y muchas quedaban como "no
+// contesto". Ahora cada pedido espera su turno; si el turno tarda demasiado,
+// esa tienda queda para la proxima busqueda (y se conserva lo que habia
+// traido antes).
+const TN_DE_GOLPE = 25;
+const TN_POR_SEGUNDO = 1.1;
+const TN_TURNO_MAXIMO = 20_000;
+let tnFichas = TN_DE_GOLPE;
+let tnDesde = Date.now();
+
+async function turnoTiendanube(): Promise<boolean> {
+  const ahora = Date.now();
+  tnFichas = Math.min(TN_DE_GOLPE, tnFichas + ((ahora - tnDesde) / 1000) * TN_POR_SEGUNDO);
+  tnDesde = ahora;
+  const espera = tnFichas >= 1 ? 0 : ((1 - tnFichas) / TN_POR_SEGUNDO) * 1000;
+  if (espera > TN_TURNO_MAXIMO) return false;
+  // Se reserva el turno (puede quedar en negativo: los de atras esperan mas).
+  tnFichas -= 1;
+  if (espera > 0) await new Promise((r) => setTimeout(r, espera));
+  return true;
+}
+
 /** Tiendanube: la pagina de busqueda trae cada producto como dato
  *  estructurado (JSON-LD), con nombre, marca y precio. */
 async function buscarEnTiendanube(base: string, termino: string): Promise<Candidato[] | null> {
-  const html = await pedirTexto(`${base}/search/?q=${encodeURIComponent(termino)}`);
+  if (!(await turnoTiendanube())) return null;
+  const html = await pedirTexto(`${base}/search/?q=${encodeURIComponent(termino)}`, (status) => {
+    // Corto igual: unos segundos sin pedirle nada.
+    if (status === 429) tnFichas = Math.min(tnFichas, -3);
+  });
   if (html === null) return null;
   const salida: Candidato[] = [];
   for (const m of html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
@@ -361,10 +438,143 @@ async function buscarEnSodimac(termino: string): Promise<Candidato[] | null> {
   }
 }
 
+/** Un precio escrito a la argentina ("91.589,00", "257.677") o con la coma
+ *  de miles ("6,743"): cada tienda lo escribe a su manera. */
+function pesosAR(x: string | undefined): number {
+  const s = (x ?? "").replace(/[^\d.,]/g, "");
+  if (!s) return 0;
+  // Coma con uno o dos numeros al final: son los centavos.
+  if (/,\d{1,2}$/.test(s)) return Number(s.replace(/\./g, "").replace(",", "."));
+  return Number(s.replace(/[.,]/g, ""));
+}
+
+/** Magento (Rodo, Somos Rex): la pagina de busqueda, producto por producto
+ *  ("product-item-link"), con el precio en data-price-amount. Somos Rex pone
+ *  el precio vigente como "defaultPromoPrice" (el de lista es "oldPrice");
+ *  Rodo, como "finalPrice". */
+async function buscarEnMagento(base: string, termino: string): Promise<Candidato[] | null> {
+  const html = await pedirTexto(`${base}/catalogsearch/result/?q=${encodeURIComponent(termino)}`);
+  if (html === null) return null;
+  const partes = html.split('class="product-item-link"');
+  const salida: Candidato[] = [];
+  for (let i = 1; i < partes.length; i++) {
+    const p = partes[i].slice(0, 12000);
+    const link = p.match(/^\s*href="([^"]+)"/)?.[1];
+    const titulo = sinHtml(p.match(/^[^>]*>([\s\S]*?)<\/a>/)?.[1] ?? "");
+    const precioDe = (tipo: string) =>
+      p.match(new RegExp(`data-price-amount="([\\d.]+)"\\s+data-price-type="${tipo}"`))?.[1];
+    const precio = Number(precioDe("defaultPromoPrice") ?? precioDe("finalPrice") ?? 0);
+    if (!(precio > 0) || !link || !titulo || /OutOfStock|stock unavailable/i.test(p)) continue;
+    // La marca (Somos Rex la pone arriba del nombre).
+    const previo = partes[i - 1];
+    const desde = previo.lastIndexOf("product-item-info");
+    const marca = previo.slice(desde >= 0 ? desde : -1500).match(/brand-name">\s*([^<]+?)\s*</)?.[1];
+    salida.push({ titulo, fuerte: titulo, texto: [titulo, marca].filter(Boolean).join(" "), precio, link });
+  }
+  return salida;
+}
+
+/** Odoo (CER, bombas Fluvial): cada producto con su nombre
+ *  (itemprop="name"), el codigo entre corchetes en la foto ("[112100]
+ *  BOMBA...") y el precio en itemprop="price". */
+async function buscarEnOdoo(base: string, termino: string): Promise<Candidato[] | null> {
+  const html = await pedirTexto(`${base}/shop?search=${encodeURIComponent(termino)}`);
+  if (html === null) return null;
+  const partes = html.split('itemprop="name"');
+  const salida: Candidato[] = [];
+  for (let i = 1; i < partes.length; i++) {
+    const p = partes[i];
+    const href = p.match(/^[^>]*href="(\/shop\/[^"?]+)/)?.[1];
+    const titulo = sinHtml(p.match(/^[^>]*content="([^"]+)"/)?.[1] ?? "");
+    const precio = Number(p.match(/itemprop="price"[^>]*>\s*([\d.]+)/)?.[1] ?? 0);
+    if (!(precio > 0) || !href || !titulo) continue;
+    const codigo = [...partes[i - 1].slice(-3000).matchAll(/alt="\[([^\]]+)\]/g)].pop()?.[1];
+    const fuerte = [titulo, codigo].filter(Boolean).join(" ");
+    salida.push({ titulo, fuerte, texto: fuerte, precio, link: `${base}${href}` });
+  }
+  return salida;
+}
+
+/** Dogo, la tienda oficial. Su buscador encuentra por el codigo de fabrica
+ *  ("DOG54015") pero no lo muestra en el nombre: si buscando un codigo trae
+ *  UN solo producto, es ese. Sin stock dice "no disponible" y no cuenta. */
+async function buscarEnDogo(termino: string): Promise<Candidato[] | null> {
+  const base = "https://www.dogoherramientas.com.ar";
+  const html = await pedirTexto(`${base}/Busqueda/?term=${encodeURIComponent(termino)}`);
+  if (html === null) return null;
+  const total = Number(html.match(/class="totalprods">\s*<span>\s*(\d+)/)?.[1] ?? 0);
+  const esCodigo = /[a-z]/i.test(termino) && /\d/.test(termino) && !/\s/.test(termino.trim());
+  const partes = html.split('<h3 itemprop="name">');
+  const salida: Candidato[] = [];
+  for (let i = 1; i < partes.length; i++) {
+    const p = partes[i].split("</article>")[0];
+    const href = [...partes[i - 1].slice(-1500).matchAll(/href="(\/tienda\/[^"]+)"/g)].pop()?.[1];
+    const titulo = sinHtml(p.match(/^([^<]+)</)?.[1] ?? "");
+    const precio = pesosAR(p.match(/class="price"[^>]*>\s*\$?\s*<span>([\d.,]+)</)?.[1]);
+    if (!(precio > 0) || !href || !titulo || /no disponible/i.test(p)) continue;
+    const fuerte = [titulo, total === 1 && esCodigo ? termino.trim() : ""].filter(Boolean).join(" ");
+    salida.push({ titulo, fuerte, texto: `${fuerte} Dogo`, precio, link: `${base}${href}` });
+  }
+  return salida;
+}
+
+/** Centro de Materiales: cada producto trae su codigo de fabrica en
+ *  data-code ("DOG54015"), la marca arriba del nombre y el precio en
+ *  data-value. */
+async function buscarEnCentroDeMateriales(termino: string): Promise<Candidato[] | null> {
+  const base = "https://www.centrodemateriales.com.ar";
+  const html = await pedirTexto(`${base}/buscar?buscar=${encodeURIComponent(termino)}`);
+  if (html === null) return null;
+  const partes = html.split(' data-code="');
+  const salida: Candidato[] = [];
+  for (let i = 1; i < partes.length; i++) {
+    const p = partes[i].slice(0, 4000);
+    const codigo = p.match(/^([^"]*)"/)?.[1] ?? "";
+    const href = p.match(/href="(\/producto\/[^"]+)"/)?.[1];
+    const marca = p.match(/<p class="mb-1[^"]*">\s*([^<]+?)\s*<\/p>/)?.[1];
+    const titulo = sinHtml(p.match(/<h3[^>]*>\s*([^<]+?)\s*<\/h3>/)?.[1] ?? "");
+    const precio = Number(p.match(/data-value="([\d.]+)"/)?.[1] ?? 0);
+    if (!(precio > 0) || !href || !titulo || /sin stock|agotado/i.test(p)) continue;
+    const fuerte = [titulo, codigo].filter(Boolean).join(" ");
+    salida.push({ titulo, fuerte, texto: [fuerte, marca].filter(Boolean).join(" "), precio, link: `${base}${href}` });
+  }
+  return salida;
+}
+
+/** Foschia y Grupo Gemme (la misma plataforma): tarjetas con la marca, el
+ *  nombre y el precio que muestran grande (el tachado es "prev-price" y no
+ *  se toma). La tarjeta viene "vertical" u "horizontal" segun la pagina. */
+async function buscarEnDesign8(base: string, termino: string): Promise<Candidato[] | null> {
+  const html = await pedirTexto(`${base}/shop?search=${encodeURIComponent(termino)}`);
+  if (html === null) return null;
+  const partes = html.split(/product-card-design8-(?:vertical|horizontal)__brand/);
+  const salida: Candidato[] = [];
+  for (let i = 1; i < partes.length; i++) {
+    const p = partes[i].slice(0, 8000);
+    const marca = sinHtml(p.match(/^[^>]*>([^<]*)</)?.[1] ?? "");
+    const href = p.match(/href="(\/p\/[^"]+)"/)?.[1];
+    const titulo = sinHtml(p.match(/(?:vertical|horizontal)__name[^>]*>([^<]+)</)?.[1] ?? "");
+    const precio = pesosAR(
+      p.match(/(?:vertical|horizontal)__price [^>]*>[\s\S]{0,300}?<span[^>]*>(\d[\d.]*)<\/span>/)?.[1],
+    );
+    if (!(precio > 0) || !href || !titulo || /sin stock|agotado/i.test(p)) continue;
+    salida.push({ titulo, fuerte: titulo, texto: `${titulo} ${marca}`, precio, link: `${base}${href}` });
+  }
+  return salida;
+}
+
 /** Todas las tiendas donde se busca, cada una con su forma de preguntar.
  *  `maximo`: cuantas preguntas se le hacen como mucho por producto (a las
  *  chicas, pocas: son muchas tiendas y no hay que cargarlas). */
-const FUENTES: { nombre: string; maximo: number; buscar: (termino: string) => Promise<Candidato[] | null> }[] = [
+const FUENTES: {
+  nombre: string;
+  maximo: number;
+  /** Solo para estas marcas, juntas y sin espacios ("mipileta"). */
+  marcas?: string[];
+  /** Es Tiendanube: comparte los turnos (ver turnoTiendanube). */
+  tiendanube?: boolean;
+  buscar: (termino: string) => Promise<Candidato[] | null>;
+}[] = [
   ...TIENDAS_VTEX.map((t) => ({
     nombre: t.nombre,
     maximo: 5,
@@ -376,7 +586,26 @@ const FUENTES: { nombre: string; maximo: number; buscar: (termino: string) => Pr
   { nombre: "Sodimac", maximo: 3, buscar: (q: string) => buscarEnSodimac(q) },
   ...TIENDAS_WOO.map((t) => ({ nombre: t.nombre, maximo: 2, buscar: (q: string) => buscarEnWoo(t.base, q) })),
   ...TIENDAS_PRESTA.map((t) => ({ nombre: t.nombre, maximo: 2, buscar: (q: string) => buscarEnPresta(t.base, q) })),
-  ...TIENDAS_TIENDANUBE.map((t) => ({ nombre: t.nombre, maximo: 2, buscar: (q: string) => buscarEnTiendanube(t.base, q) })),
+  // Tiendanube: una sola pregunta por tienda (el codigo o, si no tiene, el
+  // nombre): tiene turnos contados.
+  ...TIENDAS_TIENDANUBE.map((t) => ({
+    nombre: t.nombre,
+    maximo: 1,
+    tiendanube: true,
+    buscar: (q: string) => buscarEnTiendanube(t.base, q),
+  })),
+  ...TIENDAS_TIENDANUBE_POR_MARCA.map((t) => ({
+    nombre: t.nombre,
+    maximo: 1,
+    marcas: t.marcas,
+    tiendanube: true,
+    buscar: (q: string) => buscarEnTiendanube(t.base, q),
+  })),
+  ...TIENDAS_MAGENTO.map((t) => ({ nombre: t.nombre, maximo: 2, buscar: (q: string) => buscarEnMagento(t.base, q) })),
+  ...TIENDAS_DESIGN8.map((t) => ({ nombre: t.nombre, maximo: 2, buscar: (q: string) => buscarEnDesign8(t.base, q) })),
+  { nombre: "CER", maximo: 2, buscar: (q: string) => buscarEnOdoo("https://www.cer.com.ar", q) },
+  { nombre: "Centro de Materiales", maximo: 2, buscar: (q: string) => buscarEnCentroDeMateriales(q) },
+  { nombre: "Dogo (tienda oficial)", maximo: 2, marcas: ["dogo"], buscar: (q: string) => buscarEnDogo(q) },
 ];
 
 const plano = (x: string) =>
@@ -532,6 +761,38 @@ function seContradicen(nuestro: string, deAfuera: string): boolean {
   });
 }
 
+// Las medidas con su unidad. El extractor TST S300 de 6 pulgadas no es el
+// de 4 (el codigo es el mismo, S300, y Somos Rex vende los dos).
+const UNIDADES: Record<string, string[]> = {
+  pulgadas: ["pulgadas", "pulgada", "pulg"],
+  litros: ["litros", "litro", "lts", "lt", "l"],
+  watts: ["watts", "watt", "w"],
+  hp: ["hp"],
+};
+// Los cm y mm no: cada tienda mide distinto (la Mi Pileta 802E figura como
+// 64x41x21 y como 70x44x20) y el tamano casi siempre ya esta en el codigo.
+
+function medidasDe(texto: string): Map<string, Set<string>> {
+  // 6" es 6 pulgadas (plano se come las comillas).
+  const t = plano(texto.replace(/(\d)\s*(?:"|''|”|″)/g, "$1 pulgadas"));
+  const salida = new Map<string, Set<string>>();
+  for (const m of t.matchAll(/(?:^| )(\d+) ?([a-z]+)(?= |$)/g))
+    for (const [u, formas] of Object.entries(UNIDADES))
+      if (formas.includes(m[2])) {
+        if (!salida.has(u)) salida.set(u, new Set());
+        salida.get(u)!.add(m[1]);
+      }
+  return salida;
+}
+
+/** Los dos dicen una medida de la misma clase (pulgadas, litros, watts,
+ *  hp) y no coinciden en ninguna: son modelos distintos. */
+function medidasDistintas(nuestro: string, deAfuera: string): boolean {
+  const a = medidasDe(nuestro);
+  const b = medidasDe(deAfuera);
+  return [...a].some(([u, nums]) => b.has(u) && ![...nums].some((n) => b.get(u)!.has(n)));
+}
+
 /** Nombra la marca como palabra ("FV", no "pvc" ni "fvx"). */
 function nombraLaMarca(texto: string, marca: string): boolean {
   return ` ${plano(texto)} `.includes(` ${plano(marca)} `);
@@ -601,6 +862,7 @@ export async function preciosAfuera(p: {
           const mismo =
             !colorDistinto(p.titulo, c.titulo) &&
             !seContradicen(p.titulo, c.titulo) &&
+            !medidasDistintas(p.titulo, c.titulo) &&
             (porNombre ? esMismoPorNombre(c.fuerte, c.texto, c.precio) : esExacto(c.fuerte, c.texto, c.precio));
           if (!mismo) continue;
           if (deEsta.some((r) => r.link === c.link)) continue;
@@ -617,9 +879,35 @@ export async function preciosAfuera(p: {
       }
       return { tienda: t.nombre, deEsta, contesto };
   };
-  const porTienda: Awaited<ReturnType<typeof unaTienda>>[] = [];
-  for (let i = 0; i < FUENTES.length; i += A_LA_VEZ)
-    porTienda.push(...(await Promise.all(FUENTES.slice(i, i + A_LA_VEZ).map(unaTienda))));
+  // Las tiendas de una marca (la oficial de Dogo, las que se encontraron
+  // buscando una marca), solo para esa marca.
+  const suMarca = plano(p.marca ?? "").replace(/ /g, "");
+  const deSuMarca = FUENTES.filter((t) => !t.marcas || (!!suMarca && t.marcas.includes(suMarca)));
+  // Orden: primero las Tiendanube que se sabe que tienen la marca (con los
+  // turnos contados, que no se queden afuera); despues las que no son
+  // Tiendanube; al final las Tiendanube generales, empezando por una
+  // distinta en cada producto, asi las que quedan para la proxima no son
+  // siempre las mismas.
+  const generales = deSuMarca.filter((t) => t.tiendanube && !t.marcas);
+  const giro = generales.length ? [...p.itemId].reduce((a, ch) => a + ch.charCodeAt(0), 0) % generales.length : 0;
+  const fuentes = [
+    ...deSuMarca.filter((t) => t.tiendanube && t.marcas),
+    ...deSuMarca.filter((t) => !t.tiendanube),
+    ...generales.slice(giro),
+    ...generales.slice(0, giro),
+  ];
+  // De a A_LA_VEZ tiendas: apenas una termina, empieza la siguiente (antes
+  // se esperaba a la mas lenta de cada grupo de 8).
+  const porTienda: Awaited<ReturnType<typeof unaTienda>>[] = new Array(fuentes.length);
+  let siguiente = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(A_LA_VEZ, fuentes.length) }, async () => {
+      while (siguiente < fuentes.length) {
+        const i = siguiente++;
+        porTienda[i] = await unaTienda(fuentes[i]);
+      }
+    }),
+  );
   const resultados: PrecioAfuera[] = porTienda.flatMap((x) => x.deEsta);
   const fallaron = buscado.length ? porTienda.filter((x) => !x.contesto).map((x) => x.tienda) : [];
 

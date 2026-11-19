@@ -581,7 +581,7 @@ function Fila({
         <div className="border-t border-dashed border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm">
           <div className="text-xs text-[var(--muted)]">
             Buscado el {fechaCorta(c.fecha)} con: <strong>{c.buscado.join(" · ") || "—"}</strong>
-            {c.fallaron.length > 0 && <> · No contestaron: {c.fallaron.join(", ")}</>}
+            {c.fallaron.length > 0 && <> · Quedaron para la próxima búsqueda: {c.fallaron.join(", ")}</>}
           </div>
           {exactos.length > 0 ? (
             <Lista titulo="Mismo modelo" items={exactos} nuestro={f.precio} />

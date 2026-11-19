@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.53";
+export const APP_VERSION = "V.0.99.54";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.54",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR, MÁS TIENDAS POR MARCA (\"así hacé con todos\", \"los que no tienen precio\", \"sumala cuando termines\"): se suman 26 tiendas para las marcas que no traían precio. Dogo: la tienda oficial de Dogo, Centro de Materiales y Pinturerías MM. Fluvial: CER y Mukdise. Heineken: Rodo, Casa Andy, Val-Mar y Gastromak. TST: Somos Rex, Artef, Grill West, Casa Martínez, Sanitarios Campana, Domia Home y Punto Parrilla. Mi Pileta y Piazza: Foschia, Grupo Gemme, Deco Miracema, 2448 Materiales, Sanitarios Vera y Saniclick. Y además Abelson, MAQPRO, Proyectar Materiales e Intermarble. Probado: la amoladora Dogo 900 W pasó de 2 a 4 precios; la bomba Fluvial Magna, la bacha Mi Pileta 802E, la grifería Piazza Novara, el extractor TST S300 y el termotanque Heineken THE-50 ahora traen precios.",
+      "TIENDANUBE CORTABA: cuando se le preguntaba a muchas tiendas Tiendanube juntas, Tiendanube dejaba de contestar (aguanta unas 25 preguntas de golpe y después una por segundo) y quedaban como \"no contestó\". Ahora cada pregunta espera su turno, se le hace una sola pregunta a cada tienda, primero a las que tienen la marca, y las que no llegan quedan para la próxima búsqueda conservando lo que habían traído antes. En el detalle dice \"Quedaron para la próxima búsqueda\".",
+      "MEDIDAS: si los dos dicen pulgadas, litros, watts o HP y no coinciden, no es el mismo modelo (el extractor TST S300 de 6 pulgadas ya no se compara con el de 4, que tiene el mismo código).",
+    ],
+  },
   {
     version: "V.0.99.53",
     date: "2026-11-19",
