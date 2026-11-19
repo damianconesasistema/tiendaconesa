@@ -25,6 +25,7 @@ import { tituloEnLinea } from "@/lib/titulo-en-linea";
 import { todosLosRubros } from "@/lib/rubros";
 import { getRubrosExtra } from "@/lib/rubros-server";
 import { whereDelLocal } from "@/lib/filtro-productos";
+import { codigoEntreParentesis } from "@/lib/codigo-entre-parentesis";
 
 type UpdateResult = { ok?: true; error?: string };
 
@@ -276,7 +277,12 @@ export async function updateProduct(
         // (Damian, 19/11/2026: "a FV agregale el codigo de fabricante que es
         // el mismo que SKU"). Ver src/lib/fv-codigo-una-vez.ts.
         ...(codigoFabricante !== undefined
-          ? { codigoFabricante: codigoFabricante ?? (brand === "fv" && sku ? sku.slice(0, 40) : null) }
+          ? {
+              // Las demas: el que viene entre parentesis en el titulo ("(455)"
+              // de Mi Pileta). Ver src/lib/codigo-entre-parentesis.ts.
+              codigoFabricante:
+                codigoFabricante ?? (brand === "fv" && sku ? sku.slice(0, 40) : codigoEntreParentesis(title)),
+            }
           : {}),
       },
     });

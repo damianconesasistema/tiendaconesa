@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
 import { EnLinea } from "@/components/admin/EnLinea";
+import { SubirArriba } from "@/components/admin/SubirArriba";
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog, Info, Star } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
@@ -15,6 +16,7 @@ import { titulosAMayusculasUnaVez } from "@/lib/titulos-mayusculas";
 import { pausarSinStock } from "@/lib/sin-stock";
 import { herramientasUnaVez } from "@/lib/herramientas-una-vez";
 import { fvCodigoFabricanteUnaVez } from "@/lib/fv-codigo-una-vez";
+import { codigoEntreParentesisUnaVez } from "@/lib/codigo-entre-parentesis";
 import { logosClarosUnaVez } from "@/lib/logo-de-marca";
 import { AvisoVersionNueva } from "@/components/AvisoVersionNueva";
 import { versionPublicada } from "@/lib/version-publicada";
@@ -77,6 +79,7 @@ export async function AdminShell({
   void titulosAMayusculasUnaVez().catch(() => {});
   void herramientasUnaVez().catch(() => {});
   void fvCodigoFabricanteUnaVez().catch(() => {});
+  void codigoEntreParentesisUnaVez().catch(() => {});
   void logosClarosUnaVez().catch(() => {});
   void pausarSinStock().catch(() => {});
   const localDelPanel = await sucursalDelPanel().catch(() => null);
@@ -282,6 +285,7 @@ export async function AdminShell({
         )}
       </div>
       {puedeVer(quien.permisos, "pedidos") && <AlertaVentas />}
+      <SubirArriba />
     </div>
   );
 }

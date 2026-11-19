@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.46";
+export const APP_VERSION = "V.0.99.47";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.47",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR (\"hay productos que antes me traias de Easy y ahora no\"): con 37 tiendas a la vez varias tardaban más de 10 segundos y quedaban como \"no contestó\", borrando lo que antes sí habían traído. Ahora se consultan de a 8 tiendas, se espera hasta 15 segundos, y si una no contesta se conserva lo que había traído la vez anterior.",
+      "COMPARADOR, LA FILA (\"cuando no hay data pone no hay data\" / \"si es mas de uno me lo mostras por sitio\"): sin precios dice \"No hay datos\", sin la lista de tiendas que no contestaron (el detalle sigue en la flechita); y si el producto está en varias tiendas, se ven todas, una por sitio, de la más barata a la más cara.",
+      "BOTÓN SUBIR EN EL PANEL (\"agregame un boton subir que a veces es engorroso\"): abajo a la izquierda, aparece al bajar y lleva al principio de la pantalla.",
+      "CÓDIGO DE FABRICANTE ENTRE PARÉNTESIS (\"en Mi Pileta fijate que los articulos tienen el codigo de fabricante entre los ()\"): los productos que lo tenían vacío lo toman del paréntesis del título, una vez y al guardar (\"(455)\" de Mi Pileta, \"(FW-ASIMEITAN)\" de Flowater, \"(112100)\" de Fluvial). Lo que no es un código, como \"(1/2)\" o \"(BLANCO)\", no se toma. Queda anotado en Novedades cuántos fueron.",
+    ],
+  },
   {
     version: "V.0.99.46",
     date: "2026-11-19",

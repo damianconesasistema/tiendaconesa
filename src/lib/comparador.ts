@@ -43,7 +43,13 @@ import { codigosDelArticulo, nombraElCodigo } from "@/lib/web-de-marca";
 import { preciosEnMercadoLibre, publicacionesEnMercadoLibre } from "@/lib/mercadolibre";
 
 const S_COMPARADOR = "comparador_precios";
-const ESPERA = 10_000;
+// Cuanto se espera a cada tienda. Era 10 s y con 37 tiendas varias quedaban
+// como "no contesto" (Damian, 19/11/2026: "hay productos que antes me traias
+// de Easy y ahora no").
+const ESPERA = 15_000;
+/** Cuantas tiendas se consultan a la vez por producto: todas juntas
+ *  saturaban la maquina chica del servidor y las respuestas llegaban tarde. */
+const A_LA_VEZ = 8;
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 
@@ -105,6 +111,9 @@ export type PrecioAfuera = {
   /** Sin codigo de modelo: es el mismo por el nombre (todas sus medidas y
    *  casi todas sus palabras), la marca y un precio cercano. */
   porNombre?: boolean;
+  /** Esa tienda no contesto en la ultima busqueda: es lo que habia traido
+   *  la vez anterior (ISO). */
+  anterior?: string;
 };
 
 export type Comparacion = {
@@ -543,8 +552,7 @@ export async function preciosAfuera(p: {
   // Las tiendas a la vez (cada una tarda lo suyo). Adentro de cada una: el
   // codigo como lo escriba ella; si no aparece, por marca y palabras, por si
   // la tienda lo tiene pero su buscador no lo encuentra por el codigo.
-  const porTienda = await Promise.all(
-    FUENTES.map(async (t) => {
+  const unaTienda = async (t: (typeof FUENTES)[number]) => {
       const deEsta: PrecioAfuera[] = [];
       let contesto = false;
       const todas = [...new Set([...terminos(codigos), conMarca || clave].filter(Boolean))];
@@ -574,8 +582,10 @@ export async function preciosAfuera(p: {
         if (deEsta.length) break;
       }
       return { tienda: t.nombre, deEsta, contesto };
-    }),
-  );
+  };
+  const porTienda: Awaited<ReturnType<typeof unaTienda>>[] = [];
+  for (let i = 0; i < FUENTES.length; i += A_LA_VEZ)
+    porTienda.push(...(await Promise.all(FUENTES.slice(i, i + A_LA_VEZ).map(unaTienda))));
   const resultados: PrecioAfuera[] = porTienda.flatMap((x) => x.deEsta);
   const fallaron = buscado.length ? porTienda.filter((x) => !x.contesto).map((x) => x.tienda) : [];
 
@@ -634,5 +644,17 @@ export async function comparacionesGuardadas(): Promise<Record<string, Comparaci
 
 export async function guardarComparaciones(nuevas: Record<string, Comparacion>): Promise<void> {
   const todas = await comparacionesGuardadas();
+  // Si una tienda no contesto esta vez, se queda lo que habia traido antes:
+  // que no conteste no quiere decir que dejo de venderlo. Damian,
+  // 19/11/2026: "hay productos que antes me traias de Easy y ahora no".
+  for (const [id, nueva] of Object.entries(nuevas)) {
+    const antes = todas[id];
+    if (!antes || nueva.fallaron.length === 0) continue;
+    const ya = new Set(nueva.resultados.map((r) => r.tienda));
+    for (const r of antes.resultados)
+      if (nueva.fallaron.includes(r.tienda) && !ya.has(r.tienda))
+        nueva.resultados.push({ ...r, anterior: r.anterior ?? antes.fecha });
+    nueva.resultados.sort((a, b) => a.precio - b.precio);
+  }
   await setSetting(S_COMPARADOR, JSON.stringify({ ...todas, ...nuevas }));
 }

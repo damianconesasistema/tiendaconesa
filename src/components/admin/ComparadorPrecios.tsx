@@ -470,27 +470,35 @@ function Fila({
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Buscando…
             </span>
           ) : mejor ? (
-            <a
-              href={mejor.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold hover:text-[var(--brand-red)]"
-            >
-              {formatPrice(mejor.precio)}{" "}
-              <span className="text-xs font-normal text-[var(--muted)]">
-                en {mejor.tienda}
-                {mejor.porNombre ? " · por nombre" : ""}
-              </span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
+            // Todas las tiendas que lo tienen, una por sitio, de la mas
+            // barata a la mas cara (Damian, 19/11/2026: "si aparece en mas de
+            // un lugar el producto mostrame las opciones que hay" / "si es mas
+            // de uno me la mostras por sitio").
+            <ul className="space-y-0.5">
+              {porSitio(exactos).map((r, i) => (
+                <li key={r.link}>
+                  <a
+                    href={r.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={r.anterior ? `De la búsqueda del ${fechaCorta(r.anterior)} (esta vez no contestó)` : r.titulo}
+                    className={`inline-flex items-center gap-1 hover:text-[var(--brand-red)] ${i === 0 ? "font-semibold" : "text-xs"}`}
+                  >
+                    {formatPrice(r.precio)}{" "}
+                    <span className="text-xs font-normal text-[var(--muted)]">
+                      {r.tienda}
+                      {r.porNombre ? " · por nombre" : ""}
+                    </span>
+                    <ExternalLink className="h-3 w-3 shrink-0" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           ) : c ? (
-            <span className="text-xs text-[var(--muted)]">
-              {c.sinCodigo
-                ? "Le falta el código de fabricante: cargalo en la ficha y buscá de nuevo"
-                : c.fallaron.length
-                  ? `No contestó ${c.fallaron.join(" ni ")}: probá de nuevo más tarde`
-                  : "No lo venden igual afuera"}
-            </span>
+            // Sin la lista de las que no contestaron (Damian: "cuando no hay
+            // data pone no hay data, no me pongas el choclo ese"). El detalle
+            // esta en la flechita.
+            <span className="text-xs text-[var(--muted)]">No hay datos</span>
           ) : (
             <span className="text-xs text-[var(--muted)]">Sin buscar</span>
           )}
@@ -550,6 +558,16 @@ function Fila({
       )}
     </div>
   );
+}
+
+/** Una por tienda (la mas barata de cada una), de menor a mayor precio. */
+function porSitio(items: PrecioAfuera[]): PrecioAfuera[] {
+  const una = new Map<string, PrecioAfuera>();
+  for (const r of items) {
+    const ya = una.get(r.tienda);
+    if (!ya || r.precio < ya.precio) una.set(r.tienda, r);
+  }
+  return [...una.values()].sort((a, b) => a.precio - b.precio);
 }
 
 function Lista({ titulo, items, nuestro }: { titulo: string; items: PrecioAfuera[]; nuestro: number }) {
