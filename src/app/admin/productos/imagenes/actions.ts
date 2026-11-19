@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { processProductImage } from "@/lib/image-processing";
 import { sincronizarSucursalPrincipal } from "@/lib/espejo-sucursal";
 import { codigoDeAhora } from "@/lib/codigo-viejo";
+import { conRegistro } from "@/lib/actividad";
 
 export type ImageMatch = {
   key: string; // nombre de archivo sin extension (normalizado)
@@ -17,7 +18,7 @@ export type ImageMatch = {
 
 // Dado un conjunto de "keys" (nombres de archivo sin extension), resuelve
 // con que producto matchea cada uno: primero por SKU, luego por itemId (codigo).
-export async function matchImageFilenames(
+async function matchImageFilenames__(
   keys: string[],
 ): Promise<{ ok: boolean; error?: string; matches?: ImageMatch[] }> {
   const session = await getAdminSession();
@@ -80,7 +81,7 @@ export async function matchImageFilenames(
 
 // Sube UNA imagen a un producto (por itemId) para el flujo masivo.
 // No revalida en cada llamada; el componente llama a finishImageBulk al final.
-export async function uploadOneImage(
+async function uploadOneImage__(
   itemId: string,
   formData: FormData,
 ): Promise<{ ok: boolean; error?: string }> {
@@ -127,7 +128,7 @@ export async function uploadOneImage(
 }
 
 // Revalida las paginas una vez terminada la carga masiva.
-export async function finishImageBulk(): Promise<{ ok: true }> {
+async function finishImageBulk__(): Promise<{ ok: true }> {
   // El panel lee los precios de la tabla de la sucursal, asi que despues
   // de tocar el articulo hay que dejar esa fila igual o el panel mostraria
   // el precio viejo. Ver src/lib/espejo-sucursal.ts.
@@ -136,4 +137,17 @@ export async function finishImageBulk(): Promise<{ ok: true }> {
   revalidatePath("/tienda");
   revalidatePath("/");
   return { ok: true };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function matchImageFilenames(...a: Parameters<typeof matchImageFilenames__>): ReturnType<typeof matchImageFilenames__> {
+  return conRegistro("matchImageFilenames", a, () => matchImageFilenames__(...a));
+}
+export async function uploadOneImage(...a: Parameters<typeof uploadOneImage__>): ReturnType<typeof uploadOneImage__> {
+  return conRegistro("uploadOneImage", a, () => uploadOneImage__(...a));
+}
+export async function finishImageBulk(...a: Parameters<typeof finishImageBulk__>): ReturnType<typeof finishImageBulk__> {
+  return conRegistro("finishImageBulk", a, () => finishImageBulk__(...a));
 }

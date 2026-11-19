@@ -12,6 +12,7 @@ import {
 } from "@/lib/settings";
 import { sucursalDelPanel } from "@/lib/sucursal-panel";
 import { planesConRecargo, type PlanCosto } from "@/lib/costos-mp";
+import { conRegistro } from "@/lib/actividad";
 
 // Los costos de Mercado Pago de este local. Damian, 17/11/2026: "en el panel
 // puede haber una parte que diga MERCADO PAGO ... los costos, margenes que
@@ -36,7 +37,7 @@ async function claveDeAca() {
   return (k: string) => (local ? claveDeSucursal(k, local.slug) : k);
 }
 
-export async function guardarCostosMp(datos: {
+async function guardarCostosMp__(datos: {
   cobro: number;
   iva: number;
   planes: PlanCosto[];
@@ -86,11 +87,21 @@ export async function guardarCostosMp(datos: {
 }
 
 /** "Siguen igual este mes": solo anota que se revisaron. */
-export async function marcarCostosRevisados(): Promise<Resultado> {
+async function marcarCostosRevisados__(): Promise<Resultado> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   const clave = await claveDeAca();
   await setSetting(clave(SETTING_COSTOS_REVISADOS), new Date().toISOString());
   refrescar();
   return { ok: true };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function guardarCostosMp(...a: Parameters<typeof guardarCostosMp__>): ReturnType<typeof guardarCostosMp__> {
+  return conRegistro("guardarCostosMp", a, () => guardarCostosMp__(...a));
+}
+export async function marcarCostosRevisados(...a: Parameters<typeof marcarCostosRevisados__>): ReturnType<typeof marcarCostosRevisados__> {
+  return conRegistro("marcarCostosRevisados", a, () => marcarCostosRevisados__(...a));
 }

@@ -15,6 +15,7 @@ import {
 import { getMarcas, marcasConWeb } from "@/lib/marcas-server";
 import { mlConectado } from "@/lib/mercadolibre";
 import { leerLink } from "@/lib/web-de-marca";
+import { conRegistro } from "@/lib/actividad";
 
 // Traer de la pagina oficial de la marca (FV y Piazza, ver
 // src/lib/web-de-marca.ts), por el codigo, la foto y la descripcion de
@@ -33,7 +34,7 @@ function refrescar(itemId?: string) {
 }
 
 /** El boton "Traer foto de FV" de la ficha de un articulo. */
-export async function traerFotoFV(
+async function traerFotoFV__(
   itemId: string,
   aunqueSeaDeOtraTerminacion = false,
   reemplazar = false,
@@ -49,7 +50,7 @@ export async function traerFotoFV(
  *  cuando el articulo es FV: primero se prueba aca.
  *  NO guarda: devuelve el texto para ponerlo en el cuadro, que se revisa y
  *  se guarda con el boton de siempre (igual que el de la IA). */
-export async function descripcionDeFV(
+async function descripcionDeFV__(
   itemId: string,
 ): Promise<
   | { ok: true; texto: string; ficha?: string; fabricante: string }
@@ -80,7 +81,7 @@ export type Incompleto = {
 /** Los articulos de las marcas con pagina (FV, Piazza) sin foto o sin
  *  descripcion. Se guia por la marca cargada (Product.brand), no por el
  *  titulo. */
-export async function fvIncompletos(
+async function fvIncompletos__(
   /** Tambien los que tienen UNA sola foto, para sumarles las otras del
    *  modelo (Damian, 17/11/2026: "que traiga mas de 1 foto del modelo"). */
   galeria = false,
@@ -131,7 +132,7 @@ export type ResultadoTanda = {
   descripcion?: ResultadoDescripcionFV;
 };
 
-export async function completarFVEnTanda(
+async function completarFVEnTanda__(
   pedidos: { itemId: string; faltaFoto: boolean; faltaDescripcion: boolean }[],
   aunqueSeaDeOtraTerminacion = false,
 ): Promise<ResultadoTanda[]> {
@@ -157,7 +158,7 @@ export async function completarFVEnTanda(
 }
 
 /** Al terminar la tanda, una sola vez: refrescar todo junto. */
-export async function terminarFV(): Promise<void> {
+async function terminarFV__(): Promise<void> {
   const session = await getAdminSession();
   if (!session) return;
   refrescar();
@@ -166,7 +167,7 @@ export async function terminarFV(): Promise<void> {
 /** Las marcas SIN pagina web cargada que tienen articulos sin foto: para
  *  avisar en la pantalla que, cargandoles la web en Marcas, tambien se
  *  pueden buscar. */
-export async function marcasSinWebConFaltantes(): Promise<{ id: string; name: string; sinFoto: number }[]> {
+async function marcasSinWebConFaltantes__(): Promise<{ id: string; name: string; sinFoto: number }[]> {
   const session = await getAdminSession();
   if (!session) return [];
   // Con MercadoLibre conectado no hay a quien avisar: se buscan todas.
@@ -190,7 +191,7 @@ export async function marcasSinWebConFaltantes(): Promise<{ id: string; name: st
 /** "Traer desde un link" de la ficha: lee la pagina que pego Damian, suma sus
  *  fotos a la galeria y devuelve la descripcion para el cuadro (no la guarda:
  *  se revisa y se guarda con el boton de siempre). */
-export async function traerDeUnLink(
+async function traerDeUnLink__(
   itemId: string,
   link: string,
 ): Promise<
@@ -218,4 +219,29 @@ export async function traerDeUnLink(
     nombre: d.nombre,
     ficha,
   };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function traerFotoFV(...a: Parameters<typeof traerFotoFV__>): ReturnType<typeof traerFotoFV__> {
+  return conRegistro("traerFotoFV", a, () => traerFotoFV__(...a));
+}
+export async function descripcionDeFV(...a: Parameters<typeof descripcionDeFV__>): ReturnType<typeof descripcionDeFV__> {
+  return conRegistro("descripcionDeFV", a, () => descripcionDeFV__(...a));
+}
+export async function fvIncompletos(...a: Parameters<typeof fvIncompletos__>): ReturnType<typeof fvIncompletos__> {
+  return conRegistro("fvIncompletos", a, () => fvIncompletos__(...a));
+}
+export async function completarFVEnTanda(...a: Parameters<typeof completarFVEnTanda__>): ReturnType<typeof completarFVEnTanda__> {
+  return conRegistro("completarFVEnTanda", a, () => completarFVEnTanda__(...a));
+}
+export async function terminarFV(...a: Parameters<typeof terminarFV__>): ReturnType<typeof terminarFV__> {
+  return conRegistro("terminarFV", a, () => terminarFV__(...a));
+}
+export async function marcasSinWebConFaltantes(...a: Parameters<typeof marcasSinWebConFaltantes__>): ReturnType<typeof marcasSinWebConFaltantes__> {
+  return conRegistro("marcasSinWebConFaltantes", a, () => marcasSinWebConFaltantes__(...a));
+}
+export async function traerDeUnLink(...a: Parameters<typeof traerDeUnLink__>): ReturnType<typeof traerDeUnLink__> {
+  return conRegistro("traerDeUnLink", a, () => traerDeUnLink__(...a));
 }

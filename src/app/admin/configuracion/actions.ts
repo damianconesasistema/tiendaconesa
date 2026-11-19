@@ -13,12 +13,13 @@ import {
 } from "@/lib/settings";
 import { sucursalDelPanel } from "@/lib/sucursal-panel";
 import { ZONAS, type PreciosEnvio } from "@/lib/zona-envio";
+import { conRegistro } from "@/lib/actividad";
 
 /** Lo que cobra el envio cada zona, y desde cuanto es gratis, en ESTE local.
  *
  *  Solo desde el panel de una sucursal: el envio lo hace un local, con su
  *  gente y en su zona, y en conesa.com.ar/admin no hay un local. */
-export async function guardarEnvio(
+async function guardarEnvio__(
   prevState: unknown,
   formData: FormData,
 ): Promise<{ ok?: true; error?: string }> {
@@ -64,7 +65,7 @@ export async function guardarEnvio(
   }
 }
 
-export async function guardarRecargos(
+async function guardarRecargos__(
   prevState: unknown,
   formData: FormData,
 ): Promise<{ ok?: true; error?: string }> {
@@ -111,7 +112,7 @@ export async function guardarRecargos(
 //
 // Existe porque la unica forma de enterarse de que algo estaba mal era
 // apretar "Facturar" en un pedido de verdad, con el cliente esperando.
-export async function probarArca(): Promise<{
+async function probarArca__(): Promise<{
   ok?: true;
   ambiente?: string;
   proximaA?: number;
@@ -154,4 +155,17 @@ export async function probarArca(): Promise<{
   } catch (e) {
     return { error: `ARCA contestó con un error: ${(e as Error).message}` };
   }
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function guardarEnvio(...a: Parameters<typeof guardarEnvio__>): ReturnType<typeof guardarEnvio__> {
+  return conRegistro("guardarEnvio", a, () => guardarEnvio__(...a));
+}
+export async function guardarRecargos(...a: Parameters<typeof guardarRecargos__>): ReturnType<typeof guardarRecargos__> {
+  return conRegistro("guardarRecargos", a, () => guardarRecargos__(...a));
+}
+export async function probarArca(...a: Parameters<typeof probarArca__>): ReturnType<typeof probarArca__> {
+  return conRegistro("probarArca", a, () => probarArca__(...a));
 }

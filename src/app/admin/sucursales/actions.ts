@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import { conRegistro } from "@/lib/actividad";
 
 type Resultado = { ok?: true; error?: string };
 
@@ -20,7 +21,7 @@ const texto = (f: FormData, k: string) => {
 //   - el CUIT, porque va en la factura
 //   - que haya exactamente una sucursal que cubra el resto del pais, porque
 //     si no un cliente de una provincia sin zona asignada no lo atiende nadie
-export async function guardarSucursal(formData: FormData): Promise<Resultado> {
+async function guardarSucursal__(formData: FormData): Promise<Resultado> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
 
@@ -147,7 +148,7 @@ export async function guardarSucursal(formData: FormData): Promise<Resultado> {
 // No decide por su cuenta si conviene abrirla. Eso lo decide quien aprieta el
 // boton; el panel le muestra antes lo que tiene que saber (si falta el
 // MercadoPago de esa sucursal, si es la ultima abierta).
-export async function cambiarTiendaAbierta(
+async function cambiarTiendaAbierta__(
   id: string,
   abrir: boolean,
 ): Promise<Resultado> {
@@ -171,4 +172,14 @@ export async function cambiarTiendaAbierta(
   revalidatePath("/");
   revalidatePath("/tienda");
   return { ok: true };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function guardarSucursal(...a: Parameters<typeof guardarSucursal__>): ReturnType<typeof guardarSucursal__> {
+  return conRegistro("guardarSucursal", a, () => guardarSucursal__(...a));
+}
+export async function cambiarTiendaAbierta(...a: Parameters<typeof cambiarTiendaAbierta__>): ReturnType<typeof cambiarTiendaAbierta__> {
+  return conRegistro("cambiarTiendaAbierta", a, () => cambiarTiendaAbierta__(...a));
 }

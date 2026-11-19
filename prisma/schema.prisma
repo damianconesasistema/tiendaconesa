@@ -394,3 +394,17 @@ model BusquedaDiaria {
   @@id([termino, dia])
   @@index([dia])
 }
+
+// Registro de actividad del panel (migracion 48). Damian, 19/11/2026:
+// "quiero que cada modificacion o lo que se haga en el panel quede asentado
+// con el usuario que toco". Lo escribe src/lib/actividad.ts.
+model Actividad {
+  id      String   @id @default(cuid())
+  fecha   DateTime @default(now())
+  usuario String
+  accion  String
+  detalle String?
+
+  @@index([fecha])
+  @@index([usuario])
+}

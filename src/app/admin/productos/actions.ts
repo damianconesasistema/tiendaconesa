@@ -26,13 +26,14 @@ import { todosLosRubros } from "@/lib/rubros";
 import { getRubrosExtra } from "@/lib/rubros-server";
 import { whereDelLocal } from "@/lib/filtro-productos";
 import { codigoEntreParentesis } from "@/lib/codigo-entre-parentesis";
+import { conRegistro } from "@/lib/actividad";
 
 type UpdateResult = { ok?: true; error?: string };
 
 // Crear un producto manualmente desde el panel.
 // Devuelve el itemId generado para poder redirigir a la ficha (y subir foto).
 
-export async function createProduct(
+async function createProduct__(
   prevState: unknown,
   formData: FormData,
 ): Promise<{ ok?: true; itemId?: string; error?: string }> {
@@ -190,7 +191,7 @@ async function logPriceChange(opts: {
 }
 
 // Edicion completa desde la ficha
-export async function updateProduct(
+async function updateProduct__(
   prevState: unknown,
   formData: FormData,
 ): Promise<UpdateResult> {
@@ -317,7 +318,7 @@ export async function updateProduct(
 // Edicion rapida desde la lista (un solo campo)
 type QuickField = "price" | "salePrice" | "stock" | "active" | "featured";
 
-export async function quickUpdate(
+async function quickUpdate__(
   itemId: string,
   field: QuickField,
   value: string | number | boolean | null,
@@ -410,7 +411,7 @@ export async function quickUpdate(
 // Registrar manualmente un precio pasado en el historial.
 // Sirve para cargar datos previos ("este producto antes lo vendía a X")
 // sin tener que modificar el precio actual del producto.
-export async function addHistoricalPrice(
+async function addHistoricalPrice__(
   itemId: string,
   price: number,
   salePrice: number | null,
@@ -445,7 +446,7 @@ export async function addHistoricalPrice(
 }
 
 // Eliminar una entrada del historial (en caso de error de carga)
-export async function deleteHistoryEntry(
+async function deleteHistoryEntry__(
   entryId: string,
   itemId: string,
 ): Promise<UpdateResult> {
@@ -503,7 +504,7 @@ async function aplicarEnLote(
   return { ok: true, count };
 }
 
-export async function bulkUpdate(
+async function bulkUpdate__(
   itemIds: string[],
   action: BulkAction,
 ): Promise<{ ok?: true; error?: string; count?: number }> {
@@ -553,7 +554,7 @@ function buildProductWhere(f: ProductFilter, excluir: string[] = []) {
   return where;
 }
 
-export async function bulkUpdateAll(
+async function bulkUpdateAll__(
   filter: ProductFilter,
   action: BulkAction,
   excluir: string[] = [],
@@ -586,7 +587,7 @@ export async function bulkUpdateAll(
 // No guarda nada: devuelve el texto para que el admin lo revise y edite
 // antes de apretar Guardar. La IA se puede equivocar, asi que la ultima
 // palabra siempre la tiene la persona.
-export async function redactarDescripcionIA(
+async function redactarDescripcionIA__(
   titulo: string,
   categoria: string,
 ): Promise<{
@@ -635,7 +636,7 @@ async function leerCatalogoOriginal() {
 }
 
 // Solo cuenta: no toca nada. Sirve para mostrar el preview antes de restaurar.
-export async function previewRestore(): Promise<RestoreStats> {
+async function previewRestore__(): Promise<RestoreStats> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   try {
@@ -657,7 +658,7 @@ export async function previewRestore(): Promise<RestoreStats> {
   }
 }
 
-export async function restoreMissingProducts(): Promise<RestoreStats> {
+async function restoreMissingProducts__(): Promise<RestoreStats> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   // Esta pantalla todavia escribe sobre el articulo y no sobre el local.
@@ -747,7 +748,7 @@ type BackupProducto = {
   fotos?: BackupFoto[];
 };
 
-export async function restoreFromBackup(
+async function restoreFromBackup__(
   json: string,
   pisarExistentes = false,
 ): Promise<{
@@ -878,7 +879,7 @@ export async function restoreFromBackup(
 // Copia un producto entero (campos + galeria de fotos) con un itemId nuevo.
 // Queda PAUSADO y sin candado, listo para editar y publicar.
 
-export async function duplicateProduct(
+async function duplicateProduct__(
   itemId: string,
 ): Promise<{ ok?: true; error?: string; itemId?: string }> {
   const session = await getAdminSession();
@@ -971,7 +972,7 @@ async function assertUnlocked(itemId: string): Promise<string | null> {
   return null;
 }
 
-export async function setProductLocked(
+async function setProductLocked__(
   itemId: string,
   locked: boolean,
 ): Promise<{ ok?: true; error?: string }> {
@@ -992,7 +993,7 @@ export async function setProductLocked(
 }
 
 // Candado masivo sobre los seleccionados o sobre todo el filtro.
-export async function bulkSetLocked(
+async function bulkSetLocked__(
   itemIds: string[],
   locked: boolean,
 ): Promise<{ ok?: true; error?: string; count?: number }> {
@@ -1015,7 +1016,7 @@ export async function bulkSetLocked(
   }
 }
 
-export async function bulkSetLockedAll(
+async function bulkSetLockedAll__(
   filter: ProductFilter,
   locked: boolean,
   excluir: string[] = [],
@@ -1044,7 +1045,7 @@ export async function bulkSetLockedAll(
 // historial de pedidos. En esos casos avisamos y sugerimos pausar / sin stock.
 // Las imagenes y el historial de precios SI se borran solos (tienen Cascade).
 
-export async function deleteProduct(
+async function deleteProduct__(
   itemId: string,
 ): Promise<{ ok?: true; error?: string }> {
   const session = await getAdminSession();
@@ -1111,7 +1112,7 @@ async function deleteWhere(
   }
 }
 
-export async function bulkDelete(
+async function bulkDelete__(
   itemIds: string[],
 ): Promise<{ ok?: true; error?: string; count?: number; skipped?: number }> {
   const session = await getAdminSession();
@@ -1120,7 +1121,7 @@ export async function bulkDelete(
   return deleteWhere({ itemId: { in: itemIds } });
 }
 
-export async function bulkDeleteAll(
+async function bulkDeleteAll__(
   filter: ProductFilter,
   excluir: string[] = [],
 ): Promise<{ ok?: true; error?: string; count?: number; skipped?: number }> {
@@ -1184,7 +1185,7 @@ async function applyStockWhere(
   }
 }
 
-export async function bulkSetStock(
+async function bulkSetStock__(
   itemIds: string[],
   mode: "set" | "delta",
   value: number,
@@ -1201,7 +1202,7 @@ export async function bulkSetStock(
 
 // Igual que bulkSetStock pero aplica a TODOS los que coinciden con el filtro
 // (no solo la pagina visible).
-export async function bulkSetStockAll(
+async function bulkSetStockAll__(
   filter: ProductFilter,
   mode: "set" | "delta",
   value: number,
@@ -1281,7 +1282,7 @@ async function applyPriceWhere(
   }
 }
 
-export async function bulkAdjustPrice(
+async function bulkAdjustPrice__(
   itemIds: string[],
   mode: "set" | "pct",
   value: number,
@@ -1297,7 +1298,7 @@ export async function bulkAdjustPrice(
 }
 
 // Igual que bulkAdjustPrice pero aplica a TODOS los que coinciden con el filtro.
-export async function bulkAdjustPriceAll(
+async function bulkAdjustPriceAll__(
   filter: ProductFilter,
   mode: "set" | "pct",
   value: number,
@@ -1345,7 +1346,7 @@ async function revalidateProduct(itemId: string) {
 
 // Sube una o varias imagenes a un producto. Acepta archivos bajo la clave
 // "image" (una) o "images" (varias). Las agrega al final de la galeria.
-export async function uploadProductImage(
+async function uploadProductImage__(
   itemId: string,
   formData: FormData,
 ): Promise<UpdateResult & { imageUrl?: string; count?: number }> {
@@ -1411,7 +1412,7 @@ export async function uploadProductImage(
  *  a editar la foto una vez cargada?". Va con id nuevo y no pisando la
  *  vieja: la direccion de cada foto queda guardada un año en los
  *  navegadores, y con el mismo id se seguiria viendo la de antes. */
-export async function reemplazarImagen(
+async function reemplazarImagen__(
   imageId: string,
   itemId: string,
   formData: FormData,
@@ -1447,7 +1448,7 @@ export async function reemplazarImagen(
 }
 
 // Lista las imagenes (solo ids + posicion) para armar la galeria en el admin.
-export async function listProductImages(
+async function listProductImages__(
   itemId: string,
 ): Promise<{ ok: boolean; images?: ProductImageInfo[]; error?: string }> {
   const session = await getAdminSession();
@@ -1466,7 +1467,7 @@ export async function listProductImages(
 }
 
 // Borra UNA imagen de la galeria.
-export async function deleteProductImageById(
+async function deleteProductImageById__(
   imageId: string,
   itemId: string,
 ): Promise<UpdateResult> {
@@ -1505,7 +1506,7 @@ export async function deleteProductImageById(
 }
 
 // Reordena toda la galeria segun el orden de ids recibido.
-export async function reorderProductImages(
+async function reorderProductImages__(
   itemId: string,
   orderedIds: string[],
 ): Promise<UpdateResult> {
@@ -1544,7 +1545,7 @@ export async function reorderProductImages(
 }
 
 // Marca una imagen como principal (la mueve al frente de la galeria).
-export async function setMainProductImage(
+async function setMainProductImage__(
   imageId: string,
   itemId: string,
 ): Promise<UpdateResult> {
@@ -1582,7 +1583,7 @@ export async function setMainProductImage(
 }
 
 // Quita TODAS las fotos del producto.
-export async function removeProductImage(itemId: string): Promise<UpdateResult> {
+async function removeProductImage__(itemId: string): Promise<UpdateResult> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   try {
@@ -1610,7 +1611,7 @@ export async function removeProductImage(itemId: string): Promise<UpdateResult> 
 // ya esta cargado: por defecto solo toca lo que no tiene marca, asi lo que el
 // admin corrigio a mano no se pisa. Con sobrescribir=true vuelve a pasar por
 // todos (sirve si se agrega una marca nueva al catalogo).
-export async function asignarMarcasAuto(
+async function asignarMarcasAuto__(
   sobrescribir = false,
 ): Promise<{ ok?: true; error?: string; etiquetados?: number; sinMarca?: number }> {
   const session = await getAdminSession();
@@ -1662,7 +1663,7 @@ export async function asignarMarcasAuto(
 }
 
 // Marca de a uno, desde la tabla o la ficha. Cadena vacia la saca.
-export async function setProductBrand(
+async function setProductBrand__(
   itemId: string,
   brand: string,
 ): Promise<UpdateResult> {
@@ -1688,4 +1689,101 @@ export async function setProductBrand(
   } catch (e) {
     return { error: `Error: ${(e as Error).message}` };
   }
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function createProduct(...a: Parameters<typeof createProduct__>): ReturnType<typeof createProduct__> {
+  return conRegistro("createProduct", a, () => createProduct__(...a));
+}
+export async function updateProduct(...a: Parameters<typeof updateProduct__>): ReturnType<typeof updateProduct__> {
+  return conRegistro("updateProduct", a, () => updateProduct__(...a));
+}
+export async function quickUpdate(...a: Parameters<typeof quickUpdate__>): ReturnType<typeof quickUpdate__> {
+  return conRegistro("quickUpdate", a, () => quickUpdate__(...a));
+}
+export async function addHistoricalPrice(...a: Parameters<typeof addHistoricalPrice__>): ReturnType<typeof addHistoricalPrice__> {
+  return conRegistro("addHistoricalPrice", a, () => addHistoricalPrice__(...a));
+}
+export async function deleteHistoryEntry(...a: Parameters<typeof deleteHistoryEntry__>): ReturnType<typeof deleteHistoryEntry__> {
+  return conRegistro("deleteHistoryEntry", a, () => deleteHistoryEntry__(...a));
+}
+export async function bulkUpdate(...a: Parameters<typeof bulkUpdate__>): ReturnType<typeof bulkUpdate__> {
+  return conRegistro("bulkUpdate", a, () => bulkUpdate__(...a));
+}
+export async function bulkUpdateAll(...a: Parameters<typeof bulkUpdateAll__>): ReturnType<typeof bulkUpdateAll__> {
+  return conRegistro("bulkUpdateAll", a, () => bulkUpdateAll__(...a));
+}
+export async function redactarDescripcionIA(...a: Parameters<typeof redactarDescripcionIA__>): ReturnType<typeof redactarDescripcionIA__> {
+  return conRegistro("redactarDescripcionIA", a, () => redactarDescripcionIA__(...a));
+}
+export async function previewRestore(...a: Parameters<typeof previewRestore__>): ReturnType<typeof previewRestore__> {
+  return conRegistro("previewRestore", a, () => previewRestore__(...a));
+}
+export async function restoreMissingProducts(...a: Parameters<typeof restoreMissingProducts__>): ReturnType<typeof restoreMissingProducts__> {
+  return conRegistro("restoreMissingProducts", a, () => restoreMissingProducts__(...a));
+}
+export async function restoreFromBackup(...a: Parameters<typeof restoreFromBackup__>): ReturnType<typeof restoreFromBackup__> {
+  return conRegistro("restoreFromBackup", a, () => restoreFromBackup__(...a));
+}
+export async function duplicateProduct(...a: Parameters<typeof duplicateProduct__>): ReturnType<typeof duplicateProduct__> {
+  return conRegistro("duplicateProduct", a, () => duplicateProduct__(...a));
+}
+export async function setProductLocked(...a: Parameters<typeof setProductLocked__>): ReturnType<typeof setProductLocked__> {
+  return conRegistro("setProductLocked", a, () => setProductLocked__(...a));
+}
+export async function bulkSetLocked(...a: Parameters<typeof bulkSetLocked__>): ReturnType<typeof bulkSetLocked__> {
+  return conRegistro("bulkSetLocked", a, () => bulkSetLocked__(...a));
+}
+export async function bulkSetLockedAll(...a: Parameters<typeof bulkSetLockedAll__>): ReturnType<typeof bulkSetLockedAll__> {
+  return conRegistro("bulkSetLockedAll", a, () => bulkSetLockedAll__(...a));
+}
+export async function deleteProduct(...a: Parameters<typeof deleteProduct__>): ReturnType<typeof deleteProduct__> {
+  return conRegistro("deleteProduct", a, () => deleteProduct__(...a));
+}
+export async function bulkDelete(...a: Parameters<typeof bulkDelete__>): ReturnType<typeof bulkDelete__> {
+  return conRegistro("bulkDelete", a, () => bulkDelete__(...a));
+}
+export async function bulkDeleteAll(...a: Parameters<typeof bulkDeleteAll__>): ReturnType<typeof bulkDeleteAll__> {
+  return conRegistro("bulkDeleteAll", a, () => bulkDeleteAll__(...a));
+}
+export async function bulkSetStock(...a: Parameters<typeof bulkSetStock__>): ReturnType<typeof bulkSetStock__> {
+  return conRegistro("bulkSetStock", a, () => bulkSetStock__(...a));
+}
+export async function bulkSetStockAll(...a: Parameters<typeof bulkSetStockAll__>): ReturnType<typeof bulkSetStockAll__> {
+  return conRegistro("bulkSetStockAll", a, () => bulkSetStockAll__(...a));
+}
+export async function bulkAdjustPrice(...a: Parameters<typeof bulkAdjustPrice__>): ReturnType<typeof bulkAdjustPrice__> {
+  return conRegistro("bulkAdjustPrice", a, () => bulkAdjustPrice__(...a));
+}
+export async function bulkAdjustPriceAll(...a: Parameters<typeof bulkAdjustPriceAll__>): ReturnType<typeof bulkAdjustPriceAll__> {
+  return conRegistro("bulkAdjustPriceAll", a, () => bulkAdjustPriceAll__(...a));
+}
+export async function uploadProductImage(...a: Parameters<typeof uploadProductImage__>): ReturnType<typeof uploadProductImage__> {
+  return conRegistro("uploadProductImage", a, () => uploadProductImage__(...a));
+}
+export async function reemplazarImagen(...a: Parameters<typeof reemplazarImagen__>): ReturnType<typeof reemplazarImagen__> {
+  return conRegistro("reemplazarImagen", a, () => reemplazarImagen__(...a));
+}
+export async function listProductImages(...a: Parameters<typeof listProductImages__>): ReturnType<typeof listProductImages__> {
+  return conRegistro("listProductImages", a, () => listProductImages__(...a));
+}
+export async function deleteProductImageById(...a: Parameters<typeof deleteProductImageById__>): ReturnType<typeof deleteProductImageById__> {
+  return conRegistro("deleteProductImageById", a, () => deleteProductImageById__(...a));
+}
+export async function reorderProductImages(...a: Parameters<typeof reorderProductImages__>): ReturnType<typeof reorderProductImages__> {
+  return conRegistro("reorderProductImages", a, () => reorderProductImages__(...a));
+}
+export async function setMainProductImage(...a: Parameters<typeof setMainProductImage__>): ReturnType<typeof setMainProductImage__> {
+  return conRegistro("setMainProductImage", a, () => setMainProductImage__(...a));
+}
+export async function removeProductImage(...a: Parameters<typeof removeProductImage__>): ReturnType<typeof removeProductImage__> {
+  return conRegistro("removeProductImage", a, () => removeProductImage__(...a));
+}
+export async function asignarMarcasAuto(...a: Parameters<typeof asignarMarcasAuto__>): ReturnType<typeof asignarMarcasAuto__> {
+  return conRegistro("asignarMarcasAuto", a, () => asignarMarcasAuto__(...a));
+}
+export async function setProductBrand(...a: Parameters<typeof setProductBrand__>): ReturnType<typeof setProductBrand__> {
+  return conRegistro("setProductBrand", a, () => setProductBrand__(...a));
 }

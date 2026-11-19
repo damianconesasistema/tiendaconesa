@@ -5,6 +5,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { guardarPermisos as aGuardar } from "@/lib/permisos";
 import { claveProvisoria, huella, olvidarVigencia, PRINCIPAL, problemaConLaClave, usuarioLimpio } from "@/lib/usuarios";
+import { conRegistro } from "@/lib/actividad";
 
 // Los usuarios del panel (src/lib/usuarios.ts). Crear, desactivar, borrar y
 // cambiarle la contrasena a otro: solo "admin". Cambiar la propia: cualquiera.
@@ -18,7 +19,7 @@ async function soloPrincipal(): Promise<string | null> {
   return null;
 }
 
-export async function crearUsuario(datos: { nombre: string; usuario: string; clave: string }): Promise<R> {
+async function crearUsuario__(datos: { nombre: string; usuario: string; clave: string }): Promise<R> {
   const no = await soloPrincipal();
   if (no) return { error: no };
   const nombre = String(datos.nombre ?? "").replace(/\s+/g, " ").trim().slice(0, 60);
@@ -37,7 +38,7 @@ export async function crearUsuario(datos: { nombre: string; usuario: string; cla
   return { ok: true };
 }
 
-export async function cambiarClave(datos: { id?: string; clave: string }): Promise<R> {
+async function cambiarClave__(datos: { id?: string; clave: string }): Promise<R> {
   const s = await getAdminSession();
   if (!s) return { error: "No autorizado" };
   const mal = problemaConLaClave(String(datos.clave ?? ""));
@@ -61,7 +62,7 @@ export async function cambiarClave(datos: { id?: string; clave: string }): Promi
 /** Admin le resetea la contrasena a alguien que se la olvido: se genera una
  *  provisoria, se muestra UNA vez para dictarsela, y al entrar con ella el
  *  panel le pide que elija la suya. Sin mail. */
-export async function resetearClave(id: string): Promise<R & { clave?: string }> {
+async function resetearClave__(id: string): Promise<R & { clave?: string }> {
   const no = await soloPrincipal();
   if (no) return { error: no };
   const clave = claveProvisoria();
@@ -73,7 +74,7 @@ export async function resetearClave(id: string): Promise<R & { clave?: string }>
   return { ok: true, clave };
 }
 
-export async function cambiarNombre(id: string, nombre: string): Promise<R> {
+async function cambiarNombre__(id: string, nombre: string): Promise<R> {
   const no = await soloPrincipal();
   if (no) return { error: no };
   const limpio = String(nombre ?? "").replace(/\s+/g, " ").trim().slice(0, 60);
@@ -84,7 +85,7 @@ export async function cambiarNombre(id: string, nombre: string): Promise<R> {
   return { ok: true };
 }
 
-export async function activarUsuario(id: string, activo: boolean): Promise<R> {
+async function activarUsuario__(id: string, activo: boolean): Promise<R> {
   const no = await soloPrincipal();
   if (no) return { error: no };
   const fila = await prisma.adminUser.update({ where: { id }, data: { activo } }).catch(() => null);
@@ -94,7 +95,7 @@ export async function activarUsuario(id: string, activo: boolean): Promise<R> {
   return { ok: true };
 }
 
-export async function borrarUsuario(id: string): Promise<R> {
+async function borrarUsuario__(id: string): Promise<R> {
   const no = await soloPrincipal();
   if (no) return { error: no };
   const fila = await prisma.adminUser.delete({ where: { id } }).catch(() => null);
@@ -106,7 +107,7 @@ export async function borrarUsuario(id: string): Promise<R> {
 
 /** Las partes del panel que ve (src/lib/permisos.ts). Todo tildado = todo,
  *  incluidas las partes que se agreguen mas adelante. */
-export async function cambiarPermisos(id: string, secciones: string[]): Promise<R> {
+async function cambiarPermisos__(id: string, secciones: string[]): Promise<R> {
   const no = await soloPrincipal();
   if (no) return { error: no };
   const permisos = aGuardar(Array.isArray(secciones) ? secciones.map(String) : []);
@@ -114,4 +115,29 @@ export async function cambiarPermisos(id: string, secciones: string[]): Promise<
   if (!fila) return { error: "No está ese usuario." };
   revalidatePath("/admin", "layout");
   return { ok: true };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function crearUsuario(...a: Parameters<typeof crearUsuario__>): ReturnType<typeof crearUsuario__> {
+  return conRegistro("crearUsuario", a, () => crearUsuario__(...a));
+}
+export async function cambiarClave(...a: Parameters<typeof cambiarClave__>): ReturnType<typeof cambiarClave__> {
+  return conRegistro("cambiarClave", a, () => cambiarClave__(...a));
+}
+export async function resetearClave(...a: Parameters<typeof resetearClave__>): ReturnType<typeof resetearClave__> {
+  return conRegistro("resetearClave", a, () => resetearClave__(...a));
+}
+export async function cambiarNombre(...a: Parameters<typeof cambiarNombre__>): ReturnType<typeof cambiarNombre__> {
+  return conRegistro("cambiarNombre", a, () => cambiarNombre__(...a));
+}
+export async function activarUsuario(...a: Parameters<typeof activarUsuario__>): ReturnType<typeof activarUsuario__> {
+  return conRegistro("activarUsuario", a, () => activarUsuario__(...a));
+}
+export async function borrarUsuario(...a: Parameters<typeof borrarUsuario__>): ReturnType<typeof borrarUsuario__> {
+  return conRegistro("borrarUsuario", a, () => borrarUsuario__(...a));
+}
+export async function cambiarPermisos(...a: Parameters<typeof cambiarPermisos__>): ReturnType<typeof cambiarPermisos__> {
+  return conRegistro("cambiarPermisos", a, () => cambiarPermisos__(...a));
 }

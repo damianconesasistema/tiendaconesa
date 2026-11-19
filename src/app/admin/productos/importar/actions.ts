@@ -30,6 +30,7 @@ import {
   type ComboCalculado,
   type ComboStock,
 } from "@/lib/combos";
+import { conRegistro } from "@/lib/actividad";
 
 // Que se vino a cambiar. Lo elige el que importa, antes de subir el
 // archivo, y de ahi en adelante manda: una lista de precios de una marca no
@@ -340,7 +341,7 @@ function stockParaCombos(filas: ParsedRow[]): Map<string, number> {
   return m;
 }
 
-export async function previewExcel(
+async function previewExcel__(
   formData: FormData,
   modo: ModoImport = "ambos",
   precioEs: PrecioDelArchivo = "unpago",
@@ -804,7 +805,7 @@ export type ImportResult = {
   ejemplos?: { nuevos: string[]; sinCargar: string[]; pausados?: string[] };
 };
 
-export async function importExcel(
+async function importExcel__(
   rows: ParsedRow[],
   options: {
     downloadImages: boolean;
@@ -1168,4 +1169,14 @@ export async function importExcel(
     },
     ejemplos: { nuevos: ejemploNuevos, sinCargar: ejemploSinCargar, pausados },
   };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function previewExcel(...a: Parameters<typeof previewExcel__>): ReturnType<typeof previewExcel__> {
+  return conRegistro("previewExcel", a, () => previewExcel__(...a));
+}
+export async function importExcel(...a: Parameters<typeof importExcel__>): ReturnType<typeof importExcel__> {
+  return conRegistro("importExcel", a, () => importExcel__(...a));
 }

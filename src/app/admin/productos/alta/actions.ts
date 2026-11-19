@@ -21,6 +21,7 @@ import { buscarEnPiazza, rubroDePiazza } from "@/lib/piazza";
 import { buscarArticuloDeLaMarca, codigosDelArticulo, leerLink } from "@/lib/web-de-marca";
 import { buscarEnMercadoLibre, mlConectado } from "@/lib/mercadolibre";
 import { buscarEnFV, guardarFotoDeFV } from "@/lib/fv";
+import { conRegistro } from "@/lib/actividad";
 
 // Alta de articulos nuevos desde el Excel de GBP.
 //
@@ -105,7 +106,7 @@ function rubrosDeLaTienda(extra: RubrosExtra): { slug: string; name: string }[] 
 }
 
 /** Lee el Excel y arma la ficha de cada articulo que todavia no esta. */
-export async function previsualizarAlta(
+async function previsualizarAlta__(
   formData: FormData,
 ): Promise<PreviewAltaResult> {
   const session = await getAdminSession();
@@ -320,7 +321,7 @@ export type AltaResult = {
  *  la pantalla Marcas (src/lib/marcas-server.ts): ahi despues se le puede
  *  poner el logo. Si ya estaba (mismo nombre o mismo identificador), se
  *  devuelve esa en vez de dar error: lo que se quiere es elegirla. */
-export async function agregarMarcaDesdeAlta(
+async function agregarMarcaDesdeAlta__(
   nombre: string,
 ): Promise<{ ok: true; marca: { id: string; name: string } } | { ok: false; error: string }> {
   const session = await getAdminSession();
@@ -388,7 +389,7 @@ export type RespuestaFV = {
  *  por articulo (src/lib/web-de-marca.ts) y el servidor corta a los 120. */
 const FV_POR_TANDA = 2;
 
-export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
+async function traerDeFV__(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
   const session = await getAdminSession();
   if (!session) return [];
   const extraR = await getRubrosExtra();
@@ -573,7 +574,7 @@ export async function traerDeFV(pedidos: PedidoFV[]): Promise<RespuestaFV[]> {
   return salida;
 }
 
-export async function crearArticulos(
+async function crearArticulos__(
   items: AltaElegida[],
   opciones: { publicar: boolean },
 ): Promise<AltaResult> {
@@ -687,7 +688,7 @@ export async function crearArticulos(
 /** "Pegar link" de una fila de Crear por Excel: lee la pagina que pego Damian
  *  y devuelve nombre, fotos y descripcion para mostrar. No guarda nada: se
  *  guarda al apretar Crear, como lo que trae "Buscar en la web". */
-export async function leerLinkParaAlta(itemCode: string, link: string): Promise<RespuestaFV> {
+async function leerLinkParaAlta__(itemCode: string, link: string): Promise<RespuestaFV> {
   const session = await getAdminSession();
   if (!session) return { itemCode, encontrado: false, motivo: "Sesión vencida. Entrá de nuevo." };
   const d = await leerLink(link);
@@ -708,4 +709,23 @@ export async function leerLinkParaAlta(itemCode: string, link: string): Promise<
     ficha: d.ficha ?? link,
     descripcion: d.descripcion ?? null,
   };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function previsualizarAlta(...a: Parameters<typeof previsualizarAlta__>): ReturnType<typeof previsualizarAlta__> {
+  return conRegistro("previsualizarAlta", a, () => previsualizarAlta__(...a));
+}
+export async function agregarMarcaDesdeAlta(...a: Parameters<typeof agregarMarcaDesdeAlta__>): ReturnType<typeof agregarMarcaDesdeAlta__> {
+  return conRegistro("agregarMarcaDesdeAlta", a, () => agregarMarcaDesdeAlta__(...a));
+}
+export async function traerDeFV(...a: Parameters<typeof traerDeFV__>): ReturnType<typeof traerDeFV__> {
+  return conRegistro("traerDeFV", a, () => traerDeFV__(...a));
+}
+export async function crearArticulos(...a: Parameters<typeof crearArticulos__>): ReturnType<typeof crearArticulos__> {
+  return conRegistro("crearArticulos", a, () => crearArticulos__(...a));
+}
+export async function leerLinkParaAlta(...a: Parameters<typeof leerLinkParaAlta__>): ReturnType<typeof leerLinkParaAlta__> {
+  return conRegistro("leerLinkParaAlta", a, () => leerLinkParaAlta__(...a));
 }

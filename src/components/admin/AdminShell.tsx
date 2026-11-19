@@ -4,7 +4,7 @@ import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
 import { EnLinea } from "@/components/admin/EnLinea";
 import { SubirArriba } from "@/components/admin/SubirArriba";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog, Info, Star } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog, Info, Star, History } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 import { TIENDA_URL } from "@/lib/dominio";
@@ -62,6 +62,7 @@ export async function AdminShell({
     | "novedades"
     | "visitas"
     | "opiniones"
+    | "actividad"
     | "usuarios"
     | "version";
   children: React.ReactNode;
@@ -302,6 +303,7 @@ const ICONOS: Record<string, typeof Package> = {
   mercadopago: CreditCard,
   sucursales: Store,
   opiniones: Star,
+  actividad: History,
 };
 
 function Tab({

@@ -11,6 +11,7 @@ import {
   opinionesDe,
   type LugarEncontrado,
 } from "@/lib/opiniones-google";
+import { conRegistro } from "@/lib/actividad";
 
 // Panel -> Opiniones (src/lib/opiniones-google.ts). La clave de Google la
 // carga solo "admin", igual que la de MercadoLibre; elegir los locales y las
@@ -18,7 +19,7 @@ import {
 
 type R = { ok?: true; error?: string };
 
-export async function guardarClaveGoogle(k: string): Promise<R> {
+async function guardarClaveGoogle__(k: string): Promise<R> {
   const s = await getAdminSession();
   if (!s) return { error: "No autorizado" };
   if (s.username !== PRINCIPAL) return { error: "La clave de Google la carga solo el usuario admin." };
@@ -30,7 +31,7 @@ export async function guardarClaveGoogle(k: string): Promise<R> {
   return { ok: true };
 }
 
-export async function buscarLocalEnGoogle(texto: string): Promise<{ lugares?: LugarEncontrado[]; error?: string }> {
+async function buscarLocalEnGoogle__(texto: string): Promise<{ lugares?: LugarEncontrado[]; error?: string }> {
   const s = await getAdminSession();
   if (!s) return { error: "No autorizado" };
   const t = String(texto ?? "").trim().slice(0, 120);
@@ -43,7 +44,7 @@ export async function buscarLocalEnGoogle(texto: string): Promise<{ lugares?: Lu
   }
 }
 
-export async function elegirLocalDeGoogle(sucursal: string, placeId: string | null): Promise<R> {
+async function elegirLocalDeGoogle__(sucursal: string, placeId: string | null): Promise<R> {
   const s = await getAdminSession();
   if (!s) return { error: "No autorizado" };
   const c = await leerConfig();
@@ -63,7 +64,7 @@ export async function elegirLocalDeGoogle(sucursal: string, placeId: string | nu
   return { ok: true };
 }
 
-export async function guardarOpcionesOpiniones(datos: { minimo: number; mostrar: boolean }): Promise<R> {
+async function guardarOpcionesOpiniones__(datos: { minimo: number; mostrar: boolean }): Promise<R> {
   const s = await getAdminSession();
   if (!s) return { error: "No autorizado" };
   const c = await leerConfig();
@@ -72,4 +73,20 @@ export async function guardarOpcionesOpiniones(datos: { minimo: number; mostrar:
   revalidatePath("/admin/opiniones");
   revalidatePath("/");
   return { ok: true };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function guardarClaveGoogle(...a: Parameters<typeof guardarClaveGoogle__>): ReturnType<typeof guardarClaveGoogle__> {
+  return conRegistro("guardarClaveGoogle", a, () => guardarClaveGoogle__(...a));
+}
+export async function buscarLocalEnGoogle(...a: Parameters<typeof buscarLocalEnGoogle__>): ReturnType<typeof buscarLocalEnGoogle__> {
+  return conRegistro("buscarLocalEnGoogle", a, () => buscarLocalEnGoogle__(...a));
+}
+export async function elegirLocalDeGoogle(...a: Parameters<typeof elegirLocalDeGoogle__>): ReturnType<typeof elegirLocalDeGoogle__> {
+  return conRegistro("elegirLocalDeGoogle", a, () => elegirLocalDeGoogle__(...a));
+}
+export async function guardarOpcionesOpiniones(...a: Parameters<typeof guardarOpcionesOpiniones__>): ReturnType<typeof guardarOpcionesOpiniones__> {
+  return conRegistro("guardarOpcionesOpiniones", a, () => guardarOpcionesOpiniones__(...a));
 }

@@ -7,6 +7,7 @@ import { fichaDelFabricante } from "@/lib/fv";
 import { marcasConWeb } from "@/lib/marcas-server";
 import { mlConectado } from "@/lib/mercadolibre";
 import { geminiConfigurado, redactarDescripcion } from "@/lib/gemini";
+import { conRegistro } from "@/lib/actividad";
 
 // "Buscar descripciones en la web" en tanda. Damian, 16/11/2026: "se puede
 // hacer que busquen en la web masivamente, para no hacer uno por uno".
@@ -33,7 +34,7 @@ export type Encontrada =
  *  segundos, y un pedido largo puede cortarse. La pantalla los va pidiendo. */
 const POR_TANDA = 2;
 
-export async function buscarDescripcionesEnTanda(
+async function buscarDescripcionesEnTanda__(
   itemIds: string[],
 ): Promise<Encontrada[]> {
   const session = await getAdminSession();
@@ -98,7 +99,7 @@ export async function buscarDescripcionesEnTanda(
 
 /** Guarda las descripciones tildadas. Solo en articulos que siguen sin
  *  descripcion: si alguien escribio una mientras tanto, no se pisa. */
-export async function guardarDescripciones(
+async function guardarDescripciones__(
   items: { itemId: string; texto: string }[],
 ): Promise<{ guardadas: number; saltadas: number }> {
   const session = await getAdminSession();
@@ -122,4 +123,14 @@ export async function guardarDescripciones(
   revalidatePath("/tienda");
   revalidatePath("/");
   return { guardadas, saltadas };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function buscarDescripcionesEnTanda(...a: Parameters<typeof buscarDescripcionesEnTanda__>): ReturnType<typeof buscarDescripcionesEnTanda__> {
+  return conRegistro("buscarDescripcionesEnTanda", a, () => buscarDescripcionesEnTanda__(...a));
+}
+export async function guardarDescripciones(...a: Parameters<typeof guardarDescripciones__>): ReturnType<typeof guardarDescripciones__> {
+  return conRegistro("guardarDescripciones", a, () => guardarDescripciones__(...a));
 }

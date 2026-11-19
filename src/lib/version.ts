@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.52";
+export const APP_VERSION = "V.0.99.53";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.53",
+    date: "2026-11-19",
+    changes: [
+      "SALIR (\"el salir no funciona\"): al salir se borraba la sesión de esta dirección pero quedaba viva la de *.conesa.com.ar, y se seguía adentro. Ahora se borran las dos y vuelve a la pantalla de entrada.",
+      "REGISTRO DE ACTIVIDAD (\"quiero que cada modificacion o lo que se haga en el panel quede asentado con el usuario que toco\"): pestaña nueva Registro. Cada acción del panel que sale bien queda anotada con fecha, hora, usuario, qué hizo y sobre qué (código del producto, pedido, campo y valor): productos, precios, stock, fotos, pedidos, facturas y notas de crédito, marcas, sucursales, configuración, usuarios y permisos (88 acciones). También las entradas al panel y los intentos con contraseña equivocada. Se filtra por usuario y se busca por texto. Las contraseñas y claves nunca se anotan.",
+    ],
+  },
   {
     version: "V.0.99.52",
     date: "2026-11-19",

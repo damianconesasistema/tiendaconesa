@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { leerAvisos, linkDeSeguimiento, transporteDe, type Aviso, type TipoAviso } from "@/lib/transportes";
+import { conRegistro } from "@/lib/actividad";
 
 const VALID_STATUSES = [
   "pendiente",
@@ -23,7 +24,7 @@ export type OpcionesEstado = {
   link?: string;
 };
 
-export async function updateOrderStatus(
+async function updateOrderStatus__(
   orderId: string,
   status: string,
   opciones?: OpcionesEstado,
@@ -131,7 +132,7 @@ async function avisarAlCliente(orderId: string, status: "en_entrega" | "entregad
 }
 
 // Elimina un pedido (y sus items en cascada). Para limpiar pedidos de prueba.
-export async function deleteOrder(
+async function deleteOrder__(
   orderId: string,
 ): Promise<{ ok?: true; error?: string }> {
   const session = await getAdminSession();
@@ -153,7 +154,7 @@ export async function deleteOrder(
 //
 // El trabajo pesado esta en src/lib/afip/emitir.ts; aca solo se chequea la
 // sesion y se refrescan las pantallas del panel.
-export async function facturarPedido(
+async function facturarPedido__(
   orderId: string,
 ): Promise<{ ok?: true; cbteNro?: number; cae?: string; aviso?: string; mailEnviado?: boolean; error?: string }> {
   const session = await getAdminSession();
@@ -185,7 +186,7 @@ export async function facturarPedido(
 // esos datos van a la factura. OJO: si el pedido YA se facturo, la factura
 // emitida no cambia (en ARCA quedo como se emitio); corregir aca sirve para
 // la etiqueta, el contacto y para una nota de credito posterior.
-export async function actualizarDatosPedido(
+async function actualizarDatosPedido__(
   orderId: string,
   datos: {
     firstName: string;
@@ -252,7 +253,7 @@ export async function actualizarDatosPedido(
 }
 
 // Emite la nota de credito que anula la factura del pedido.
-export async function anularFactura(
+async function anularFactura__(
   orderId: string,
   motivo: string,
 ): Promise<{ ok?: true; cbteNro?: number; cae?: string; error?: string }> {
@@ -273,7 +274,7 @@ export async function anularFactura(
 // WhatsApp no deja adjuntar un archivo desde un link: lo que se manda es
 // esta direccion, que abre el PDF. Lleva un token, asi que no sirve para
 // espiar los comprobantes de otros pedidos.
-export async function linkDelComprobante(
+async function linkDelComprobante__(
   orderId: string,
   tipo: "factura" | "nc" = "factura",
 ): Promise<{ link?: string; error?: string }> {
@@ -282,4 +283,26 @@ export async function linkDelComprobante(
   const { linkComprobante } = await import("@/lib/afip/link-publico");
   const { SITE_URL } = await import("@/lib/email");
   return { link: linkComprobante(SITE_URL, orderId, tipo) };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function updateOrderStatus(...a: Parameters<typeof updateOrderStatus__>): ReturnType<typeof updateOrderStatus__> {
+  return conRegistro("updateOrderStatus", a, () => updateOrderStatus__(...a));
+}
+export async function deleteOrder(...a: Parameters<typeof deleteOrder__>): ReturnType<typeof deleteOrder__> {
+  return conRegistro("deleteOrder", a, () => deleteOrder__(...a));
+}
+export async function facturarPedido(...a: Parameters<typeof facturarPedido__>): ReturnType<typeof facturarPedido__> {
+  return conRegistro("facturarPedido", a, () => facturarPedido__(...a));
+}
+export async function actualizarDatosPedido(...a: Parameters<typeof actualizarDatosPedido__>): ReturnType<typeof actualizarDatosPedido__> {
+  return conRegistro("actualizarDatosPedido", a, () => actualizarDatosPedido__(...a));
+}
+export async function anularFactura(...a: Parameters<typeof anularFactura__>): ReturnType<typeof anularFactura__> {
+  return conRegistro("anularFactura", a, () => anularFactura__(...a));
+}
+export async function linkDelComprobante(...a: Parameters<typeof linkDelComprobante__>): ReturnType<typeof linkDelComprobante__> {
+  return conRegistro("linkDelComprobante", a, () => linkDelComprobante__(...a));
 }

@@ -116,7 +116,19 @@ export async function destroyAdminSession() {
     domain: await dominioDeLaSesion(),
     maxAge: 0,
   });
-  jar.delete(COOKIE_NAME);
+  // Sin jar.delete despues: pisaba lo de arriba (mismo nombre) y la sesion
+  // del dominio .conesa.com.ar quedaba viva. Damian, 19/11/2026: "el salir
+  // no funciona". Para salir del todo se usa galletasParaSalir().
+}
+
+/** Las dos galletas que borran la sesion: la del dominio (.conesa.com.ar) y
+ *  la del sitio solo, por si quedo una vieja. Van como encabezados aparte,
+ *  porque cookies() guarda una sola por nombre. */
+export async function galletasParaSalir(): Promise<string[]> {
+  const dominio = await dominioDeLaSesion();
+  const seguro = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const base = `${COOKIE_NAME}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${seguro}`;
+  return dominio ? [`${base}; Domain=${dominio}`, base] : [base];
 }
 
 export async function getAdminSession(): Promise<AdminSession | null> {

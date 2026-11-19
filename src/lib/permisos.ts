@@ -28,6 +28,7 @@ export type Seccion =
   | "sucursales"
   | "opiniones"
   | "sistema"
+  | "actividad"
   | "configuracion";
 
 export type DatosSeccion = { id: Seccion; nombre: string; href: string; ayuda: string; pestana: boolean };
@@ -48,6 +49,7 @@ export const EXPLICACION: Readonly<Record<Seccion, string>> = {
   sucursales: "Los datos de cada local: dirección, horarios, WhatsApp, CUIT, si tiene la tienda abierta y en qué orden aparece.",
   opiniones: "Las opiniones de Google que se muestran en la portada de la tienda: se traen solas de Google cada 12 horas. Acá se carga la clave de Google, se elige el local de cada sucursal y desde cuántas estrellas se muestran.",
   sistema: "El sistema de ventas del local (Punto).",
+  actividad: "Todo lo que se hizo en el panel, con quién lo hizo, cuándo y sobre qué: productos, precios, pedidos, facturas, usuarios, configuración. También las entradas al panel y los intentos con contraseña equivocada. Las contraseñas nunca se anotan.",
   configuracion: "Ajustes generales de la tienda.",
 };
 
@@ -69,6 +71,7 @@ export const SECCIONES: readonly DatosSeccion[] = [
   // Sin pestaña (Damian, 19/11/2026: "LAS OPINIONES NO TIENEN QUE ESTAR EN EL
   // PANEL SOLO QUE ESTEN EN LA WEB PRINCIPAL"): la pantalla queda solo para
   // cargar la clave una vez, entrando por la direccion.
+  { id: "actividad", nombre: "Registro", href: "/admin/actividad", ayuda: "Quién hizo qué en el panel y cuándo", pestana: true },
   { id: "opiniones", nombre: "Opiniones", href: "/admin/opiniones", ayuda: "Las opiniones de Google en la portada", pestana: false },
   // El sistema de ventas del local (/sistema/demo). No es del panel, pero se
   // entra con los mismos usuarios (src/app/sistema/demo/clave.ts).

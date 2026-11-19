@@ -5,10 +5,11 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { agregarMarca, getMarcas, guardarWebDeMarca, quitarMarca } from "@/lib/marcas-server";
 import { guardarLogoSubido, quitarLogo, traerLogoDeLaWeb } from "@/lib/logo-de-marca";
+import { conRegistro } from "@/lib/actividad";
 
 type Resultado = { ok?: true; error?: string };
 
-export async function crearMarca(formData: FormData): Promise<Resultado> {
+async function crearMarca__(formData: FormData): Promise<Resultado> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
 
@@ -37,7 +38,7 @@ export async function crearMarca(formData: FormData): Promise<Resultado> {
 /** La pagina web de una marca: de ahi se traen foto y descripcion de sus
  *  articulos por el codigo (src/lib/web-de-marca.ts). Vale para todas las
  *  marcas, tambien las que vienen en el codigo. Vacia la deja sin pagina. */
-export async function cambiarWebDeMarca(
+async function cambiarWebDeMarca__(
   id: string,
   web: string,
 ): Promise<{ ok?: true; error?: string; web?: string }> {
@@ -63,7 +64,7 @@ function refrescarLogos() {
 /** "Traer logo": lo busca en la pagina de la marca. Damian, 17/11/2026: "a
  *  estas marcas le podes agregar el logo de la misma pagina
  *  automaticamente". Ver src/lib/logo-de-marca.ts. */
-export async function traerLogo(id: string): Promise<{ ok?: true; error?: string }> {
+async function traerLogo__(id: string): Promise<{ ok?: true; error?: string }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   const marca = (await getMarcas()).find((m) => m.id === id);
@@ -76,7 +77,7 @@ export async function traerLogo(id: string): Promise<{ ok?: true; error?: string
 }
 
 /** Todas las marcas con pagina y sin logo, de una. */
-export async function traerLogosQueFaltan(): Promise<{ traidos: number; fallaron: string[] } | { error: string }> {
+async function traerLogosQueFaltan__(): Promise<{ traidos: number; fallaron: string[] } | { error: string }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   const faltan = (await getMarcas()).filter((m) => m.web && !m.logo);
@@ -93,7 +94,7 @@ export async function traerLogosQueFaltan(): Promise<{ traidos: number; fallaron
 
 /** "subir logo": la imagen que elige Damian en la compu, para cualquier
  *  marca (tenga o no pagina web, y aunque ya tenga logo). */
-export async function subirLogo(id: string, formData: FormData): Promise<{ ok?: true; error?: string }> {
+async function subirLogo__(id: string, formData: FormData): Promise<{ ok?: true; error?: string }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   if (!(await getMarcas()).some((m) => m.id === id)) return { error: "No está esa marca." };
@@ -109,7 +110,7 @@ export async function subirLogo(id: string, formData: FormData): Promise<{ ok?: 
 }
 
 /** Saca el logo traido de la web o subido (si era otra imagen). */
-export async function sacarLogo(id: string): Promise<{ ok?: true; error?: string }> {
+async function sacarLogo__(id: string): Promise<{ ok?: true; error?: string }> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
   await quitarLogo(id);
@@ -120,7 +121,7 @@ export async function sacarLogo(id: string): Promise<{ ok?: true; error?: string
 // Borrar una marca no toca los productos: si alguno la tenia, queda con un
 // slug que ya no resuelve a ningun nombre. Por eso la pantalla muestra cuantos
 // productos la usan antes de dejar borrar.
-export async function borrarMarca(id: string): Promise<Resultado> {
+async function borrarMarca__(id: string): Promise<Resultado> {
   const session = await getAdminSession();
   if (!session) return { error: "No autorizado" };
 
@@ -138,4 +139,29 @@ export async function borrarMarca(id: string): Promise<Resultado> {
   revalidatePath("/tienda");
   revalidatePath("/");
   return { ok: true };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function crearMarca(...a: Parameters<typeof crearMarca__>): ReturnType<typeof crearMarca__> {
+  return conRegistro("crearMarca", a, () => crearMarca__(...a));
+}
+export async function cambiarWebDeMarca(...a: Parameters<typeof cambiarWebDeMarca__>): ReturnType<typeof cambiarWebDeMarca__> {
+  return conRegistro("cambiarWebDeMarca", a, () => cambiarWebDeMarca__(...a));
+}
+export async function traerLogo(...a: Parameters<typeof traerLogo__>): ReturnType<typeof traerLogo__> {
+  return conRegistro("traerLogo", a, () => traerLogo__(...a));
+}
+export async function traerLogosQueFaltan(...a: Parameters<typeof traerLogosQueFaltan__>): ReturnType<typeof traerLogosQueFaltan__> {
+  return conRegistro("traerLogosQueFaltan", a, () => traerLogosQueFaltan__(...a));
+}
+export async function subirLogo(...a: Parameters<typeof subirLogo__>): ReturnType<typeof subirLogo__> {
+  return conRegistro("subirLogo", a, () => subirLogo__(...a));
+}
+export async function sacarLogo(...a: Parameters<typeof sacarLogo__>): ReturnType<typeof sacarLogo__> {
+  return conRegistro("sacarLogo", a, () => sacarLogo__(...a));
+}
+export async function borrarMarca(...a: Parameters<typeof borrarMarca__>): ReturnType<typeof borrarMarca__> {
+  return conRegistro("borrarMarca", a, () => borrarMarca__(...a));
 }

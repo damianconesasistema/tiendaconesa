@@ -7,6 +7,7 @@ import { sucursalDelPanel } from "@/lib/sucursal-panel";
 import { getRecargosDelPanel } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
 import { guardarComparaciones, preciosAfuera, type Comparacion } from "@/lib/comparador";
+import { conRegistro } from "@/lib/actividad";
 
 // Buscar a cuanto se venden afuera unos productos. La pantalla los pide de a
 // poquitos (cada uno tarda unos segundos), asi ningun pedido se hace largo y
@@ -14,7 +15,7 @@ import { guardarComparaciones, preciosAfuera, type Comparacion } from "@/lib/com
 
 const POR_PEDIDO = 3;
 
-export async function compararPrecios(
+async function compararPrecios__(
   itemIds: string[],
 ): Promise<{ ok: true; resultados: Record<string, Comparacion> } | { ok: false; error: string }> {
   const session = await getAdminSession();
@@ -63,4 +64,11 @@ export async function compararPrecios(
   );
   if (Object.keys(resultados).length) await guardarComparaciones(resultados);
   return { ok: true, resultados };
+}
+
+// ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
+// bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
+// "quiero que cada modificacion ... quede asentado con el usuario que toco".
+export async function compararPrecios(...a: Parameters<typeof compararPrecios__>): ReturnType<typeof compararPrecios__> {
+  return conRegistro("compararPrecios", a, () => compararPrecios__(...a));
 }
