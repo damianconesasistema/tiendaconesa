@@ -30,6 +30,7 @@ import {
   Copy,
 } from "lucide-react";
 import { InlineNumber, InlineSegmented, InlineToggle } from "@/components/admin/InlineEdit";
+import { Ayuda } from "@/components/admin/Ayuda";
 import {
   bulkUpdate,
   bulkUpdateAll,
@@ -494,9 +495,10 @@ export function ProductsTable({
       <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-xs text-[var(--muted)]">
         <span className="font-bold uppercase tracking-wider">Los precios</span>
         <span>
-          <strong className="text-foreground">Precio</strong> y{" "}
-          <strong className="text-foreground">Oferta</strong> son de
-          transferencia. Si hay oferta, el precio sale tachado.
+          <strong className="text-foreground">Precio</strong> es el normal y{" "}
+          <strong className="text-foreground">Oferta</strong> el rebajado (tiene
+          que ser menor). Los dos son de transferencia. Si hay oferta, el
+          precio sale <span className="line-through">tachado</span> en la tienda.
         </span>
         <span>
           <strong className="text-foreground">Lista 2 · 1 pago</strong> es lo
@@ -523,22 +525,25 @@ export function ProductsTable({
               {/* La columna del producto pide ancho explicito: con table-auto
                   las columnas de numeros se lo comian y el nombre quedaba
                   cortado a la mitad. */}
-              <SortHeader label="Producto" href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[30%] min-w-[14rem] md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] md:bg-[var(--surface)]" />
-              <SortHeader label="Categoría" href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
-              <SortHeader label="Marca" href={sortHref("brand")} active={sort === "brand"} dir={dir} className="hidden lg:table-cell" />
-              <SortHeader label="Precio" href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
+              <SortHeader label="Producto" ayuda="El nombre como lo ve el cliente. Tocalo para editar todo el producto. Abajo: el SKU y el % de descuento si tiene oferta." href={sortHref("title")} active={sort === "title"} dir={dir} className="w-[30%] min-w-[14rem] md:sticky md:left-10 md:z-10 md:border-r md:border-[var(--border)] md:bg-[var(--surface)]" />
+              <SortHeader label="Categoría" ayuda="El rubro en el que aparece en la tienda (Grifería, Loza sanitaria...)." href={sortHref("category")} active={sort === "category"} dir={dir} className="hidden lg:table-cell" />
+              <SortHeader label="Marca" ayuda="La marca. Con ella el producto aparece al filtrar por marca en la tienda." href={sortHref("brand")} active={sort === "brand"} dir={dir} className="hidden lg:table-cell" />
+              <SortHeader label="Precio" ayuda="El precio NORMAL, por transferencia. Si el producto tiene oferta, este es el que sale TACHADO en la tienda." href={sortHref("price")} active={sort === "price"} dir={dir} align="right" boxed />
               {/* No se ordena por esta: no es una columna de la base, es una
                   cuenta. El ancho minimo y el nowrap no son adorno: sin
                   ellos el titulo se monta sobre el de al lado. */}
               <th className="min-w-[7rem] whitespace-nowrap px-2 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
                 Lista 2 · 1 pago
+                <Ayuda className="ml-1" texto="Lo que paga el cliente con tarjeta en 1 pago: el precio (o la oferta, si hay) más el recargo de Mercado Pago. Se calcula solo, no se escribe. Tiene que dar igual que la Lista 2 de GBP." />
               </th>
-              <SortHeader label="Oferta" href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
-              <SortHeader label="Stock" href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
-              <SortHeader label="Visitas" href={sortHref("views")} active={sort === "views"} dir={dir} align="right" className="hidden sm:table-cell" />
-              <SortHeader label="Estado" href={sortHref("estado")} active={sort === "estado"} dir={dir} align="center" />
-              <SortHeader label="Destacado" href={sortHref("featured")} active={sort === "featured"} dir={dir} align="center" />
-              <th className="px-2 py-3"></th>
+              <SortHeader label="Oferta" ayuda="El precio REBAJADO, por transferencia: lo que paga el cliente. Tiene que ser MENOR que el Precio. Vacío = sin oferta. Con oferta, la tienda muestra el Precio tachado, este al lado y el % de descuento." href={sortHref("sale")} active={sort === "sale"} dir={dir} align="right" boxed />
+              <SortHeader label="Stock" ayuda="Las unidades que hay. En 0 el producto se pausa solo: no se puede comprar hasta que le cargues stock." href={sortHref("stock")} active={sort === "stock"} dir={dir} align="right" boxed />
+              <SortHeader label="Visitas" ayuda="Cuántas veces abrieron la ficha de este producto en la tienda, desde siempre. Lo de los últimos días está en Qué miran." href={sortHref("views")} active={sort === "views"} dir={dir} align="right" className="hidden sm:table-cell" />
+              <SortHeader label="Estado" ayuda="Activo: se ve y se vende en la tienda. Pausado: no aparece. Tocá el que quieras para cambiarlo." href={sortHref("estado")} active={sort === "estado"} dir={dir} align="center" />
+              <SortHeader label="Destacado" ayuda="Destacado: aparece en la portada de la tienda, en la sección de destacados. Tocalo para sacarlo o ponerlo." href={sortHref("featured")} active={sort === "featured"} dir={dir} align="center" />
+              <th className="px-2 py-3 text-center">
+                <Ayuda texto="Los botones de cada producto: ver cómo lo ve el cliente, editar la ficha completa, duplicar (copia con fotos para cargar uno parecido), candado (lo protege de cambios y de que lo borren) y borrar." />
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
@@ -936,8 +941,11 @@ function SortHeader({
   align = "left",
   className = "",
   boxed = false,
+  ayuda,
 }: {
   label: string;
+  /** La ayuda memoria de la columna (el (i) al lado del titulo). */
+  ayuda?: string;
   href: string;
   active: boolean;
   dir: "asc" | "desc";
@@ -993,10 +1001,14 @@ function SortHeader({
           style={{ width: "7.75rem" }}
         >
           {link}
-          <span className="w-9 shrink-0" aria-hidden />
+          {ayuda && <Ayuda texto={ayuda} />}
+          <span className={`${ayuda ? "w-4" : "w-9"} shrink-0`} aria-hidden />
         </span>
       ) : (
-        link
+        <span className="inline-flex items-center gap-1">
+          {link}
+          {ayuda && <Ayuda texto={ayuda} />}
+        </span>
       )}
     </th>
   );

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState, useRef, useTransition } from "react";
 import Link from "next/link";
 import { Check, AlertCircle, Sparkles, Loader2, Globe, ArrowLeft } from "lucide-react";
+import { Ayuda } from "@/components/admin/Ayuda";
 import { descripcionDeFV } from "@/app/admin/productos/fotos-fv/actions";
 import { MARCAS_BASE, porNombre, type Marca } from "@/lib/marcas";
 import { SHIPPING_TYPES, parseShipping } from "@/lib/shipping";
@@ -417,7 +418,7 @@ export function ProductForm({
 
       <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
         <div>
-          <Label>Título</Label>
+          <Label ayuda="El nombre que ve el cliente y el que busca Google. Rubro, marca, línea y código: así lo encuentran.">Título</Label>
           <input
             name="title"
             defaultValue={product.title}
@@ -426,7 +427,7 @@ export function ProductForm({
           />
         </div>
         <div>
-          <Label>SKU interno (opcional)</Label>
+          <Label ayuda="El código con el que ustedes identifican el artículo (el de GBP). No lo ve el cliente como título, pero sirve para buscarlo.">SKU interno (opcional)</Label>
           <input
             name="sku"
             defaultValue={product.sku ?? ""}
@@ -438,7 +439,7 @@ export function ProductForm({
 
       <div className="grid gap-5 sm:grid-cols-[1fr_2fr]">
         <div>
-          <Label>Código de fabricante</Label>
+          <Label ayuda="El código con que la marca nombra el producto (por ejemplo 0207/B1). Con este se buscan la foto y la ficha en la página de la marca.">Código de fabricante</Label>
           <input
             name="codigoFabricante"
             defaultValue={product.codigoFabricante ?? ""}
@@ -457,7 +458,7 @@ export function ProductForm({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <Label>Categoría</Label>
+          <Label ayuda="El rubro donde aparece en la tienda.">Categoría</Label>
           <select
             name="category"
             defaultValue={product.category}
@@ -481,7 +482,7 @@ export function ProductForm({
               queda deshabilitado, y un campo deshabilitado no se manda: el
               articulo queda sin subrubro. */}
           <div className="mt-3">
-            <Label>Subrubro</Label>
+            <Label ayuda="La parte del rubro (por ejemplo Lavatorio dentro de Grifería). Arma los filtros de la tienda.">Subrubro</Label>
             <select
               key={rubro}
               name="subcategory"
@@ -507,7 +508,7 @@ export function ProductForm({
           </div>
         </div>
         <div>
-          <Label>Marca</Label>
+          <Label ayuda="La marca del producto. Con ella aparece al filtrar por marca en la tienda.">Marca</Label>
           <select name="brand" defaultValue={product.brand ?? ""} className="input">
             <option value="">— Sin marca —</option>
             {porNombre(marcas).map((m) => (
@@ -522,7 +523,7 @@ export function ProductForm({
           </p>
         </div>
         <div>
-          <Label>Tipo de envío (podés elegir más de uno)</Label>
+          <Label ayuda="Cómo lo puede recibir el cliente: retiro en el local, envío a domicilio o los dos.">Tipo de envío (podés elegir más de uno)</Label>
           <div className="mt-1.5 flex flex-wrap gap-2">
             {SHIPPING_TYPES.map((s) => {
               const checked = parseShipping(product.shippingType).includes(
@@ -550,7 +551,7 @@ export function ProductForm({
 
       <div className="grid gap-5 sm:grid-cols-3">
         <div>
-          <Label>Precio ARS</Label>
+          <Label ayuda="El precio NORMAL, por transferencia. Si cargás una oferta, este sale TACHADO en la tienda.">Precio ARS</Label>
           <input
             name="price"
             type="number"
@@ -562,7 +563,7 @@ export function ProductForm({
           />
         </div>
         <div>
-          <Label>Precio oferta (opcional)</Label>
+          <Label ayuda="El precio REBAJADO, por transferencia: lo que paga el cliente. Tiene que ser MENOR que el precio. Vacío = sin oferta.">Precio oferta (opcional)</Label>
           <input
             name="salePrice"
             type="number"
@@ -572,9 +573,12 @@ export function ProductForm({
             placeholder="Vacío = sin oferta"
             className="input"
           />
+          <p className="mt-1 text-[11px] text-[var(--muted)]">
+            Menor que el precio. El precio sale tachado y este al lado.
+          </p>
         </div>
         <div>
-          <Label>Stock</Label>
+          <Label ayuda="Las unidades que hay. En 0 el producto se pausa solo.">Stock</Label>
           <input
             name="stock"
             type="number"
@@ -589,7 +593,7 @@ export function ProductForm({
 
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label>Descripción (opcional)</Label>
+          <Label ayuda="El texto de la ficha que lee el cliente (y Google). Medidas, materiales, qué incluye.">Descripción (opcional)</Label>
           <div className="flex flex-wrap items-center gap-2">
           {puedeBuscarEnLaWeb && (
             <button
@@ -764,10 +768,11 @@ export function ProductForm({
   );
 }
 
-function Label({ children }: { children: React.ReactNode }) {
+function Label({ children, ayuda }: { children: React.ReactNode; ayuda?: string }) {
   return (
-    <label className="mb-1.5 block font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+    <label className="mb-1.5 flex items-center gap-1 font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
       {children}
+      {ayuda && <Ayuda texto={ayuda} />}
     </label>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Check, Loader2, Mail, X } from "lucide-react";
 import { TRANSPORTES, NOMBRE_AVISO, type Aviso } from "@/lib/transportes";
 import { updateOrderStatus } from "@/app/admin/pedidos/actions";
+import { Ayuda } from "@/components/admin/Ayuda";
 
 // El estado del pedido, en su ficha. Igual que antes, salvo dos estados que
 // le avisan al cliente por mail (Damian, 18/11/2026: "cuando hay un
@@ -112,6 +113,7 @@ export function EstadoDelPedido({
     <div className="w-full sm:w-[420px]">
       <div className="flex items-center justify-end gap-3">
         {pendiente && <Loader2 className="h-4 w-4 animate-spin text-[var(--muted)]" />}
+        <Ayuda texto="Pendiente: entró y falta confirmarlo. Confirmado: el pago está y se va a preparar. En preparación: lo están armando. En entrega (o Listo para retirar): salió o ya se puede buscar; se le puede avisar por mail con el seguimiento. Entregado: lo recibió. Cancelado: no sigue." />
         <label className="relative inline-flex items-center">
           <span
             className={`pointer-events-none absolute left-3 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ${meta.color}`}

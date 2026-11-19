@@ -77,9 +77,11 @@ export function InlineNumber({
         setStatus("saved");
         setTimeout(() => setStatus("idle"), 1500);
       } else {
+        // El motivo queda a la vista hasta que se corrija el numero. Antes
+        // solo se ponia rojo dos segundos y no decia por que (Damian,
+        // 19/11/2026: "ACA EL PRECIO DE OFERTA NO ME LO TOMA").
         setStatus("error");
-        setError(r.error ?? "Error");
-        setTimeout(() => setStatus("idle"), 2500);
+        setError(r.error ?? "No se pudo guardar.");
       }
     });
   }
@@ -102,7 +104,15 @@ export function InlineNumber({
   return (
     // Ancho fijo que SIEMPRE reserva espacio para los 2 botones chicos,
     // asi la fila nunca cambia de tamaño al pasar de clean a dirty.
-    <div className="inline-flex items-center justify-end gap-1" style={{ width: "7.75rem" }}>
+    <div className="relative inline-flex items-center justify-end gap-1" style={{ width: "7.75rem" }}>
+      {status === "error" && error && (
+        <div
+          role="alert"
+          className="absolute right-0 top-full z-30 mt-1 w-64 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-left text-xs font-semibold leading-snug text-red-800 shadow-lg"
+        >
+          {error}
+        </div>
+      )}
       {prefix && (
         <span className="text-xs text-[var(--muted)]">{prefix}</span>
       )}
@@ -113,7 +123,13 @@ export function InlineNumber({
         step={1}
         disabled={disabled}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          if (status === "error") {
+            setStatus("idle");
+            setError(null);
+          }
+        }}
         onBlur={() => {
           // Guardar también al salir del campo (como una planilla), así no
           // se pierde el cambio si el usuario no apreta Enter / Aplicar.
@@ -132,7 +148,7 @@ export function InlineNumber({
           }
         }}
         placeholder={allowNull ? "—" : "0"}
-        title={dirty ? "Sin guardar — Enter o salí del campo para guardar, Esc cancela" : undefined}
+        title={error ?? (dirty ? "Sin guardar — Enter o salí del campo para guardar, Esc cancela" : undefined)}
         className={`inline-edit-number h-9 min-w-0 flex-1 rounded border bg-white px-2 text-right font-display text-sm font-bold outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-[var(--surface)] disabled:text-[var(--muted)] ${borderCls} ${className}`}
       />
       {/* Slot reservado para los 2 botones (ancho fijo, no cambia la fila) */}

@@ -77,7 +77,7 @@ export async function createProduct(
   if (salePrice !== null && (!Number.isFinite(salePrice) || salePrice < 0))
     return { error: "Precio de oferta inválido" };
   if (salePrice !== null && salePrice >= price)
-    return { error: "El precio de oferta debe ser menor al precio base" };
+    return { error: "La oferta tiene que ser MENOR que el precio: es el precio rebajado que paga el cliente. El precio normal, el que sale tachado, va en Precio." };
 
   const stock = Math.max(0, Math.floor(Number(formData.get("stock") || 0)));
   const active = formData.get("active") === "on";
@@ -247,7 +247,7 @@ export async function updateProduct(
   if (salePrice !== null && (!Number.isFinite(salePrice) || salePrice < 0))
     return { error: "Precio de oferta inválido" };
   if (salePrice !== null && salePrice >= priceRaw)
-    return { error: "El precio de oferta debe ser menor al precio base" };
+    return { error: "La oferta tiene que ser MENOR que el precio: es el precio rebajado que paga el cliente. El precio normal, el que sale tachado, va en Precio." };
 
   const newPrice = Math.round(priceRaw);
   const newSalePrice = salePrice !== null ? Math.round(salePrice) : null;
@@ -336,7 +336,7 @@ export async function quickUpdate(
         select: { price: true },
       });
       if (existing && n >= existing.price)
-        return { error: "La oferta debe ser menor al precio base" };
+        return { error: "La oferta tiene que ser MENOR que el precio: es el precio rebajado que paga el cliente. El precio normal, el que sale tachado, va en Precio." };
       data.salePrice = Math.round(n);
     }
   } else if (field === "stock") {
@@ -412,7 +412,7 @@ export async function addHistoricalPrice(
   if (salePrice !== null && (!Number.isFinite(salePrice) || salePrice < 0))
     return { error: "Precio de oferta inválido" };
   if (salePrice !== null && salePrice >= price)
-    return { error: "La oferta debe ser menor al precio base" };
+    return { error: "La oferta tiene que ser MENOR que el precio: es el precio rebajado que paga el cliente. El precio normal, el que sale tachado, va en Precio." };
 
   const p = await prisma.product.findUnique({
     where: { itemId },

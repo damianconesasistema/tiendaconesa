@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog, Info } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
@@ -15,7 +15,7 @@ import { herramientasUnaVez } from "@/lib/herramientas-una-vez";
 import { AvisoVersionNueva } from "@/components/AvisoVersionNueva";
 import { versionPublicada } from "@/lib/version-publicada";
 import { datosDelUsuario } from "@/lib/usuarios";
-import { GRUPOS, primeraPermitida, puedeVer } from "@/lib/permisos";
+import { EXPLICACION, GRUPOS, esSeccion, primeraPermitida, puedeVer, SECCIONES } from "@/lib/permisos";
 import { redirect } from "next/navigation";
 import { CambiarMiClave } from "@/components/admin/UsuariosAdmin";
 
@@ -161,6 +161,7 @@ export async function AdminShell({
                 {visibles.map((x) => (
                   <Tab
                     key={x.id}
+                    ayuda={x.ayuda}
                     href={x.href}
                     icon={ICONOS[x.id] ?? Settings}
                     label={x.nombre}
@@ -239,6 +240,16 @@ export async function AdminShell({
           ancho === "full" ? "max-w-none" : "max-w-7xl"
         }`}
       >
+        {/* La ayuda memoria de esta pantalla (src/lib/permisos.ts). */}
+        {!tieneQueElegirClave && esSeccion(active) && (
+          <div className="mx-auto mb-5 flex max-w-7xl items-start gap-2 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-2 text-xs leading-snug text-[var(--muted)]">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              <strong className="text-foreground">{SECCIONES.find((x) => x.id === active)?.nombre}:</strong>{" "}
+              {EXPLICACION[active]}
+            </span>
+          </div>
+        )}
         {tieneQueElegirClave ? (
           <div className="mx-auto max-w-md">
             <h1 className="font-display text-2xl font-black uppercase leading-tight">Elegí tu contraseña</h1>
@@ -275,7 +286,9 @@ function Tab({
   icon: Icon,
   label,
   active,
+  ayuda,
 }: {
+  ayuda?: string;
   href: string;
   icon: typeof Package;
   label: string;
@@ -284,6 +297,7 @@ function Tab({
   return (
     <Link
       href={href}
+      title={ayuda}
       className={`inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-2.5 py-3 font-display text-[11px] font-bold uppercase tracking-wider transition-colors ${
         active
           ? "border-[var(--brand-red)] text-[var(--brand-red)]"

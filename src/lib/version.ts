@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.31";
+export const APP_VERSION = "V.0.99.32";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.32",
+    date: "2026-11-19",
+    changes: [
+      "PRECIO DE OFERTA (\"ACA EL PRECIO DE OFERTA NO ME LO TOMA\"): cuando un número no se puede guardar, ahora dice por qué, en un cartel rojo debajo del campo, hasta que se corrige. Antes se ponía rojo un segundo y no explicaba nada. La oferta tiene que ser MENOR que el precio: es el precio rebajado; el normal, el que sale tachado, va en Precio.",
+      "AYUDA MEMORIA EN TODO EL PANEL (\"PODES PONERLE UN LABEL EXPLICANDO QUE HACE CADA COSA\"): cada pantalla tiene arriba un renglón que explica para qué sirve. La tabla de productos tiene una (i) en cada columna (Precio, Lista 2 · 1 pago, Oferta, Stock, Visitas, Estado, Destacado y los botones), igual que los campos de la ficha del producto y el estado de los pedidos. Las pestañas lo dicen al pasar el mouse.",
+    ],
+  },
   {
     version: "V.0.99.31",
     date: "2026-11-19",
