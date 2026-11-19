@@ -1,15 +1,14 @@
-import { pedirLaClave, revisarClave } from "./clave";
+import { noPasa, quienEntra } from "./clave";
 import { PUNTO_HTML } from "./punto";
 
 // La demo "Punto" (conesa.com.ar/sistema/demo), para mostrarla sin que ande dando vueltas.
 //
 // Vive adentro de la tienda porque es el unico servidor que ya esta andando,
 // pero no toca nada de ella: es una sola direccion que devuelve una pagina
-// suelta. No lee la base, no escribe nada y no comparte sesion con el panel.
+// suelta. No lee la base ni escribe nada; la sesion es la del panel.
 //
-// La clave se pide con la ventanita del navegador (Basic). Es fea pero no
-// necesita ni formulario ni galletas, asi que no hay nada que se pueda
-// romper. El usuario da igual; lo que se compara es la clave.
+// Se entra con los usuarios del panel, por /sistema/entrar (ver ./clave.ts).
+// Antes era la ventanita del navegador con una clave sola.
 //
 // OJO: el repositorio es publico, asi que el HTML de la demo se puede leer
 // en GitHub aunque la pagina pida clave. Adentro no hay nada reservado -los
@@ -18,15 +17,9 @@ import { PUNTO_HTML } from "./punto";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request): Promise<Response> {
-  const paso = revisarClave(req);
-  if (paso === "sin-configurar") {
-    return new Response("No encontrado.\n", {
-      status: 404,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
-  }
-  if (paso === "mal") return pedirLaClave();
+export async function GET(): Promise<Response> {
+  const paso = await quienEntra();
+  if (paso !== "ok") return noPasa(paso);
 
   return new Response(PUNTO_HTML, {
     status: 200,

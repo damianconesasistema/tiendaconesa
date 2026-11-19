@@ -9,6 +9,7 @@ import {
   guardarClaveGoogle,
   guardarOpcionesOpiniones,
 } from "@/app/admin/opiniones/actions";
+import { CampoClave } from "@/components/admin/CampoClave";
 
 // Panel -> Opiniones (src/lib/opiniones-google.ts): tres pasos, la clave de
 // Google, el local de cada sucursal y que se muestra.
@@ -148,8 +149,7 @@ export function OpinionesPanel({
               hacer(() => guardarClaveGoogle(clave), "Listo: clave guardada.", () => setClave(""));
             }}
           >
-            <input
-              type="password"
+            <CampoClave
               value={clave}
               onChange={(e) => setClave(e.target.value)}
               placeholder={hayClave ? "Pegá la clave nueva" : "Pegá la clave de Google"}

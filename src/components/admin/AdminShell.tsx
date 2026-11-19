@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
+import { EnLinea } from "@/components/admin/EnLinea";
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog, Info, Star } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
@@ -152,6 +153,8 @@ export async function AdminShell({
             )}
           </div>
           <div className="flex items-center gap-3">
+            {/* Quien esta en el panel ahora (src/lib/presencia.ts). */}
+            <EnLinea />
             <LiveClock />
             <span className="hidden h-4 w-px bg-[var(--border)] sm:block" />
             {/* Tocandolo: los usuarios (admin) o cambiar la contraseña propia. */}

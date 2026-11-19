@@ -6,6 +6,7 @@ import {
   desconectarMercadoLibre,
   guardarAplicacionML,
 } from "@/app/admin/productos/mercadolibre/actions";
+import { CampoClave } from "@/components/admin/CampoClave";
 
 // Los tres pasos para conectar la cuenta de MercadoLibre de Sanitarios
 // Conesa: crear la aplicacion en MercadoLibre, cargar aca su numero y su
@@ -153,9 +154,8 @@ export function ConexionMercadoLibre({
           </div>
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Clave secreta</label>
-            <input
+            <CampoClave
               name="clave"
-              type="password"
               autoComplete="new-password"
               placeholder={estado.tieneClave ? "Ya está cargada (dejalo vacío)" : "La que muestra MercadoLibre"}
               className="mt-1.5 h-10 w-full rounded-lg border border-[var(--border)] px-3 text-sm outline-none focus:border-[var(--brand-red)]"

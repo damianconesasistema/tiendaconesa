@@ -1,5 +1,5 @@
 import { leerComprobante } from "@/lib/leer-comprobante";
-import { pedirLaClave, revisarClave } from "../clave";
+import { quienEntra } from "../clave";
 
 // Leer una foto de presupuesto, de lista o de remito, y devolver los
 // renglones.
@@ -39,17 +39,13 @@ function json(cuerpo: unknown, status = 200): Response {
 }
 
 /** Para que la página pueda avisar antes de ofrecer el botón. */
-export async function GET(req: Request): Promise<Response> {
-  const paso = revisarClave(req);
-  if (paso === "sin-configurar") return json({ error: "No encontrado." }, 404);
-  if (paso === "mal") return pedirLaClave();
+export async function GET(): Promise<Response> {
+  if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
   return json({ ia: !!process.env.GEMINI_API_KEY });
 }
 
 export async function POST(req: Request): Promise<Response> {
-  const paso = revisarClave(req);
-  if (paso === "sin-configurar") return json({ error: "No encontrado." }, 404);
-  if (paso === "mal") return pedirLaClave();
+  if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
 
   let cuerpo: { base64?: unknown; mime?: unknown };
   try {

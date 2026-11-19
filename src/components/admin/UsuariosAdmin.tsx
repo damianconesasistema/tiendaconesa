@@ -13,6 +13,7 @@ import {
   resetearClave,
 } from "@/app/admin/usuarios/actions";
 import { SECCIONES } from "@/lib/permisos";
+import { CampoClave } from "@/components/admin/CampoClave";
 
 // La pantalla de usuarios del panel. Ver src/lib/usuarios.ts.
 
@@ -131,8 +132,7 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
           </div>
           <div>
             <label className={etiqueta}>Contraseña</label>
-            <input
-              type="password"
+            <CampoClave
               value={clave}
               onChange={(e) => setClave(e.target.value)}
               autoComplete="new-password"
@@ -404,8 +404,7 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
                 >
                   <div className="min-w-[220px] flex-1">
                     <label className={etiqueta}>Contraseña provisoria para {u.nombre}</label>
-                    <input
-                      type="password"
+                    <CampoClave
                       value={claveNueva}
                       onChange={(e) => setClaveNueva(e.target.value)}
                       autoComplete="new-password"
@@ -465,11 +464,11 @@ export function CambiarMiClave() {
       <h2 className="font-display text-sm font-bold uppercase tracking-wider">Cambiar mi contraseña</h2>
       <div>
         <label className={etiqueta}>Contraseña nueva</label>
-        <input type="password" value={clave} onChange={(e) => setClave(e.target.value)} autoComplete="new-password" className={`${campo} mt-1`} />
+        <CampoClave value={clave} onChange={(e) => setClave(e.target.value)} autoComplete="new-password" className={`${campo} mt-1`} />
       </div>
       <div>
         <label className={etiqueta}>Repetila</label>
-        <input type="password" value={otraVez} onChange={(e) => setOtraVez(e.target.value)} autoComplete="new-password" className={`${campo} mt-1`} />
+        <CampoClave value={otraVez} onChange={(e) => setOtraVez(e.target.value)} autoComplete="new-password" className={`${campo} mt-1`} />
       </div>
       <button
         type="submit"

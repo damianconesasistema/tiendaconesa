@@ -27,6 +27,7 @@ export type Seccion =
   | "mercadopago"
   | "sucursales"
   | "opiniones"
+  | "sistema"
   | "configuracion";
 
 export type DatosSeccion = { id: Seccion; nombre: string; href: string; ayuda: string; pestana: boolean };
@@ -46,6 +47,7 @@ export const EXPLICACION: Readonly<Record<Seccion, string>> = {
   mercadopago: "Lo que cobra Mercado Pago por cada plan de cuotas y el recargo que se le pasa al cliente. Si cambian los costos, desde acá se actualizan los precios en cuotas.",
   sucursales: "Los datos de cada local: dirección, horarios, WhatsApp, CUIT, si tiene la tienda abierta y en qué orden aparece.",
   opiniones: "Las opiniones de Google que se muestran en la portada de la tienda: se traen solas de Google cada 12 horas. Acá se carga la clave de Google, se elige el local de cada sucursal y desde cuántas estrellas se muestran.",
+  sistema: "El sistema de ventas del local (Punto).",
   configuracion: "Ajustes generales de la tienda.",
 };
 
@@ -68,6 +70,9 @@ export const SECCIONES: readonly DatosSeccion[] = [
   // PANEL SOLO QUE ESTEN EN LA WEB PRINCIPAL"): la pantalla queda solo para
   // cargar la clave una vez, entrando por la direccion.
   { id: "opiniones", nombre: "Opiniones", href: "/admin/opiniones", ayuda: "Las opiniones de Google en la portada", pestana: false },
+  // El sistema de ventas del local (/sistema/demo). No es del panel, pero se
+  // entra con los mismos usuarios (src/app/sistema/demo/clave.ts).
+  { id: "sistema", nombre: "Sistema Punto", href: "/sistema/demo", ayuda: "El sistema de ventas del local", pestana: false },
   { id: "configuracion", nombre: "Configuración", href: "/admin/configuracion", ayuda: "Ajustes generales de la tienda", pestana: false },
 ];
 const IDS = new Set<string>(SECCIONES.map((s) => s.id));

@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Lock } from "lucide-react";
+import { CampoClave } from "@/components/admin/CampoClave";
 
-export function LoginForm() {
+/** `inicio`: a donde va despues de entrar si no vino de ninguna pantalla.
+ *  El panel ("/admin") o el sistema Punto ("/sistema/demo"). */
+export function LoginForm({ inicio = "/admin" }: { inicio?: string }) {
   const router = useRouter();
   // Vacio: cada uno entra con su usuario (antes venia escrito "admin").
   const [username, setUsername] = useState("");
@@ -27,9 +30,16 @@ export function LoginForm() {
         setError(data.error || "Error");
         return;
       }
-      // Solo una ruta del panel: nunca a otro sitio.
+      // Solo una ruta del panel o del sistema: nunca a otro sitio.
       const volver = new URLSearchParams(window.location.search).get("volver") ?? "";
-      router.push(volver.startsWith("/admin/") && !volver.startsWith("//") ? volver : "/admin");
+      const vale = (volver.startsWith("/admin/") || volver.startsWith("/sistema/")) && !volver.startsWith("//");
+      const destino = vale ? volver : inicio;
+      // El sistema Punto no es una pantalla de Next: se entra con la pagina entera.
+      if (destino.startsWith("/sistema/")) {
+        window.location.assign(destino);
+        return;
+      }
+      router.push(destino);
       router.refresh();
     } catch {
       setError("No se pudo conectar. Reintentá en unos segundos.");
@@ -58,8 +68,7 @@ export function LoginForm() {
         <label className="mb-1.5 block font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
           Contraseña
         </label>
-        <input
-          type="password"
+        <CampoClave
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"

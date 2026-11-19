@@ -50,9 +50,10 @@ export function claveProvisoria(): string {
   return s;
 }
 
-/** Si anduvo por el panel en los ultimos 5 minutos. */
+/** Si esta en el panel ahora: avisó en los ultimos 3 minutos (el panel
+ *  abierto avisa cada minuto, src/lib/presencia.ts). */
 export function estaConectado(ultimaActividad: Date | null): boolean {
-  return !!ultimaActividad && Date.now() - ultimaActividad.getTime() < 5 * 60_000;
+  return !!ultimaActividad && Date.now() - ultimaActividad.getTime() < 3 * 60_000;
 }
 
 // La ultima actividad se anota como mucho una vez por minuto por persona:

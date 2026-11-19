@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.36";
+export const APP_VERSION = "V.0.99.37";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.37",
+    date: "2026-11-19",
+    changes: [
+      "OJITO EN LAS CONTRASEÑAS (\"PONELE EL OJITO PARA VER LA PASSWORD SIEMPRE EN TODOS LOS LUGARES DONDE TENGA CONTRASEÑA\"): en la entrada al panel, al crear usuarios, al ponerles o cambiar la contraseña, y en las claves de MercadoLibre y de Google. Tocándolo se ve lo que se escribió.",
+      "QUIÉN ESTÁ EN LÍNEA (\"poneme en el panel quienes estan online en el panel este momento\"): arriba, al lado del reloj, un punto verde con los nombres de los que tienen el panel abierto ahora. Cada panel abierto avisa cada minuto; el que lo cierra sale de la lista en unos 3 minutos.",
+      "ENTRADA AL SISTEMA PUNTO (\"armame un panel de login para entrar con usuario que no sea una flotante de windows\"): /sistema/demo ya no pide la clave con la ventanita del navegador. Lleva a una pantalla de ingreso, con los mismos usuarios y contraseñas del panel. Entra el que tiene tildado \"Sistema Punto\" en Usuarios → Permisos (los que ven todo, incluido admin, ya lo tienen).",
+    ],
+  },
   {
     version: "V.0.99.36",
     date: "2026-11-19",
