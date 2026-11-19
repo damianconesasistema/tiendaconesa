@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.43";
+export const APP_VERSION = "V.0.99.44";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.44",
+    date: "2026-11-19",
+    changes: [
+      "FV: CÓDIGO DE FABRICANTE = SKU (\"A FV AGREGALE EL CODIGO DE FABRICANTE QUE ES EL MISMO QUE SKU POR FAVOR A TODOS LOS PRODUCTOS\"): se completa una vez en todos los productos FV que lo tenían vacío (los que ya tenían uno cargado no se tocan) y queda anotado en Novedades cuántos fueron. De ahora en más, al guardar un FV con ese campo vacío, toma el SKU.",
+    ],
+  },
   {
     version: "V.0.99.43",
     date: "2026-11-19",

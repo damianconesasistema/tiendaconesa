@@ -13,6 +13,7 @@ import { chequeoSiHaceRato } from "@/lib/chequeo-diario";
 import { titulosAMayusculasUnaVez } from "@/lib/titulos-mayusculas";
 import { pausarSinStock } from "@/lib/sin-stock";
 import { herramientasUnaVez } from "@/lib/herramientas-una-vez";
+import { fvCodigoFabricanteUnaVez } from "@/lib/fv-codigo-una-vez";
 import { logosClarosUnaVez } from "@/lib/logo-de-marca";
 import { AvisoVersionNueva } from "@/components/AvisoVersionNueva";
 import { versionPublicada } from "@/lib/version-publicada";
@@ -74,6 +75,7 @@ export async function AdminShell({
   void chequeoSiHaceRato(10).catch(() => {});
   void titulosAMayusculasUnaVez().catch(() => {});
   void herramientasUnaVez().catch(() => {});
+  void fvCodigoFabricanteUnaVez().catch(() => {});
   void logosClarosUnaVez().catch(() => {});
   void pausarSinStock().catch(() => {});
   const localDelPanel = await sucursalDelPanel().catch(() => null);

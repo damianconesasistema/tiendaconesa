@@ -272,7 +272,12 @@ export async function updateProduct(
         featured,
         memo,
         shippingType,
-        ...(codigoFabricante !== undefined ? { codigoFabricante } : {}),
+        // FV: si el campo quedo vacio, el codigo de fabricante es el SKU
+        // (Damian, 19/11/2026: "a FV agregale el codigo de fabricante que es
+        // el mismo que SKU"). Ver src/lib/fv-codigo-una-vez.ts.
+        ...(codigoFabricante !== undefined
+          ? { codigoFabricante: codigoFabricante ?? (brand === "fv" && sku ? sku.slice(0, 40) : null) }
+          : {}),
       },
     });
     // El precio, la oferta, el stock y si se muestra: del local que se
