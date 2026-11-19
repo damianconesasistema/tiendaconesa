@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.45";
+export const APP_VERSION = "V.0.99.46";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.46",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR EN 37 CASAS DE SANITARIOS (\"pone todas las casas de sanitarios que encuentres y busca en ellas los productos por codigo, marca, titulo\" / \"lo mismo tenes que hacerlo con todas las marcas\"): además de Easy, Blaisten, Carrefour y Santagal, ahora Sodimac, Edificor, Casapick, Sanige, Ricardo Ospital, Cañoplast, Filhos, Banchero, Brufau, Comar Design, Creta Disegno, Anacleto, Sanitarios Hogar, Tecnofast, Sanitarios San Martín, Larralde, GM Sanitarios, Sanicentro, Cerymat, Totos, Sanitarios Alvarez, Daddona, Accesaniga, Suriani Bedetti, Sanitarios José C. Paz, Rakú, Soles Pergamino, Ruco Hogar, Moro, DePlano, Axantra, Ferrocons y SaniPlast. Se probaron una por una: son las que dejan ver sus precios. Ejemplo: el Arizona 0189/B1-CR aparece en 8 tiendas, de $144.716 a $217.430.",
+      "Para todas las marcas: el código se reconoce aunque cada tienda lo escriba distinto (\"22301TNE\" = \"22301 TNE\"); los productos sin código de modelo se buscan por el nombre (todos sus números y casi todas sus palabras, misma marca y precio cercano, marcados \"por nombre\"); y no se toma un producto de otro color (el asiento Ariel 509 blanco no es el 509 arena).",
+    ],
+  },
   {
     version: "V.0.99.45",
     date: "2026-11-19",

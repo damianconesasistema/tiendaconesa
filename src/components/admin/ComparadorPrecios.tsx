@@ -476,7 +476,11 @@ function Fila({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 font-semibold hover:text-[var(--brand-red)]"
             >
-              {formatPrice(mejor.precio)} <span className="text-xs font-normal text-[var(--muted)]">en {mejor.tienda}</span>
+              {formatPrice(mejor.precio)}{" "}
+              <span className="text-xs font-normal text-[var(--muted)]">
+                en {mejor.tienda}
+                {mejor.porNombre ? " · por nombre" : ""}
+              </span>
               <ExternalLink className="h-3 w-3" />
             </a>
           ) : c ? (
@@ -563,7 +567,10 @@ function Lista({ titulo, items, nuestro }: { titulo: string; items: PrecioAfuera
                 rel="noopener noreferrer"
                 className="inline-flex min-w-0 items-center gap-1 hover:text-[var(--brand-red)]"
               >
-                <span className="shrink-0 font-semibold">{r.tienda}:</span>
+                <span className="shrink-0 font-semibold">
+                  {r.tienda}
+                  {r.porNombre ? " (por nombre)" : ""}:
+                </span>
                 <span className="truncate">{r.titulo}</span>
                 <ExternalLink className="h-3 w-3 shrink-0" />
               </a>

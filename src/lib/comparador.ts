@@ -10,6 +10,13 @@
 //     con precios (/wp-json/wc/store/v1/products). Damian, 19/11/2026: "tenes
 //     Santagal tambien ... muchos lugares para buscar el codigo, titulo,
 //     modelo". Su SKU es el codigo de fabrica (FV "0295/D7-CR").
+//   - Mas casas de sanitarios (Damian, 19/11/2026: "pone todas las casas de
+//     sanitarios que encuentres y busca en ellas los productos por codigo,
+//     marca, titulo"): las que dejan consultar su catalogo con precios,
+//     segun como esten hechas: VTEX, WooCommerce, PrestaShop (busqueda en
+//     JSON), Tiendanube (la busqueda trae cada producto como dato
+//     estructurado) y Sodimac (los datos de su pagina de busqueda). Probadas
+//     una por una el 19/11/2026. Las que no dejan ver precios, no estan.
 //   - Google no: no tiene una forma permitida de pedirle resultados con
 //     precios desde un programa.
 //   - MercadoLibre: la ficha de catalogo EXACTA (marca + codigo), con los
@@ -44,9 +51,49 @@ export const TIENDAS_VTEX = [
   { nombre: "Easy", base: "https://www.easy.com.ar" },
   { nombre: "Blaisten", base: "https://www.blaisten.com.ar" },
   { nombre: "Carrefour", base: "https://www.carrefour.com.ar" },
+  { nombre: "Edificor", base: "https://www.edificor.com.ar" },
 ] as const;
 
-export const TIENDAS_WOO = [{ nombre: "Santagal", base: "https://santagal.com.ar" }] as const;
+export const TIENDAS_WOO = [
+  { nombre: "Santagal", base: "https://santagal.com.ar" },
+  { nombre: "Sanitarios Alvarez", base: "https://sanitariosalvarez.com.ar" },
+  { nombre: "Daddona", base: "https://www.daddona.com.ar" },
+  { nombre: "Accesaniga", base: "https://accesaniga.com.ar" },
+  { nombre: "Suriani Bedetti", base: "https://sanitariossuriani.com.ar" },
+  { nombre: "Sanitarios José C. Paz", base: "https://sanitariosjosecpaz.com.ar" },
+  { nombre: "Rakú", base: "https://raku.store" },
+  { nombre: "Soles Pergamino", base: "https://solespergamino.com" },
+  { nombre: "Ruco Hogar", base: "https://rucohogar.com.ar" },
+  { nombre: "Moro Revestimientos", base: "https://mororevestimientos.com" },
+] as const;
+
+export const TIENDAS_PRESTA = [
+  { nombre: "DePlano", base: "https://www.deplano.com.ar" },
+  { nombre: "Sanitarios Axantra", base: "https://www.sanitariosaxantra.com" },
+  { nombre: "Ferrocons", base: "https://www.ferrocons.com.ar" },
+  { nombre: "SaniPlast", base: "https://www.saniplast.com.ar" },
+] as const;
+
+export const TIENDAS_TIENDANUBE = [
+  { nombre: "Casapick", base: "https://casapick.com.ar" },
+  { nombre: "Sanige", base: "https://www.sanige.com.ar" },
+  { nombre: "Ricardo Ospital", base: "https://ricardoospital.com.ar" },
+  { nombre: "Cañoplast", base: "https://canoplast.com" },
+  { nombre: "Filhos", base: "https://www.filhossrl.com" },
+  { nombre: "Banchero", base: "https://tienda.bancherosanitarios.com.ar" },
+  { nombre: "Brufau", base: "https://brufausanitarios.com.ar" },
+  { nombre: "Comar Design", base: "https://tienda.comardesign.com.ar" },
+  { nombre: "Creta Disegno", base: "https://tienda.cretadisegno.com.ar" },
+  { nombre: "Anacleto", base: "https://tienda.grupoanacleto.com.ar" },
+  { nombre: "Sanitarios Hogar", base: "https://www.sanitarioshogar.com.ar" },
+  { nombre: "Tecnofast", base: "https://www.tecnofast.com.ar" },
+  { nombre: "Sanitarios San Martín", base: "https://sanitariossanmartin.mitiendanube.com" },
+  { nombre: "Sanitarios Larralde", base: "https://sanitarioslarralde.com.ar" },
+  { nombre: "GM Sanitarios", base: "https://www.gmsanitarios.com" },
+  { nombre: "Sanicentro", base: "https://sanicentro.com.ar" },
+  { nombre: "Cerymat La Plata", base: "https://www.cerymatlaplata.com.ar" },
+  { nombre: "Totos Cerámicos", base: "https://www.totosceramicos.com.ar" },
+] as const;
 
 export type PrecioAfuera = {
   tienda: string;
@@ -55,6 +102,9 @@ export type PrecioAfuera = {
   link: string;
   /** Nombra el mismo codigo: es el mismo modelo. */
   exacto: boolean;
+  /** Sin codigo de modelo: es el mismo por el nombre (todas sus medidas y
+   *  casi todas sus palabras), la marca y un precio cercano. */
+  porNombre?: boolean;
 };
 
 export type Comparacion = {
@@ -183,16 +233,136 @@ async function buscarEnWoo(base: string, termino: string): Promise<Candidato[] |
   }
 }
 
-/** Todas las tiendas donde se busca, cada una con su forma de preguntar. */
-const FUENTES: { nombre: string; buscar: (termino: string) => Promise<Candidato[] | null> }[] = [
+async function pedirTexto(url: string): Promise<string | null> {
+  try {
+    const r = await fetch(url, {
+      headers: { "User-Agent": UA, Accept: "text/html,application/json;q=0.9,*/*;q=0.8", "Accept-Language": "es-AR,es;q=0.9" },
+      signal: AbortSignal.timeout(ESPERA),
+      cache: "no-store",
+    });
+    return r.ok ? await r.text() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** PrestaShop: su buscador contesta en JSON con ajax=1. */
+async function buscarEnPresta(base: string, termino: string): Promise<Candidato[] | null> {
+  const t = await pedirTexto(`${base}/index.php?controller=search&s=${encodeURIComponent(termino)}&ajax=1&resultsPerPage=20`);
+  if (t === null) return null;
+  try {
+    const j = JSON.parse(t) as {
+      products?: { name?: string; reference?: string; price_amount?: string | number; url?: string; link?: string; description_short?: string }[];
+    };
+    const salida: Candidato[] = [];
+    for (const x of j.products ?? []) {
+      const precio = Number(x.price_amount ?? 0);
+      const link = x.url || x.link;
+      if (!(precio > 0) || !x.name || !link) continue;
+      const titulo = sinHtml(x.name);
+      const fuerte = [titulo, x.reference].filter(Boolean).join(" ");
+      salida.push({ titulo, fuerte, texto: [fuerte, sinHtml(x.description_short ?? "").slice(0, 1000)].join(" "), precio, link });
+    }
+    return salida;
+  } catch {
+    return [];
+  }
+}
+
+type ProductoLd = {
+  "@type"?: string | string[];
+  name?: string;
+  sku?: string;
+  mpn?: string;
+  brand?: { name?: string } | string;
+  url?: string;
+  mainEntityOfPage?: { "@id"?: string };
+  offers?: { price?: string | number; url?: string; availability?: string } | { price?: string | number; url?: string; availability?: string }[];
+};
+
+/** Tiendanube: la pagina de busqueda trae cada producto como dato
+ *  estructurado (JSON-LD), con nombre, marca y precio. */
+async function buscarEnTiendanube(base: string, termino: string): Promise<Candidato[] | null> {
+  const html = await pedirTexto(`${base}/search/?q=${encodeURIComponent(termino)}`);
+  if (html === null) return null;
+  const salida: Candidato[] = [];
+  for (const m of html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
+    let dato: unknown;
+    try {
+      dato = JSON.parse(m[1]);
+    } catch {
+      continue;
+    }
+    const lista: unknown[] = Array.isArray(dato) ? dato : [dato];
+    for (const d of lista) {
+      const x = d as ProductoLd;
+      const tipo = Array.isArray(x["@type"]) ? x["@type"] : [x["@type"]];
+      if (!tipo.includes("Product") || !x.name) continue;
+      const oferta = Array.isArray(x.offers) ? x.offers[0] : x.offers;
+      const precio = Number(oferta?.price ?? 0);
+      if (!(precio > 0) || /OutOfStock/i.test(oferta?.availability ?? "")) continue;
+      const link = oferta?.url || x.url || x.mainEntityOfPage?.["@id"];
+      if (!link) continue;
+      const marca = typeof x.brand === "string" ? x.brand : x.brand?.name;
+      const titulo = sinHtml(x.name);
+      const fuerte = [titulo, x.mpn].filter(Boolean).join(" ");
+      salida.push({ titulo, fuerte, texto: [fuerte, marca].filter(Boolean).join(" "), precio, link });
+    }
+  }
+  return salida;
+}
+
+/** Sodimac: su pagina de busqueda trae los resultados en __NEXT_DATA__, con
+ *  el codigo de fabrica en "model" ("0189/B1 CR"). */
+async function buscarEnSodimac(termino: string): Promise<Candidato[] | null> {
+  const html = await pedirTexto(`https://www.sodimac.com.ar/sodimac-ar/search?Ntt=${encodeURIComponent(termino)}`);
+  if (html === null) return null;
+  const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+  if (!m) return [];
+  try {
+    const d = JSON.parse(m[1]) as {
+      props?: { pageProps?: { searchProps?: { searchData?: { results?: {
+        productId?: string; skuId?: string; displayName?: string; brand?: string; model?: string;
+        prices?: { type?: string; priceWithoutFormatting?: number }[];
+      }[] } } } };
+    };
+    const salida: Candidato[] = [];
+    for (const x of d.props?.pageProps?.searchProps?.searchData?.results ?? []) {
+      const precios = (x.prices ?? []).map((p) => p.priceWithoutFormatting ?? 0).filter((n) => n > 0);
+      const precio = precios.length ? Math.min(...precios) : 0;
+      if (!(precio > 0) || !x.displayName || !x.productId) continue;
+      const slug = plano(x.displayName).replace(/ /g, "-");
+      const fuerte = [x.displayName, x.model].filter(Boolean).join(" ");
+      salida.push({
+        titulo: x.displayName,
+        fuerte,
+        texto: [fuerte, x.brand].filter(Boolean).join(" "),
+        precio,
+        link: `https://www.sodimac.com.ar/sodimac-ar/product/${x.productId}/${slug}/${x.skuId ?? x.productId}/`,
+      });
+    }
+    return salida;
+  } catch {
+    return [];
+  }
+}
+
+/** Todas las tiendas donde se busca, cada una con su forma de preguntar.
+ *  `maximo`: cuantas preguntas se le hacen como mucho por producto (a las
+ *  chicas, pocas: son muchas tiendas y no hay que cargarlas). */
+const FUENTES: { nombre: string; maximo: number; buscar: (termino: string) => Promise<Candidato[] | null> }[] = [
   ...TIENDAS_VTEX.map((t) => ({
     nombre: t.nombre,
+    maximo: 5,
     buscar: async (q: string) => {
       const lista = await buscarEnVtex(t.base, q);
       return lista === null ? null : deVtex(t.base, lista);
     },
   })),
-  ...TIENDAS_WOO.map((t) => ({ nombre: t.nombre, buscar: (q: string) => buscarEnWoo(t.base, q) })),
+  { nombre: "Sodimac", maximo: 3, buscar: (q: string) => buscarEnSodimac(q) },
+  ...TIENDAS_WOO.map((t) => ({ nombre: t.nombre, maximo: 2, buscar: (q: string) => buscarEnWoo(t.base, q) })),
+  ...TIENDAS_PRESTA.map((t) => ({ nombre: t.nombre, maximo: 2, buscar: (q: string) => buscarEnPresta(t.base, q) })),
+  ...TIENDAS_TIENDANUBE.map((t) => ({ nombre: t.nombre, maximo: 2, buscar: (q: string) => buscarEnTiendanube(t.base, q) })),
 ];
 
 const plano = (x: string) =>
@@ -258,6 +428,68 @@ function esCodigoDeModelo(c: string): boolean {
   );
 }
 
+/** El codigo cortado tambien entre letras y numeros: "22301TNE" encuentra
+ *  "22301 TNE" y "22301-TNE"; "0295/D7-CR" encuentra "295 D7 CR". Cada
+ *  tienda lo escribe a su manera. */
+function nombraElCodigoFlexible(texto: string, codigo: string): boolean {
+  const partes = codigo
+    .toUpperCase()
+    .split(/[^A-Z0-9]+/)
+    .flatMap((x) => x.match(/[A-Z]+|\d+/g) ?? []);
+  if (partes.length === 0) return false;
+  const patron = new RegExp(`(^|[^A-Z0-9])${partes.join("[^A-Z0-9]?")}([^A-Z0-9]|$)`);
+  return patron.test(plano(texto).toUpperCase());
+}
+
+/** Sin codigo de modelo, el mismo producto por el NOMBRE: estan todos sus
+ *  numeros (50 litros, 6 pulgadas, 115 mm) y al menos 3 de cada 4 de sus
+ *  palabras que dicen algo. Damian, 19/11/2026: "busca en ellas los
+ *  productos por codigo, marca, titulo etc", "lo mismo tenes que hacerlo con
+ *  todas las marcas". */
+function mismoPorNombre(nuestro: string, marca: string, candidato: string): boolean {
+  const c = ` ${plano(candidato)} `;
+  const numeros = plano(nuestro).match(/\b\d+\b/g) ?? [];
+  // El numero entero, solo o pegado a su unidad ("50", "50lts"), no "500".
+  if (numeros.some((n) => !new RegExp(`(^| )${n}( |[a-z])`).test(c))) return false;
+  const palabras = palabrasDelTitulo(nuestro, marca).filter((w) => !GENERICAS.has(w));
+  if (palabras.length < 2) return false;
+  const raiz = (w: string) => w.replace(/(es|s)$/, "");
+  const estan = palabras.filter((w) => c.includes(` ${raiz(w)}`)).length;
+  return estan / palabras.length >= 0.75;
+}
+
+// Los colores, por familia. "BL" es como se escribe blanco en los titulos
+// de GBP; "CR" y "NG" son los sufijos de color de FV.
+const COLORES: Record<string, string[]> = {
+  blanco: ["blanco", "blanca", "bl", "white"],
+  negro: ["negro", "negra", "ng", "black"],
+  arena: ["arena"],
+  hueso: ["hueso", "bone"],
+  beige: ["beige"],
+  gris: ["gris", "grafito"],
+  cromo: ["cromo", "cromado", "cromada", "cr"],
+  dorado: ["dorado", "dorada", "oro", "gold"],
+  cobre: ["cobre"],
+  rosa: ["rosa", "rose"],
+  azul: ["azul"],
+  verde: ["verde"],
+  rojo: ["rojo", "roja"],
+};
+
+function coloresDe(texto: string): Set<string> {
+  const w = new Set(plano(texto).split(" "));
+  return new Set(Object.entries(COLORES).filter(([, ps]) => ps.some((x) => w.has(x))).map(([c]) => c));
+}
+
+/** El de afuera es de OTRO color: los dos dicen color y no coinciden en
+ *  ninguno. El asiento Ariel 509 blanco no es el 509 arena (Easy tiene los
+ *  dos, a precios muy distintos). */
+function colorDistinto(nuestro: string, deAfuera: string): boolean {
+  const a = coloresDe(nuestro);
+  const b = coloresDe(deAfuera);
+  return a.size > 0 && b.size > 0 && ![...a].some((c) => b.has(c));
+}
+
 /** Nombra la marca como palabra ("FV", no "pvc" ni "fvx"). */
 function nombraLaMarca(texto: string, marca: string): boolean {
   return ` ${plano(texto)} `.includes(` ${plano(marca)} `);
@@ -287,7 +519,9 @@ export async function preciosAfuera(p: {
         .slice(0, 2);
   const clave = palabrasClave(p.titulo, p.marca);
   const conMarca = clave && p.marca ? `${plano(p.marca)} ${clave}` : "";
-  if (codigos.length === 0)
+  // Sin codigo de modelo y sin marca no hay forma de saber que es el mismo.
+  const porNombre = codigos.length === 0;
+  if (porNombre && (!p.marca || !conMarca))
     return { fecha: new Date().toISOString(), buscado: [], resultados: [], fallaron: [], sinCodigo: true };
   const buscado = [...codigos, ...(conMarca || clave ? [conMarca || clave] : [])];
 
@@ -296,9 +530,15 @@ export async function preciosAfuera(p: {
   // cualquier cosa); es de la misma marca; y el precio no es disparatado.
   const precioRazonable = (precio: number) => !p.precio || (precio >= p.precio * 0.4 && precio <= p.precio * 2.5);
   const esExacto = (fuerte: string, conMarcaYTodo: string, precio: number) =>
-    codigos.some((c) => variantes(c).some((v) => nombraElCodigo(fuerte, v))) &&
+    codigos.some((c) => variantes(c).some((v) => nombraElCodigo(fuerte, v) || nombraElCodigoFlexible(fuerte, v))) &&
     (!p.marca || nombraLaMarca(conMarcaYTodo, p.marca)) &&
     precioRazonable(precio);
+  // Por nombre, el precio tiene que estar mas cerca: no hay codigo que avale.
+  const esMismoPorNombre = (fuerte: string, conMarcaYTodo: string, precio: number) =>
+    !!p.marca &&
+    nombraLaMarca(conMarcaYTodo, p.marca) &&
+    mismoPorNombre(p.titulo, p.marca, fuerte) &&
+    (!p.precio || (precio >= p.precio * 0.6 && precio <= p.precio * 1.6));
 
   // Las tiendas a la vez (cada una tarda lo suyo). Adentro de cada una: el
   // codigo como lo escriba ella; si no aparece, por marca y palabras, por si
@@ -307,16 +547,29 @@ export async function preciosAfuera(p: {
     FUENTES.map(async (t) => {
       const deEsta: PrecioAfuera[] = [];
       let contesto = false;
-      const preguntas = [...new Set([...terminos(codigos), conMarca || clave].filter(Boolean))];
+      const todas = [...new Set([...terminos(codigos), conMarca || clave].filter(Boolean))];
+      const corto = terminos(codigos).slice(-1)[0];
+      const preguntas =
+        t.maximo >= todas.length ? todas : [...new Set([corto, conMarca || clave].filter(Boolean) as string[])].slice(0, t.maximo);
       for (const termino of preguntas) {
         const lista = await t.buscar(termino);
         if (lista === null) continue;
         contesto = true;
         for (const c of lista) {
-          // Solo el mismo modelo.
-          if (!esExacto(c.fuerte, c.texto, c.precio)) continue;
+          // Solo el mismo modelo: por el codigo o, si no tiene, por el nombre.
+          const mismo =
+            !colorDistinto(p.titulo, c.titulo) &&
+            (porNombre ? esMismoPorNombre(c.fuerte, c.texto, c.precio) : esExacto(c.fuerte, c.texto, c.precio));
+          if (!mismo) continue;
           if (deEsta.some((r) => r.link === c.link)) continue;
-          deEsta.push({ tienda: t.nombre, titulo: c.titulo, precio: Math.round(c.precio), link: c.link, exacto: true });
+          deEsta.push({
+            tienda: t.nombre,
+            titulo: c.titulo,
+            precio: Math.round(c.precio),
+            link: c.link,
+            exacto: true,
+            ...(porNombre ? { porNombre: true } : {}),
+          });
         }
         if (deEsta.length) break;
       }
@@ -348,7 +601,14 @@ export async function preciosAfuera(p: {
   }
 
   resultados.sort((a, b) => Number(b.exacto) - Number(a.exacto) || a.precio - b.precio);
-  return { fecha: new Date().toISOString(), buscado, resultados: resultados.slice(0, 15), fallaron };
+  return {
+    fecha: new Date().toISOString(),
+    buscado,
+    resultados: resultados.slice(0, 15),
+    fallaron,
+    // Sin codigo y sin nada por el nombre: que se le cargue el codigo.
+    ...(porNombre && resultados.length === 0 ? { sinCodigo: true } : {}),
+  };
 }
 
 // ------------------------------------------------------------ guardado
