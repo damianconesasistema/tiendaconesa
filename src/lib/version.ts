@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.48";
+export const APP_VERSION = "V.0.99.49";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.49",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR, LAS TIENDAS DE CADA FILA (\"que se vea ordenado eso\"): como una tablita, el precio alineado y la tienda al lado en una sola línea, con la columna más ancha.",
+    ],
+  },
   {
     version: "V.0.99.48",
     date: "2026-11-19",

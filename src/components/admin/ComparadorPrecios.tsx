@@ -325,7 +325,7 @@ export function ComparadorPrecios({
       {error && <p className="mt-2 text-sm font-medium text-red-700">{error}</p>}
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
-        <div className="hidden grid-cols-[1fr_120px_170px_110px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
+        <div className="hidden grid-cols-[1fr_120px_250px_110px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
           <Titulo col="nombre" orden={orden} setOrden={setOrden}>
             Producto
           </Titulo>
@@ -442,7 +442,7 @@ function Fila({
 
   return (
     <div className="border-b border-[var(--border)] last:border-b-0">
-      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_120px_170px_110px_90px] md:items-center">
+      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_120px_250px_110px_90px] md:items-center">
         <div className="flex min-w-0 items-center gap-3">
           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[var(--border)] bg-white">
             <Image
@@ -474,25 +474,41 @@ function Fila({
             // barata a la mas cara (Damian, 19/11/2026: "si aparece en mas de
             // un lugar el producto mostrame las opciones que hay" / "si es mas
             // de uno me la mostras por sitio").
-            <ul className="space-y-0.5">
-              {porSitio(exactos).map((r, i) => (
-                <li key={r.link}>
-                  <a
-                    href={r.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={r.anterior ? `De la búsqueda del ${fechaCorta(r.anterior)} (esta vez no contestó)` : r.titulo}
-                    className={`inline-flex items-center gap-1 hover:text-[var(--brand-red)] ${i === 0 ? "font-semibold" : "text-xs"}`}
-                  >
-                    {formatPrice(r.precio)}{" "}
-                    <span className="text-xs font-normal text-[var(--muted)]">
-                      {r.tienda}
-                      {r.porNombre ? " · por nombre" : ""}
-                    </span>
-                    <ExternalLink className="h-3 w-3 shrink-0" />
-                  </a>
-                </li>
-              ))}
+            // Ordenado como una tablita (Damian, 19/11/2026: "que se vea
+            // ordenado eso"): el precio alineado a la derecha y la tienda al
+            // lado, en una sola linea.
+            <ul className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2 gap-y-1 text-left">
+              {porSitio(exactos).map((r, i) => {
+                const ayuda = r.anterior ? `De la búsqueda del ${fechaCorta(r.anterior)} (esta vez no contestó)` : r.titulo;
+                return (
+                  <li key={r.link} className="contents">
+                    <a
+                      href={r.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={ayuda}
+                      className={`text-right tabular-nums hover:text-[var(--brand-red)] ${i === 0 ? "font-bold" : "text-xs"}`}
+                    >
+                      {formatPrice(r.precio)}
+                    </a>
+                    <a
+                      href={r.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={ayuda}
+                      className={`inline-flex min-w-0 items-center gap-1 text-xs hover:text-[var(--brand-red)] ${
+                        i === 0 ? "font-semibold text-foreground" : "text-[var(--muted)]"
+                      }`}
+                    >
+                      <span className="truncate">
+                        {r.tienda}
+                        {r.porNombre ? " · por nombre" : ""}
+                      </span>
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           ) : c ? (
             // Sin la lista de las que no contestaron (Damian: "cuando no hay
