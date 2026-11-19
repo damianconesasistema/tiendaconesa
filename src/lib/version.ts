@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.41";
+export const APP_VERSION = "V.0.99.42";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.42",
+    date: "2026-11-19",
+    changes: [
+      "MERCADOLIBRE, CÓMO CONECTARLO: las instrucciones decían que alcanzaba con el permiso de lectura, pero la tienda necesita también \"Acceso offline\" (sin eso MercadoLibre no da la llave para renovar la conexión y conectar falla). Ahora lo dicen, y que PKCE va apagado.",
+    ],
+  },
   {
     version: "V.0.99.41",
     date: "2026-11-19",

@@ -131,7 +131,14 @@ export function ConexionMercadoLibre({
               </button>
             </div>
           </li>
-          <li>En los permisos alcanza con <strong>lectura</strong> (no hace falta publicar ni vender).</li>
+          {/* Acceso offline hace falta: sin el, MercadoLibre no da la llave
+              para renovar la conexion (refresh_token) y conectar falla. PKCE
+              apagado: la tienda no lo usa. */}
+          <li>
+            En los permisos tildá <strong>Lectura</strong> y <strong>Acceso offline</strong> (no hace falta Escritura: no
+            se publica ni se vende nada). Si aparece la opción <strong>PKCE</strong>, dejala apagada. Las
+            notificaciones (tópicos) no hacen falta.
+          </li>
           <li>Guardala. MercadoLibre te muestra el <strong>App ID</strong> y la <strong>Clave secreta</strong>.</li>
         </ol>
       </section>
