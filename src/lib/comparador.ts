@@ -4,8 +4,14 @@
 // descripcion".
 //
 // Donde se busca:
-//   - Easy y Blaisten: tiendas hechas con VTEX, que dejan consultar su
-//     catalogo con precios (/api/catalog_system/pub/products/search).
+//   - Easy, Blaisten y Carrefour: tiendas hechas con VTEX, que dejan
+//     consultar su catalogo con precios (/api/catalog_system/pub/products/search).
+//   - Santagal: tienda hecha con WooCommerce, que deja consultar su catalogo
+//     con precios (/wp-json/wc/store/v1/products). Damian, 19/11/2026: "tenes
+//     Santagal tambien ... muchos lugares para buscar el codigo, titulo,
+//     modelo". Su SKU es el codigo de fabrica (FV "0295/D7-CR").
+//   - Google no: no tiene una forma permitida de pedirle resultados con
+//     precios desde un programa.
 //   - MercadoLibre: la ficha de catalogo EXACTA (marca + codigo), con los
 //     precios de quienes la venden. Solo con la cuenta de Conesa conectada.
 //
@@ -37,7 +43,10 @@ const UA =
 export const TIENDAS_VTEX = [
   { nombre: "Easy", base: "https://www.easy.com.ar" },
   { nombre: "Blaisten", base: "https://www.blaisten.com.ar" },
+  { nombre: "Carrefour", base: "https://www.carrefour.com.ar" },
 ] as const;
+
+export const TIENDAS_WOO = [{ nombre: "Santagal", base: "https://santagal.com.ar" }] as const;
 
 export type PrecioAfuera = {
   tienda: string;
@@ -90,6 +99,101 @@ async function buscarEnVtex(base: string, termino: string): Promise<ProductoVtex
     return null;
   }
 }
+
+/** Un producto de cualquier tienda, en un mismo formato. `fuerte`: donde
+ *  tiene que estar el codigo (nombre, referencia, SKU); `texto`: eso mas la
+ *  marca y el detalle, para ver que sea de la misma marca. */
+type Candidato = { titulo: string; fuerte: string; texto: string; precio: number; link: string };
+
+function deVtex(base: string, lista: ProductoVtex[]): Candidato[] {
+  const salida: Candidato[] = [];
+  for (const v of lista) {
+    const item = v.items?.[0];
+    const precio = item?.sellers?.[0]?.commertialOffer?.Price ?? 0;
+    if (!(precio > 0) || !v.productName || !v.link) continue;
+    const fuerte = [v.productName, v.productReference, item?.name, ...(item?.referenceId ?? []).map((x) => x.Value)]
+      .filter(Boolean)
+      .join(" ");
+    salida.push({
+      titulo: v.productName,
+      fuerte,
+      texto: [fuerte, v.brand, v.description?.slice(0, 2000)].filter(Boolean).join(" "),
+      precio,
+      link: v.link.startsWith("http") ? v.link : `${base}${v.link}`,
+    });
+  }
+  return salida;
+}
+
+type ProductoWoo = {
+  name?: string;
+  sku?: string;
+  permalink?: string;
+  is_in_stock?: boolean;
+  short_description?: string;
+  prices?: { price?: string; currency_minor_unit?: number };
+  categories?: { name?: string }[];
+  tags?: { name?: string }[];
+  brands?: { name?: string }[];
+};
+
+/** Lo poco de HTML que trae WooCommerce en los nombres ("Grifer&iacute;a"). */
+function sinHtml(x: string): string {
+  return x
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&([a-z])(acute|tilde|uml);/gi, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function buscarEnWoo(base: string, termino: string): Promise<Candidato[] | null> {
+  try {
+    const r = await fetch(`${base}/wp-json/wc/store/v1/products?search=${encodeURIComponent(termino)}&per_page=10`, {
+      headers: { "User-Agent": UA, Accept: "application/json" },
+      signal: AbortSignal.timeout(ESPERA),
+      cache: "no-store",
+    });
+    if (!r.ok) return null;
+    const j = (await r.json()) as unknown;
+    if (!Array.isArray(j)) return [];
+    const salida: Candidato[] = [];
+    for (const w of j as ProductoWoo[]) {
+      const decimales = w.prices?.currency_minor_unit ?? 0;
+      const precio = Number(w.prices?.price ?? 0) / 10 ** decimales;
+      // Sin stock no cuenta: ese precio no lo puede pagar nadie.
+      if (!(precio > 0) || !w.name || !w.permalink || w.is_in_stock === false) continue;
+      const titulo = sinHtml(w.name);
+      const fuerte = [titulo, w.sku].filter(Boolean).join(" ");
+      const extra = [...(w.brands ?? []), ...(w.categories ?? []), ...(w.tags ?? [])].map((x) => x.name ?? "");
+      salida.push({
+        titulo,
+        fuerte,
+        texto: [fuerte, ...extra, sinHtml(w.short_description ?? "").slice(0, 1000)].filter(Boolean).join(" "),
+        precio,
+        link: w.permalink,
+      });
+    }
+    return salida;
+  } catch {
+    return null;
+  }
+}
+
+/** Todas las tiendas donde se busca, cada una con su forma de preguntar. */
+const FUENTES: { nombre: string; buscar: (termino: string) => Promise<Candidato[] | null> }[] = [
+  ...TIENDAS_VTEX.map((t) => ({
+    nombre: t.nombre,
+    buscar: async (q: string) => {
+      const lista = await buscarEnVtex(t.base, q);
+      return lista === null ? null : deVtex(t.base, lista);
+    },
+  })),
+  ...TIENDAS_WOO.map((t) => ({ nombre: t.nombre, buscar: (q: string) => buscarEnWoo(t.base, q) })),
+];
 
 const plano = (x: string) =>
   x
@@ -200,27 +304,19 @@ export async function preciosAfuera(p: {
   // codigo como lo escriba ella; si no aparece, por marca y palabras, por si
   // la tienda lo tiene pero su buscador no lo encuentra por el codigo.
   const porTienda = await Promise.all(
-    TIENDAS_VTEX.map(async (t) => {
+    FUENTES.map(async (t) => {
       const deEsta: PrecioAfuera[] = [];
       let contesto = false;
       const preguntas = [...new Set([...terminos(codigos), conMarca || clave].filter(Boolean))];
       for (const termino of preguntas) {
-        const lista = await buscarEnVtex(t.base, termino);
+        const lista = await t.buscar(termino);
         if (lista === null) continue;
         contesto = true;
-        for (const v of lista) {
-          const item = v.items?.[0];
-          const precio = item?.sellers?.[0]?.commertialOffer?.Price ?? 0;
-          if (!(precio > 0) || !v.productName || !v.link) continue;
-          const fuerte = [v.productName, v.productReference, item?.name, ...(item?.referenceId ?? []).map((x) => x.Value)]
-            .filter(Boolean)
-            .join(" ");
-          const texto = [fuerte, v.brand, v.description?.slice(0, 2000)].filter(Boolean).join(" ");
+        for (const c of lista) {
           // Solo el mismo modelo.
-          if (!esExacto(fuerte, texto, precio)) continue;
-          const link = v.link.startsWith("http") ? v.link : `${t.base}${v.link}`;
-          if (deEsta.some((r) => r.link === link)) continue;
-          deEsta.push({ tienda: t.nombre, titulo: v.productName, precio: Math.round(precio), link, exacto: true });
+          if (!esExacto(c.fuerte, c.texto, c.precio)) continue;
+          if (deEsta.some((r) => r.link === c.link)) continue;
+          deEsta.push({ tienda: t.nombre, titulo: c.titulo, precio: Math.round(c.precio), link: c.link, exacto: true });
         }
         if (deEsta.length) break;
       }

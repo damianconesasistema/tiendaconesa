@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.44";
+export const APP_VERSION = "V.0.99.45";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.45",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR CON MÁS TIENDAS (\"tenes Santagal tambien ... muchos lugares para buscar el codigo, titulo, modelo\"): suma Santagal (su código es el de FV, así que lo encuentra exacto: por ejemplo el Alerce 0295/D7-CR a $259.324) y Carrefour. Sigue la regla de solo el mismo modelo (mismo código y marca). Para que aparezcan, tocá \"Buscar precios de todos\".",
+      "VER TIENDA (\"el boton de ver tienda que vaya directo a la tienda\"): lleva a tienda.conesa.com.ar/tienda; editando un producto, a su ficha en la tienda.",
+    ],
+  },
   {
     version: "V.0.99.44",
     date: "2026-11-19",

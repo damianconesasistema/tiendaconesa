@@ -6,6 +6,7 @@ import { EnLinea } from "@/components/admin/EnLinea";
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog, Info, Star } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
+import { TIENDA_URL } from "@/lib/dominio";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
 import { LeyendaNovedades } from "@/components/admin/LeyendaNovedades";
 import { novedadesRecientes } from "@/lib/novedades";
@@ -27,7 +28,7 @@ export async function AdminShell({
   active,
   children,
   ancho = "normal",
-  verTienda = "/",
+  verTienda = "/tienda",
   sucursal,
 }: {
   username: string;
@@ -194,7 +195,10 @@ export async function AdminShell({
             active={active === "usuarios"}
           />
           <a
-            href={verTienda}
+            // Siempre a la tienda de verdad (tienda.conesa.com.ar), no a la
+            // portada del dominio del panel. Damian, 19/11/2026: "el boton de
+            // ver tienda que vaya directo a la tienda ... https://tienda.conesa.com.ar/tienda".
+            href={verTienda.startsWith("http") ? verTienda : `${TIENDA_URL}${verTienda}`}
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-2.5 py-3 text-[11px] font-medium uppercase tracking-wider text-[var(--muted)] hover:text-[var(--brand-red)]"
