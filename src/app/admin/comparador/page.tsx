@@ -76,7 +76,7 @@ export default async function ComparadorPage() {
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Los productos publicados en la tienda de <strong>{suc.nombre}</strong> y a cuánto los venden
-          otros: Easy, Blaisten y MercadoLibre (este último cuando la cuenta de Conesa esté conectada).
+          otros: Easy y Blaisten.
           Se busca con el código de fabricante; si no tiene, con los códigos del título y la ayuda
           memoria y la descripción. Solo se muestra el <strong>mismo modelo</strong>: cuando el otro
           nombra el mismo código y es de la misma marca. Lo que no es igual no aparece.

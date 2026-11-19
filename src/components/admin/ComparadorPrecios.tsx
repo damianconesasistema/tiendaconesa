@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronUp, ExternalLink, Loader2, Search, Square } from "lucide-react";
 import { formatPrice } from "@/lib/order";
 import { buscar, indexar } from "@/lib/buscar";
@@ -70,10 +69,9 @@ function fechaCorta(iso: string): string {
 
 export function ComparadorPrecios({
   filas: iniciales,
-  mlConectado = true,
 }: {
   filas: FilaComparador[];
-  /** Sin la cuenta de Conesa conectada, MercadoLibre no deja buscar. */
+  /** Ya no se usa (sin MercadoLibre, 19/11/2026); queda para no tocar la pagina. */
   mlConectado?: boolean;
 }) {
   const [comparaciones, setComparaciones] = useState<Record<string, Comparacion | null>>(() =>
@@ -215,15 +213,10 @@ export function ComparadorPrecios({
         <Dato titulo="Más caros que afuera" valor={resumen.caros} rojo={resumen.caros > 0} />
       </div>
 
-      {!mlConectado && (
-        <p className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
-          <strong>MercadoLibre no se está buscando:</strong> MercadoLibre solo deja buscar con una cuenta
-          conectada. Conectá la de Conesa y la próxima búsqueda ya lo incluye.{" "}
-          <Link href="/admin/productos/mercadolibre" className="font-bold underline">
-            Conectar MercadoLibre
-          </Link>
-        </p>
-      )}
+      {/* Sin el cartel de "Conectar MercadoLibre": Damian, 19/11/2026,
+          "Seguimos sin ML". La cuenta de Conesa ya tiene su unica aplicacion
+          (la de los cobros de Mercado Pago, que no se toca) y MercadoLibre
+          no deja crear otra. Si algun dia se conecta, se busca solo. */}
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1">

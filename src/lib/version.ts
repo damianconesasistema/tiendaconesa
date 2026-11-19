@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.42";
+export const APP_VERSION = "V.0.99.43";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.43",
+    date: "2026-11-19",
+    changes: [
+      "COMPARADOR SIN MERCADOLIBRE (\"Seguimos sin ML\"): sale el cartel amarillo de \"Conectar MercadoLibre\". La cuenta de MercadoLibre de Conesa ya tiene su única aplicación (\"Tienda Buenos Aires\", la de los cobros de Mercado Pago, que no se toca) y MercadoLibre no deja crear otra. El comparador sigue con Easy y Blaisten.",
+    ],
+  },
   {
     version: "V.0.99.42",
     date: "2026-11-19",

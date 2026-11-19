@@ -41,7 +41,7 @@ export const EXPLICACION: Readonly<Record<Seccion, string>> = {
   clientes: "Los que compraron en la tienda, con sus datos de contacto y sus pedidos.",
   productos: "El catálogo de esta sucursal. Precio = el normal (sale tachado si hay oferta). Oferta = el rebajado, menor que el Precio. Los números se guardan con Enter o al salir del campo. La (i) de cada columna explica qué es.",
   marcas: "Las marcas de la tienda: nombre, logo y página web (de ahí se traen fotos y fichas de los productos).",
-  comparador: "Nuestros precios contra Easy, Blaisten y MercadoLibre, solo cuando es el mismo producto (mismo código y marca). Tocá los títulos de las columnas para ordenar.",
+  comparador: "Nuestros precios contra Easy y Blaisten, solo cuando es el mismo producto (mismo código y marca). Tocá los títulos de las columnas para ordenar.",
   visitas: "Qué productos abren y qué buscan los que entran a la tienda, y lo que buscan y no encuentran. Lo que miran ustedes no cuenta.",
   novedades: "Lo que encontró el chequeo de todos los días: productos pausados, sin stock o con poco, los cargados, y si Mercado Pago cobra las cuotas como calcula la tienda.",
   mercadopago: "Lo que cobra Mercado Pago por cada plan de cuotas y el recargo que se le pasa al cliente. Si cambian los costos, desde acá se actualizan los precios en cuotas.",
