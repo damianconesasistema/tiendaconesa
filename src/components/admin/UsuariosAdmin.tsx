@@ -12,7 +12,7 @@ import {
   crearUsuario,
   resetearClave,
 } from "@/app/admin/usuarios/actions";
-import { GRUPOS, SECCIONES } from "@/lib/permisos";
+import { SECCIONES } from "@/lib/permisos";
 
 // La pantalla de usuarios del panel. Ver src/lib/usuarios.ts.
 
@@ -335,32 +335,25 @@ export function UsuariosAdmin({ usuarios }: { usuarios: FilaUsuario[] }) {
                       </button>
                     </div>
                   </div>
-                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                    {GRUPOS.map((g) => (
-                      <fieldset key={g.nombre}>
-                        <legend className="mb-1.5 text-xs font-bold">{g.nombre}</legend>
-                        <div className="space-y-1.5">
-                          {g.secciones.map((x) => (
-                            <label key={x.id} className="flex cursor-pointer items-start gap-2 text-sm">
-                              <input
-                                type="checkbox"
-                                checked={tildadas.has(x.id)}
-                                onChange={(e) => {
-                                  const n = new Set(tildadas);
-                                  if (e.target.checked) n.add(x.id);
-                                  else n.delete(x.id);
-                                  setTildadas(n);
-                                }}
-                                className="mt-0.5 h-4 w-4 accent-[var(--brand-red)]"
-                              />
-                              <span>
-                                <span className="font-semibold">{x.nombre}</span>
-                                <span className="block text-xs text-[var(--muted)]">{x.ayuda}</span>
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </fieldset>
+                  <div className="mt-3 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+                    {SECCIONES.map((x) => (
+                      <label key={x.id} className="flex cursor-pointer items-start gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={tildadas.has(x.id)}
+                          onChange={(e) => {
+                            const n = new Set(tildadas);
+                            if (e.target.checked) n.add(x.id);
+                            else n.delete(x.id);
+                            setTildadas(n);
+                          }}
+                          className="mt-0.5 h-4 w-4 accent-[var(--brand-red)]"
+                        />
+                        <span>
+                          <span className="font-semibold">{x.nombre}</span>
+                          <span className="block text-xs text-[var(--muted)]">{x.ayuda}</span>
+                        </span>
+                      </label>
                     ))}
                   </div>
                   <p className="mt-3 text-xs text-[var(--muted)]">

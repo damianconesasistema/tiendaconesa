@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.32";
+export const APP_VERSION = "V.0.99.33";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.33",
+    date: "2026-11-19",
+    changes: [
+      "OPINIONES DE GOOGLE EN LA PORTADA (\"podriamos agregar las opinion de google positivas en la pagina home\" / \"Automatico de Google\"): pestaña nueva Opiniones con tres pasos: la clave de Google (la carga admin), el local de cada sucursal en Google (se busca y se elige) y desde cuántas estrellas se muestran (4 y 5 de entrada). Se traen solas de Google cada 12 horas y no se guardan en la base, como pide Google. En la portada, \"Lo que dicen nuestros clientes\": el promedio y la cantidad de opiniones de cada local, y hasta 6 opiniones con su autor, link a Google y para denunciarlas, el aviso de cómo se eligieron y \"Google Maps\". Si Google no contesta, la portada sale igual, sin el bloque.",
+      "PESTAÑAS (\"ESO DE ATENCION AL CLIENTE Y PRODUCCION NO LO PONGAS\"): sin títulos de grupo, en una sola fila: Dashboard, Pedidos, Clientes primero y después el resto como estaba (Productos, Marcas, Qué miran, Sucursales, Mercado Pago, Comparador, Novedades, Opiniones, Usuarios). Las casillas de permisos, igual, sin títulos.",
+    ],
+  },
   {
     version: "V.0.99.32",
     date: "2026-11-19",

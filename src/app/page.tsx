@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { OpinionesGoogle } from "@/components/OpinionesGoogle";
 import Link from "next/link";
 import Image from "next/image";
 import { HeroCarousel } from "@/components/HeroCarousel";
@@ -341,6 +343,12 @@ export default async function Home() {
           whatsappHref={waGeneral}
         />
       )}
+
+      {/* OPINIONES DE GOOGLE (src/lib/opiniones-google.ts). Aparte, para que
+          si Google tarda, la portada no lo espere. */}
+      <Suspense fallback={null}>
+        <OpinionesGoogle sucursales={sucursales} />
+      </Suspense>
 
       {/* SUCURSALES: la home habla del comercio y desde aca reparte */}
       <Sucursales sucursales={sucursales} />

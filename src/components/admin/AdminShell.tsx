@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog, Info } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog, Info, Star } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
@@ -15,7 +15,7 @@ import { herramientasUnaVez } from "@/lib/herramientas-una-vez";
 import { AvisoVersionNueva } from "@/components/AvisoVersionNueva";
 import { versionPublicada } from "@/lib/version-publicada";
 import { datosDelUsuario } from "@/lib/usuarios";
-import { EXPLICACION, GRUPOS, esSeccion, primeraPermitida, puedeVer, SECCIONES } from "@/lib/permisos";
+import { EXPLICACION, esSeccion, primeraPermitida, puedeVer, SECCIONES } from "@/lib/permisos";
 import { redirect } from "next/navigation";
 import { CambiarMiClave } from "@/components/admin/UsuariosAdmin";
 
@@ -55,6 +55,7 @@ export async function AdminShell({
     | "comparador"
     | "novedades"
     | "visitas"
+    | "opiniones"
     | "usuarios"
     | "version";
   children: React.ReactNode;
@@ -141,44 +142,24 @@ export async function AdminShell({
             pongas, fijate de hacerlo adaptativo a la pantalla"): si no entran
             en una fila, bajan a la siguiente. */}
         <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-0.5 border-t border-[var(--border)] px-2 sm:px-4">
-          {/* Agrupadas (Damian, 19/11/2026): "lo que es atencion del cliente
-              junto, y lo que es produccion o mejora del panel junto" /
-              "DASHBOARD, PEDIDOS, CLIENTES eso junto al principio". Solo
-              las partes que la persona tiene tildadas (src/lib/permisos.ts). */}
-          {GRUPOS.map((g, i) => {
-            const visibles = g.secciones.filter((x) => x.pestana && puedeVer(quien.permisos, x.id));
-            if (visibles.length === 0) return null;
-            return (
-              <div
-                key={g.nombre}
-                className={`flex flex-wrap items-center gap-x-0.5 ${
-                  i > 0 ? "sm:ml-1.5 sm:border-l sm:border-[var(--border)] sm:pl-1.5" : ""
-                }`}
-              >
-                <span className="hidden px-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] opacity-70 sm:inline">
-                  {g.nombre}
-                </span>
-                {visibles.map((x) => (
-                  <Tab
-                    key={x.id}
-                    ayuda={x.ayuda}
-                    href={x.href}
-                    icon={ICONOS[x.id] ?? Settings}
-                    label={x.nombre}
-                    active={active === x.id}
-                  />
-                ))}
-              </div>
-            );
-          })}
-          <div className="flex items-center sm:ml-1.5 sm:border-l sm:border-[var(--border)] sm:pl-1.5">
+          {/* En este orden y sin titulos de grupo (src/lib/permisos.ts). Solo
+              las partes que la persona tiene tildadas. */}
+          {SECCIONES.filter((x) => x.pestana && puedeVer(quien.permisos, x.id)).map((x) => (
             <Tab
-              href="/admin/usuarios"
-              icon={UserCog}
-              label="Usuarios"
-              active={active === "usuarios"}
+              key={x.id}
+              ayuda={x.ayuda}
+              href={x.href}
+              icon={ICONOS[x.id] ?? Settings}
+              label={x.nombre}
+              active={active === x.id}
             />
-          </div>
+          ))}
+          <Tab
+            href="/admin/usuarios"
+            icon={UserCog}
+            label="Usuarios"
+            active={active === "usuarios"}
+          />
           <a
             href={verTienda}
             target="_blank"
@@ -279,6 +260,7 @@ const ICONOS: Record<string, typeof Package> = {
   novedades: Newspaper,
   mercadopago: CreditCard,
   sucursales: Store,
+  opiniones: Star,
 };
 
 function Tab({

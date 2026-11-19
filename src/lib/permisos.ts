@@ -5,7 +5,7 @@
 // atencion del cliente junto los links, y lo que es produccion o mejora del
 // panel junto" / "seria DASHBOARD, PEDIDOS, CLIENTES eso junto al principio".
 //
-// Esta lista arma las pestañas del panel (src/components/admin/AdminShell.tsx)
+// La lista de abajo arma las pestañas del panel (src/components/admin/AdminShell.tsx)
 // y las casillas de cada usuario (src/components/admin/UsuariosAdmin.tsx).
 //
 // "admin" ve todo siempre. Los demas: AdminUser.permisos, las partes separadas
@@ -26,6 +26,7 @@ export type Seccion =
   | "novedades"
   | "mercadopago"
   | "sucursales"
+  | "opiniones"
   | "configuracion";
 
 export type DatosSeccion = { id: Seccion; nombre: string; href: string; ayuda: string; pestana: boolean };
@@ -44,34 +45,27 @@ export const EXPLICACION: Readonly<Record<Seccion, string>> = {
   novedades: "Lo que encontró el chequeo de todos los días: productos pausados, sin stock o con poco, los cargados, y si Mercado Pago cobra las cuotas como calcula la tienda.",
   mercadopago: "Lo que cobra Mercado Pago por cada plan de cuotas y el recargo que se le pasa al cliente. Si cambian los costos, desde acá se actualizan los precios en cuotas.",
   sucursales: "Los datos de cada local: dirección, horarios, WhatsApp, CUIT, si tiene la tienda abierta y en qué orden aparece.",
+  opiniones: "Las opiniones de Google que se muestran en la portada de la tienda: se traen solas de Google cada 12 horas. Acá se carga la clave de Google, se elige el local de cada sucursal y desde cuántas estrellas se muestran.",
   configuracion: "Ajustes generales de la tienda.",
 };
 
-export const GRUPOS: readonly { nombre: string; secciones: readonly DatosSeccion[] }[] = [
-  {
-    nombre: "Atención al cliente",
-    secciones: [
-      { id: "dashboard", nombre: "Dashboard", href: "/admin", ayuda: "El resumen: ventas y pedidos recientes", pestana: true },
-      { id: "pedidos", nombre: "Pedidos", href: "/admin/pedidos", ayuda: "Ver los pedidos, cambiarles el estado y avisar el envío", pestana: true },
-      { id: "clientes", nombre: "Clientes", href: "/admin/clientes", ayuda: "Los datos de los que compraron", pestana: true },
-    ],
-  },
-  {
-    nombre: "Producción y mejora del panel",
-    secciones: [
-      { id: "productos", nombre: "Productos", href: "/admin/productos", ayuda: "Cargar, editar, precios, stock y fotos", pestana: true },
-      { id: "marcas", nombre: "Marcas", href: "/admin/marcas", ayuda: "Las marcas y sus logos", pestana: true },
-      { id: "comparador", nombre: "Comparador", href: "/admin/comparador", ayuda: "Nuestros precios contra otras tiendas", pestana: true },
-      { id: "visitas", nombre: "Qué miran", href: "/admin/visitas", ayuda: "Lo que miran y buscan en la tienda", pestana: true },
-      { id: "novedades", nombre: "Novedades", href: "/admin/novedades", ayuda: "El chequeo diario de productos y cuotas", pestana: true },
-      { id: "mercadopago", nombre: "Mercado Pago", href: "/admin/mercadopago", ayuda: "Lo que cobra en cuotas y los recargos", pestana: true },
-      { id: "sucursales", nombre: "Sucursales", href: "/admin/sucursales", ayuda: "Datos de los locales, horarios, CUIT", pestana: true },
-      { id: "configuracion", nombre: "Configuración", href: "/admin/configuracion", ayuda: "Ajustes generales de la tienda", pestana: false },
-    ],
-  },
+// El orden de las pestañas. Damian, 19/11/2026: "ESO DE ATENCION AL CLIENTE Y
+// PRODUCCION NO LO PONGAS SINO PONE LOS 3 PRIMEROS Y LUEGO EL RESTO COMO
+// ESTABA ANTES PERO REORDENALO NADA MAS". Sin titulos de grupo.
+export const SECCIONES: readonly DatosSeccion[] = [
+  { id: "dashboard", nombre: "Dashboard", href: "/admin", ayuda: "El resumen: ventas y pedidos recientes", pestana: true },
+  { id: "pedidos", nombre: "Pedidos", href: "/admin/pedidos", ayuda: "Ver los pedidos, cambiarles el estado y avisar el envío", pestana: true },
+  { id: "clientes", nombre: "Clientes", href: "/admin/clientes", ayuda: "Los datos de los que compraron", pestana: true },
+  { id: "productos", nombre: "Productos", href: "/admin/productos", ayuda: "Cargar, editar, precios, stock y fotos", pestana: true },
+  { id: "marcas", nombre: "Marcas", href: "/admin/marcas", ayuda: "Las marcas y sus logos", pestana: true },
+  { id: "visitas", nombre: "Qué miran", href: "/admin/visitas", ayuda: "Lo que miran y buscan en la tienda", pestana: true },
+  { id: "sucursales", nombre: "Sucursales", href: "/admin/sucursales", ayuda: "Datos de los locales, horarios, CUIT", pestana: true },
+  { id: "mercadopago", nombre: "Mercado Pago", href: "/admin/mercadopago", ayuda: "Lo que cobra en cuotas y los recargos", pestana: true },
+  { id: "comparador", nombre: "Comparador", href: "/admin/comparador", ayuda: "Nuestros precios contra otras tiendas", pestana: true },
+  { id: "novedades", nombre: "Novedades", href: "/admin/novedades", ayuda: "El chequeo diario de productos y cuotas", pestana: true },
+  { id: "opiniones", nombre: "Opiniones", href: "/admin/opiniones", ayuda: "Las opiniones de Google en la portada", pestana: true },
+  { id: "configuracion", nombre: "Configuración", href: "/admin/configuracion", ayuda: "Ajustes generales de la tienda", pestana: false },
 ];
-
-export const SECCIONES: readonly DatosSeccion[] = GRUPOS.flatMap((g) => g.secciones);
 const IDS = new Set<string>(SECCIONES.map((s) => s.id));
 
 export const esSeccion = (x: string): x is Seccion => IDS.has(x);
