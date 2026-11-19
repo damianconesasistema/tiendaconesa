@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { LiveClock } from "@/components/admin/LiveClock";
-import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ExternalLink, Settings, Tags, Users, Store, CreditCard, Newspaper, Scale, Eye, UserCog } from "lucide-react";
 import { AlertaVentas } from "@/components/admin/AlertaVentas";
 import { APP_VERSION } from "@/lib/version";
 import { sucursalesDelPanel, sucursalDelPanel } from "@/lib/sucursal-panel";
@@ -14,6 +14,8 @@ import { pausarSinStock } from "@/lib/sin-stock";
 import { herramientasUnaVez } from "@/lib/herramientas-una-vez";
 import { AvisoVersionNueva } from "@/components/AvisoVersionNueva";
 import { versionPublicada } from "@/lib/version-publicada";
+import { debeCambiarClave } from "@/lib/usuarios";
+import { CambiarMiClave } from "@/components/admin/UsuariosAdmin";
 
 export async function AdminShell({
   username,
@@ -50,6 +52,8 @@ export async function AdminShell({
     | "mercadopago"
     | "comparador"
     | "novedades"
+    | "visitas"
+    | "usuarios"
     | "version";
   children: React.ReactNode;
 }) {
@@ -84,6 +88,10 @@ export async function AdminShell({
         (s) => s.id !== banda.id && (!esDeLaTienda || s.tiendaOnline),
       )
     : [];
+
+  // Entro con una contrasena que le puso admin (al crearlo o al resetearla):
+  // antes de usar el panel elige la suya.
+  const tieneQueElegirClave = await debeCambiarClave(username);
 
   return (
     <div className="min-h-screen bg-[var(--surface)]">
@@ -158,6 +166,12 @@ export async function AdminShell({
             active={active === "clientes"}
           />
           <Tab
+            href="/admin/visitas"
+            icon={Eye}
+            label="Qué miran"
+            active={active === "visitas"}
+          />
+          <Tab
             href="/admin/sucursales"
             icon={Store}
             label="Sucursales"
@@ -180,6 +194,12 @@ export async function AdminShell({
             icon={Newspaper}
             label="Novedades"
             active={active === "novedades"}
+          />
+          <Tab
+            href="/admin/usuarios"
+            icon={UserCog}
+            label="Usuarios"
+            active={active === "usuarios"}
           />
           <a
             href={verTienda}
@@ -242,7 +262,18 @@ export async function AdminShell({
           ancho === "full" ? "max-w-none" : "max-w-7xl"
         }`}
       >
-        {children}
+        {tieneQueElegirClave ? (
+          <div className="mx-auto max-w-md">
+            <h1 className="font-display text-2xl font-black uppercase leading-tight">Elegí tu contraseña</h1>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Entraste con una contraseña provisoria. Elegí la tuya para seguir: desde ahora entrás con tu usuario
+              ({username}) y esta contraseña nueva.
+            </p>
+            <CambiarMiClave />
+          </div>
+        ) : (
+          children
+        )}
       </div>
       <AlertaVentas />
     </div>

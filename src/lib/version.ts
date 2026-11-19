@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.28";
+export const APP_VERSION = "V.0.99.29";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.29",
+    date: "2026-11-19",
+    changes: [
+      "QUÉ MIRAN (pestaña nueva): los productos que más abren los que entran a la tienda y lo que escriben en el buscador, hoy, en 7, 30 o 90 días, con una lista aparte de lo que buscan y no encuentran (\"me podes tagear cada producto para saber que miran o buscan los que entran?\"). Se guarda día por día desde el 19/11/2026.",
+      "LO DE NOSOTROS NO CUENTA (\"en lo que es el panel de productos no cuentes ahi porque somos nosotros\"): ni las visitas, ni las búsquedas, ni Google Analytics, ni el pixel de Meta, con el panel abierto o desde una compu o un celular donde alguna vez se entró al panel. El panel tampoco manda nada a Analytics.",
+      "ANALYTICS: cada búsqueda de la tienda va como evento \"search\" con lo que se buscó (también al pixel de Meta), y cada producto visto lleva su marca.",
+      "USUARIOS (pestaña a la vista, \"haceme una parte del panel la parte de usuarios... que tenga reseteo de password, etc completo sin mail\"): crear, cambiar el nombre, resetear la contraseña (genera una provisoria y la muestra una sola vez para dictársela), ponerle una contraseña, desactivar y borrar. La contraseña que pone admin es provisoria: la primera vez que la persona entra, el panel le pide que elija la suya. Todo con usuario y contraseña, sin mail.",
+    ],
+  },
   {
     version: "V.0.99.28",
     date: "2026-11-18",

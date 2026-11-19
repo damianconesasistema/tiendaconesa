@@ -27,6 +27,7 @@ export type MetaItem = {
   title: string;
   price: number | null;
   category?: string;
+  brand?: string;
   qty?: number;
 };
 
@@ -80,6 +81,11 @@ export function metaVerProducto(item: MetaItem) {
     ...(item.category ? { content_category: item.category } : {}),
     value: item.price ?? 0,
   });
+}
+
+/** Alguien buscó algo en la tienda. "Search" es el evento estándar de Meta. */
+export function metaBuscar(termino: string) {
+  evento("Search", { search_string: termino });
 }
 
 /** Alguien tocó "Agregar". */

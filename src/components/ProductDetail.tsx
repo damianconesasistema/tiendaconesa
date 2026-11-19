@@ -151,8 +151,9 @@ export function ProductDetail({
       title: product.title,
       price: effectivePrice,
       category: product.category,
+      brand: product.brandName ?? product.brand ?? undefined,
     });
-  }, [product.itemId, product.title, product.category, effectivePrice]);
+  }, [product.itemId, product.title, product.category, product.brandName, product.brand, effectivePrice]);
 
   // Visitas para el panel. Van aparte de Analytics porque el admin las
   // quiere ver en su propia tabla, al lado del stock y el precio.

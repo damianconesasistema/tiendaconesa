@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
-import { huella, olvidarVigencia, PRINCIPAL, problemaConLaClave, usuarioLimpio } from "@/lib/usuarios";
+import { claveProvisoria, huella, olvidarVigencia, PRINCIPAL, problemaConLaClave, usuarioLimpio } from "@/lib/usuarios";
 
 // Los usuarios del panel (src/lib/usuarios.ts). Crear, desactivar, borrar y
 // cambiarle la contrasena a otro: solo "admin". Cambiar la propia: cualquiera.
@@ -28,7 +28,10 @@ export async function crearUsuario(datos: { nombre: string; usuario: string; cla
   const mal = problemaConLaClave(String(datos.clave ?? ""));
   if (mal) return { error: mal };
   if (await prisma.adminUser.findUnique({ where: { username } })) return { error: `Ya hay un usuario "${username}".` };
-  await prisma.adminUser.create({ data: { username, nombre, passwordHash: huella(datos.clave) } });
+  // La que le pone admin es provisoria: al entrar elige la suya.
+  await prisma.adminUser.create({
+    data: { username, nombre, passwordHash: huella(datos.clave), debeCambiarClave: true },
+  });
   revalidatePath("/admin/usuarios");
   return { ok: true };
 }
@@ -45,7 +48,37 @@ export async function cambiarClave(datos: { id?: string; clave: string }): Promi
     return { error: "La contraseña de admin está en el servidor: se cambia desde ahí." };
   const fila = await prisma.adminUser.findUnique({ where });
   if (!fila) return { error: "No está ese usuario." };
-  await prisma.adminUser.update({ where: { id: fila.id }, data: { passwordHash: huella(datos.clave) } });
+  // Si se la pone admin a otro, es provisoria; si es la propia, ya es la suya.
+  await prisma.adminUser.update({
+    where: { id: fila.id },
+    data: { passwordHash: huella(datos.clave), debeCambiarClave: !!datos.id },
+  });
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+/** Admin le resetea la contrasena a alguien que se la olvido: se genera una
+ *  provisoria, se muestra UNA vez para dictarsela, y al entrar con ella el
+ *  panel le pide que elija la suya. Sin mail. */
+export async function resetearClave(id: string): Promise<R & { clave?: string }> {
+  const no = await soloPrincipal();
+  if (no) return { error: no };
+  const clave = claveProvisoria();
+  const fila = await prisma.adminUser
+    .update({ where: { id }, data: { passwordHash: huella(clave), debeCambiarClave: true } })
+    .catch(() => null);
+  if (!fila) return { error: "No está ese usuario." };
+  revalidatePath("/admin/usuarios");
+  return { ok: true, clave };
+}
+
+export async function cambiarNombre(id: string, nombre: string): Promise<R> {
+  const no = await soloPrincipal();
+  if (no) return { error: no };
+  const limpio = String(nombre ?? "").replace(/\s+/g, " ").trim().slice(0, 60);
+  if (!limpio) return { error: "Poné el nombre de la persona." };
+  const fila = await prisma.adminUser.update({ where: { id }, data: { nombre: limpio } }).catch(() => null);
+  if (!fila) return { error: "No está ese usuario." };
   revalidatePath("/admin/usuarios");
   return { ok: true };
 }

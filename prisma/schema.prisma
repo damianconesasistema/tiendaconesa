@@ -354,7 +354,38 @@ model AdminUser {
   nombre        String
   passwordHash  String // scrypt$sal$hash: nunca la contrasena en si
   activo        Boolean   @default(true)
+  // La contrasena se la puso admin (al crearlo o al resetearla): al entrar,
+  // el panel le pide que elija la suya (migracion 46).
+  debeCambiarClave Boolean @default(false)
   ultimoIngreso DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+// Que miran y que buscan los que entran a la tienda, dia por dia
+// (migracion 45). Damian, 19/11/2026: "me podes tagear cada producto para
+// saber que miran o buscan los que entran?". Lo de ellos mismos no cuenta
+// ("en lo que es el panel de productos no cuentes ahi porque somos
+// nosotros"): ver src/lib/miradas.ts. Una fila por dia y no una por visita:
+// alcanza para ver la ultima semana o el ultimo mes y la tabla no crece sin
+// fin. El dia es el de Argentina.
+model VistaDiaria {
+  itemId   String // Product.itemId
+  dia      DateTime @db.Date
+  cantidad Int      @default(0)
+
+  @@id([itemId, dia])
+  @@index([dia])
+}
+
+model BusquedaDiaria {
+  termino    String // en minusculas, sin espacios de mas
+  dia        DateTime @db.Date
+  cantidad   Int      @default(0)
+  // Cuantos productos encontro la ultima vez que alguien lo busco. En 0 es
+  // algo que la gente busca y la tienda no tiene (o no sabe encontrar).
+  resultados Int      @default(0)
+
+  @@id([termino, dia])
+  @@index([dia])
 }

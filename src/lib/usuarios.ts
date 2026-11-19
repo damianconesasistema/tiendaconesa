@@ -37,6 +37,27 @@ export function usuarioLimpio(x: string): string {
     .replace(/[^a-z0-9._-]/g, "");
 }
 
+/** Una contrasena provisoria facil de dictar: cuatro letras, un guion y
+ *  cuatro numeros ("tamo-4821"). Sin letras que se confunden (l, o, i). */
+export function claveProvisoria(): string {
+  const letras = "abcdefghjkmnpqrstuvwxyz";
+  const b = randomBytes(8);
+  let s = "";
+  for (let i = 0; i < 4; i++) s += letras[b[i] % letras.length];
+  s += "-";
+  for (let i = 4; i < 8; i++) s += String(b[i] % 10);
+  return s;
+}
+
+/** Si el usuario tiene que elegir su contrasena antes de usar el panel. */
+export async function debeCambiarClave(usuario: string): Promise<boolean> {
+  if (usuario === PRINCIPAL) return false;
+  const fila = await prisma.adminUser
+    .findUnique({ where: { username: usuario }, select: { debeCambiarClave: true } })
+    .catch(() => null);
+  return !!fila?.debeCambiarClave;
+}
+
 export function problemaConLaClave(clave: string): string | null {
   if (clave.length < MINIMO_CLAVE) return `La contraseña tiene que tener al menos ${MINIMO_CLAVE} letras o números.`;
   if (clave.length > 200) return "La contraseña es demasiado larga.";

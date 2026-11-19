@@ -4,6 +4,11 @@ import { sigueActivo } from "@/lib/usuarios";
 
 const COOKIE_NAME = "conesa_admin";
 const SESSION_HOURS = 24 * 7; // 7 dias
+/** La marca que deja el login en el navegador: "aca entra alguien de
+ *  Conesa". Ver src/lib/miradas.ts. */
+export const MARCA_EQUIPO = "conesa_equipo";
+/** 400 dias: lo mas que deja durar una galleta Chrome. */
+const DURA_LA_MARCA = 400 * 24 * 60 * 60;
 
 function getSecret(): string {
   const s = process.env.ADMIN_COOKIE_SECRET;
@@ -85,6 +90,17 @@ export async function createAdminSession(username: string) {
     path: "/",
     domain: await dominioDeLaSesion(),
     expires: new Date(expiresAt),
+  });
+  // Este navegador es de alguien de Conesa: lo que mire en la tienda no se
+  // cuenta (src/lib/miradas.ts). Dura mas que la sesion a proposito, y salir
+  // del panel no la borra: la compu del local sigue siendo del local.
+  jar.set(MARCA_EQUIPO, "1", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    domain: await dominioDeLaSesion(),
+    maxAge: DURA_LA_MARCA,
   });
 }
 

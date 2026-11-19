@@ -4,6 +4,7 @@ import { Inter, Montserrat } from "next/font/google";
 import Script from "next/script";
 import { Header } from "@/components/Header";
 import { Analytics } from "@/components/Analytics";
+import { esDeLosNuestros } from "@/lib/miradas";
 import { CuotasStrip } from "@/components/CuotasStrip";
 import { Footer } from "@/components/Footer";
 import { FooterGate } from "@/components/FooterGate";
@@ -215,6 +216,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     ? await contactoDeLaVenta()
     : await contactoActual();
 
+  // Analytics y el pixel solo para los clientes: ni en el panel ni cuando
+  // mira la tienda alguien de Conesa. Damian, 19/11/2026: "en lo que es el
+  // panel de productos no cuentes ahi porque somos nosotros"
+  // (src/lib/miradas.ts).
+  const medir =
+    !ruta.startsWith("/admin") && !ruta.startsWith("/sistema") && !(await esDeLosNuestros());
+
   return (
     <html
       lang="es-AR"
@@ -240,7 +248,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <BackToTop />
           <CartFab />
         </CartProvider>
-        <Analytics />
+        {medir && <Analytics />}
       </body>
     </html>
   );

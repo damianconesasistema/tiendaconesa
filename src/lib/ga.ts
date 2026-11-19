@@ -21,6 +21,7 @@ import {
   metaArrancarCheckout,
   metaCompra,
   metaContacto,
+  metaBuscar,
 } from "@/lib/meta";
 
 declare global {
@@ -34,6 +35,9 @@ export type GaItem = {
   title: string;
   price: number | null;
   category?: string;
+  /** El nombre de la marca ("FV", "Ferrum"), para ver en Analytics que marcas
+   *  miran. */
+  brand?: string;
   qty?: number;
 };
 
@@ -42,6 +46,7 @@ function aItem(i: GaItem, index: number) {
     item_id: i.itemId,
     item_name: i.title,
     ...(i.category ? { item_category: i.category } : {}),
+    ...(i.brand ? { item_brand: i.brand } : {}),
     // "a consultar" no tiene precio: mandar null ensucia el reporte
     ...(typeof i.price === "number" ? { price: i.price } : {}),
     quantity: i.qty ?? 1,
@@ -66,6 +71,14 @@ function suma(items: GaItem[]) {
 export function gaVerProducto(item: GaItem) {
   evento("view_item", { value: item.price ?? 0, items: [aItem(item, 0)] });
   metaVerProducto(item);
+}
+
+/** Alguien busco algo en el catalogo y encontro `resultados` productos.
+ *  "search" es el evento estandar de Analytics (sale en Informes ->
+ *  Interaccion -> Eventos, con el termino en search_term). */
+export function gaBuscar(termino: string, resultados: number) {
+  evento("search", { search_term: termino, resultados });
+  metaBuscar(termino);
 }
 
 /** Alguien toco un boton de WhatsApp para preguntar.

@@ -24,12 +24,13 @@ export default async function UsuariosPage() {
         username: u.username,
         nombre: u.nombre,
         activo: u.activo,
+        debeCambiarClave: u.debeCambiarClave,
         ultimoIngreso: u.ultimoIngreso ? fechaHoraPedido(u.ultimoIngreso) : null,
       }))
     : [];
 
   return (
-    <AdminShell username={session.username} active="configuracion">
+    <AdminShell username={session.username} active="usuarios">
       <div className="mx-auto max-w-4xl">
         <h1 className="font-display text-3xl font-black uppercase leading-tight sm:text-4xl">Usuarios</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">

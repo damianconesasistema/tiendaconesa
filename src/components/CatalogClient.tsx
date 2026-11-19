@@ -15,6 +15,7 @@ import { alfabetico, nombreRubro, SIN_EXTRAS, type RubrosExtra } from "@/lib/rub
 import { MasVistos, type MasVisto } from "@/components/MasVistos";
 import { conVariedad } from "@/lib/variedad";
 import { buscar, indexar } from "@/lib/buscar";
+import { gaBuscar } from "@/lib/ga";
 
 type Product = {
   itemId: string;
@@ -234,6 +235,37 @@ export function CatalogClient({
     [products, marcas, rubrosExtra],
   );
   const busqueda = useMemo(() => (query.trim() ? buscar(query, indice) : null), [query, indice]);
+
+  // Lo que busca la gente (Panel -> Que miran, y Analytics). Damian,
+  // 19/11/2026: "me podes tagear cada producto para saber que miran o buscan
+  // los que entran?". Se manda cuando la persona deja de escribir un rato,
+  // no con cada letra: si no, "inodoro" se guardaria como "i", "in", "ino"...
+  // Una vez por palabra y por sesion. Si es alguien de Conesa, el servidor no
+  // lo guarda y Analytics no esta cargado (src/lib/miradas.ts).
+  const encontrados = busqueda ? busqueda.puntajes.size : 0;
+  useEffect(() => {
+    const termino = query.replace(/\s+/g, " ").trim().toLowerCase();
+    if (termino.length < 2) return;
+    const t = setTimeout(() => {
+      try {
+        const clave = `conesa:busco:${termino}`;
+        if (sessionStorage.getItem(clave)) return;
+        sessionStorage.setItem(clave, "1");
+      } catch {
+        return;
+      }
+      gaBuscar(termino, encontrados);
+      fetch("/api/busqueda", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ q: termino, resultados: encontrados }),
+        keepalive: true,
+      }).catch(() => {
+        /* un contador que falla no es motivo para molestar a nadie */
+      });
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [query, encontrados]);
 
   const filtered = useMemo(() => {
     const base = products.filter((p) => {
