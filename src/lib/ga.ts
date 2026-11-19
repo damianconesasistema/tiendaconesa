@@ -98,6 +98,12 @@ export function gaWhatsApp(origen: string, producto?: string) {
   metaContacto(origen);
 }
 
+/** Alguien compartio un producto: "whatsapp", "copiar" u "otras-apps".
+ *  "share" es el evento estandar de Analytics. */
+export function gaCompartir(metodo: string, itemId: string) {
+  evento("share", { method: metodo, content_type: "product", item_id: itemId });
+}
+
 /** Alguien toco "Agregar". Se dispara desde el carrito, asi cubre todos
  *  los botones de la tienda sin tener que tocarlos uno por uno. */
 export function gaAgregarAlCarrito(item: GaItem) {

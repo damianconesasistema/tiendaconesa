@@ -9,6 +9,7 @@ import { BotonesCompra } from "@/components/BotonesCompra";
 import Image from "next/image";
 import { useState } from "react";
 import { Package, ArrowRight, Tag } from "lucide-react";
+import { UltimoEnStock } from "@/components/UltimoEnStock";
 import { formatPrice } from "@/lib/order";
 import { precioVitrina, descuentoContadoPct } from "@/lib/precios";
 
@@ -177,6 +178,7 @@ function FeaturedCard({
             Sin stock
           </span>
         )}
+        {p.stock === 1 && <UltimoEnStock className="absolute bottom-3 left-3 z-10" />}
       </div>
       <div className="flex flex-1 flex-col p-4">
         {/* La categoria arriba del titulo y no encima de la foto, igual que

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Share2, Check } from "lucide-react";
+import { copiarTexto } from "@/lib/copiar";
 
 /**
  * Compartir producto.
@@ -36,13 +37,10 @@ export function ShareButton({
       }
     }
 
-    try {
-      await navigator.clipboard.writeText(url);
+    // Sin el menu del telefono: se copia el link (src/lib/copiar.ts).
+    if (await copiarTexto(url)) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2000);
-    } catch {
-      // Navegador sin permiso de portapapeles: último recurso.
-      window.prompt("Copiá el link:", url);
     }
   }
 

@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.33";
+export const APP_VERSION = "V.0.99.34";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.34",
+    date: "2026-11-19",
+    changes: [
+      "MARCAS DE LA PORTADA (\"ARREGLAME ESAS 2 QUE NO SE VEN Y LAS QUE NO ESTAN ACTIVAS NO LO MUESTRES\"): Pluvius y Fluvial tenían el logo blanco (el de fondos oscuros) y sobre la tarjeta blanca no se veían; ahora un logo claro se pasa a oscuro al guardarlo, y los que ya estaban se arreglan solos una vez. En la portada solo aparecen las marcas que tienen al menos un producto a la venta.",
+      "ÚLTIMO EN STOCK (\"CUANDO QUEDA 1 EN STOCK, ULTIMO EN STOCK Y LLAMANDO LA ATENCION DEL COMPRADOR\"): cartel naranja titilando \"¡Último en stock!\" sobre la foto en el catálogo, las ofertas y destacados de la portada y los relacionados, y en la ficha, grande, con \"Queda 1 sola unidad: llevala antes de que se agote\".",
+      "COMPARTIR (\"QUE TE COPIE EL LINK Y YA VOS LO PUEDAS PEGAR EN WHATSAPP\"): en la ficha, \"¿Se lo querés mostrar a alguien?\" con dos botones a la vista: Enviar por WhatsApp (abre WhatsApp con el mensaje y el link ya escritos) y Copiar link (avisa que está copiado y que hay que pegarlo). En el celular, además, Otras apps. Si el navegador no deja copiar, el link queda a la vista para copiarlo a mano. Cada vez que alguien comparte va a Analytics.",
+    ],
+  },
   {
     version: "V.0.99.33",
     date: "2026-11-19",

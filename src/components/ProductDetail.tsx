@@ -31,6 +31,8 @@ import { formatPrice } from "@/lib/order";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { parseShipping } from "@/lib/shipping";
 import { ShareButton } from "@/components/ShareButton";
+import { CompartirProducto } from "@/components/CompartirProducto";
+import { UltimoEnStock } from "@/components/UltimoEnStock";
 import { precioVitrina, precioCuotas, descuentoContadoPct } from "@/lib/precios";
 import { useRouter } from "next/navigation";
 
@@ -437,6 +439,12 @@ export function ProductDetail({
                   <span className="inline-flex h-2 w-2 rounded-full bg-red-500" />
                   Sin stock
                 </span>
+              ) : product.stock === 1 ? (
+                // Queda una sola: que se note (src/components/UltimoEnStock.tsx).
+                <div className="flex flex-wrap items-center gap-2">
+                  <UltimoEnStock tamano="grande" />
+                  <span className="text-sm font-semibold text-orange-700">Queda 1 sola unidad: llevala antes de que se agote.</span>
+                </div>
               ) : (
                 <>
                   <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />
@@ -590,11 +598,9 @@ export function ProductDetail({
               O consultá por WhatsApp
             </WhatsAppLink>
 
-            <div className="mt-4 flex justify-center">
-              <ShareButton
-                titulo={product.title}
-                texto={`Mirá esto en Sanitarios Conesa: ${product.title}`}
-              />
+            {/* Compartir con un amigo: WhatsApp y copiar link a la vista. */}
+            <div className="mt-5">
+              <CompartirProducto itemId={product.itemId} titulo={product.title} />
             </div>
 
             {/* Beneficios / Entrega (según el tipo de envío del producto) */}
@@ -848,6 +854,7 @@ function RelatedCard({
           unoptimized={!!p.imageUrl && p.imageUrl.startsWith("/api/")}
           className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
         />
+        {p.stock === 1 && <UltimoEnStock className="absolute bottom-2 left-2 z-10" />}
       </div>
       <div className="flex flex-1 flex-col p-3">
         <h3 className="uppercase text-xs font-semibold leading-snug">{p.title}</h3>

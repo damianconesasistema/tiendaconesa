@@ -12,7 +12,7 @@
 
 import sharp from "sharp";
 import { decodificar } from "@/lib/fv-ficha";
-import { setSetting } from "@/lib/settings";
+import { getSetting, setSetting } from "@/lib/settings";
 import { claveDelLogo, rutaDelLogo, SETTING_MARCAS_LOGO, versionesDeLogos } from "@/lib/marcas-server";
 import {
   absoluta,
@@ -139,17 +139,71 @@ async function prolijo(b: Buffer): Promise<{ png: Buffer; blanco: boolean } | nu
       .toBuffer({ resolveWithObject: true });
     // Un pixel de seguimiento o un icono diminuto no es un logo.
     if (info.width < 40 || info.height < 16) return null;
-    const crudo = await sharp(data).ensureAlpha().raw().toBuffer();
-    let luz = 0;
-    let vistos = 0;
-    for (let i = 0; i < crudo.length; i += 4) {
-      if (crudo[i + 3] < 128) continue;
-      luz += 0.299 * crudo[i] + 0.587 * crudo[i + 1] + 0.114 * crudo[i + 2];
-      vistos++;
-    }
-    return { png: data, blanco: vistos > 0 && luz / vistos > 235 };
+    const { luz, transparente } = await comoEs(data);
+    // Uno claro sobre fondo transparente (la version para fondos oscuros) se
+    // oscurece: sobre la tienda blanca no se veia (Damian, 19/11/2026:
+    // "ARREGLAME ESAS 2 QUE NO SE VEN", Pluvius y Fluvial).
+    const claro = luz > UMBRAL_CLARO && transparente;
+    return { png: claro ? await oscurecido(data) : data, blanco: luz > 235 };
   } catch {
     return null;
+  }
+}
+
+/** Un logo es "claro" si lo que se ve tiene en promedio mas luz que esto.
+ *  El blanco es 255; el celeste de Fluvial daba 235. */
+const UMBRAL_CLARO = 200;
+
+/** La luz promedio de lo que se ve, y si tiene fondo transparente (al menos
+ *  un 15% de la imagen). Un logo oscuro sobre fondo blanco SIN transparencia
+ *  tambien da mucha luz, pero ese se ve bien y no hay que tocarlo. */
+async function comoEs(png: Buffer): Promise<{ luz: number; transparente: boolean }> {
+  const crudo = await sharp(png).ensureAlpha().raw().toBuffer();
+  let luz = 0;
+  let vistos = 0;
+  let total = 0;
+  for (let i = 0; i < crudo.length; i += 4) {
+    total++;
+    if (crudo[i + 3] < 128) continue;
+    luz += 0.299 * crudo[i] + 0.587 * crudo[i + 1] + 0.114 * crudo[i + 2];
+    vistos++;
+  }
+  return { luz: vistos ? luz / vistos : 0, transparente: total > 0 && (total - vistos) / total >= 0.15 };
+}
+
+/** El mismo logo en oscuro: lo blanco pasa a negro y lo claro a gris oscuro,
+ *  con la misma transparencia. Asi se lee sobre blanco y no pierde la forma. */
+async function oscurecido(png: Buffer): Promise<Buffer> {
+  const { data, info } = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += 4) {
+    const luz = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    const v = Math.max(0, Math.min(255, Math.round((255 - luz) * 0.6)));
+    data[i] = v;
+    data[i + 1] = v;
+    data[i + 2] = v;
+  }
+  return sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
+}
+
+/** Los logos claros que ya estaban guardados, oscurecidos UNA vez. Igual que
+ *  src/lib/herramientas-una-vez.ts: desde el programa, y si algo falla se
+ *  reintenta la proxima. Un logo ya oscuro no cambia (no es claro). */
+const S_LOGOS_CLAROS = "logos_claros_hecho";
+let corriendo = false;
+export async function logosClarosUnaVez(): Promise<void> {
+  if (corriendo || (await getSetting(S_LOGOS_CLAROS)) === "1") return;
+  corriendo = true;
+  try {
+    for (const id of Object.keys(await versionesDeLogos())) {
+      const b64 = await getSetting(claveDelLogo(id));
+      if (!b64) continue;
+      const png = Buffer.from(b64, "base64");
+      const { luz, transparente } = await comoEs(png);
+      if (luz > UMBRAL_CLARO && transparente) await guardarLogo(id, await oscurecido(png));
+    }
+    await setSetting(S_LOGOS_CLAROS, "1");
+  } finally {
+    corriendo = false;
   }
 }
 

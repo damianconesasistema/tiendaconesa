@@ -13,7 +13,8 @@ import { CuotasBanner } from "@/components/CuotasBanner";
 import { OfertasBanner } from "@/components/OfertasBanner";
 import { Sucursales } from "@/components/Sucursales";
 import { prisma } from "@/lib/db";
-import { articulosEnVenta, paraLaVitrina } from "@/lib/catalogo";
+import { articulosEnVenta, marcasEnVenta, paraLaVitrina } from "@/lib/catalogo";
+import { logosClarosUnaVez } from "@/lib/logo-de-marca";
 import { getMarcasConLogo } from "@/lib/marcas-server";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/SocialIcons";
 
@@ -54,11 +55,21 @@ const categoryIcons = [
 ] as const;
 
 export default async function Home() {
+  // Los logos claros que no se veian sobre blanco se oscurecen una vez
+  // (src/lib/logo-de-marca.ts). No hace esperar a la portada.
+  void logosClarosUnaVez().catch(() => {});
   const [recargos, planes, marcasConLogo] = await Promise.all([
     getRecargosMp(),
     getPlanesCuotas(),
     getMarcasConLogo(),
   ]);
+  // Solo las marcas que tienen algo a la venta (Damian, 19/11/2026: "las que
+  // no estan activas las marcas no lo muestres"). Si por algo no se pudo
+  // saber, se muestran todas antes que ninguna.
+  const conProductos = await marcasEnVenta().catch(() => new Set<string>());
+  const marcasVisibles = conProductos.size
+    ? marcasConLogo.filter((m) => conProductos.has(m.id))
+    : marcasConLogo;
   const cuotasMax = planes.length ? planes[planes.length - 1].cuotas : 0;
   // Descuento REAL del contado respecto del precio de vitrina. Se calcula,
   // no se asume: con 13,64% de recargo el descuento es 12%, no 13,64%.
@@ -266,7 +277,7 @@ export default async function Home() {
               vienen con margenes y proporciones distintas, y si los dejamos
               crecer libre cada uno pesa distinto y la grilla se ve despareja. */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {marcasConLogo.map((marca) => {
+            {marcasVisibles.map((marca) => {
               // Con la tienda cerrada, tocar una marca no puede llevar al
               // catalogo: lleva al WhatsApp con el nombre de la marca ya
               // escrito en el mensaje, que es lo unico que se puede hacer

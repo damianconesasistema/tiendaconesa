@@ -16,6 +16,7 @@ import { MasVistos, type MasVisto } from "@/components/MasVistos";
 import { conVariedad } from "@/lib/variedad";
 import { buscar, indexar } from "@/lib/buscar";
 import { gaBuscar } from "@/lib/ga";
+import { UltimoEnStock } from "@/components/UltimoEnStock";
 
 type Product = {
   itemId: string;
@@ -672,6 +673,7 @@ function ProductCard({ p, comisionUnPago, rubro }: { p: Product; comisionUnPago:
             Sin stock
           </span>
         )}
+        {p.stock === 1 && <UltimoEnStock className="absolute bottom-3 left-3 z-10" />}
       </div>
 
       {/* Info */}

@@ -167,6 +167,35 @@ export async function articulosEnVenta(
   });
 }
 
+/** Las marcas que tienen al menos un articulo a la venta en este local (los
+ *  mismos que muestra la tienda: publicados y con stock). Damian, 19/11/2026:
+ *  "las que no estan activas las marcas no lo muestres". */
+export async function marcasEnVenta(): Promise<Set<string>> {
+  const s = await sucursalQueVende();
+  if (s) {
+    try {
+      const filas = await prisma.branchProduct.findMany({
+        where: {
+          branchId: s.id,
+          active: true,
+          stock: { gt: 0 },
+          product: { itemId: { not: MARCADOR }, brand: { not: null } },
+        },
+        select: { product: { select: { brand: true } } },
+      });
+      return new Set(filas.map((f) => f.product.brand).filter((b): b is string => !!b));
+    } catch (e) {
+      console.error("[catalogo] no se pudieron leer las marcas del local:", e);
+    }
+  }
+  const filas = await prisma.product.findMany({
+    where: { active: true, stock: { gt: 0 }, itemId: { not: MARCADOR }, brand: { not: null } },
+    select: { brand: true },
+    distinct: ["brand"],
+  });
+  return new Set(filas.map((f) => f.brand).filter((b): b is string => !!b));
+}
+
 /** Un articulo por su codigo, con el precio de este local.
  *
  *  Se le pasan varios codigos porque los links viejos que andan por WhatsApp
