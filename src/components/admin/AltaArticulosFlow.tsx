@@ -379,6 +379,12 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
   async function traerDeLink(itemCode: string, url: string): Promise<string | null> {
     const r = await leerLinkParaAlta(itemCode, url);
     if (!r.encontrado) return r.motivo ?? "no se pudo leer esa página";
+    // Link directo a una foto: solo la foto; la descripcion que habia queda.
+    if (r.soloFoto) {
+      setFv((prev) => ({ ...prev, [itemCode]: { ...prev[itemCode], ...r, descripcion: prev[itemCode]?.descripcion } }));
+      editar(itemCode, { fotoFV: r.foto ?? null, origenFotos: r.ficha ?? url });
+      return null;
+    }
     setFv((prev) => ({ ...prev, [itemCode]: r }));
     editar(itemCode, {
       fotoFV: r.foto && !fotosPropiasRef.current[itemCode] ? r.foto : null,
@@ -1063,7 +1069,13 @@ function Ficha({
               )}
               <div className="min-w-0 text-xs">
                 <p className="text-[var(--muted)]">
-                  {deFV.fabricante ?? "FV"} lo llama: <span className="text-foreground">{deFV.nombreFV}</span>
+                  {deFV.soloFoto ? (
+                    "Foto traída del link"
+                  ) : (
+                    <>
+                      {deFV.fabricante ?? "FV"} lo llama: <span className="text-foreground">{deFV.nombreFV}</span>
+                    </>
+                  )}
                   {deFV.ficha && (
                     <>
                       {" · "}

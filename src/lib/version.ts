@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.59";
+export const APP_VERSION = "V.0.99.60";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.60",
+    date: "2026-11-20",
+    changes: [
+      "TRAER DESDE UN LINK, LINK DIRECTO A UNA FOTO (\"esa es la imagen\", con una foto de MercadoLibre): si el link es directamente una foto (termina en .jpg, .png, .webp, o es una foto de MercadoLibre), se agrega esa foto, sin tocar el título ni la descripción. Antes contestaba \"no encontré un producto en esa página\". Anda en la ficha del producto y en el alta de artículos.",
+    ],
+  },
   {
     version: "V.0.99.59",
     date: "2026-11-20",

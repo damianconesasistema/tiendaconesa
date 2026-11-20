@@ -52,7 +52,15 @@ export type DatosDeLaWeb = {
   codigo?: string;
   /** De donde salio: la pagina de la marca o el catalogo de MercadoLibre. */
   fuente?: "web" | "mercadolibre";
+  /** El link era directo a una foto: solo eso, sin nombre ni descripcion. */
+  soloFoto?: boolean;
 };
+
+/** Un link directo a una foto: termina en .jpg, .webp, etc., o es del
+ *  servidor de fotos de MercadoLibre (mlstatic.com). */
+function esLinkAUnaFoto(u: URL): boolean {
+  return /\.(jpe?g|png|webp|gif|avif)$/i.test(u.pathname) || /(^|\.)mlstatic\.com$/i.test(u.hostname);
+}
 
 // ------------------------------------------------------------- utilidades
 
@@ -1100,6 +1108,15 @@ export async function leerLink(link: string): Promise<DatosDeLaWeb> {
   if (!(await urlPublica(url.toString())))
     return { encontrado: false, motivo: "ese link no es de una página pública" };
   const web = url.origin;
+
+  // Un link directo a una foto: se toma esa foto, sin tocar el nombre ni la
+  // descripcion. Damian, 20/11/2026, pego
+  // "https://http2.mlstatic.com/D_NQ_NP_2X_810274-MLA51664646358_092022-F.webp":
+  // "esa es la imagen" (contestaba "no encontre un producto en esa pagina").
+  if (esLinkAUnaFoto(url)) {
+    const foto = url.toString();
+    return { encontrado: true, soloFoto: true, nombre: "", foto, fotos: [foto], descripcion: null, ficha: foto };
+  }
 
   // MercadoLibre no deja abrir sus paginas desde un servidor (manda a una
   // pantalla de "verificacion de cuenta"): un link suyo se lee solo por su

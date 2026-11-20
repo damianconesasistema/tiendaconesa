@@ -195,13 +195,23 @@ async function traerDeUnLink__(
   itemId: string,
   link: string,
 ): Promise<
-  | { ok: true; agregadas: number; principal: boolean; descripcion: string | null; nombre: string; ficha: string }
+  | {
+      ok: true;
+      agregadas: number;
+      principal: boolean;
+      descripcion: string | null;
+      nombre: string;
+      ficha: string;
+      /** El link era directo a una foto. */
+      soloFoto?: boolean;
+    }
   | { ok: false; motivo: string }
 > {
   const session = await getAdminSession();
   if (!session) return { ok: false, motivo: "no autorizado" };
   const d = await leerLink(link);
-  if (!d.encontrado || !d.nombre) return { ok: false, motivo: d.motivo ?? "no se pudo leer esa página" };
+  if (!d.encontrado || (!d.nombre && !d.soloFoto))
+    return { ok: false, motivo: d.motivo ?? "no se pudo leer esa página" };
   const ficha = d.ficha ?? link;
   let web = "";
   try {
@@ -216,8 +226,9 @@ async function traerDeUnLink__(
     agregadas: fotos.agregadas,
     principal: fotos.principal,
     descripcion: d.descripcion ?? null,
-    nombre: d.nombre,
+    nombre: d.nombre ?? "",
     ficha,
+    ...(d.soloFoto ? { soloFoto: true } : {}),
   };
 }
 

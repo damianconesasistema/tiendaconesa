@@ -364,6 +364,8 @@ export type RespuestaFV = {
   titulo?: string;
   /** Como lo titula FV, para mostrarlo al lado. */
   nombreFV?: string;
+  /** El link era directo a una foto: trae solo la foto. */
+  soloFoto?: boolean;
   foto?: string | null;
   /** Todas las fotos del modelo, la principal primero. */
   fotos?: string[];
@@ -692,7 +694,8 @@ async function leerLinkParaAlta__(itemCode: string, link: string): Promise<Respu
   const session = await getAdminSession();
   if (!session) return { itemCode, encontrado: false, motivo: "Sesión vencida. Entrá de nuevo." };
   const d = await leerLink(link);
-  if (!d.encontrado || !d.nombre) return { itemCode, encontrado: false, motivo: d.motivo, fabricante: "El link" };
+  if (!d.encontrado || (!d.nombre && !d.soloFoto))
+    return { itemCode, encontrado: false, motivo: d.motivo, fabricante: "El link" };
   let sitio = "el link";
   try {
     sitio = new URL(d.ficha ?? link).hostname.replace(/^www\./, "");
@@ -703,7 +706,8 @@ async function leerLinkParaAlta__(itemCode: string, link: string): Promise<Respu
     itemCode,
     encontrado: true,
     fabricante: sitio,
-    nombreFV: d.nombre,
+    nombreFV: d.nombre || undefined,
+    ...(d.soloFoto ? { soloFoto: true } : {}),
     foto: d.foto ?? null,
     fotos: d.fotos,
     ficha: d.ficha ?? link,

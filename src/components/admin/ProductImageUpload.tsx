@@ -354,6 +354,16 @@ export function ProductImageUpload({
           return;
         }
         if (r.agregadas > 0) await refresh();
+        // Link directo a una foto: solo la foto.
+        if (r.soloFoto) {
+          setLinkMsg(
+            r.agregadas > 0
+              ? { ok: true, texto: `Listo: la foto quedó agregada${r.principal ? " como principal" : " al final"}.` }
+              : { ok: false, texto: "No se agregó: esa foto no se pudo bajar o ya estaba cargada." },
+          );
+          setLink("");
+          return;
+        }
         if (r.descripcion)
           window.dispatchEvent(
             new CustomEvent("conesa:descripcion-de-link", { detail: { itemId, texto: r.descripcion } }),
