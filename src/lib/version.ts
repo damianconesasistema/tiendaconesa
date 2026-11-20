@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.61";
+export const APP_VERSION = "V.0.99.62";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.62",
+    date: "2026-11-20",
+    changes: [
+      "TRAER DESDE UN LINK, FOTOS CON LINK RARO (\"porque aveces no sube las fotos que le pongo link?\", con una foto de Sika en sika.scene7.com): un link a una foto que no termina en .jpg ni .webp (como los de Sika, que terminan en \"?fmt=webp-alpha\") no se reconocía como foto y contestaba \"no encontré un producto\". Ahora se fija qué contesta la web: si es una foto, la agrega. También se aceptan las fotos de los servidores que usan las marcas (scene7, Cloudinary, Wix, Squarespace, Contentful).",
+      "TRAER DESDE UN LINK, DICE POR QUÉ NO SUBIÓ: antes decía \"ninguna foto nueva\" o \"no se pudo bajar o ya estaba cargada\". Ahora dice cuál de todas: el producto ya tiene 10 fotos (el máximo), la foto ya estaba cargada, la página no tiene fotos del producto (y cómo copiar el link de la foto) o la página no dejó bajarla (y que se puede guardar en la compu y subir). Si no se agregó, el link queda en el cuadro para volver a probar.",
+    ],
+  },
   {
     version: "V.0.99.61",
     date: "2026-11-20",

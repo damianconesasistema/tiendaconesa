@@ -537,24 +537,33 @@ export async function agregarFotosDeUnLink(
   itemId: string,
   fotos: string[],
   web: string,
-): Promise<{ agregadas: number; principal: boolean; fallidas: number }> {
+): Promise<{ agregadas: number; principal: boolean; fallidas: number; repetidas: number; sinLugar: boolean }> {
   const producto = await prisma.product.findUnique({
     where: { itemId },
     select: { id: true, images: { select: { data: true } } },
   });
-  if (!producto) return { agregadas: 0, principal: false, fallidas: 0 };
+  if (!producto) return { agregadas: 0, principal: false, fallidas: 0, repetidas: 0, sinLugar: false };
   const yaTiene: Buffer[] = producto.images.map((i) => Buffer.from(i.data));
   let posicion = producto.images.length;
   let agregadas = 0;
   let fallidas = 0;
+  let repetidas = 0;
+  // Si ya tiene el maximo de fotos no entra ninguna: que se sepa por que.
+  let sinLugar = false;
   for (const url of fotos.slice(0, 6)) {
-    if (posicion >= MAX_FOTOS) break;
+    if (posicion >= MAX_FOTOS) {
+      sinLugar = true;
+      break;
+    }
     const foto = await bajarFotoDeFV(url, web);
     if (!foto) {
       fallidas++;
       continue;
     }
-    if (yaTiene.some((b) => b.equals(foto.data))) continue;
+    if (yaTiene.some((b) => b.equals(foto.data))) {
+      repetidas++;
+      continue;
+    }
     await prisma.productImage.create({
       data: { productId: producto.id, data: foto.data, contentType: foto.contentType, position: posicion++ },
     });
@@ -564,5 +573,5 @@ export async function agregarFotosDeUnLink(
   const principal = producto.images.length === 0 && agregadas > 0;
   if (principal)
     await prisma.product.update({ where: { itemId }, data: { imageUrl: rutaFoto(itemId, Date.now()) } });
-  return { agregadas, principal, fallidas };
+  return { agregadas, principal, fallidas, repetidas, sinLugar };
 }

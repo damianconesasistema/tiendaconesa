@@ -204,6 +204,13 @@ async function traerDeUnLink__(
       ficha: string;
       /** El link era directo a una foto. */
       soloFoto?: boolean;
+      /** Por que no entraron (para decirlo): las fotos que tenia la pagina,
+       *  las que no se pudieron bajar, las que ya estaban y si ya tiene el
+       *  maximo de fotos. */
+      encontradas: number;
+      fallidas: number;
+      repetidas: number;
+      sinLugar: boolean;
     }
   | { ok: false; motivo: string }
 > {
@@ -219,12 +226,18 @@ async function traerDeUnLink__(
   } catch {
     /* sin web, no se bajan fotos */
   }
-  const fotos = web ? await agregarFotosDeUnLink(itemId, d.fotos ?? [], web) : { agregadas: 0, principal: false };
+  const fotos = web
+    ? await agregarFotosDeUnLink(itemId, d.fotos ?? [], web)
+    : { agregadas: 0, principal: false, fallidas: 0, repetidas: 0, sinLugar: false };
   if (fotos.agregadas > 0) refrescar(itemId);
   return {
     ok: true,
     agregadas: fotos.agregadas,
     principal: fotos.principal,
+    encontradas: (d.fotos ?? []).length,
+    fallidas: fotos.fallidas,
+    repetidas: fotos.repetidas,
+    sinLugar: fotos.sinLugar,
     descripcion: d.descripcion ?? null,
     nombre: d.nombre ?? "",
     ficha,

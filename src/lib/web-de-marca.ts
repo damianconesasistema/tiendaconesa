@@ -112,6 +112,12 @@ const CDN_DE_FOTOS = [
   "nuvemshop.com.br",
   "d26lpennugtm8s.cloudfront.net",
   "d3ugyf2ht6aenh.cloudfront.net",
+  // Servidores de fotos que usan las marcas (Sika: sika.scene7.com).
+  "scene7.com",
+  "cloudinary.com",
+  "wixstatic.com",
+  "squarespace-cdn.com",
+  "ctfassets.net",
 ];
 
 /** El dominio de la empresa: "dynamicmedia.sika.com" y "arg.sika.com" son
@@ -190,7 +196,7 @@ export function htmlATexto(html: string): string {
 export async function pedir(
   url: string,
   opciones: { json?: boolean; metodo?: "GET" | "POST"; cuerpo?: string } = {},
-): Promise<{ status: number; url: string; texto: string } | null> {
+): Promise<{ status: number; url: string; texto: string; tipo: string } | null> {
   try {
     const r = await fetch(url, {
       method: opciones.metodo ?? "GET",
@@ -212,8 +218,15 @@ export async function pedir(
       return null;
     }
     if (!mismoSitio(final.hostname, new URL(url))) return null;
+    // Que es lo que contesto: una pagina o una foto.
+    const tipo = (r.headers.get("content-type") ?? "").toLowerCase();
+    if (tipo.startsWith("image/")) {
+      // Una foto no se lee como texto.
+      void r.body?.cancel().catch(() => {});
+      return { status: r.status, url: final.toString(), texto: "", tipo };
+    }
     const texto = (await r.text()).slice(0, TOPE_PAGINA);
-    return { status: r.status, url: final.toString(), texto };
+    return { status: r.status, url: final.toString(), texto, tipo };
   } catch {
     return null;
   }
@@ -1156,6 +1169,14 @@ export async function leerLink(link: string): Promise<DatosDeLaWeb> {
   const r = await pedir(url.toString());
   if (!r) return { encontrado: false, motivo: "la página no contestó" };
   if (r.status !== 200) return { encontrado: false, motivo: `la página contestó ${r.status}` };
+  // Un link a una foto que no termina en .jpg ni .webp: lo dice el servidor
+  // al contestar. Damian, 20/11/2026, con
+  // "https://sika.scene7.com/is/image/sika/02-es_AR-sikaceram-porcellanato-1x1?...&fmt=webp-alpha":
+  // "porque aveces no sube las fotos que le pongo link?".
+  if (r.tipo.startsWith("image/")) {
+    const foto = r.url;
+    return { encontrado: true, soloFoto: true, nombre: "", foto, fotos: [foto], descripcion: null, ficha: foto };
+  }
   const datos = leerPaginaDeProducto(r.texto, r.url);
   if (!datos) return { encontrado: false, motivo: "no encontré un producto en esa página" };
   const fotos = fotosValidas([datos.foto, ...datos.fotos], web);

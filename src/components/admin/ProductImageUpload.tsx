@@ -354,14 +354,23 @@ export function ProductImageUpload({
           return;
         }
         if (r.agregadas > 0) await refresh();
+        // Por que no entro ninguna: que se sepa (Damian, 20/11/2026: "porque
+        // aveces no sube las fotos que le pongo link?").
+        const porQueNo = r.sinLugar
+          ? `el producto ya tiene ${MAX_PRODUCT_IMAGES} fotos, que es el máximo. Borrá alguna y probá de nuevo`
+          : r.encontradas === 0
+            ? "en esa página no encontré fotos del producto. Probá con el link de la foto (clic derecho en la foto → «Copiar dirección de imagen»)"
+            : r.repetidas > 0 && r.fallidas === 0
+              ? `${r.repetidas === 1 ? "esa foto ya estaba cargada" : "esas fotos ya estaban cargadas"}`
+              : "la página no dejó bajar la foto. Guardala en la compu y subila con «Subir fotos»";
         // Link directo a una foto: solo la foto.
         if (r.soloFoto) {
           setLinkMsg(
             r.agregadas > 0
               ? { ok: true, texto: `Listo: la foto quedó agregada${r.principal ? " como principal" : " al final"}.` }
-              : { ok: false, texto: "No se agregó: esa foto no se pudo bajar o ya estaba cargada." },
+              : { ok: false, texto: `No se agregó: ${porQueNo}.` },
           );
-          setLink("");
+          if (r.agregadas > 0) setLink("");
           return;
         }
         if (r.descripcion)
@@ -372,8 +381,10 @@ export function ProductImageUpload({
           r.agregadas > 0
             ? `${r.agregadas} foto${r.agregadas === 1 ? "" : "s"} agregada${r.agregadas === 1 ? "" : "s"}${
                 r.principal ? " (la primera quedó como principal)" : ""
+              }${r.fallidas > 0 ? ` (${r.fallidas} no se ${r.fallidas === 1 ? "pudo" : "pudieron"} bajar)` : ""}${
+                r.sinLugar ? ` (no entraron todas: el máximo es ${MAX_PRODUCT_IMAGES})` : ""
               }`
-            : "ninguna foto nueva",
+            : `ninguna foto: ${porQueNo}`,
           r.descripcion ? "la descripción quedó en el cuadro de la derecha para revisar y Guardar" : "sin descripción",
         ];
         setLinkMsg({ ok: true, texto: `Listo, de "${r.nombre}": ${partes.join("; ")}.` });
