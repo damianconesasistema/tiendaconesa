@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.60";
+export const APP_VERSION = "V.0.99.61";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.61",
+    date: "2026-11-20",
+    changes: [
+      "MEJORAR LA FOTO, PRODUCTO CORTADO EN LA FOTO (\"porque se corta al final la foto?\", con un Sikadur-31): si en la foto de donde se saca el producto viene cortado en un borde (la lata se sale por abajo), al mejorarla se centraba con blanco alrededor y el corte quedaba en el aire. Ahora queda pegado a ese borde, como en la foto original. Si el producto está entero, se centra como siempre. Para la foto que ya quedó así: borrarla y volver a subirla.",
+    ],
+  },
   {
     version: "V.0.99.60",
     date: "2026-11-20",

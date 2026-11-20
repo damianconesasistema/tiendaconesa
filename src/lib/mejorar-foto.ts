@@ -10,6 +10,8 @@
 //   3. Si el fondo es blanco y parejo: se recorta lo que sobra y el producto
 //      queda centrado en un cuadrado blanco, con el mismo margen en todas.
 //      Asi la tienda se ve pareja. Con otro fondo, la foto queda como vino.
+//      Si el producto viene cortado en un borde de la foto, queda pegado a
+//      ese borde (ver ubicarProducto).
 //   4. Si es chica (las que se bajan de la web), una IA la agranda al doble
 //      recuperando detalle (Swin2SR liviano, pocos MB que se bajan una vez).
 //      Si la IA no anda en esa compu, se agranda comun. Minimo 800 de lado.
@@ -201,8 +203,41 @@ function nitidez(c: HTMLCanvasElement) {
   ctx.putImageData(a, 0, 0);
 }
 
-/** Si el fondo es blanco parejo, el producto centrado en un cuadrado blanco
- *  con margen. Si no, null (la foto queda con su forma). */
+/** Donde va el producto (x0..x1, y0..y1 de una foto de w x h) en el cuadrado
+ *  blanco: ocupa el 86% del lado, centrado.
+ *
+ *  Pero si toca un borde de la foto (y el de enfrente no), en la foto original
+ *  el producto sigue mas alla: viene cortado. Centrado, el corte quedaba en el
+ *  aire, con blanco abajo. Damian, 20/11/2026, con un Sikadur cortado abajo en
+ *  la foto de donde la saco: "porque se corta al final la foto?". Ahora queda
+ *  pegado a ese borde: el corte coincide con el borde de la foto, como en la
+ *  original. Si toca los dos bordes de enfrente (un recorte justo, como un PNG
+ *  sin fondo), se centra como siempre. */
+export function ubicarProducto(
+  w: number,
+  h: number,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+): { lado: number; dx: number; dy: number } {
+  const pw = x1 - x0 + 1;
+  const ph = y1 - y0 + 1;
+  const lado = Math.round(Math.max(pw, ph) / 0.86);
+  // Tocar el borde: a 1 o 2 pixeles (el JPEG ensucia el borde).
+  const tol = Math.max(1, Math.round(Math.min(w, h) * 0.003));
+  const pegado = (desde: number, hasta: number, total: number, libre: number) => {
+    const alPrincipio = desde <= tol;
+    const alFinal = hasta >= total - 1 - tol;
+    if (alPrincipio && !alFinal) return 0;
+    if (alFinal && !alPrincipio) return libre;
+    return Math.round(libre / 2);
+  };
+  return { lado, dx: pegado(x0, x1, w, lado - pw), dy: pegado(y0, y1, h, lado - ph) };
+}
+
+/** Si el fondo es blanco parejo, el producto en un cuadrado blanco con margen
+ *  (ubicarProducto). Si no, null (la foto queda con su forma). */
 function encuadrar(c: HTMLCanvasElement): HTMLCanvasElement | null {
   const { width: w, height: h } = c;
   const d = c.getContext("2d")!.getImageData(0, 0, w, h).data;
@@ -243,15 +278,16 @@ function encuadrar(c: HTMLCanvasElement): HTMLCanvasElement | null {
   const ph = y1 - y0 + 1;
   // Algo muy chico (una mancha) no es el producto.
   if (pw * ph < w * h * 0.02) return null;
-  // El producto ocupa el 86% del lado del cuadrado.
-  const lado = Math.round(Math.max(pw, ph) / 0.86);
+  // El producto ocupa el 86% del lado del cuadrado; si viene cortado, pegado
+  // al borde del corte.
+  const { lado, dx, dy } = ubicarProducto(w, h, x0, y0, x1, y1);
   const q = document.createElement("canvas");
   q.width = lado;
   q.height = lado;
   const qctx = q.getContext("2d")!;
   qctx.fillStyle = "#ffffff";
   qctx.fillRect(0, 0, lado, lado);
-  qctx.drawImage(c, x0, y0, pw, ph, Math.round((lado - pw) / 2), Math.round((lado - ph) / 2), pw, ph);
+  qctx.drawImage(c, x0, y0, pw, ph, dx, dy, pw, ph);
   return q;
 }
 
