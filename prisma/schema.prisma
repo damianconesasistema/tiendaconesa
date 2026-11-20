@@ -398,6 +398,16 @@ model BusquedaDiaria {
 // Registro de actividad del panel (migracion 48). Damian, 19/11/2026:
 // "quiero que cada modificacion o lo que se haga en el panel quede asentado
 // con el usuario que toco". Lo escribe src/lib/actividad.ts.
+/// Lo que encontro el comparador de precios, un renglon por producto
+/// (src/lib/comparador.ts). Hasta V.0.99.54 iba todo junto en el Setting
+/// "comparador_precios" y si dos buscaban a la vez uno pisaba al otro.
+model ComparacionPrecio {
+  itemId String   @id
+  fecha  DateTime
+  /// La Comparacion entera (fecha, buscado, resultados, fallaron...).
+  datos  Json
+}
+
 model Actividad {
   id      String   @id @default(cuid())
   fecha   DateTime @default(now())

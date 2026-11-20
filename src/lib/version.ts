@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.54";
+export const APP_VERSION = "V.0.99.55";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.55",
+    date: "2026-11-20",
+    changes: [
+      "COMPARADOR, QUE NO SE PISEN LAS BÚSQUEDAS (\"cuando hago una busqueda de compara precios eso puede quedar guardado para todos los usuarios\", \"sí, arreglalo\"): lo buscado ya quedaba guardado para todos los usuarios, pero todo junto en un solo lugar, y si dos personas buscaban a la vez se podía perder lo que había encontrado una. Ahora se guarda un renglón por producto y cada búsqueda escribe solo los suyos. Lo que ya estaba buscado pasa solo a la forma nueva la primera vez que se abre el Comparador.",
+    ],
+  },
   {
     version: "V.0.99.54",
     date: "2026-11-19",

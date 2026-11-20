@@ -42,13 +42,17 @@
 // Un producto sin ningun codigo de modelo no se puede comparar: se avisa
 // para que se le cargue el codigo de fabricante.
 //
-// Los resultados se guardan (tabla Setting) para ver la pantalla sin volver a
-// buscar todo.
+// Los resultados se guardan, uno por producto (tabla ComparacionPrecio), para
+// ver la pantalla sin volver a buscar todo. Son de la tienda, no de quien
+// busco: todos los usuarios ven lo mismo.
 
-import { getSetting, setSetting } from "@/lib/settings";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/db";
+import { getSetting } from "@/lib/settings";
 import { codigosDelArticulo, nombraElCodigo } from "@/lib/web-de-marca";
 import { preciosEnMercadoLibre, publicacionesEnMercadoLibre } from "@/lib/mercadolibre";
 
+/** Donde se guardaba todo junto hasta V.0.99.54 (ver pasarLoViejo). */
 const S_COMPARADOR = "comparador_precios";
 // Cuanto se espera a cada tienda. Era 10 s y con 37 tiendas varias quedaban
 // como "no contesto" (Damian, 19/11/2026: "hay productos que antes me traias
@@ -951,13 +955,41 @@ export async function preciosAfuera(p: {
  *  "eso no tiene nada que ver"). Es cuando se publico V.0.99.17. */
 const VALE_DESDE = Date.parse("2026-11-18T20:10:00Z");
 
-export async function comparacionesGuardadas(): Promise<Record<string, Comparacion>> {
+// Hasta V.0.99.54 todo lo buscado iba junto en un solo Setting: cada
+// guardado leia todo, le sumaba lo suyo y lo volvia a escribir, y si dos
+// buscaban a la vez el ultimo pisaba lo que habia encontrado el otro.
+// Damian, 20/11/2026: "cuando hago una busqueda de compara precios eso puede
+// quedar guardado para todos los usuarios" (ya lo estaba) y, sobre que se
+// pisen, "si, arreglalo". Ahora va un renglon por producto: cada busqueda
+// escribe solo los suyos.
+
+/** Lo que habia en el Setting viejo pasa a la tabla, una sola vez. Si en el
+ *  medio alguien ya busco ese producto, queda lo nuevo. */
+async function pasarLoViejo(): Promise<void> {
+  const viejo = await getSetting(S_COMPARADOR);
+  if (!viejo) return;
+  let o: unknown = null;
   try {
-    const o = JSON.parse((await getSetting(S_COMPARADOR)) || "{}");
-    if (!o || typeof o !== "object" || Array.isArray(o)) return {};
+    o = JSON.parse(viejo);
+  } catch {
+    /* roto: no hay nada que pasar */
+  }
+  if (o && typeof o === "object" && !Array.isArray(o)) {
+    const filas = Object.entries(o as Record<string, Comparacion>)
+      .filter(([, c]) => c && typeof c.fecha === "string" && !Number.isNaN(Date.parse(c.fecha)))
+      .map(([itemId, c]) => ({ itemId, fecha: new Date(c.fecha), datos: c as unknown as Prisma.InputJsonValue }));
+    for (let i = 0; i < filas.length; i += 500)
+      await prisma.comparacionPrecio.createMany({ data: filas.slice(i, i + 500), skipDuplicates: true });
+  }
+  await prisma.setting.deleteMany({ where: { key: S_COMPARADOR } });
+}
+
+export async function comparacionesGuardadas(): Promise<Record<string, Comparacion>> {
+  await pasarLoViejo().catch(() => {});
+  try {
+    const filas = await prisma.comparacionPrecio.findMany({ where: { fecha: { gte: new Date(VALE_DESDE) } } });
     const validas: Record<string, Comparacion> = {};
-    for (const [id, c] of Object.entries(o as Record<string, Comparacion>))
-      if (c && Date.parse(c.fecha) >= VALE_DESDE) validas[id] = c;
+    for (const f of filas) validas[f.itemId] = f.datos as unknown as Comparacion;
     return validas;
   } catch {
     return {};
@@ -965,18 +997,31 @@ export async function comparacionesGuardadas(): Promise<Record<string, Comparaci
 }
 
 export async function guardarComparaciones(nuevas: Record<string, Comparacion>): Promise<void> {
-  const todas = await comparacionesGuardadas();
-  // Si una tienda no contesto esta vez, se queda lo que habia traido antes:
-  // que no conteste no quiere decir que dejo de venderlo. Damian,
-  // 19/11/2026: "hay productos que antes me traias de Easy y ahora no".
+  await pasarLoViejo().catch(() => {});
+  const ids = Object.keys(nuevas);
+  const previas = new Map(
+    (await prisma.comparacionPrecio.findMany({ where: { itemId: { in: ids }, fecha: { gte: new Date(VALE_DESDE) } } })).map(
+      (f) => [f.itemId, f.datos as unknown as Comparacion],
+    ),
+  );
   for (const [id, nueva] of Object.entries(nuevas)) {
-    const antes = todas[id];
-    if (!antes || nueva.fallaron.length === 0) continue;
-    const ya = new Set(nueva.resultados.map((r) => r.tienda));
-    for (const r of antes.resultados)
-      if (nueva.fallaron.includes(r.tienda) && !ya.has(r.tienda))
-        nueva.resultados.push({ ...r, anterior: r.anterior ?? antes.fecha });
-    nueva.resultados.sort((a, b) => a.precio - b.precio);
+    // Si una tienda no contesto esta vez, se queda lo que habia traido antes:
+    // que no conteste no quiere decir que dejo de venderlo. Damian,
+    // 19/11/2026: "hay productos que antes me traias de Easy y ahora no".
+    const antes = previas.get(id);
+    if (antes && nueva.fallaron.length > 0) {
+      const ya = new Set(nueva.resultados.map((r) => r.tienda));
+      for (const r of antes.resultados ?? [])
+        if (nueva.fallaron.includes(r.tienda) && !ya.has(r.tienda))
+          nueva.resultados.push({ ...r, anterior: r.anterior ?? antes.fecha });
+      nueva.resultados.sort((a, b) => a.precio - b.precio);
+    }
+    const datos = nueva as unknown as Prisma.InputJsonValue;
+    const fecha = new Date(nueva.fecha);
+    await prisma.comparacionPrecio.upsert({
+      where: { itemId: id },
+      update: { fecha, datos },
+      create: { itemId: id, fecha, datos },
+    });
   }
-  await setSetting(S_COMPARADOR, JSON.stringify({ ...todas, ...nuevas }));
 }
