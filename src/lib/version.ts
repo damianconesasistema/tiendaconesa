@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.58";
+export const APP_VERSION = "V.0.99.59";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.59",
+    date: "2026-11-20",
+    changes: [
+      "FOTOS DE LA FICHA, QUE NO SE CAIGA LA PANTALLA (\"no me deja subir fotos\", \"que es esto que tira?\"): si al subir una foto, traer de un link, traer de la web de la marca, borrar, ordenar o poner principal el servidor daba un error, se caía toda la pantalla (\"No se pudo mostrar esta pantalla\") y no se sabía por qué. Ahora el error aparece al lado de las fotos, la pantalla sigue andando y se puede volver a probar. Si es porque se publicó una versión nueva, se recarga sola.",
+      "ERRORES ANOTADOS EN EL REGISTRO: cada error del servidor y cada vez que sale la pantalla de error queda en Panel → Registro como \"Error en …\", con la pantalla, qué falló, el código y quién estaba (buscá \"Error\"). La pantalla de error ahora muestra un código para identificarlo. Las contraseñas nunca se anotan.",
+    ],
+  },
   {
     version: "V.0.99.58",
     date: "2026-11-20",

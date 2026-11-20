@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { esPorVersionNueva, recargar, sePuedeRecargar } from "@/lib/desfasaje";
+import { anotarErrorDePantalla } from "@/lib/errores-de-pantalla";
 
 // Lo mismo que src/app/error.tsx, para cuando falla el armado de la pagina
 // entera (ahi no hay estilos del sitio: va con lo minimo). Era la que decia
@@ -15,6 +16,17 @@ export default function ErrorGeneral({ error }: { error: Error & { digest?: stri
   useEffect(() => {
     if (recargando) recargar();
   }, [recargando]);
+
+  // Queda anotado en el Registro (src/lib/errores.ts).
+  useEffect(() => {
+    if (recargando) return;
+    void anotarErrorDePantalla(
+      `${window.location.pathname}${window.location.search}`,
+      error?.message ?? String(error),
+      error?.digest ?? null,
+      "pantalla de error general",
+    ).catch(() => {});
+  }, [error, recargando]);
 
   return (
     <html lang="es">

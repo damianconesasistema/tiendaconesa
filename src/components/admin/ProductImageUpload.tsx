@@ -35,6 +35,8 @@ import {
   type ProgresoFondo,
 } from "@/lib/remove-background";
 import { mejorarFoto, type ProgresoMejora } from "@/lib/mejorar-foto";
+import { esPorVersionNueva, recargar, sePuedeRecargar } from "@/lib/desfasaje";
+import { anotarErrorDePantalla } from "@/lib/errores-de-pantalla";
 
 type Img = { id: string; position: number };
 
@@ -88,6 +90,39 @@ export function ProductImageUpload({
   // subir fotos de la ficha del producto mejore la foto cuando la sube?".
   const [mejorar, setMejorar] = useState(true);
   const [mejoraProg, setMejoraProg] = useState<ProgresoMejora | null>(null);
+
+  /** Como startTransition, pero si algo falla (el servidor no contesta, da
+   *  error, se publico una version nueva) la pantalla NO se cae: el error se
+   *  muestra aca, queda anotado en el Registro y se puede seguir. Damian,
+   *  20/11/2026: "no me deja subir fotos", con la pantalla "No se pudo
+   *  mostrar esta pantalla": la subida y "Traer" no atajaban los errores del
+   *  servidor y se caia toda la pantalla. */
+  function enSegundoPlano(tarea: () => Promise<void>) {
+    startTransition(async () => {
+      try {
+        await tarea();
+      } catch (e) {
+        const x = (e ?? {}) as { message?: unknown; digest?: unknown };
+        const mensaje = String(x.message ?? e);
+        const codigo = typeof x.digest === "string" ? x.digest : null;
+        setProgress(null);
+        setFondoProg(null);
+        setMejoraProg(null);
+        setBusy(false);
+        if (esPorVersionNueva(e) && sePuedeRecargar()) {
+          setError("Hay una versión nueva del panel: se recarga sola. Después probá de nuevo.");
+          recargar();
+          return;
+        }
+        setError(
+          /omitted in production/i.test(mensaje)
+            ? `El servidor dio un error${codigo ? ` (código ${codigo})` : ""}. Quedó anotado en Registro. Probá de nuevo.`
+            : `Algo falló: ${mensaje.slice(0, 200)}. Quedó anotado en Registro. Probá de nuevo.`,
+        );
+        void anotarErrorDePantalla(window.location.pathname, mensaje, codigo, "fotos del producto").catch(() => {});
+      }
+    });
+  }
   const puedeSacarFondo = soportaQuitarFondo();
   // Lo que contesto la busqueda en FV, para mostrarlo abajo del boton.
   const [fv, setFv] = useState<{
@@ -123,7 +158,7 @@ export function ProductImageUpload({
     }
     const toUpload = files.slice(0, room);
 
-    startTransition(async () => {
+    enSegundoPlano(async () => {
       setBusy(true);
       setError(null);
       setProgress({ done: 0, total: toUpload.length });
@@ -199,7 +234,7 @@ export function ProductImageUpload({
   }
 
   function onDelete(id: string) {
-    startTransition(async () => {
+    enSegundoPlano(async () => {
       setBusy(true);
       const r = await deleteProductImageById(id, itemId);
       if (r.ok) await refresh();
@@ -211,7 +246,7 @@ export function ProductImageUpload({
   /** Le saca el fondo a una foto que ya esta cargada y la deja en su lugar. */
   function onSacarFondo(id: string) {
     if (!puedeSacarFondo || busy) return;
-    startTransition(async () => {
+    enSegundoPlano(async () => {
       setBusy(true);
       setError(null);
       try {
@@ -237,7 +272,7 @@ export function ProductImageUpload({
   /** Mejora una foto que ya esta cargada y la deja en su lugar. */
   function onMejorar(id: string) {
     if (busy) return;
-    startTransition(async () => {
+    enSegundoPlano(async () => {
       setBusy(true);
       setError(null);
       try {
@@ -261,7 +296,7 @@ export function ProductImageUpload({
   }
 
   function onSetMain(id: string) {
-    startTransition(async () => {
+    enSegundoPlano(async () => {
       setBusy(true);
       const r = await setMainProductImage(id, itemId);
       if (r.ok) await refresh();
@@ -281,7 +316,7 @@ export function ProductImageUpload({
     next.splice(targetIdx, 0, moved);
     setImages(next); // optimista
     setDragIdx(null);
-    startTransition(async () => {
+    enSegundoPlano(async () => {
       setBusy(true);
       const r = await reorderProductImages(
         itemId,
@@ -310,7 +345,7 @@ export function ProductImageUpload({
     const url = link.trim();
     if (!url) return;
     setLinkMsg(null);
-    startTransition(async () => {
+    enSegundoPlano(async () => {
       setBusy(true);
       try {
         const r = await traerDeUnLink(itemId, url);
@@ -354,7 +389,7 @@ export function ProductImageUpload({
       )
     )
       return;
-    startTransition(async () => {
+    enSegundoPlano(async () => {
       setBusy(true);
       setError(null);
       setFv(null);

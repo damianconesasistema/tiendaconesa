@@ -131,6 +131,19 @@ export async function galletasParaSalir(): Promise<string[]> {
   return dominio ? [`${base}; Domain=${dominio}`, base] : [base];
 }
 
+/** Quien es, leyendo la galleta de una cabecera "cookie" (donde no se puede
+ *  usar cookies(): src/instrumentation.ts). Solo el nombre, para anotarlo:
+ *  no sirve para dar permisos (no mira si el usuario sigue activo). */
+export function usuarioDeLaGalleta(cabecera: string | null | undefined): string | null {
+  const m = String(cabecera ?? "").match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`));
+  if (!m) return null;
+  try {
+    return parseToken(decodeURIComponent(m[1]))?.username ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getAdminSession(): Promise<AdminSession | null> {
   const jar = await cookies();
   const token = jar.get(COOKIE_NAME)?.value;
