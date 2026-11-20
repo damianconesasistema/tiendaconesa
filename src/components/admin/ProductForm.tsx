@@ -571,7 +571,7 @@ export function ProductForm({
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Label ayuda="El precio NORMAL por transferencia: es el que se guarda. Si cargás una oferta, este sale TACHADO en la tienda.">
+          <Label alineado ayuda="El precio NORMAL por transferencia: es el que se guarda. Si cargás una oferta, este sale TACHADO en la tienda.">
             Precio con transferencia
           </Label>
           <input
@@ -591,6 +591,7 @@ export function ProductForm({
         </div>
         <div>
           <Label
+            alineado
             ayuda={`Lo que paga el cliente con tarjeta en 1 pago: el de transferencia más el recargo de Mercado Pago (${recargoUnPago.toLocaleString("es-AR")}%). Tiene que dar igual que la Lista 2 de GBP. Si escribís acá, el de transferencia se calcula solo.`}
           >
             Lista 2 · 1 pago
@@ -610,7 +611,7 @@ export function ProductForm({
           <p className="mt-1 text-[11px] text-[var(--muted)]">Con tarjeta en 1 pago. Se calcula con el de transferencia.</p>
         </div>
         <div>
-          <Label ayuda="El precio REBAJADO, por transferencia: lo que paga el cliente. Tiene que ser MENOR que el precio. Vacío = sin oferta.">Precio oferta (opcional)</Label>
+          <Label alineado ayuda="El precio REBAJADO, por transferencia: lo que paga el cliente. Tiene que ser MENOR que el precio. Vacío = sin oferta.">Precio oferta (opcional)</Label>
           <input
             name="salePrice"
             type="number"
@@ -628,7 +629,7 @@ export function ProductForm({
           </p>
         </div>
         <div>
-          <Label ayuda="Las unidades que hay. En 0 el producto se pausa solo.">Stock</Label>
+          <Label alineado ayuda="Las unidades que hay. En 0 el producto se pausa solo.">Stock</Label>
           <input
             name="stock"
             type="number"
@@ -818,9 +819,17 @@ export function ProductForm({
   );
 }
 
-function Label({ children, ayuda }: { children: React.ReactNode; ayuda?: string }) {
+/** `alineado`: el titulo ocupa siempre dos renglones y apoyado abajo, asi las
+ *  cajas de una misma fila quedan a la misma altura aunque un titulo sea
+ *  largo y otro corto (Damian, 20/11/2026, con Precio con transferencia /
+ *  Lista 2 / Oferta / Stock: "alineame eso"). */
+function Label({ children, ayuda, alineado = false }: { children: React.ReactNode; ayuda?: string; alineado?: boolean }) {
   return (
-    <label className="mb-1.5 flex items-center gap-1 font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+    <label
+      className={`mb-1.5 flex gap-1 font-display text-xs font-bold uppercase tracking-wider text-[var(--muted)] ${
+        alineado ? "min-h-8 items-end" : "items-center"
+      }`}
+    >
       {children}
       {ayuda && <Ayuda texto={ayuda} />}
     </label>

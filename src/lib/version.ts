@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.56";
+export const APP_VERSION = "V.0.99.57";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.57",
+    date: "2026-11-20",
+    changes: [
+      "FICHA DEL PRODUCTO, PRECIOS ALINEADOS (\"alineame eso\"): Precio con transferencia, Lista 2 · 1 pago, Precio oferta y Stock quedaban a distintas alturas porque unos títulos ocupan dos renglones y otros uno. Ahora los títulos ocupan siempre el mismo alto y las cuatro cajas quedan en la misma línea.",
+    ],
+  },
   {
     version: "V.0.99.56",
     date: "2026-11-20",
