@@ -106,8 +106,31 @@ const CDN_DE_FOTOS = [
   "d3ugyf2ht6aenh.cloudfront.net",
 ];
 
-/** Una foto se baja solo si es del sitio de la marca o del servidor de
- *  fotos de su plataforma. */
+/** El dominio de la empresa: "dynamicmedia.sika.com" y "arg.sika.com" son
+ *  de sika.com; "www.fv.com.ar", de fv.com.ar. */
+function dominioDeLaEmpresa(host: string): string {
+  const p = sinWww(host).split(".");
+  const n = p.length >= 3 && /^(com|net|org|gob|gov|edu|co)$/.test(p[p.length - 2]) ? 3 : 2;
+  return p.slice(-n).join(".");
+}
+
+/** Plataformas donde cada tienda es un subdominio: ahi el dominio no dice de
+ *  quien es la foto. */
+const DOMINIOS_COMPARTIDOS = new Set([
+  "mitiendanube.com",
+  "myshopify.com",
+  "wixsite.com",
+  "blogspot.com",
+  "github.io",
+  "netlify.app",
+  "vercel.app",
+  "empretienda.com.ar",
+  "mercadoshops.com.ar",
+]);
+
+/** Una foto se baja solo si es del sitio de la marca (o de otro servidor de
+ *  la misma empresa: Sika guarda las fotos de arg.sika.com en
+ *  dynamicmedia.sika.com) o del servidor de fotos de su plataforma. */
 export function fotoDeLaMarca(url: string | null | undefined, web: string | null | undefined): boolean {
   const base = origenDeLaWeb(web);
   if (!url || !base) return false;
@@ -116,6 +139,8 @@ export function fotoDeLaMarca(url: string | null | undefined, web: string | null
     if (u.protocol !== "https:" && u.protocol !== "http:") return false;
     if (!hostPublico(u.hostname)) return false;
     if (mismoSitio(u.hostname, base)) return true;
+    const empresa = dominioDeLaEmpresa(u.hostname);
+    if (empresa === dominioDeLaEmpresa(base.hostname) && !DOMINIOS_COMPARTIDOS.has(empresa)) return true;
     const h = u.hostname.toLowerCase();
     return CDN_DE_FOTOS.some((c) => h === c || h.endsWith(`.${c}`));
   } catch {
@@ -418,6 +443,25 @@ function sinNombreDelSitio(nombre: string, html: string, url: string): string {
   });
 }
 
+/** Las <img> cuyo texto alternativo es el nombre del producto (o lo
+ *  contiene, o esta contenido en el). Las de Adobe (Sika) vienen achicadas
+ *  ("?width=480"): sin eso se baja la original. */
+function imagenesConElNombre(html: string, nombre: string): string[] {
+  const n = normalTitulo(nombre);
+  if (n.length < 6) return [];
+  const salida: string[] = [];
+  for (const [tag] of html.matchAll(/<img\b[^>]*>/gi)) {
+    const alt = normalTitulo(htmlATexto(tag.match(/\balt="([^"]*)"/i)?.[1] ?? ""));
+    if (alt.length < 6 || !(alt.includes(n) || n.includes(alt))) continue;
+    let src = tag.match(/\bdata-src="([^"]+)"/i)?.[1] ?? tag.match(/\bsrc="([^"]+)"/i)?.[1] ?? "";
+    if (!src || src.startsWith("data:")) continue;
+    src = decodificar(src);
+    if (src.includes("/adobe/assets/")) src = src.split("?")[0];
+    salida.push(src);
+  }
+  return salida;
+}
+
 /** Lo que dice de si misma una pagina de producto. null si no parece una. */
 export function leerPaginaDeProducto(
   html: string,
@@ -473,6 +517,11 @@ export function leerPaginaDeProducto(
   ];
   const deLaFicha = todasLasImagenes(ld?.image);
   const base = [...galeria, ...deLaFicha];
+  // Sin galeria ni ficha para Google: la imagen que lleva el nombre del
+  // producto. Klaukol (Sika) no tiene ni una ni otra ni foto para compartir:
+  // la foto es un <img alt="Klaukol Construkor Impermeable®">. Damian,
+  // 20/11/2026: "ahi pegue esta url y no me trae los productos".
+  if (base.length === 0) base.push(...imagenesConElNombre(html, nombre));
   const fotos = (base.length ? base : [meta(html, "og:image")])
     .map((f) => absoluta(f, url))
     .filter((f): f is string => !!f);

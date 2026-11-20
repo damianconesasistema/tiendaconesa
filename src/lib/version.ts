@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.57";
+export const APP_VERSION = "V.0.99.58";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.58",
+    date: "2026-11-20",
+    changes: [
+      "TRAER DESDE UN LINK, FOTOS DE KLAUKOL / SIKA (\"ahi pegue esta url y no me trae los productos\"): la página de Klaukol no tiene foto para compartir ni ficha para Google; la foto es una imagen común con el nombre del producto, y además está en otro servidor de Sika (dynamicmedia.sika.com), que no se aceptaba. Ahora, si la página no trae fotos de otra forma, se toma la imagen que lleva el nombre del producto, en su tamaño original; y valen las fotos de otro servidor de la misma empresa. Sirve en la ficha del producto y en el alta de artículos (\"Pegar link de la página del producto\").",
+    ],
+  },
   {
     version: "V.0.99.57",
     date: "2026-11-20",
