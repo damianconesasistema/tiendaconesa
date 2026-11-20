@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.55";
+export const APP_VERSION = "V.0.99.56";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.56",
+    date: "2026-11-20",
+    changes: [
+      "ALTA DE ARTÍCULOS, MARCA PARA TODOS (\"agregame ahi para aplicar marca a todo si elijo una\"): el cuadro de marca solo aparecía mientras quedaban artículos sin marca, y la ponía solo a esos. Ahora está siempre, arriba de la lista: elegís una marca y \"Aplicar a los N\" se la pone a todos los tildados de la lista que estás viendo, aunque ya tengan otra. Si quedan algunos sin marca, también está \"Solo a los N sin marca\". Si el rubro no lo cambiaste a mano, se vuelve a calcular con la marca nueva.",
+    ],
+  },
   {
     version: "V.0.99.55",
     date: "2026-11-20",

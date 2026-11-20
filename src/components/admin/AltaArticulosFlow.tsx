@@ -227,13 +227,15 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
   // en subir()).
   const [marcaParaTodos, setMarcaParaTodos] = useState("");
 
-  const sinMarcaTildados = nuevos.filter(
-    (a) => !excluidos.has(a.itemCode) && !conEdicion(a).marca,
-  );
+  // Damian, 20/11/2026, con "KLAUKOL PAGINA.xlsx": "agregame ahi para
+  // aplicar marca a todo si elijo una". El cuadro solo aparecia mientras
+  // quedaban sin marca y ponia la marca solo a esos. Ahora esta siempre y
+  // la pone a TODOS los tildados de la lista que se esta viendo (como
+  // "Buscar y reemplazar"), aunque ya tengan otra; y, si quedan sin marca,
+  // tambien se puede ponerla solo a esos.
+  const tildadosDeLaLista = filtrados.filter((a) => !excluidos.has(a.itemCode));
+  const sinMarcaTildados = tildadosDeLaLista.filter((a) => !conEdicion(a).marca);
 
-  /** Les pone la marca elegida a los tildados que no tienen. Si el rubro no
-   *  lo toco nadie, se recalcula con la marca: una canilla Piazza que por las
-   *  palabras habia caido en Sanitarios ("LAVATORIO") vuelve a Griferia. */
   /** Los titulos que cambio "Buscar y reemplazar" (o su deshacer). */
   function ponerTitulos(titulos: Record<string, string>) {
     setEdiciones((prevEd) => {
@@ -243,12 +245,15 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
     });
   }
 
-  function ponerMarcaATodos() {
+  /** Les pone la marca elegida a esos articulos. Si el rubro no lo toco
+   *  nadie, se recalcula con la marca: una canilla Piazza que por las
+   *  palabras habia caido en Sanitarios ("LAVATORIO") vuelve a Griferia. */
+  function ponerMarcaA(lista: typeof nuevos) {
     if (!marcaParaTodos) return;
     const marca = MARCAS_BASE.find((m) => m.id === marcaParaTodos) ?? null;
     setEdiciones((prevEd) => {
       const n = { ...prevEd };
-      for (const a of sinMarcaTildados) {
+      for (const a of lista) {
         const e = n[a.itemCode] ?? {};
         const cambio: Edicion = { marca: marcaParaTodos };
         if (e.categoria === undefined && marca) {
@@ -707,10 +712,10 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
             onAplicar={ponerTitulos}
           />
 
-          {sinMarcaTildados.length > 0 && (
+          {tildadosDeLaLista.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 py-3">
-              <span className="text-sm">
-                <strong>{sinMarcaTildados.length}</strong> sin marca. Ponerles:
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                Marca para todos
               </span>
               <SelectorDeMarca
                 value={marcaParaTodos}
@@ -722,16 +727,27 @@ export function AltaArticulosFlow({ dctoContado }: { dctoContado: number }) {
               />
               <button
                 type="button"
-                onClick={ponerMarcaATodos}
+                onClick={() => ponerMarcaA(tildadosDeLaLista)}
                 disabled={!marcaParaTodos}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 font-display text-xs font-bold uppercase tracking-wider hover:border-[var(--brand-red)] disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-4 py-2 font-display text-xs font-bold uppercase tracking-wider text-white hover:opacity-90 disabled:opacity-40"
               >
-                Aplicar a los {sinMarcaTildados.length}
+                Aplicar a los {tildadosDeLaLista.length}
               </button>
-              <span className="text-xs text-[var(--muted)]">
-                Si no está en la lista, elegí “+ Agregar marca nueva”. Después
-                se puede cambiar una por una. Los de otra marca (por ejemplo
-                Hydros) corregilos en su ficha.
+              {sinMarcaTildados.length > 0 && sinMarcaTildados.length < tildadosDeLaLista.length && (
+                <button
+                  type="button"
+                  onClick={() => ponerMarcaA(sinMarcaTildados)}
+                  disabled={!marcaParaTodos}
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 font-display text-xs font-bold uppercase tracking-wider hover:border-[var(--brand-red)] disabled:opacity-40"
+                >
+                  Solo a los {sinMarcaTildados.length} sin marca
+                </button>
+              )}
+              <span className="w-full text-xs text-[var(--muted)]">
+                Les pone esa marca a todos los tildados de la lista que estás viendo
+                {filtro === "todos" ? "" : " (para todos los del archivo, tocá “Todos” arriba)"}, aunque ya
+                tengan otra. Si no está en la lista, elegí “+ Agregar marca nueva”. Después se puede
+                cambiar una por una.
               </span>
             </div>
           )}
