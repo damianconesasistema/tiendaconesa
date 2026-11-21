@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.75";
+export const APP_VERSION = "V.0.99.76";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.76",
+    date: "2026-11-21",
+    changes: [
+      "PUNTO, RUBROS Y MARCA AL IMPORTAR DE GBP (con el Excel de Pringles): los asientos de inodoro quedaban en \"VARIOS\" y un mueble sin marca en GBP quedaba con marca \"20.ZISCONTINUADOS\" (el nombre del rubro de GBP). Ahora asientos y artefactos (mamparas, receptáculos) van a Sanitarios, el amoblamiento a Accesorios, herrajes y kits a Repuestos, y un artículo sin marca toma la del nombre o la del proveedor; si no hay, queda VARIOS.",
+    ],
+  },
   {
     version: "V.0.99.75",
     date: "2026-11-21",
