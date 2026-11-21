@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.76";
+export const APP_VERSION = "V.0.99.77";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.77",
+    date: "2026-11-21",
+    changes: [
+      "PUNTO, EL BUSCADOR SE LIMPIA AL SUMAR (\"cuando agregás un artículo debería borrarse del buscador para volver a buscar otro y seguir agregando\"): en la venta, al tocar Sumar (o Enter) el artículo entra, el buscador queda vacío y con el cursor adentro para buscar el siguiente. Igual que en Pedidos.",
+    ],
+  },
   {
     version: "V.0.99.76",
     date: "2026-11-21",
