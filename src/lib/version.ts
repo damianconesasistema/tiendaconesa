@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.74";
+export const APP_VERSION = "V.0.99.75";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.75",
+    date: "2026-11-21",
+    changes: [
+      "PUNTO, ARTÍCULOS DESDE GBP (\"en el sistema que estamos armando me podés agregar todos los productos de PIAZZA, te mando el Excel de GBP\"): en Productos hay una tarjeta nueva, \"Desde GBP\": se suelta el Excel que exporta GlobalBluePoint, muestra lo que encontró (por marca, con lista del proveedor, costo, Lista 1, Lista 2 y stock) y con un botón se guarda. Se guarda en el servidor y no en el código, que es público: así los costos no quedan a la vista y los ven todos los puestos que entran con usuario. El mismo código se actualiza; lo demás queda como estaba. El costo con IVA sale de la Lista 1 (Lista 1 ÷ 1,25, la regla de la casa), porque la columna \"Costo\" de GBP es en realidad la lista del proveedor. Los combos cuyas piezas vienen todas de GBP pasan a valer la suma de sus piezas. Queda anotado en el Registro.",
+      "PUNTO, LEE LOS EXCEL DE GBP: el lector de Excel de Punto no encontraba la hoja (GBP la llama \"sheet.xml\", sin número) ni los renglones (GBP escribe las etiquetas con prefijo, <x:row>). Ahora los lee, también en \"Por adjunto\".",
+    ],
+  },
   {
     version: "V.0.99.74",
     date: "2026-11-21",
