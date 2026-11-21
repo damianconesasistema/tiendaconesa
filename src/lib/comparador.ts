@@ -181,6 +181,9 @@ export type Comparacion = {
   fallaron: string[];
   /** No tiene codigo de modelo: sin eso no hay "mismo modelo" que buscar. */
   sinCodigo?: boolean;
+  /** Las palabras que escribio Damian para buscarlo ("Buscar con otras
+   *  palabras"): se usan tambien en las busquedas siguientes. */
+  palabras?: string;
 };
 
 type ProductoVtex = {
@@ -652,11 +655,17 @@ function palabrasDelTitulo(titulo: string, marca: string | null): string[] {
     .filter((w) => w.length > 2 && !RELLENO.has(w) && !m.has(w) && !/\d/.test(w));
 }
 
-/** Para buscar por palabras: las tres que mas dicen. */
+/** Para buscar por palabras: las tres que mas dicen. Si tiene un rasgo que
+ *  lo hace otro modelo ("alta recuperacion"), va entero: buscando
+ *  "termotanque electrico alta" las tiendas traian el comun. */
 function palabrasClave(titulo: string, marca: string | null): string {
   const todas = palabrasDelTitulo(titulo, marca);
   const buenas = todas.filter((w) => !GENERICAS.has(w));
-  return (buenas.length >= 2 ? buenas : todas).slice(0, 3).join(" ");
+  const elegidas = (buenas.length >= 2 ? buenas : todas).slice(0, 3);
+  const rasgos = rasgosDe(titulo);
+  if (rasgos.length && elegidas.length)
+    return [...new Set([elegidas[0], ...rasgos.flatMap((r) => r.split(" "))])].slice(0, 4).join(" ");
+  return elegidas.join(" ");
 }
 
 /** Un codigo de modelo de verdad: letras y numeros ("410-E", "0207/B1",
@@ -747,7 +756,7 @@ function colorDistinto(nuestro: string, deAfuera: string): boolean {
 // INFERIOR no es el de conexion SUPERIOR (Sodimac tiene el otro).
 const CONTRARIOS: string[][] = [
   ["inferior", "superior"],
-  ["electrico", "electrica", "gas"],
+  ["electrico", "electrica", "gas", "solar"],
   ["izquierda", "izquierdo", "derecha", "derecho"],
   ["simple", "doble"],
   ["interior", "exterior"],
@@ -763,6 +772,38 @@ function seContradicen(nuestro: string, deAfuera: string): boolean {
     const enB = g.filter((w) => b.has(w));
     return enA.length > 0 && enB.length > 0 && !enA.some((w) => enB.includes(w));
   });
+}
+
+// Rasgos que hacen OTRO modelo: si uno lo dice y el otro no, no son el
+// mismo. El termotanque Heineken 120 L electrico de ALTA RECUPERACION es
+// otro (y mas caro) que el comun: Damian, 21/11/2026, "es la misma marca y el
+// modelo electrico pero no es el de alta recuperacion que es mas caro, lo
+// esta comparando con el comun". Se miran los dos lados: el comun tampoco
+// se compara con el de alta recuperacion.
+const RASGOS = ["alta recuperacion", "doble servicio"];
+
+function rasgosDe(texto: string): string[] {
+  const t = ` ${plano(texto)} `;
+  return RASGOS.filter((r) => t.includes(` ${r} `));
+}
+
+/** Uno tiene un rasgo (alta recuperacion) que el otro no. */
+function rasgoDistinto(nuestro: string, deAfuera: string): boolean {
+  const a = rasgosDe(nuestro);
+  const b = rasgosDe(deAfuera);
+  return a.length !== b.length || a.some((r) => !b.includes(r));
+}
+
+/** Lo que sale de un modelo distinto por el titulo, sin mirar codigos ni
+ *  precio: otro color, algo que se contradice, otra medida u otro rasgo. Con
+ *  esto tambien se revisa lo que habia traido una busqueda anterior. */
+export function esOtroModelo(nuestro: string, deAfuera: string): boolean {
+  return (
+    colorDistinto(nuestro, deAfuera) ||
+    seContradicen(nuestro, deAfuera) ||
+    medidasDistintas(nuestro, deAfuera) ||
+    rasgoDistinto(nuestro, deAfuera)
+  );
 }
 
 // Las medidas con su unidad. El extractor TST S300 de 6 pulgadas no es el
@@ -812,25 +853,50 @@ export async function preciosAfuera(p: {
   marca: string | null;
   /** Nuestro precio: si el de afuera es disparatado, no es el mismo producto. */
   precio?: number | null;
+  /** Las palabras que escribio Damian para buscarlo ("Buscar con otras
+   *  palabras"). Cambian lo que se le pregunta a las tiendas; que sea el
+   *  mismo modelo se sigue decidiendo con el titulo (y con un codigo de
+   *  modelo, si escribio uno). */
+  palabras?: string | null;
 }): Promise<Comparacion> {
   const propio = p.itemId.toUpperCase();
+  const propias = plano(String(p.palabras ?? "")).slice(0, 120).trim();
+  // Un codigo de modelo entre sus palabras ("THE-120AR"): se busca ese.
+  const codigosPropios = String(p.palabras ?? "")
+    .split(/\s+/)
+    .map((x) => x.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, ""))
+    .filter((x) => x && x.toUpperCase() !== propio && esCodigoDeModelo(x));
   // El codigo de fabricante manda. Si no hay, los codigos del titulo, despues
   // los de la ayuda memoria y despues los de la descripcion.
-  const codigos = p.codigoFabricante?.trim()
-    ? [p.codigoFabricante.trim()]
-    : codigosDelArticulo(
-        [p.titulo, p.memo ?? "", (p.descripcion ?? "").slice(0, 600)].join(" | "),
-        p.itemId,
-      )
-        .filter((c) => c !== propio && esCodigoDeModelo(c))
-        .slice(0, 2);
+  const codigos = [
+    ...new Set([
+      ...codigosPropios,
+      ...(p.codigoFabricante?.trim()
+        ? [p.codigoFabricante.trim()]
+        : codigosDelArticulo(
+            [p.titulo, p.memo ?? "", (p.descripcion ?? "").slice(0, 600)].join(" | "),
+            p.itemId,
+          )
+            .filter((c) => c !== propio && esCodigoDeModelo(c))
+            .slice(0, 2)),
+    ]),
+  ].slice(0, 3);
   const clave = palabrasClave(p.titulo, p.marca);
   const conMarca = clave && p.marca ? `${plano(p.marca)} ${clave}` : "";
+  // Lo que se le pregunta a las tiendas por palabras: las suyas (con la
+  // marca adelante si no la puso) o las del titulo.
+  const marcaPlana = plano(p.marca ?? "");
+  const porPalabras = propias
+    ? marcaPlana && !` ${propias} `.includes(` ${marcaPlana} `)
+      ? `${marcaPlana} ${propias}`
+      : propias
+    : conMarca || clave;
   // Sin codigo de modelo y sin marca no hay forma de saber que es el mismo.
   const porNombre = codigos.length === 0;
-  if (porNombre && (!p.marca || !conMarca))
-    return { fecha: new Date().toISOString(), buscado: [], resultados: [], fallaron: [], sinCodigo: true };
-  const buscado = [...codigos, ...(conMarca || clave ? [conMarca || clave] : [])];
+  const conPalabras = propias ? { palabras: String(p.palabras).trim().slice(0, 120) } : {};
+  if (porNombre && (!p.marca || !porPalabras))
+    return { fecha: new Date().toISOString(), buscado: [], resultados: [], fallaron: [], sinCodigo: true, ...conPalabras };
+  const buscado = [...codigos, ...(porPalabras ? [porPalabras] : [])];
 
   // El mismo modelo: nombra el codigo en el nombre, la referencia o el
   // detalle del producto (no en una descripcion larga, donde aparece
@@ -853,10 +919,10 @@ export async function preciosAfuera(p: {
   const unaTienda = async (t: (typeof FUENTES)[number]) => {
       const deEsta: PrecioAfuera[] = [];
       let contesto = false;
-      const todas = [...new Set([...terminos(codigos), conMarca || clave].filter(Boolean))];
+      const todas = [...new Set([...terminos(codigos), porPalabras].filter(Boolean))];
       const corto = terminos(codigos).slice(-1)[0];
       const preguntas =
-        t.maximo >= todas.length ? todas : [...new Set([corto, conMarca || clave].filter(Boolean) as string[])].slice(0, t.maximo);
+        t.maximo >= todas.length ? todas : [...new Set([corto, porPalabras].filter(Boolean) as string[])].slice(0, t.maximo);
       for (const termino of preguntas) {
         const lista = await t.buscar(termino);
         if (lista === null) continue;
@@ -864,9 +930,7 @@ export async function preciosAfuera(p: {
         for (const c of lista) {
           // Solo el mismo modelo: por el codigo o, si no tiene, por el nombre.
           const mismo =
-            !colorDistinto(p.titulo, c.titulo) &&
-            !seContradicen(p.titulo, c.titulo) &&
-            !medidasDistintas(p.titulo, c.titulo) &&
+            !esOtroModelo(p.titulo, c.titulo) &&
             (porNombre ? esMismoPorNombre(c.fuerte, c.texto, c.precio) : esExacto(c.fuerte, c.texto, c.precio));
           if (!mismo) continue;
           if (deEsta.some((r) => r.link === c.link)) continue;
@@ -929,7 +993,7 @@ export async function preciosAfuera(p: {
     if (!deML.length)
       for (const termino of terminos(codigos)) {
         for (const m of await publicacionesEnMercadoLibre(`${p.marca} ${termino}`).catch(() => []))
-          if (esExacto(m.titulo, m.titulo, m.precio) && !deML.some((x) => x.link === m.link))
+          if (!esOtroModelo(p.titulo, m.titulo) && esExacto(m.titulo, m.titulo, m.precio) && !deML.some((x) => x.link === m.link))
             deML.push({ tienda: "MercadoLibre", titulo: m.titulo, precio: m.precio, link: m.link, exacto: true });
         if (deML.length) break;
       }
@@ -944,6 +1008,7 @@ export async function preciosAfuera(p: {
     fallaron,
     // Sin codigo y sin nada por el nombre: que se le cargue el codigo.
     ...(porNombre && resultados.length === 0 ? { sinCodigo: true } : {}),
+    ...conPalabras,
   };
 }
 
@@ -996,7 +1061,13 @@ export async function comparacionesGuardadas(): Promise<Record<string, Comparaci
   }
 }
 
-export async function guardarComparaciones(nuevas: Record<string, Comparacion>): Promise<void> {
+export async function guardarComparaciones(
+  nuevas: Record<string, Comparacion>,
+  /** El titulo de cada producto: lo que se trae de la busqueda anterior se
+   *  revisa con las reglas de ahora (que no vuelva el termotanque comun
+   *  comparado con el de alta recuperacion). */
+  titulos: Record<string, string> = {},
+): Promise<void> {
   await pasarLoViejo().catch(() => {});
   const ids = Object.keys(nuevas);
   const previas = new Map(
@@ -1012,7 +1083,11 @@ export async function guardarComparaciones(nuevas: Record<string, Comparacion>):
     if (antes && nueva.fallaron.length > 0) {
       const ya = new Set(nueva.resultados.map((r) => r.tienda));
       for (const r of antes.resultados ?? [])
-        if (nueva.fallaron.includes(r.tienda) && !ya.has(r.tienda))
+        if (
+          nueva.fallaron.includes(r.tienda) &&
+          !ya.has(r.tienda) &&
+          !(titulos[id] && esOtroModelo(titulos[id], r.titulo))
+        )
           nueva.resultados.push({ ...r, anterior: r.anterior ?? antes.fecha });
       nueva.resultados.sort((a, b) => a.precio - b.precio);
     }

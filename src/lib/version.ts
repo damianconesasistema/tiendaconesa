@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.63";
+export const APP_VERSION = "V.0.99.64";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.64",
+    date: "2026-11-21",
+    changes: [
+      "COMPARADOR, ALTA RECUPERACIÓN ES OTRO MODELO (\"no es el de alta recuperación que es más caro, lo está comparando con el común\", con el termotanque Heineken 120 L): si uno dice \"alta recuperación\" (o \"doble servicio\") y el otro no, ya no se toman como el mismo modelo, para los dos lados. Y se busca con esas palabras enteras (antes buscaba \"termotanque eléctrico alta\" y las tiendas traían el común). Lo que había traído una búsqueda anterior también se revisa con esta regla. \"Solar\" tampoco se mezcla con eléctrico o gas.",
+      "COMPARADOR, BUSCAR DE NUEVO CON OTRAS PALABRAS (\"poneme ahí para hacer una rebúsqueda\"): al abrir un producto (la flechita) hay un cuadro con las palabras con que se buscó, para cambiarlas y tocar \"Buscar de nuevo\". Las palabras quedan para las próximas búsquedas de ese producto; \"Volver a buscar con el título\" las saca. Igual solo aparece el mismo modelo (mismo tipo, medidas y rasgos). Si se escribe el código del modelo, se busca ese.",
+      "COMPARADOR, LISTA 2 Y TRANSFERENCIA (\"cuando decís nuestro precio ponele lista 2 arriba y al lado también poné el precio de transferencia\"): la columna \"Nuestro precio\" ahora se llama \"Lista 2\" y al lado está \"Transferencia\". Las dos se pueden ordenar. Los porcentajes siguen contra Lista 2.",
+    ],
+  },
   {
     version: "V.0.99.63",
     date: "2026-11-21",

@@ -17,6 +17,9 @@ const POR_PEDIDO = 3;
 
 async function compararPrecios__(
   itemIds: string[],
+  /** Palabras propias para buscar alguno ("Buscar con otras palabras"). Si
+   *  no vienen, se usan las que se escribieron la vez anterior; "" las borra. */
+  palabras?: Record<string, string>,
 ): Promise<{ ok: true; resultados: Record<string, Comparacion> } | { ok: false; error: string }> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
@@ -24,7 +27,7 @@ async function compararPrecios__(
   const pedidos = [...new Set((itemIds ?? []).map(String))].slice(0, POR_PEDIDO);
   if (pedidos.length === 0) return { ok: true, resultados: {} };
 
-  const [productos, marcas, suc, recargos] = await Promise.all([
+  const [productos, marcas, suc, recargos, anteriores] = await Promise.all([
     prisma.product.findMany({
       where: { itemId: { in: pedidos } },
       select: { id: true, itemId: true, title: true, memo: true, description: true, codigoFabricante: true, brand: true },
@@ -32,7 +35,18 @@ async function compararPrecios__(
     getMarcas(),
     sucursalDelPanel(),
     getRecargosDelPanel(),
+    prisma.comparacionPrecio
+      .findMany({ where: { itemId: { in: pedidos } }, select: { itemId: true, datos: true } })
+      .catch(() => []),
   ]);
+  // Las palabras que se escribieron la vez anterior siguen valiendo.
+  const palabrasDeAntes = new Map(
+    anteriores.map((a) => [a.itemId, (a.datos as unknown as Comparacion | null)?.palabras ?? null]),
+  );
+  const palabrasDe = (itemId: string): string | null =>
+    palabras && Object.prototype.hasOwnProperty.call(palabras, itemId)
+      ? String(palabras[itemId] ?? "").slice(0, 120) || null
+      : (palabrasDeAntes.get(itemId) ?? null);
   // Nuestro precio en este local (el que ve el cliente), para descartar lo
   // que sale disparatado.
   const precios = new Map<string, number>();
@@ -56,13 +70,15 @@ async function compararPrecios__(
           codigoFabricante: p.codigoFabricante,
           precio: precios.get(p.id) ?? null,
           marca: p.brand ? (nombreMarca.get(p.brand) ?? p.brand) : null,
+          palabras: palabrasDe(p.itemId),
         });
       } catch {
         /* ese queda sin buscar; los demas siguen */
       }
     }),
   );
-  if (Object.keys(resultados).length) await guardarComparaciones(resultados);
+  if (Object.keys(resultados).length)
+    await guardarComparaciones(resultados, Object.fromEntries(productos.map((p) => [p.itemId, p.title])));
   return { ok: true, resultados };
 }
 

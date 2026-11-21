@@ -18,20 +18,24 @@ export type FilaComparador = {
   marca: string | null;
   rubro: string;
   imagen: string;
-  /** El que ve el cliente en la tienda: debito o 1 pago. */
+  /** El que ve el cliente en la tienda: debito o 1 pago (Lista 2). */
   precio: number;
+  /** Pagando por transferencia (12% menos). Damian, 21/11/2026: "cuando
+   *  decis nuestro precio ponele lista 2 arriba y al lado tambien pone el
+   *  precio de transferencia por favor para comparar". */
+  transferencia: number;
   comparacion: Comparacion | null;
 };
 
 type Filtro = "todos" | "sin-buscar" | "mismo" | "caros" | "baratos" | "nada" | "sin-codigo";
 /** Por que columna y para que lado. Damian, 18/11/2026: "ponele filtros
  *  ahi" (en los titulos de las columnas): un toque ordena, otro da vuelta. */
-type Columna = "nombre" | "precio" | "afuera" | "diferencia";
+type Columna = "nombre" | "precio" | "transferencia" | "afuera" | "diferencia";
 type Orden = { col: Columna; asc: boolean };
 const ORDENES: { valor: string; texto: string; orden: Orden }[] = [
   { valor: "nombre-asc", texto: "Nombre (A-Z)", orden: { col: "nombre", asc: true } },
-  { valor: "precio-asc", texto: "Nuestro precio: menor primero", orden: { col: "precio", asc: true } },
-  { valor: "precio-desc", texto: "Nuestro precio: mayor primero", orden: { col: "precio", asc: false } },
+  { valor: "precio-asc", texto: "Lista 2: menor primero", orden: { col: "precio", asc: true } },
+  { valor: "precio-desc", texto: "Lista 2: mayor primero", orden: { col: "precio", asc: false } },
   { valor: "afuera-asc", texto: "Precio afuera: menor primero", orden: { col: "afuera", asc: true } },
   { valor: "diferencia-desc", texto: "Los más caros primero", orden: { col: "diferencia", asc: false } },
   { valor: "diferencia-asc", texto: "Los más baratos primero", orden: { col: "diferencia", asc: true } },
@@ -145,7 +149,9 @@ export function ComparadorPrecios({
         ? f.titulo
         : orden.col === "precio"
           ? f.precio
-          : orden.col === "afuera"
+          : orden.col === "transferencia"
+            ? f.transferencia
+            : orden.col === "afuera"
             ? (mejorExacto(f.comparacion, f.precio)?.precio ?? null)
             : diferencia(f);
     l.sort((a, b) => {
@@ -171,8 +177,10 @@ export function ComparadorPrecios({
     return { buscados, mismo, caros };
   }, [filas]);
 
-  /** Busca estos, de a poquitos, hasta terminar o hasta que se frene. */
-  async function buscarEstos(ids: string[]) {
+  /** Busca estos, de a poquitos, hasta terminar o hasta que se frene. Con
+   *  palabras: las que escribio Damian para alguno ("" vuelve a las del
+   *  titulo). */
+  async function buscarEstos(ids: string[], palabras?: Record<string, string>) {
     if (buscando || ids.length === 0) return;
     frenar.current = false;
     setError(null);
@@ -181,7 +189,7 @@ export function ComparadorPrecios({
       for (let i = 0; i < ids.length && !frenar.current; i += DE_A) {
         const tanda = ids.slice(i, i + DE_A);
         setEnCurso(new Set(tanda));
-        const r = await compararPrecios(tanda);
+        const r = await compararPrecios(tanda, palabras);
         if (!r.ok) {
           setError(r.error);
           break;
@@ -325,12 +333,15 @@ export function ComparadorPrecios({
       {error && <p className="mt-2 text-sm font-medium text-red-700">{error}</p>}
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
-        <div className="hidden grid-cols-[1fr_120px_300px_110px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
+        <div className="hidden grid-cols-[1fr_112px_128px_290px_100px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
           <Titulo col="nombre" orden={orden} setOrden={setOrden}>
             Producto
           </Titulo>
           <Titulo col="precio" orden={orden} setOrden={setOrden} derecha>
-            Nuestro precio
+            Lista 2
+          </Titulo>
+          <Titulo col="transferencia" orden={orden} setOrden={setOrden} derecha>
+            Transferencia
           </Titulo>
           {/* Damian, 19/11/2026: "aca ponele mismo modelo que vende la competencia". */}
           <Titulo col="afuera" orden={orden} setOrden={setOrden}>
@@ -353,6 +364,7 @@ export function ComparadorPrecios({
             buscandoEste={enCurso.has(f.itemId)}
             ocupado={!!buscando}
             buscarEste={() => void buscarEstos([f.itemId])}
+            buscarConPalabras={(palabras) => void buscarEstos([f.itemId], { [f.itemId]: palabras })}
           />
         ))}
       </div>
@@ -426,6 +438,7 @@ function Fila({
   buscandoEste,
   ocupado,
   buscarEste,
+  buscarConPalabras,
 }: {
   f: FilaComparador;
   abierto: boolean;
@@ -433,6 +446,7 @@ function Fila({
   buscandoEste: boolean;
   ocupado: boolean;
   buscarEste: () => void;
+  buscarConPalabras: (palabras: string) => void;
 }) {
   const c = f.comparacion;
   const mejor = mejorExacto(c, f.precio);
@@ -443,7 +457,7 @@ function Fila({
 
   return (
     <div className="border-b border-[var(--border)] last:border-b-0">
-      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_120px_300px_110px_90px] md:items-center">
+      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_112px_128px_290px_100px_90px] md:items-center">
         <div className="flex min-w-0 items-center gap-3">
           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[var(--border)] bg-white">
             <Image
@@ -463,7 +477,20 @@ function Fila({
           </div>
         </div>
 
-        <div className="text-right font-display text-sm font-black md:text-base">{formatPrice(f.precio)}</div>
+        <div className="text-right">
+          <div className="font-display text-sm font-black md:text-base" title="Lista 2 (débito o 1 pago)">
+            {formatPrice(f.precio)}
+          </div>
+          <div className="text-[11px] text-[var(--muted)] md:hidden">
+            Transf. {formatPrice(f.transferencia)}
+          </div>
+        </div>
+        <div
+          className="hidden text-right font-display text-sm font-bold text-[var(--muted)] md:block"
+          title="Pagando por transferencia"
+        >
+          {formatPrice(f.transferencia)}
+        </div>
 
         <div className="col-span-2 text-sm md:col-span-1">
           {buscandoEste ? (
@@ -583,6 +610,13 @@ function Fila({
             Buscado el {fechaCorta(c.fecha)} con: <strong>{c.buscado.join(" · ") || "—"}</strong>
             {c.fallaron.length > 0 && <> · Quedaron para la próxima búsqueda: {c.fallaron.join(", ")}</>}
           </div>
+          <OtrasPalabras
+            key={`${c.fecha}-${c.palabras ?? ""}`}
+            inicial={c.palabras ?? c.buscado[c.buscado.length - 1] ?? ""}
+            propias={!!c.palabras}
+            ocupado={ocupado}
+            buscar={buscarConPalabras}
+          />
           {exactos.length > 0 ? (
             <Lista titulo="Mismo modelo" items={exactos} nuestro={f.precio} />
           ) : (
@@ -594,6 +628,70 @@ function Fila({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Buscar de nuevo ese producto con otras palabras. Damian, 21/11/2026, con
+ *  el termotanque Heineken 120 L de alta recuperacion comparado con el comun:
+ *  "poneme ahi para hacer una rebusqueda". Las palabras quedan para las
+ *  busquedas siguientes; que sea el mismo modelo se sigue decidiendo con el
+ *  titulo del producto. */
+function OtrasPalabras({
+  inicial,
+  propias,
+  ocupado,
+  buscar,
+}: {
+  inicial: string;
+  propias: boolean;
+  ocupado: boolean;
+  buscar: (palabras: string) => void;
+}) {
+  const [t, setT] = useState(inicial);
+  return (
+    <div className="mt-3 rounded-lg border border-[var(--border)] bg-white p-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (t.trim()) buscar(t.trim());
+        }}
+        className="flex flex-wrap items-center gap-2"
+      >
+        <label htmlFor="otras-palabras" className="text-xs font-bold uppercase tracking-wider">
+          Buscar de nuevo con estas palabras
+        </label>
+        <input
+          id="otras-palabras"
+          value={t}
+          onChange={(e) => setT(e.target.value)}
+          maxLength={120}
+          placeholder="Ej.: heineken termotanque alta recuperacion 120"
+          className="h-9 min-w-[220px] flex-1 rounded-lg border border-[var(--border)] px-3 text-sm outline-none focus:border-[var(--brand-red)]"
+        />
+        <button
+          type="submit"
+          disabled={ocupado || !t.trim()}
+          className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--brand-red)] px-4 text-xs font-bold uppercase tracking-wider text-white disabled:opacity-50"
+        >
+          <Search className="h-3.5 w-3.5" /> Buscar de nuevo
+        </button>
+        {propias && (
+          <button
+            type="button"
+            disabled={ocupado}
+            onClick={() => buscar("")}
+            className="text-xs font-semibold text-[var(--brand-red)] hover:underline disabled:opacity-50"
+          >
+            Volver a buscar con el título
+          </button>
+        )}
+      </form>
+      <p className="mt-1.5 text-[11px] text-[var(--muted)]">
+        Se le pregunta a las tiendas con lo que escribas y queda para las próximas búsquedas. Igual solo
+        aparece el mismo modelo que tu producto: mismo tipo, medidas y rasgos como &quot;alta
+        recuperación&quot;. Si sabés el código del modelo, escribilo: se busca ese.
+      </p>
     </div>
   );
 }

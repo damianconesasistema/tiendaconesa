@@ -62,8 +62,11 @@ export default async function ComparadorPage() {
       marca: f.product.brand ? (nombreMarca.get(f.product.brand) ?? f.product.brand) : null,
       rubro: nombreRubro(f.product.category, rubrosExtra),
       imagen: f.product.imageUrl || `/categories/${f.product.category}.jpg`,
-      // El que ve el cliente: debito o 1 pago, con la oferta si tiene.
+      // El que ve el cliente: debito o 1 pago (Lista 2), con la oferta si
+      // tiene.
       precio: precioVitrina(f.salePrice ?? f.price, recargos.unPago),
+      // Pagando por transferencia: el que esta guardado (el de contado).
+      transferencia: f.salePrice ?? f.price,
       comparacion: guardadas[f.product.itemId] ?? null,
     }))
     .sort((a, b) => a.titulo.localeCompare(b.titulo, "es"));
