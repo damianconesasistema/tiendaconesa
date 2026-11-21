@@ -141,7 +141,8 @@ export async function leerComprobante(
   const EMPEZO = Date.now();
   // La tabla entera tarda mas en escribirse que unos renglones. Igual queda
   // debajo de los 120 s que nginx espera al servidor.
-  const LIMITE_TOTAL = modo === "tabla" ? 100_000 : 75_000;
+  // Y debajo de los 100 s de Cloudflare, que si no corta con su propio error.
+  const LIMITE_TOTAL = modo === "tabla" ? 90_000 : 75_000;
   const LIMITE_INTENTO = modo === "tabla" ? 80_000 : 40_000;
   const queda = () => LIMITE_TOTAL - (Date.now() - EMPEZO);
 

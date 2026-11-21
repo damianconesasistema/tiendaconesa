@@ -113,6 +113,8 @@ export async function POST(req: Request): Promise<Response> {
   if (noPuede) return json({ error: noPuede }, 429);
 
   const r = await leerComprobante(base64, mime, "tabla");
-  if (r.error) return json({ error: r.error }, 502);
+  // Con 200 y no 502: un 5xx lo tapa Cloudflare con su propia pagina
+  // ("error code: 502") y la pantalla no podia decir que paso.
+  if (r.error) return json({ error: r.error });
   return json({ ok: true, filas: r.filas || [] });
 }

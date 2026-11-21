@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.73";
+export const APP_VERSION = "V.0.99.74";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.74",
+    date: "2026-11-21",
+    changes: [
+      "SIMULADOR DE COSTO, EL MOTIVO CUANDO LA IA NO PUEDE LEER: si la lectura de un PDF o una foto fallaba, Cloudflare tapaba la respuesta con su propio \"error code: 502\" y la página no podía decir qué pasó. Ahora llega el motivo (Google saturado, tardó demasiado, sin cupo...). Y la espera queda debajo de los 100 segundos que aguanta Cloudflare.",
+    ],
+  },
   {
     version: "V.0.99.73",
     date: "2026-11-21",
