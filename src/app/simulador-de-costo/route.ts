@@ -13,6 +13,9 @@ export function GET() {
       "content-type": "text/html; charset=utf-8",
       // Es para mandar por link, no para que aparezca en Google.
       "x-robots-tag": "noindex, nofollow",
+      // Que el navegador pregunte siempre si hay una version nueva: si no,
+      // el que ya la abrio seguia viendo la de antes despues de un cambio.
+      "cache-control": "no-cache",
     },
   });
 }

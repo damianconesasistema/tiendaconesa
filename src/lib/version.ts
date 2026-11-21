@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.68";
+export const APP_VERSION = "V.0.99.69";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.69",
+    date: "2026-11-21",
+    changes: [
+      "SIMULADOR DE COSTO, 6 DESCUENTOS DEL PROVEEDOR (\"poneme 6 descuentos\"): ahora se pone el precio de lista del proveedor y hasta 6 descuentos, uno después del otro (ej. 35 + 10 + 5). Da el costo sin IVA y el descuento total, y de ahí sale todo lo demás como antes. Vacíos, el costo es la lista, como en el Excel.",
+      "SIMULADOR DE COSTO, MUCHOS ARTÍCULOS CON UN EXCEL (\"subir un excel y que me hagas un calculo gral de precios\"): se sube el Excel del proveedor (.xlsx, .xls o .csv), se elige la columna del precio (la adivina sola, igual que la fila de los títulos y la del artículo) y se baja el mismo Excel con 9 columnas nuevas a la derecha: costo, por mayor, Lista 1 y Lista 2 sin y con IVA, y la Lista 2 con el descuento. Trae una segunda hoja con los descuentos y porcentajes que se usaron. El archivo se lee en la compu de quien lo sube: no viaja al servidor.",
+      "SIMULADOR DE COSTO, LETRA DE CONESA (\"poneme la tipografia de conesa tambien y los numeros igual\"): Montserrat en los títulos y los números, como los precios de la tienda, e Inter en el texto.",
+    ],
+  },
   {
     version: "V.0.99.68",
     date: "2026-11-21",
