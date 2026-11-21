@@ -40,6 +40,32 @@ import { anotarErrorDePantalla } from "@/lib/errores-de-pantalla";
 
 type Img = { id: string; position: number };
 
+/** Baja la foto de un link desde esta compu (no desde el servidor). Hay webs
+ *  de fotos que no le contestan a un servidor de Google pero si a una compu:
+ *  Damian, 21/11/2026, con una foto de Sika (sika.scene7.com) que el servidor
+ *  no podia bajar: "me sigue sin cargar". Solo anda si la web de la foto lo
+ *  permite (Sika y MercadoLibre si). Si no es una foto, null. */
+async function bajarDesdeLaCompu(url: string): Promise<File | null> {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+    const r = await fetch(u.toString(), {
+      mode: "cors",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const tipo = (r.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+    if (!r.ok || !tipo.startsWith("image/")) return null;
+    const blob = await r.blob();
+    if (blob.size === 0 || blob.size > 15 * 1024 * 1024) return null;
+    const ext = (tipo.split("/")[1] ?? "jpg").replace("jpeg", "jpg").split("+")[0];
+    return new File([blob], `foto-del-link.${ext}`, { type: tipo });
+  } catch {
+    return null;
+  }
+}
+
 export function ProductImageUpload({
   itemId,
   category,
@@ -141,7 +167,7 @@ export function ProductImageUpload({
   // Subimos de a UNA foto: así mostramos progreso real y evitamos superar
   // el límite de tamaño del request (varias fotos juntas lo rompían).
   function onFiles(
-    fileList: FileList,
+    fileList: FileList | File[],
     opciones: { fondo?: boolean; principal?: boolean } = {},
   ) {
     const conFondo = opciones.fondo ?? sacarFondo;
@@ -347,52 +373,68 @@ export function ProductImageUpload({
     setLinkMsg(null);
     enSegundoPlano(async () => {
       setBusy(true);
+      // Si el servidor no pudo bajar la foto, la baja esta compu y se sube
+      // como cualquier foto (despues del finally: onFiles maneja "busy").
+      let deLaCompu: File | null = null;
       try {
         const r = await traerDeUnLink(itemId, url);
-        if (!r.ok) {
-          setLinkMsg({ ok: false, texto: `No se pudo: ${r.motivo}.` });
-          return;
-        }
-        if (r.agregadas > 0) await refresh();
-        // Por que no entro ninguna: que se sepa (Damian, 20/11/2026: "porque
-        // aveces no sube las fotos que le pongo link?").
-        const porQueNo = r.sinLugar
-          ? `el producto ya tiene ${MAX_PRODUCT_IMAGES} fotos, que es el máximo. Borrá alguna y probá de nuevo`
-          : r.encontradas === 0
-            ? "en esa página no encontré fotos del producto. Probá con el link de la foto (clic derecho en la foto → «Copiar dirección de imagen»)"
-            : r.repetidas > 0 && r.fallidas === 0
-              ? `${r.repetidas === 1 ? "esa foto ya estaba cargada" : "esas fotos ya estaban cargadas"}`
-              : "la página no dejó bajar la foto. Guardala en la compu y subila con «Subir fotos»";
-        // Link directo a una foto: solo la foto.
-        if (r.soloFoto) {
-          setLinkMsg(
-            r.agregadas > 0
-              ? { ok: true, texto: `Listo: la foto quedó agregada${r.principal ? " como principal" : " al final"}.` }
-              : { ok: false, texto: `No se agregó: ${porQueNo}.` },
-          );
-          if (r.agregadas > 0) setLink("");
-          return;
-        }
-        if (r.descripcion)
-          window.dispatchEvent(
-            new CustomEvent("conesa:descripcion-de-link", { detail: { itemId, texto: r.descripcion } }),
-          );
-        const partes = [
-          r.agregadas > 0
-            ? `${r.agregadas} foto${r.agregadas === 1 ? "" : "s"} agregada${r.agregadas === 1 ? "" : "s"}${
-                r.principal ? " (la primera quedó como principal)" : ""
-              }${r.fallidas > 0 ? ` (${r.fallidas} no se ${r.fallidas === 1 ? "pudo" : "pudieron"} bajar)` : ""}${
-                r.sinLugar ? ` (no entraron todas: el máximo es ${MAX_PRODUCT_IMAGES})` : ""
-              }`
-            : `ninguna foto: ${porQueNo}`,
-          r.descripcion ? "la descripción quedó en el cuadro de la derecha para revisar y Guardar" : "sin descripción",
-        ];
-        setLinkMsg({ ok: true, texto: `Listo, de "${r.nombre}": ${partes.join("; ")}.` });
-        setLink("");
+        const noPudo = !r.ok ? r.motivo !== "no autorizado" : !!r.soloFoto && r.agregadas === 0 && r.fallidas > 0;
+        if (noPudo) deLaCompu = await bajarDesdeLaCompu(url);
+        if (deLaCompu) {
+          setLinkMsg({
+            ok: true,
+            texto: "Esa web no deja que el servidor baje la foto, así que la bajó tu compu: se está subiendo.",
+          });
+          setLink("");
+        } else await mostrarResultadoDelLink(r);
       } finally {
         setBusy(false);
       }
+      if (deLaCompu) onFiles([deLaCompu]);
     });
+  }
+
+  async function mostrarResultadoDelLink(r: Awaited<ReturnType<typeof traerDeUnLink>>) {
+    if (!r.ok) {
+      setLinkMsg({ ok: false, texto: `No se pudo: ${r.motivo}.` });
+      return;
+    }
+    if (r.agregadas > 0) await refresh();
+    // Por que no entro ninguna: que se sepa (Damian, 20/11/2026: "porque
+    // aveces no sube las fotos que le pongo link?").
+    const porQueNo = r.sinLugar
+      ? `el producto ya tiene ${MAX_PRODUCT_IMAGES} fotos, que es el máximo. Borrá alguna y probá de nuevo`
+      : r.encontradas === 0
+        ? "en esa página no encontré fotos del producto. Probá con el link de la foto (clic derecho en la foto → «Copiar dirección de imagen»)"
+        : r.repetidas > 0 && r.fallidas === 0
+          ? `${r.repetidas === 1 ? "esa foto ya estaba cargada" : "esas fotos ya estaban cargadas"}`
+          : `la página no dejó bajar la foto${r.motivoFalla ? ` (${r.motivoFalla})` : ""}. Guardala en la compu y subila con «Subir fotos»`;
+    // Link directo a una foto: solo la foto.
+    if (r.soloFoto) {
+      setLinkMsg(
+        r.agregadas > 0
+          ? { ok: true, texto: `Listo: la foto quedó agregada${r.principal ? " como principal" : " al final"}.` }
+          : { ok: false, texto: `No se agregó: ${porQueNo}.` },
+      );
+      if (r.agregadas > 0) setLink("");
+      return;
+    }
+    if (r.descripcion)
+      window.dispatchEvent(
+        new CustomEvent("conesa:descripcion-de-link", { detail: { itemId, texto: r.descripcion } }),
+      );
+    const partes = [
+      r.agregadas > 0
+        ? `${r.agregadas} foto${r.agregadas === 1 ? "" : "s"} agregada${r.agregadas === 1 ? "" : "s"}${
+            r.principal ? " (la primera quedó como principal)" : ""
+          }${r.fallidas > 0 ? ` (${r.fallidas} no se ${r.fallidas === 1 ? "pudo" : "pudieron"} bajar)` : ""}${
+            r.sinLugar ? ` (no entraron todas: el máximo es ${MAX_PRODUCT_IMAGES})` : ""
+          }`
+        : `ninguna foto: ${porQueNo}`,
+      r.descripcion ? "la descripción quedó en el cuadro de la derecha para revisar y Guardar" : "sin descripción",
+    ];
+    setLinkMsg({ ok: true, texto: `Listo, de "${r.nombre}": ${partes.join("; ")}.` });
+    setLink("");
   }
 
   function onTraerDeFV(aunqueSeaDeOtraTerminacion = false, reemplazar = false) {

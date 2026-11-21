@@ -138,10 +138,17 @@ export function esFotoDeFV(url: string | null | undefined): url is string {
 async function bajarFotoDeFV(
   url: string,
   web?: string | null,
+  /** Si no se pudo, por que (para decirlo en pantalla y en el Registro). */
+  porQue?: { motivo?: string },
 ): Promise<{ data: Buffer; contentType: string } | null> {
-  if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web) && !fotoDeMercadoLibre(url)) return null;
+  const no = (motivo: string) => {
+    if (porQue) porQue.motivo = motivo;
+    return null;
+  };
+  if (!esFotoDeFV(url) && !fotoDeLaMarca(url, web) && !fotoDeMercadoLibre(url))
+    return no("la foto está en otro sitio que la página");
   // Nunca a la red interna del servidor, aunque el nombre lo disfrace.
-  if (!(await urlPublica(url))) return null;
+  if (!(await urlPublica(url))) return no("no es una dirección pública");
   try {
     const r = await fetch(url, {
       headers: { "User-Agent": UA },
@@ -149,13 +156,19 @@ async function bajarFotoDeFV(
       cache: "no-store",
     });
     const tipo = r.headers.get("content-type") || "";
-    if (!r.ok || !tipo.startsWith("image/")) return null;
+    if (!r.ok) return no(`la web de la foto contestó ${r.status}`);
+    if (!tipo.startsWith("image/")) return no(`la web no mandó una foto (${tipo.split(";")[0] || "sin tipo"})`);
     const crudo = Buffer.from(await r.arrayBuffer());
-    if (crudo.length === 0 || crudo.length > 10 * 1024 * 1024) return null;
+    if (crudo.length === 0) return no("la foto vino vacía");
+    if (crudo.length > 10 * 1024 * 1024) return no("la foto pesa más de 10 MB");
     const { data, contentType } = await processProductImage(crudo);
     return { data: Buffer.from(data), contentType };
-  } catch {
-    return null;
+  } catch (e) {
+    return no(
+      (e as Error)?.name === "TimeoutError"
+        ? "la web de la foto no contestó a tiempo"
+        : "no se pudo conectar con la web de la foto",
+    );
   }
 }
 
@@ -537,12 +550,22 @@ export async function agregarFotosDeUnLink(
   itemId: string,
   fotos: string[],
   web: string,
-): Promise<{ agregadas: number; principal: boolean; fallidas: number; repetidas: number; sinLugar: boolean }> {
+): Promise<{
+  agregadas: number;
+  principal: boolean;
+  fallidas: number;
+  repetidas: number;
+  sinLugar: boolean;
+  /** Por que no se pudo bajar la primera que fallo. */
+  motivoFalla: string | null;
+}> {
   const producto = await prisma.product.findUnique({
     where: { itemId },
     select: { id: true, images: { select: { data: true } } },
   });
-  if (!producto) return { agregadas: 0, principal: false, fallidas: 0, repetidas: 0, sinLugar: false };
+  if (!producto)
+    return { agregadas: 0, principal: false, fallidas: 0, repetidas: 0, sinLugar: false, motivoFalla: null };
+  const porQue: { motivo?: string } = {};
   const yaTiene: Buffer[] = producto.images.map((i) => Buffer.from(i.data));
   let posicion = producto.images.length;
   let agregadas = 0;
@@ -555,7 +578,7 @@ export async function agregarFotosDeUnLink(
       sinLugar = true;
       break;
     }
-    const foto = await bajarFotoDeFV(url, web);
+    const foto = await bajarFotoDeFV(url, web, fallidas === 0 ? porQue : undefined);
     if (!foto) {
       fallidas++;
       continue;
@@ -573,5 +596,5 @@ export async function agregarFotosDeUnLink(
   const principal = producto.images.length === 0 && agregadas > 0;
   if (principal)
     await prisma.product.update({ where: { itemId }, data: { imageUrl: rutaFoto(itemId, Date.now()) } });
-  return { agregadas, principal, fallidas, repetidas, sinLugar };
+  return { agregadas, principal, fallidas, repetidas, sinLugar, motivoFalla: porQue.motivo ?? null };
 }

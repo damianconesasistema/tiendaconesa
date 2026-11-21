@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.62";
+export const APP_VERSION = "V.0.99.63";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.63",
+    date: "2026-11-21",
+    changes: [
+      "TRAER DESDE UN LINK, SI EL SERVIDOR NO PUEDE LA BAJA TU COMPU (\"me sigue sin cargar\", con la foto de Sika en sika.scene7.com): hay webs de fotos que no le contestan al servidor de la tienda (está en Google) pero sí a una compu. Ahora, si el servidor no pudo bajar la foto del link, la baja tu compu y se sube como cualquier foto (con \"Mejorar\" si está prendido). Anda con las webs que lo permiten, como Sika y MercadoLibre.",
+      "TRAER DESDE UN LINK, EL MOTIVO EXACTO: si no se pudo, el mensaje dice qué contestó la web (por ejemplo \"la web de la foto contestó 403\" o \"no contestó a tiempo\") y queda anotado en Panel → Registro como \"Error en /admin/productos/…\", con el link.",
+    ],
+  },
   {
     version: "V.0.99.62",
     date: "2026-11-20",

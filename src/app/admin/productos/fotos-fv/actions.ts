@@ -16,6 +16,7 @@ import { getMarcas, marcasConWeb } from "@/lib/marcas-server";
 import { mlConectado } from "@/lib/mercadolibre";
 import { leerLink } from "@/lib/web-de-marca";
 import { conRegistro } from "@/lib/actividad";
+import { anotarError } from "@/lib/errores";
 
 // Traer de la pagina oficial de la marca (FV y Piazza, ver
 // src/lib/web-de-marca.ts), por el codigo, la foto y la descripcion de
@@ -211,14 +212,29 @@ async function traerDeUnLink__(
       fallidas: number;
       repetidas: number;
       sinLugar: boolean;
+      /** Por que no se pudo bajar ("la web de la foto contesto 403"). */
+      motivoFalla: string | null;
     }
   | { ok: false; motivo: string }
 > {
   const session = await getAdminSession();
   if (!session) return { ok: false, motivo: "no autorizado" };
+  // Lo que no anda queda en el Registro, con el motivo (Damian, 21/11/2026:
+  // "me sigue sin cargar", con una foto de Sika que aca si bajaba: lo que
+  // pasa en el servidor no se ve desde afuera).
+  const anotar = (motivo: string) =>
+    anotarError({
+      donde: `/admin/productos/${itemId}`,
+      que: `Traer desde un link: ${String(link).slice(0, 250)} → ${motivo}`,
+      tipo: "traer desde un link",
+      usuario: session.username,
+    });
   const d = await leerLink(link);
-  if (!d.encontrado || (!d.nombre && !d.soloFoto))
-    return { ok: false, motivo: d.motivo ?? "no se pudo leer esa página" };
+  if (!d.encontrado || (!d.nombre && !d.soloFoto)) {
+    const motivo = d.motivo ?? "no se pudo leer esa página";
+    await anotar(motivo);
+    return { ok: false, motivo };
+  }
   const ficha = d.ficha ?? link;
   let web = "";
   try {
@@ -228,8 +244,9 @@ async function traerDeUnLink__(
   }
   const fotos = web
     ? await agregarFotosDeUnLink(itemId, d.fotos ?? [], web)
-    : { agregadas: 0, principal: false, fallidas: 0, repetidas: 0, sinLugar: false };
+    : { agregadas: 0, principal: false, fallidas: 0, repetidas: 0, sinLugar: false, motivoFalla: null };
   if (fotos.agregadas > 0) refrescar(itemId);
+  if (fotos.fallidas > 0) await anotar(`${fotos.fallidas} foto(s) sin bajar: ${fotos.motivoFalla ?? "sin motivo"}`);
   return {
     ok: true,
     agregadas: fotos.agregadas,
@@ -238,6 +255,7 @@ async function traerDeUnLink__(
     fallidas: fotos.fallidas,
     repetidas: fotos.repetidas,
     sinLugar: fotos.sinLugar,
+    motivoFalla: fotos.motivoFalla,
     descripcion: d.descripcion ?? null,
     nombre: d.nombre ?? "",
     ficha,
