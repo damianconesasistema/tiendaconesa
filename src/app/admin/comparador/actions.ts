@@ -6,7 +6,17 @@ import { getMarcas } from "@/lib/marcas-server";
 import { sucursalDelPanel } from "@/lib/sucursal-panel";
 import { getRecargosDelPanel } from "@/lib/settings";
 import { precioVitrina } from "@/lib/precios";
-import { guardarComparaciones, preciosAfuera, type Comparacion } from "@/lib/comparador";
+import {
+  agregarPrecioManual,
+  guardarComparaciones,
+  nombreDeTienda,
+  preciosAfuera,
+  quitarPrecioManual,
+  type Comparacion,
+  type PrecioAfuera,
+} from "@/lib/comparador";
+import { precioDeUnaPagina } from "@/lib/web-de-marca";
+import { formatPrice } from "@/lib/order";
 import { conRegistro } from "@/lib/actividad";
 
 // Buscar a cuanto se venden afuera unos productos. La pantalla los pide de a
@@ -82,9 +92,69 @@ async function compararPrecios__(
   return { ok: true, resultados };
 }
 
+/** Agregar el precio de otra tienda pegando el link de la pagina del
+ *  producto (Damian lo encontro buscando en Google). Damian, 21/11/2026:
+ *  "todos estos que no encuentra no hay forma de buscar nuevamente, mismo que
+ *  haga un search en google que aparecen". Queda como el mismo modelo (lo
+ *  eligio el) y se actualiza en cada busqueda. */
+async function agregarPrecioDeLink__(
+  itemId: string,
+  link: string,
+): Promise<{ ok: true; comparacion: Comparacion; agregado: PrecioAfuera } | { ok: false; error: string }> {
+  const session = await getAdminSession();
+  if (!session) return { ok: false, error: "No autorizado" };
+  const producto = await prisma.product.findUnique({ where: { itemId: String(itemId) }, select: { id: true } });
+  if (!producto) return { ok: false, error: "No encontré ese producto." };
+  const d = await precioDeUnaPagina(String(link ?? ""));
+  if (!d.encontrado) return { ok: false, error: `No se pudo: ${d.motivo}.` };
+  // Nuestro precio (Lista 2), para no guardar algo disparatado (la cuota, el
+  // precio de otro producto de la pagina).
+  const suc = await sucursalDelPanel();
+  if (suc) {
+    const [b, recargos] = await Promise.all([
+      prisma.branchProduct.findFirst({
+        where: { branchId: suc.id, productId: producto.id },
+        select: { price: true, salePrice: true },
+      }),
+      getRecargosDelPanel(),
+    ]);
+    const nuestro = b ? precioVitrina(b.salePrice ?? b.price, recargos.unPago) : null;
+    if (nuestro && (d.precio < nuestro * 0.4 || d.precio > nuestro * 2.5))
+      return {
+        ok: false,
+        error: `En esa página leí ${formatPrice(d.precio)}${d.titulo ? ` ("${d.titulo}")` : ""}, muy distinto de tu precio (${formatPrice(nuestro)}): no parece el mismo producto. Si lo es, avisame.`,
+      };
+  }
+  const agregado: PrecioAfuera = {
+    tienda: nombreDeTienda(d.link),
+    titulo: d.titulo || d.link,
+    precio: d.precio,
+    link: d.link,
+    exacto: true,
+    manual: true,
+  };
+  const comparacion = await agregarPrecioManual(String(itemId), agregado);
+  return { ok: true, comparacion, agregado };
+}
+
+async function quitarPrecioDeLink__(
+  itemId: string,
+  link: string,
+): Promise<{ ok: true; comparacion: Comparacion | null } | { ok: false; error: string }> {
+  const session = await getAdminSession();
+  if (!session) return { ok: false, error: "No autorizado" };
+  return { ok: true, comparacion: await quitarPrecioManual(String(itemId), String(link ?? "")) };
+}
+
 // ---- Registro de actividad (src/lib/actividad.ts): cada accion, si sale
 // bien, queda anotada con el usuario que la hizo. Damian, 19/11/2026:
 // "quiero que cada modificacion ... quede asentado con el usuario que toco".
 export async function compararPrecios(...a: Parameters<typeof compararPrecios__>): ReturnType<typeof compararPrecios__> {
   return conRegistro("compararPrecios", a, () => compararPrecios__(...a));
+}
+export async function agregarPrecioDeLink(...a: Parameters<typeof agregarPrecioDeLink__>): ReturnType<typeof agregarPrecioDeLink__> {
+  return conRegistro("agregarPrecioDeLink", a, () => agregarPrecioDeLink__(...a));
+}
+export async function quitarPrecioDeLink(...a: Parameters<typeof quitarPrecioDeLink__>): ReturnType<typeof quitarPrecioDeLink__> {
+  return conRegistro("quitarPrecioDeLink", a, () => quitarPrecioDeLink__(...a));
 }

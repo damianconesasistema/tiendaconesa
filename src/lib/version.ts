@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.64";
+export const APP_VERSION = "V.0.99.65";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.65",
+    date: "2026-11-21",
+    changes: [
+      "COMPARADOR, AGREGAR EL PRECIO DE OTRA TIENDA CON UN LINK (\"todos estos que no encuentra no hay forma de buscar nuevamente, mismo que haga un search en google que aparecen\"): al abrir un producto (la flechita, o \"Otras palabras o un link\" al lado de \"No hay datos\") hay un cuadro \"¿Lo viste en otra tienda? Pegá el link\". Se pega el link de la página del producto en esa tienda (por ejemplo, lo que encontraste en Google) y se lee el precio de ahí. Queda como el mismo modelo, marcado \"tu link\", y en cada búsqueda se actualiza el precio. Se puede sacar con la ✕. Si el precio leído es muy distinto del tuyo, avisa en vez de guardarlo. El programa no le pregunta a Google: el link lo elegís vos.",
+      "COMPARADOR, LOS DOS PRECIOS NUESTROS JUNTOS Y DESTACADOS (\"pone los 2 precios nuestros un poco más junto y destacame los precios nuestros\"): Lista 2 y Transferencia van pegados, en un recuadro amarillo.",
+      "LEER PÁGINAS DE TIENDAS NUBE Y SODIMAC: la ficha del producto de las tiendas Tiendanube (Casa Andy, Sanige y muchas más) venía adentro de la ficha de la página y no se leía (se tomaba la de un producto relacionado o ninguna); Sodimac la escribe en minúscula. Ahora se leen bien, también en \"Traer desde un link\".",
+      "BOTÓN SUBIR A LA DERECHA (\"el subir ponemelo a la derecha por favor\"): ahora está abajo a la derecha. Cuando sale el aviso de ventas nuevas, el aviso queda por encima.",
+    ],
+  },
   {
     version: "V.0.99.64",
     date: "2026-11-21",

@@ -49,7 +49,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSetting } from "@/lib/settings";
-import { codigosDelArticulo, nombraElCodigo } from "@/lib/web-de-marca";
+import { codigosDelArticulo, nombraElCodigo, precioDeUnaPagina } from "@/lib/web-de-marca";
 import { preciosEnMercadoLibre, publicacionesEnMercadoLibre } from "@/lib/mercadolibre";
 
 /** Donde se guardaba todo junto hasta V.0.99.54 (ver pasarLoViejo). */
@@ -169,6 +169,9 @@ export type PrecioAfuera = {
   /** Esa tienda no contesto en la ultima busqueda: es lo que habia traido
    *  la vez anterior (ISO). */
   anterior?: string;
+  /** Lo agrego Damian pegando el link (lo encontro buscando en Google):
+   *  queda en las busquedas siguientes, con el precio al dia. */
+  manual?: boolean;
 };
 
 export type Comparacion = {
@@ -1049,6 +1052,77 @@ async function pasarLoViejo(): Promise<void> {
   await prisma.setting.deleteMany({ where: { key: S_COMPARADOR } });
 }
 
+/** El nombre de la tienda de un link: el de la lista si es una de las que se
+ *  revisan ("Casa Andy"); si no, el del sitio ("www.sanitarios-lopez.com.ar"
+ *  -> "Sanitarios Lopez"). */
+export function nombreDeTienda(link: string): string {
+  let host = "";
+  try {
+    host = new URL(link).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "Otra tienda";
+  }
+  const conocidas: { nombre: string; base: string }[] = [
+    ...TIENDAS_VTEX,
+    ...TIENDAS_WOO,
+    ...TIENDAS_PRESTA,
+    ...TIENDAS_TIENDANUBE,
+    ...TIENDAS_TIENDANUBE_POR_MARCA,
+    ...TIENDAS_MAGENTO,
+    ...TIENDAS_DESIGN8,
+  ];
+  for (const t of conocidas) {
+    try {
+      if (new URL(t.base).hostname.toLowerCase().replace(/^www\./, "") === host) return t.nombre;
+    } catch {
+      /* sigue */
+    }
+  }
+  if (/(^|\.)sodimac\.com\.ar$/.test(host)) return "Sodimac";
+  const nombre = host.split(".")[0].replace(/[-_]+/g, " ").trim();
+  return nombre ? nombre.replace(/\b\w/g, (l) => l.toUpperCase()) : host;
+}
+
+/** Lo que agrego Damian con un link, con el precio de hoy. Si la pagina no
+ *  contesta (o da algo disparatado), queda el de antes, marcado. */
+async function precioManualAlDia(r: PrecioAfuera, desde: string): Promise<PrecioAfuera> {
+  const d = await precioDeUnaPagina(r.link).catch(() => null);
+  if (d?.encontrado && d.precio >= r.precio * 0.5 && d.precio <= r.precio * 2)
+    return { tienda: r.tienda, titulo: r.titulo, precio: d.precio, link: r.link, exacto: true, manual: true };
+  return { ...r, anterior: r.anterior ?? desde };
+}
+
+/** Agrega (o actualiza) un precio que Damian trajo con un link. */
+export async function agregarPrecioManual(itemId: string, r: PrecioAfuera): Promise<Comparacion> {
+  await pasarLoViejo().catch(() => {});
+  const fila = await prisma.comparacionPrecio.findUnique({ where: { itemId } });
+  const antes = fila && fila.fecha.getTime() >= VALE_DESDE ? (fila.datos as unknown as Comparacion) : null;
+  const c: Comparacion = antes
+    ? { ...antes, resultados: [...(antes.resultados ?? [])] }
+    : { fecha: new Date().toISOString(), buscado: [], resultados: [], fallaron: [] };
+  c.resultados = [...c.resultados.filter((x) => x.link !== r.link), { ...r, manual: true, exacto: true }].sort(
+    (a, b) => a.precio - b.precio,
+  );
+  delete c.sinCodigo;
+  const fecha = new Date(c.fecha);
+  const datos = c as unknown as Prisma.InputJsonValue;
+  await prisma.comparacionPrecio.upsert({ where: { itemId }, update: { fecha, datos }, create: { itemId, fecha, datos } });
+  return c;
+}
+
+/** Saca un precio que se habia agregado con un link. */
+export async function quitarPrecioManual(itemId: string, link: string): Promise<Comparacion | null> {
+  const fila = await prisma.comparacionPrecio.findUnique({ where: { itemId } });
+  if (!fila) return null;
+  const c = fila.datos as unknown as Comparacion;
+  c.resultados = (c.resultados ?? []).filter((x) => !(x.manual && x.link === link));
+  await prisma.comparacionPrecio.update({
+    where: { itemId },
+    data: { datos: c as unknown as Prisma.InputJsonValue },
+  });
+  return c;
+}
+
 export async function comparacionesGuardadas(): Promise<Record<string, Comparacion>> {
   await pasarLoViejo().catch(() => {});
   try {
@@ -1080,17 +1154,26 @@ export async function guardarComparaciones(
     // que no conteste no quiere decir que dejo de venderlo. Damian,
     // 19/11/2026: "hay productos que antes me traias de Easy y ahora no".
     const antes = previas.get(id);
+    // Los que agrego Damian con un link quedan siempre, con el precio al dia.
+    const manuales = (antes?.resultados ?? []).filter(
+      (r) => r.manual && !nueva.resultados.some((x) => x.link === r.link),
+    );
+    if (manuales.length) {
+      nueva.resultados.push(...(await Promise.all(manuales.map((r) => precioManualAlDia(r, antes!.fecha)))));
+      delete nueva.sinCodigo;
+    }
     if (antes && nueva.fallaron.length > 0) {
       const ya = new Set(nueva.resultados.map((r) => r.tienda));
       for (const r of antes.resultados ?? [])
         if (
+          !r.manual &&
           nueva.fallaron.includes(r.tienda) &&
           !ya.has(r.tienda) &&
           !(titulos[id] && esOtroModelo(titulos[id], r.titulo))
         )
           nueva.resultados.push({ ...r, anterior: r.anterior ?? antes.fecha });
-      nueva.resultados.sort((a, b) => a.precio - b.precio);
     }
+    nueva.resultados.sort((a, b) => a.precio - b.precio);
     const datos = nueva as unknown as Prisma.InputJsonValue;
     const fecha = new Date(nueva.fecha);
     await prisma.comparacionPrecio.upsert({

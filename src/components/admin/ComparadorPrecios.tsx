@@ -2,12 +2,12 @@
 
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronUp, ExternalLink, Loader2, Search, Square } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronUp, ExternalLink, Link2, Loader2, Search, Square, X } from "lucide-react";
 import { formatPrice } from "@/lib/order";
 import { buscar, indexar } from "@/lib/buscar";
 import { esPorVersionNueva } from "@/lib/desfasaje";
 import type { Comparacion, PrecioAfuera } from "@/lib/comparador";
-import { compararPrecios } from "@/app/admin/comparador/actions";
+import { agregarPrecioDeLink, compararPrecios, quitarPrecioDeLink } from "@/app/admin/comparador/actions";
 
 // La pantalla del comparador de precios. Ver src/lib/comparador.ts y
 // src/app/admin/comparador/page.tsx.
@@ -333,16 +333,18 @@ export function ComparadorPrecios({
       {error && <p className="mt-2 text-sm font-medium text-red-700">{error}</p>}
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
-        <div className="hidden grid-cols-[1fr_112px_128px_290px_100px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
+        <div className="hidden grid-cols-[1fr_236px_290px_100px_90px] gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] md:grid">
           <Titulo col="nombre" orden={orden} setOrden={setOrden}>
             Producto
           </Titulo>
-          <Titulo col="precio" orden={orden} setOrden={setOrden} derecha>
-            Lista 2
-          </Titulo>
-          <Titulo col="transferencia" orden={orden} setOrden={setOrden} derecha>
-            Transferencia
-          </Titulo>
+          <div className="grid grid-cols-2 gap-3 px-3">
+            <Titulo col="precio" orden={orden} setOrden={setOrden} derecha>
+              Lista 2
+            </Titulo>
+            <Titulo col="transferencia" orden={orden} setOrden={setOrden} derecha>
+              Transf.
+            </Titulo>
+          </div>
           {/* Damian, 19/11/2026: "aca ponele mismo modelo que vende la competencia". */}
           <Titulo col="afuera" orden={orden} setOrden={setOrden}>
             Mismo modelo que vende la competencia
@@ -365,6 +367,7 @@ export function ComparadorPrecios({
             ocupado={!!buscando}
             buscarEste={() => void buscarEstos([f.itemId])}
             buscarConPalabras={(palabras) => void buscarEstos([f.itemId], { [f.itemId]: palabras })}
+            actualizar={(nueva) => setComparaciones((x) => ({ ...x, [f.itemId]: nueva }))}
           />
         ))}
       </div>
@@ -439,6 +442,7 @@ function Fila({
   ocupado,
   buscarEste,
   buscarConPalabras,
+  actualizar,
 }: {
   f: FilaComparador;
   abierto: boolean;
@@ -447,6 +451,7 @@ function Fila({
   ocupado: boolean;
   buscarEste: () => void;
   buscarConPalabras: (palabras: string) => void;
+  actualizar: (c: Comparacion | null) => void;
 }) {
   const c = f.comparacion;
   const mejor = mejorExacto(c, f.precio);
@@ -457,7 +462,7 @@ function Fila({
 
   return (
     <div className="border-b border-[var(--border)] last:border-b-0">
-      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_112px_128px_290px_100px_90px] md:items-center">
+      <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_236px_290px_100px_90px] md:items-center">
         <div className="flex min-w-0 items-center gap-3">
           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[var(--border)] bg-white">
             <Image
@@ -477,19 +482,18 @@ function Fila({
           </div>
         </div>
 
-        <div className="text-right">
-          <div className="font-display text-sm font-black md:text-base" title="Lista 2 (débito o 1 pago)">
-            {formatPrice(f.precio)}
+        {/* Los dos precios nuestros juntos y destacados (Damian, 21/11/2026:
+            "pone los 2 precios nuestros un poco mas junto y destacame los
+            precios nuestros"). */}
+        <div className="grid grid-cols-2 gap-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-right">
+          <div title="Lista 2 (débito o 1 pago)">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800 md:hidden">Lista 2</div>
+            <div className="font-display text-sm font-black md:text-base">{formatPrice(f.precio)}</div>
           </div>
-          <div className="text-[11px] text-[var(--muted)] md:hidden">
-            Transf. {formatPrice(f.transferencia)}
+          <div title="Pagando por transferencia">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800 md:hidden">Transf.</div>
+            <div className="font-display text-sm font-black md:text-base">{formatPrice(f.transferencia)}</div>
           </div>
-        </div>
-        <div
-          className="hidden text-right font-display text-sm font-bold text-[var(--muted)] md:block"
-          title="Pagando por transferencia"
-        >
-          {formatPrice(f.transferencia)}
         </div>
 
         <div className="col-span-2 text-sm md:col-span-1">
@@ -530,7 +534,7 @@ function Fila({
                         >
                           <span className="truncate">
                             {r.tienda}
-                            {r.porNombre ? " · por nombre" : ""}
+                            {r.manual ? " · tu link" : r.porNombre ? " · por nombre" : ""}
                           </span>
                           <ExternalLink className="h-3 w-3 shrink-0" />
                         </a>
@@ -563,6 +567,18 @@ function Fila({
               >
                 Buscar en Google <ExternalLink className="h-3 w-3" />
               </a>
+              {/* Buscar de nuevo con otras palabras o pegar el link de donde
+                  aparece (Damian, 21/11/2026: "todos estos que no encuentra
+                  no hay forma de buscar nuevamente"). */}
+              {!abierto && (
+                <button
+                  type="button"
+                  onClick={alternar}
+                  className="inline-flex items-center gap-1 font-semibold text-[var(--brand-red)] hover:underline"
+                >
+                  Otras palabras o un link <ChevronDown className="h-3 w-3" />
+                </button>
+              )}
             </span>
           ) : (
             <span className="text-xs text-[var(--muted)]">Sin buscar</span>
@@ -617,8 +633,17 @@ function Fila({
             ocupado={ocupado}
             buscar={buscarConPalabras}
           />
+          <PrecioDeLink itemId={f.itemId} actualizar={actualizar} />
           {exactos.length > 0 ? (
-            <Lista titulo="Mismo modelo" items={exactos} nuestro={f.precio} />
+            <Lista
+              titulo="Mismo modelo"
+              items={exactos}
+              nuestro={f.precio}
+              quitar={async (link) => {
+                const r = await quitarPrecioDeLink(f.itemId, link);
+                if (r.ok) actualizar(r.comparacion);
+              }}
+            />
           ) : (
             <p className="mt-2 text-[var(--muted)]">
               {c.sinCodigo
@@ -696,6 +721,83 @@ function OtrasPalabras({
   );
 }
 
+/** Pegar el link de la pagina donde aparece el producto (lo encontro
+ *  buscando en Google) y traer su precio. Damian, 21/11/2026: "todos estos
+ *  que no encuentra no hay forma de buscar nuevamente, mismo que haga un
+ *  search en google que aparecen". El programa no le pregunta a Google: el
+ *  link lo elige el. */
+function PrecioDeLink({ itemId, actualizar }: { itemId: string; actualizar: (c: Comparacion | null) => void }) {
+  const [link, setLink] = useState("");
+  const [trabajando, setTrabajando] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; texto: string } | null>(null);
+  async function agregar() {
+    const l = link.trim();
+    if (!l || trabajando) return;
+    setTrabajando(true);
+    setMsg(null);
+    try {
+      const r = await agregarPrecioDeLink(itemId, l);
+      if (!r.ok) {
+        setMsg({ ok: false, texto: r.error });
+        return;
+      }
+      actualizar(r.comparacion);
+      setLink("");
+      setMsg({
+        ok: true,
+        texto: `Listo: ${r.agregado.tienda} lo vende a ${formatPrice(r.agregado.precio)} ("${r.agregado.titulo}"). Queda guardado y se actualiza en cada búsqueda.`,
+      });
+    } catch (e) {
+      setMsg({
+        ok: false,
+        texto: esPorVersionNueva(e)
+          ? "Se publicó una versión nueva del panel: recargá la página y probá de nuevo."
+          : "Algo falló. Probá de nuevo.",
+      });
+    } finally {
+      setTrabajando(false);
+    }
+  }
+  return (
+    <div className="mt-2 rounded-lg border border-[var(--border)] bg-white p-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void agregar();
+        }}
+        className="flex flex-wrap items-center gap-2"
+      >
+        <label htmlFor={`link-${itemId}`} className="text-xs font-bold uppercase tracking-wider">
+          ¿Lo viste en otra tienda? Pegá el link
+        </label>
+        <input
+          id={`link-${itemId}`}
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          placeholder="https://… (la página del producto en esa tienda)"
+          className="h-9 min-w-[220px] flex-1 rounded-lg border border-[var(--border)] px-3 text-sm outline-none focus:border-[var(--brand-red)]"
+        />
+        <button
+          type="submit"
+          disabled={trabajando || !link.trim()}
+          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--brand-red)] px-4 text-xs font-bold uppercase tracking-wider text-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white disabled:opacity-50"
+        >
+          {trabajando ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2 className="h-3.5 w-3.5" />}
+          Agregar precio
+        </button>
+      </form>
+      {msg ? (
+        <p className={`mt-1.5 text-xs ${msg.ok ? "text-green-700" : "text-red-700"}`}>{msg.texto}</p>
+      ) : (
+        <p className="mt-1.5 text-[11px] text-[var(--muted)]">
+          Si lo encontrás buscando en Google, abrí la página de esa tienda y copiá el link de arriba. Se lee el
+          precio de ahí y queda como el mismo modelo; en cada búsqueda se actualiza.
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** "+27%": estamos mas caros que esa tienda (rojo); "−5%": mas baratos
  *  (verde). Misma cuenta que la columna Diferencia. */
 function PorcentajeContra({ nuestro, suyo }: { nuestro: number; suyo: number }) {
@@ -729,7 +831,18 @@ function porSitio(items: PrecioAfuera[]): PrecioAfuera[] {
   return [...una.values()].sort((a, b) => a.precio - b.precio);
 }
 
-function Lista({ titulo, items, nuestro }: { titulo: string; items: PrecioAfuera[]; nuestro: number }) {
+function Lista({
+  titulo,
+  items,
+  nuestro,
+  quitar,
+}: {
+  titulo: string;
+  items: PrecioAfuera[];
+  nuestro: number;
+  /** Sacar uno que se agrego con un link. */
+  quitar?: (link: string) => Promise<void>;
+}) {
   return (
     <div className="mt-3">
       <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">{titulo}</div>
@@ -746,7 +859,7 @@ function Lista({ titulo, items, nuestro }: { titulo: string; items: PrecioAfuera
               >
                 <span className="shrink-0 font-semibold">
                   {r.tienda}
-                  {r.porNombre ? " (por nombre)" : ""}:
+                  {r.manual ? " (tu link)" : r.porNombre ? " (por nombre)" : ""}:
                 </span>
                 <span className="truncate">{r.titulo}</span>
                 <ExternalLink className="h-3 w-3 shrink-0" />
@@ -756,6 +869,18 @@ function Lista({ titulo, items, nuestro }: { titulo: string; items: PrecioAfuera
                 <span className={`text-xs ${d > 0 ? "text-red-700" : d < 0 ? "text-green-700" : "text-[var(--muted)]"}`}>
                   ({d > 0 ? `+${d}` : d}%)
                 </span>
+                {r.manual && quitar && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm(`¿Saco el precio de ${r.tienda} del comparador?`)) void quitar(r.link);
+                    }}
+                    title="Sacar este precio (lo agregaste con un link)"
+                    className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border)] align-middle text-[var(--muted)] hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
               </span>
             </li>
           );

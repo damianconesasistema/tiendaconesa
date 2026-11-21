@@ -92,6 +92,9 @@ const QUE_HIZO: Record<string, string> = {
   cambiarClave: "Cambió una contraseña",
   resetearClave: "Reseteó la contraseña de un usuario",
   cambiarNombre: "Cambió el nombre de un usuario",
+  // Comparador de precios
+  agregarPrecioDeLink: "Agregó al comparador el precio de otra tienda (con un link)",
+  quitarPrecioDeLink: "Quitó del comparador un precio de otra tienda",
   activarUsuario: "Activó o desactivó un usuario",
   borrarUsuario: "Borró un usuario",
   cambiarPermisos: "Cambió los permisos de un usuario",

@@ -264,10 +264,13 @@ type ProductoLd = {
   "@type"?: string | string[];
   name?: string;
   image?: unknown;
+  /** El precio (offers.price, offers.lowPrice...). */
+  offers?: unknown;
   description?: string;
   sku?: string;
   mpn?: string;
   "@graph"?: unknown[];
+  mainEntity?: unknown;
 };
 
 /** Para comparar titulos: sin tildes, en mayusculas, solo letras y numeros. */
@@ -287,8 +290,13 @@ function productosLd(html: string): ProductoLd[] {
     if (!x || typeof x !== "object") return;
     const o = x as ProductoLd;
     if (Array.isArray(o["@graph"])) o["@graph"].forEach(juntar);
+    // Tiendanube pone el producto de la pagina adentro de la ficha de la
+    // pagina ("WebPage" -> mainEntity); afuera solo estan los relacionados.
+    if (o.mainEntity) juntar(o.mainEntity);
+    // Sodimac lo escribe "product".
     const tipo = o["@type"];
-    if (tipo === "Product" || (Array.isArray(tipo) && tipo.includes("Product"))) salida.push(o);
+    const esProducto = (t: unknown) => typeof t === "string" && t.toLowerCase() === "product";
+    if (esProducto(tipo) || (Array.isArray(tipo) && tipo.some(esProducto))) salida.push(o);
   };
   for (const m of html.matchAll(
     /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
@@ -1108,6 +1116,110 @@ export async function urlPublica(url: string): Promise<boolean> {
 type ShopifyDeLink = { title?: string; description?: string; images?: string[] };
 
 /** Lee la pagina de un producto que pego una persona. */
+// ------------------------------------------- el precio de una pagina
+
+/** Un precio escrito como sea: 605075, "605075.00", "605.075", "$ 605.075,50". */
+function numeroDePrecio(x: unknown): number | null {
+  if (typeof x === "number") return Number.isFinite(x) && x > 0 ? x : null;
+  if (typeof x !== "string") return null;
+  let s = x.replace(/[^\d.,]/g, "");
+  if (!s) return null;
+  if (s.includes(",") && s.includes("."))
+    s = s.lastIndexOf(",") > s.lastIndexOf(".") ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  else if (s.includes(",")) s = /,\d{1,2}$/.test(s) ? s.replace(",", ".") : s.replace(/,/g, "");
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+  const n = parseFloat(s);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** El precio de la ficha para Google: offers puede ser una oferta, una lista
+ *  o un "AggregateOffer" (con lowPrice). Solo en pesos. */
+function precioDeOfertas(offers: unknown): number | null {
+  if (!offers) return null;
+  if (Array.isArray(offers)) {
+    for (const o of offers) {
+      const p = precioDeOfertas(o);
+      if (p) return p;
+    }
+    return null;
+  }
+  if (typeof offers !== "object") return null;
+  const o = offers as {
+    price?: unknown;
+    lowPrice?: unknown;
+    priceCurrency?: unknown;
+    priceSpecification?: unknown;
+    offers?: unknown;
+  };
+  if (typeof o.priceCurrency === "string" && o.priceCurrency && !/^ars$/i.test(o.priceCurrency)) return null;
+  return (
+    numeroDePrecio(o.price) ??
+    numeroDePrecio(o.lowPrice) ??
+    precioDeOfertas(o.priceSpecification) ??
+    precioDeOfertas(o.offers)
+  );
+}
+
+/** El precio de un producto en la pagina de una tienda: un link que pego
+ *  Damian (lo encontro buscando en Google). De la ficha para Google
+ *  (offers), de las etiquetas de precio o, en Shopify, de su JSON. Damian,
+ *  21/11/2026: "todos estos que no encuentra no hay forma de buscar
+ *  nuevamente, mismo que haga un search en google que aparecen". */
+export async function precioDeUnaPagina(
+  link: string,
+): Promise<{ encontrado: true; titulo: string; precio: number; link: string } | { encontrado: false; motivo: string }> {
+  let url: URL;
+  try {
+    url = new URL(String(link || "").trim());
+  } catch {
+    return { encontrado: false, motivo: "eso no es un link (tiene que empezar con https://)" };
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:")
+    return { encontrado: false, motivo: "eso no es un link (tiene que empezar con https://)" };
+  if (esLinkDeMercadoLibre(url.toString()))
+    return { encontrado: false, motivo: "MercadoLibre no deja que la tienda lea sus páginas" };
+  url.hash = "";
+  if (!(await urlPublica(url.toString()))) return { encontrado: false, motivo: "ese link no es de una página pública" };
+
+  // Shopify: su ficha en JSON (el precio en centavos).
+  const shop = url.pathname.match(/^(.*\/products\/[^/?#]+)/);
+  if (shop) {
+    const r = await pedir(`${url.origin}${shop[1].replace(/\.js$/, "")}.js`, { json: true });
+    const p = r?.status === 200 ? json<{ title?: string; price?: number }>(r.texto) : null;
+    if (p?.title && typeof p.price === "number" && p.price > 0)
+      return { encontrado: true, titulo: htmlATexto(p.title), precio: Math.round(p.price / 100), link: url.toString() };
+  }
+
+  const r = await pedir(url.toString());
+  if (!r) return { encontrado: false, motivo: "la página no contestó" };
+  if (r.status !== 200) return { encontrado: false, motivo: `la página contestó ${r.status}` };
+  const html = r.texto;
+  // La ficha de ESTE producto (Tiendanube pone tambien las de los
+  // relacionados): la que coincide con el titulo de la pagina, o la unica.
+  const lds = productosLd(html);
+  const h1 = htmlATexto(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? "");
+  const tituloPagina = normalTitulo(htmlATexto(meta(html, "og:title") ?? h1));
+  const coincide = (p: ProductoLd) => {
+    const n = normalTitulo(htmlATexto(p.name ?? ""));
+    return !!n && !!tituloPagina && (tituloPagina.includes(n) || n.includes(tituloPagina));
+  };
+  const ld = lds.find(coincide) ?? (lds.length === 1 ? lds[0] : undefined);
+  // itemprop="price" (en un meta o en el numero que se ve).
+  let deItemprop: number | null = null;
+  for (const m of html.matchAll(/<[a-z]+\b[^>]*itemprop=["']price["'][^>]*>/gi)) {
+    deItemprop = numeroDePrecio(atributos(m[0]).content);
+    if (deItemprop) break;
+  }
+  const precio =
+    precioDeOfertas(ld?.offers) ??
+    numeroDePrecio(meta(html, "product:price:amount")) ??
+    numeroDePrecio(meta(html, "og:price:amount")) ??
+    deItemprop;
+  if (!precio) return { encontrado: false, motivo: "no encontré el precio en esa página" };
+  const titulo = sinNombreDelSitio(htmlATexto(ld?.name ?? "") || meta(html, "og:title") || h1, html, r.url);
+  return { encontrado: true, titulo, precio: Math.round(precio), link: r.url };
+}
+
 export async function leerLink(link: string): Promise<DatosDeLaWeb> {
   let url: URL;
   try {
