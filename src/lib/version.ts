@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.67";
+export const APP_VERSION = "V.0.99.68";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.68",
+    date: "2026-11-21",
+    changes: [
+      "SIMULADOR DE COSTO SUELTO, SIN USUARIO: el Excel \"SIMULADOR DE COSTO\" pasado a una página aparte, para mandar por link (tienda.conesa.com.ar/simulador-de-costo). Se pone el costo sin IVA y calcula solo, igual que el Excel: costo con IVA (21 %), venta por mayor (+12 %), Lista 1 (+25 %), Lista 2 (+25 % sobre la Lista 1) y la Lista 2 con el 12 % de descuento. Los porcentajes se pueden cambiar ahí mismo y al recargar vuelven a los del Excel. No pide usuario, no guarda nada y no aparece en Google.",
+    ],
+  },
   {
     version: "V.0.99.67",
     date: "2026-11-21",
