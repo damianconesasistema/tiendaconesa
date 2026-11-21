@@ -125,6 +125,15 @@ export const PAGINA = String.raw`<!DOCTYPE html>
   .descuentos .pct input { width: 100%; }
   .pct input:focus { outline: 2px solid var(--rojo); border-color: transparent; }
   .pct input.mal { outline: 2px solid var(--rojo); border-color: transparent; background: #fff1f0; }
+  /* La suma de los descuentos, informativa */
+  .suma-desc { display: none; margin-top: 10px; background: var(--fondo); border-radius: 12px; padding: 10px 14px; }
+  .fila-suma { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; font-size: 13.5px; padding: 3px 0; }
+  .fila-suma span:first-child { flex: 1 1 150px; }
+  /* Con 6 descuentos la cuenta es larga: en el celular baja al renglon de abajo */
+  .fila-suma .num { margin-left: auto; text-align: right; font-weight: 800; font-size: 16px; }
+  .fila-suma.fuerte span:first-child { font-weight: 700; }
+  .fila-suma.fuerte .num { font-weight: 900; color: var(--rojo); }
+  .suma-desc p { margin: 6px 0 0; font-size: 11.5px; color: var(--gris); line-height: 1.4; }
   .resultado-costo {
     margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--borde);
     display: flex; justify-content: space-between; align-items: baseline; gap: 4px 12px; flex-wrap: wrap;
@@ -281,6 +290,11 @@ export const PAGINA = String.raw`<!DOCTYPE html>
       <div class="pct"><input id="d4" type="text" inputmode="decimal" aria-label="Descuento 4">%</div>
       <div class="pct"><input id="d5" type="text" inputmode="decimal" aria-label="Descuento 5">%</div>
       <div class="pct"><input id="d6" type="text" inputmode="decimal" aria-label="Descuento 6">%</div>
+    </div>
+    <div class="suma-desc" id="suma-desc">
+      <div class="fila-suma"><span>Suma de los descuentos</span><span class="num" id="desc-sumados"></span></div>
+      <div class="fila-suma fuerte"><span>Total real (uno después del otro)</span><span class="num" id="desc-real"></span></div>
+      <p>Es informativo. El costo se calcula con el total real: cada descuento se aplica sobre lo que dejó el anterior, por eso da menos que la suma.</p>
     </div>
 
     <div class="resultado-costo">
@@ -550,6 +564,16 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     var f = factores();
     var p = precios(leer(el("lista").value), f);
 
+    // A modo informativo (Damian, 21/11/2026: "agregame la opcion de sumar
+    // los descuentos y que me diga cuanto es el total de todos los descuentos
+    // en porcentaje"): 35 + 10 + 5 = 50 %, pero el que vale es 44,42 %.
+    el("suma-desc").style.display = f.ds.length ? "block" : "none";
+    el("desc-sumados").textContent = f.ds.length > 1
+      ? f.ds.map(function (d) { return numero.format(d); }).join(" + ") + " = " +
+        numero.format(f.ds.reduce(function (a, d) { return a + d; }, 0)) + " %"
+      : numero.format(f.ds[0] || 0) + " %";
+    el("desc-real").textContent = numero.format((1 - f.neto) * 100) + " %";
+
     el("costo-neto").textContent = pesos(p.costo);
     el("como-costo").textContent = f.ds.length
       ? "Lista " + f.ds.map(function (d) { return "− " + numero.format(d) + " %"; }).join(" ") +
@@ -656,7 +680,9 @@ export const PAGINA = String.raw`<!DOCTYPE html>
         (cant !== 1 ? "Por " + escapar(numero.format(cant)) + ": " : "") +
         "costo s/IVA <b>" + pesos(p.costo) + "</b> · Lista 2 c/IVA <b>" + pesos(p.l2C) + "</b>" +
         (d.ds.length
-          ? " · desc. " + d.ds.map(function (x) { return numero.format(x); }).join(" + ") + " %" + (d.propios ? "" : " (los de arriba)")
+          ? " · desc. " + d.ds.map(function (x) { return numero.format(x); }).join(" + ") + " %" +
+            (d.ds.length > 1 ? " (total real " + numero.format((1 - d.neto) * 100) + " %)" : "") +
+            (d.propios ? "" : " · los de arriba")
           : " · sin descuentos");
     });
     pintarTabla("k-", desdeCosto(cuantas ? total : NaN, f));

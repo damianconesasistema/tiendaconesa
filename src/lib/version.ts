@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.71";
+export const APP_VERSION = "V.0.99.72";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.72",
+    date: "2026-11-21",
+    changes: [
+      "SIMULADOR DE COSTO, SUMA Y TOTAL DE LOS DESCUENTOS (\"que me diga cuanto es el total de todos los descuentos en porcentaje eso a modo informativo debajo de los descuentos\"): debajo de los 6 casilleros aparece la suma de los descuentos (35 + 10 + 5 = 50 %) y el total real, uno después del otro (44,42 %), que es el que se usa para el costo. En el combo, cada artículo con más de un descuento muestra también su total real.",
+    ],
+  },
   {
     version: "V.0.99.71",
     date: "2026-11-21",
