@@ -11,7 +11,7 @@ import { getMarcas } from "@/lib/marcas-server";
 import { getRubrosExtra } from "@/lib/rubros-server";
 import { nombreRubro } from "@/lib/rubros";
 import { precioVitrina } from "@/lib/precios";
-import { comparacionesGuardadas } from "@/lib/comparador";
+import { comparacionesGuardadas, conLasReglasDeHoy } from "@/lib/comparador";
 import { mlConectado } from "@/lib/mercadolibre";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +67,9 @@ export default async function ComparadorPage() {
       precio: precioVitrina(f.salePrice ?? f.price, recargos.unPago),
       // Pagando por transferencia: el que esta guardado (el de contado).
       transferencia: f.salePrice ?? f.price,
-      comparacion: guardadas[f.product.itemId] ?? null,
+      // Revisado con las reglas de hoy: si una regla nueva dice que algo no
+      // es el mismo modelo, deja de verse sin volver a buscar.
+      comparacion: conLasReglasDeHoy(f.product.title, guardadas[f.product.itemId] ?? null),
     }))
     .sort((a, b) => a.titulo.localeCompare(b.titulo, "es"));
 

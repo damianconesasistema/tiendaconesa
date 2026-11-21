@@ -807,9 +807,27 @@ function rasgoDistinto(nuestro: string, deAfuera: string): boolean {
   return a.length !== b.length || a.some((r) => !b.includes(r));
 }
 
-/** Un combo o un conjunto: dice "combo" o junta cosas con "+". */
+/** Un combo o un conjunto: dice "combo", junta cosas con "+" o dice
+ *  "4 piezas". */
 function esConjunto(texto: string): boolean {
-  return /\bcombo\b/i.test(texto) || /\+/.test(texto);
+  return /\bcombo\b/i.test(texto) || /\+/.test(texto) || /\b[2-9]\s*piezas\b/i.test(texto);
+}
+
+/** Nuestro conjunto y lo de afuera no traen lo mismo. Damian, 21/11/2026,
+ *  con "PIAZZA SENSUS 4 PIEZAS ACCES+BAÑERA+BIDET+LAVATORIO" comparado con
+ *  la griferia de ducha sola (se encontro por el codigo de esa pieza,
+ *  10806GF): "aca me trajo una griferia pero eso es un combo".
+ *  - Lo de afuera es suelto: tiene que nombrar las mismas piezas que el
+ *    nuestro ("inodoro con deposito y asiento" sirve para el combo inodoro +
+ *    deposito + asiento). Si nombra una o ninguna, es una pieza sola.
+ *  - Los dos son conjuntos pero nombran piezas distintas: es otro juego
+ *    ("lavatorio + bidet" no es "bañera + bidet + lavatorio"). */
+function otroJuego(nuestro: string, deAfuera: string): boolean {
+  if (!esConjunto(nuestro)) return false;
+  const nuestras = tiposDe(nuestro);
+  const suyas = tiposDe(deAfuera);
+  if (!esConjunto(deAfuera)) return suyas.size < 2 || !mismosTipos(nuestras, suyas);
+  return nuestras.size > 0 && suyas.size > 0 && !mismosTipos(nuestras, suyas);
 }
 
 /** Lo que sale de un modelo distinto por el titulo, sin mirar codigos ni
@@ -824,8 +842,18 @@ export function esOtroModelo(nuestro: string, deAfuera: string): boolean {
     seContradicen(nuestro, deAfuera) ||
     medidasDistintas(nuestro, deAfuera) ||
     rasgoDistinto(nuestro, deAfuera) ||
-    (esConjunto(deAfuera) && !esConjunto(nuestro))
+    (esConjunto(deAfuera) && !esConjunto(nuestro)) ||
+    otroJuego(nuestro, deAfuera)
   );
+}
+
+/** Lo guardado, revisado con las reglas de hoy: lo que se habia tomado como
+ *  el mismo modelo y ahora no lo es deja de mostrarse, sin tener que volver
+ *  a buscar. Los que agrego Damian con un link y las sumas de piezas quedan. */
+export function conLasReglasDeHoy(titulo: string, c: Comparacion | null): Comparacion | null {
+  if (!c) return c;
+  const resultados = c.resultados.filter((r) => r.manual || r.suma || !esOtroModelo(titulo, r.titulo));
+  return resultados.length === c.resultados.length ? c : { ...c, resultados };
 }
 
 // Las medidas con su unidad. El extractor TST S300 de 6 pulgadas no es el
@@ -1091,6 +1119,9 @@ const TIPOS_DE_PIEZA = [
   "mueble",
   "espejo",
   "botiquin",
+  // Los juegos de griferia: "4 piezas: bañera, bidet, lavatorio".
+  "banera",
+  "ducha",
 ];
 
 /** Un combo, comparado sumando sus piezas. Damian, 21/11/2026 (los combos

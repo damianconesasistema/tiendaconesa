@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.70";
+export const APP_VERSION = "V.0.99.71";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.71",
+    date: "2026-11-21",
+    changes: [
+      "COMPARADOR, UN JUEGO NO SE COMPARA CON UNA PIEZA SUELTA (\"aca me trajo una griferia pero eso es un combo\"): el juego Piazza Sensus de 4 piezas (bañera + bidet + lavatorio) salía comparado con la grifería de ducha sola, que se encontró por el código de esa pieza (10806GF). Ahora, si lo nuestro es un juego (dice combo, junta cosas con + o dice \"4 piezas\"), lo de afuera tiene que traer las mismas piezas; una pieza suelta u otro juego (lavatorio + bidet solo) no cuenta. Esto también limpia lo que ya estaba guardado, sin volver a buscar. Los precios agregados con un link quedan siempre.",
+    ],
+  },
   {
     version: "V.0.99.70",
     date: "2026-11-21",
