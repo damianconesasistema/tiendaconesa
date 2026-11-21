@@ -21,9 +21,16 @@
 // lo sube: no viaja al servidor ni se guarda en ningun lado. El lector de
 // Excel (planillas.js) se baja recien cuando se elige un archivo.
 //
+// Y un combo ("dame la posibilidad de armar un combo que pongo 2 o mas
+// articulos y me armes un precio"): cada articulo con su cantidad, su lista
+// del proveedor y sus descuentos (vacios = los de arriba). El precio del combo
+// es la suma de las piezas, con la misma cuenta.
+//
 // Los porcentajes se pueden cambiar en la pagina, como en las celdas del
-// Excel, y al recargar vuelven a los del Excel. No guarda nada ni toca la
-// base. Letra de Conesa: Montserrat en titulos y numeros, Inter en el texto,
+// Excel ("Volver a los del Excel" los repone). Lo ultimo que se cargo (precio,
+// descuentos, porcentajes, combo y el ultimo Excel) queda guardado en el
+// navegador de quien lo usa ("hace que quede guardado el ultimo que cargue y
+// cotice"): cada compu o celular tiene lo suyo. No toca la base. Letra de Conesa: Montserrat en titulos y numeros, Inter en el texto,
 // las mismas de la tienda (src/app/layout.tsx).
 //
 // Va suelta, sin la cabecera ni el pie de la tienda (por eso es un route.ts
@@ -189,6 +196,46 @@ export const PAGINA = String.raw`<!DOCTYPE html>
   .tabla-planilla td.fuerte { font-weight: 800; background: #fff7ed; }
   .tabla-planilla td.rojo { font-weight: 800; color: var(--rojo); }
   #mas { color: var(--gris); font-size: 12px; margin: 8px 0 0; }
+  /* Combo */
+  .pieza { border: 1px solid var(--borde); border-radius: 12px; padding: 12px; margin-top: 12px; }
+  .pieza-arriba { display: flex; gap: 10px; align-items: center; }
+  .nro {
+    flex: none; width: 26px; height: 26px; border-radius: 999px; background: var(--negro); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--display); font-weight: 900; font-size: 13px;
+  }
+  .pieza .p-nombre {
+    flex: 1; min-width: 0; font-family: var(--texto); font-weight: 600; font-size: 15px;
+    padding: 8px 10px; border: 1px solid var(--borde); border-radius: 10px; color: var(--negro);
+  }
+  .quitar { border: none; background: none; font-size: 18px; color: var(--gris); cursor: pointer; padding: 4px 6px; }
+  .quitar:hover { color: var(--rojo); }
+  .pieza-numeros { display: grid; grid-template-columns: 76px 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .pieza-numeros label { display: flex; flex-direction: column; justify-content: flex-end; }
+  .pieza-numeros .rotulo { font-size: 10.5px; margin-bottom: 4px; white-space: nowrap; }
+  .pieza-numeros input::placeholder { font-size: 13px; font-weight: 500; }
+  .pieza-numeros input {
+    width: 100%; font-size: 16px; font-weight: 700; padding: 9px 10px;
+    border: 1px solid var(--borde); border-radius: 10px; color: var(--negro);
+  }
+  .pieza input:focus { outline: 2px solid var(--rojo); border-color: transparent; }
+  .pieza input.mal { outline: 2px solid var(--rojo); border-color: transparent; background: #fff1f0; }
+  .pieza-cuenta { font-size: 12.5px; color: var(--gris); margin-top: 8px; line-height: 1.5; }
+  .pieza-cuenta b { color: var(--negro); font-family: var(--display); font-weight: 800; }
+  .pieza-cuenta .error { color: var(--rojo); font-weight: 600; }
+  #combo-total { margin-top: 18px; border-top: 2px solid var(--negro); padding-top: 14px; }
+  #combo-total h3 { font-family: var(--display); font-size: 15px; font-weight: 900; text-transform: uppercase; margin: 0 0 2px; }
+  #k-resumen { color: var(--gris); font-size: 13px; margin: 0 0 12px; }
+  .guardado {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap;
+    font-size: 12.5px; color: var(--gris); margin: 0 0 12px;
+  }
+  #de-nuevo {
+    border: 1px solid var(--borde); background: #fff; border-radius: 999px; padding: 6px 12px;
+    font-family: var(--display); font-weight: 800; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .03em; cursor: pointer; color: var(--negro);
+  }
+  #de-nuevo:hover { border-color: var(--negro); }
   footer { text-align: center; color: var(--gris); font-size: 12px; padding: 0 16px 30px; }
   @media (max-width: 520px) {
     .descuentos { grid-template-columns: repeat(3, 1fr); }
@@ -214,6 +261,10 @@ export const PAGINA = String.raw`<!DOCTYPE html>
   <h1>Simulador de costo</h1>
 </header>
 <main>
+  <p class="guardado">
+    <span>Lo último que cargues queda guardado en este navegador.</span>
+    <button type="button" id="de-nuevo">Empezar de nuevo</button>
+  </p>
   <div class="caja">
     <label class="rotulo" for="lista">Precio de lista del proveedor (sin IVA)</label>
     <div class="costo">
@@ -246,22 +297,22 @@ export const PAGINA = String.raw`<!DOCTYPE html>
       </thead>
       <tbody>
         <tr>
-          <td><span class="que">Costo</span><span class="como" id="c-iva">IVA 21 %</span></td>
+          <td><span class="que">Costo</span><span class="como como-iva">IVA 21 %</span></td>
           <td class="n" id="costo-s"></td>
           <td class="n" id="costo-c"></td>
         </tr>
         <tr>
-          <td><span class="que">Venta por mayor</span><span class="como" id="c-mayor">costo + 12 %</span></td>
+          <td><span class="que">Venta por mayor</span><span class="como como-mayor">costo + 12 %</span></td>
           <td class="n" id="mayor-s"></td>
           <td class="n" id="mayor-c"></td>
         </tr>
         <tr>
-          <td><span class="que">Lista 1</span><span class="como" id="c-l1">costo + 25 %</span></td>
+          <td><span class="que">Lista 1</span><span class="como como-l1">costo + 25 %</span></td>
           <td class="n" id="l1-s"></td>
           <td class="n" id="l1-c"></td>
         </tr>
         <tr class="lista2">
-          <td><span class="que">Lista 2</span><span class="como" id="c-l2">Lista 1 + 25 %</span></td>
+          <td><span class="que">Lista 2</span><span class="como como-l2">Lista 1 + 25 %</span></td>
           <td class="n" id="l2-s"></td>
           <td class="n" id="l2-c"></td>
         </tr>
@@ -269,10 +320,55 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     </table>
     <div class="descuento">
       <div>
-        <div class="que" id="t-desc">Con descuento 12 %</div>
+        <div class="que titulo-desc">Con descuento 12 %</div>
         <div class="como">Lista 2 con IVA, menos el descuento</div>
       </div>
       <div class="n" id="desc"></div>
+    </div>
+  </div>
+
+  <div class="caja">
+    <h2>Armar un combo</h2>
+    <p class="ayuda">Poné 2 o más artículos con su precio de lista del proveedor y te da el precio del combo: la suma de las piezas, con la misma cuenta de arriba. Si un artículo tiene otros descuentos, escribilos en su casillero separados con + (ej. 35+10). Vacío usa los descuentos de arriba.</p>
+    <div id="combo-filas"></div>
+    <button type="button" class="boton" id="combo-agregar">+ Agregar artículo</button>
+    <div id="combo-total">
+      <h3>Precio del combo</h3>
+      <p id="k-resumen"></p>
+      <table>
+        <thead>
+          <tr><th></th><th>Sin IVA</th><th>Con IVA</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="que">Costo</span><span class="como como-iva">IVA 21 %</span></td>
+            <td class="n" id="k-costo-s"></td>
+            <td class="n" id="k-costo-c"></td>
+          </tr>
+          <tr>
+            <td><span class="que">Venta por mayor</span><span class="como como-mayor">costo + 12 %</span></td>
+            <td class="n" id="k-mayor-s"></td>
+            <td class="n" id="k-mayor-c"></td>
+          </tr>
+          <tr>
+            <td><span class="que">Lista 1</span><span class="como como-l1">costo + 25 %</span></td>
+            <td class="n" id="k-l1-s"></td>
+            <td class="n" id="k-l1-c"></td>
+          </tr>
+          <tr class="lista2">
+            <td><span class="que">Lista 2</span><span class="como como-l2">Lista 1 + 25 %</span></td>
+            <td class="n" id="k-l2-s"></td>
+            <td class="n" id="k-l2-c"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="descuento">
+        <div>
+          <div class="que titulo-desc">Con descuento 12 %</div>
+          <div class="como">Lista 2 del combo con IVA, menos el descuento</div>
+        </div>
+        <div class="n" id="k-desc"></div>
+      </div>
     </div>
   </div>
 
@@ -351,8 +447,13 @@ export const PAGINA = String.raw`<!DOCTYPE html>
   var EXCEL = { iva: 21, mayor: 12, l1: 25, l2: 25, desc: 12 };
   var CAMPOS = ["iva", "mayor", "l1", "l2", "desc"];
   var DESCUENTOS = ["d1", "d2", "d3", "d4", "d5", "d6"];
+  // Lo ultimo que se cargo queda en este navegador (Damian, 21/11/2026:
+  // "hace que quede guardado el ultimo que cargue y cotice"). El Excel va
+  // aparte, en IndexedDB, porque puede pesar varios MB.
+  var CLAVE = "conesa-simulador-de-costo";
 
   function el(id) { return document.getElementById(id); }
+  function todos(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
 
   // Lee lo que escribe la gente o lo que trae una celda: 100000, "100.000",
   // "1.500,50", "1500,50", "1500.50", "1,500.50", "$ 100.000", "35 %".
@@ -418,9 +519,8 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     };
   }
 
-  // La cuenta de un articulo, igual que las celdas del Excel.
-  function precios(lista, f) {
-    var costo = lista * f.neto;        // la lista menos los descuentos
+  // La cuenta desde el costo sin IVA, igual que las celdas del Excel.
+  function desdeCosto(costo, f) {
     var costoC = costo * f.iva;        // F2 = D2*C2
     var l1S = costo * f.l1;            // D6 = C6*D2
     var l1C = costoC * f.l1;           // F6 = F2*C6
@@ -437,6 +537,15 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     };
   }
 
+  // Un articulo: la lista del proveedor menos los descuentos de arriba.
+  function precios(lista, f) { return desdeCosto(lista * f.neto, f); }
+
+  function pintarTabla(pre, p) {
+    [["costo-s", "costo"], ["costo-c", "costoC"], ["mayor-s", "mayorS"], ["mayor-c", "mayorC"],
+     ["l1-s", "l1S"], ["l1-c", "l1C"], ["l2-s", "l2S"], ["l2-c", "l2C"], ["desc", "conDesc"]
+    ].forEach(function (x) { el(pre + x[0]).textContent = pesos(p[x[1]]); });
+  }
+
   function calcular() {
     var f = factores();
     var p = precios(leer(el("lista").value), f);
@@ -446,42 +555,215 @@ export const PAGINA = String.raw`<!DOCTYPE html>
       ? "Lista " + f.ds.map(function (d) { return "− " + numero.format(d) + " %"; }).join(" ") +
         " · descuento total " + numero.format((1 - f.neto) * 100) + " %"
       : "Sin descuentos: es el precio de lista.";
+    pintarTabla("", p);
 
-    el("costo-s").textContent = pesos(p.costo);
-    el("costo-c").textContent = pesos(p.costoC);
-    el("mayor-s").textContent = pesos(p.mayorS);
-    el("mayor-c").textContent = pesos(p.mayorC);
-    el("l1-s").textContent = pesos(p.l1S);
-    el("l1-c").textContent = pesos(p.l1C);
-    el("l2-s").textContent = pesos(p.l2S);
-    el("l2-c").textContent = pesos(p.l2C);
-    el("desc").textContent = pesos(p.conDesc);
-
-    el("c-iva").textContent = "IVA " + numero.format(pct("iva")) + " %";
-    el("c-mayor").textContent = "costo + " + numero.format(pct("mayor")) + " %";
-    el("c-l1").textContent = "costo + " + numero.format(pct("l1")) + " %";
-    el("c-l2").textContent = "Lista 1 + " + numero.format(pct("l2")) + " %";
-    el("t-desc").textContent = "Con descuento " + numero.format(pct("desc")) + " %";
+    var textos = {
+      "como-iva": "IVA " + numero.format(pct("iva")) + " %",
+      "como-mayor": "costo + " + numero.format(pct("mayor")) + " %",
+      "como-l1": "costo + " + numero.format(pct("l1")) + " %",
+      "como-l2": "Lista 1 + " + numero.format(pct("l2")) + " %",
+      "titulo-desc": "Con descuento " + numero.format(pct("desc")) + " %"
+    };
+    Object.keys(textos).forEach(function (c) {
+      todos("." + c).forEach(function (n) { n.textContent = textos[c]; });
+    });
     el("th-desc").textContent = "Con " + numero.format(pct("desc")) + " %";
 
     var distintos = CAMPOS.some(function (c) { return pct(c) !== EXCEL[c]; });
     el("cambiados").style.display = distintos ? "block" : "none";
 
+    pintarCombo(f);
     pintarPlanilla();
+    guardar();
   }
 
   function ponerLosDelExcel() {
     CAMPOS.forEach(function (c) { el("p-" + c).value = numero.format(EXCEL[c]); });
-    calcular();
+  }
+
+  // ------------------------------------------------ combo
+
+  var PIEZA =
+    '<div class="pieza-arriba"><span class="nro"></span>' +
+    '<input class="p-nombre" type="text" placeholder="Artículo (opcional)" aria-label="Artículo">' +
+    '<button type="button" class="quitar" aria-label="Quitar este artículo">✕</button></div>' +
+    '<div class="pieza-numeros">' +
+    '<label><span class="rotulo">Cant.</span><input class="p-cant" type="text" inputmode="decimal" value="1"></label>' +
+    '<label><span class="rotulo">Lista s/IVA</span><input class="p-lista" type="text" inputmode="decimal" placeholder="$"></label>' +
+    '<label><span class="rotulo">Descuentos</span><input class="p-desc" type="text" placeholder="de arriba"></label>' +
+    '</div><div class="pieza-cuenta"></div>';
+
+  function piezas() { return todos("#combo-filas .pieza"); }
+
+  function agregarPieza() {
+    var d = document.createElement("div");
+    d.className = "pieza";
+    d.innerHTML = PIEZA;
+    el("combo-filas").appendChild(d);
+    numerar();
+    return d;
+  }
+
+  function numerar() {
+    var lista = piezas();
+    lista.forEach(function (p, i) {
+      p.querySelector(".nro").textContent = String(i + 1);
+      // Un combo tiene por lo menos 2 articulos.
+      p.querySelector(".quitar").style.visibility = lista.length > 2 ? "visible" : "hidden";
+    });
+  }
+
+  // Los descuentos de un articulo del combo: "35+10+5", "35 10" o "35/10".
+  // Vacio = los de arriba. La coma no separa: es la de los decimales (12,5).
+  function descuentosDe(campo, f) {
+    var t = String(campo.value).trim();
+    campo.classList.remove("mal");
+    if (!t) return { neto: f.neto, ds: f.ds, propios: false, mal: false };
+    var neto = 1, ds = [], mal = false;
+    t.split(/[+\/;\s]+/).filter(Boolean).forEach(function (x) {
+      var v = leer(x);
+      if (!isFinite(v) || v < 0 || v >= 100) { mal = true; return; }
+      if (v > 0) ds.push(v);
+      neto = neto * (1 - v / 100);
+    });
+    if (mal) campo.classList.add("mal");
+    return { neto: neto, ds: ds, propios: true, mal: mal };
+  }
+
+  function pintarCombo(f) {
+    f = f || factores();
+    var total = 0, cuantas = 0;
+    piezas().forEach(function (pz) {
+      var cuenta = pz.querySelector(".pieza-cuenta");
+      var cCant = pz.querySelector(".p-cant"), cLista = pz.querySelector(".p-lista");
+      var cantTxt = String(cCant.value).trim();
+      var cant = cantTxt ? leer(cantTxt) : 1;
+      var cantMal = !(cant > 0);
+      cCant.classList.toggle("mal", cantMal);
+      var lista = leer(cLista.value);
+      var listaMal = !!String(cLista.value).trim() && !(lista > 0);
+      cLista.classList.toggle("mal", listaMal);
+      var d = descuentosDe(pz.querySelector(".p-desc"), f);
+      if (d.mal) {
+        cuenta.innerHTML = '<span class="error">Revisá los descuentos: números del 0 al 99, separados con + (ej. 35+10).</span>';
+        return;
+      }
+      if (!(lista > 0) || cantMal) { cuenta.textContent = ""; return; }
+      var p = desdeCosto(lista * d.neto * cant, f);
+      total += p.costo;
+      cuantas++;
+      cuenta.innerHTML =
+        (cant !== 1 ? "Por " + escapar(numero.format(cant)) + ": " : "") +
+        "costo s/IVA <b>" + pesos(p.costo) + "</b> · Lista 2 c/IVA <b>" + pesos(p.l2C) + "</b>" +
+        (d.ds.length
+          ? " · desc. " + d.ds.map(function (x) { return numero.format(x); }).join(" + ") + " %" + (d.propios ? "" : " (los de arriba)")
+          : " · sin descuentos");
+    });
+    pintarTabla("k-", desdeCosto(cuantas ? total : NaN, f));
+    el("k-resumen").textContent = cuantas
+      ? (cuantas === 1 ? "1 artículo con precio" : cuantas + " artículos") + ": la suma de las piezas."
+      : "Cargá el precio de lista de cada artículo.";
+  }
+
+  // ------------------------------------------------ lo guardado
+
+  function guardar() {
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify({
+        lista: el("lista").value,
+        d: DESCUENTOS.map(function (id) { return el(id).value; }),
+        p: CAMPOS.map(function (c) { return el("p-" + c).value; }),
+        combo: piezas().map(function (pz) {
+          return {
+            n: pz.querySelector(".p-nombre").value,
+            c: pz.querySelector(".p-cant").value,
+            l: pz.querySelector(".p-lista").value,
+            d: pz.querySelector(".p-desc").value
+          };
+        })
+      }));
+    } catch (e) { /* sin lugar o navegador en modo privado: no se guarda */ }
+  }
+
+  function texto(v, siNo) { return typeof v === "string" ? v : siNo; }
+
+  // Devuelve false si no habia nada guardado.
+  function restaurar() {
+    var d = null;
+    try { d = JSON.parse(localStorage.getItem(CLAVE) || "null"); } catch (e) { d = null; }
+    if (!d || typeof d !== "object") return false;
+    el("lista").value = texto(d.lista, "100.000");
+    DESCUENTOS.forEach(function (id, i) { el(id).value = texto(d.d && d.d[i], ""); });
+    CAMPOS.forEach(function (c, i) {
+      var v = texto(d.p && d.p[i], "");
+      el("p-" + c).value = v.trim() ? v : numero.format(EXCEL[c]);
+    });
+    var combo = Array.isArray(d.combo) ? d.combo : [];
+    for (var i = 0; i < Math.max(2, combo.length); i++) {
+      var pz = agregarPieza(), x = combo[i] || {};
+      pz.querySelector(".p-nombre").value = texto(x.n, "");
+      pz.querySelector(".p-cant").value = texto(x.c, "") || "1";
+      pz.querySelector(".p-lista").value = texto(x.l, "");
+      pz.querySelector(".p-desc").value = texto(x.d, "");
+    }
+    return true;
+  }
+
+  function base(listo) {
+    try {
+      var pedido = indexedDB.open("conesa-simulador-de-costo", 1);
+      pedido.onupgradeneeded = function () { pedido.result.createObjectStore("planilla"); };
+      pedido.onsuccess = function () { listo(pedido.result); };
+      pedido.onerror = function () { listo(null); };
+    } catch (e) { listo(null); }
+  }
+
+  function guardarPlanilla() {
+    if (!planilla || !planilla.bytes) return;
+    var datos = {
+      archivo: planilla.archivo,
+      bytes: planilla.bytes,
+      hoja: planilla.hoja,
+      fila0: planilla.fila0,
+      colPrecio: Number(el("col-precio").value),
+      colNombre: Number(el("col-nombre").value)
+    };
+    base(function (db) {
+      if (!db) return;
+      try { db.transaction("planilla", "readwrite").objectStore("planilla").put(datos, "ultima"); } catch (e) { /* no se guarda */ }
+    });
+  }
+
+  function leerPlanillaGuardada(listo) {
+    base(function (db) {
+      if (!db) return listo(null);
+      try {
+        var r = db.transaction("planilla").objectStore("planilla").get("ultima");
+        r.onsuccess = function () { listo(r.result || null); };
+        r.onerror = function () { listo(null); };
+      } catch (e) { listo(null); }
+    });
+  }
+
+  function borrarPlanillaGuardada(listo) {
+    base(function (db) {
+      if (!db) return listo();
+      try {
+        var tx = db.transaction("planilla", "readwrite");
+        tx.objectStore("planilla").delete("ultima");
+        tx.oncomplete = function () { listo(); };
+        tx.onerror = function () { listo(); };
+      } catch (e) { listo(); }
+    });
   }
 
   // ------------------------------------------------ muchos articulos
 
-  // planilla = { nombre, libro, filas, desdeFila, desdeCol, columnas, titulos }
+  // planilla = { archivo, nombre, bytes, libro, hoja, filas, fila0, desdeFila, desdeCol, columnas, titulos }
   var planilla = null;
 
-  function estado(texto, error) {
-    el("estado").textContent = texto;
+  function estado(t, error) {
+    el("estado").textContent = t;
     el("estado").className = error ? "error" : "";
   }
 
@@ -558,7 +840,8 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     adivinarColumnas();
   }
 
-  function elegirHoja(nombre) {
+  // elecciones: lo que se habia elegido la ultima vez (hoja, fila, columnas).
+  function elegirHoja(nombre, elecciones) {
     var ws = planilla.libro.Sheets[nombre];
     var filas = ws && ws["!ref"] ? XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: true }) : [];
     var rango = ws && ws["!ref"] ? XLSX.utils.decode_range(ws["!ref"]) : { s: { r: 0, c: 0 } };
@@ -568,21 +851,38 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     planilla.desdeCol = rango.s.c;
     planilla.columnas = filas.reduce(function (m, f) { return Math.max(m, (f || []).length); }, 0);
     if (!filas.length || !planilla.columnas) {
-      el("opciones").style.display = "none";
       estado("Esa hoja está vacía. Elegí otra.", true);
       el("opciones").style.display = planilla.libro.SheetNames.length > 1 ? "block" : "none";
       return;
     }
     planilla.fila0 = filaDeTitulos(filas);
+    if (elecciones && elecciones.fila0 >= 0 && elecciones.fila0 < filas.length) planilla.fila0 = elecciones.fila0;
     armarColumnas();
+    if (elecciones) {
+      if (elecciones.colPrecio >= 0 && elecciones.colPrecio < planilla.columnas) el("col-precio").value = String(elecciones.colPrecio);
+      if (elecciones.colNombre >= 0 && elecciones.colNombre < planilla.columnas) el("col-nombre").value = String(elecciones.colNombre);
+    }
     el("opciones").style.display = "block";
-    estado(planilla.archivo + " · " + (filas.length - planilla.fila0 - 1) + " filas debajo de los títulos");
+    estado(planilla.archivo + " · " + (filas.length - planilla.fila0 - 1) + " filas debajo de los títulos" +
+      (elecciones ? " · es el último que cargaste" : ""));
     pintarPlanilla();
+    guardarPlanilla();
+  }
+
+  function abrirPlanilla(archivo, bytes, elecciones) {
+    var libro = XLSX.read(new Uint8Array(bytes), { type: "array", cellDates: true });
+    planilla = { archivo: archivo, nombre: archivo.replace(/\.[^.]+$/, ""), bytes: bytes, libro: libro };
+    el("hoja").innerHTML = libro.SheetNames.map(function (h) {
+      return "<option>" + escapar(h) + "</option>";
+    }).join("");
+    el("caja-hoja").style.display = libro.SheetNames.length > 1 ? "block" : "none";
+    var hoja = elecciones && libro.SheetNames.indexOf(elecciones.hoja) >= 0 ? elecciones.hoja : libro.SheetNames[0];
+    el("hoja").value = hoja;
+    elegirHoja(hoja, elecciones);
   }
 
   function nombreDeFila(fila) {
-    var c = Number(el("col-nombre").value);
-    var v = fila[c];
+    var v = fila[Number(el("col-nombre").value)];
     return vacio(v) ? "" : String(v);
   }
 
@@ -685,13 +985,7 @@ export const PAGINA = String.raw`<!DOCTYPE html>
       var lector = new FileReader();
       lector.onload = function (e) {
         try {
-          var libro = XLSX.read(new Uint8Array(e.target.result), { type: "array", cellDates: true });
-          planilla = { archivo: archivo.name, nombre: archivo.name.replace(/\.[^.]+$/, ""), libro: libro };
-          el("hoja").innerHTML = libro.SheetNames.map(function (h) {
-            return "<option>" + escapar(h) + "</option>";
-          }).join("");
-          el("caja-hoja").style.display = libro.SheetNames.length > 1 ? "block" : "none";
-          elegirHoja(libro.SheetNames[0]);
+          abrirPlanilla(archivo.name, e.target.result, null);
         } catch (err) {
           planilla = null;
           el("opciones").style.display = "none";
@@ -702,7 +996,7 @@ export const PAGINA = String.raw`<!DOCTYPE html>
       lector.readAsArrayBuffer(archivo);
     });
   });
-  el("hoja").addEventListener("change", function () { elegirHoja(this.value); });
+  el("hoja").addEventListener("change", function () { elegirHoja(this.value, null); });
   el("fila-titulos").addEventListener("change", function () {
     if (!planilla) return;
     var i = Math.round(Number(this.value)) - 1 - planilla.desdeFila;
@@ -713,25 +1007,67 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     planilla.fila0 = i;
     armarColumnas();
     pintarPlanilla();
+    guardarPlanilla();
   });
-  el("col-precio").addEventListener("change", pintarPlanilla);
-  el("col-nombre").addEventListener("change", pintarPlanilla);
+  el("col-precio").addEventListener("change", function () { pintarPlanilla(); guardarPlanilla(); });
+  el("col-nombre").addEventListener("change", function () { pintarPlanilla(); guardarPlanilla(); });
   el("bajar").addEventListener("click", bajar);
 
-  // ------------------------------------------------ un articulo
+  // ------------------------------------------------ arranque
 
   el("lista").addEventListener("input", calcular);
   // Al salir del campo queda escrito lindo: 100000 -> 100.000
   el("lista").addEventListener("blur", function () {
     var v = leer(this.value);
-    if (isFinite(v)) this.value = numero.format(v);
+    if (isFinite(v)) { this.value = numero.format(v); guardar(); }
   });
   el("lista").addEventListener("focus", function () { this.select(); });
   DESCUENTOS.forEach(function (id) { el(id).addEventListener("input", calcular); });
   CAMPOS.forEach(function (c) { el("p-" + c).addEventListener("input", calcular); });
-  el("volver").addEventListener("click", ponerLosDelExcel);
+  el("volver").addEventListener("click", function () { ponerLosDelExcel(); calcular(); });
 
-  ponerLosDelExcel();
+  el("combo-filas").addEventListener("input", calcular);
+  el("combo-filas").addEventListener("click", function (e) {
+    var boton = e.target.closest ? e.target.closest(".quitar") : null;
+    if (!boton || piezas().length <= 2) return;
+    boton.closest(".pieza").remove();
+    numerar();
+    calcular();
+  });
+  el("combo-agregar").addEventListener("click", function () {
+    var pz = agregarPieza();
+    calcular();
+    pz.querySelector(".p-nombre").focus();
+  });
+
+  el("de-nuevo").addEventListener("click", function () {
+    if (!confirm("¿Borrar lo que cargaste (precio, descuentos, combo y el Excel) y empezar de nuevo?")) return;
+    try { localStorage.removeItem(CLAVE); } catch (e) { /* nada */ }
+    borrarPlanillaGuardada(function () { location.reload(); });
+  });
+
+  if (!restaurar()) {
+    ponerLosDelExcel();
+    agregarPieza();
+    agregarPieza();
+  }
+  calcular();
+
+  // El ultimo Excel, si habia uno.
+  leerPlanillaGuardada(function (g) {
+    if (!g || !g.bytes || planilla) return;
+    estado("Abriendo el último Excel que cargaste…");
+    cargarLector(function () {
+      if (planilla) return;
+      try {
+        abrirPlanilla(String(g.archivo || "planilla.xlsx"), g.bytes, g);
+      } catch (e) {
+        planilla = null;
+        estado("");
+        borrarPlanillaGuardada(function () {});
+      }
+    });
+  });
 })();
 </script>
 </body>

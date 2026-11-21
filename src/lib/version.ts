@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.69";
+export const APP_VERSION = "V.0.99.70";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.70",
+    date: "2026-11-21",
+    changes: [
+      "SIMULADOR DE COSTO, ARMAR UN COMBO (\"dame la posibilidad de armar un combo que pongo 2 o mas articulos y me armes un precio\"): se cargan 2 o más artículos, cada uno con su cantidad, su precio de lista del proveedor y sus descuentos (ej. 35+10; vacío usa los de arriba). Cada uno muestra su costo y su Lista 2, y el combo tiene su tabla con costo, por mayor, Lista 1, Lista 2 y el descuento: la suma de las piezas. Se pueden agregar y quitar artículos.",
+      "SIMULADOR DE COSTO, QUEDA GUARDADO LO ÚLTIMO (\"hace que quede guardado el ultimo que cargue y cotice\"): el precio, los descuentos, los porcentajes, el combo y el último Excel (con la hoja y las columnas elegidas) quedan guardados en el navegador. Al volver a abrir la página está todo como se dejó. Cada compu o celular guarda lo suyo. \"Empezar de nuevo\" lo borra.",
+    ],
+  },
   {
     version: "V.0.99.69",
     date: "2026-11-21",
