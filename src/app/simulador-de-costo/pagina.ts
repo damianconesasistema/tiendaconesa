@@ -26,6 +26,12 @@
 // del proveedor y sus descuentos (vacios = los de arriba). El precio del combo
 // es la suma de las piezas, con la misma cuenta.
 //
+// Y un PDF o una foto de la lista ("podes hacer que lea excel, pdf o imagenes
+// y me haga el calculo"): se arrastran al recuadro (o se pega una captura) y
+// los lee la IA del servidor (leer/route.ts, con topes de uso porque la
+// pagina va sin usuario). Vuelve la tabla con sus titulos y sigue el mismo
+// camino que un Excel.
+//
 // Los porcentajes se pueden cambiar en la pagina, como en las celdas del
 // Excel ("Volver a los del Excel" los repone). Lo ultimo que se cargo (precio,
 // descuentos, porcentajes, combo y el ultimo Excel) queda guardado en el
@@ -186,6 +192,28 @@ export const PAGINA = String.raw`<!DOCTYPE html>
   /* Muchos articulos */
   #archivo { position: absolute; width: 1px; height: 1px; opacity: 0; }
   #estado { font-size: 14px; margin: 12px 0 0; }
+  /* El recuadro para arrastrar, elegir o pegar el archivo */
+  .zona {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 14px; padding: 30px 16px; text-align: center; cursor: pointer;
+    border: 2px dashed #d4d0ca; border-radius: 16px; background: var(--fondo);
+    transition: border-color .15s, background .15s;
+  }
+  .zona:hover, .zona.encima { border-color: var(--rojo); background: #fff5f4; }
+  .zona.encima { transform: scale(1.01); }
+  .zona.leyendo { pointer-events: none; opacity: .75; }
+  .zona-icono {
+    width: 46px; height: 46px; border-radius: 999px; background: var(--rojo); color: #fff;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
+  }
+  .zona.leyendo .zona-icono { animation: latir 1s ease-in-out infinite; }
+  @keyframes latir { 50% { transform: scale(.85); opacity: .6; } }
+  .zona-titulo { font-family: var(--display); font-weight: 900; font-size: 16px; text-transform: uppercase; }
+  .zona-sub { font-size: 12.5px; color: var(--gris); max-width: 420px; line-height: 1.45; }
+  #aviso-ia {
+    display: none; margin: 12px 0 0; padding: 10px 12px; border-radius: 10px;
+    background: #fff7ed; border: 1px solid #fed7aa; font-size: 13px; line-height: 1.45;
+  }
   #estado.error { color: var(--rojo); font-weight: 600; }
   #opciones { display: none; margin-top: 16px; }
   .elegir { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -388,10 +416,15 @@ export const PAGINA = String.raw`<!DOCTYPE html>
 
   <div class="caja">
     <h2>Muchos artículos a la vez</h2>
-    <p class="ayuda">Subí el Excel del proveedor (.xlsx, .xls o .csv), elegí la columna del precio y bajá el mismo Excel con todos los precios calculados a la derecha. Usa los descuentos y los porcentajes de esta página. El archivo se lee en tu compu: no se sube a ningún lado.</p>
-    <label class="boton rojo" for="archivo">Elegir Excel</label>
-    <input id="archivo" type="file" accept=".xlsx,.xls,.xlsm,.csv,.ods">
+    <p class="ayuda">Arrastrá la lista del proveedor: Excel, CSV, PDF o una foto. Se calculan todos los artículos con los descuentos y porcentajes de esta página, elegís de qué columna sale el precio y bajás el Excel con los precios. El Excel se lee en tu compu; el PDF y la foto los lee una IA.</p>
+    <label class="zona" id="zona" for="archivo">
+      <span class="zona-icono"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M6 10l6-6 6 6"/><path d="M4 20h16"/></svg></span>
+      <span class="zona-titulo">Arrastrá el archivo acá</span>
+      <span class="zona-sub">o tocá para elegirlo · Excel, CSV, PDF o foto · también podés pegar una captura con Ctrl+V</span>
+    </label>
+    <input id="archivo" type="file" accept=".xlsx,.xls,.xlsm,.csv,.ods,.pdf,image/*">
     <p id="estado"></p>
+    <p id="aviso-ia">Esto lo leyó una IA desde el PDF o la foto. Antes de usar los precios, fijate que los números coincidan con el papel.</p>
     <div id="opciones">
       <div class="elegir">
         <div id="caja-hoja">
@@ -846,8 +879,12 @@ export const PAGINA = String.raw`<!DOCTYPE html>
       buenas.filter(function (x) { return /lista/i.test(titulo(x.c)); })[0] ||
       buenas.filter(function (x) { return /precio|costo|importe|valor|neto|p\.\s*u/i.test(titulo(x.c)); })[0] ||
       buenas[buenas.length - 1];
+    // Primero la descripcion: en las listas Piazza "Artículo" es el codigo.
+    function conTitulo(re) { return numericas.filter(function (x) { return re.test(titulo(x.c)) && x.llenas; })[0]; }
     var nombre =
-      numericas.filter(function (x) { return /descrip|detalle|art[ií]culo|producto|nombre/i.test(titulo(x.c)) && x.llenas; })[0] ||
+      conTitulo(/descrip|detalle/i) ||
+      conTitulo(/producto|nombre/i) ||
+      conTitulo(/art[ií]culo/i) ||
       numericas.slice().sort(function (a, b) { return b.largo - a.largo; })[0];
     el("col-precio").value = precio ? String(precio.c) : "0";
     el("col-nombre").value = nombre ? String(nombre.c) : "0";
@@ -898,6 +935,8 @@ export const PAGINA = String.raw`<!DOCTYPE html>
   function abrirPlanilla(archivo, bytes, elecciones) {
     var libro = XLSX.read(new Uint8Array(bytes), { type: "array", cellDates: true });
     planilla = { archivo: archivo, nombre: archivo.replace(/\.[^.]+$/, ""), bytes: bytes, libro: libro };
+    // Lo que leyo la IA se avisa: hay que mirarlo contra el papel.
+    el("aviso-ia").style.display = /\(leído con IA\)/.test(archivo) ? "block" : "none";
     el("hoja").innerHTML = libro.SheetNames.map(function (h) {
       return "<option>" + escapar(h) + "</option>";
     }).join("");
@@ -1002,25 +1041,179 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     XLSX.writeFile(libro, planilla.nombre + " - precios.xlsx");
   }
 
-  el("archivo").addEventListener("change", function () {
-    var archivo = this.files && this.files[0];
-    this.value = "";
-    if (!archivo) return;
+  // ------------------------------------------------ leer un archivo
+  // Damian, 21/11/2026: "haceme el area para que yo adjunte o arrastre un
+  // archivo lo lea y me calcule todo". Excel, CSV y ODS se leen aca mismo;
+  // un PDF o una foto van a la IA (/simulador-de-costo/leer), que devuelve la
+  // tabla con sus titulos. Esa tabla se arma como un Excel y sigue el mismo
+  // camino: elegir columnas, ver los precios, bajar el Excel, quedar guardada.
+
+  function esPlanilla(a) {
+    return /\.(xlsx|xlsm|xls|csv|ods)$/i.test(a.name || "") ||
+      /spreadsheet|excel|csv|opendocument/i.test(a.type || "");
+  }
+  function esPdf(a) { return /pdf$/i.test(a.type || "") || /\.pdf$/i.test(a.name || ""); }
+  function esFoto(a) {
+    return /^image\//i.test(a.type || "") || /\.(jpe?g|png|webp|heic|heif|gif|bmp)$/i.test(a.name || "");
+  }
+
+  function mostrarResultados() {
+    if (el("opciones").style.display === "block") el("opciones").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function leerPlanilla(archivo) {
     estado("Leyendo " + archivo.name + "…");
     cargarLector(function () {
       var lector = new FileReader();
       lector.onload = function (e) {
         try {
           abrirPlanilla(archivo.name, e.target.result, null);
+          mostrarResultados();
         } catch (err) {
           planilla = null;
           el("opciones").style.display = "none";
+          el("aviso-ia").style.display = "none";
           estado("No pude leer ese archivo. ¿Es un Excel (.xlsx o .xls) o un .csv?", true);
         }
       };
       lector.onerror = function () { estado("No pude abrir ese archivo.", true); };
       lector.readAsArrayBuffer(archivo);
     });
+  }
+
+  // El archivo tal cual, en base64.
+  function comoEsta(archivo, listo) {
+    var mime = archivo.type ||
+      (esPdf(archivo) ? "application/pdf" : /\.hei[cf]$/i.test(archivo.name || "") ? "image/heic" : "image/jpeg");
+    var lector = new FileReader();
+    lector.onload = function () { listo(String(lector.result).split(",")[1] || "", mime); };
+    lector.onerror = function () { listo("", ""); };
+    lector.readAsDataURL(archivo);
+  }
+
+  // Una foto grande se achica antes de mandarla: 2000 px alcanzan para leer
+  // una lista y pesa mucho menos. Si el navegador no la puede dibujar (HEIC
+  // en Windows), va como esta.
+  function prepararFoto(archivo, listo) {
+    var url = URL.createObjectURL(archivo);
+    var img = new Image();
+    img.onload = function () {
+      var lado = Math.max(img.naturalWidth, img.naturalHeight);
+      var escala = lado > 2000 ? 2000 / lado : 1;
+      var c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(img.naturalWidth * escala));
+      c.height = Math.max(1, Math.round(img.naturalHeight * escala));
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      listo(c.toDataURL("image/jpeg", 0.9).split(",")[1], "image/jpeg");
+    };
+    img.onerror = function () {
+      URL.revokeObjectURL(url);
+      comoEsta(archivo, listo);
+    };
+    img.src = url;
+  }
+
+  // La IA devuelve textos: los numeros pasan a ser numeros, para que el
+  // Excel que se baja los tome como tales. Un codigo con cero adelante
+  // (0102) queda como texto.
+  function numerosDeVerdad(fila, i) {
+    if (i === 0) return fila;
+    return fila.map(function (v) {
+      var t = String(v == null ? "" : v).trim();
+      return /^-?\d+(\.\d+)?$/.test(t) && !/^-?0\d/.test(t) ? parseFloat(t) : t;
+    });
+  }
+
+  var leyendo = false;
+  function leerConIA(archivo) {
+    if (leyendo) return;
+    if (esPdf(archivo) && archivo.size > 9 * 1024 * 1024) {
+      estado("Ese PDF pesa más de 9 MB. Mandá solo las hojas de la lista.", true);
+      return;
+    }
+    leyendo = true;
+    el("zona").classList.add("leyendo");
+    estado("La IA está leyendo " + archivo.name + "… puede tardar hasta un minuto.");
+    function terminar(error) {
+      leyendo = false;
+      el("zona").classList.remove("leyendo");
+      if (error) estado(error, true);
+    }
+    (esPdf(archivo) ? comoEsta : prepararFoto)(archivo, function (base64, mime) {
+      if (!base64) return terminar("No pude abrir ese archivo.");
+      var corte = new AbortController();
+      var reloj = setTimeout(function () { corte.abort(); }, 115000);
+      fetch("/simulador-de-costo/leer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ base64: base64, mime: mime }),
+        signal: corte.signal
+      })
+        .then(function (r) {
+          return r.json().catch(function () { return { error: "El servidor contestó " + r.status + ". Probá de nuevo." }; });
+        })
+        .then(function (d) {
+          clearTimeout(reloj);
+          if (!d || d.error || !d.ok) return terminar((d && d.error) || "No se pudo leer el archivo.");
+          var filas = Array.isArray(d.filas) ? d.filas : [];
+          if (filas.length < 2)
+            return terminar("No encontré ninguna lista de artículos en " + archivo.name + ". Si es una foto, probá con una más derecha y con buena luz.");
+          cargarLector(function () {
+            try {
+              var libro = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(libro, XLSX.utils.aoa_to_sheet(filas.map(numerosDeVerdad)), "Leído con IA");
+              var bytes = XLSX.write(libro, { type: "array", bookType: "xlsx" });
+              abrirPlanilla(archivo.name.replace(/\.[^.]+$/, "") + " (leído con IA).xlsx", bytes, null);
+              terminar(null);
+              mostrarResultados();
+            } catch (e) {
+              terminar("No pude armar la tabla con lo que leyó la IA. Probá de nuevo.");
+            }
+          });
+        })
+        .catch(function () {
+          clearTimeout(reloj);
+          terminar("La lectura tardó demasiado o se cortó la conexión. Probá de nuevo en un minuto.");
+        });
+    });
+  }
+
+  function procesarArchivo(archivo) {
+    if (!archivo) return;
+    if (esPlanilla(archivo)) return leerPlanilla(archivo);
+    if (esPdf(archivo) || esFoto(archivo)) return leerConIA(archivo);
+    estado("Ese archivo no lo puedo leer. Mandá un Excel, un CSV, un PDF o una foto.", true);
+  }
+
+  el("archivo").addEventListener("change", function () {
+    var archivo = this.files && this.files[0];
+    this.value = "";
+    procesarArchivo(archivo);
+  });
+
+  // Arrastrar y soltar: en el recuadro, o en cualquier lado de la pagina
+  // (asi el navegador no abre el archivo y se pierde lo cargado).
+  var zona = el("zona");
+  window.addEventListener("dragover", function (e) { e.preventDefault(); zona.classList.add("encima"); });
+  window.addEventListener("dragleave", function (e) {
+    if (!e.relatedTarget) zona.classList.remove("encima");
+  });
+  window.addEventListener("drop", function (e) {
+    e.preventDefault();
+    zona.classList.remove("encima");
+    procesarArchivo(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
+  });
+
+  // Pegar una captura (Ctrl+V) en cualquier lado de la pagina.
+  document.addEventListener("paste", function (e) {
+    var archivos = e.clipboardData && e.clipboardData.files;
+    if (!archivos || !archivos.length) return;
+    e.preventDefault();
+    procesarArchivo(archivos[0]);
   });
   el("hoja").addEventListener("change", function () { elegirHoja(this.value, null); });
   el("fila-titulos").addEventListener("change", function () {

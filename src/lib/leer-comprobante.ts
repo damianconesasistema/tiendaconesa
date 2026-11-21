@@ -41,6 +41,30 @@ Reglas, y son estrictas:
 - NO incluyas los totales, el subtotal, el IVA, los datos del cliente, ni los encabezados del papel como si fueran artículos.
 - Si en la imagen no hay ninguna lista de artículos, devolvé {"columnas":[],"filas":[]}.`;
 
+/** Para el simulador de costo (src/app/simulador-de-costo): copiar la tabla
+ *  TAL CUAL, con los titulos del papel. Ahi se elige despues de que columna
+ *  sale el precio (una lista Piazza trae "Precio de lista" y "Costo Unitario
+ *  SIN IVA"), asi que no sirve juntar todo en "precio". La regla de no
+ *  inventar es la misma. */
+const INSTRUCCIONES_TABLA = `Sos el que carga listas de precios de proveedores en una casa de sanitarios y grifería en Argentina.
+
+En el archivo hay una lista de precios, un presupuesto o una factura de un proveedor. Copiá la tabla de artículos tal cual está.
+
+Devolvé SOLO un JSON con esta forma, sin texto alrededor y sin markdown:
+
+{"columnas":["Artículo","Descripción","Cantidad","Precio de lista"],"filas":[["B0100","AMALFI INODORO LARGO","6","567356.38"]]}
+
+Reglas, y son estrictas:
+- "columnas": los títulos de las columnas como están escritos en el papel, en el mismo orden. Si una columna no tiene título, poné uno corto que diga qué es.
+- Un elemento de "filas" por cada renglón de artículo, con una celda por columna, en el mismo orden. Ni un renglón más.
+- PROHIBIDO inventar. Si un renglón está borroso o cortado y no lo podés leer con seguridad, no lo pongas.
+- Si una celda está vacía en el papel, dejala en "".
+- Los importes: el número solo, sin el signo $ y sin separador de miles, con punto para los decimales. Si el papel dice 1.234,56 poné 1234.56.
+- Los códigos de artículo, tal cual: no les saques ceros ni letras.
+- NO incluyas los totales, el subtotal general, el IVA, el final, los datos del cliente ni los títulos del papel como si fueran artículos.
+- Si hay varias hojas, todos los renglones juntos y en orden.
+- Si no hay ninguna lista de artículos, devolvé {"columnas":[],"filas":[]}.`;
+
 /** Lo que vuelve de Google, antes de creerle nada. */
 type Crudo = { columnas?: unknown; filas?: unknown };
 
@@ -95,6 +119,9 @@ function sacarJson(texto: string): Crudo | null {
 export async function leerComprobante(
   base64: string,
   mime: string,
+  /** "renglones" (Punto: codigo, descripcion, cantidad, precio) o "tabla"
+   *  (el simulador de costo: la tabla con sus titulos). */
+  modo: "renglones" | "tabla" = "renglones",
 ): Promise<Leido> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
@@ -112,8 +139,10 @@ export async function leerComprobante(
   // Ojo: el `maxDuration` del route NO alcanza. Eso lo respeta Vercel, y
   // aca el sistema corre con `next start` en la VM, donde no hace nada.
   const EMPEZO = Date.now();
-  const LIMITE_TOTAL = 75_000;
-  const LIMITE_INTENTO = 40_000;
+  // La tabla entera tarda mas en escribirse que unos renglones. Igual queda
+  // debajo de los 120 s que nginx espera al servidor.
+  const LIMITE_TOTAL = modo === "tabla" ? 100_000 : 75_000;
+  const LIMITE_INTENTO = modo === "tabla" ? 80_000 : 40_000;
   const queda = () => LIMITE_TOTAL - (Date.now() - EMPEZO);
 
   async function llamar() {
@@ -131,14 +160,16 @@ export async function leerComprobante(
               role: "user",
               parts: [
                 { inline_data: { mime_type: mime, data: base64 } },
-                { text: INSTRUCCIONES },
+                { text: modo === "tabla" ? INSTRUCCIONES_TABLA : INSTRUCCIONES },
               ],
             },
           ],
           generationConfig: {
             // Cero creatividad: esto es copiar un papel, no redactar.
             temperature: 0,
-            maxOutputTokens: 8192,
+            // Una lista entera de proveedor, con todas sus columnas, no entra
+            // en 8192: el JSON quedaba cortado y no se podia leer.
+            maxOutputTokens: modo === "tabla" ? 32768 : 8192,
             responseMimeType: "application/json",
           },
         }),

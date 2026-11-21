@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.72";
+export const APP_VERSION = "V.0.99.73";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.73",
+    date: "2026-11-21",
+    changes: [
+      "SIMULADOR DE COSTO, LEE PDF Y FOTOS (\"podes hacer que lea excel, pdf o imagenes y me haga el calculo y me muestre?\"): la lista del proveedor puede ser un Excel, un CSV, un PDF o una foto (como la lista Piazza/Hydros). El PDF y la foto los lee la IA, que devuelve la tabla con sus mismos títulos (Precio de lista, Costo unitario sin IVA...), y sigue igual que el Excel: se elige de qué columna sale el precio, se ven los precios calculados y se baja el Excel. Avisa que lo leído por IA hay que mirarlo contra el papel. Como la página va sin usuario, la lectura con IA tiene topes (8 cada 10 minutos y 40 por día por persona, 150 por día entre todos) para no gastar el cupo de Google que usa Punto.",
+      "SIMULADOR DE COSTO, RECUADRO PARA ARRASTRAR (\"haceme el area para que yo adjunte o arrastre un archivo lo lea y me calcule todo\"): en vez del botón, un recuadro grande donde se arrastra el archivo o se toca para elegirlo. También se puede pegar una captura con Ctrl+V. Al leerlo, baja solo hasta los precios.",
+    ],
+  },
   {
     version: "V.0.99.72",
     date: "2026-11-21",
