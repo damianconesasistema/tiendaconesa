@@ -44,6 +44,31 @@ const ORDENES: { valor: string; texto: string; orden: Orden }[] = [
 /** De a cuantos se le piden al servidor (igual que en actions.ts). */
 const DE_A = 3;
 
+/** Un combo ("3495+3493"): se compara sumando sus piezas, que tambien se
+ *  buscan, asi que va solo en su pedido (ver src/lib/combos.ts). */
+function esCombo(itemId: string): boolean {
+  return /^(?:\d+\+)+\d+$/.test(itemId) || /^COMBO-[A-Za-z]+-(?:\d+-)+\d+$/i.test(itemId) || /^(?:\d+-)+\d+$/.test(itemId);
+}
+
+/** Los pedidos: los combos de a uno, el resto de a DE_A. */
+function enTandas(ids: string[]): string[][] {
+  const tandas: string[][] = [];
+  let suelta: string[] = [];
+  for (const id of ids) {
+    if (esCombo(id)) {
+      tandas.push([id]);
+      continue;
+    }
+    suelta.push(id);
+    if (suelta.length === DE_A) {
+      tandas.push(suelta);
+      suelta = [];
+    }
+  }
+  if (suelta.length) tandas.push(suelta);
+  return tandas;
+}
+
 /** Mismo modelo y a un precio que tiene sentido (lo buscado antes del
  *  18/11 podia tener una medida tomada como codigo: "2742% mas caro"). */
 function esMismo(r: PrecioAfuera, nuestro: number): boolean {
@@ -186,8 +211,9 @@ export function ComparadorPrecios({
     setError(null);
     setBuscando({ hechos: 0, total: ids.length });
     try {
-      for (let i = 0; i < ids.length && !frenar.current; i += DE_A) {
-        const tanda = ids.slice(i, i + DE_A);
+      let hechos = 0;
+      for (const tanda of enTandas(ids)) {
+        if (frenar.current) break;
         setEnCurso(new Set(tanda));
         const r = await compararPrecios(tanda, palabras);
         if (!r.ok) {
@@ -195,7 +221,8 @@ export function ComparadorPrecios({
           break;
         }
         setComparaciones((c) => ({ ...c, ...r.resultados }));
-        setBuscando({ hechos: Math.min(i + DE_A, ids.length), total: ids.length });
+        hechos += tanda.length;
+        setBuscando({ hechos, total: ids.length });
       }
     } catch (e) {
       setError(
@@ -534,7 +561,13 @@ function Fila({
                         >
                           <span className="truncate">
                             {r.tienda}
-                            {r.manual ? " · tu link" : r.porNombre ? " · por nombre" : ""}
+                            {r.manual
+                              ? " · tu link"
+                              : r.suma
+                                ? " · suma de piezas"
+                                : r.porNombre
+                                  ? " · por nombre"
+                                  : ""}
                           </span>
                           <ExternalLink className="h-3 w-3 shrink-0" />
                         </a>
@@ -634,6 +667,30 @@ function Fila({
             buscar={buscarConPalabras}
           />
           <PrecioDeLink itemId={f.itemId} actualizar={actualizar} />
+          {c.combo && (
+            // Las piezas del combo y en cuantas tiendas se encontro cada una.
+            <div className="mt-3">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                Combo: se compara sumando sus {c.combo.piezas.length} piezas
+              </div>
+              <ul className="mt-1 text-xs">
+                {c.combo.piezas.map((pz) => (
+                  <li key={pz.itemId} className="py-0.5">
+                    <span className="font-semibold">{pz.itemId}</span>{" "}
+                    {pz.titulo ?? "(no está cargada en el sistema)"}
+                    {" · "}
+                    <span className={pz.tiendas ? "text-green-700" : "text-red-700"}>
+                      {pz.titulo === null
+                        ? "sin ella no se puede sumar"
+                        : pz.tiendas
+                          ? `la venden ${pz.tiendas} tienda${pz.tiendas === 1 ? "" : "s"}`
+                          : "ninguna tienda la vende: sin ella no se puede sumar"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {exactos.length > 0 ? (
             <Lista
               titulo="Mismo modelo"
@@ -859,7 +916,7 @@ function Lista({
               >
                 <span className="shrink-0 font-semibold">
                   {r.tienda}
-                  {r.manual ? " (tu link)" : r.porNombre ? " (por nombre)" : ""}:
+                  {r.manual ? " (tu link)" : r.suma ? " (suma de piezas)" : r.porNombre ? " (por nombre)" : ""}:
                 </span>
                 <span className="truncate">{r.titulo}</span>
                 <ExternalLink className="h-3 w-3 shrink-0" />
@@ -882,6 +939,27 @@ function Lista({
                   </button>
                 )}
               </span>
+              {r.suma && (
+                <ul className="w-full pl-3 text-xs text-[var(--muted)]">
+                  {r.suma.map((pz) => (
+                    <li key={pz.link} className="flex flex-wrap items-center justify-between gap-2 py-0.5">
+                      <a
+                        href={pz.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-w-0 items-center gap-1 hover:text-[var(--brand-red)]"
+                      >
+                        <span className="truncate">
+                          {pz.itemId} · {r.tienda === pz.tienda ? "" : `${pz.tienda}: `}
+                          {pz.titulo}
+                        </span>
+                        <ExternalLink className="h-3 w-3 shrink-0" />
+                      </a>
+                      <span className="whitespace-nowrap">{formatPrice(pz.precio)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           );
         })}

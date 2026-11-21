@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.65";
+export const APP_VERSION = "V.0.99.66";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.66",
+    date: "2026-11-21",
+    changes: [
+      "COMPARADOR, LOS COMBOS SUMANDO SUS PIEZAS (\"Sí, hacelo\"): los combos (Piazza Amalfi, Pringles Jade, Onix...) salían \"No hay datos\" porque las otras tiendas casi nunca venden el combo armado. Ahora, al buscar un combo, se busca también cada pieza (por su código del combo) y se suma lo que cobra cada tienda que vende TODAS las piezas: aparece como \"suma de piezas\", con el detalle de cada pieza y su link. Si ninguna tienda tiene todas, se suma lo más barato de cada pieza en distintas tiendas, como referencia. Si una pieza no está cargada o nadie la vende, no se suma (daría un total más barato que el real). Al abrir el combo se ve en cuántas tiendas está cada pieza.",
+      "COMPARADOR, MÁS EXACTO CON LOS COMBOS Y LAS PIEZAS: cada pieza tiene que ser de la misma línea que el combo (el inodoro Amalfi no es pieza del combo Padova) y traer lo mismo (el \"inodoro con asiento\" no es el \"inodoro con depósito y asiento\"; la tapa cuenta como asiento). Un combo de otra tienda tiene que traer las mismas piezas (\"inodoro + bidet\" no es \"inodoro + depósito\"). Y en todo el comparador: largo y corto son modelos distintos, y un combo de afuera no se compara con un producto suelto nuestro.",
+    ],
+  },
   {
     version: "V.0.99.65",
     date: "2026-11-21",

@@ -12,11 +12,13 @@ import {
   nombreDeTienda,
   preciosAfuera,
   quitarPrecioManual,
+  sumarPiezas,
   type Comparacion,
   type PrecioAfuera,
 } from "@/lib/comparador";
 import { precioDeUnaPagina } from "@/lib/web-de-marca";
 import { formatPrice } from "@/lib/order";
+import { piezasDelCombo } from "@/lib/combos";
 import { conRegistro } from "@/lib/actividad";
 
 // Buscar a cuanto se venden afuera unos productos. La pantalla los pide de a
@@ -36,17 +38,45 @@ async function compararPrecios__(
 
   const pedidos = [...new Set((itemIds ?? []).map(String))].slice(0, POR_PEDIDO);
   if (pedidos.length === 0) return { ok: true, resultados: {} };
+  // Los combos se comparan sumando sus piezas: se buscan tambien las piezas
+  // (ver sumarPiezas en src/lib/comparador.ts). La pantalla pide cada combo
+  // solo, asi el pedido no se hace largo.
+  const piezasDe = new Map<string, string[]>();
+  for (const id of pedidos) {
+    const pz = piezasDelCombo(id);
+    if (pz) piezasDe.set(id, pz);
+  }
+  const codigosDePiezas = [...new Set([...piezasDe.values()].flat())];
+  const ids = [...new Set([...pedidos, ...codigosDePiezas])];
 
   const [productos, marcas, suc, recargos, anteriores] = await Promise.all([
+    // Cada pieza, por su codigo del sitio o del sistema (como el stock de
+    // los combos, src/lib/combos.ts).
     prisma.product.findMany({
-      where: { itemId: { in: pedidos } },
-      select: { id: true, itemId: true, title: true, memo: true, description: true, codigoFabricante: true, brand: true },
+      where: {
+        OR: [
+          { itemId: { in: ids } },
+          ...(codigosDePiezas.length ? [{ codigoSistema: { in: codigosDePiezas } }] : []),
+        ],
+      },
+      select: {
+        codigoSistema: true,
+        id: true,
+        itemId: true,
+        title: true,
+        memo: true,
+        description: true,
+        codigoFabricante: true,
+        brand: true,
+        price: true,
+        salePrice: true,
+      },
     }),
     getMarcas(),
     sucursalDelPanel(),
     getRecargosDelPanel(),
     prisma.comparacionPrecio
-      .findMany({ where: { itemId: { in: pedidos } }, select: { itemId: true, datos: true } })
+      .findMany({ select: { itemId: true, datos: true }, where: { itemId: { in: ids } } })
       .catch(() => []),
   ]);
   // Las palabras que se escribieron la vez anterior siguen valiendo.
@@ -66,30 +96,68 @@ async function compararPrecios__(
       select: { productId: true, price: true, salePrice: true },
     }))
       precios.set(b.productId, precioVitrina(b.salePrice ?? b.price, recargos.unPago));
+  // Una pieza que no se publica en este local: su precio general.
+  for (const p of productos)
+    if (!precios.has(p.id) && p.price > 0) precios.set(p.id, precioVitrina(p.salePrice ?? p.price, recargos.unPago));
   const nombreMarca = new Map(marcas.map((m) => [m.id, m.name]));
+  const porId = new Map(productos.map((p) => [p.itemId, p]));
+  // Las piezas: por su codigo del sitio y, si no, por el del sistema.
+  const porCodigo = new Map(porId);
+  for (const p of productos) if (p.codigoSistema && !porCodigo.has(p.codigoSistema)) porCodigo.set(p.codigoSistema, p);
+
+  const buscarUno = (p: (typeof productos)[number]) =>
+    preciosAfuera({
+      itemId: p.itemId,
+      titulo: p.title,
+      memo: p.memo,
+      descripcion: p.description,
+      codigoFabricante: p.codigoFabricante,
+      precio: precios.get(p.id) ?? null,
+      marca: p.brand ? (nombreMarca.get(p.brand) ?? p.brand) : null,
+      palabras: palabrasDe(p.itemId),
+    }).catch(() => null); // ese queda sin buscar; los demas siguen
 
   const resultados: Record<string, Comparacion> = {};
+  const deLasPiezas: Record<string, Comparacion> = {};
   await Promise.all(
-    productos.map(async (p) => {
-      try {
-        resultados[p.itemId] = await preciosAfuera({
-          itemId: p.itemId,
-          titulo: p.title,
-          memo: p.memo,
-          descripcion: p.description,
-          codigoFabricante: p.codigoFabricante,
-          precio: precios.get(p.id) ?? null,
-          marca: p.brand ? (nombreMarca.get(p.brand) ?? p.brand) : null,
-          palabras: palabrasDe(p.itemId),
-        });
-      } catch {
-        /* ese queda sin buscar; los demas siguen */
+    pedidos.map(async (id) => {
+      const p = porId.get(id);
+      if (!p) return;
+      const piezas = piezasDe.get(id);
+      if (!piezas) {
+        const r = await buscarUno(p);
+        if (r) resultados[id] = r;
+        return;
       }
+      // Un combo: el combo armado (alguna tienda lo vende asi) y cada pieza,
+      // todo a la vez.
+      const cargadas = piezas
+        .map((x) => ({ codigo: x, p: porCodigo.get(x) }))
+        .filter((x): x is { codigo: string; p: (typeof productos)[number] } => !!x.p);
+      const [propio, ...dePiezas] = await Promise.all([buscarUno(p), ...cargadas.map((x) => buscarUno(x.p))]);
+      cargadas.forEach((x, i) => {
+        const c = dePiezas[i];
+        if (c) deLasPiezas[x.p.itemId] = c;
+      });
+      resultados[id] = sumarPiezas(
+        propio ?? { fecha: new Date().toISOString(), buscado: [], resultados: [], fallaron: [] },
+        piezas,
+        cargadas.map((x, i) => ({
+          itemId: x.codigo,
+          titulo: x.p.title,
+          precio: precios.get(x.p.id) ?? null,
+          comparacion: dePiezas[i] ?? null,
+        })),
+        { titulo: p.title, marca: p.brand ? (nombreMarca.get(p.brand) ?? p.brand) : null },
+      );
     }),
   );
-  if (Object.keys(resultados).length)
-    await guardarComparaciones(resultados, Object.fromEntries(productos.map((p) => [p.itemId, p.title])));
-  return { ok: true, resultados };
+  // Las piezas quedan guardadas tambien (si alguna se publica sola, ya esta
+  // buscada).
+  const todos = { ...deLasPiezas, ...resultados };
+  if (Object.keys(todos).length)
+    await guardarComparaciones(todos, Object.fromEntries(productos.map((p) => [p.itemId, p.title])));
+  return { ok: true, resultados: todos };
 }
 
 /** Agregar el precio de otra tienda pegando el link de la pagina del

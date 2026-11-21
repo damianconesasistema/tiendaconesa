@@ -172,7 +172,12 @@ export type PrecioAfuera = {
   /** Lo agrego Damian pegando el link (lo encontro buscando en Google):
    *  queda en las busquedas siguientes, con el precio al dia. */
   manual?: boolean;
+  /** Un combo: lo que cobra esa tienda por todas sus piezas sueltas. Estas
+   *  son las piezas (ver sumarPiezas). */
+  suma?: PiezaSumada[];
 };
+
+export type PiezaSumada = { itemId: string; tienda: string; titulo: string; precio: number; link: string };
 
 export type Comparacion = {
   /** ISO. */
@@ -187,6 +192,9 @@ export type Comparacion = {
   /** Las palabras que escribio Damian para buscarlo ("Buscar con otras
    *  palabras"): se usan tambien en las busquedas siguientes. */
   palabras?: string;
+  /** Un combo: como le fue a cada pieza (cuantas tiendas la venden; sin
+   *  titulo, no esta cargada en el sistema). */
+  combo?: { piezas: { itemId: string; titulo: string | null; tiendas: number }[] };
 };
 
 type ProductoVtex = {
@@ -765,6 +773,8 @@ const CONTRARIOS: string[][] = [
   ["interior", "exterior"],
   ["pared", "mesada"],
   ["monocomando", "bimando", "bicomando"],
+  // El inodoro largo no es el corto (Piazza Amalfi tiene los dos).
+  ["largo", "corto"],
 ];
 
 function seContradicen(nuestro: string, deAfuera: string): boolean {
@@ -797,15 +807,24 @@ function rasgoDistinto(nuestro: string, deAfuera: string): boolean {
   return a.length !== b.length || a.some((r) => !b.includes(r));
 }
 
+/** Un combo o un conjunto: dice "combo" o junta cosas con "+". */
+function esConjunto(texto: string): boolean {
+  return /\bcombo\b/i.test(texto) || /\+/.test(texto);
+}
+
 /** Lo que sale de un modelo distinto por el titulo, sin mirar codigos ni
  *  precio: otro color, algo que se contradice, otra medida u otro rasgo. Con
- *  esto tambien se revisa lo que habia traido una busqueda anterior. */
+ *  esto tambien se revisa lo que habia traido una busqueda anterior. Y un
+ *  combo de afuera no es nuestro producto suelto (el inodoro solo no se
+ *  compara con "Combo inodoro + bidet"); al reves si puede ser, porque las
+ *  tiendas escriben el combo de muchas formas ("con deposito y asiento"). */
 export function esOtroModelo(nuestro: string, deAfuera: string): boolean {
   return (
     colorDistinto(nuestro, deAfuera) ||
     seContradicen(nuestro, deAfuera) ||
     medidasDistintas(nuestro, deAfuera) ||
-    rasgoDistinto(nuestro, deAfuera)
+    rasgoDistinto(nuestro, deAfuera) ||
+    (esConjunto(deAfuera) && !esConjunto(nuestro))
   );
 }
 
@@ -1052,6 +1071,152 @@ async function pasarLoViejo(): Promise<void> {
   await prisma.setting.deleteMany({ where: { key: S_COMPARADOR } });
 }
 
+// ------------------------------------------------------------ combos
+
+/** Lo que es cada pieza de un combo (el comienzo de la palabra: "deposito"
+ *  encuentra "depositos"). */
+const TIPOS_DE_PIEZA = [
+  "inodoro",
+  "deposito",
+  "mochila",
+  "bidet",
+  "asiento",
+  "tapa",
+  "bacha",
+  "lavatorio",
+  "pileta",
+  "columna",
+  "pedestal",
+  "vanitory",
+  "mueble",
+  "espejo",
+  "botiquin",
+];
+
+/** Un combo, comparado sumando sus piezas. Damian, 21/11/2026 (los combos
+ *  Piazza y Pringles salian "No hay datos": las otras tiendas casi nunca
+ *  venden el combo armado, venden cada pieza): "Si, hacelo".
+ *
+ *  - Por tienda: si una tienda vende TODAS las piezas (el mismo modelo de
+ *    cada una), lo que cobra por todas juntas. Es lo que pagaria alguien
+ *    que arma el combo en esa tienda.
+ *  - Si ninguna tiene todas: lo mas barato de cada pieza, aunque sean de
+ *    distintas tiendas, para tener una referencia.
+ *
+ *  Nuestro precio del combo es la suma de la Lista 2 de sus piezas
+ *  (src/lib/combos.ts): se compara lo mismo con lo mismo. Si una pieza no
+ *  esta cargada en el sistema o ninguna tienda la vende, no hay suma: daria
+ *  un total mas barato que el real. */
+/** Las piezas que nombra un titulo ("inodoro", "deposito", "bidet"...). La
+ *  tapa es el asiento y la mochila es el deposito: cada tienda lo llama a
+ *  su manera. */
+const MISMA_PIEZA: Record<string, string> = { tapa: "asiento", mochila: "deposito" };
+function tiposDe(t: string): Set<string> {
+  return new Set(
+    TIPOS_DE_PIEZA.filter((w) => ` ${plano(t)} `.includes(` ${w}`)).map((w) => MISMA_PIEZA[w] ?? w),
+  );
+}
+
+function mismosTipos(a: Set<string>, b: Set<string>): boolean {
+  return a.size === b.size && [...a].every((w) => b.has(w));
+}
+
+/** La linea de un combo: lo que va entre la marca y la primera pieza.
+ *  "COMBO PIAZZA AMALFI · INODORO + ..." -> amalfi; "COMBO PRINGLES JADE MAX
+ *  · INODORO + DEPOSITO" -> jade, max (el Jade Max no es el Jade). */
+function lineaDelCombo(titulo: string, marca: string | null): string[] {
+  const deMarca = new Set(plano(marca ?? "").split(" ").filter(Boolean));
+  const salida: string[] = [];
+  for (const w of plano(titulo).split(" ")) {
+    if (TIPOS_DE_PIEZA.some((t) => w.startsWith(t))) break;
+    if (w === "combo" || deMarca.has(w) || w.length < 3 || /\d/.test(w)) continue;
+    if (RELLENO.has(w) || GENERICAS.has(w) || /^piezas?$/.test(w)) continue;
+    salida.push(w);
+  }
+  return salida;
+}
+
+export function sumarPiezas(
+  propio: Comparacion,
+  todas: string[],
+  piezas: { itemId: string; titulo: string; precio: number | null; comparacion: Comparacion | null }[],
+  /** El combo: su titulo (de ahi sale la linea: Amalfi, Jade Max) y marca. */
+  combo: { titulo: string; marca: string | null },
+): Comparacion {
+  // Lo que se compara tiene que ser de la misma linea: el inodoro Amalfi no
+  // es la pieza del combo Padova (por nombre se tomaba, porque coincidian
+  // "inodoro" y "largo").
+  const linea = lineaDelCombo(combo.titulo, combo.marca);
+  const deLaLinea = (t: string) => linea.every((w) => ` ${plano(t)} `.includes(` ${w}`));
+  // Una pieza no puede ser algo que trae otra pieza del combo: "Inodoro largo
+  // Padova con deposito" no es el deposito solo (se sumaba dos veces).
+  const tipos = piezas.map((pz) => tiposDe(pz.titulo));
+  const deCadaUna = piezas.map((pz, i) => {
+    const deOtras = new Set(tipos.flatMap((t, j) => (j === i ? [] : [...t])).filter((w) => !tipos[i].has(w)));
+    return (pz.comparacion?.resultados ?? [])
+      .filter(
+        (r) =>
+          r.exacto &&
+          !r.suma &&
+          (r.manual || deLaLinea(r.titulo)) &&
+          !esConjunto(r.titulo) &&
+          // Lo mismo que la pieza: el "inodoro con deposito y asiento" no es
+          // el "inodoro con asiento" (le falta el deposito).
+          (tipos[i].size ? mismosTipos(tiposDe(r.titulo), tipos[i]) : ![...tiposDe(r.titulo)].some((w) => deOtras.has(w))) &&
+          (!pz.precio || (r.precio >= pz.precio * 0.4 && r.precio <= pz.precio * 2.5)),
+      )
+      .sort((a, b) => a.precio - b.precio);
+  });
+  const info = {
+    piezas: todas.map((id) => {
+      const i = piezas.findIndex((pz) => pz.itemId === id);
+      return {
+        itemId: id,
+        titulo: i >= 0 ? piezas[i].titulo : null,
+        tiendas: i >= 0 ? new Set(deCadaUna[i].map((r) => r.tienda)).size : 0,
+      };
+    }),
+  };
+  const sumas: PrecioAfuera[] = [];
+  const completas = piezas.length > 0 && todas.every((id) => piezas.some((pz) => pz.itemId === id));
+  const armar = (tienda: string, elegidas: PrecioAfuera[], marca: string): PrecioAfuera => ({
+    tienda,
+    titulo: `Suma de las ${elegidas.length} piezas`,
+    precio: elegidas.reduce((t, r) => t + r.precio, 0),
+    // El link de la primera pieza (con una marca para que no se repita).
+    link: `${elegidas[0].link}#${marca}`,
+    exacto: true,
+    ...(elegidas.some((r) => r.porNombre) ? { porNombre: true } : {}),
+    ...(elegidas.some((r) => r.anterior) ? { anterior: elegidas.find((r) => r.anterior)!.anterior } : {}),
+    suma: elegidas.map((r, i) => ({
+      itemId: piezas[i].itemId,
+      tienda: r.tienda,
+      titulo: r.titulo,
+      precio: r.precio,
+      link: r.link,
+    })),
+  });
+  if (completas) {
+    const tiendas = new Set(deCadaUna.flatMap((l) => l.map((r) => r.tienda)));
+    for (const t of tiendas) {
+      const elegidas = deCadaUna.map((l) => l.find((r) => r.tienda === t));
+      if (elegidas.every((r): r is PrecioAfuera => !!r)) sumas.push(armar(t, elegidas, "suma-de-piezas"));
+    }
+    if (!sumas.length && deCadaUna.every((l) => l.length > 0))
+      sumas.push(armar("Piezas en distintas tiendas", deCadaUna.map((l) => l[0]), "piezas-sueltas"));
+  }
+  // El combo armado que vende otra tienda: de la misma linea y con las
+  // mismas piezas ("inodoro + bidet" no es "inodoro + deposito"). Los que
+  // agrego Damian con un link quedan siempre.
+  const nuestras = tiposDe(combo.titulo);
+  const mismasPiezas = (t: string) => mismosTipos(tiposDe(t), nuestras);
+  const propios = propio.resultados.filter((r) => !r.suma && (r.manual || (deLaLinea(r.titulo) && mismasPiezas(r.titulo))));
+  const resultados = [...propios, ...sumas].sort((a, b) => a.precio - b.precio);
+  const salida: Comparacion = { ...propio, resultados, combo: info };
+  if (resultados.length) delete salida.sinCodigo;
+  return salida;
+}
+
 /** El nombre de la tienda de un link: el de la lista si es una de las que se
  *  revisan ("Casa Andy"); si no, el del sitio ("www.sanitarios-lopez.com.ar"
  *  -> "Sanitarios Lopez"). */
@@ -1167,6 +1332,7 @@ export async function guardarComparaciones(
       for (const r of antes.resultados ?? [])
         if (
           !r.manual &&
+          !r.suma &&
           nueva.fallaron.includes(r.tienda) &&
           !ya.has(r.tienda) &&
           !(titulos[id] && esOtroModelo(titulos[id], r.titulo))
