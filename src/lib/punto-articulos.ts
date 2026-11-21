@@ -34,8 +34,9 @@ export type ArticuloPunto = {
   lista2: number;
   iva: number;
   stockBA: number;
-  /** "Dep Cordoba" tal cual viene: en el Excel de Piazza hay valores raros
-   *  (150 en muchos), se guarda igual para no perder el dato. */
+  /** "Dep Cordoba" tal cual viene: el stock de Traslasierra. Hay muchos en
+   *  150 y parecen raros, pero son reales (Damian, 21/11/2026: "Si, son
+   *  reales"). */
   stockTS: number;
   /** El ID interno de GBP. */
   gbpId: number | null;
