@@ -246,7 +246,9 @@ export default async function Home() {
       <section className="border-b border-[var(--border)] bg-white px-6 py-12">
         <div className="mx-auto grid max-w-6xl grid-cols-3 gap-6 sm:gap-16">
           <Stat value="14k+" label="En Instagram" />
-          <Stat value="20+" label="Marcas" />
+          {/* Las marcas que se ven abajo, contadas: decia "20+" y eran 13
+              (Damian, 21/11/2026: "Si, cambialo"). Se actualiza sola. */}
+          <Stat value={String(marcasVisibles.length)} label="Marcas" />
           {/* Con la tienda cerrada, "la tienda online nunca cierra" seria
               mentira escrita en la portada. */}
           {hayTienda ? (
