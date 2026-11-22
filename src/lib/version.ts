@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.78";
+export const APP_VERSION = "V.0.99.79";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,18 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.79",
+    date: "2026-11-22",
+    changes: [
+      "PUNTO, COMPROBANTES CON PDF, IMPRIMIR, EDITAR Y ELIMINAR (\"esto si fue emitido tendria que bajar el pdf o dejarme editarlo\", \"ahi tambien debes dar la posiblidad de imprimir, eliminar\"): cada comprobante tiene su PDF (con el logo, la sucursal, el cliente, los artículos y el total; nunca el costo) para bajar o imprimir. Ninguno es fiscal: el presupuesto dice \"documento no válido como factura\" y la factura interna sale con la marca \"SIN CAE\".",
+      "EDITAR PRESUPUESTOS: un presupuesto que todavía no se vendió vuelve a la venta (a precio de hoy) y al guardarlo queda con el MISMO número; lo de antes queda guardado. Si dos puestos lo cambian a la vez, el segundo recibe un aviso en vez de pisar al primero. Facturas, remitos y ventas no se editan.",
+      "ELIMINAR: saca el comprobante de la lista, de los totales y de la Caja, pero no lo borra: queda en el filtro \"Eliminados\" con quién y cuándo, y de ahí se recupera. El número no se vuelve a usar. Queda anotado en Actividad (migración 51).",
+      "LOGIN EN PUNTO (\"podes ponerle login al sistema punto\"): el botón Salir ahora cierra la sesión y vuelve a la pantalla de ingreso (antes no hacía nada, y por eso nunca volvía a pedir usuario). El que entra vende a su nombre: el usuario de arriba es el de la sesión y para cambiarlo se sale y se entra con otro.",
+      "SIMULADOR DE COSTO DENTRO DE PUNTO (\"agregalo al punto como uno mas para entrar\"): pestaña nueva Simulador, el mismo de la página del jefe. Se sacó La Red (\"borra el de la red que nose que es\"): era una idea con números inventados.",
+      "SIN \"MOSTRADOR\" (\"los usuarios y mostrador no es algo redundante? ... lo importante es saber quien vende\"): el puesto salía del usuario y mostraba lo mismo dos veces. Se sacó de la barra, del ticket, de Comprobantes, de la Caja y del CSV del Contable; la Caja, la Gerencia y el Asistente ahora muestran por vendedor. Se sumó Mariano a los vendedores.",
+    ],
+  },
   {
     version: "V.0.99.78",
     date: "2026-11-21",

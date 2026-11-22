@@ -455,6 +455,10 @@ model PuntoDocumento {
   /// Los renglones con el precio y el costo de ese momento, el cliente, la
   /// forma de pago, el descuento, el recargo y el deposito.
   datos     Json
+  /// Eliminado desde Comprobantes (migracion 51): no se borra, se marca.
+  /// Sale de la lista y de la Caja; se ve en "Eliminados" y se recupera.
+  eliminadoEn  DateTime?
+  eliminadoPor String?
 
   @@unique([sucursal, letra, numero])
   @@index([createdAt])

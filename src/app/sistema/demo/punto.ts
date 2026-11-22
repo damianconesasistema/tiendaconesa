@@ -352,6 +352,11 @@ td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500;
 #tbCp tr.cp-det > td{background:var(--surface-2); padding:2px 14px 14px}
 #tbCp tr.cp-det table{width:100%}
 #tbCp .cp-mas{font-size:12px; color:var(--ink-2); margin-top:8px; line-height:1.5}
+#tbCp .cp-acc{white-space:nowrap}
+#tbCp .cp-acc button{padding:5px 10px; margin:2px 0 2px 4px}
+#tbCp .cp-acc button.b3{padding:5px 8px}
+#tbCp tr.cp-elim td{color:var(--ink-3)}
+#tbCp tr.cp-elim td b{text-decoration:line-through}
 
 /* ---------------------------------------------------------- tiles */
 .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(176px,1fr)); gap:12px; margin-bottom:16px}
@@ -1001,15 +1006,14 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.78</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.79</span>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
     <span class="bar-sep ocultable"></span>
     <span class="user">Usuario: <select id="selUsuario" aria-label="Usuario"></select></span>
     <span class="bar-sep ocultable"></span>
-    <span class="user">Vendés como: <select id="selSuc" aria-label="Sucursal"></select>
-      <b id="barPuesto">Mostrador 1</b></span>
-    <button class="salir" type="button">Salir</button>
+    <span class="user">Vendés como: <select id="selSuc" aria-label="Sucursal"></select></span>
+    <button class="salir" id="btnSalir" type="button">Salir</button>
   </div>
   <nav id="nav">
     <a href="#mostrador" data-v="mostrador" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2l2.7 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L21.7 7H5.1"/></svg>Venta</a>
@@ -1018,7 +1022,7 @@ footer{
     <a href="#web" data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Web</a>
     <a href="#productos" data-v="productos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Productos</a>
     <a href="#listas" data-v="listas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>Listas</a>
-    <a href="#red" data-v="red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>La Red</a>
+    <a href="#simulador" data-v="simulador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M8 6h8"/><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01M16 19h.01"/></svg>Simulador</a>
     <a href="#caja" data-v="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Caja</a>
     <a href="#renta" data-v="renta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg>Rentabilidad</a>
     <a href="#contable" data-v="contable"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>Contable</a>
@@ -1061,6 +1065,7 @@ footer{
         <!-- El orden es el de un ticket: arriba el lugar donde caen los
              articulos, abajo el renglon donde se escribe, que es donde
              esta la mano. -->
+        <div class="aviso" id="avisoEdita" hidden style="margin:10px 14px 0"></div>
         <div class="tk-lineas" id="tkLineas"></div>
         <div class="busca-pie">
           <div class="buscar">
@@ -1077,7 +1082,6 @@ footer{
     <div class="card ticket">
       <div class="card-h">
         <h3>Total</h3>
-        <span class="sub" id="tkPuesto" style="margin-left:auto"></span>
       </div>
       <div class="tk-tot" id="tkTot"></div>
       <div class="tk-acc">
@@ -1219,7 +1223,7 @@ footer{
 <section id="v-comprobantes" hidden>
   <div class="head">
     <h2>Comprobantes</h2>
-    <p>Todo lo que se emitió en Punto, de todos los puestos: presupuestos, facturas, remitos y ventas sin comprobante. Queda guardado aunque recargues.</p>
+    <p>Todo lo que se emitió en Punto, de todos los vendedores: presupuestos, facturas, remitos y ventas sin comprobante. Queda guardado aunque recargues.</p>
   </div>
   <div class="filtros" style="margin:0 0 14px">
     <select id="cpTipo" aria-label="Qué mostrar">
@@ -1229,6 +1233,7 @@ footer{
       <option value="sin-comprobante">Sin comprobante</option>
       <option value="remito">Remitos</option>
       <option value="pedido-interno">Pedidos internos</option>
+      <option value="eliminados">Eliminados</option>
     </select>
     <select id="cpSuc" aria-label="Sucursal"></select>
     <select id="cpDias" aria-label="Desde cuándo">
@@ -1245,7 +1250,7 @@ footer{
     <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto"><table class="densa"><thead><tr>
       <th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Vendedor</th><th class="r">Total</th><th></th>
     </tr></thead><tbody id="tbCp"></tbody></table></div>
-    <p class="nota">Tocá un renglón para ver los artículos. Las facturas de Punto todavía no van a ARCA: no tienen CAE y no valen como comprobante fiscal. Lo emitido no se borra. El stock que mueve una venta todavía no queda guardado.</p>
+    <p class="nota">Tocá un renglón para ver los artículos. Un presupuesto se puede <b>Editar</b> mientras no se venda: queda con el mismo número. <b>Eliminar</b> lo saca de la lista y de la Caja, pero no lo borra del todo: queda en “Eliminados” y de ahí se recupera. Las facturas de Punto todavía no van a ARCA: no tienen CAE y no valen como comprobante fiscal. El stock que mueve una venta todavía no queda guardado.</p>
   </div>
 </section>
 
@@ -1369,7 +1374,7 @@ footer{
     <h2>Pedidos web</h2>
     <p>Lo que entra por la página cae acá, al mismo stock que el mostrador.</p>
   </div>
-  <div class="aviso"><span>⚠</span><div><b>El stock es uno solo.</b> Si el Mostrador 3 vende el último termotanque de 80, la web lo deja de ofrecer en el mismo momento. Hoy eso se arregla a mano y por teléfono.</div></div>
+  <div class="aviso"><span>⚠</span><div><b>El stock es uno solo.</b> Si en el mostrador se vende el último termotanque de 80, la web lo deja de ofrecer en el mismo momento. Hoy eso se arregla a mano y por teléfono.</div></div>
   <div class="dos">
     <div class="card">
       <div class="card-h"><h3>Entraron hoy</h3><span class="sub" id="webCount"></span></div>
@@ -1739,51 +1744,17 @@ footer{
   </div>
 </section>
 
-<!-- ========================================================== LA RED -->
-<section id="v-red" hidden>
+<!-- ====================================================== SIMULADOR -->
+<!-- El simulador de costo, el mismo de la página que se le mandó al jefe
+     (/simulador-de-costo). Damián, 22/11/2026: "el simulador de costo
+     agregalo al punto como uno mas para entrar". Se carga recién la primera
+     vez que se abre la solapa. -->
+<section id="v-simulador" hidden>
   <div class="head">
-    <h2>La Red</h2>
-    <p>Cuando un comercio carga una lista, deja de ser trabajo para todos los demás. Y por primera vez se puede saber si el descuento que te dan es bueno o es un verso.</p>
+    <h2>Simulador de costo</h2>
+    <p>Poné el costo del proveedor y sus descuentos, y te calcula el precio. Es el mismo de la página pública: también lee Excel, PDF y fotos. <a href="/simulador-de-costo" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Abrirlo en otra pestaña</a></p>
   </div>
-
-  <div class="aviso" style="border-left-color:var(--warn)"><span>⚠</span><div><b>Esto es la idea del producto, no algo que exista hoy.</b> Los números de la red de esta pantalla están inventados para mostrar cómo se vería. Lo que sí es real es el problema: hoy el proveedor sabe qué descuento le da a cada uno y vos no sabés nada.</div></div>
-
-  <div class="tiles" id="redTiles"></div>
-
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-h">
-      <h3>Tu descuento contra el de la red</h3>
-      <span class="sub">comercios del mismo tamaño que el tuyo</span>
-    </div>
-    <div class="tabla-wrap">
-      <table>
-        <thead><tr>
-          <th>Proveedor</th><th class="r">Le comprás por año (estimado)</th>
-          <th class="r">Tu descuento</th><th class="r">La red</th><th class="r">El mejor</th>
-          <th class="r">Te deja de costar</th><th>Cómo estás</th>
-        </tr></thead>
-        <tbody id="tbRed"></tbody>
-      </table>
-    </div>
-    <p class="nota"><b>Se comparten costos, nunca precios de venta.</b> Lo primero te hace fuerte contra el proveedor. Lo segundo sería ponerse de acuerdo entre competidores, que además de estar mal, es ilegal. Antes de salir a vender esto hay que sentarse con un abogado de defensa de la competencia: es la parte delicada de la idea y prefiero decírtelo ahora.</p>
-  </div>
-
-  <div class="dos">
-    <div class="card">
-      <div class="card-h"><h3>Listas al día</h3><span class="sub">quién las cargó</span></div>
-      <div class="tabla-wrap">
-        <table>
-          <thead><tr><th>Proveedor</th><th>Última lista</th><th>La cargó</th><th>Estado</th></tr></thead>
-          <tbody id="tbListas"></tbody>
-        </table>
-      </div>
-      <p class="nota">Las que dice “otro comercio” no las tocó nadie de acá. Llegaron solas.</p>
-    </div>
-    <div class="card">
-      <div class="card-h"><h3>Por qué esto cambia el juego</h3></div>
-      <div class="hallazgos" id="redPorque"></div>
-    </div>
-  </div>
+  <iframe id="simFrame" title="Simulador de costo" style="display:block;width:100%;height:calc(100vh - 200px);min-height:560px;border:1px solid var(--line);border-radius:var(--r);background:#fff"></iframe>
 </section>
 
 <!-- ====================================================== ASISTENTE -->
@@ -1834,7 +1805,7 @@ footer{
       <div class="card-h"><h3>Movimientos</h3><span class="sub" id="cajaCount"></span></div>
       <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto">
         <table>
-          <thead><tr><th>Hora</th><th>Sucursal</th><th>Vendedor</th><th>Puesto</th><th>Artículos</th><th>Pago</th><th>Comprobante</th><th class="r">Total</th></tr></thead>
+          <thead><tr><th>Hora</th><th>Sucursal</th><th>Vendedor</th><th>Artículos</th><th>Pago</th><th>Comprobante</th><th class="r">Total</th></tr></thead>
           <tbody id="tbCaja"></tbody>
         </table>
       </div>
@@ -1848,13 +1819,9 @@ footer{
         <div class="card-h"><h3>Por forma de pago</h3></div>
         <div class="barras" id="porPago"></div>
       </div>
-      <div class="card" style="margin-bottom:16px">
+      <div class="card">
         <div class="card-h"><h3>Por vendedor</h3><span class="sub">lo que cobró cada uno</span></div>
         <div class="barras" id="cajaPorVend"></div>
-      </div>
-      <div class="card">
-        <div class="card-h"><h3>Por mostrador</h3></div>
-        <div class="barras" id="porPuesto"></div>
       </div>
     </div>
   </div>
@@ -1864,7 +1831,7 @@ footer{
 <section id="v-gerencia" hidden>
   <div class="head">
     <h2>Gerencia</h2>
-    <p>Los cinco mostradores y la web, en una pantalla.</p>
+    <p>Todos los vendedores y la web, en una pantalla.</p>
   </div>
   <div class="tiles" id="gerTiles"></div>
   <div class="dos">
@@ -1885,7 +1852,7 @@ footer{
     </div>
     <div>
       <div class="card" style="margin-bottom:16px">
-        <div class="card-h"><h3>Margen por mostrador</h3></div>
+        <div class="card-h"><h3>Margen por vendedor</h3></div>
         <div class="barras" id="gerPuesto"></div>
       </div>
       <div class="card" style="margin-bottom:16px">
@@ -1904,7 +1871,6 @@ footer{
 </main>
 
 <footer>
-  <p><b>La Red todavía no existe.</b> Sus números son un ejemplo de lo que mostraría. Si se construye: se comparten costos, nunca precios de venta.</p>
   <p>Nada de lo que se aprieta acá toca la tienda ni el facturador.</p>
 </footer>
 
@@ -2009,6 +1975,7 @@ footer{
 
 <div id="toast" role="status" aria-live="polite"></div>
 
+<script>var PUNTO_YO = null; /*YO*/</script>
 <script>
 "use strict";
 
@@ -2393,7 +2360,8 @@ const S = {
   ventas:[],           // lo del día
   presupuestos:0,
   objetivo:35,
-  sim:null
+  sim:null,
+  editando:null        // el presupuesto ya emitido que se está cambiando
 };
 
 /* ------------------------------------------- las ventas del día */
@@ -2517,7 +2485,7 @@ function ventaMargen(v){
 }
 
 /* ================================================== navegación */
-const vistas = ["mostrador","comprobantes","inicio","pedidos","web","productos","listas","red","caja","renta","contable","gerencia","asistente"];
+const vistas = ["mostrador","comprobantes","inicio","pedidos","web","productos","listas","simulador","caja","renta","contable","gerencia","asistente"];
 // Un <a> se activa con Enter pero no con la barra espaciadora; un <button>
 // con las dos. Al pasar a links se perdio el espacio: se lo devolvemos, que
 // hay gente que se mueve por el sistema sin tocar el mouse.
@@ -2556,7 +2524,10 @@ function avisarVista(b){
   if(b.dataset.v==="renta") pintarRenta();
   if(b.dataset.v==="contable") pintarContable();
   if(b.dataset.v==="web") pintarWeb();
-  if(b.dataset.v==="red") pintarRed();
+  if(b.dataset.v==="simulador"){
+    const f = document.getElementById("simFrame");
+    if(f && !f.getAttribute("src")) f.setAttribute("src", "/simulador-de-costo");
+  }
   if(b.dataset.v==="asistente") pintarAsistente();
   if(b.dataset.v==="pedidos") pintarPedido();
   if(b.dataset.v==="comprobantes") pintarComprobantes();
@@ -2574,10 +2545,8 @@ function toast(msg){
 }
 
 function ponerPuesto(){
+  // Ya no se muestra (lo importante es quién vende), pero va con la venta.
   S.puesto = puestoDe(S.usuario);
-  document.getElementById("barPuesto").textContent = S.puesto;
-  const t = document.getElementById("tkPuesto");
-  if(t) t.textContent = S.puesto;
 }
 
 /* En que razon social se esta vendiendo. De aca salen tres cosas: el
@@ -2600,6 +2569,9 @@ document.getElementById("selSuc").addEventListener("change",e=>{
 function pintarUsuarios(){
   const sel = document.getElementById("selUsuario");
   sel.innerHTML = VENDEDORES.map(v=>'<option'+(v===S.usuario?" selected":"")+'>'+v+'</option>').join("");
+  // Con login, el usuario es el que entró: para cambiarlo, Salir.
+  sel.disabled = !!VENDEDOR_LOGIN;
+  sel.title = VENDEDOR_LOGIN ? "Entraste como " + VENDEDOR_LOGIN + ". Para entrar con otro usuario, tocá Salir." : "";
 }
 document.getElementById("selUsuario").addEventListener("change",e=>{
   S.usuario = e.target.value;
@@ -2779,7 +2751,7 @@ function pintarCamposVenta(){
       // El vendedor va con la sucursal, no abajo entre el numero y el
       // deposito: las dos contestan lo mismo, quien vende y desde donde.
       '<div class="campo vend"><label for="vtaVend">Vendedor</label>'+
-        '<select id="vtaVend">'+
+        '<select id="vtaVend"'+(VENDEDOR_LOGIN ? ' disabled title="Entraste como '+VENDEDOR_LOGIN+'. Para vender con otro usuario, tocá Salir."' : '')+'>'+
           VENDEDORES.map(v=>'<option'+(v===S.usuario?" selected":"")+'>'+v+'</option>').join("")+
         '</select>'+
         '<span class="por">viene de tu usuario</span></div>'+
@@ -2879,7 +2851,7 @@ document.getElementById("camposVta").addEventListener("change",e=>{
   }
   if(id==="vtaComp") S.comp = e.target.value;
   if(id==="vtaCond"){ S.cond = e.target.value; S.forma = e.target.value; }
-  if(id==="vtaVend"){
+  if(id==="vtaVend" && !VENDEDOR_LOGIN){
     S.usuario = e.target.value;
     document.getElementById("selUsuario").value = S.usuario;
     ponerPuesto();
@@ -2961,8 +2933,9 @@ function pintarAcciones(){
   const principal = (!esPresu(comp) && comp.indexOf("Factura")<0) ? comp : fc;
   document.getElementById("btnFactura").textContent =
     "Emitir " + principal.replace(/^\\d+\\./,"") + " · " + nroDe(principal).slice(2);
-  document.getElementById("btnPresu").textContent =
-    "Emitir presupuesto · " + nroDe("03.Presupuesto").slice(2);
+  document.getElementById("btnPresu").textContent = S.editando
+    ? "Guardar cambios · " + S.editando.nro
+    : "Emitir presupuesto · " + nroDe("03.Presupuesto").slice(2);
 }
 
 /* Los descuentos de un toque, mas uno a medida. */
@@ -3159,7 +3132,8 @@ function ventasCaja(){
 function pintarFiltroVend(){
   const sel = document.getElementById("cajaVend");
   sel.innerHTML = '<option value=""'+(S.cajaVend?"":" selected")+'>Todos</option>'+
-    VENDEDORES.map(v=>'<option'+(v===S.cajaVend?" selected":"")+'>'+v+'</option>').join("");
+    [...new Set(VENDEDORES.concat(S.ventas.map(v=>v.vend).filter(x => x && x !== "—")))]
+      .map(v=>'<option'+(v===S.cajaVend?" selected":"")+'>'+txt(v)+'</option>').join("");
   const vs = ventasCaja();
   document.getElementById("cajaVendN").textContent = S.cajaVend
     ? vs.length+" ventas de "+S.cajaVend+" · "+fmt(vs.reduce((a,v)=>a+ventaCobrado(v),0))
@@ -3348,8 +3322,10 @@ addEventListener("hashchange",()=>{
 
 function pintarTicket(){
   guardarLocalPronto();
-  // Sin renglones, la venta ya no sale de ningún presupuesto.
-  if(!S.linea.length) S.origen = null;
+  // Sin renglones, la venta ya no sale de ningún presupuesto. Salvo que se
+  // esté cambiando uno: ahí se pueden sacar todos y poner otros.
+  if(!S.linea.length && !S.editando) S.origen = null;
+  pintarEdicion();
   const cont = document.getElementById("tkLineas");
   // Aunque no haya nada, se ve la grilla con sus encabezados: la pantalla
   // tiene que parecer una venta recien empezada, no una hoja en blanco.
@@ -3478,7 +3454,7 @@ document.getElementById("borradores").addEventListener("click",e=>{
   document.getElementById("selSuc").value = S.suc;
   // Si el borrador venía de un presupuesto, sigue unido a él; y si tenía un
   // comprobante en duda, también (al emitir, primero se pregunta).
-  S.origen = b.origen || null; S.emision = b.emision || null;
+  S.origen = b.origen || null; S.emision = b.emision || null; S.editando = editandoDe(b.editando);
   pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
   // El foco al buscador: en el body, el Enter siguiente sumaría el primero
   // marcado (la trampa de #camposVta).
@@ -3518,7 +3494,16 @@ async function guardarPresu(){
   if(EMITIENDO) return;
   if(!S.linea.length){ toast("No hay nada para presupuestar."); return; }
   if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos y los precios."); return; }
-  trasEmitir(await emitirEnServidor(armarDocumento("03.Presupuesto", "X")));
+  const doc = armarDocumento("03.Presupuesto", "X");
+  if(S.editando){
+    // Se guarda con el mismo número: tiene que ser de la misma sucursal.
+    if(S.suc !== S.editando.suc){
+      toast("Ese presupuesto es de " + sucDe(S.editando.suc).n + ": volvé a esa sucursal arriba para guardarlo.");
+      return;
+    }
+    doc.edita = { id:S.editando.id, base:S.editando.base };
+  }
+  trasEmitir(await emitirEnServidor(doc));
 }
 
 document.getElementById("btnFactura").addEventListener("click",()=>{
@@ -3540,13 +3525,13 @@ document.getElementById("btnBorrador").addEventListener("click",()=>{
     id: "b"+Date.now().toString(36),
     hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
     suc: S.suc, cliente: S.cliente, desc: S.desc, forma: S.forma,
-    dep: S.dep, origen: S.origen || null,
+    dep: S.dep, origen: S.origen || null, editando: S.editando || null,
     linea: S.linea.map(l=>({...l}))
   });
   if(S.borradores.length > 6) S.borradores.pop();
   // El presupuesto de origen se va con el borrador: la venta que sigue no
   // tiene nada que ver con él.
-  S.origen = null; S.emision = null;
+  S.origen = null; S.emision = null; terminarEdicion();
   // El deposito pisado se va adentro del borrador y la venta siguiente
   // arranca limpia. Si no, el cliente que entraba despues le descontaba de
   // Buenos Aires sin que nadie lo hubiera pedido.
@@ -3574,7 +3559,7 @@ document.getElementById("btnMasAcc").addEventListener("click",e=>{
 });
 document.getElementById("btnVaciar").addEventListener("click",()=>{
   if(EMITIENDO || trabadaPorDuda()) return;
-  S.linea=[]; S.origen=null; S.emision=null; pintarTicket();
+  S.linea=[]; S.origen=null; S.emision=null; terminarEdicion(); pintarCamposVenta(); pintarTicket();
 });
 
 /* ========================================================= WEB */
@@ -3606,11 +3591,12 @@ document.getElementById("pedidos").addEventListener("click",e=>{
   const b = e.target.closest("button[data-p]"); if(!b) return;
   if(EMITIENDO){ toast("Esperá un segundo: se está guardando el comprobante."); return; }
   if(trabadaPorDuda()) return;
+  if(S.editando){ toast("Estás cambiando un presupuesto: guardalo o tocá Dejar de editar antes de pasar un pedido."); return; }
   const p = PEDIDOS[+b.dataset.p];
   for(const [c,n] of p.lin){ const l = S.linea.find(x=>x.cod===c); if(l) l.cant+=n; else S.linea.push({cod:c,cant:n}); }
   pintarTicket();
   irA("mostrador");
-  toast("El pedido "+p.q+" está cargado en la venta del "+S.puesto+".");
+  toast("El pedido "+p.q+" está cargado en la venta.");
 });
 
 /* ======================================================= TECLADO
@@ -5588,8 +5574,7 @@ function pintarCaja(){
     const q = v.linea.map(l=>pdl(l).tit).join(" + ");
     return '<tr><td class="num" style="font-size:12.5px">'+v.hora+'</td>'+
       '<td style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">'+sucDe(v.suc).n+'</td>'+
-      '<td style="font-weight:600;white-space:nowrap">'+(v.vend||"—")+'</td>'+
-      '<td>'+(v.web?'<span class="pill p-n">web</span> ':'')+v.puesto.replace("Mostrador ","M")+'</td>'+
+      '<td style="font-weight:600;white-space:nowrap">'+(v.web?'<span class="pill p-n">web</span> ':'')+(v.vend||"—")+'</td>'+
       '<td class="nom" style="min-width:260px">'+n+' art. <small>'+q.slice(0,72)+(q.length>72?"…":"")+'</small></td>'+
       '<td style="font-size:12.5px;color:var(--ink-2)">'+formaCorta(v.forma)+'</td>'+
       '<td>'+(v.facturada?'<span class="pill p-ok">factura</span>':'<span class="pill p-n">sin factura</span>')+'</td>'+
@@ -5601,12 +5586,6 @@ function pintarCaja(){
   const mx1 = Math.max(...Object.values(pagos));
   document.getElementById("porPago").innerHTML = Object.entries(pagos)
     .sort((a,b)=>b[1]-a[1]).map(([k,v])=>barra(formaCorta(k), v, mx1)).join("");
-
-  const pu = {};
-  for(const v of vs) pu[v.puesto] = (pu[v.puesto]||0) + ventaCobrado(v);
-  const mx2 = Math.max(...Object.values(pu));
-  document.getElementById("porPuesto").innerHTML = Object.keys(pu).sort()
-    .map(k=>barra(k, pu[k], mx2)).join("");
 
   // Quien vendio cuanto. Sin el filtro de vendedor puesto, para poder
   // comparar: si no, se veria una sola barra.
@@ -5641,7 +5620,7 @@ function pintarGerencia(){
   const expuesto = bajo.reduce((a,p)=>a+(p.costo-p.contado)*p.stock,0);
 
   document.getElementById("gerTiles").innerHTML =
-    tile("Vendido hoy", fmt(cobrado), vs.length+" ventas en 5 mostradores + web") +
+    tile("Vendido hoy", fmt(cobrado), vs.length+" ventas, mostrador y web") +
     tile("Margen bruto", fmt(marg), pct(marg/(base-marg)*100)+" sobre el costo", "bien") +
     tile("Salió con factura", (fact/cobrado*100).toFixed(0)+"%", fmt(fact)+" de "+fmt(cobrado)) +
     tile("Se venden bajo costo", fmt0(bajo.length), "artículos del catálogo", bajo.length?"alerta":"") +
@@ -5668,11 +5647,11 @@ function pintarGerencia(){
     "Por eso el margen se mide contra el precio de contado y no contra lo que entró a la caja."]);
 
   const pm = {};
-  for(const v of vs){ const k=v.puesto; pm[k]=pm[k]||{v:0,m:0}; pm[k].v+=ventaBase(v); pm[k].m+=ventaMargen(v); }
+  for(const v of vs){ const k=v.vend||"—"; pm[k]=pm[k]||{v:0,m:0}; pm[k].v+=ventaBase(v); pm[k].m+=ventaMargen(v); }
   const ord = Object.entries(pm).map(([k,o])=>[k, o.m/(o.v-o.m)*100]).sort((a,b)=>b[1]-a[1]);
   if(ord.length>1) hz.push(["v","4","<b>"+ord[0][0]+" vende con "+pct(ord[0][1])+" de margen y "+
     ord[ord.length-1][0]+" con "+pct(ord[ord.length-1][1])+".</b> No venden distinto: venden cosas distintas.",
-    "Sirve para saber qué mostrador necesita qué mercadería, no para retar a nadie."]);
+    "Sirve para saber qué mercadería mueve cada uno, no para retar a nadie."]);
 
   const sinFact = vs.filter(v=>!v.facturada).reduce((a,v)=>a+ventaCobrado(v),0);
   hz.push(["v","5","<b>"+fmt(sinFact)+" salió sin factura hoy</b>, el "+(100-fact/cobrado*100).toFixed(0)+"% del día.",
@@ -6111,83 +6090,6 @@ document.getElementById("bandeja").addEventListener("click",e=>{
   document.getElementById("lectura").scrollIntoView({behavior:"smooth", block:"start"});
 });
 
-/* =================================================== LA RED
-   Los números de la red son inventados: la pantalla lo dice. Lo que se
-   calcula de verdad es lo que te cuesta la diferencia, sobre tus compras. */
-const RED = {
-  FERRUM:{tuyo:45,red:48.2,mejor:52,com:41}, HEINEKEN:{tuyo:38,red:41.5,mejor:45,com:67},
-  PIAZZA:{tuyo:44,red:44.8,mejor:49,com:58}, FLOWATER:{tuyo:46,red:45.1,mejor:50,com:39},
-  GULLIART:{tuyo:40,red:43.9,mejor:47,com:28}, TST:{tuyo:42,red:42.4,mejor:46,com:52},
-  "ROT-AR":{tuyo:47,red:46.2,mejor:51,com:44}, BOSCA:{tuyo:35,red:35.4,mejor:38,com:71},
-  DOGO:{tuyo:43,red:46.8,mejor:50,com:33}, PRINGLES:{tuyo:45,red:45.3,mejor:49,com:36},
-  HYDROS:{tuyo:44,red:44.1,mejor:48,com:22}, TROMEN:{tuyo:37,red:38.9,mejor:41,com:49},
-  LYG:{tuyo:41,red:43.2,mejor:46,com:19}
-};
-const ROTACION = 1.5;   // veces que se da vuelta el stock en un año
-function comprasAnuales(prov){
-  return PRODUCTOS.filter(p=>p.prov===prov).reduce((a,p)=>a+p.costo*p.stock,0) * ROTACION;
-}
-function ahorroSi(prov){
-  const r = RED[prov]; if(!r) return 0;
-  return comprasAnuales(prov) * (1 - (1-r.red/100)/(1-r.tuyo/100));
-}
-const LISTAS_RED = [
-  ["HEINEKEN","hoy 07:15","vos","al día"], ["GULLIART","hoy 09:30","vos","al día"],
-  ["FERRUM","ayer 18:42","vos","al día"], ["PIAZZA","hace 2 días","otro comercio","al día"],
-  ["ROT-AR","hace 3 días","otro comercio","al día"], ["TST","hace 4 días","otro comercio","al día"],
-  ["BOSCA","hace 6 días","el proveedor","al día"], ["DOGO","hace 9 días","otro comercio","al día"],
-  ["TROMEN","hace 1 mes","otro comercio","vieja"], ["LYG","hace 2 meses","nadie","vieja"]
-];
-
-function pintarRed(){
-  const provs = Object.keys(RED).filter(p=>PRODUCTOS.some(x=>x.prov===p));
-  const ahorroTotal = provs.reduce((a,p)=>a+Math.max(0,ahorroSi(p)),0);
-  const sinCargar = LISTAS_RED.filter(l=>l[2]!=="vos").length;
-
-  document.getElementById("redTiles").innerHTML =
-    tile("Comercios en la red","312","cargando listas todos los días") +
-    tile("Listas al día","41 de 47","de tus proveedores") +
-    tile("Te llegaron sin cargarlas", String(sinCargar), "de "+LISTAS_RED.length+" proveedores") +
-    tile("Estás pagando de más", fmt(ahorroTotal), "por año, contra el promedio", ahorroTotal>0?"alerta":"bien");
-
-  document.getElementById("tbRed").innerHTML = provs
-    .map(p=>({p, r:RED[p], compras:comprasAnuales(p), ah:ahorroSi(p)}))
-    .sort((a,b)=>b.ah-a.ah)
-    .map(({p,r,compras,ah})=>{
-      const d = r.red - r.tuyo;
-      const est = d <= 0 ? '<span class="pill p-ok">mejor que el promedio</span>'
-        : d < 1.5 ? '<span class="pill p-n">parejo</span>'
-        : '<span class="pill p-bad">te cobran de más</span>';
-      return '<tr><td style="font-weight:600">'+p+'</td>'+
-        '<td class="r">'+fmt(compras)+'</td>'+
-        '<td class="r" style="font-weight:600">'+String(r.tuyo).replace(".",",")+'%</td>'+
-        '<td class="r">'+String(r.red).replace(".",",")+'%</td>'+
-        '<td class="r" style="color:var(--ink-3)">'+String(r.mejor).replace(".",",")+'%</td>'+
-        '<td class="r" style="font-weight:600;color:'+(ah>0?"var(--bad)":"var(--ok)")+'">'+
-          (ah>0? fmt(ah) : "—")+'</td>'+
-        '<td>'+est+'</td></tr>';
-    }).join("");
-
-  document.getElementById("tbListas").innerHTML = LISTAS_RED.map(([p,c,q,e])=>
-    '<tr><td style="font-weight:600">'+p+'</td><td style="font-size:12.5px">'+c+'</td>'+
-    '<td style="font-size:12.5px;color:'+(q==="vos"?"var(--ink)":"var(--ink-2)")+'">'+q+'</td>'+
-    '<td>'+(e==="al día"?'<span class="pill p-ok">al día</span>':'<span class="pill p-warn">vieja</span>')+'</td></tr>'
-  ).join("");
-
-  const peor = provs.map(p=>({p, ah:ahorroSi(p), r:RED[p]})).sort((a,b)=>b.ah-a.ah)[0];
-  document.getElementById("redPorque").innerHTML = [
-    ["r","1","<b>Hoy el proveedor es el único que sabe.</b> Sabe qué descuento le da a cada corralón de la provincia. Vos sabés el tuyo y nada más, así que negociás a ciegas.",
-      "Con la red, la mesa se da vuelta: vos sabés lo que saca el resto."],
-    ["a","2","<b>Con "+peor.p+" tenés "+String(peor.r.tuyo).replace(".",",")+"% y la red saca "+
-      String(peor.r.red).replace(".",",")+"%.</b> Sobre lo que le comprás por año son "+fmt(peor.ah)+".",
-      "Eso es una llamada telefónica, no un proyecto."],
-    ["v","3","<b>La lista se carga una vez para todos.</b> Hoy la misma lista de FERRUM la carga a mano un empleado en cada uno de los 312 comercios.",
-      "Ese trabajo multiplicado por 312 es el que desaparece."],
-    ["v","4","<b>El que entra primero gana dos veces:</b> arregla su margen y además empieza a recibir listas que no cargó.",
-      "Y cuanto más grande es la red, más difícil es que alguien la copie. Eso es lo que la hace un negocio y no una función."]
-  ].map(([c,n,t,e])=>'<div class="hz '+c+'"><span class="ic">'+n+'</span><p>'+t+'<em>'+e+'</em></p></div>').join("");
-}
-
 /* ================================================= EL ASISTENTE
    Cada respuesta se calcula sobre los datos de arriba en el momento. */
 const PREGUNTAS = [
@@ -6214,15 +6116,6 @@ const PREGUNTAS = [
       "<li>Con factura salió el "+(fa/cob*100).toFixed(0)+"%.</li>"+
       "<li>Ticket promedio: <span class='cifra'>"+fmt(cob/vs.length)+"</span>.</li></ul>";
   }},
-  {b:"¿A quién le renegocio?", k:["renegoci","negoci","proveedor","descuento","red","conviene","llamar"], f(){
-    const provs = Object.keys(RED).filter(p=>PRODUCTOS.some(x=>x.prov===p));
-    const orden = provs.map(p=>({p, ah:ahorroSi(p), r:RED[p]})).sort((a,b)=>b.ah-a.ah).filter(x=>x.ah>0);
-    if(!orden.length) return "Con todos estás igual o mejor que el promedio de la red. No hay llamada urgente.";
-    return "Por plata, en este orden:<ul>"+orden.slice(0,3).map((x,i)=>
-      "<li><b>"+x.p+"</b> — tenés "+String(x.r.tuyo).replace(".",",")+"%, la red saca "+String(x.r.red).replace(".",",")+
-      "% y el mejor "+String(x.r.mejor).replace(".",",")+"%. Son <span class='cifra'>"+fmt(x.ah)+"</span> al año.</li>").join("")+
-      "</ul>Arrancá por "+orden[0].p+": es el que más te cuesta y además tenés el dato de que "+orden[0].r.com+" comercios consiguen más.";
-  }},
   {b:"¿Qué compro esta semana?", k:["compro","comprar","reponer","reposicion","pedido","falta","stock"], f(){
     const bajo = PRODUCTOS.filter(p=>p.stock<=3).sort((a,b)=>a.stock-b.stock);
     const porProv = {};
@@ -6231,7 +6124,7 @@ const PREGUNTAS = [
     const costo = bajo.reduce((a,p)=>a+p.costo*(6-p.stock),0);
     return "Hay <b>"+bajo.length+"</b> artículos con 3 o menos en depósito. Reponiendo hasta 6 de cada uno, el pedido sale <b class='cifra'>"+fmt(costo)+"</b>.<ul>"+
       lineas.map(([pr,arr])=>"<li><b>"+pr+"</b>: "+arr.length+" artículos — "+arr.slice(0,3).map(p=>p.tit.split("·")[0].slice(0,30)).join(", ")+(arr.length>3?"…":"")+"</li>").join("")+
-      "</ul>Antes de mandar el pedido a "+lineas[0][0]+", mirá La Red: puede que el descuento esté atrasado.";
+      "</ul>Antes de mandar el pedido a "+lineas[0][0]+", fijate en Listas que tengas su lista nueva cargada.";
   }},
   {b:"¿Y si FERRUM sube 15%?", k:["si sube","subiera","aumento","aumenta","ferrum","que pasa si","simul"], f(){
     const prov = "FERRUM";
@@ -6245,13 +6138,13 @@ const PREGUNTAS = [
       "<li>Con el stock que hay, son <span class='cifra'>"+fmt(plata)+"</span> de pérdida.</li></ul>"+
       "En Listas de proveedor podés probar cualquier número y, si querés, aplicar los precios sugeridos de una.";
   }},
-  {b:"¿Qué mostrador anda mejor?", k:["mostrador","puesto","vendedor","empleado","quien vende","mejor"], f(){
+  {b:"¿Quién vende mejor?", k:["mostrador","puesto","vendedor","empleado","quien vende","mejor"], f(){
     const pm = {};
-    for(const v of S.ventas){ const k=v.puesto; pm[k]=pm[k]||{v:0,m:0,n:0}; pm[k].v+=ventaBase(v); pm[k].m+=ventaMargen(v); pm[k].n++; }
+    for(const v of S.ventas){ const k=v.vend||"—"; pm[k]=pm[k]||{v:0,m:0,n:0}; pm[k].v+=ventaBase(v); pm[k].m+=ventaMargen(v); pm[k].n++; }
     const o = Object.entries(pm).map(([k,x])=>({k, mg:x.m, pc:x.m/(x.v-x.m)*100, n:x.n})).sort((a,b)=>b.mg-a.mg);
     return "Por margen dejado hoy:<ul>"+o.map(x=>"<li><b>"+x.k+"</b> — <span class='cifra'>"+fmt(x.mg)+
       "</span> en "+x.n+" ventas, "+pct(x.pc)+"</li>").join("")+
-      "</ul>Ojo con leer esto como quién trabaja más: el de arriba puede estar vendiendo termotanques y el de abajo tornillos. Sirve para saber qué mercadería mandar a cada mostrador.";
+      "</ul>Ojo con leer esto como quién trabaja más: el de arriba puede estar vendiendo termotanques y el de abajo tornillos. Sirve para saber qué mercadería mueve cada uno.";
   }}
 ];
 
@@ -6270,7 +6163,7 @@ function responder(txt){
   const hit = PREGUNTAS.find(p=>p.k.some(k=>t.includes(k)));
   setTimeout(()=>{
     if(hit) burbuja("el", hit.f());
-    else burbuja("el","Esa no la sé contestar con los datos de esta demo. Lo que sí puedo: qué artículos pierden plata, cuánto se vendió hoy y cuánto dejó, a qué proveedor conviene renegociarle, qué hay que reponer, qué pasa si un proveedor aumenta, y cómo viene cada mostrador.<br><br>En el sistema de verdad esto no tiene lista de preguntas: leo tus datos y contesto lo que preguntes.");
+    else burbuja("el","Esa no la sé contestar con los datos de esta demo. Lo que sí puedo: qué artículos pierden plata, cuánto se vendió hoy y cuánto dejó, qué hay que reponer, qué pasa si un proveedor aumenta, y cómo viene cada vendedor.<br><br>En el sistema de verdad esto no tiene lista de preguntas: leo tus datos y contesto lo que preguntes.");
   }, 260);
 }
 function pintarAsistente(){
@@ -6348,7 +6241,7 @@ document.getElementById("preg").addEventListener("keydown",e=>{
    entregar por, lista de precios y deposito. Son los mismos campos que hay
    aca. La diferencia es que aca vienen elegidos, abajo dice por que, y si
    no te gusta lo cambias. */
-const VENDEDORES = ["Mauro","Horacio","Agustín","Freddy","Daniel","Carlos","Miguel","Damián"];
+const VENDEDORES = ["Mauro","Horacio","Agustín","Freddy","Daniel","Carlos","Miguel","Damián","Mariano"];
 // El puesto no se elige: es donde esta sentado cada uno. Nadie se cambia de
 // mostrador en el medio de una venta; si cambia, es porque cambio el usuario.
 const PUESTO_DE = {
@@ -6357,6 +6250,24 @@ const PUESTO_DE = {
   "Miguel":"Mostrador 2", "Damián":"Mostrador 3",
 };
 const puestoDe = u => PUESTO_DE[u] || "Mostrador 1";
+/* Con quién se entró al sistema: lo pone el servidor en PUNTO_YO (ver
+   src/app/sistema/demo/route.ts). Damián, 22/11/2026: "podes ponerle login
+   al sistema punto". El que entra vende a su nombre; si no estaba en la
+   lista de vendedores, se suma. "admin" no es una persona: con ese se sigue
+   eligiendo a mano. var: lo mira pintarUsuarios() en el arranque. */
+var VENDEDOR_LOGIN = (function(){
+  const yo = (typeof PUNTO_YO === "object" && PUNTO_YO) ? PUNTO_YO : null;
+  if(!yo || !yo.usuario || yo.usuario === "admin") return null;
+  const nombre = String(yo.nombre || yo.usuario).replace(/[<>&"']/g, "").trim();
+  const pila = plano(nombre).split(/\\s+/)[0], usu = plano(String(yo.usuario));
+  const ya = VENDEDORES.find(v => { const p = plano(v); return p === pila || p === usu; });
+  if(ya) return ya;
+  const primero = nombre.split(/\\s+/)[0];
+  if(!primero) return null;
+  const lindo = primero.charAt(0).toUpperCase() + primero.slice(1);
+  VENDEDORES.push(lindo);
+  return lindo;
+})();
 const DOCUMENTOS = ["01.Factura A","02.Factura B","03.Presupuesto","04.Remito","05.Pedido interno"];
 const ENTREGAS = ["00-Retira en Local","01-Reparto propio CABA/GBA","02-Transporte a cargo del cliente"];
 const LISTAS = ["01.Lista 1","02.Lista 2","03.Lista 3 corralón"];
@@ -6452,7 +6363,7 @@ const ESCRITORIO = [
     ["Preparar y despachar","Armar el bulto, marcar el remito y sacarlo.","web"]
   ]],
   ["Cobrar", [
-    ["Caja del día","Lo que entró, por dónde entró y en qué mostrador.","caja"],
+    ["Caja del día","Lo que entró, por dónde entró y quién lo vendió.","caja"],
     ["Cuenta corriente de clientes","Quién debe, cuánto y cuánto le queda. Se ve al elegir el cliente.","pedidos"],
     ["Ingresar cobranzas","Imputar un pago a las facturas que salda.",null],
     ["Valores recibidos","Cheques: dónde están y cuándo vencen.",null],
@@ -6460,7 +6371,7 @@ const ESCRITORIO = [
   ]],
   ["Comprar", [
     ["Listas de proveedor","Leerla como llega: PDF, Excel o la foto que mandaron por WhatsApp.","listas"],
-    ["La Red","Si el descuento que te da tu proveedor es el que le da al resto.","red"],
+    ["Simulador de costo","Poné un costo con sus descuentos y te da el precio de venta.","simulador"],
     ["Órdenes de compra","Pedirle al proveedor lo que falta, con lo que se vendió a la vista.",null],
     ["Contabilizar compras y gastos","Cargar la factura del proveedor y que impacte en el costo.",null],
     ["Cuenta corriente de proveedores","A quién le debés y cuándo vence.",null],
@@ -6791,13 +6702,13 @@ document.getElementById("bajadas").addEventListener("click",e=>{
 
   if(b.dataset.baja==="ventas"){
     const f = [["Fecha","Hora","Razon social","Punto de venta","Comprobante","Tipo","Facturada",
-                "Puesto","Vendedor","Forma de pago","Cliente","Neto","IVA","Total cobrado","Costo","Deja"]];
+                "Vendedor","Forma de pago","Cliente","Neto","IVA","Total cobrado","Costo","Deja"]];
     for(const v of vs){
       const t = ventaCobrado(v);
       const co = v.linea.reduce((a,l)=>a+pdl(l).costo*l.cant,0);
       const c = clienteDeVenta(v);
       f.push([HOY, v.hora, sucDe(v.suc).n, sucDe(v.suc).pv, v.nro||"", v.facturada?("Factura "+v.letra):"Sin comprobante",
-              v.facturada?"SI":"NO", v.puesto, v.vend, formaCorta(v.forma), c?c.n:"Consumidor final",
+              v.facturada?"SI":"NO", v.vend, formaCorta(v.forma), c?c.n:"Consumidor final",
               num2(neto21(t)), num2(iva21(t)), num2(t), num2(co), num2(ventaBase(v)-co)]);
     }
     bajarCSV("ventas-"+sufijo(), f);
@@ -6878,7 +6789,7 @@ function armarDocumento(comp, letra){
     // El número que mostraba la pantalla: el servidor usa ese o el que
     // sigue al último, el mayor de los dos. Nunca baja.
     desdeNumero: letra ? S.nro[su.id][letra] : 1, desdePedido: S.nroPed,
-    vendedor:S.usuario, puesto:S.puesto,
+    vendedor:VENDEDOR_LOGIN || S.usuario, puesto:S.puesto,
     cliente: c ? { id:c.id, n:c.n, t:c.t, doc:c.doc } : { id:"", n:"Consumidor final", t:"Consumidor Final", doc:"" },
     forma:S.forma, recargo:MULT[S.forma], desc:S.desc,
     deposito:dep, traida: dep !== su.dep,
@@ -6891,7 +6802,7 @@ function armarDocumento(comp, letra){
 
 function firmaDe(doc){
   return JSON.stringify([doc.comp, doc.letra, doc.sucursal, doc.cliente.id, doc.forma,
-    doc.desc, doc.deposito, doc.origenId, doc.renglones.map(r => [r.cod, r.cant])]);
+    doc.desc, doc.deposito, doc.origenId, doc.edita ? doc.edita.id : "", doc.renglones.map(r => [r.cod, r.cant])]);
 }
 /** La marca de este comprobante para el servidor. Si el mismo se manda dos
     veces (doble clic, se cortó la conexión), vuelve el que ya estaba y no se
@@ -6977,7 +6888,9 @@ async function emitirEnServidor(doc){
       const r = await fetch(DOCS_URL, {
         method:"POST", credentials:"same-origin", signal:ctl.signal,
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ documento: doc })
+        // Si se está cambiando un presupuesto ya emitido, va aparte: el
+        // servidor lo guarda con el mismo número.
+        body: JSON.stringify(Object.assign({ documento: doc, yo: soyYo() }, doc.edita ? { edita: doc.edita } : {}))
       });
       clearTimeout(t);
       d = await r.json().catch(() => null);
@@ -7069,7 +6982,7 @@ function clienteDeVenta(v){
 function registrarEmitido(g){
   const dt = g.datos || {};
   if(g.tipo !== "presupuesto"){
-    if(!S.ventas.some(v => v.docId === g.id)){
+    if(!g.eliminado && !S.ventas.some(v => v.docId === g.id)){
       S.ventas.push(ventaDeDocumento(g));
       // Descuenta del deposito de donde salio. Todavia solo en esta
       // pantalla: el stock no queda guardado (etapa siguiente).
@@ -7078,27 +6991,35 @@ function registrarEmitido(g){
         if(p && p.dep && p.dep[dep] != null) p.dep[dep] = Math.max(0, p.dep[dep] - r.cant);
       }
     }
-  } else {
+  } else if(!fueCambio(g)){
     S.presupuestos++;
     S.presuDe[g.vendedor] = (S.presuDe[g.vendedor] || 0) + 1;
   }
+  if(fueCambio(g) && S.editando && S.editando.id === g.id)
+    S.editando.base = +g.datos.ed || S.editando.base;
   // La serie de este comprobante queda en el que sigue al que dio el
   // servidor (si recortó un salto grande, la pantalla no sigue mostrando el
   // número tipeado). Las otras series y el pedido, solo suben.
-  if(g.letra && g.numero && S.nro[g.sucursal] && S.nro[g.sucursal][g.letra] != null)
+  // Un presupuesto cambiado conserva su número viejo: la serie no se toca.
+  if(!fueCambio(g) && g.letra && g.numero && S.nro[g.sucursal] && S.nro[g.sucursal][g.letra] != null)
     S.nro[g.sucursal][g.letra] = g.numero + 1;
   sincronizarNumeros(numerosDe(g));
 }
+/** Un presupuesto ya emitido que se cambió (no uno nuevo). */
+const fueCambio = g => g.tipo === "presupuesto" && !!(g.datos && g.datos.editado);
 function textoEmitido(g){
   const dt = g.datos || {}, su = sucDe(g.sucursal);
+  if(fueCambio(g))
+    return "Presupuesto " + g.nroTexto.slice(2) + " de " + su.n + " cambiado, por " + fmt(g.total) +
+      ". Sigue con el mismo número y lo de antes quedó guardado. En Comprobantes lo bajás en PDF.";
   const nombre = g.comp.replace(/^\\d+\\./, "");
   const deDonde = "Sale del depósito de " + (DEPOSITOS[dt.deposito] || dt.deposito) +
     (dt.traida ? ", que hay que traer a " + su.n : "") + ".";
   if(g.tipo === "presupuesto")
     return "Presupuesto " + g.nroTexto.slice(2) + " de " + su.n + " guardado, por " + fmt(g.total) +
-      ". Lo ves en Comprobantes y de ahí lo pasás a venta. No mueve stock ni caja.";
+      ". Lo ves en Comprobantes: de ahí lo bajás en PDF, lo imprimís o lo pasás a venta. No mueve stock ni caja.";
   if(g.tipo === "sin-comprobante")
-    return "Entregado sin comprobante por " + fmt(g.total) + " en " + su.n + " (" + g.puesto + "), P-" + g.pedido +
+    return "Entregado sin comprobante por " + fmt(g.total) + " en " + su.n + ", P-" + g.pedido +
       ". Quedó guardado y marcado como tal. " + deDonde;
   if(g.tipo === "factura")
     return nombre + " " + g.nroTexto.slice(2) + " guardada, por " + fmt(g.total) +
@@ -7126,7 +7047,7 @@ function trasEmitir(res){
 
 function limpiarVentaEmitida(){
   S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
-  S.origen = null; S.emision = null;
+  S.origen = null; S.emision = null; terminarEdicion();
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   guardarLocal();                 // al toque: que no vuelva al recargar
   // El cursor al buscador para la venta que sigue. En el body, el Enter
@@ -7239,7 +7160,7 @@ function pintarListaCp(){
       nombreDoc(d) + " " + ren.map(r => r.cod + " " + r.tit).join(" "));
     return toks.every(x => t.indexOf(x) >= 0);
   });
-  const suma = tipo => lista.filter(d => d.tipo === tipo).reduce((a, d) => a + d.total, 0);
+  const suma = tipo => lista.filter(d => d.tipo === tipo && !d.eliminado).reduce((a, d) => a + d.total, 0);
   const nP = lista.filter(d => d.tipo === "presupuesto").length;
   cuenta.textContent = lista.length + (lista.length === 1 ? " comprobante" : " comprobantes") +
     (nP ? " · presupuestado " + fmt(suma("presupuesto")) : "") +
@@ -7259,17 +7180,18 @@ function pintarListaCp(){
     const pills =
       (d.tipo === "factura" ? ' <span class="pill p-warn">sin CAE</span>' : "") +
       (vendido ? ' <span class="pill p-ok">vendido · ' + txt(vendido.comp.replace(/^\\d+\\./, "")) + ' ' + txt(numeroCorto(vendido)) + '</span>' : "") +
-      (d.origenId ? ' <span class="pill p-n">de presupuesto' + (madre ? " " + txt(numeroCorto(madre)) : "") + '</span>' : "");
+      (d.origenId ? ' <span class="pill p-n">de presupuesto' + (madre ? " " + txt(numeroCorto(madre)) : "") + '</span>' : "") +
+      (dt.editado ? ' <span class="pill p-n">cambiado</span>' : "") +
+      (d.eliminado ? ' <span class="pill p-bad">eliminado</span>' : "");
     const abierto = CP.abierto === d.id;
-    let h = '<tr class="cp-fila' + (abierto ? " cp-abierta" : "") + '" data-cp="' + txt(d.id) + '">' +
+    let h = '<tr class="cp-fila' + (abierto ? " cp-abierta" : "") + (d.eliminado ? " cp-elim" : "") + '" data-cp="' + txt(d.id) + '">' +
       '<td class="num" style="font-size:12.5px">' + fechaAR(d.createdAt) + '<small>' + horaAR(d.createdAt) + '</small></td>' +
       '<td><b>' + txt(nombreDoc(d)) + '</b> ' + txt(d.letra ? numeroCorto(d) : "") + pills +
         '<small>P-' + d.pedido + ' · ' + txt(sucDe(d.sucursal).n) + '</small></td>' +
       '<td>' + txt(d.cliente) + (cli.doc && cli.doc !== "—" ? '<small>' + txt(cli.doc) + '</small>' : "") + '</td>' +
-      '<td>' + txt(d.vendedor) + '<small>' + txt(d.puesto) + '</small></td>' +
+      '<td>' + txt(d.vendedor) + '</td>' +
       '<td class="r" style="font-weight:600">' + fmt(d.total) + '</td>' +
-      '<td class="r">' + (d.tipo === "presupuesto" && !vendido
-        ? '<button class="b2" type="button" data-pasar="' + txt(d.id) + '" style="padding:5px 12px">Pasar a venta</button>' : "") + '</td>' +
+      '<td class="r cp-acc">' + accionesCp(d, vendido) + '</td>' +
     '</tr>';
     if(abierto){
       const ren = dt.renglones || [];
@@ -7285,6 +7207,10 @@ function pintarListaCp(){
         ' · depósito ' + txt(DEPOSITOS[dt.deposito] || dt.deposito || "") + (dt.traida ? ' (se trae)' : '') +
         ' · lo emitió ' + txt(d.usuario) +
         (cli.t ? ' · cliente ' + txt(cli.t) : '') +
+        (dt.editado ? ' · cambiado ' + (+dt.editado.veces || 1) + ((+dt.editado.veces || 1) > 1 ? ' veces' : ' vez') +
+          ', la última el ' + fechaAR(dt.editado.en) + ' a las ' + horaAR(dt.editado.en) + ' por ' + txt(dt.editado.por) : '') +
+        (d.eliminado ? ' · <b style="color:var(--bad)">eliminado el ' + fechaAR(d.eliminado.en) + ' a las ' + horaAR(d.eliminado.en) +
+          ' por ' + txt(d.eliminado.por) + '</b>' : '') +
         '</div></td></tr>';
     }
     return h;
@@ -7294,6 +7220,18 @@ function pintarListaCp(){
 document.getElementById("tbCp").addEventListener("click", e => {
   const b = e.target.closest("[data-pasar]");
   if(b){ const d = CP.docs.find(x => x.id === b.dataset.pasar); if(d) pasarAVenta(d); return; }
+  const acc = e.target.closest("[data-acc]");
+  if(acc){
+    const d = CP.docs.find(x => x.id === acc.dataset.id);
+    if(!d) return;
+    const a = acc.dataset.acc;
+    if(a === "editar") editarPresu(d);
+    if(a === "pdf") traerPdf(d, acc, false);
+    if(a === "imprimir") traerPdf(d, acc, true);
+    if(a === "eliminar") eliminarDoc(d, acc, false);
+    if(a === "recuperar") eliminarDoc(d, acc, true);
+    return;
+  }
   const f = e.target.closest("tr[data-cp]");
   if(!f) return;
   CP.abierto = CP.abierto === f.dataset.cp ? null : f.dataset.cp;
@@ -7302,6 +7240,204 @@ document.getElementById("tbCp").addEventListener("click", e => {
 for(const id of ["cpTipo","cpSuc","cpDias"])
   document.getElementById(id).addEventListener("change", () => { CP.abierto = null; pintarComprobantes(); });
 document.getElementById("cpBusca").addEventListener("input", pintarListaCp);
+
+/** Los botones de cada renglón de Comprobantes. Damián, 22/11/2026: "esto
+    si fue emitido tendria que bajar el pdf o dejarme editarlo" y "ahi
+    tambien debes dar la posiblidad de imprimir, eliminar". */
+function accionesCp(d, vendido){
+  const id = txt(d.id);
+  const bt = (acc, texto, clase, titulo) => '<button class="' + (clase || "b2") + '" type="button" data-acc="' + acc +
+    '" data-id="' + id + '"' + (titulo ? ' title="' + titulo + '"' : '') + '>' + texto + '</button>';
+  if(d.eliminado) return bt("pdf", "PDF") + bt("recuperar", "Recuperar", "b2", "Vuelve a la lista y a la Caja");
+  const presuLibre = d.tipo === "presupuesto" && !vendido;
+  return (presuLibre ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número") +
+      '<button class="b2" type="button" data-pasar="' + id + '">Pasar a venta</button>' : "") +
+    bt("pdf", "PDF", "b2", "Bajar el PDF") +
+    bt("imprimir", "Imprimir", "b2") +
+    bt("eliminar", "Eliminar", "b3", "Sale de la lista y de la Caja; se puede recuperar");
+}
+
+/** El usuario con el que se abrió esta página (lo puso el servidor). */
+function soyYo(){
+  return (typeof PUNTO_YO === "object" && PUNTO_YO && PUNTO_YO.usuario) ? String(PUNTO_YO.usuario) : "";
+}
+
+/** El nombre del archivo: "Presupuesto-0003-00003301.pdf". */
+const nombrePdf = d => (nombreDoc(d) + " " + numeroCorto(d)).normalize("NFD").replace(/[̀-ͯ]/g, "")
+  .replace(/[^A-Za-z0-9 _.-]/g, "").trim().replace(/\\s+/g, "-") + ".pdf";
+
+/** Baja el PDF que arma el servidor, o lo manda a la impresora. */
+async function traerPdf(d, boton, imprimir){
+  if(boton) boton.disabled = true;
+  try{
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 30000);
+    const r = await fetch(DOCS_URL + "/pdf?id=" + encodeURIComponent(d.id),
+      { cache:"no-store", credentials:"same-origin", signal:ctl.signal });
+    clearTimeout(t);
+    if(r.status === 401){ toast("Se cerró tu sesión: entrá de nuevo con tu usuario."); return; }
+    const tipo = r.headers.get("Content-Type") || "";
+    if(!r.ok || tipo.indexOf("application/pdf") < 0){
+      const j = await r.json().catch(() => null);
+      toast((j && j.error) || "No pude armar el PDF. Probá de nuevo.");
+      return;
+    }
+    const url = URL.createObjectURL(await r.blob());
+    if(imprimir) mandarAImprimir(url);
+    else {
+      const a = document.createElement("a");
+      a.href = url; a.download = nombrePdf(d);
+      document.body.appendChild(a); a.click(); a.remove();
+      toast("Bajando " + nombrePdf(d) + ".");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+  }catch(e){
+    toast("No pude traer el PDF: revisá la conexión y probá de nuevo.");
+  }finally{
+    if(boton) boton.disabled = false;
+  }
+}
+/** El PDF va a un marco escondido y de ahí a la impresora. Si el navegador
+    no deja, se abre en otra pestaña para imprimirlo desde ahí. */
+function mandarAImprimir(url){
+  const viejo = document.getElementById("marcoImprimir");
+  if(viejo) viejo.remove();
+  const f = document.createElement("iframe");
+  f.id = "marcoImprimir"; f.title = "Imprimir";
+  f.style.cssText = "position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0";
+  f.onload = () => {
+    setTimeout(() => {
+      try{ f.contentWindow.focus(); f.contentWindow.print(); }
+      catch(e){ window.open(url, "_blank"); }
+    }, 300);
+  };
+  f.src = url;
+  document.body.appendChild(f);
+  setTimeout(() => URL.revokeObjectURL(url), 10 * 60000);
+}
+
+/** Eliminar: sale de la lista y de la Caja, pero no se borra (queda en
+    "Eliminados" y se recupera). Recuperar hace lo contrario. */
+async function eliminarDoc(d, boton, recuperar){
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando un comprobante."); return; }
+  const nombre = nombreDoc(d) + " " + numeroCorto(d);
+  if(!recuperar){
+    const fiscal = d.tipo !== "presupuesto";
+    if(!confirm("¿Eliminar " + nombre + " de " + d.cliente + " por " + fmt(d.total) + "?\\n\\n" +
+      "Sale de la lista" + (fiscal ? " y de la Caja" : "") + ". No se borra del todo: queda en “Eliminados”, con tu usuario y la hora, y de ahí se recupera." +
+      (fiscal ? " El número no se vuelve a usar." : ""))) return;
+  }
+  if(boton) boton.disabled = true;
+  try{
+    const r = await fetch(DOCS_URL + "/eliminar", {
+      method:"POST", credentials:"same-origin", cache:"no-store",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ id:d.id, recuperar:!!recuperar, yo: soyYo() })
+    });
+    if(r.status === 401){ toast("Se cerró tu sesión: entrá de nuevo con tu usuario."); return; }
+    const j = await r.json().catch(() => null);
+    if(!j || j.error || !j.documento){ toast((j && j.error) || "No se pudo. Probá de nuevo."); return; }
+    // La Caja, la Rentabilidad y el Contable de esta pantalla.
+    if(recuperar){
+      if(j.documento.tipo !== "presupuesto" && esDeHoy(j.documento.createdAt) && !S.ventas.some(v => v.docId === j.documento.id))
+        S.ventas.push(ventaDeDocumento(j.documento));
+    } else {
+      S.ventas = S.ventas.filter(v => v.docId !== d.id);
+    }
+    if(S.editando && S.editando.id === d.id && !recuperar){
+      terminarEdicion(); S.origen = null; pintarCamposVenta(); pintarTicket();
+    }
+    repintarInformes();
+    const a = d.tipo === "factura" ? "a" : "o";   // la factura, el presupuesto
+    toast(recuperar ? nombre + " recuperad" + a + ": vuelve a estar en la lista."
+      : nombre + " eliminad" + a + ". Lo ves en “Eliminados” si hace falta recuperarl" + a + ".");
+    CP.abierto = null;
+    pintarComprobantes();
+  }catch(e){
+    toast("No se pudo: revisá la conexión y probá de nuevo.");
+  }finally{
+    if(boton) boton.disabled = false;
+  }
+}
+/** ¿Es de hoy (en Argentina)? Lo de hoy es lo que está en la Caja. */
+const esDeHoy = iso => fechaAR(iso) === fechaAR(new Date().toISOString());
+
+/** Lo que vuelve de lo guardado: un presupuesto que se estaba cambiando. */
+function editandoDe(x){
+  if(!x || typeof x !== "object" || typeof x.id !== "string" || !/^[A-Za-z0-9_-]{8,40}$/.test(x.id)) return null;
+  if(!SUCURSALES.some(s => s.id === x.suc)) return null;
+  return { id:x.id, nro:String(x.nro || "").replace(/[<>&"']/g, "").slice(0, 20), base:Math.max(0, Math.floor(+x.base || 0)), suc:x.suc,
+           sucAntes: SUCURSALES.some(s => s.id === x.sucAntes) ? x.sucAntes : null };
+}
+/** Se terminó de cambiar el presupuesto (se guardó, se facturó, se dejó):
+    la venta vuelve a la sucursal en la que estaba antes de abrirlo. */
+function terminarEdicion(){
+  const e = S.editando;
+  S.editando = null;
+  if(e && e.sucAntes && e.sucAntes !== S.suc && SUCURSALES.some(x => x.id === e.sucAntes)){
+    S.suc = e.sucAntes; S.comp = null; S.dep = null;
+    const sel = document.getElementById("selSuc");
+    if(sel) sel.value = S.suc;
+  }
+}
+
+/** El aviso arriba de los artículos mientras se cambia un presupuesto. */
+function pintarEdicion(){
+  const a = document.getElementById("avisoEdita");
+  if(!a) return;
+  if(!S.editando){ a.hidden = true; a.innerHTML = ""; return; }
+  a.hidden = false;
+  a.innerHTML = '<span>✎</span><div><b>Estás cambiando el Presupuesto ' + txt(S.editando.nro) + ' de ' + txt(sucDe(S.editando.suc).n) + '.</b> ' +
+    'Sumá o sacá artículos y tocá <b>Guardar cambios</b>: sigue con el mismo número y lo de antes queda guardado. ' +
+    'Si en cambio lo facturás, la venta queda unida a él. ' +
+    '<button class="b3" type="button" id="btnNoEditar" style="padding:2px 9px;margin-left:4px">Dejar de editar</button></div>';
+}
+document.addEventListener("click", e => {
+  if(!e.target.closest || !e.target.closest("#btnNoEditar")) return;
+  if(EMITIENDO || trabadaPorDuda()) return;
+  if(!confirm("¿Dejás de editar? La venta de la pantalla se vacía y el presupuesto queda como estaba.")) return;
+  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
+  S.origen = null; S.emision = null; terminarEdicion();
+  pintarCamposVenta(); pintarDtos(); pintarTicket(); guardarLocal();
+});
+
+/** Cambiar un presupuesto ya emitido: vuelve a la venta (a precio de hoy) y
+    al guardarlo queda con el mismo número. */
+function editarPresu(d){
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando un comprobante."); return; }
+  if(trabadaPorDuda()) return;
+  if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
+  if(d.vendidoEn){ toast("Ese presupuesto ya se vendió: no se puede cambiar."); return; }
+  const ren = (d.datos && d.datos.renglones) || [];
+  const hay = ren.filter(r => prod(r.cod)), faltan = ren.length - hay.length;
+  if(!hay.length){ toast("Ninguno de esos artículos está hoy en el catálogo."); return; }
+  if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el presupuesto " + numeroCorto(d) + " para cambiarlo?")) return;
+  S.linea = hay.map(r => ({ cod:r.cod, cant:Math.max(1, Math.floor(+r.cant || 1)) }));
+  const cid = d.datos && d.datos.cliente && d.datos.cliente.id;
+  const hayCliente = !!cid && CLIENTES.some(c => c.id === cid);
+  S.cliente = hayCliente ? cid : "";
+  S.desc = +(d.datos && d.datos.desc) || 0;
+  const fo = d.datos && d.datos.forma;
+  if(fo && MULT[fo]){ S.forma = fo; S.cond = fo; }
+  // La sucursal del presupuesto: su número es de esa serie. Al terminar,
+  // la venta vuelve a la de antes (terminarEdicion).
+  terminarEdicion();
+  const sucAntes = S.suc;
+  if(SUCURSALES.some(x => x.id === d.sucursal)){ S.suc = d.sucursal; document.getElementById("selSuc").value = S.suc; }
+  S.comp = null; S.dep = null; S.nroLibre = false;
+  S.origen = d.id; S.emision = null;
+  S.editando = { id:d.id, nro:numeroCorto(d), base:+(d.datos && d.datos.ed) || 0, suc:d.sucursal,
+                 sucAntes: sucAntes !== d.sucursal ? sucAntes : null };
+  abrirVista("mostrador");
+  pintarCamposVenta(); pintarDtos(); pintarTicket();
+  guardarLocal();
+  const q = document.getElementById("q");
+  q.value = ""; buscar(); q.focus();
+  toast("Presupuesto " + numeroCorto(d) + " abierto para cambiarlo, con los precios de hoy." +
+    (S.editando.sucAntes ? " La venta pasó a " + sucDe(d.sucursal).n + ", que es la del presupuesto; al terminar vuelve a " + sucDe(S.editando.sucAntes).n + "." : "") +
+    (faltan ? " " + faltan + (faltan > 1 ? " artículos ya no están" : " artículo ya no está") + " en el catálogo y quedó afuera." : "") +
+    (cid && !hayCliente ? " El cliente no está cargado en esta compu: elegilo de nuevo." : ""));
+}
 
 /** Un presupuesto vuelve a la venta, a precio de hoy. Al emitirla queda
     unida al presupuesto (origenId) y en la lista se ve "vendido". */
@@ -7322,6 +7458,7 @@ function pasarAVenta(d){
   const fo = d.datos && d.datos.forma;
   if(fo && MULT[fo]){ S.forma = fo; S.cond = fo; }
   S.comp = null; S.dep = null; S.nroLibre = false;
+  terminarEdicion();
   S.origen = d.id; S.emision = null;
   abrirVista("mostrador");
   pintarCamposVenta(); pintarDtos(); pintarTicket();
@@ -7332,6 +7469,25 @@ function pasarAVenta(d){
     (cid && !hayCliente ? " El cliente no está cargado en esta compu: elegilo de nuevo." : "") +
     " Al emitir queda unida al presupuesto.");
 }
+
+/* Salir: cierra la sesión y vuelve a la pantalla de ingreso. Lo que se
+   estaba armando queda guardado en esta compu, como al recargar. */
+(function(){
+  const b = document.getElementById("btnSalir");
+  if(!b) return;
+  const yo = (typeof PUNTO_YO === "object" && PUNTO_YO) ? PUNTO_YO : null;
+  if(yo && yo.usuario) b.title = "Cerrar la sesión de " + String(yo.usuario).replace(/[<>&"']/g, "");
+  b.addEventListener("click", async () => {
+    if(EMITIENDO){ toast("Esperá un segundo: se está guardando un comprobante."); return; }
+    if(pendiente() && !confirm("Hay un comprobante que no se sabe si quedó guardado. Queda anotado: cuando vuelvas a entrar, tocá Emitir para confirmarlo. ¿Salís igual?")) return;
+    b.disabled = true;
+    guardarLocal();
+    let ok = false;
+    try{ const r = await fetch("/api/admin/logout", { method:"POST", credentials:"same-origin" }); ok = r.ok; }catch(e){}
+    if(!ok){ b.disabled = false; toast("No se pudo cerrar la sesión: revisá la conexión y probá de nuevo."); return; }
+    location.href = "/sistema/entrar?volver=/sistema/demo";
+  });
+})();
 
 /* ------------------------------------- LO QUE SE ARMA EN ESTA COMPU
    Queda en el navegador y vuelve al recargar. Cada pestaña guarda lo suyo
@@ -7371,7 +7527,8 @@ function leerTodo(){
   return { v:2, clientes:[], pedidos:[], nroPed:0, ultimo:null, tabs:{} };
 }
 function entradaVacia(t){
-  return !t || (!(t.venta && t.venta.linea && t.venta.linea.length) && !(t.borradores && t.borradores.length) &&
+  return !t || (!(t.venta && t.venta.linea && t.venta.linea.length) && !(t.venta && t.venta.editando) &&
+    !(t.borradores && t.borradores.length) &&
     !(t.ped && t.ped.linea && t.ped.linea.length) && !(t.venta && t.venta.emision && t.venta.emision.enviada));
 }
 function guardarLocalPronto(){
@@ -7400,7 +7557,8 @@ function guardarLocal(cerrando){
       vivo: Date.now(), cerrada: !!cerrando || CERRANDO, oculta: document.visibilityState === "hidden",
       suc:S.suc, usuario:S.usuario,
       venta:{ linea:S.linea, cliente:S.cliente, desc:S.desc, forma:S.forma, cond:S.cond,
-              comp:S.comp, dep:S.dep, origen:S.origen || null, emision:S.emision || null },
+              comp:S.comp, dep:S.dep, origen:S.origen || null, emision:S.emision || null,
+              editando:S.editando || null },
       borradores: S.borradores,
       ped:{ cliente:PED.cliente, linea:PED.linea, entrega:PED.entrega, senia:PED.senia,
             cuando:valor("fecha"), dir:valor("dir"), obs:valor("obsPed"), int:valor("intPed"), cfg:PEDCFG }
@@ -7476,6 +7634,8 @@ function restaurarLocalAntes(){
   const u = (e && !entradaVacia(e) ? e : null) || ADOPTADAS[0] || e || d.ultimo || {};
   if(u.suc && SUCURSALES.some(x => x.id === u.suc)) S.suc = u.suc;
   if(u.usuario && VENDEDORES.indexOf(u.usuario) >= 0){ S.usuario = u.usuario; S.puesto = puestoDe(S.usuario); }
+  // El que entró con su usuario manda sobre lo que había quedado guardado.
+  if(VENDEDOR_LOGIN){ S.usuario = VENDEDOR_LOGIN; S.puesto = puestoDe(S.usuario); }
   for(const c of (d.clientes || []))
     if(c && c.id && c.n && !CLIENTES.some(x => x.id === c.id))
       CLIENTES.push(Object.assign({ saldo:0, lim:0, siempre:[] }, c, { nuevo:true }));
@@ -7505,6 +7665,7 @@ function aplicarEntrada(e, cuenta, principal){
     S.comp = v.comp && LETRA[v.comp] ? v.comp : null;
     S.dep = v.dep === "BA" || v.dep === "TS" ? v.dep : null;
     S.origen = typeof v.origen === "string" ? v.origen : null;
+    S.editando = editandoDe(v.editando);
     if(v.emision && v.emision.id) S.emision = v.emision;
   } else if(lin.length && v.emision && v.emision.enviada && !pendiente()){
     // La que tiene un comprobante en duda va a la pantalla (hay que
@@ -7513,12 +7674,13 @@ function aplicarEntrada(e, cuenta, principal){
     S.borradores.unshift({ id:"b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
       hora:String(h.getHours()).padStart(2,"0") + ":" + String(h.getMinutes()).padStart(2,"0"),
       suc:S.suc, cliente:S.cliente, desc:S.desc, forma:S.forma, dep:S.dep, origen:S.origen || null,
-      linea:S.linea.map(l => ({ ...l })) });
+      editando:S.editando || null, linea:S.linea.map(l => ({ ...l })) });
     S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0;
     if(forma){ S.forma = forma; S.cond = MULT[v.cond] ? v.cond : null; }
     S.comp = v.comp && LETRA[v.comp] ? v.comp : null;
     S.dep = v.dep === "BA" || v.dep === "TS" ? v.dep : null;
     S.origen = typeof v.origen === "string" ? v.origen : null;
+    S.editando = editandoDe(v.editando);
     S.emision = v.emision;
   } else if(lin.length){
     const h = new Date();
@@ -7527,6 +7689,7 @@ function aplicarEntrada(e, cuenta, principal){
       suc: SUCURSALES.some(x => x.id === e.suc) ? e.suc : S.suc,
       cliente, desc:+v.desc || 0, forma: forma || S.forma, dep:v.dep || null,
       origen: typeof v.origen === "string" ? v.origen : null,
+      editando: editandoDe(v.editando),
       // Si quedó en duda, la duda viaja con el borrador: al retomarlo y
       // emitir, primero se pregunta.
       emision: v.emision && v.emision.enviada ? v.emision : null,
@@ -7534,6 +7697,10 @@ function aplicarEntrada(e, cuenta, principal){
   } else if(v.emision && v.emision.enviada && !pendiente()){
     // Sin renglones pero con un comprobante en duda: la duda no se pierde.
     S.emision = v.emision;
+  }
+  if(!lin.length && !S.linea.length && !S.editando && editandoDe(v.editando)){
+    S.editando = editandoDe(v.editando);
+    S.origen = S.editando.id;
   }
   for(const b of (e.borradores || [])){
     if(!b || !b.id || S.borradores.some(x => x.id === b.id)) continue;
@@ -7939,7 +8106,7 @@ async function guardarGbp(){
     gbpG("gbpAcc").hidden = true;
     gbpG("gbpTabla").innerHTML = "";
     gbpEstado("<b>Listo: "+arts.length+" artículos guardados</b> ("+d.nuevos+" nuevos, "+d.actualizados+
-      " actualizados). Ya están en la venta y en la tabla de abajo, y los ven todos los puestos. "+
+      " actualizados). Ya están en la venta y en la tabla de abajo, y los ven todas las compus. "+
       "En el sistema hay "+d.total+" artículos de GBP.");
     toast(arts.length+" artículos de GBP guardados.");
     traerDeGbp();

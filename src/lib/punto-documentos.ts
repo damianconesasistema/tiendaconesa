@@ -93,6 +93,8 @@ export type DocumentoGuardado = {
   total: number;
   origenId: string | null;
   datos: unknown;
+  /** Eliminado desde Comprobantes (no se borra: se marca). */
+  eliminado: { en: string; por: string } | null;
 };
 
 /** Texto que vuelve a la pagina adentro de innerHTML (Caja, Contable...):
@@ -215,6 +217,8 @@ function aGuardado(d: {
   total: number;
   origenId: string | null;
   datos: Prisma.JsonValue;
+  eliminadoEn?: Date | null;
+  eliminadoPor?: string | null;
 }): DocumentoGuardado {
   return {
     id: d.id,
@@ -233,8 +237,18 @@ function aGuardado(d: {
     cliente: d.cliente,
     total: d.total,
     origenId: d.origenId,
-    datos: d.datos,
+    datos: paraLaPantalla(d.datos),
+    eliminado: d.eliminadoEn ? { en: d.eliminadoEn.toISOString(), por: d.eliminadoPor ?? "?" } : null,
   };
+}
+
+/** Lo guardado, menos lo que es solo del servidor: las marcas de las
+ *  ediciones y las versiones anteriores (pueden ser muchos renglones). */
+function paraLaPantalla(datos: Prisma.JsonValue): unknown {
+  if (!datos || typeof datos !== "object" || Array.isArray(datos)) return datos;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { marcas, anteriores, ...resto } = datos as Record<string, unknown>;
+  return resto;
 }
 
 /** El numero que sigue de una serie, adentro de la transaccion. El lock de
@@ -283,6 +297,8 @@ export async function crearDocumento(
   };
   try {
     const creado = await prisma.$transaction(async (tx) => {
+      if (d.origenId)
+        await tx.$queryRaw`SELECT "id" FROM "PuntoDocumento" WHERE "id" = ${d.origenId} FOR UPDATE`;
       const numero = d.letra ? await siguiente(tx, `${d.sucursal}:${d.letra}`, d.desdeNumero) : null;
       const pedido = await siguiente(tx, "pedido", d.desdePedido);
       return tx.puntoDocumento.create({
@@ -317,6 +333,153 @@ export async function crearDocumento(
   }
 }
 
+// ------------------------------------------------------- EDITAR PRESUPUESTOS
+// Damian, 22/11/2026: "esto si fue emitido tendria que bajar el pdf o
+// dejarme editarlo". Se editan SOLO los presupuestos: no son fiscales y el
+// cliente vuelve a pedir otra cantidad u otro modelo. Una factura, un remito
+// o una venta no se tocan (una factura se anula con nota de credito).
+//
+// - Conserva su numero, su pedido, su fecha y su sucursal: es el mismo
+//   presupuesto, cambiado. La version anterior queda guardada (anteriores).
+// - Uno vendido no se edita: la venta salio de lo que decia.
+// - Dos puestos editando el mismo: gana el primero. El segundo trae la
+//   version de la que partio (base) y si ya no es la ultima, se le avisa en
+//   vez de pisarle el cambio al otro.
+// - El reintento (se corto la respuesta) trae la misma marca: si esa
+//   edicion ya entro, vuelve el presupuesto sin cambiarlo dos veces.
+
+export type Edicion = { id: string; base: number };
+
+export function limpiarEdicion(x: unknown): Edicion | null {
+  if (!x || typeof x !== "object") return null;
+  const o = x as Record<string, unknown>;
+  const id = texto(o.id, 40);
+  if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) return null;
+  return { id, base: entero(o.base, 0, 1_000_000) };
+}
+
+const MAX_ANTERIORES = 20;
+const MAX_MARCAS = 30;
+
+export async function editarPresupuesto(
+  ed: Edicion,
+  d: DocumentoNuevo,
+  usuario: string,
+): Promise<{ doc: DocumentoGuardado; repetido: boolean } | { error: string }> {
+  if (d.letra !== "X") return { error: "Al editar un presupuesto se guarda como presupuesto." };
+  return prisma.$transaction(async (tx) => {
+    // FOR UPDATE: el otro puesto que guarda el mismo presupuesto espera a
+    // que este termine, y despues ve la version nueva.
+    const bloqueo = await tx.$queryRaw<{ id: string }[]>`
+      SELECT "id" FROM "PuntoDocumento" WHERE "id" = ${ed.id} FOR UPDATE`;
+    if (!bloqueo.length) return { error: "Ese presupuesto no está." };
+    const actual = await tx.puntoDocumento.findUnique({ where: { id: ed.id } });
+    if (!actual) return { error: "Ese presupuesto no está." };
+    if (actual.tipo !== "presupuesto") return { error: "Solo se pueden cambiar los presupuestos." };
+
+    const prev = (actual.datos && typeof actual.datos === "object" && !Array.isArray(actual.datos)
+      ? actual.datos
+      : {}) as Record<string, unknown>;
+    const marcas = Array.isArray(prev.marcas) ? (prev.marcas as unknown[]).filter((m) => typeof m === "string") : [];
+    if (marcas.includes(d.idLocal)) return { doc: aGuardado(actual), repetido: true };
+    if (actual.eliminadoEn) return { error: "Ese presupuesto está eliminado: recuperalo antes de cambiarlo." };
+
+    const veces = entero(prev.ed, 0, 1_000_000);
+    if (veces !== ed.base)
+      return {
+        error:
+          "Alguien cambió este presupuesto mientras lo editabas. Abrilo de nuevo desde Comprobantes para ver cómo quedó.",
+      };
+    const vendido = await tx.puntoDocumento.findFirst({
+      where: { origenId: ed.id, tipo: { not: "presupuesto" }, eliminadoEn: null },
+      select: { id: true },
+    });
+    if (vendido) return { error: "Ese presupuesto ya se vendió: no se puede cambiar." };
+
+    const editadoAntes = prev.editado as { en?: string } | undefined;
+    const anterior = {
+      hasta: new Date().toISOString(),
+      desde: editadoAntes?.en ?? actual.createdAt.toISOString(),
+      total: actual.total,
+      cliente: prev.cliente ?? null,
+      forma: prev.forma ?? null,
+      desc: prev.desc ?? 0,
+      descuento: prev.descuento ?? 0,
+      bruto: prev.bruto ?? 0,
+      renglones: prev.renglones ?? [],
+    };
+    const anteriores = [...(Array.isArray(prev.anteriores) ? prev.anteriores : []), anterior].slice(-MAX_ANTERIORES);
+    const datos = {
+      v: 1,
+      cliente: d.cliente,
+      forma: d.forma,
+      recargo: d.recargo,
+      desc: d.desc,
+      deposito: d.deposito,
+      traida: d.traida,
+      renglones: d.renglones,
+      bruto: d.bruto,
+      descuento: d.descuento,
+      fiscal: false,
+      ed: veces + 1,
+      editado: { en: new Date().toISOString(), por: usuario, veces: veces + 1 },
+      marcas: [...marcas, d.idLocal].slice(-MAX_MARCAS),
+      anteriores,
+    };
+    // El vendedor, el puesto, el numero, el pedido y la fecha son los del
+    // presupuesto original. Quien lo cambio queda en datos.editado.
+    const nuevo = await tx.puntoDocumento.update({
+      where: { id: ed.id },
+      data: { cliente: d.cliente.n, total: d.total, datos: datos as Prisma.InputJsonValue },
+    });
+    return { doc: aGuardado(nuevo), repetido: false };
+  });
+}
+
+// ------------------------------------------------------------- ELIMINAR
+// Damian, 22/11/2026: "ahi tambien debes dar la posiblidad de imprimir,
+// eliminar". No se borra la fila (migracion 51): se marca con quien y
+// cuando. Sale de la lista, de los totales y de la Caja; queda en
+// "Eliminados" y se puede recuperar. El numero no vuelve a usarse.
+
+export async function eliminarDocumento(
+  id: string,
+  usuario: string,
+  recuperar: boolean,
+): Promise<{ doc: DocumentoGuardado } | { error: string }> {
+  if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) return { error: "No sé cuál es ese comprobante." };
+  const actual = await prisma.puntoDocumento.findUnique({ where: { id } });
+  if (!actual) return { error: "Ese comprobante no está." };
+  // Ya estaba como se pide (doble clic, otro puesto): no se toca de nuevo.
+  if (!!actual.eliminadoEn === !recuperar) return { doc: aGuardado(actual) };
+  if (recuperar && actual.origenId && actual.tipo !== "presupuesto") {
+    const otra = await prisma.puntoDocumento.findFirst({
+      where: { origenId: actual.origenId, tipo: { not: "presupuesto" }, eliminadoEn: null, id: { not: id } },
+      select: { comp: true, letra: true, pv: true, numero: true, pedido: true },
+    });
+    if (otra)
+      return {
+        error: `Ese presupuesto ya se vendió de nuevo (${otra.comp.replace(/^\d+\./, "")} ${
+          otra.letra && otra.numero != null ? `${otra.pv}-${pad8(otra.numero)}` : `P-${otra.pedido}`
+        }). Si recupero esta venta quedarían dos.`,
+      };
+  }
+  const nuevo = await prisma.puntoDocumento.update({
+    where: { id },
+    data: recuperar
+      ? { eliminadoEn: null, eliminadoPor: null }
+      : { eliminadoEn: new Date(), eliminadoPor: usuario },
+  });
+  return { doc: aGuardado(nuevo) };
+}
+
+/** Un documento por su id (para el PDF). */
+export async function documentoPorId(id: string): Promise<DocumentoGuardado | null> {
+  if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) return null;
+  const d = await prisma.puntoDocumento.findUnique({ where: { id } });
+  return d ? aGuardado(d) : null;
+}
+
 /** Las 00:00 de Argentina (UTC-3, sin horario de verano) de hace `diasAtras`
  *  dias. El servidor corre en UTC: sin esto, una venta de las 22:00 caeria
  *  en el dia siguiente. */
@@ -337,12 +500,20 @@ export async function listarDocumentos(f: {
   tipo?: string;
   sucursal?: string;
 }): Promise<{ documentos: ConVenta[]; hayMas: boolean }> {
-  const where: Prisma.PuntoDocumentoWhereInput = { createdAt: { gte: inicioDelDiaAR(Math.max(0, f.dias - 1)) } };
-  if (f.tipo && (TIPOS as string[]).includes(f.tipo)) where.tipo = f.tipo;
+  const desde = inicioDelDiaAR(Math.max(0, f.dias - 1));
+  const where: Prisma.PuntoDocumentoWhereInput = {};
+  // Lo eliminado no aparece, salvo en su propio filtro, que mira cuándo se
+  // eliminó (un presupuesto viejo eliminado hoy aparece en "Hoy").
+  if (f.tipo === "eliminados") where.eliminadoEn = { gte: desde };
+  else {
+    where.createdAt = { gte: desde };
+    where.eliminadoEn = null;
+    if (f.tipo && (TIPOS as string[]).includes(f.tipo)) where.tipo = f.tipo;
+  }
   if (f.sucursal && SUCURSALES.includes(f.sucursal)) where.sucursal = f.sucursal;
   const filas = await prisma.puntoDocumento.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy: f.tipo === "eliminados" ? { eliminadoEn: "desc" } : { createdAt: "desc" },
     take: MAX_LISTADO + 1,
   });
   const documentos: ConVenta[] = filas.slice(0, MAX_LISTADO).map(aGuardado);
@@ -351,7 +522,7 @@ export async function listarDocumentos(f: {
   const presus = documentos.filter((d) => d.tipo === "presupuesto").map((d) => d.id);
   if (presus.length) {
     const hijos = await prisma.puntoDocumento.findMany({
-      where: { origenId: { in: presus }, tipo: { not: "presupuesto" } },
+      where: { origenId: { in: presus }, tipo: { not: "presupuesto" }, eliminadoEn: null },
       orderBy: { createdAt: "asc" },
       select: { id: true, comp: true, letra: true, pv: true, numero: true, pedido: true, tipo: true, origenId: true },
     });
@@ -375,7 +546,12 @@ export async function listarDocumentos(f: {
 export async function documentoPorMarca(idLocal: string): Promise<DocumentoGuardado | null> {
   if (!/^[A-Za-z0-9_-]{8,64}$/.test(idLocal)) return null;
   const d = await prisma.puntoDocumento.findUnique({ where: { idLocal } });
-  return d ? aGuardado(d) : null;
+  if (d) return aGuardado(d);
+  // La marca de una edicion de presupuesto queda adentro de datos.marcas.
+  const editado = await prisma.puntoDocumento.findFirst({
+    where: { tipo: "presupuesto", datos: { path: ["marcas"], array_contains: [idLocal] } },
+  });
+  return editado ? aGuardado(editado) : null;
 }
 
 /** El ultimo numero usado de cada serie: la pantalla muestra el siguiente. */

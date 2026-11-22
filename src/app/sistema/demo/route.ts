@@ -1,3 +1,5 @@
+import { getAdminSession } from "@/lib/admin-auth";
+import { prisma } from "@/lib/db";
 import { noPasa, quienEntra } from "./clave";
 import { PUNTO_HTML } from "./punto";
 
@@ -19,11 +21,34 @@ import { PUNTO_HTML } from "./punto";
 
 export const dynamic = "force-dynamic";
 
+// Con quien se entro: la pagina lo muestra arriba, vende a su nombre y el
+// boton Salir cierra esa sesion. Damian, 22/11/2026: "podes ponerle login al
+// sistema punto". Va adentro del HTML (y no en otro pedido) para que la
+// venta arranque ya con el vendedor puesto.
+const MARCA_YO = "var PUNTO_YO = null; /*YO*/";
+
+async function quienSoy(): Promise<{ usuario: string; nombre: string } | null> {
+  const s = await getAdminSession();
+  if (!s) return null;
+  const fila = await prisma.adminUser
+    .findUnique({ where: { username: s.username }, select: { nombre: true } })
+    .catch(() => null);
+  return { usuario: s.username, nombre: fila?.nombre || s.username };
+}
+
+/** JSON que se puede poner adentro de un <script> sin cerrarlo. */
+const enScript = (x: unknown) =>
+  JSON.stringify(x).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+
 export async function GET(): Promise<Response> {
   const paso = await quienEntra();
   if (paso !== "ok") return noPasa(paso);
 
-  return new Response(PUNTO_HTML, {
+  const yo = await quienSoy();
+  // Con funcion y no con texto: un "$'" o "$&" en el nombre no se expande.
+  const html = PUNTO_HTML.replace(MARCA_YO, () => `var PUNTO_YO = ${enScript(yo)};`);
+
+  return new Response(html, {
     status: 200,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
