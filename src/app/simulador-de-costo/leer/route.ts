@@ -8,7 +8,7 @@ import { leerComprobante } from "@/lib/leer-comprobante";
 //
 // OJO: el simulador va SIN usuario (asi lo pidio, para mandarselo al jefe), y
 // esto gasta el cupo de Google, el mismo que usa Punto para leer fotos de
-// presupuestos (/sistema/demo/leer, que si pide clave). Para que nadie de
+// presupuestos (/sistema/leer, que si pide clave). Para que nadie de
 // afuera se lo coma hay topes, en la memoria del proceso:
 //   - por persona (IP): 8 cada 10 minutos y 40 por dia;
 //   - entre todos: 150 por dia.

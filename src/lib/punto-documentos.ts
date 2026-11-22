@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { linkDocumento } from "@/lib/punto-link";
 
 // Lo que se emite en el sistema Punto, guardado en la base (migracion 50).
 //
@@ -95,6 +96,8 @@ export type DocumentoGuardado = {
   datos: unknown;
   /** Eliminado desde Comprobantes (no se borra: se marca). */
   eliminado: { en: string; por: string } | null;
+  /** El link firmado al PDF, para mandarle al cliente (src/lib/punto-link.ts). */
+  link: string | null;
 };
 
 /** Texto que vuelve a la pagina adentro de innerHTML (Caja, Contable...):
@@ -117,6 +120,12 @@ const entero = (v: unknown, min: number, max: number) => {
 export function limpiarDocumento(x: unknown): { doc: DocumentoNuevo } | { error: string } {
   if (!x || typeof x !== "object") return { error: "No llegó el comprobante." };
   const o = x as Record<string, unknown>;
+  // v2 desde el 22/11/2026, cuando Punto dejo de ser demo y la numeracion
+  // arranco de cero. Una pestaña que quedo abierta con la pagina vieja
+  // mandaria los numeros inventados de antes ("desde" 908, 48214...) y
+  // arrancaria la serie ahi: se le pide recargar.
+  if (Number(o.v) < 2 || !Number.isFinite(Number(o.v)))
+    return { error: "Hay una versión nueva de Punto: recargá la página (F5) y volvé a emitir. No se guardó nada." };
 
   const idLocal = texto(o.idLocal, 64);
   if (!/^[A-Za-z0-9_-]{8,64}$/.test(idLocal)) return { error: "Falta la marca del comprobante (idLocal)." };
@@ -200,6 +209,10 @@ export function limpiarDocumento(x: unknown): { doc: DocumentoNuevo } | { error:
 
 const pad8 = (n: number) => String(n).padStart(8, "0");
 
+/** Prefijo de los numeradores desde que Punto arranco de cero (22/11/2026,
+ *  migracion 53). Los de antes (sin prefijo) eran de la demo y se ignoran. */
+const NUMERADOR = "n2:";
+
 function aGuardado(d: {
   id: string;
   createdAt: Date;
@@ -239,6 +252,7 @@ function aGuardado(d: {
     origenId: d.origenId,
     datos: paraLaPantalla(d.datos),
     eliminado: d.eliminadoEn ? { en: d.eliminadoEn.toISOString(), por: d.eliminadoPor ?? "?" } : null,
+    link: linkDocumento(d.id),
   };
 }
 
@@ -258,8 +272,13 @@ function paraLaPantalla(datos: Prisma.JsonValue): unknown {
  *  pero nunca mas de 1000 de un saque: un error de tipeo al corregir el
  *  numero ("482150" en vez de "48215") no quema la serie para siempre. */
 async function siguiente(tx: Prisma.TransactionClient, clave: string, desde: number): Promise<number> {
+  // Una serie que todavia no existe arranca en lo que mando la pantalla (asi
+  // se puede seguir la numeracion de GBP corrigiendo el numero a mano). El
+  // pedido no tiene eso: un numero viejo guardado en una compu (el P-2842 de
+  // la demo) no puede arrancarlo.
+  const inicio = clave.endsWith("pedido") ? Math.min(desde, 1000) : desde;
   const filas = await tx.$queryRaw<{ ultimo: number }[]>`
-    INSERT INTO "PuntoNumerador" ("clave", "ultimo") VALUES (${clave}, ${desde}::int)
+    INSERT INTO "PuntoNumerador" ("clave", "ultimo") VALUES (${clave}, ${inicio}::int)
     ON CONFLICT ("clave") DO UPDATE
       SET "ultimo" = GREATEST(
         "PuntoNumerador"."ultimo" + 1,
@@ -299,8 +318,8 @@ export async function crearDocumento(
     const creado = await prisma.$transaction(async (tx) => {
       if (d.origenId)
         await tx.$queryRaw`SELECT "id" FROM "PuntoDocumento" WHERE "id" = ${d.origenId} FOR UPDATE`;
-      const numero = d.letra ? await siguiente(tx, `${d.sucursal}:${d.letra}`, d.desdeNumero) : null;
-      const pedido = await siguiente(tx, "pedido", d.desdePedido);
+      const numero = d.letra ? await siguiente(tx, `${NUMERADOR}${d.sucursal}:${d.letra}`, d.desdeNumero) : null;
+      const pedido = await siguiente(tx, `${NUMERADOR}pedido`, d.desdePedido);
       return tx.puntoDocumento.create({
         data: {
           idLocal: d.idLocal,
@@ -556,8 +575,9 @@ export async function documentoPorMarca(idLocal: string): Promise<DocumentoGuard
 
 /** El ultimo numero usado de cada serie: la pantalla muestra el siguiente. */
 export async function contadores(): Promise<Record<string, number>> {
-  const filas = await prisma.puntoNumerador.findMany();
+  const filas = await prisma.puntoNumerador.findMany({ where: { clave: { startsWith: NUMERADOR } } });
   const salida: Record<string, number> = {};
-  for (const f of filas) salida[f.clave] = f.ultimo;
+  // La pantalla los conoce sin el prefijo: "tsl:X", "pedido".
+  for (const f of filas) salida[f.clave.slice(NUMERADOR.length)] = f.ultimo;
   return salida;
 }

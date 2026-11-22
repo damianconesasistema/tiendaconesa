@@ -473,3 +473,41 @@ model PuntoNumerador {
   clave  String @id
   ultimo Int    @default(0)
 }
+
+/// Los proveedores del sistema Punto (migracion 52), traidos del Excel que
+/// exporta GlobalBluePoint: los de Buenos Aires y los de Traslasierra en una
+/// sola lista. Damian, 22/11/2026: "este es el listado de proveedores del
+/// sistema tanto de buenos aires como de traslasierra". Un renglon por
+/// proveedor (no un Setting JSON): mas adelante cada uno lleva su cadena de
+/// descuentos. Lo escribe src/lib/punto-proveedores.ts.
+model PuntoProveedor {
+  id              String   @id @default(cuid())
+  /// El ID de GBP: con ese se lo reconoce al volver a importar el Excel.
+  gbpId           Int      @unique
+  /// Solo los 11 numeros, sin guiones. Vacio si GBP no tenia uno valido.
+  cuit            String
+  razonSocial     String
+  /// Como viene de GBP: "IVA Responsable Inscripto", "Responsable Monotributo"...
+  claseFiscal     String
+  domicilio       String
+  localidad       String
+  provincia       String
+  pais            String
+  telefono        String
+  /// Como viene de GBP: "01-Contado", "02-Cheque 30 dias"...
+  condicionCompra String
+  /// La moneda de su cuenta corriente: ARS | USD
+  moneda          String
+  /// La columna "Inactivo" de GBP. No se borra: se marca.
+  inactivo        Boolean  @default(false)
+  /// La cadena de descuentos del proveedor (para mas adelante). Volver a
+  /// importar el Excel no la toca.
+  cadena          Json?
+  creadoEn        DateTime @default(now())
+  actualizadoEn   DateTime @updatedAt
+  /// El usuario que lo importo por ultima vez.
+  actualizadoPor  String
+
+  @@index([razonSocial])
+  @@index([cuit])
+}

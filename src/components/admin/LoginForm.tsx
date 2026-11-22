@@ -6,7 +6,7 @@ import { Loader2, Lock } from "lucide-react";
 import { CampoClave } from "@/components/admin/CampoClave";
 
 /** `inicio`: a donde va despues de entrar si no vino de ninguna pantalla.
- *  El panel ("/admin") o el sistema Punto ("/sistema/demo"). */
+ *  El panel ("/admin") o el sistema Punto ("/sistema"). */
 export function LoginForm({ inicio = "/admin" }: { inicio?: string }) {
   const router = useRouter();
   // Vacio: cada uno entra con su usuario (antes venia escrito "admin").
@@ -32,10 +32,11 @@ export function LoginForm({ inicio = "/admin" }: { inicio?: string }) {
       }
       // Solo una ruta del panel o del sistema: nunca a otro sitio.
       const volver = new URLSearchParams(window.location.search).get("volver") ?? "";
-      const vale = (volver.startsWith("/admin/") || volver.startsWith("/sistema/")) && !volver.startsWith("//");
+      const esSistema = (r: string) => r === "/sistema" || r.startsWith("/sistema/");
+      const vale = (volver.startsWith("/admin/") || esSistema(volver)) && !volver.startsWith("//");
       const destino = vale ? volver : inicio;
       // El sistema Punto no es una pantalla de Next: se entra con la pagina entera.
-      if (destino.startsWith("/sistema/")) {
+      if (esSistema(destino)) {
         window.location.assign(destino);
         return;
       }

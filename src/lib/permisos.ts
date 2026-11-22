@@ -73,9 +73,9 @@ export const SECCIONES: readonly DatosSeccion[] = [
   // cargar la clave una vez, entrando por la direccion.
   { id: "actividad", nombre: "Registro", href: "/admin/actividad", ayuda: "Quién hizo qué en el panel y cuándo", pestana: true },
   { id: "opiniones", nombre: "Opiniones", href: "/admin/opiniones", ayuda: "Las opiniones de Google en la portada", pestana: false },
-  // El sistema de ventas del local (/sistema/demo). No es del panel, pero se
-  // entra con los mismos usuarios (src/app/sistema/demo/clave.ts).
-  { id: "sistema", nombre: "Sistema Punto", href: "/sistema/demo", ayuda: "El sistema de ventas del local", pestana: false },
+  // El sistema de ventas del local (/sistema). No es del panel, pero se
+  // entra con los mismos usuarios (src/app/sistema/clave.ts).
+  { id: "sistema", nombre: "Sistema Punto", href: "/sistema", ayuda: "El sistema de ventas del local", pestana: false },
   { id: "configuracion", nombre: "Configuración", href: "/admin/configuracion", ayuda: "Ajustes generales de la tienda", pestana: false },
 ];
 const IDS = new Set<string>(SECCIONES.map((s) => s.id));
@@ -115,7 +115,7 @@ export function puedeVer(permisos: Seccion[] | null, seccion: string): boolean {
 export function primeraPermitida(permisos: Seccion[] | null): string {
   const s = SECCIONES.find((x) => x.pestana && puedeVer(permisos, x.id));
   if (s) return s.href;
-  if (puedeVer(permisos, "sistema")) return "/sistema/demo";
+  if (puedeVer(permisos, "sistema")) return "/sistema";
   return "/admin/usuarios";
 }
 

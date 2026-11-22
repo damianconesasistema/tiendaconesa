@@ -6,9 +6,9 @@ import { prisma } from "@/lib/db";
 // agregar todos los productos de PIAZZA, te mando el Excel de GBP con los
 // costos, Lista 1 y Lista 2".
 //
-// NO van en el codigo de Punto (src/app/sistema/demo/punto.ts): el
+// NO van en el codigo de Punto (src/app/sistema/punto.ts): el
 // repositorio es publico y ahi cualquiera leeria los costos. Se guardan en la
-// base, en la tabla Setting, y los entrega /sistema/demo/articulos solo a quien
+// base, en la tabla Setting, y los entrega /sistema/articulos solo a quien
 // entro con usuario y permiso de "Sistema Punto". Asi los ve cualquier puesto.
 //
 // Un solo renglon con todos (JSON). Alcanza de sobra para el catalogo entero

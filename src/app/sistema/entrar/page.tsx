@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/admin/LoginForm";
-import { quienEntra } from "@/app/sistema/demo/clave";
+import { quienEntra } from "@/app/sistema/clave";
 
 export const dynamic = "force-dynamic";
 
@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 
 // La entrada al sistema Punto, con los usuarios del panel. Damian,
 // 19/11/2026: "armame un panel de login para entrar con usuario que no sea
-// una flotante de windows para loguearte". Ver src/app/sistema/demo/clave.ts.
+// una flotante de windows para loguearte". Ver src/app/sistema/clave.ts.
 export default async function EntrarAlSistema() {
-  if ((await quienEntra()) === "ok") redirect("/sistema/demo");
+  if ((await quienEntra()) === "ok") redirect("/sistema");
 
   return (
     <main className="flex min-h-[70svh] items-center justify-center bg-[var(--surface)] px-6 py-16">
@@ -28,7 +28,7 @@ export default async function EntrarAlSistema() {
             Entrá con tu usuario y tu contraseña, los mismos del panel.
           </p>
         </div>
-        <LoginForm inicio="/sistema/demo" />
+        <LoginForm inicio="/sistema" />
       </div>
     </main>
   );

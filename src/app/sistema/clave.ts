@@ -4,8 +4,8 @@ import { puedeVer } from "@/lib/permisos";
 
 // Quien puede entrar al sistema Punto, en un solo lugar.
 //
-// La pide la pagina (/sistema/demo) y la pide tambien lo que la pagina
-// consulta despues (/sistema/demo/leer). Si cada uno tuviera su propia
+// La pide la pagina (/sistema) y la pide tambien lo que la pagina
+// consulta despues (/sistema/leer, /sistema/documentos...). Si cada uno tuviera su propia
 // version de este control, el dia que se cambie uno el otro queda abierto.
 //
 // Antes era la ventanita del navegador con una clave sola (DEMO_PASSWORD).
@@ -24,7 +24,7 @@ export async function quienEntra(): Promise<Paso> {
   return puedeVer(permisos, "sistema") ? "ok" : "sin-permiso";
 }
 
-export const ENTRAR = "/sistema/entrar?volver=/sistema/demo";
+export const ENTRAR = "/sistema/entrar?volver=/sistema";
 
 /** La respuesta para una pagina cuando no puede pasar. */
 export function noPasa(paso: Exclude<Paso, "ok">): Response {

@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.79";
+export const APP_VERSION = "V.0.99.80";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,21 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.80",
+    date: "2026-11-22",
+    changes: [
+      "PUNTO PASA A SER EL SISTEMA (\"la palabra demo ya no la quiero, la quiero ya como sistema\"): vive en conesa.com.ar/sistema. La dirección vieja (/sistema/demo) lleva sola a la nueva, también desde una pestaña que quedó abierta.",
+      "SIN DATOS INVENTADOS: afuera el catálogo de muestra, las 46 ventas de ejemplo de la Caja, las notas de crédito, los clientes, el padrón, los pedidos y las listas de ejemplo, y las cadenas de descuento inventadas. Los artículos salen solo del servidor. Se sacó también un costo real (el del 5135) que había quedado escrito en el código, que es público.",
+      "NUMERACIÓN DESDE 0001 (\"el presupuesto ya necesito que sea 0001, que arranque de principio\"): se borraron los comprobantes de prueba (autorizado ese día) y cada serie arranca en 1. Una pestaña con la página vieja no puede emitir: pide recargar, para que no arranque la serie con los números inventados de antes (migración 53).",
+      "TRASLASIERRA PRIMERO: Punto arranca en Traslasierra (Buenos Aires queda en pausa) y su punto de venta pasa a ser el 0006, el mismo con el que se va a facturar en ARCA.",
+      "PROVEEDORES (\"este es el listado de proveedores del sistema tanto de buenos aires como de traslasierra\"): pestaña nueva con los proveedores de GBP guardados en el servidor (razón social, CUIT, condición de IVA, domicilio, teléfono, condición de compra, moneda). Se importan con el Excel de GBP; el mismo proveedor se actualiza por su ID (migración 52).",
+      "EXCEL DE GBP: las celdas vacías se leían como \"Column1\" (el primer texto de la planilla). Ahora quedan vacías; también corrige la importación de artículos.",
+      "WHATSAPP CON LINK QUE ANDA (\"eso no funciona\"): el link del mensaje apuntaba a una página que no existía. Ahora, desde Comprobantes, el botón WhatsApp manda el detalle con un link firmado que abre el PDF del comprobante (tienda.conesa.com.ar/comprobante/...), sin usuario y sin que se pueda adivinar el de otro. Desde una venta sin emitir se manda el detalle sin link.",
+      "CANTIDAD ANTES DE BUSCAR (lo que planteó Daniel): un casillero Cant. al lado del buscador de la venta; también se puede escribir 3*inodoro o 3x inodoro. Después de sumar vuelve a 1.",
+      "NUEVO COMPROBANTE (\"no tengo la opción\"): botón en Comprobantes que abre la venta en blanco; si había una empezada, ofrece guardarla como borrador.",
+    ],
+  },
   {
     version: "V.0.99.79",
     date: "2026-11-22",

@@ -3,7 +3,8 @@ import { prisma } from "@/lib/db";
 import { noPasa, quienEntra } from "./clave";
 import { PUNTO_HTML } from "./punto";
 
-// La demo "Punto" (conesa.com.ar/sistema/demo), para mostrarla sin que ande dando vueltas.
+// El sistema "Punto" (conesa.com.ar/sistema). Hasta el 22/11/2026 vivia en
+// /sistema/demo; la direccion vieja manda aca (next.config.ts).
 //
 // Vive adentro de la tienda porque es el unico servidor que ya esta andando,
 // pero no toca nada de ella: esta direccion devuelve una pagina suelta y la

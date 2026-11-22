@@ -9,7 +9,7 @@ import { quienEntra } from "../clave";
 // que mandarla a la IA, y la clave de la IA no puede estar en una página que
 // cualquiera puede ver. Así que la foto pasa por el servidor.
 //
-// Vive debajo de /sistema/demo a propósito: así el navegador manda la misma
+// Vive debajo de /sistema a propósito: así el navegador manda la misma
 // clave Basic que ya le pidió para entrar a la página, y esto no queda
 // abierto para que cualquiera gaste el cupo de Google.
 
