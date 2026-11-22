@@ -1,14 +1,16 @@
-import { getAdminSession } from "@/lib/admin-auth";
 import { registrar } from "@/lib/actividad";
 import {
   contadores,
   crearDocumento,
+  documentoPorId,
   documentoPorMarca,
   editarPresupuesto,
   limpiarDocumento,
   limpiarEdicion,
   listarDocumentos,
 } from "@/lib/punto-documentos";
+import { nombreSucursalPunto, puedePunto } from "@/lib/punto-permisos";
+import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
 
 // Lo que se emite en el sistema Punto (presupuestos, facturas sin CAE,
@@ -23,6 +25,11 @@ import { quienEntra } from "../clave";
 //   GET  ./pdf?id=...          -> el PDF (./pdf/route.ts)
 // Todo solo con usuario y permiso de "Sistema Punto" (../clave.ts). Los
 // errores del servidor van con 200 y {error}: Cloudflare tapa los 5xx.
+//
+// Desde la V.0.99.81 (src/lib/punto-permisos.ts), al emitir:
+// - El que tiene sucursal fija solo emite (y edita) como esa.
+// - El que no tiene el permiso "numeros" no corrige el numero a mano: se
+//   ignora el que manda la pantalla y sale el que sigue.
 
 export const dynamic = "force-dynamic";
 
@@ -78,13 +85,38 @@ export async function POST(req: Request): Promise<Response> {
   const limpio = limpiarDocumento(cuerpo.documento);
   if ("error" in limpio) return json({ error: limpio.error }, 400);
 
-  const quien = (await getAdminSession())?.username ?? "?";
+  let yo: Awaited<ReturnType<typeof yoPunto>>;
+  try {
+    yo = await yoPunto();
+  } catch {
+    return json({ error: "No pude leer los permisos de tu usuario: probá de nuevo en un momento." });
+  }
+  if (!yo)
+    return json({ error: "Se cerró tu sesión: entrá de nuevo con tu usuario. La venta queda en pantalla." }, 401);
+  const quien = yo.usuario;
   const otro = deOtroUsuario(cuerpo.yo, quien);
   if (otro) return json({ error: otro });
+  if (!puedePunto(yo.permisos, "venta"))
+    return json({ error: "Tu usuario no tiene permiso para vender. Pedíselo a quien administra los usuarios." }, 403);
+  // La pagina ya fija la sucursal del que la tiene; esto es por si igual
+  // llega otra (una pestaña vieja, alguien que la cambia a mano).
+  const otraSucursal = (suc: string) =>
+    yo.sucursal && suc !== yo.sucursal
+      ? `Tu usuario es de ${nombreSucursalPunto(yo.sucursal)}: no puede emitir como otra sucursal.`
+      : null;
+  const malSucursal = otraSucursal(limpio.doc.sucursal);
+  if (malSucursal) return json({ error: malSucursal }, 400);
   if (cuerpo.edita != null) {
     const ed = limpiarEdicion(cuerpo.edita);
     if (!ed) return json({ error: "No sé qué presupuesto querés cambiar." }, 400);
     try {
+      // Al editar, el presupuesto conserva la sucursal con la que se emitio
+      // (editarPresupuesto no la cambia): esa tambien tiene que ser la suya.
+      if (yo.sucursal) {
+        const original = await documentoPorId(ed.id);
+        const mal = original && otraSucursal(original.sucursal);
+        if (mal) return json({ error: mal }, 400);
+      }
       const r = await editarPresupuesto(ed, limpio.doc, quien);
       if ("error" in r) return json({ error: r.error });
       if (!r.repetido) {
@@ -100,6 +132,10 @@ export async function POST(req: Request): Promise<Response> {
       return json({ error: "No se pudo guardar el cambio: " + ((e as Error).message || "error del servidor") + "." });
     }
   }
+  // Sin permiso para corregir la numeracion: desde 1, y siguiente() (en
+  // src/lib/punto-documentos.ts) usa el ultimo + 1; una serie nueva arranca
+  // en 1. Asi el numero que se haya tipeado en la pantalla no cuenta.
+  if (!puedePunto(yo.permisos, "numeros")) limpio.doc.desdeNumero = 1;
   try {
     const { doc, repetido } = await crearDocumento(limpio.doc, quien);
     if (!repetido) {

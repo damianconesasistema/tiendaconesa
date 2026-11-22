@@ -365,6 +365,17 @@ model AdminUser {
   ultimaActividad DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  // ---- Sistema Punto (migracion 54, src/lib/punto-permisos.ts). Damian,
+  // 22/11/2026: "me falta el panel de usuarios donde ahi yo seleccione que
+  // area puede ver cada usuario o a que tiene acceso".
+  // Las areas y acciones de Punto que puede usar, separadas por coma;
+  // null = todo (asi los que ya existen siguen como hasta hoy).
+  punto         String?
+  // La sucursal con la que vende: "srl", "cnc" o "tsl"; null = elige
+  // cualquiera, como hasta hoy.
+  sucursal      String?
+  // Administra los usuarios de Punto (src/app/sistema/usuarios).
+  adminPunto    Boolean   @default(false)
 }
 
 // Que miran y que buscan los que entran a la tienda, dia por dia

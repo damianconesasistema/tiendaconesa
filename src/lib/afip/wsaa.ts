@@ -32,14 +32,17 @@ export type TicketAcceso = { token: string; sign: string; expira: Date };
 // valido ("El CEE ya posee un TA valido"), asi que cambiarle la clave a la
 // tienda que hoy factura la dejaria sin poder facturar hasta que venciera el
 // que ya tiene, hasta 12 horas despues.
-function claveCache(sucursal?: string | null) {
-  const base = `afip:ta:wsfe:${ambiente()}`;
+// El servicio por defecto es "wsfe" (facturar): con eso la clave es la de
+// siempre. El padron (src/lib/afip/padron.ts) pide su propio ticket, con su
+// propia clave: un TA de un servicio no sirve para otro.
+function claveCache(sucursal?: string | null, servicio = "wsfe") {
+  const base = `afip:ta:${servicio}:${ambiente()}`;
   if (!afipClavePropia(sucursal)) return base;
   return `${base}:${variableDe("AFIP_CERT", sucursal)}`;
 }
 
 /** Arma el XML que pide ARCA y lo firma con el certificado. */
-function firmarLoginTicketRequest(sucursal?: string | null): string {
+function firmarLoginTicketRequest(sucursal?: string | null, servicio = "wsfe"): string {
   const { cert, key } = certificado(sucursal);
   const ahora = Date.now();
   // Se pide con 10 minutos de margen hacia atrás y 10 hacia adelante para
@@ -55,7 +58,7 @@ function firmarLoginTicketRequest(sucursal?: string | null): string {
     `<generationTime>${desde}</generationTime>` +
     `<expirationTime>${hasta}</expirationTime>` +
     `</header>` +
-    `<service>wsfe</service>` +
+    `<service>${servicio}</service>` +
     `</loginTicketRequest>`;
 
   const p7 = forge.pkcs7.createSignedData();
@@ -92,8 +95,8 @@ function desescapar(s: string): string {
 }
 
 /** Pide un TA nuevo a ARCA. */
-async function pedirTicket(sucursal?: string | null): Promise<TicketAcceso> {
-  const cms = firmarLoginTicketRequest(sucursal);
+async function pedirTicket(sucursal?: string | null, servicio = "wsfe"): Promise<TicketAcceso> {
+  const cms = firmarLoginTicketRequest(sucursal, servicio);
   const sobre =
     `<?xml version="1.0" encoding="UTF-8"?>` +
     `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" ` +
@@ -126,8 +129,9 @@ async function pedirTicket(sucursal?: string | null): Promise<TicketAcceso> {
 /** Devuelve un TA válido: el guardado si todavía sirve, o uno nuevo. */
 export async function ticketAcceso(
   sucursal?: string | null,
+  servicio = "wsfe",
 ): Promise<TicketAcceso> {
-  const clave = claveCache(sucursal);
+  const clave = claveCache(sucursal, servicio);
   const guardado = await prisma.setting.findUnique({ where: { key: clave } });
 
   if (guardado) {
@@ -146,7 +150,7 @@ export async function ticketAcceso(
     }
   }
 
-  const ta = await pedirTicket(sucursal);
+  const ta = await pedirTicket(sucursal, servicio);
   const valor = JSON.stringify({
     token: ta.token,
     sign: ta.sign,

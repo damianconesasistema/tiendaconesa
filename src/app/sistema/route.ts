@@ -1,5 +1,4 @@
-import { getAdminSession } from "@/lib/admin-auth";
-import { prisma } from "@/lib/db";
+import { yoPunto } from "@/lib/punto-yo";
 import { noPasa, quienEntra } from "./clave";
 import { PUNTO_HTML } from "./punto";
 
@@ -26,16 +25,12 @@ export const dynamic = "force-dynamic";
 // boton Salir cierra esa sesion. Damian, 22/11/2026: "podes ponerle login al
 // sistema punto". Va adentro del HTML (y no en otro pedido) para que la
 // venta arranque ya con el vendedor puesto.
+//
+// Desde la V.0.99.81 tambien lo que puede usar adentro (src/lib/punto-yo.ts):
+// { usuario, nombre, permisos, sucursal, adminUsuarios }. La pagina esconde
+// las solapas y los botones que no le tocan y fija la sucursal; las
+// direcciones de /sistema lo vuelven a controlar igual.
 const MARCA_YO = "var PUNTO_YO = null; /*YO*/";
-
-async function quienSoy(): Promise<{ usuario: string; nombre: string } | null> {
-  const s = await getAdminSession();
-  if (!s) return null;
-  const fila = await prisma.adminUser
-    .findUnique({ where: { username: s.username }, select: { nombre: true } })
-    .catch(() => null);
-  return { usuario: s.username, nombre: fila?.nombre || s.username };
-}
 
 /** JSON que se puede poner adentro de un <script> sin cerrarlo. */
 const enScript = (x: unknown) =>
@@ -45,7 +40,18 @@ export async function GET(): Promise<Response> {
   const paso = await quienEntra();
   if (paso !== "ok") return noPasa(paso);
 
-  const yo = await quienSoy();
+  let yo: Awaited<ReturnType<typeof yoPunto>>;
+  try {
+    yo = await yoPunto();
+  } catch {
+    // Sin la base no se sabe que puede ver: mejor un aviso que una pagina
+    // con las solapas equivocadas. 200 y no 500: Cloudflare tapa los 5xx.
+    return new Response(
+      `<!doctype html><meta charset="utf-8"><title>Punto</title><body style="font-family:system-ui,sans-serif;padding:40px">` +
+        `<h1 style="font-size:20px">No pude leer tu usuario</h1><p>Recargá la página en un momento.</p></body>`,
+      { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store, max-age=0" } },
+    );
+  }
   // Con funcion y no con texto: un "$'" o "$&" en el nombre no se expande.
   const html = PUNTO_HTML.replace(MARCA_YO, () => `var PUNTO_YO = ${enScript(yo)};`);
 

@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.80";
+export const APP_VERSION = "V.0.99.81";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.81",
+    date: "2026-11-22",
+    changes: [
+      "PUNTO, USUARIOS Y PERMISOS (\"me falta el panel de usuarios donde ahi yo seleccione que area puede ver cada usuario o a que tiene acceso\"): pestaña Usuarios para los que administran (damian y daniel). Por cada usuario se tilda qué ve (Venta, Comprobantes, Pedidos, Productos, Listas, Proveedores, Simulador, Caja, Rentabilidad, Contable, Gerencia...) y qué puede hacer (importar de GBP, eliminar comprobantes, corregir numeración), y su sucursal. Lo no tildado no aparece y el servidor tampoco lo deja hacer. Se crean usuarios con contraseña provisoria, se resetea y se desactiva. Daniel no puede tocar la contraseña de un usuario que entra al panel de la tienda (migración 54).",
+      "ARTÍCULO A MANO (\"que en el comprobante se pueda hacer carga manual de artículos, por si no está ingresado en el sistema\"): botón al lado del buscador; descripción, cantidad, precio e IVA. Sale en el comprobante y en el PDF, no mueve stock y no entra al catálogo.",
+      "PADRÓN DE ARCA (\"si yo pongo un DNI o un cuit, ¿podés traer todos los datos reales?\"): en Cliente nuevo, Traer los datos consulta ARCA con el certificado de la tienda (solo consulta, no emite nada). Con DNI prueba los CUIT posibles. Si ARCA no tiene habilitado el servicio para el certificado, lo avisa.",
+      "DEPÓSITO CÓRDOBA: el depósito de Traslasierra se llama como en GBP.",
+    ],
+  },
   {
     version: "V.0.99.80",
     date: "2026-11-22",

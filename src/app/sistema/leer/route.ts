@@ -1,4 +1,6 @@
 import { leerComprobante } from "@/lib/leer-comprobante";
+import { puedePunto } from "@/lib/punto-permisos";
+import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
 
 // Leer una foto de presupuesto, de lista o de remito, y devolver los
@@ -46,6 +48,16 @@ export async function GET(): Promise<Response> {
 
 export async function POST(req: Request): Promise<Response> {
   if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
+  // Leer con IA cuesta plata: solo quien carga listas o articulos.
+  let yo: Awaited<ReturnType<typeof yoPunto>>;
+  try {
+    yo = await yoPunto();
+  } catch {
+    return json({ error: "No pude leer los permisos de tu usuario: probá de nuevo en un momento." });
+  }
+  if (!yo) return json({ error: "Tenés que entrar con tu usuario." }, 401);
+  if (!puedePunto(yo.permisos, "listas") && !puedePunto(yo.permisos, "productos"))
+    return json({ error: "Tu usuario no carga listas ni artículos. Pedíselo a quien administra los usuarios." }, 403);
 
   let cuerpo: { base64?: unknown; mime?: unknown };
   try {

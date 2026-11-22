@@ -1,7 +1,8 @@
-import { getAdminSession } from "@/lib/admin-auth";
 import { registrar } from "@/lib/actividad";
+import { puedePunto } from "@/lib/punto-permisos";
 import { importarProveedores, limpiarProveedor, listarProveedores, MAX_PROVEEDORES } from "@/lib/punto-proveedores";
 import type { ProveedorNuevo } from "@/lib/punto-proveedores";
+import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
 
 // Los proveedores del sistema Punto, traidos del Excel de proveedores de GBP.
@@ -10,7 +11,8 @@ import { quienEntra } from "../clave";
 // no van en el codigo porque el repositorio es publico. La pagina los pide
 // al abrir (GET) y, al importar, lee ella misma el Excel y manda cada
 // renglon ya con nombre (POST); aca se revisa todo igual. Las dos cosas solo
-// con usuario y permiso de "Sistema Punto" (../clave.ts).
+// con usuario y permiso de "Sistema Punto" (../clave.ts), e importar ademas
+// con el permiso "importar" de Punto (src/lib/punto-permisos.ts).
 //
 // Los errores del servidor vuelven con 200 y { error }: un 5xx lo tapa
 // Cloudflare con su propia pagina y la pantalla no puede decir que paso.
@@ -40,6 +42,15 @@ export async function GET(): Promise<Response> {
 
 export async function POST(req: Request): Promise<Response> {
   if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
+  let yo: Awaited<ReturnType<typeof yoPunto>>;
+  try {
+    yo = await yoPunto();
+  } catch {
+    return json({ error: "No pude leer los permisos de tu usuario: probá de nuevo en un momento." });
+  }
+  if (!yo) return json({ error: "Tenés que entrar con tu usuario." }, 401);
+  if (!puedePunto(yo.permisos, "importar"))
+    return json({ error: "Tu usuario no tiene permiso para importar. Pedíselo a quien administra los usuarios." }, 403);
 
   let cuerpo: { proveedores?: unknown; archivo?: unknown };
   try {
@@ -56,7 +67,7 @@ export async function POST(req: Request): Promise<Response> {
   const descartados = crudos.length - buenos.length;
   if (!buenos.length) return json({ error: "Ningún renglón tenía ID y razón social." }, 400);
 
-  const quien = (await getAdminSession())?.username ?? "?";
+  const quien = yo.usuario;
   try {
     const { nuevos, actualizados, total } = await importarProveedores(buenos, quien);
     // El nombre del archivo va al Registro del panel: sin < ni >, como todo.

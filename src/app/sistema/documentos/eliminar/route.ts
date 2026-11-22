@@ -1,12 +1,15 @@
-import { getAdminSession } from "@/lib/admin-auth";
 import { registrar } from "@/lib/actividad";
 import { eliminarDocumento } from "@/lib/punto-documentos";
+import { puedePunto } from "@/lib/punto-permisos";
+import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../../clave";
 
 // Eliminar (o recuperar) un comprobante de Punto: POST {id, recuperar}.
 // No borra la fila: la marca (ver eliminarDocumento en
-// src/lib/punto-documentos.ts). Solo con usuario, y queda en Actividad
-// quien fue. Los errores van con 200 y {error}: Cloudflare tapa los 5xx.
+// src/lib/punto-documentos.ts). Solo con usuario y con el permiso
+// "eliminar" de Punto (src/lib/punto-permisos.ts), para eliminar y para
+// recuperar, y queda en Actividad quien fue. Los errores van con 200 y
+// {error}: Cloudflare tapa los 5xx.
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +34,21 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return json({ error: "No entendí lo que me mandaste." }, 400);
   }
-  const quien = (await getAdminSession())?.username ?? "?";
+  let yo: Awaited<ReturnType<typeof yoPunto>>;
+  try {
+    yo = await yoPunto();
+  } catch {
+    return json({ error: "No pude leer los permisos de tu usuario: probá de nuevo en un momento." });
+  }
+  if (!yo) return json({ error: "Se cerró tu sesión: entrá de nuevo con tu usuario." }, 401);
+  const quien = yo.usuario;
   const otro = deOtroUsuario(cuerpo.yo, quien);
   if (otro) return json({ error: otro });
+  if (!puedePunto(yo.permisos, "eliminar"))
+    return json(
+      { error: "Tu usuario no tiene permiso para eliminar comprobantes. Pedíselo a quien administra los usuarios." },
+      403,
+    );
   const recuperar = cuerpo.recuperar === true;
   try {
     const r = await eliminarDocumento(String(cuerpo.id ?? ""), quien, recuperar);

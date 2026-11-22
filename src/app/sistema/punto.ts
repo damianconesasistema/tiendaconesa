@@ -86,6 +86,8 @@ header{
   font-size:12.5px; font-weight:600; color:var(--ink-2);
 }
 .relo.dolar b{color:var(--ink); font-weight:700}
+.relo.dolar .cv{font-size:10.5px; color:var(--ink-3); font-weight:700}
+.relo.dolar .sep{margin:0 8px; color:var(--ink-3)}
 .user{font-size:13.5px; color:var(--ink-2)}
 .user b{color:var(--ink); font-weight:600}
 .user b::before{content:"· "; color:var(--ink-3); font-weight:400}
@@ -158,6 +160,7 @@ nav{
 /* Son <a> y no <button> a proposito: asi el boton derecho ofrece "abrir
    en una pestana nueva" y se puede tener la venta en una ventana y los
    productos en otra. Con un <button> el navegador no ve ningun link. */
+nav [data-v][hidden]{display:none}
 nav [data-v]{
   flex:0 0 auto; display:inline-flex; align-items:center; gap:8px;
   background:none; border:0; border-bottom:2px solid transparent;
@@ -354,6 +357,18 @@ td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500;
 #tbCp .cp-mas{font-size:12px; color:var(--ink-2); margin-top:8px; line-height:1.5}
 #tbCp .cp-acc{white-space:nowrap}
 #tbPrv td small{display:block; color:var(--ink-3); font-size:11.5px; font-weight:500}
+.us-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; margin-bottom:12px}
+.us-card.inactivo{opacity:.6}
+.us-cab{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px}
+.us-cab b{font-size:16px}
+.us-cab small{color:var(--ink-3)}
+.us-cab .us-acc{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+.us-grupo{margin-top:10px}
+.us-grupo .et{display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--ink-3); margin-bottom:5px}
+.us-tildes{display:flex; flex-wrap:wrap; gap:6px}
+.us-tildes label{display:inline-flex; align-items:center; gap:5px; border:1px solid var(--line-2); border-radius:999px; padding:4px 10px; font-size:13px; cursor:pointer; background:var(--surface-2)}
+.us-tildes label.si{border-color:var(--accent); background:var(--accent-soft)}
+.us-tildes input{margin:0}
 #tbCp .cp-acc button{padding:5px 10px; margin:2px 0 2px 4px}
 #tbCp .cp-acc button.b3{padding:5px 8px}
 #tbCp tr.cp-elim td{color:var(--ink-3)}
@@ -1011,7 +1026,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.80</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.81</span>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
     <span class="bar-sep ocultable"></span>
@@ -1034,6 +1049,7 @@ footer{
     <a href="#contable" data-v="contable"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>Contable</a>
     <a href="#gerencia" data-v="gerencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>Gerencia</a>
     <a href="#asistente" data-v="asistente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
+    <a href="#usuarios" data-v="usuarios" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Usuarios</a>
     <a href="#inicio" data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Todo el sistema</a>
   </nav>
 </header>
@@ -1081,6 +1097,7 @@ footer{
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
               <input id="q" type="text" placeholder="Agregar artículo: marca, rubro, nombre o código · 3*inodoro suma 3" autocomplete="off" spellcheck="false">
             </div>
+            <button class="b2" type="button" id="btnAMano" title="Un artículo que no está en el sistema" style="flex:0 0 auto;align-self:stretch;padding:0 14px">+ A mano</button>
           </div>
           <p class="ayuda-busca">Escribí pedazos, en cualquier orden. El stock va en <b style="color:var(--ok)">verde</b> si hay más de 10,
             en <b style="color:var(--warn)">amarillo</b> si quedan 10 o menos y en <b style="color:var(--bad)">rojo</b> si no hay; igual se puede elegir para ver el precio.</p>
@@ -1792,6 +1809,26 @@ footer{
   </div>
 </section>
 
+<!-- ======================================================== USUARIOS -->
+<section id="v-usuarios" hidden>
+  <div class="head">
+    <h2>Usuarios</h2>
+    <p>Quién entra a Punto y qué puede ver y hacer cada uno. Lo que no tiene tildado no le aparece. Vender, importar, eliminar, corregir numeración y la sucursal también los controla el servidor. Los cambios se guardan solos.</p>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><h3>Nuevo usuario</h3><span class="sub">entra con una contraseña provisoria y elige la suya</span></div>
+    <div class="campos" style="padding:14px 16px">
+      <div class="campo"><label for="unNom">Nombre</label><input id="unNom" type="text" maxlength="60" placeholder="Mariano Pérez" autocomplete="off"></div>
+      <div class="campo"><label for="unUsu">Usuario</label><input id="unUsu" type="text" maxlength="30" placeholder="mariano" autocomplete="off" autocapitalize="none"></div>
+      <div class="campo"><label for="unClave">Contraseña provisoria</label><input id="unClave" type="text" maxlength="60" placeholder="mínimo 8 letras o números" autocomplete="new-password"></div>
+      <div class="campo"><label for="unSuc">Sucursal</label><select id="unSuc"></select></div>
+      <div class="campo"><label>&nbsp;</label><button class="b1" id="unCrear" type="button">Crear usuario</button></div>
+    </div>
+    <p class="nota" style="padding:0 16px 14px">Arranca con todo tildado salvo administrar usuarios: después le sacás lo que no tiene que ver.</p>
+  </div>
+  <div id="usLista"><div class="vacio" style="padding:20px">Cargando…</div></div>
+</section>
+
 <!-- ====================================================== SIMULADOR -->
 <!-- El simulador de costo, el mismo de la página que se le mandó al jefe
      (/simulador-de-costo). Damián, 22/11/2026: "el simulador de costo
@@ -1929,7 +1966,7 @@ footer{
       <h3>Cliente nuevo</h3>
       <button class="x" id="cliX" aria-label="cerrar">×</button>
     </div>
-    <p class="envio-n">Poné el CUIT y tocá <b>Traer los datos</b>: la razón social, la condición de IVA y el domicilio vienen solos. Si no aparece, se carga a mano.</p>
+    <p class="envio-n">Poné el CUIT o el DNI y tocá <b>Traer los datos</b>: la razón social, la condición de IVA y el domicilio vienen de ARCA. Si no aparece, se carga a mano.</p>
     <div class="campos" id="cliCampos">
       <div class="campo ancho">
         <label for="cnDoc">CUIT o DNI</label>
@@ -2007,6 +2044,34 @@ footer{
   </div>
 </div>
 
+<!-- Un artículo que no está en el sistema, cargado a mano en la venta. -->
+<div class="envio" id="aMano" hidden>
+  <div class="envio-caja" style="max-width:520px">
+    <div class="envio-h">
+      <h3>Artículo a mano</h3>
+      <button class="x" id="amX" aria-label="cerrar">×</button>
+    </div>
+    <p class="envio-n">Para lo que no está cargado en el sistema. Sale en el comprobante como cualquier otro, pero no mueve stock.</p>
+    <div class="campos">
+      <div class="campo ancho"><label for="amTit">Descripción</label>
+        <input id="amTit" type="text" maxlength="200" placeholder="Como tiene que salir en el comprobante" autocomplete="off"></div>
+      <div class="campo"><label for="amCant">Cantidad</label>
+        <input id="amCant" type="number" min="1" step="1" value="1"></div>
+      <div class="campo"><label for="amPre">Precio de contado, con IVA</label>
+        <input id="amPre" type="text" inputmode="decimal" autocomplete="off" placeholder="por unidad, ej. 60.000"></div>
+      <div class="campo"><label for="amIva">IVA</label>
+        <select id="amIva"><option value="21" selected>21%</option><option value="10.5">10,5%</option></select></div>
+      <div class="campo"><label for="amCosto">Costo con IVA (si lo sabés)</label>
+        <input id="amCosto" type="text" inputmode="decimal" autocomplete="off" placeholder="opcional">
+        <span class="por">sin costo, ese renglón se cuenta con margen cero</span></div>
+    </div>
+    <div class="envio-acc">
+      <button class="b1" id="amSumar">Sumar a la venta</button>
+      <button class="b3" id="amCancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Los atajos, siempre abajo, para no tener que acordarse. -->
 <div class="teclas" id="teclas">
   <span class="t"><kbd>↑</kbd><kbd>↓</kbd> moverse</span>
@@ -2026,6 +2091,28 @@ footer{
 <script>var PUNTO_YO = null; /*YO*/</script>
 <script>
 "use strict";
+/** ¿El que entró puede usar esto? (área o acción de src/lib/punto-permisos.ts).
+    Sin datos de permisos, todo: es como funcionaba antes. */
+function puede(id){
+  const yo = (typeof PUNTO_YO === "object" && PUNTO_YO) ? PUNTO_YO : null;
+  if(!yo || !Array.isArray(yo.permisos)) return true;
+  return yo.permisos.indexOf(id) >= 0;
+}
+/** La sucursal fija del usuario, o null si puede elegir. */
+function sucursalFija(){
+  const yo = (typeof PUNTO_YO === "object" && PUNTO_YO) ? PUNTO_YO : null;
+  return yo && typeof yo.sucursal === "string" && yo.sucursal ? yo.sucursal : null;
+}
+const esAdminUsuarios = () => !!(typeof PUNTO_YO === "object" && PUNTO_YO && PUNTO_YO.adminUsuarios);
+/** El área de cada solapa ("Todo el sistema" la ven todos). */
+const AREA_DE_VISTA = { mostrador:"venta", comprobantes:"comprobantes", pedidos:"pedidos", web:"web",
+  productos:"productos", listas:"listas", proveedores:"proveedores", simulador:"simulador", caja:"caja",
+  renta:"renta", contable:"contable", gerencia:"gerencia", asistente:"asistente" };
+function vistaPermitida(v){
+  if(v === "inicio") return true;
+  if(v === "usuarios") return esAdminUsuarios();
+  return AREA_DE_VISTA[v] ? puede(AREA_DE_VISTA[v]) : true;
+}
 
 /* Los artículos salen del servidor (los de GBP, ver traerDeGbp). Antes
    acá había un catálogo de muestra con costos inventados: se sacó el
@@ -2102,7 +2189,7 @@ const PRODUCTOS = [];
    Tres razones sociales, cada una con su punto de venta y su numeracion.
    El stock NO es uno solo: hay dos depositos. CONESA SRL y SANITARIOS CNC
    descuentan del de Buenos Aires; TRASLASIERRA del suyo. */
-const DEPOSITOS = { BA:"Buenos Aires", TS:"Traslasierra" };
+const DEPOSITOS = { BA:"Buenos Aires", TS:"Córdoba" };
 const SUCURSALES = [
   {id:"srl", n:"CONESA SRL",     dep:"BA", pv:"0003"},
   {id:"cnc", n:"SANITARIOS CNC", dep:"BA", pv:"0004"},
@@ -2325,7 +2412,37 @@ function restaurarCatalogo(soloCambios){
 }
 restaurarCatalogo();
 
-const prod = c => PRODUCTOS.find(p=>p.cod===c);
+// Los artículos cargados a mano en una venta: no son del catálogo (no salen
+// en Productos ni en Gerencia), pero el ticket y el comprobante los ven.
+const MANUALES = [];
+const prod = c => PRODUCTOS.find(p=>p.cod===c) || MANUALES.find(p=>p.cod===c);
+/** Un artículo a mano, con lo mismo que tiene uno del catálogo. */
+function armarManual(m){
+  const contado = cent(+m.contado || 0), costo = +m.costo > 0 ? cent(+m.costo) : contado;
+  const tit = String(m.tit || "").replace(/[<>]/g, "").replace(/\\s+/g, " ").trim().slice(0, 200);
+  const p = { cod:String(m.cod), tit, rub:"A MANO", prov:"VARIOS", contado,
+    unPago: +m.unPago > 0 ? cent(+m.unPago) : redondear(contado * RECARGO_1PAGO),
+    costo, costoBase:costo, iva: +m.iva === 10.5 ? 10.5 : 21, aMano:true, sinCosto: !(+m.costo > 0),
+    dep:{ BA:0, TS:0 }, propio: plano(m.cod+" "+tit), blob: plano(m.cod+" "+tit) };
+  return ponerStock(p);
+}
+/** Los artículos a mano de un comprobante guardado (otra compu, otra pestaña). */
+function recuperarManuales(ren){
+  let n = 0;
+  for(const r of (ren || []))
+    if(/^AM-/.test(String(r.cod)) && !prod(r.cod) &&
+       agregarManual({ cod:r.cod, tit:r.tit, contado:+r.contado, unPago:+r.unPago, costo:+r.costo, iva:+r.iva })) n++;
+  if(n) guardarLocal();
+}
+function agregarManual(m){
+  if(!m || !/^AM-[A-Z0-9]{4,20}$/.test(String(m.cod)) || !(+m.contado > 0) || !String(m.tit || "").trim()) return null;
+  const ya = MANUALES.find(x => x.cod === m.cod);
+  if(ya) return ya;
+  const p = armarManual(m);
+  MANUALES.push(p);
+  if(MANUALES.length > 2000) MANUALES.splice(0, MANUALES.length - 2000);
+  return p;
+}
 /* Lo que la venta deja: el recargo de tarjeta no es ganancia, lo paga la
    tarjeta. Así que el margen se mide siempre contra el precio de contado. */
 /* Una venta guardada trae lo de ese momento: el precio y el costo de cada
@@ -2347,7 +2464,7 @@ function ventaMargen(v){
 }
 
 /* ================================================== navegación */
-const vistas = ["mostrador","comprobantes","inicio","pedidos","web","productos","listas","proveedores","simulador","caja","renta","contable","gerencia","asistente"];
+const vistas = ["mostrador","comprobantes","inicio","pedidos","web","productos","listas","proveedores","simulador","usuarios","caja","renta","contable","gerencia","asistente"];
 // Un <a> se activa con Enter pero no con la barra espaciadora; un <button>
 // con las dos. Al pasar a links se perdio el espacio: se lo devolvemos, que
 // hay gente que se mueve por el sistema sin tocar el mouse.
@@ -2368,6 +2485,12 @@ document.getElementById("nav").addEventListener("click",e=>{
 
 /** Deja a la vista una solapa, venga de un click o de la direccion. */
 function abrirVista(v){
+  // Lo que no tiene tildado no se abre (ni escribiendo la dirección): va a
+  // la primera solapa que sí puede usar.
+  if(!vistaPermitida(v)){
+    const otra = vistas.find(x => vistaPermitida(x) && x !== "inicio") || "inicio";
+    if(otra !== v){ v = otra; }
+  }
   const b = document.querySelector('#nav [data-v="'+v+'"]');
   if(!b) return;
   for(const x of vistas) document.getElementById("v-"+x).hidden = (x !== v);
@@ -2387,6 +2510,7 @@ function avisarVista(b){
   if(b.dataset.v==="contable") pintarContable();
   if(b.dataset.v==="web") pintarWeb();
   if(b.dataset.v==="proveedores") pintarProveedores();
+  if(b.dataset.v==="usuarios") pintarUsuariosPunto();
   if(b.dataset.v==="simulador"){
     const f = document.getElementById("simFrame");
     if(f && !f.getAttribute("src")) f.setAttribute("src", "/simulador-de-costo");
@@ -2469,23 +2593,27 @@ document.getElementById("selUsuario").addEventListener("change",e=>{
    mostrador no hace falta que ande para vender.
    Ojo: esto NO toca el dolar del formador de precios. Ese lo pone a mano
    el que carga los articulos, y no se le cambia solo por atras. */
-(function dolarOficial(){
+(function dolarDelDia(){
   const el = document.getElementById("dolarBar");
   if(!el) return;
+  const hora = iso => { const f = iso ? new Date(iso) : null;
+    return f && !isNaN(f) ? f.toLocaleString("es-AR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false, timeZone:"America/Argentina/Buenos_Aires" }) : "—"; };
+  const uno = (nombre, c) => c ? nombre+' <span class="cv">C</span> <b>'+plata2(c.compra)+'</b> <span class="cv">V</span> <b>'+plata2(c.venta)+'</b>' : "";
   const mirar = async () => {
     try{
-      const r = await fetch("https://dolarapi.com/v1/dolares/oficial",
-                            { signal: AbortSignal.timeout(8000) });
+      const r = await fetch("/sistema/dolar", { cache:"no-store", credentials:"same-origin", signal: AbortSignal.timeout(12000) });
       if(!r.ok) return;
       const d = await r.json();
-      const v = +d.venta;
-      if(!(v > 0)) return;
-      el.innerHTML = 'US$ <b>'+plata2(v)+'</b>';
+      if(d.error || (!d.blue && !d.oficial)) return;
+      el.innerHTML = [uno("Blue", d.blue), uno("BNA", d.oficial)].filter(Boolean).join('<span class="sep">·</span>');
       el.hidden = false;
-      el.title = "Dólar oficial (venta). Es solo para mirar: el del formador de precios se pone a mano.";
+      el.title = "Dólar del día, compra (C) y venta (V)." +
+        (d.blue ? "\\nBlue: actualizado " + hora(d.blue.fecha) + "." : "") +
+        (d.oficial ? "\\nBanco Nación (oficial): actualizado " + hora(d.oficial.fecha) + "." : "") +
+        "\\nEs solo para mirar: el dólar del formador de precios se pone a mano.";
     }catch(e){ /* sin internet se queda como estaba */ }
   };
-  mirar(); setInterval(mirar, 600000);
+  mirar(); setInterval(mirar, 15 * 60000);
 })();
 
 /* ------------------- el encabezado de la venta, como el de GBP -------------
@@ -2607,7 +2735,7 @@ function pintarCamposVenta(){
     // mas del comprobante, es el marco de toda la venta.
     '<div class="fila-dos">'+
       '<div class="campo suc-sola"><label for="vtaSuc">Sucursal</label>'+
-        '<select id="vtaSuc">'+
+        '<select id="vtaSuc"'+(sucursalFija() ? ' disabled title="Tu usuario es de esta sucursal"' : '')+'>'+
           SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
         '</select>'+
         '<span class="por">punto de venta '+su.pv+' · depósito <b>'+DEPOSITOS[depAct()]+'</b></span></div>'+
@@ -2642,8 +2770,8 @@ function pintarCamposVenta(){
       '<span class="por">'+(S.nroLibre
         ? '<b>Ojo:</b> cambia la numeración de los que siguen. '
         : 'sale solo · ')+
-        '<button type="button" class="link-chico" id="vtaNroEdit">'+
-        (S.nroLibre ? "dejarlo como está" : "corregirlo")+'</button>'+
+        (puede("numeros") ? '<button type="button" class="link-chico" id="vtaNroEdit">'+
+        (S.nroLibre ? "dejarlo como está" : "corregirlo")+'</button>' : '')+
       '</span></div>'+
     campo("vtaCond","Condición de venta",Object.keys(MULT),cond,
           recargoDe(cond)==="sin recargo" ? sCond[1] : recargoDe(cond),!S.cond)+
@@ -2844,6 +2972,7 @@ function cuitValido(d){
 const conGuiones = d => d.length===11 ? d.slice(0,2)+"-"+d.slice(2,10)+"-"+d.slice(10) : d;
 
 function abrirCliente(){
+  if(typeof PADRON_PIDIENDO === "number") PADRON_PIDIENDO++;
   for(const id of ["cnDoc","cnNom","cnDir","cnTel","cnLoc","cnMail"]) document.getElementById(id).value = "";
   document.getElementById("cnProv").value = "Córdoba";
   document.getElementById("cnLista").value = "02.Lista 2";
@@ -2860,34 +2989,40 @@ document.getElementById("cliX").addEventListener("click", cerrarCliente);
 // querer y se perdia todo lo cargado. Se cierra con la X, y con Escape, que
 // es una tecla que se aprieta a proposito.
 
-function traerPadron(){
+let PADRON_PIDIENDO = 0;
+async function traerPadron(){
   const d = soloNum(document.getElementById("cnDoc").value);
   const av = document.getElementById("cnAviso");
-  if(d.length === 8){
-    av.innerHTML = '<b>Es un DNI.</b> Con DNI va Factura B y no hay padrón que consultar: poné el nombre a mano.';
-    document.getElementById("cnIva").value = "Consumidor Final";
+  if(d.length === 11 && !cuitValido(d)){ av.innerHTML = '<b style="color:var(--bad)">Ese CUIT no cierra.</b> Está mal copiado: fijate algún número.'; return; }
+  if(d.length !== 11 && d.length !== 8 && d.length !== 7){
+    av.innerHTML = '<b style="color:var(--bad)">Un CUIT tiene 11 números y un DNI 7 u 8.</b> Van '+d.length+'.'; return;
+  }
+  const este = ++PADRON_PIDIENDO;
+  av.innerHTML = 'Consultando en ARCA…';
+  let r = null;
+  try{
+    const res = await fetch("/sistema/padron?doc=" + d, { cache:"no-store", credentials:"same-origin" });
+    r = await res.json().catch(() => null);
+  }catch(e){ r = null; }
+  if(este !== PADRON_PIDIENDO) return;          // se pidió otro mientras tanto
+  if(!r || !r.encontrado){
+    av.innerHTML = '<b>' + txt((r && r.error) || "No pude consultar ARCA ahora.") + '</b>' +
+      (d.length === 11 ? ' El número es válido: cargá los datos a mano.' : '');
+    if(d.length !== 11) document.getElementById("cnIva").value = "Consumidor Final";
     return;
   }
-  if(d.length !== 11){ av.innerHTML = '<b style="color:var(--bad)">El CUIT tiene 11 números.</b> Van '+d.length+'.'; return; }
-  if(!cuitValido(d)){ av.innerHTML = '<b style="color:var(--bad)">Ese CUIT no cierra.</b> Está mal copiado: fijate algún número.'; return; }
-  const p = PADRON[d];
-  if(!p){
-    av.innerHTML = '<b>El número es válido.</b> Cargá la razón social, la condición de IVA y el domicilio a mano.';
-    return;
-  }
-  document.getElementById("cnNom").value = p.n;
-  document.getElementById("cnIva").value = p.t;
-  // El padron manda el domicilio entero. Ahora la localidad tiene su campo:
-  // lo que viene despues de la ultima coma va ahi.
-  const coma = p.dir.lastIndexOf(",");
-  if(coma > 0){
-    document.getElementById("cnDir").value = p.dir.slice(0, coma).trim();
-    document.getElementById("cnLoc").value = p.dir.slice(coma + 1).trim();
-  } else {
-    document.getElementById("cnDir").value = p.dir;
-  }
-  document.getElementById("cnDoc").value = conGuiones(d);
-  av.innerHTML = '<b style="color:var(--ok)">Listo.</b> Vino del padrón: '+p.n+' · '+p.t+'.';
+  document.getElementById("cnNom").value = r.razonSocial || "";
+  document.getElementById("cnIva").value = r.condicionIva || "Consumidor Final";
+  document.getElementById("cnDir").value = r.domicilio || "";
+  document.getElementById("cnLoc").value = r.localidad || "";
+  // La provincia: la opción que se llame igual (ARCA la manda en mayúsculas).
+  const pv = document.getElementById("cnProv");
+  const opc = [...pv.options].find(o => plano(o.text) === plano(r.provincia || "") ||
+    (plano(r.provincia || "").indexOf("autonoma") >= 0 && plano(o.text).indexOf("autonoma") >= 0));
+  if(opc) pv.value = opc.value || opc.text;
+  document.getElementById("cnDoc").value = conGuiones(r.cuit);
+  av.innerHTML = '<b style="color:var(--ok)">Listo, vino de ARCA:</b> '+txt(r.razonSocial)+' · '+txt(r.condicionIva)+'.' +
+    (r.aviso ? ' <b style="color:var(--warn)">Ojo:</b> '+txt(r.aviso) : '');
 }
 document.getElementById("cnBuscar").addEventListener("click", traerPadron);
 document.getElementById("cnDoc").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); traerPadron(); } });
@@ -3137,6 +3272,38 @@ function sumar(cod, cuantos){
   buscar();
   q.focus();
 }
+/* El artículo a mano: el formulario y lo que pasa al sumarlo. */
+function abrirAMano(){
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando el comprobante."); return; }
+  const cy = cantidadYTexto(document.getElementById("q").value);
+  document.getElementById("amTit").value = cy.texto.trim();
+  document.getElementById("amCant").value = cy.cant;
+  document.getElementById("q").value = ""; buscar();
+  document.getElementById("amPre").value = ""; document.getElementById("amCosto").value = "";
+  document.getElementById("amIva").value = "21";
+  document.getElementById("aMano").hidden = false;
+  document.getElementById("amTit").focus();
+}
+function sumarAMano(){
+  const tit = document.getElementById("amTit").value.trim();
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando el comprobante."); return; }
+  if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
+  const pre = cent(aNum(document.getElementById("amPre").value));
+  if(!tit){ toast("Poné la descripción."); document.getElementById("amTit").focus(); return; }
+  if(!(pre > 0)){ toast("Poné el precio de contado."); document.getElementById("amPre").focus(); return; }
+  const cod = "AM-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase();
+  const p = agregarManual({ cod, tit, contado:pre, costo:cent(aNum(document.getElementById("amCosto").value)) || 0,
+                            iva:+document.getElementById("amIva").value });
+  if(!p){ toast("No se pudo cargar ese artículo."); return; }
+  document.getElementById("aMano").hidden = true;
+  sumar(p.cod, Math.max(1, Math.floor(+document.getElementById("amCant").value || 1)));
+  guardarLocal();
+}
+document.getElementById("btnAMano").addEventListener("click", abrirAMano);
+document.getElementById("amSumar").addEventListener("click", sumarAMano);
+for(const id of ["amX","amCancelar"]) document.getElementById(id).addEventListener("click", () => { document.getElementById("aMano").hidden = true; });
+document.getElementById("aMano").addEventListener("keydown", e => { if(e.key === "Enter" && e.target.tagName === "INPUT"){ e.preventDefault(); sumarAMano(); } });
+
 // Cambiar la cantidad cambia la de los renglones que ya se ven; Enter en la
 // cantidad pasa al buscador.
 document.getElementById("qCant").addEventListener("input", buscar);
@@ -3230,9 +3397,9 @@ function pintarTicket(){
         return '<tr data-cod="'+l.cod+'">'+
           '<td class="ix">'+(i+1)+'</td>'+
           '<td class="num" style="font-size:12px">'+txt(codVista(p))+'</td>'+
-          '<td class="nom" style="min-width:230px" title="'+txt(p.tit)+'">'+
+          '<td class="nom" style="min-width:230px" title="'+atrib(p.tit)+'">'+
             '<div class="nomln">'+txt(p.tit)+'<small>'+txt(p.prov.toLowerCase())+'</small></div></td>'+
-          '<td><span class="stk '+scl+'">'+st+'</span></td>'+
+          '<td>'+(p.aMano ? '<span class="stk" title="cargado a mano: no mueve stock">a mano</span>' : '<span class="stk '+scl+'">'+st+'</span>')+'</td>'+
           '<td class="r"><span class="c">'+
             '<button data-m="-" data-cod="'+l.cod+'" aria-label="uno menos">−</button>'+
             '<b>'+l.cant+'</b>'+
@@ -3318,6 +3485,10 @@ document.getElementById("borradores").addEventListener("click",e=>{
   if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el borrador?")) return;
   S.linea = b.linea.map(l=>({...l}));
   S.cliente = b.cliente; S.desc = b.desc; S.forma = b.forma; S.cond = b.forma; S.comp = null; S.suc = b.suc;
+  if(sucursalFija() && S.suc !== sucursalFija()){
+    S.suc = sucursalFija();
+    toast("Ese borrador era de " + sucDe(b.suc).n + ": queda en " + sucDe(S.suc).n + ", que es la tuya.");
+  }
   // Vuelve el deposito con el que se guardo. Si era una venta de Buenos
   // Aires parada en Traslasierra, sigue siendolo; el pisado de la venta que
   // estabas armando recien no tiene nada que ver con este borrador.
@@ -3523,7 +3694,7 @@ const escribiendo = e => {
 document.addEventListener("keydown",e=>{
   // Escape cierra lo que esté abierto, en orden de encima hacia abajo.
   if(e.key === "Escape"){
-    for(const id of ["cliNuevo","envio"]){
+    for(const id of ["aMano","cliNuevo","envio"]){
       const m = document.getElementById(id);
       if(m && !m.hidden){ m.hidden = true; e.preventDefault(); return; }
     }
@@ -5570,6 +5741,7 @@ function stockOtro(p){ return p.dep[otroDep()]; }
 /** El stock pintado: verde si sobra, amarillo si se está por acabar,
     rojo si no hay. Abajo, lo que queda en el otro depósito. */
 function stockPill(p){
+  if(p.aMano) return '<span class="stk" title="cargado a mano: no mueve stock">a mano</span>';
   const aca = p.stock, alla = p.dep[otroDep()];
   const cls = aca > 10 ? "stk-ok" : (aca > 0 ? "stk-poco" : "stk-no");
   const porque = aca > 10 ? "hay de sobra" : (aca > 0 ? "quedan pocos" : "no hay en este depósito");
@@ -7049,14 +7221,14 @@ function accionesCp(d, vendido){
   const id = txt(d.id);
   const bt = (acc, texto, clase, titulo) => '<button class="' + (clase || "b2") + '" type="button" data-acc="' + acc +
     '" data-id="' + id + '"' + (titulo ? ' title="' + titulo + '"' : '') + '>' + texto + '</button>';
-  if(d.eliminado) return bt("pdf", "PDF") + bt("recuperar", "Recuperar", "b2", "Vuelve a la lista y a la Caja");
+  if(d.eliminado) return bt("pdf", "PDF") + (puede("eliminar") ? bt("recuperar", "Recuperar", "b2", "Vuelve a la lista y a la Caja") : "");
   const whats = bt("whats", "WhatsApp", "b2", "Mandarle al cliente el detalle con el link al PDF");
-  const presuLibre = d.tipo === "presupuesto" && !vendido;
+  const presuLibre = d.tipo === "presupuesto" && !vendido && puede("venta");
   return (presuLibre ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número") +
       '<button class="b2" type="button" data-pasar="' + id + '">Pasar a venta</button>' : "") +
     bt("pdf", "PDF", "b2", "Bajar el PDF") + whats +
     bt("imprimir", "Imprimir", "b2") +
-    bt("eliminar", "Eliminar", "b3", "Sale de la lista y de la Caja; se puede recuperar");
+    (puede("eliminar") ? bt("eliminar", "Eliminar", "b3", "Sale de la lista y de la Caja; se puede recuperar") : "");
 }
 
 /** El detalle de un comprobante ya emitido, con el link a su PDF. */
@@ -7189,6 +7361,11 @@ function editandoDe(x){
 function terminarEdicion(){
   const e = S.editando;
   S.editando = null;
+  if(sucursalFija()){
+    if(S.suc !== sucursalFija()){ S.suc = sucursalFija(); S.comp = null; S.dep = null; }
+    const sel = document.getElementById("selSuc"); if(sel) sel.value = S.suc;
+    return;
+  }
   if(e && e.sucAntes && e.sucAntes !== S.suc && SUCURSALES.some(x => x.id === e.sucAntes)){
     S.suc = e.sucAntes; S.comp = null; S.dep = null;
     const sel = document.getElementById("selSuc");
@@ -7223,7 +7400,9 @@ function editarPresu(d){
   if(trabadaPorDuda()) return;
   if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
   if(d.vendidoEn){ toast("Ese presupuesto ya se vendió: no se puede cambiar."); return; }
+  if(sucursalFija() && sucursalFija() !== d.sucursal){ toast("Ese presupuesto es de " + sucDe(d.sucursal).n + ": tu usuario no puede cambiarlo."); return; }
   const ren = (d.datos && d.datos.renglones) || [];
+  recuperarManuales(ren);
   const hay = ren.filter(r => prod(r.cod)), faltan = ren.length - hay.length;
   if(!hay.length){ toast("Ninguno de esos artículos está hoy en el catálogo."); return; }
   if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el presupuesto " + numeroCorto(d) + " para cambiarlo?")) return;
@@ -7262,6 +7441,7 @@ function pasarAVenta(d){
   if(d.vendidoEn && !confirm("Ese presupuesto ya se vendió (" + d.vendidoEn.comp.replace(/^\\d+\\./, "") + " " +
       numeroCorto(d.vendidoEn) + "). ¿Lo pasás a venta igual?")) return;
   const ren = (d.datos && d.datos.renglones) || [];
+  recuperarManuales(ren);
   const hay = ren.filter(r => prod(r.cod)), faltan = ren.length - hay.length;
   if(!hay.length){ toast("Ninguno de esos artículos está hoy en el catálogo."); return; }
   if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el presupuesto " + numeroCorto(d) + "?")) return;
@@ -7284,6 +7464,129 @@ function pasarAVenta(d){
     (cid && !hayCliente ? " El cliente no está cargado en esta compu: elegilo de nuevo." : "") +
     " Al emitir queda unida al presupuesto.");
 }
+
+/* ======================================================== USUARIOS
+   Lo pinta y lo guarda /sistema/usuarios (src/app/sistema/usuarios). Lo ven
+   solo los que administran usuarios (PUNTO_YO.adminUsuarios). */
+const US = { lista:[], areas:[], acciones:[], error:"" };
+const US_URL = "/sistema/usuarios";
+
+/** Esconde lo que el usuario no tiene tildado. Corre al arrancar. */
+function aplicarPermisos(){
+  for(const a of document.querySelectorAll("#nav [data-v]")) a.hidden = !vistaPermitida(a.dataset.v);
+  const importar = puede("importar");
+  for(const id of ["btnGbp", "prvImportar"]){ const b = document.getElementById(id); if(b) b.hidden = !importar; }
+  const nuevo = document.getElementById("cpNuevo"); if(nuevo) nuevo.hidden = !puede("venta");
+  const fija = sucursalFija();
+  const sel = document.getElementById("selSuc");
+  if(sel && fija){ sel.value = fija; sel.disabled = true; sel.title = "Tu usuario es de " + sucDe(fija).n; }
+  // Si la solapa de entrada no está permitida, a la primera que sí.
+  const h = (location.hash || "").replace("#", "");
+  if(h && vistas.indexOf(h) >= 0 && vistaPermitida(h)) abrirVista(h);
+  else if(!vistaPermitida(vistaActual())) abrirVista(vistaActual());
+}
+
+async function usPedir(cuerpo){
+  try{
+    const r = await fetch(US_URL, { method: cuerpo ? "POST" : "GET", credentials:"same-origin", cache:"no-store",
+      headers: cuerpo ? { "Content-Type":"application/json" } : undefined, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
+    if(r.status === 401) return { error:"Se cerró tu sesión: entrá de nuevo con tu usuario." };
+    const d = await r.json().catch(() => null);
+    return d || { error:"El servidor no contestó." };
+  }catch(e){ return { error:"Sin conexión: probá de nuevo." }; }
+}
+async function pintarUsuariosPunto(){
+  const sel = document.getElementById("unSuc");
+  if(sel && !sel.options.length)
+    sel.innerHTML = '<option value="">Cualquiera (elige)</option>' + SUCURSALES.map(x => '<option value="'+x.id+'">'+x.n+'</option>').join("");
+  const d = await usPedir(null);
+  if(d.error){ US.error = d.error; }
+  else { US.error = ""; US.lista = d.usuarios || []; US.areas = d.areas || []; US.acciones = d.acciones || []; }
+  pintarListaUs();
+}
+function pintarListaUs(){
+  const caja = document.getElementById("usLista");
+  if(US.error){ caja.innerHTML = '<div class="vacio" style="padding:20px">'+txt(US.error)+'</div>'; return; }
+  if(!US.lista.length){ caja.innerHTML = '<div class="vacio" style="padding:20px">No hay usuarios todavía.</div>'; return; }
+  const yo = (PUNTO_YO && PUNTO_YO.usuario) || "";
+  caja.innerHTML = US.lista.map(u => {
+    const tiene = id => !Array.isArray(u.punto) || u.punto.indexOf(id) >= 0;
+    const tilde = (id, nombre, ayuda) => '<label class="'+(tiene(id) ? "si" : "")+'" title="'+atrib(ayuda || "")+'">'+
+      '<input type="checkbox" data-us="'+txt(u.id)+'" data-p="'+txt(id)+'"'+(tiene(id) ? " checked" : "")+'> '+txt(nombre)+'</label>';
+    const esYo = u.username === yo;
+    const puedeTocar = u.soloPunto && !u.adminPunto && !esYo;
+    return '<div class="us-card'+(u.activo ? "" : " inactivo")+'">'+
+      '<div class="us-cab"><b>'+txt(u.nombre)+'</b><small>'+txt(u.username)+
+        (u.conectado ? ' · <span style="color:var(--ok)">conectado</span>' : '')+
+        (u.activo ? '' : ' · desactivado')+(u.debeCambiarClave ? ' · todavía no eligió su contraseña' : '')+'</small>'+
+        '<label style="font-size:13px">Sucursal <select data-suc="'+txt(u.id)+'"'+'>'+
+          '<option value="">Cualquiera</option>'+SUCURSALES.map(x => '<option value="'+x.id+'"'+(u.sucursal === x.id ? " selected" : "")+'>'+x.n+'</option>').join("")+
+        '</select></label>'+
+        '<label style="font-size:13px" title="Puede crear usuarios y cambiar lo que ve cada uno"><input type="checkbox" data-adm="'+txt(u.id)+'"'+
+          (u.adminPunto ? " checked" : "")+(esYo || !(yo === "admin" || (u.soloPunto && !u.adminPunto)) ? " disabled" : "")+'> administra usuarios</label>'+
+        '<span class="us-acc">'+
+          (puedeTocar ? '<button class="b2" type="button" data-clave="'+txt(u.id)+'" style="padding:5px 10px">Resetear contraseña</button>'+
+            '<button class="b3" type="button" data-act="'+txt(u.id)+'" data-v="'+(u.activo ? "0" : "1")+'" style="padding:5px 10px">'+(u.activo ? "Desactivar" : "Activar")+'</button>' : '')+
+        '</span></div>'+
+      '<div class="us-grupo"><span class="et">Qué ve</span><div class="us-tildes">'+US.areas.map(a => tilde(a.id, a.nombre, a.ayuda)).join("")+'</div></div>'+
+      '<div class="us-grupo"><span class="et">Qué puede hacer</span><div class="us-tildes">'+US.acciones.map(a => tilde(a.id, a.nombre, a.ayuda)).join("")+'</div></div>'+
+    '</div>';
+  }).join("");
+}
+/** Guarda lo que se tocó de un usuario (tildes, sucursal, administra). Si
+    se tocan varias cosas seguidas, se manda una sola vez, al final. */
+const US_ESPERA = {};
+function guardarUs(id){
+  clearTimeout(US_ESPERA[id]);
+  US_ESPERA[id] = setTimeout(() => guardarUsYa(id), 500);
+}
+async function guardarUsYa(id){
+  const u = US.lista.find(x => x.id === id); if(!u) return;
+  const ids = [...document.querySelectorAll('#usLista input[data-us="'+id+'"]')].filter(i => i.checked).map(i => i.dataset.p);
+  const suc = document.querySelector('#usLista select[data-suc="'+id+'"]');
+  const adm = document.querySelector('#usLista input[data-adm="'+id+'"]');
+  const d = await usPedir({ accion:"permisos", id, punto: ids, sucursal: suc && suc.value ? suc.value : null, adminPunto: !!(adm && adm.checked) });
+  if(d.error){ toast("No se guardó: " + d.error); }
+  else toast("Guardado: " + u.nombre + ". Lo nota la próxima vez que abra o recargue Punto.");
+  await pintarUsuariosPunto();
+}
+document.getElementById("usLista").addEventListener("change", e => {
+  const t = e.target;
+  const id = t.dataset.us || t.dataset.suc || t.dataset.adm;
+  if(!id) return;
+  if(t.dataset.us) t.parentElement.classList.toggle("si", t.checked);
+  guardarUs(id);
+});
+document.getElementById("usLista").addEventListener("click", async e => {
+  const cl = e.target.closest("[data-clave]"), ac = e.target.closest("[data-act]");
+  if(cl){
+    const u = US.lista.find(x => x.id === cl.dataset.clave);
+    if(!u || !confirm("¿Resetear la contraseña de " + u.nombre + "? La de ahora deja de andar.")) return;
+    const d = await usPedir({ accion:"clave", id:u.id });
+    if(d.error){ toast("No se pudo: " + d.error); return; }
+    alert("Contraseña provisoria de " + u.nombre + " (" + u.username + "):\\n\\n" + d.clave + "\\n\\nDictásela: al entrar elige la suya. No se vuelve a mostrar.");
+    await pintarUsuariosPunto();
+  }
+  if(ac){
+    const u = US.lista.find(x => x.id === ac.dataset.act); if(!u) return;
+    const activo = ac.dataset.v === "1";
+    if(!activo && !confirm("¿Desactivar a " + u.nombre + "? No puede entrar más hasta que lo actives.")) return;
+    const d = await usPedir({ accion:"activo", id:u.id, activo });
+    if(d.error) toast("No se pudo: " + d.error);
+    await pintarUsuariosPunto();
+  }
+});
+document.getElementById("unCrear").addEventListener("click", async () => {
+  const nombre = document.getElementById("unNom").value.trim(), usuario = document.getElementById("unUsu").value.trim();
+  const clave = document.getElementById("unClave").value;
+  if(!nombre || !usuario || !clave){ toast("Completá nombre, usuario y contraseña provisoria."); return; }
+  const suc = document.getElementById("unSuc").value || null;
+  const d = await usPedir({ accion:"crear", nombre, usuario, clave, punto:null, sucursal:suc });
+  if(d.error){ toast("No se creó: " + d.error); return; }
+  for(const id of ["unNom","unUsu","unClave"]) document.getElementById(id).value = "";
+  toast("Usuario creado: " + usuario + ". Entra en conesa.com.ar/sistema con esa contraseña y elige la suya.");
+  await pintarUsuariosPunto();
+});
 
 /* ===================================================== PROVEEDORES
    Damián, 22/11/2026: "este es el listado de proveedores del sistema tanto
@@ -7496,6 +7799,12 @@ function guardarLocal(cerrando){
     d.pedidos = Object.keys(peds).map(k => peds[k]);
     delete d.nroPed;              // el número de pedido lo da el servidor
     d.ultimo = { suc:S.suc, usuario:S.usuario };
+    // Los artículos a mano de todas las pestañas: se juntan por código.
+    const man = {};
+    for(const m of (d.manuales || [])) if(m && m.cod) man[m.cod] = m;
+    for(const p of MANUALES) man[p.cod] = { cod:p.cod, tit:p.tit, contado:p.contado, unPago:p.unPago,
+                                            costo: p.sinCosto ? 0 : p.costo, iva:p.iva };
+    d.manuales = Object.keys(man).map(k => man[k]).slice(-300);
     d.tabs[MI_PESTANA] = {
       vivo: Date.now(), cerrada: !!cerrando || CERRANDO, oculta: document.visibilityState === "hidden",
       suc:S.suc, usuario:S.usuario,
@@ -7548,6 +7857,7 @@ setInterval(() => { if(LOCAL_LISTO) guardarLocal(); }, 10000);
     de pedido. */
 function restaurarLocalAntes(){
   const d = leerTodo(), ahora = Date.now();
+  for(const m of (d.manuales || [])) agregarManual(m);
   let e = d.tabs[MI_PESTANA];
   // ¿Es esta misma pestaña que se recargó? Lo dice la seña que dejó al irse.
   let recargo = false;
@@ -7579,6 +7889,7 @@ function restaurarLocalAntes(){
   if(u.usuario && VENDEDORES.indexOf(u.usuario) >= 0){ S.usuario = u.usuario; S.puesto = puestoDe(S.usuario); }
   // El que entró con su usuario manda sobre lo que había quedado guardado.
   if(VENDEDOR_LOGIN){ S.usuario = VENDEDOR_LOGIN; S.puesto = puestoDe(S.usuario); }
+  if(sucursalFija() && SUCURSALES.some(x => x.id === sucursalFija())) S.suc = sucursalFija();
   for(const c of (d.clientes || []))
     if(c && c.id && c.n && !CLIENTES.some(x => x.id === c.id))
       CLIENTES.push(Object.assign({ saldo:0, lim:0, siempre:[] }, c, { nuevo:true }));
@@ -7800,7 +8111,7 @@ document.getElementById("formaEntrega").addEventListener("click", guardarLocalPr
 
 restaurarLocalAntes();
 cargarSeis(); pintarCadena();
-pintarSucs(); pintarUsuarios(); ponerPuesto(); pintarEscritorio();
+pintarSucs(); pintarUsuarios(); ponerPuesto(); pintarEscritorio(); aplicarPermisos();
 pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
 // Si la direccion termina en #productos, abre ahi. Es lo que hace que
 // "abrir en una pestana nueva" sirva para algo.
