@@ -4,8 +4,10 @@ import { PUNTO_HTML } from "./punto";
 // La demo "Punto" (conesa.com.ar/sistema/demo), para mostrarla sin que ande dando vueltas.
 //
 // Vive adentro de la tienda porque es el unico servidor que ya esta andando,
-// pero no toca nada de ella: es una sola direccion que devuelve una pagina
-// suelta. No lee la base ni escribe nada; la sesion es la del panel.
+// pero no toca nada de ella: esta direccion devuelve una pagina suelta y la
+// sesion es la del panel. Lo que Punto guarda va por sus propias direcciones,
+// tambien con usuario: ./articulos (los de GBP) y ./documentos (lo emitido,
+// desde la V.0.99.78).
 //
 // Se entra con los usuarios del panel, por /sistema/entrar (ver ./clave.ts).
 // Antes era la ventanita del navegador con una clave sola.

@@ -342,6 +342,16 @@ td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500;
 }
 .filtros input[type="number"]{width:78px; font-family:var(--font-m); text-align:right}
 .filtros label{font-size:12.5px; color:var(--ink-2); display:flex; align-items:center; gap:6px}
+.filtros input[type="search"]{
+  background:var(--surface-2); border:1px solid var(--line-2); border-radius:8px; padding:6px 9px; font:inherit;
+}
+/* Comprobantes: lo emitido, guardado en el servidor */
+#tbCp tr.cp-fila{cursor:pointer}
+#tbCp tr.cp-fila:hover td, #tbCp tr.cp-abierta td{background:var(--surface-2)}
+#tbCp td small{display:block; color:var(--ink-3); font-size:11.5px; font-weight:500}
+#tbCp tr.cp-det > td{background:var(--surface-2); padding:2px 14px 14px}
+#tbCp tr.cp-det table{width:100%}
+#tbCp .cp-mas{font-size:12px; color:var(--ink-2); margin-top:8px; line-height:1.5}
 
 /* ---------------------------------------------------------- tiles */
 .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(176px,1fr)); gap:12px; margin-bottom:16px}
@@ -991,7 +1001,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.77</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.78</span>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
     <span class="bar-sep ocultable"></span>
@@ -1003,6 +1013,7 @@ footer{
   </div>
   <nav id="nav">
     <a href="#mostrador" data-v="mostrador" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2l2.7 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L21.7 7H5.1"/></svg>Venta</a>
+    <a href="#comprobantes" data-v="comprobantes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>Comprobantes</a>
     <a href="#pedidos" data-v="pedidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg>Pedidos</a>
     <a href="#web" data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Web</a>
     <a href="#productos" data-v="productos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Productos</a>
@@ -1205,6 +1216,39 @@ footer{
 </section>
 
 <!-- ========================================================= PEDIDOS -->
+<section id="v-comprobantes" hidden>
+  <div class="head">
+    <h2>Comprobantes</h2>
+    <p>Todo lo que se emitió en Punto, de todos los puestos: presupuestos, facturas, remitos y ventas sin comprobante. Queda guardado aunque recargues.</p>
+  </div>
+  <div class="filtros" style="margin:0 0 14px">
+    <select id="cpTipo" aria-label="Qué mostrar">
+      <option value="">Todo</option>
+      <option value="presupuesto">Presupuestos</option>
+      <option value="factura">Facturas</option>
+      <option value="sin-comprobante">Sin comprobante</option>
+      <option value="remito">Remitos</option>
+      <option value="pedido-interno">Pedidos internos</option>
+    </select>
+    <select id="cpSuc" aria-label="Sucursal"></select>
+    <select id="cpDias" aria-label="Desde cuándo">
+      <option value="1">Hoy</option>
+      <option value="7">Últimos 7 días</option>
+      <option value="30" selected>Últimos 30 días</option>
+      <option value="90">Últimos 90 días</option>
+      <option value="366">Último año</option>
+    </select>
+    <input id="cpBusca" type="search" placeholder="Buscar: cliente, número, vendedor o artículo" autocomplete="off" style="min-width:300px">
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Lo emitido</h3><span class="sub" id="cpCount"></span></div>
+    <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto"><table class="densa"><thead><tr>
+      <th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Vendedor</th><th class="r">Total</th><th></th>
+    </tr></thead><tbody id="tbCp"></tbody></table></div>
+    <p class="nota">Tocá un renglón para ver los artículos. Las facturas de Punto todavía no van a ARCA: no tienen CAE y no valen como comprobante fiscal. Lo emitido no se borra. El stock que mueve una venta todavía no queda guardado.</p>
+  </div>
+</section>
+
 <section id="v-pedidos" hidden>
   <div class="head">
     <h2>Pedidos</h2>
@@ -2454,12 +2498,26 @@ restaurarCatalogo();
 const prod = c => PRODUCTOS.find(p=>p.cod===c);
 /* Lo que la venta deja: el recargo de tarjeta no es ganancia, lo paga la
    tarjeta. Así que el margen se mide siempre contra el precio de contado. */
-function ventaBase(v){ return v.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0); }
-function ventaCobrado(v){ return ventaBase(v) * MULT[v.forma]; }
-function ventaMargen(v){ return v.linea.reduce((a,l)=>{const p=prod(l.cod); return a+(p.contado-p.costo)*l.cant;},0); }
+/* Una venta guardada trae lo de ese momento: el precio y el costo de cada
+   renglón (l.contado, l.costo), la base ya con el descuento (v.base), el
+   descuento en pesos (v.descPesos) y el total cobrado (v.total). Se usan
+   esos, así el recargo y el margen salen con el descuento restado. Las de
+   muestra no los traen y se calculan con el catálogo de ahora. */
+function ventaBase(v){
+  if(v.base != null) return v.base;
+  return v.linea.reduce((a,l)=>a+(l.contado != null ? l.contado : prod(l.cod).contado)*l.cant,0);
+}
+function ventaCobrado(v){ return v.total != null ? v.total : ventaBase(v) * MULT[v.forma]; }
+function ventaMargen(v){
+  const m = v.linea.reduce((a,l)=>{
+    if(l.contado != null && l.costo != null) return a+(l.contado-l.costo)*l.cant;
+    const p=prod(l.cod); return a+(p.contado-p.costo)*l.cant;
+  },0);
+  return m - (v.descPesos || 0);
+}
 
 /* ================================================== navegación */
-const vistas = ["mostrador","inicio","pedidos","web","productos","listas","red","caja","renta","contable","gerencia","asistente"];
+const vistas = ["mostrador","comprobantes","inicio","pedidos","web","productos","listas","red","caja","renta","contable","gerencia","asistente"];
 // Un <a> se activa con Enter pero no con la barra espaciadora; un <button>
 // con las dos. Al pasar a links se perdio el espacio: se lo devolvemos, que
 // hay gente que se mueve por el sistema sin tocar el mouse.
@@ -2501,6 +2559,7 @@ function avisarVista(b){
   if(b.dataset.v==="red") pintarRed();
   if(b.dataset.v==="asistente") pintarAsistente();
   if(b.dataset.v==="pedidos") pintarPedido();
+  if(b.dataset.v==="comprobantes") pintarComprobantes();
   if(b.dataset.v==="mostrador"){ pintarCamposVenta(); pintarDtos(); }
 }
 
@@ -2650,6 +2709,24 @@ function corregirNumero(texto){
   const pedido = Math.min(99999999, Math.max(1, parseInt(digitos, 10)));
   const antes = S.nro[su.id][letra];
   if(pedido === antes) return;
+  // Desde que los comprobantes quedan guardados (V.0.99.78) la numeración
+  // solo sube: bajarla repetiría números que ya están en el servidor, y el
+  // servidor igual no la baja.
+  if(pedido < antes){
+    toast("No se puede bajar la numeración: saldrían números ya usados. El próximo sigue siendo " +
+      su.pv + "-" + String(antes).padStart(8, "0") + ".");
+    return;
+  }
+  // Un salto grande casi siempre es un error de tipeo, y no tiene vuelta: los
+  // del medio no se usan nunca. Más de 1000 no se puede (el servidor tampoco
+  // lo deja); de 20 a 1000 se pregunta.
+  if(pedido - antes > 1000){
+    toast("No se puede saltar más de 1000 números de una vez. Fijate si está bien escrito.");
+    return;
+  }
+  if(pedido - antes > 20 && !confirm("Vas a saltar " + (pedido - antes) + " números (del " +
+      String(antes).padStart(8, "0") + " al " + String(pedido).padStart(8, "0") +
+      "). Los del medio no se usan nunca. ¿Seguro?")) return;
   S.nro[su.id][letra] = pedido;
   const nombre = comp.replace(/^\\d+\\./, "");
   const dicho = su.pv + "-" + String(pedido).padStart(8, "0");
@@ -2666,6 +2743,7 @@ function nroDe(comp){
 }
 
 function pintarCamposVenta(){
+  guardarLocalPronto();
   const c = clienteVta();
   const sComp = compDe(c), sCond = condVtaDe(c);
   const comp = S.comp || sComp[0];
@@ -3001,7 +3079,7 @@ document.getElementById("cnGuardar").addEventListener("click",()=>{
   }
   const id = "n"+(CLIENTES.length+1)+"-"+Date.now().toString(36);
   CLIENTES.push({
-    id, n:nom, t, doc: d ? conGuiones(d) : "—",
+    nuevo:true, id, n:nom, t, doc: d ? conGuiones(d) : "—",
     saldo:0, lim: Math.max(0, +document.getElementById("cnLim").value||0),
     dir: document.getElementById("cnDir").value.trim(),
     loc: document.getElementById("cnLoc").value.trim(),
@@ -3200,6 +3278,11 @@ document.getElementById("res").addEventListener("keydown",e=>{
 });
 
 function sumar(cod, cuantos){
+  // Mientras viaja el comprobante la venta queda quieta: lo que se sumara
+  // ahora no estaría en lo que se guarda y se perdería al limpiar.
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando el comprobante."); return; }
+  // Y mientras cargan los artículos y lo que había quedado de antes.
+  if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
   const cant = Math.max(1, Math.floor(+cuantos || 1));
   const l = S.linea.find(x=>x.cod===cod);
   if(l) l.cant += cant; else S.linea.push({cod, cant});
@@ -3264,6 +3347,9 @@ addEventListener("hashchange",()=>{
 });
 
 function pintarTicket(){
+  guardarLocalPronto();
+  // Sin renglones, la venta ya no sale de ningún presupuesto.
+  if(!S.linea.length) S.origen = null;
   const cont = document.getElementById("tkLineas");
   // Aunque no haya nada, se ve la grilla con sus encabezados: la pantalla
   // tiene que parecer una venta recien empezada, no una hoja en blanco.
@@ -3350,7 +3436,7 @@ function pintarTicket(){
 
   const vacio = S.linea.length===0;
   for(const b of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnWhatsVta"])
-    document.getElementById(b).disabled = vacio;
+    document.getElementById(b).disabled = vacio || EMITIENDO;
   pintarBorradores();
 }
 
@@ -3358,6 +3444,7 @@ function pintarTicket(){
    Lo que quedó a medio armar y no se emitió. No mueve stock, no mueve
    caja y no gasta número: queda esperando a que el cliente vuelva. */
 function pintarBorradores(){
+  guardarLocalPronto();
   const c = document.getElementById("borradores");
   if(!c) return;
   if(!S.borradores.length){ c.innerHTML = ""; return; }
@@ -3372,6 +3459,8 @@ function pintarBorradores(){
 }
 document.getElementById("borradores").addEventListener("click",e=>{
   const r = e.target.closest("[data-ret]"), x = e.target.closest("[data-bx]");
+  if(EMITIENDO && (r || x)){ toast("Esperá un segundo: se está guardando el comprobante."); return; }
+  if(r && trabadaPorDuda()) return;
   if(x){
     S.borradores = S.borradores.filter(b=>b.id !== x.dataset.bx);
     pintarBorradores(); toast("Borrador tirado."); return;
@@ -3387,12 +3476,19 @@ document.getElementById("borradores").addEventListener("click",e=>{
   S.dep = b.dep || null;
   S.borradores = S.borradores.filter(y=>y.id !== b.id);
   document.getElementById("selSuc").value = S.suc;
+  // Si el borrador venía de un presupuesto, sigue unido a él; y si tenía un
+  // comprobante en duda, también (al emitir, primero se pregunta).
+  S.origen = b.origen || null; S.emision = b.emision || null;
   pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
+  // El foco al buscador: en el body, el Enter siguiente sumaría el primero
+  // marcado (la trampa de #camposVta).
+  const qb = document.getElementById("q"); qb.value = ""; buscar(); qb.focus();
   toast("Borrador retomado. Seguí donde habías quedado.");
 });
 
 document.getElementById("tkLineas").addEventListener("click",e=>{
   const b = e.target.closest("button[data-m]"); if(!b) return;
+  if(EMITIENDO) return;
   const l = S.linea.find(x=>x.cod===b.dataset.cod); if(!l) return;
   if(b.dataset.m==="+") l.cant++;
   if(b.dataset.m==="-") l.cant = Math.max(1, l.cant-1);
@@ -3400,57 +3496,29 @@ document.getElementById("tkLineas").addEventListener("click",e=>{
   pintarTicket();
 });
 
-function cerrar(facturada){
-  const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
-  const total = (bruto - Math.round(bruto*S.desc/100)) * MULT[S.forma];
+/* Emitir: factura, remito, pedido interno o venta sin comprobante.
+   Desde la V.0.99.78 el comprobante se guarda en el servidor ANTES de
+   limpiar la venta (Damián: "el presupuesto que emití, ¿dónde queda?").
+   El número lo da el servidor. Si no se pudo guardar, la venta queda en
+   pantalla para reintentar. conComp=false es la venta sin comprobante. */
+async function cerrar(conComp){
+  if(EMITIENDO) return;
+  if(!S.linea.length){ toast("No hay artículos en la venta."); return; }
+  if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos y los precios."); return; }
   const comp = S.comp || compDe(clienteVta())[0];
-  const nro = nroDe(comp);
-  const h = new Date();
-  const su = sucAct();
-  // De que galpon salio de verdad. Se anota, porque si Traslasierra
-  // vendio mercaderia de Buenos Aires eso hay que saberlo despues: es un
-  // viaje que alguien tiene que hacer.
-  const dep = depAct();
-  S.ventas.push({
-    hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
-    suc: S.suc, puesto: S.puesto, vend: S.usuario, forma: S.forma, facturada, web:false,
-    ped: nroPedido(), dep, traida: dep !== su.dep,
-    linea: S.linea.map(l=>({...l}))
-  });
-  // Descuenta del deposito de ESTA sucursal, no de un stock unico.
-  for(const l of S.linea){ const p = prod(l.cod); p.stock = p.stock - l.cant; }
-  // El numero solo avanza cuando de verdad se emitio un comprobante.
-  if(facturada) S.nro[su.id][letraDe(comp)]++;
-  // El de pedido avanza siempre: la mercaderia salio, con factura o sin
-  // ella, y ese numero es el que sigue la entrega.
-  S.nroPed++;
-  S.linea = []; S.desc = 0; S.comp = null;
-  // El deposito pisado vale para ESTA venta. Si no se limpia, la siguiente
-  // tambien sale del otro galpon sin que nadie lo haya pedido.
-  S.dep = null;
-  S.nroLibre = false;
-  pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
-  const deDonde = "Descontad"+(facturada?"a":"o")+" del depósito de "+DEPOSITOS[dep]+
-    (dep !== su.dep ? ", que hay que traer a "+su.n : "")+".";
-  toast(facturada
-    ? "Emitida "+comp.replace(/^\\d+\\./,"")+" N° "+nro.slice(2)+" de "+su.n+" por "+fmt(total)+
-      ". CAE pedido a ARCA. "+deDonde
-    : "Entregado sin comprobante por "+fmt(total)+" en "+su.n+" ("+S.puesto+"). Queda registrado y marcado como tal. "+deDonde);
+  const letra = conComp ? letraDe(comp) : null;
+  // Lo que pasa después (anotarla, descontar, limpiar, avisar) está en
+  // trasEmitir(), igual para todos los comprobantes.
+  trasEmitir(await emitirEnServidor(armarDocumento(conComp ? comp : "Sin comprobante", letra)));
 }
 
-/** Guardar el presupuesto: numera, pero no mueve stock ni caja. */
-function guardarPresu(){
+/** Guardar el presupuesto: queda en el servidor, con su número, y no mueve
+    stock ni caja. Se ve en Comprobantes y de ahí se pasa a venta. */
+async function guardarPresu(){
+  if(EMITIENDO) return;
   if(!S.linea.length){ toast("No hay nada para presupuestar."); return; }
-  const su = sucAct(), comp = compAct(), nro = nroDe(comp);
-  const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
-  const total = (bruto - Math.round(bruto*S.desc/100)) * MULT[S.forma];
-  S.nro[su.id].X++;
-  S.nroPed++;
-  S.presupuestos++;
-  S.presuDe[S.usuario] = (S.presuDe[S.usuario]||0) + 1;
-  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
-  pintarCamposVenta(); pintarDtos(); pintarTicket();
-  toast("Presupuesto "+nro+" de "+su.n+" por "+fmt(total)+". No mueve stock ni caja: queda esperando al cliente.");
+  if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos y los precios."); return; }
+  trasEmitir(await emitirEnServidor(armarDocumento("03.Presupuesto", "X")));
 }
 
 document.getElementById("btnFactura").addEventListener("click",()=>{
@@ -3465,16 +3533,20 @@ document.getElementById("btnPresu").addEventListener("click",()=>{
   guardarPresu();
 });
 document.getElementById("btnBorrador").addEventListener("click",()=>{
+  if(EMITIENDO || trabadaPorDuda()) return;
   if(!S.linea.length){ toast("No hay nada para guardar."); return; }
   const h = new Date();
   S.borradores.unshift({
     id: "b"+Date.now().toString(36),
     hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
     suc: S.suc, cliente: S.cliente, desc: S.desc, forma: S.forma,
-    dep: S.dep,
+    dep: S.dep, origen: S.origen || null,
     linea: S.linea.map(l=>({...l}))
   });
   if(S.borradores.length > 6) S.borradores.pop();
+  // El presupuesto de origen se va con el borrador: la venta que sigue no
+  // tiene nada que ver con él.
+  S.origen = null; S.emision = null;
   // El deposito pisado se va adentro del borrador y la venta siguiente
   // arranca limpia. Si no, el cliente que entraba despues le descontaba de
   // Buenos Aires sin que nadie lo hubiera pedido.
@@ -3500,7 +3572,10 @@ document.getElementById("btnMasAcc").addEventListener("click",e=>{
   e.target.setAttribute("aria-expanded", String(!caja.hidden));
   e.target.textContent = caja.hidden ? "Otras opciones" : "Menos opciones";
 });
-document.getElementById("btnVaciar").addEventListener("click",()=>{ S.linea=[]; pintarTicket(); });
+document.getElementById("btnVaciar").addEventListener("click",()=>{
+  if(EMITIENDO || trabadaPorDuda()) return;
+  S.linea=[]; S.origen=null; S.emision=null; pintarTicket();
+});
 
 /* ========================================================= WEB */
 const PEDIDOS = [
@@ -3529,6 +3604,8 @@ function pintarWeb(){
 }
 document.getElementById("pedidos").addEventListener("click",e=>{
   const b = e.target.closest("button[data-p]"); if(!b) return;
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando el comprobante."); return; }
+  if(trabadaPorDuda()) return;
   const p = PEDIDOS[+b.dataset.p];
   for(const [c,n] of p.lin){ const l = S.linea.find(x=>x.cod===c); if(l) l.cant+=n; else S.linea.push({cod:c,cant:n}); }
   pintarTicket();
@@ -3584,6 +3661,7 @@ function buscadorActual(){
   if(v === "pedidos")   return document.getElementById("qPed");
   if(v === "asistente") return document.getElementById("preg");
   if(v === "listas")    return document.getElementById("sUno");
+  if(v === "comprobantes") return document.getElementById("cpBusca");
   return null;
 }
 const escribiendo = e => {
@@ -5507,7 +5585,7 @@ function pintarCaja(){
     vs.length + " ventas" + (S.cajaSuc ? " de "+sucDe(S.cajaSuc).n : "");
   document.getElementById("tbCaja").innerHTML = vs.slice().reverse().map(v=>{
     const n = v.linea.reduce((a,l)=>a+l.cant,0);
-    const q = v.linea.map(l=>prod(l.cod).tit).join(" + ");
+    const q = v.linea.map(l=>pdl(l).tit).join(" + ");
     return '<tr><td class="num" style="font-size:12.5px">'+v.hora+'</td>'+
       '<td style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">'+sucDe(v.suc).n+'</td>'+
       '<td style="font-weight:600;white-space:nowrap">'+(v.vend||"—")+'</td>'+
@@ -5622,7 +5700,7 @@ function pintarGerencia(){
     barra("Con factura", fact, cobrado) + barra("Sin factura", cobrado-fact, cobrado, true);
 
   const top = {};
-  for(const v of vs) for(const l of v.linea){ const p=prod(l.cod); top[p.cod]=(top[p.cod]||0)+(p.contado-p.costo)*l.cant; }
+  for(const v of vs) for(const l of v.linea){ const p=pdl(l); top[p.cod]=(top[p.cod]||0)+(p.contado-p.costo)*l.cant; }
   const t5 = Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const mxt = t5.length?t5[0][1]:1;
   document.getElementById("gerTop").innerHTML = t5.map(([c,v])=>
@@ -5722,6 +5800,7 @@ function pintarCliente(){
 }
 
 function pintarPedido(){
+  guardarLocalPronto();
   pintarCliente();
   pintarCamposPedido();
   document.getElementById("pedNro").textContent = "Pedido P-" + PED.nro;
@@ -5860,6 +5939,8 @@ function agregarPed(cod, cuantos){
   document.getElementById("qPed").value = "";
   document.getElementById("resPed").innerHTML = "";
   pintarPedido();
+  // Como en la venta: el cursor vuelve al buscador para seguir agregando.
+  document.getElementById("qPed").focus();
 }
 document.getElementById("qPed").addEventListener("input", buscarPed);
 document.getElementById("qPed").addEventListener("keydown",e=>{
@@ -5914,6 +5995,7 @@ document.getElementById("btnGuardarPed").addEventListener("click",()=>{
   const total = PED.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
   const hayFalta = PED.linea.some(l=>entregaDe(prod(l.cod), l.cant).falta > 0);
   PEDIDOS_ABIERTOS.unshift({
+    nuevo:true, id:"p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
     nro:"P-"+PED.nro, cli:PED.cliente,
     est: hayFalta ? "esperando mercadería" : "preparando",
     ent: PED.entrega, cuando: document.getElementById("fecha").value || "a confirmar",
@@ -6487,7 +6569,7 @@ for(const [cont,cual,fn] of [["rentaSucs","renta",()=>pintarRenta()],["contaSucs
 function agrupar(vs, clave){
   const m = {};
   for(const v of vs) for(const l of v.linea){
-    const p = prod(l.cod), k = clave(p, v);
+    const p = pdl(l), k = clave(p, v);
     const g = m[k] || (m[k] = {vend:0, costo:0, un:0});
     g.vend  += p.contado * l.cant;
     g.costo += p.costo   * l.cant;
@@ -6514,7 +6596,7 @@ function pintarRenta(){
 
   const vendido = vs.reduce((a,v)=>a+ventaBase(v),0);
   const cobrado = vs.reduce((a,v)=>a+ventaCobrado(v),0);
-  const costo   = vs.reduce((a,v)=>a+v.linea.reduce((b,l)=>b+prod(l.cod).costo*l.cant,0),0);
+  const costo   = vs.reduce((a,v)=>a+v.linea.reduce((b,l)=>b+pdl(l).costo*l.cant,0),0);
   const deja    = vendido - costo;
   const mp      = costo>0 ? deja/costo*100 : 0;
   const un      = vs.reduce((a,v)=>a+v.linea.reduce((b,l)=>b+l.cant,0),0);
@@ -6529,7 +6611,7 @@ function pintarRenta(){
 
   // El aviso de arriba dice lo que importa en una sola frase.
   const flojas = vs.filter(v=>{
-    const c = v.linea.reduce((a,l)=>a+prod(l.cod).costo*l.cant,0);
+    const c = v.linea.reduce((a,l)=>a+pdl(l).costo*l.cant,0);
     return c>0 && (ventaBase(v)-c)/c*100 < 10;
   });
   document.getElementById("rentaAviso").innerHTML =
@@ -6555,7 +6637,7 @@ function pintarRenta(){
   // Articulo por articulo, los que mas dejan arriba y los que pierden abajo.
   const art = {};
   for(const v of vs) for(const l of v.linea){
-    const p = prod(l.cod);
+    const p = pdl(l);
     const g = art[l.cod] || (art[l.cod] = {p, un:0, vend:0, costo:0});
     g.un += l.cant; g.vend += p.contado*l.cant; g.costo += p.costo*l.cant;
   }
@@ -6575,7 +6657,7 @@ function pintarRenta(){
   document.getElementById("tbRentaSuc").innerHTML = SUCURSALES.map(su=>{
     const mias = S.ventas.filter(v=>v.suc===su.id);
     const ve = mias.reduce((a,v)=>a+ventaBase(v),0);
-    const co = mias.reduce((a,v)=>a+v.linea.reduce((b,l)=>b+prod(l.cod).costo*l.cant,0),0);
+    const co = mias.reduce((a,v)=>a+v.linea.reduce((b,l)=>b+pdl(l).costo*l.cant,0),0);
     const d = ve-co, m = co>0 ? d/co*100 : 0;
     const c = m>=S.objetivo ? "p-ok" : (m>=10 ? "p-warn" : "p-bad");
     return '<tr><td class="nom">'+su.n+'</td><td class="r">'+fmt(ve)+'</td>'+
@@ -6585,7 +6667,7 @@ function pintarRenta(){
 
   const pv = {};
   for(const v of vs) pv[v.vend||"—"] = (pv[v.vend||"—"]||0) + ventaBase(v) -
-    v.linea.reduce((a,l)=>a+prod(l.cod).costo*l.cant,0);
+    v.linea.reduce((a,l)=>a+pdl(l).costo*l.cant,0);
   const mxV = Math.max(1, ...Object.values(pv));
   document.getElementById("porVend").innerHTML = Object.entries(pv)
     .sort((a,b)=>b[1]-a[1]).map(([k,n])=>barra(k, n, mxV)).join("");
@@ -6645,7 +6727,7 @@ function pintarContable(){
   // Libro IVA.
   document.getElementById("ivaCount").textContent = fact.length + " comprobantes";
   document.getElementById("tbIva").innerHTML = fact.slice().reverse().map(v=>{
-    const t = ventaCobrado(v), c = v.cli ? CLIENTES.find(x=>x.id===v.cli) : null;
+    const t = ventaCobrado(v), c = clienteDeVenta(v);
     return '<tr><td class="num" style="font-size:12px">'+HOY+'</td>'+
       '<td><span class="pill '+(v.letra==="A"?"p-n":"p-ok")+'">Factura '+v.letra+'</span></td>'+
       '<td class="num" style="font-size:12px">'+v.nro+'</td>'+
@@ -6712,8 +6794,8 @@ document.getElementById("bajadas").addEventListener("click",e=>{
                 "Puesto","Vendedor","Forma de pago","Cliente","Neto","IVA","Total cobrado","Costo","Deja"]];
     for(const v of vs){
       const t = ventaCobrado(v);
-      const co = v.linea.reduce((a,l)=>a+prod(l.cod).costo*l.cant,0);
-      const c = v.cli ? CLIENTES.find(x=>x.id===v.cli) : null;
+      const co = v.linea.reduce((a,l)=>a+pdl(l).costo*l.cant,0);
+      const c = clienteDeVenta(v);
       f.push([HOY, v.hora, sucDe(v.suc).n, sucDe(v.suc).pv, v.nro||"", v.facturada?("Factura "+v.letra):"Sin comprobante",
               v.facturada?"SI":"NO", v.puesto, v.vend, formaCorta(v.forma), c?c.n:"Consumidor final",
               num2(neto21(t)), num2(iva21(t)), num2(t), num2(co), num2(ventaBase(v)-co)]);
@@ -6724,7 +6806,7 @@ document.getElementById("bajadas").addEventListener("click",e=>{
     const f = [["Fecha","Tipo","Punto de venta","Numero","Razon social","Cliente","CUIT/DNI",
                 "Condicion IVA","Neto gravado","IVA 21%","Total"]];
     for(const v of vs.filter(x=>x.facturada)){
-      const t = ventaCobrado(v), c = v.cli ? CLIENTES.find(x=>x.id===v.cli) : null;
+      const t = ventaCobrado(v), c = clienteDeVenta(v);
       f.push([HOY, "Factura "+v.letra, sucDe(v.suc).pv, v.nro, sucDe(v.suc).n,
               c?c.n:"Consumidor final", c?c.doc:"", c?c.t:"Consumidor Final",
               num2(neto21(t)), num2(iva21(t)), num2(t)]);
@@ -6746,7 +6828,7 @@ document.getElementById("bajadas").addEventListener("click",e=>{
     const f = [["Fecha","Comprobante","Razon social","Codigo","Articulo","Rubro","Marca",
                 "Cantidad","Precio unitario","Subtotal","Costo unitario"]];
     for(const v of vs.filter(x=>x.facturada)) for(const l of v.linea){
-      const p = prod(l.cod);
+      const p = pdl(l);
       f.push([HOY, v.nro, sucDe(v.suc).n, p.cod, p.tit, p.rub, p.prov,
               l.cant, num2(p.contado), num2(p.contado*l.cant), num2(p.costo)]);
     }
@@ -6754,6 +6836,860 @@ document.getElementById("bajadas").addEventListener("click",e=>{
   }
 });
 
+/* ================================ LO EMITIDO QUEDA GUARDADO (V.0.99.78)
+   Damián, 21/11/2026: "el presupuesto que emití, ¿dónde queda? deberían
+   mostrarse todos los presupuestos y ver lo que estuve presupuestando o
+   facturando" y "cuando refrescás no debería borrarse nada de lo que
+   cargué".
+
+   Dos lugares, según de quién es:
+   - Lo EMITIDO (presupuestos, facturas, remitos, ventas sin comprobante) va
+     al servidor (/sistema/demo/documentos, src/lib/punto-documentos.ts). Lo
+     ven todos los puestos, con el número que dio el servidor, y no se borra.
+   - Lo que se está ARMANDO en esta compu (la venta empezada, los borradores,
+     el pedido que se está tomando, los clientes y pedidos nuevos, quién
+     vende y en qué sucursal) queda en el navegador (localStorage) y vuelve
+     al recargar. Cada pestaña tiene lo suyo: dos pestañas no se pisan.
+   El stock que mueve una venta todavía no se guarda: es la etapa siguiente. */
+const DOCS_URL = "/sistema/demo/documentos";
+// var y no let: lo miran funciones que corren durante el arranque, antes de
+// que esta línea se ejecute.
+var EMITIENDO = false;
+
+const horaAR = iso => new Date(iso).toLocaleTimeString("es-AR",
+  { hour:"2-digit", minute:"2-digit", hour12:false, timeZone:"America/Argentina/Buenos_Aires" });
+const fechaAR = iso => new Date(iso).toLocaleDateString("es-AR",
+  { day:"2-digit", month:"2-digit", year:"2-digit", timeZone:"America/Argentina/Buenos_Aires" });
+
+/** El comprobante con todo lo de este momento: si mañana cambia la lista,
+    lo emitido hoy no cambia. */
+function armarDocumento(comp, letra){
+  const su = sucAct(), c = clienteVta(), dep = depAct();
+  const renglones = S.linea.map(l => {
+    const p = prod(l.cod);
+    return { cod:p.cod, tit:p.tit, cant:l.cant, contado:p.contado, unPago:p.unPago,
+             costo:p.costo, iva:ivaDe(p) };
+  });
+  const bruto = renglones.reduce((a, r) => a + r.contado * r.cant, 0);
+  const descuento = Math.round(bruto * S.desc / 100);
+  const total = (bruto - descuento) * MULT[S.forma];
+  return {
+    v:1, comp, letra, sucursal:su.id, pv:su.pv,
+    // El número que mostraba la pantalla: el servidor usa ese o el que
+    // sigue al último, el mayor de los dos. Nunca baja.
+    desdeNumero: letra ? S.nro[su.id][letra] : 1, desdePedido: S.nroPed,
+    vendedor:S.usuario, puesto:S.puesto,
+    cliente: c ? { id:c.id, n:c.n, t:c.t, doc:c.doc } : { id:"", n:"Consumidor final", t:"Consumidor Final", doc:"" },
+    forma:S.forma, recargo:MULT[S.forma], desc:S.desc,
+    deposito:dep, traida: dep !== su.dep,
+    renglones, bruto, descuento, total,
+    // Solo una venta queda unida al presupuesto. Volver a presupuestarlo no
+    // lo da por vendido.
+    origenId: letra !== "X" ? (S.origen || null) : null
+  };
+}
+
+function firmaDe(doc){
+  return JSON.stringify([doc.comp, doc.letra, doc.sucursal, doc.cliente.id, doc.forma,
+    doc.desc, doc.deposito, doc.origenId, doc.renglones.map(r => [r.cod, r.cant])]);
+}
+/** La marca de este comprobante para el servidor. Si el mismo se manda dos
+    veces (doble clic, se cortó la conexión), vuelve el que ya estaba y no se
+    gasta otro número. Si cambió lo que se emite, es otra marca. */
+function marcaDe(doc){
+  const firma = firmaDe(doc);
+  if(!S.emision || S.emision.firma !== firma){
+    const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+      : Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+    S.emision = { firma, id, enviada:false };
+  }
+  return S.emision.id;
+}
+
+function botonesEmitir(trabados){
+  for(const id of ["btnFactura","btnPresu","btnBorrador","btnSinFactura"]){
+    const b = document.getElementById(id);
+    if(b) b.disabled = trabados || !S.linea.length;
+  }
+}
+
+/** ¿Quedó guardado el comprobante con esa marca? El documento, null (no
+    está) o undefined (no se pudo saber: sin conexión). */
+async function buscarPorMarca(id){
+  try{
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 10000);
+    const r = await fetch(DOCS_URL + "?idLocal=" + encodeURIComponent(id),
+      { cache:"no-store", credentials:"same-origin", signal:ctl.signal });
+    clearTimeout(t);
+    if(r.status === 401) return "sesion";
+    const d = await r.json();
+    if(!r.ok || d.error) return undefined;
+    return d.documento || null;
+  }catch(e){ return undefined; }
+}
+const AVISO_SESION = "Se cerró tu sesión: entrá de nuevo con tu usuario. La venta queda acá.";
+
+/** Hay un comprobante que se mandó y no se sabe si quedó guardado. */
+const pendiente = () => !!(S.emision && S.emision.enviada);
+/** Mientras hay uno en duda, la venta no se mueve: ni a borrador, ni se vacía,
+    ni se reemplaza. Si se moviera, la duda se perdería y al volver a emitir
+    podría salir repetido. Lo único que se puede hacer es Emitir, que primero
+    le pregunta al servidor. */
+function trabadaPorDuda(){
+  if(!pendiente()) return false;
+  toast("Primero tocá Emitir: hay que confirmar si el comprobante anterior quedó guardado. Después seguís.");
+  return true;
+}
+
+const esperar = ms => new Promise(r => setTimeout(r, ms));
+
+/** Lo manda y devuelve {g, previo, igual}, o null (y lo dice).
+    Tres respuestas posibles, y no son lo mismo:
+    - guardado: vuelve el documento;
+    - rechazado (vino un {error}): seguro que NO se guardó;
+    - sin respuesta (se cortó, timeout, Cloudflare): PUEDE haberse guardado.
+      Ahí se le pregunta al servidor por la marca antes de decir nada; decir
+      "no se guardó" cuando sí se guardó terminaba en una factura repetida. */
+async function emitirEnServidor(doc){
+  EMITIENDO = true;
+  botonesEmitir(true);
+  try{
+    // Quedó un envío sin respuesta (o se recargó en el medio): primero se
+    // pregunta si ese se guardó, antes de mandar otro.
+    if(S.emision && S.emision.enviada){
+      const ya = await buscarPorMarca(S.emision.id);
+      if(ya === "sesion"){ toast(AVISO_SESION); return null; }
+      if(ya === undefined){
+        toast("Todavía no sé si se guardó el comprobante anterior. Revisá la conexión y probá de nuevo.");
+        return null;
+      }
+      if(ya) return { g:ya, previo:true, igual: S.emision.firma === firmaDe(doc) };
+      S.emision = null;
+    }
+    doc.idLocal = marcaDe(doc);
+    S.emision.enviada = true;
+    guardarLocal();               // al toque: si se recarga ahora, la marca sobrevive
+    let d = null;
+    try{
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 30000);
+      const r = await fetch(DOCS_URL, {
+        method:"POST", credentials:"same-origin", signal:ctl.signal,
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ documento: doc })
+      });
+      clearTimeout(t);
+      d = await r.json().catch(() => null);
+    }catch(e){ d = null; }
+    if(d && d.documento) return { g:d.documento, previo:false, igual:true };
+    if(d && d.error){
+      S.emision.enviada = false; guardarLocal();
+      toast("No se guardó: " + d.error + " La venta sigue acá: probá de nuevo.");
+      return null;
+    }
+    toast("Se cortó la respuesta. Me fijo si quedó guardado…");
+    for(const ms of [1000, 2500, 5000]){
+      await esperar(ms);
+      const ya = await buscarPorMarca(doc.idLocal);
+      if(ya === "sesion"){ toast(AVISO_SESION); return null; }
+      if(ya) return { g:ya, previo:false, igual:true };
+      if(ya === null){
+        S.emision.enviada = false; guardarLocal();
+        toast("No se guardó: se cortó la conexión. La venta sigue acá: probá de nuevo.");
+        return null;
+      }
+    }
+    toast("No pude saber si se guardó. No cambies la venta y tocá Emitir de nuevo: si ya estaba guardado, no se repite.");
+    return null;
+  }finally{
+    EMITIENDO = false;
+    botonesEmitir(false);
+  }
+}
+
+function numerosDe(g){
+  const n = { pedido: g.pedido };
+  if(g.letra && g.numero) n[g.sucursal + ":" + g.letra] = g.numero;
+  return n;
+}
+
+/** Lo emitido pasa a la venta del día con lo que valía en ese momento. */
+function ventaDeDocumento(g){
+  const dt = g.datos || {}, ren = dt.renglones || [], cli = dt.cliente || {};
+  const facturada = g.letra === "A" || g.letra === "B";
+  return {
+    hora: horaAR(g.createdAt), suc: g.sucursal, puesto: sinEtiquetas(g.puesto), vend: sinEtiquetas(g.vendedor),
+    forma: MULT[dt.forma] ? dt.forma : "01-Efectivo",
+    // Solo la factura va al libro. Un remito o un pedido interno tienen
+    // número, pero no son facturas (antes entraban al Libro IVA).
+    facturada, web:false, ped: "P-" + g.pedido,
+    dep: dt.deposito === "TS" ? "TS" : "BA", traida: !!dt.traida,
+    linea: lineasDeDocumento(g),
+    // Lo cobrado ya trae el descuento: la base y el margen tambien.
+    base: (+dt.bruto || 0) - (+dt.descuento || 0), descPesos: +dt.descuento || 0,
+    letra: facturada ? g.letra : undefined, nro: g.nroTexto,
+    cli: cli.id || "", cliN: sinEtiquetas(cli.n || ""), cliT: sinEtiquetas(cli.t || ""), cliDoc: sinEtiquetas(cli.doc || ""),
+    total: g.total, comp: g.comp, docId: g.id, _doc: g
+  };
+}
+/** Los renglones que la pantalla puede mostrar: los de artículos que hoy
+    están en el catálogo. Si GBP carga tarde, se vuelven a armar. */
+function lineasDeDocumento(g){
+  // Todos los renglones, aunque el artículo no esté en el catálogo de esta
+  // compu: pdl() los completa con lo guardado. Si se tiraran, el margen
+  // saldría mal (el total y el descuento son de todos).
+  return ((g.datos && g.datos.renglones) || [])
+    .map(r => ({ cod:r.cod, cant:+r.cant || 0, contado:+r.contado || 0, costo:+r.costo || 0, tit:sinEtiquetas(r.tit) }));
+}
+/** El artículo de un renglón de venta, para los informes: el del catálogo,
+    con el precio y el costo que valían al venderlo si la venta los guardó.
+    Si el artículo no está en el catálogo, lo guardado. */
+function pdl(l){
+  const p = prod(l.cod);
+  if(l.contado == null) return p;
+  return Object.assign({ cod:l.cod, tit:l.tit || l.cod, rub:"OTROS", prov:"VARIOS", unPago:l.contado },
+    p || {}, { contado:l.contado, costo:l.costo != null ? l.costo : (p ? p.costo : 0) });
+}
+function remapearVentasDeHoy(){
+  for(const v of S.ventas) if(v._doc) v.linea = lineasDeDocumento(v._doc);
+}
+
+/** El cliente de una venta para el Libro IVA: el de la lista, o el que
+    quedó guardado con el comprobante (de un cliente cargado en otra compu). */
+function clienteDeVenta(v){
+  const c = v.cli ? CLIENTES.find(x => x.id === v.cli) : null;
+  if(c) return c;
+  if(v.cliN && v.cliN !== "Consumidor final")
+    return { n:v.cliN, doc:v.cliDoc || "—", t:v.cliT || "Consumidor Final" };
+  return null;
+}
+
+/** Lo que pasa en la pantalla cuando un comprobante quedó guardado. */
+function registrarEmitido(g){
+  const dt = g.datos || {};
+  if(g.tipo !== "presupuesto"){
+    if(!S.ventas.some(v => v.docId === g.id)){
+      S.ventas.push(ventaDeDocumento(g));
+      // Descuenta del deposito de donde salio. Todavia solo en esta
+      // pantalla: el stock no queda guardado (etapa siguiente).
+      for(const r of (dt.renglones || [])){
+        const p = prod(r.cod), dep = dt.deposito;
+        if(p && p.dep && p.dep[dep] != null) p.dep[dep] = Math.max(0, p.dep[dep] - r.cant);
+      }
+    }
+  } else {
+    S.presupuestos++;
+    S.presuDe[g.vendedor] = (S.presuDe[g.vendedor] || 0) + 1;
+  }
+  // La serie de este comprobante queda en el que sigue al que dio el
+  // servidor (si recortó un salto grande, la pantalla no sigue mostrando el
+  // número tipeado). Las otras series y el pedido, solo suben.
+  if(g.letra && g.numero && S.nro[g.sucursal] && S.nro[g.sucursal][g.letra] != null)
+    S.nro[g.sucursal][g.letra] = g.numero + 1;
+  sincronizarNumeros(numerosDe(g));
+}
+function textoEmitido(g){
+  const dt = g.datos || {}, su = sucDe(g.sucursal);
+  const nombre = g.comp.replace(/^\\d+\\./, "");
+  const deDonde = "Sale del depósito de " + (DEPOSITOS[dt.deposito] || dt.deposito) +
+    (dt.traida ? ", que hay que traer a " + su.n : "") + ".";
+  if(g.tipo === "presupuesto")
+    return "Presupuesto " + g.nroTexto.slice(2) + " de " + su.n + " guardado, por " + fmt(g.total) +
+      ". Lo ves en Comprobantes y de ahí lo pasás a venta. No mueve stock ni caja.";
+  if(g.tipo === "sin-comprobante")
+    return "Entregado sin comprobante por " + fmt(g.total) + " en " + su.n + " (" + g.puesto + "), P-" + g.pedido +
+      ". Quedó guardado y marcado como tal. " + deDonde;
+  if(g.tipo === "factura")
+    return nombre + " " + g.nroTexto.slice(2) + " guardada, por " + fmt(g.total) +
+      ". Es interna: todavía no va a ARCA (sin CAE). La ves en Comprobantes. " + deDonde;
+  return nombre + " " + g.nroTexto.slice(2) + " guardado, por " + fmt(g.total) + ". La ves en Comprobantes. " + deDonde;
+}
+/** Después de emitir: se anota y se limpia la venta. Si lo que volvió es un
+    envío anterior que sí se había guardado y la venta de la pantalla cambió
+    desde entonces, la venta NO se limpia: se avisa y se decide. */
+function trasEmitir(res){
+  if(!res) return;
+  const g = res.g;
+  registrarEmitido(g);
+  if(res.previo && !res.igual){
+    S.emision = null; guardarLocal();
+    toast("Ojo: el comprobante anterior SÍ se había guardado (" + g.comp.replace(/^\\d+\\./, "") + " " +
+      (g.letra ? g.nroTexto.slice(2) : "P-" + g.pedido) + ", " + fmt(g.total) + "). " +
+      "La venta de la pantalla tiene cambios y queda acá: si también va, emitila de nuevo.");
+    pintarTicket();
+    return;
+  }
+  limpiarVentaEmitida();
+  toast((res.previo ? "Ya había quedado guardado. " : "") + textoEmitido(g));
+}
+
+function limpiarVentaEmitida(){
+  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
+  S.origen = null; S.emision = null;
+  pintarCamposVenta(); pintarDtos(); pintarTicket();
+  guardarLocal();                 // al toque: que no vuelva al recargar
+  // El cursor al buscador para la venta que sigue. En el body, el Enter
+  // sumaría el primero marcado (la trampa de #camposVta).
+  const q = document.getElementById("q");
+  q.value = ""; buscar(); q.focus();
+}
+
+/** Repinta el comprobante sin dejar el foco en el body (ver la trampa de
+    #camposVta en pintarCamposVenta). */
+function repintarVentaConFoco(){
+  const a = document.activeElement, id = a && a.id;
+  pintarCamposVenta();
+  if(id){ const e = document.getElementById(id); if(e && e !== document.activeElement) e.focus(); }
+}
+
+/** Los números que vienen del servidor (el último usado de cada serie):
+    la pantalla muestra el que sigue. Solo suben. */
+function sincronizarNumeros(cont){
+  let cambio = false;
+  for(const k of Object.keys(cont || {})){
+    const ult = +cont[k];
+    if(!(ult > 0)) continue;
+    if(k === "pedido"){ if(S.nroPed < ult + 1){ S.nroPed = ult + 1; cambio = true; } continue; }
+    const par = k.split(":"), suc = par[0], l = par[1];
+    if(S.nro[suc] && S.nro[suc][l] != null && S.nro[suc][l] < ult + 1){ S.nro[suc][l] = ult + 1; cambio = true; }
+  }
+  // Si está corrigiendo el número a mano, no se lo cambio debajo.
+  if(cambio && !S.nroLibre) repintarVentaConFoco();
+}
+
+/** Lo emitido hoy vuelve a la Caja, la Rentabilidad y el Contable al
+    recargar. */
+async function traerDocumentosDeHoy(){
+  try{
+    const r = await fetch(DOCS_URL + "?dias=1", { cache:"no-store", credentials:"same-origin" });
+    if(!r.ok) return;
+    const d = await r.json();
+    if(d.error) return;
+    if(d.contadores) sincronizarNumeros(d.contadores);
+    const ya = new Set(S.ventas.filter(v => v.docId).map(v => v.docId));
+    let n = 0;
+    for(const g of (d.documentos || []).slice().reverse()){
+      if(g.tipo === "presupuesto" || ya.has(g.id)) continue;
+      S.ventas.push(ventaDeDocumento(g));
+      n++;
+    }
+    if(n) repintarInformes();
+  }catch(e){ /* sin conexión: queda lo de esta sesión */ }
+}
+function repintarInformes(){
+  const v = vistaActual();
+  if(v === "caja") pintarCaja();
+  if(v === "contable") pintarContable();
+  if(v === "renta") pintarRenta();
+  if(v === "gerencia") pintarGerencia();
+}
+
+/* ------------------------------------------------ COMPROBANTES (la vista) */
+const CP = { docs:[], hayMas:false, cargando:false, error:"", abierto:null, pedido:0 };
+const NOMBRE_TIPO = { "presupuesto":"Presupuesto", "factura":"Factura", "remito":"Remito",
+                      "pedido-interno":"Pedido interno", "sin-comprobante":"Sin comprobante" };
+
+document.getElementById("cpSuc").innerHTML = '<option value="">Las tres sucursales</option>' +
+  SUCURSALES.map(x => '<option value="' + x.id + '">' + x.n + '</option>').join("");
+
+async function pintarComprobantes(){
+  const dias = +document.getElementById("cpDias").value || 30;
+  const tipo = document.getElementById("cpTipo").value;
+  const suc = document.getElementById("cpSuc").value;
+  // Si se cambia un filtro mientras viaja el anterior, gana el último.
+  const este = ++CP.pedido;
+  CP.cargando = true; pintarListaCp();
+  try{
+    const q = new URLSearchParams({ dias:String(dias) });
+    if(tipo) q.set("tipo", tipo);
+    if(suc) q.set("suc", suc);
+    const r = await fetch(DOCS_URL + "?" + q.toString(), { cache:"no-store", credentials:"same-origin" });
+    const d = await r.json().catch(() => ({ error:"El servidor contestó " + r.status + "." }));
+    if(este !== CP.pedido) return;
+    if(!r.ok || d.error) throw new Error(d.error || "No se pudo leer.");
+    CP.docs = d.documentos || []; CP.hayMas = !!d.hayMas; CP.error = "";
+    if(d.contadores) sincronizarNumeros(d.contadores);
+  }catch(e){
+    if(este !== CP.pedido) return;
+    CP.docs = []; CP.error = e.message || "No se pudo leer.";
+  }
+  CP.cargando = false;
+  pintarListaCp();
+}
+
+function nombreDoc(g){
+  const t = NOMBRE_TIPO[g.tipo] || g.tipo;
+  return g.tipo === "factura" ? t + " " + g.letra : t;
+}
+// "B 0003-00048214" -> "0003-00048214"; "P-2850" queda igual.
+const numeroCorto = g => String(g.nroTexto || "").replace(/^[A-Z] /, "");
+
+function pintarListaCp(){
+  const tb = document.getElementById("tbCp"), cuenta = document.getElementById("cpCount");
+  if(CP.cargando && !CP.docs.length){ tb.innerHTML = '<tr><td colspan="6" class="vacio">Buscando…</td></tr>'; return; }
+  if(CP.error){ tb.innerHTML = '<tr><td colspan="6" class="vacio">' + txt(CP.error) + '</td></tr>'; cuenta.textContent = ""; return; }
+  const toks = plano(document.getElementById("cpBusca").value).split(/\\s+/).filter(Boolean);
+  const porId = {};
+  for(const d of CP.docs) porId[d.id] = d;
+  const lista = CP.docs.filter(d => {
+    if(!toks.length) return true;
+    const ren = (d.datos && d.datos.renglones) || [];
+    const t = plano(d.nroTexto + " p-" + d.pedido + " " + d.cliente + " " + d.vendedor + " " + d.usuario + " " +
+      nombreDoc(d) + " " + ren.map(r => r.cod + " " + r.tit).join(" "));
+    return toks.every(x => t.indexOf(x) >= 0);
+  });
+  const suma = tipo => lista.filter(d => d.tipo === tipo).reduce((a, d) => a + d.total, 0);
+  const nP = lista.filter(d => d.tipo === "presupuesto").length;
+  cuenta.textContent = lista.length + (lista.length === 1 ? " comprobante" : " comprobantes") +
+    (nP ? " · presupuestado " + fmt(suma("presupuesto")) : "") +
+    (lista.some(d => d.tipo === "factura") ? " · facturado " + fmt(suma("factura")) : "") +
+    (lista.some(d => d.tipo === "sin-comprobante") ? " · sin comprobante " + fmt(suma("sin-comprobante")) : "") +
+    (CP.hayMas ? " · se ven los últimos 500" : "");
+  if(!lista.length){
+    tb.innerHTML = '<tr><td colspan="6" class="vacio">' +
+      (CP.docs.length ? "Nada coincide con lo que buscás." : "Todavía no hay nada emitido en este período.") + '</td></tr>';
+    return;
+  }
+  tb.innerHTML = lista.map(d => {
+    const dt = d.datos || {}, cli = dt.cliente || {};
+    // Si se vendió lo dice el servidor, aparte de los filtros de la lista.
+    const vendido = d.tipo === "presupuesto" ? d.vendidoEn : null;
+    const madre = d.origenId ? porId[d.origenId] : null;
+    const pills =
+      (d.tipo === "factura" ? ' <span class="pill p-warn">sin CAE</span>' : "") +
+      (vendido ? ' <span class="pill p-ok">vendido · ' + txt(vendido.comp.replace(/^\\d+\\./, "")) + ' ' + txt(numeroCorto(vendido)) + '</span>' : "") +
+      (d.origenId ? ' <span class="pill p-n">de presupuesto' + (madre ? " " + txt(numeroCorto(madre)) : "") + '</span>' : "");
+    const abierto = CP.abierto === d.id;
+    let h = '<tr class="cp-fila' + (abierto ? " cp-abierta" : "") + '" data-cp="' + txt(d.id) + '">' +
+      '<td class="num" style="font-size:12.5px">' + fechaAR(d.createdAt) + '<small>' + horaAR(d.createdAt) + '</small></td>' +
+      '<td><b>' + txt(nombreDoc(d)) + '</b> ' + txt(d.letra ? numeroCorto(d) : "") + pills +
+        '<small>P-' + d.pedido + ' · ' + txt(sucDe(d.sucursal).n) + '</small></td>' +
+      '<td>' + txt(d.cliente) + (cli.doc && cli.doc !== "—" ? '<small>' + txt(cli.doc) + '</small>' : "") + '</td>' +
+      '<td>' + txt(d.vendedor) + '<small>' + txt(d.puesto) + '</small></td>' +
+      '<td class="r" style="font-weight:600">' + fmt(d.total) + '</td>' +
+      '<td class="r">' + (d.tipo === "presupuesto" && !vendido
+        ? '<button class="b2" type="button" data-pasar="' + txt(d.id) + '" style="padding:5px 12px">Pasar a venta</button>' : "") + '</td>' +
+    '</tr>';
+    if(abierto){
+      const ren = dt.renglones || [];
+      h += '<tr class="cp-det"><td colspan="6"><table class="densa"><thead><tr>' +
+        '<th>Código</th><th>Artículo</th><th class="r">Cant.</th><th class="r">Precio</th><th class="r">Subtotal</th>' +
+        '</tr></thead><tbody>' + ren.map(r =>
+          '<tr><td class="num">' + txt(r.cod) + '</td><td>' + txt(r.tit) + '</td><td class="r">' + (+r.cant || 0) + '</td>' +
+          '<td class="r">' + fmt(+r.contado || 0) + '</td><td class="r">' + fmt((+r.contado || 0) * (+r.cant || 0)) + '</td></tr>').join("") +
+        '</tbody></table><div class="cp-mas">' +
+        'Forma de pago: ' + txt(formaCorta(dt.forma || "")) +
+        (dt.desc ? ' · descuento ' + (+dt.desc) + '% (' + fmt(+dt.descuento || 0) + ')' : '') +
+        (dt.recargo && dt.recargo !== 1 ? ' · recargo de tarjeta ' + pTxt(Math.round((dt.recargo - 1) * 1000) / 10) + '%' : '') +
+        ' · depósito ' + txt(DEPOSITOS[dt.deposito] || dt.deposito || "") + (dt.traida ? ' (se trae)' : '') +
+        ' · lo emitió ' + txt(d.usuario) +
+        (cli.t ? ' · cliente ' + txt(cli.t) : '') +
+        '</div></td></tr>';
+    }
+    return h;
+  }).join("");
+}
+
+document.getElementById("tbCp").addEventListener("click", e => {
+  const b = e.target.closest("[data-pasar]");
+  if(b){ const d = CP.docs.find(x => x.id === b.dataset.pasar); if(d) pasarAVenta(d); return; }
+  const f = e.target.closest("tr[data-cp]");
+  if(!f) return;
+  CP.abierto = CP.abierto === f.dataset.cp ? null : f.dataset.cp;
+  pintarListaCp();
+});
+for(const id of ["cpTipo","cpSuc","cpDias"])
+  document.getElementById(id).addEventListener("change", () => { CP.abierto = null; pintarComprobantes(); });
+document.getElementById("cpBusca").addEventListener("input", pintarListaCp);
+
+/** Un presupuesto vuelve a la venta, a precio de hoy. Al emitirla queda
+    unida al presupuesto (origenId) y en la lista se ve "vendido". */
+function pasarAVenta(d){
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando un comprobante."); return; }
+  if(trabadaPorDuda()) return;
+  if(d.vendidoEn && !confirm("Ese presupuesto ya se vendió (" + d.vendidoEn.comp.replace(/^\\d+\\./, "") + " " +
+      numeroCorto(d.vendidoEn) + "). ¿Lo pasás a venta igual?")) return;
+  const ren = (d.datos && d.datos.renglones) || [];
+  const hay = ren.filter(r => prod(r.cod)), faltan = ren.length - hay.length;
+  if(!hay.length){ toast("Ninguno de esos artículos está hoy en el catálogo."); return; }
+  if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el presupuesto " + numeroCorto(d) + "?")) return;
+  S.linea = hay.map(r => ({ cod:r.cod, cant:Math.max(1, Math.floor(+r.cant || 1)) }));
+  const cid = d.datos && d.datos.cliente && d.datos.cliente.id;
+  const hayCliente = !!cid && CLIENTES.some(c => c.id === cid);
+  S.cliente = hayCliente ? cid : "";
+  S.desc = +(d.datos && d.datos.desc) || 0;
+  const fo = d.datos && d.datos.forma;
+  if(fo && MULT[fo]){ S.forma = fo; S.cond = fo; }
+  S.comp = null; S.dep = null; S.nroLibre = false;
+  S.origen = d.id; S.emision = null;
+  abrirVista("mostrador");
+  pintarCamposVenta(); pintarDtos(); pintarTicket();
+  const q = document.getElementById("q");
+  q.value = ""; buscar(); q.focus();
+  toast("Presupuesto " + numeroCorto(d) + " pasado a la venta, a precio de hoy." +
+    (faltan ? " " + faltan + (faltan > 1 ? " artículos ya no están" : " artículo ya no está") + " en el catálogo y quedó afuera." : "") +
+    (cid && !hayCliente ? " El cliente no está cargado en esta compu: elegilo de nuevo." : "") +
+    " Al emitir queda unida al presupuesto.");
+}
+
+/* ------------------------------------- LO QUE SE ARMA EN ESTA COMPU
+   Queda en el navegador y vuelve al recargar. Cada pestaña guarda lo suyo
+   (la venta, los borradores, el pedido que se toma), así dos pestañas no
+   se pisan; los clientes y pedidos nuevos y el número de pedido son de
+   todas y se juntan. */
+const LOCAL = "punto.local.v2";
+const RESERVA = "punto.local.reserva.v2";
+// var: lo miran los pintar*() del arranque, antes de esta línea.
+var LOCAL_LISTO = false, tLocal = 0, ENTRADA = null, ADOPTADAS = [], ADOPTADAS_CLAVES = [];
+var MI_PESTANA = (function(){
+  try{
+    let t = sessionStorage.getItem("punto.pestana");
+    if(!t){ t = "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); sessionStorage.setItem("punto.pestana", t); }
+    return t;
+  }catch(e){ return "t-unica"; }
+})();
+const VIVA_MS = 25000;            // una pestaña a la vista que no escribió en 25 s se colgó
+const OCULTA_MS = 7 * 864e5;      // una en segundo plano el navegador la duerme: se espera una semana
+/** La pestaña de esa entrada ya no está: se cerró (hace más de 4 s, para no
+    confundirla con una que está recargando), o se colgó a la vista. Las que
+    quedaron en segundo plano se respetan: el navegador las duerme y no
+    laten, pero siguen abiertas. */
+function huerfana(t, ahora){
+  const quieta = ahora - (+t.vivo || 0);
+  if(t.adoptadaPor && ahora - (+t.adoptadaEn || 0) < 60000) return false;   // la está levantando otra
+  if(t.cerrada) return quieta > 4000;
+  return t.oculta ? quieta > OCULTA_MS : quieta > VIVA_MS;
+}
+const PED_EJEMPLO = JSON.stringify(PED.linea);
+
+function leerTodo(){
+  try{
+    const d = JSON.parse(localStorage.getItem(LOCAL) || "null");
+    if(d && d.v === 2){ d.tabs = d.tabs || {}; return d; }
+  }catch(e){}
+  return { v:2, clientes:[], pedidos:[], nroPed:0, ultimo:null, tabs:{} };
+}
+function entradaVacia(t){
+  return !t || (!(t.venta && t.venta.linea && t.venta.linea.length) && !(t.borradores && t.borradores.length) &&
+    !(t.ped && t.ped.linea && t.ped.linea.length) && !(t.venta && t.venta.emision && t.venta.emision.enviada));
+}
+function guardarLocalPronto(){
+  if(!LOCAL_LISTO) return;          // hasta restaurar, no pisar lo guardado
+  clearTimeout(tLocal);
+  tLocal = setTimeout(guardarLocal, 250);
+}
+function valor(id){ const e = document.getElementById(id); return e ? e.value : ""; }
+function guardarLocal(cerrando){
+  if(!LOCAL_LISTO) return;
+  clearTimeout(tLocal);
+  try{
+    const d = leerTodo();
+    // Clientes y pedidos nuevos: se juntan con los de las otras pestañas.
+    const cli = {};
+    for(const c of (d.clientes || [])) if(c && c.id) cli[c.id] = c;
+    for(const c of CLIENTES) if(c.nuevo) cli[c.id] = c;
+    const peds = {};
+    for(const p of (d.pedidos || [])) if(p && p.id) peds[p.id] = p;
+    for(const p of PEDIDOS_ABIERTOS) if(p.nuevo && p.id) peds[p.id] = p;
+    d.clientes = Object.keys(cli).map(k => cli[k]);
+    d.pedidos = Object.keys(peds).map(k => peds[k]);
+    d.nroPed = Math.max(+d.nroPed || 0, S.nroPed);
+    d.ultimo = { suc:S.suc, usuario:S.usuario };
+    d.tabs[MI_PESTANA] = {
+      vivo: Date.now(), cerrada: !!cerrando || CERRANDO, oculta: document.visibilityState === "hidden",
+      suc:S.suc, usuario:S.usuario,
+      venta:{ linea:S.linea, cliente:S.cliente, desc:S.desc, forma:S.forma, cond:S.cond,
+              comp:S.comp, dep:S.dep, origen:S.origen || null, emision:S.emision || null },
+      borradores: S.borradores,
+      ped:{ cliente:PED.cliente, linea:PED.linea, entrega:PED.entrega, senia:PED.senia,
+            cuando:valor("fecha"), dir:valor("dir"), obs:valor("obsPed"), int:valor("intPed"), cfg:PEDCFG }
+    };
+    // Limpieza: pestañas cerradas hace mucho, o cerradas y vacías.
+    const ahora = Date.now();
+    for(const k of Object.keys(d.tabs)){
+      if(k === MI_PESTANA) continue;
+      const t = d.tabs[k], quieta = ahora - (+t.vivo || 0);
+      if(quieta > 30 * 864e5 || (quieta > 36e5 && entradaVacia(t))) delete d.tabs[k];
+    }
+    localStorage.setItem(LOCAL, JSON.stringify(d));
+  }catch(e){ /* sin lugar o ventana privada: anda igual, sin recordar */ }
+}
+// Al cerrar o recargar: se guarda al toque y la pestaña queda marcada como
+// cerrada (así al volver se reconoce lo suyo y no lo confunde con otra).
+// Al cerrarse o recargarse el navegador avisa dos cosas: que se va a
+// segundo plano (visibilitychange) y que se cierra (pagehide), y no siempre
+// en ese orden. La marca de "cerrándose" queda fija para que el segundo aviso
+// no la pise, y la pestaña deja una seña en su sessionStorage: al volver de
+// un recargar se reconoce a sí misma. (Sin esto, al recargar se tomaba por
+// otra pestaña abierta, arrancaba con una marca nueva y lo suyo quedaba
+// guardado pero sin levantar.)
+var CERRANDO = false;
+window.addEventListener("pagehide", () => {
+  CERRANDO = true;
+  try{ sessionStorage.setItem("punto.saliendo", String(Date.now())); }catch(x){}
+  guardarLocal(true);
+});
+// Vuelve del historial (bfcache): ya no está cerrada.
+window.addEventListener("pageshow", e => {
+  if(!e.persisted) return;
+  CERRANDO = false;
+  try{ sessionStorage.removeItem("punto.saliendo"); }catch(x){}
+  guardarLocal();
+});
+// Se va a segundo plano o vuelve: queda anotado, para no tomarla por colgada.
+document.addEventListener("visibilitychange", () => { if(!CERRANDO) guardarLocal(); });
+// Señal de vida, para saber qué pestañas siguen abiertas.
+setInterval(() => { if(LOCAL_LISTO) guardarLocal(); }, 10000);
+
+/** Antes del primer pintado: qué guardó esta pestaña, quién vende, dónde,
+    los clientes nuevos (no tienen artículos, no esperan a GBP) y el número
+    de pedido. */
+function restaurarLocalAntes(){
+  const d = leerTodo(), ahora = Date.now();
+  let e = d.tabs[MI_PESTANA];
+  // ¿Es esta misma pestaña que se recargó? Lo dice la seña que dejó al irse.
+  let recargo = false;
+  try{ recargo = !!sessionStorage.getItem("punto.saliendo"); sessionStorage.removeItem("punto.saliendo"); }catch(x){}
+  // Pestaña duplicada: la original sigue abierta con la misma marca. Esta
+  // arranca con una marca propia.
+  if(e && !recargo && !e.cerrada && !huerfana(e, ahora)){
+    MI_PESTANA = "t" + ahora.toString(36) + Math.random().toString(36).slice(2, 7);
+    try{ sessionStorage.setItem("punto.pestana", MI_PESTANA); }catch(x){}
+    e = null;
+  }
+  // Lo que dejaron pestañas que ya no están abiertas (se cerraron, o se
+  // colgaron hace más de 25 s) se junta acá: nada queda perdido en la compu.
+  // Una que se cerró hace menos de 4 s puede estar recargando: esa no.
+  // Se marcan como "las levanta esta pestaña" y recién se borran cuando
+  // quedaron guardadas acá: si esta se cierra antes, no se pierden.
+  const claves = Object.keys(d.tabs)
+    .filter(k => k !== MI_PESTANA && !entradaVacia(d.tabs[k]) && huerfana(d.tabs[k], ahora))
+    .sort((x, y) => (+d.tabs[y].vivo || 0) - (+d.tabs[x].vivo || 0));
+  ADOPTADAS = claves.map(k => d.tabs[k]);
+  ADOPTADAS_CLAVES = claves;
+  if(claves.length){
+    for(const k of claves){ d.tabs[k].adoptadaPor = MI_PESTANA; d.tabs[k].adoptadaEn = ahora; }
+    try{ localStorage.setItem(LOCAL, JSON.stringify(d)); }catch(x){}
+  }
+  ENTRADA = e || null;
+  const u = (e && !entradaVacia(e) ? e : null) || ADOPTADAS[0] || e || d.ultimo || {};
+  if(u.suc && SUCURSALES.some(x => x.id === u.suc)) S.suc = u.suc;
+  if(u.usuario && VENDEDORES.indexOf(u.usuario) >= 0){ S.usuario = u.usuario; S.puesto = puestoDe(S.usuario); }
+  for(const c of (d.clientes || []))
+    if(c && c.id && c.n && !CLIENTES.some(x => x.id === c.id))
+      CLIENTES.push(Object.assign({ saldo:0, lim:0, siempre:[] }, c, { nuevo:true }));
+  if(+d.nroPed > S.nroPed) S.nroPed = +d.nroPed;
+}
+
+/** Los renglones guardados que se pueden usar (artículo que existe). */
+function renglonesUsables(ls, cuenta){
+  return (Array.isArray(ls) ? ls : []).filter(l => {
+    const ok = l && prod(l.cod) && +l.cant > 0;
+    if(!ok && cuenta) cuenta.n++;
+    return ok;
+  }).map(l => ({ cod:l.cod, cant:Math.max(1, Math.floor(+l.cant)) }));
+}
+
+/** Mete lo guardado de una pestaña en la pantalla. Si ya hay una venta
+    empezada, la guardada pasa a borrador: nada se pisa. */
+function aplicarEntrada(e, cuenta, principal){
+  if(!e) return;
+  const v = e.venta || {};
+  const lin = renglonesUsables(v.linea, cuenta);
+  const cliente = v.cliente === "" || CLIENTES.some(c => c.id === v.cliente) ? (v.cliente || "") : "";
+  const forma = MULT[v.forma] ? v.forma : null;
+  if(lin.length && !S.linea.length){
+    S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0;
+    if(forma){ S.forma = forma; S.cond = MULT[v.cond] ? v.cond : null; }
+    S.comp = v.comp && LETRA[v.comp] ? v.comp : null;
+    S.dep = v.dep === "BA" || v.dep === "TS" ? v.dep : null;
+    S.origen = typeof v.origen === "string" ? v.origen : null;
+    if(v.emision && v.emision.id) S.emision = v.emision;
+  } else if(lin.length && v.emision && v.emision.enviada && !pendiente()){
+    // La que tiene un comprobante en duda va a la pantalla (hay que
+    // confirmarla antes que nada); la que había pasa a borrador.
+    const h = new Date();
+    S.borradores.unshift({ id:"b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      hora:String(h.getHours()).padStart(2,"0") + ":" + String(h.getMinutes()).padStart(2,"0"),
+      suc:S.suc, cliente:S.cliente, desc:S.desc, forma:S.forma, dep:S.dep, origen:S.origen || null,
+      linea:S.linea.map(l => ({ ...l })) });
+    S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0;
+    if(forma){ S.forma = forma; S.cond = MULT[v.cond] ? v.cond : null; }
+    S.comp = v.comp && LETRA[v.comp] ? v.comp : null;
+    S.dep = v.dep === "BA" || v.dep === "TS" ? v.dep : null;
+    S.origen = typeof v.origen === "string" ? v.origen : null;
+    S.emision = v.emision;
+  } else if(lin.length){
+    const h = new Date();
+    S.borradores.unshift({ id:"b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      hora:String(h.getHours()).padStart(2,"0") + ":" + String(h.getMinutes()).padStart(2,"0"),
+      suc: SUCURSALES.some(x => x.id === e.suc) ? e.suc : S.suc,
+      cliente, desc:+v.desc || 0, forma: forma || S.forma, dep:v.dep || null,
+      origen: typeof v.origen === "string" ? v.origen : null,
+      // Si quedó en duda, la duda viaja con el borrador: al retomarlo y
+      // emitir, primero se pregunta.
+      emision: v.emision && v.emision.enviada ? v.emision : null,
+      linea:lin });
+  } else if(v.emision && v.emision.enviada && !pendiente()){
+    // Sin renglones pero con un comprobante en duda: la duda no se pierde.
+    S.emision = v.emision;
+  }
+  for(const b of (e.borradores || [])){
+    if(!b || !b.id || S.borradores.some(x => x.id === b.id)) continue;
+    const lb = renglonesUsables(b.linea, cuenta);
+    if(lb.length) S.borradores.push(Object.assign({}, b, { linea:lb,
+      cliente: CLIENTES.some(c => c.id === b.cliente) ? b.cliente : "" }));
+  }
+  // El pedido que se estaba tomando. Punto arranca con uno de ejemplo
+  // cargado: lo guardado de esta pestaña manda sobre ese ejemplo. Lo que
+  // vuelve de la reserva solo entra si no hay otro pedido empezado.
+  const p = e.ped;
+  const pedLibre = !PED.linea.length || JSON.stringify(PED.linea) === PED_EJEMPLO;
+  if(p && Array.isArray(p.linea) && p.linea.length && !principal && !pedLibre){
+    // Ya hay otro pedido a medio tomar: este no se tira, queda en reserva.
+    reservarAparte({ ped:p, venta:{}, borradores:[] });
+  } else if(p && Array.isArray(p.linea) && (principal || pedLibre)){
+    PED.linea = renglonesUsables(p.linea, cuenta);
+    if(CLIENTES.some(c => c.id === p.cliente)) PED.cliente = p.cliente;
+    if(p.entrega === "retira" || p.entrega === "envio") PED.entrega = p.entrega;
+    PED.senia = Math.max(0, +p.senia || 0);
+    const pon = (id, val) => { const x = document.getElementById(id); if(x && typeof val === "string" && val) x.value = val; };
+    pon("fecha", p.cuando); pon("dir", p.dir); pon("obsPed", p.obs); pon("intPed", p.int);
+    const se = document.getElementById("senia"); if(se) se.value = PED.senia;
+    if(p.cfg && typeof p.cfg === "object")
+      for(const k of Object.keys(PEDCFG)) if(p.cfg[k] !== undefined) PEDCFG[k] = p.cfg[k];
+  }
+}
+
+/** Los pedidos guardados (de todas las pestañas) que se pueden mostrar. Los
+    que tienen artículos que no cargaron quedan guardados igual. */
+function aplicarPedidos(d){
+  for(const pd of (d.pedidos || []).slice().reverse()){
+    if(!pd || !pd.id || PEDIDOS_ABIERTOS.some(x => x.id === pd.id)) continue;
+    const lin = (Array.isArray(pd.lin) ? pd.lin : []).filter(x => Array.isArray(x) && prod(x[0]));
+    if(lin.length && lin.length === pd.lin.length) PEDIDOS_ABIERTOS.unshift(Object.assign({}, pd, { nuevo:true }));
+  }
+}
+
+/** La pantalla de Pedidos con lo restaurado: el cliente elegido, cómo lo
+    recibe y la dirección. */
+function sincronizarPedido(){
+  const sc = document.getElementById("selCliente");
+  if(sc) sc.innerHTML = CLIENTES.map(c => '<option value="' + c.id + '"' + (c.id === PED.cliente ? " selected" : "") + '>' + c.n + '</option>').join("");
+  for(const x of document.querySelectorAll("#formaEntrega button"))
+    x.setAttribute("aria-pressed", String(x.dataset.e === PED.entrega));
+  const de = document.getElementById("dirEnvio"); if(de) de.hidden = PED.entrega !== "envio";
+}
+
+/** Después de cargar GBP: la venta, los borradores y los pedidos (pueden
+    tener artículos de GBP, que antes no existen). Si GBP no cargó, nada se
+    tira: lo guardado queda en reserva y vuelve cuando carguen. */
+function restaurarLocalDespues(){
+  const d = leerTodo(), cuenta = { n:0 };
+  const todas = [ENTRADA].concat(ADOPTADAS).filter(x => x && !entradaVacia(x));
+  if(todas.length && !GBP.ok){
+    try{
+      const r = JSON.parse(localStorage.getItem(RESERVA) || "[]");
+      for(const x of todas) r.push(x);
+      localStorage.setItem(RESERVA, JSON.stringify(r));
+    }catch(x){}
+    toast("No cargaron los artículos de GBP. Lo que habías dejado cargado (venta, borradores, pedido) " +
+      "quedó guardado y vuelve cuando carguen.");
+  } else {
+    aplicarEntrada(ENTRADA, cuenta, true);
+    // La primera de otra pestaña manda sobre el pedido de ejemplo si esta
+    // pestaña no tenía nada propio.
+    const propia = ENTRADA && !entradaVacia(ENTRADA);
+    ADOPTADAS.forEach((x, i) => aplicarEntrada(x, cuenta, i === 0 && !propia));
+    if(GBP.ok) aplicarReserva(cuenta);
+  }
+  aplicarPedidos(d);
+  ENTRADA = null; ADOPTADAS = [];
+  LOCAL_LISTO = true;
+  guardarLocal();
+  // Ya quedaron guardadas en esta pestaña: ahora sí se borran las de antes.
+  if(ADOPTADAS_CLAVES.length){
+    try{
+      const d2 = leerTodo();
+      for(const k of ADOPTADAS_CLAVES) if(d2.tabs[k] && d2.tabs[k].adoptadaPor === MI_PESTANA) delete d2.tabs[k];
+      localStorage.setItem(LOCAL, JSON.stringify(d2));
+    }catch(x){}
+    ADOPTADAS_CLAVES = [];
+  }
+  repintarVentaConFoco(); pintarDtos(); pintarTicket(); pintarBorradores();
+  sincronizarPedido();
+  if(vistaActual() === "pedidos") pintarPedido();
+  if(cuenta.n) toast(cuenta.n + (cuenta.n > 1 ? " artículos que habían quedado cargados ya no están" :
+    " artículo que había quedado cargado ya no está") + " en el catálogo.");
+}
+function reservarAparte(e){
+  try{
+    const r = JSON.parse(localStorage.getItem(RESERVA) || "[]");
+    r.push(e);
+    localStorage.setItem(RESERVA, JSON.stringify(r));
+  }catch(x){}
+}
+function aplicarReserva(cuenta){
+  let r = [];
+  try{ r = JSON.parse(localStorage.getItem(RESERVA) || "[]"); }catch(x){ r = []; }
+  if(!Array.isArray(r) || !r.length) return false;
+  try{ localStorage.removeItem(RESERVA); }catch(x){}
+  for(const e of r) aplicarEntrada(e, cuenta, false);
+  return true;
+}
+/** GBP llegó tarde (después de los 8 segundos): vuelve lo que quedó en
+    reserva y lo emitido hoy se vuelve a armar con sus artículos. */
+function gbpLlegoTarde(){
+  const cuenta = { n:0 };
+  if(aplicarReserva(cuenta)){
+    guardarLocal();
+    repintarVentaConFoco(); pintarDtos(); pintarTicket(); pintarBorradores();
+    sincronizarPedido();
+    toast("Cargaron los artículos: volvió lo que habías dejado cargado.");
+  }
+  const datos = leerTodo(); aplicarPedidos(datos);
+  remapearVentasDeHoy(); repintarInformes();
+}
+
+/** Si al recargar había un comprobante viajando, se pregunta si quedó. */
+async function verificarPendiente(){
+  if(!pendiente() || EMITIENDO) return;
+  const id = S.emision.id;
+  EMITIENDO = true; botonesEmitir(true);
+  let ya;
+  try{ ya = await buscarPorMarca(id); }
+  finally{ EMITIENDO = false; botonesEmitir(false); }
+  // Mientras se preguntaba pudo cambiar (otro emitir ya lo resolvió).
+  if(!S.emision || S.emision.id !== id) return;
+  if(ya === undefined || ya === "sesion") return;   // se pregunta de nuevo al emitir
+  if(ya === null){ S.emision.enviada = false; guardarLocal(); return; }
+  const mismos = JSON.stringify(S.linea.map(l => [l.cod, l.cant])) ===
+    JSON.stringify(((ya.datos && ya.datos.renglones) || []).map(r => [r.cod, r.cant]));
+  trasEmitir({ g:ya, previo:true, igual:mismos });
+}
+
+/** El arranque de los datos: primero GBP (si tarda, a los 8 segundos se
+    sigue igual), después lo de esta compu y lo emitido hoy. */
+async function arrancar(){
+  const pGbp = traerDeGbp();
+  await Promise.race([pGbp, esperar(8000)]);
+  GBP.listo = true;
+  const aTiempo = !!GBP.ok;
+  restaurarLocalDespues();
+  await verificarPendiente();
+  await traerDocumentosDeHoy();
+  if(!aTiempo) pGbp.then(() => { if(GBP.ok) gbpLlegoTarde(); });
+}
+
+// Lo del pedido que no pasa por pintarPedido(): también se recuerda.
+for(const id of ["fecha","dir","obsPed","intPed"]){
+  const x = document.getElementById(id);
+  if(x) x.addEventListener("input", guardarLocalPronto);
+}
+document.getElementById("formaEntrega").addEventListener("click", guardarLocalPronto);
+
+restaurarLocalAntes();
 cargarSeis(); pintarCadena();
 pintarSucs(); pintarUsuarios(); ponerPuesto(); pintarEscritorio();
 pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
@@ -6888,6 +7824,7 @@ async function traerDeGbp(){
     const r = await fetch(GBP_URL, { cache: "no-store", credentials: "same-origin" });
     if(!r.ok) return;
     const d = await r.json();
+    GBP.ok = true;
     if(aplicarGbp(d.articulos)) repintarTodo();
     pintarGbpGuardados(d);
   }catch(e){ /* sin conexión: queda el catálogo de muestra */ }
@@ -7037,7 +7974,9 @@ gbpG("gbpZona").addEventListener("drop", e => {
   if(f) leerGbp(f);
 });
 gbpG("gbpCargar").addEventListener("click", guardarGbp);
-traerDeGbp();
+// Primero los artículos de GBP, después lo que había quedado cargado en esta
+// compu (puede tener artículos de GBP) y lo emitido hoy (ver arrancar()).
+arrancar();
 </script>
 </body>
 </html>

@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.77";
+export const APP_VERSION = "V.0.99.78";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.78",
+    date: "2026-11-21",
+    changes: [
+      "PUNTO, LO EMITIDO QUEDA GUARDADO (\"el presupuesto que emití, ¿dónde queda? deberían mostrarse todos los presupuestos y ver lo que estuve presupuestando o facturando\"): cada presupuesto, factura, remito y venta sin comprobante se guarda en el servidor antes de limpiar la venta, con el precio, el costo, el cliente, el descuento y la forma de pago de ese momento. El número lo da el servidor: dos puestos o una pestaña recargada nunca sacan el mismo, y la numeración no se puede bajar. Si se corta la conexión, Punto pregunta si quedó guardado antes de decir nada: no se duplica. Las facturas de Punto quedan marcadas \"sin CAE\": todavía no van a ARCA (el aviso \"CAE pedido a ARCA\" era falso y se sacó).",
+      "PUNTO, PANTALLA COMPROBANTES: todo lo emitido, de todos los puestos, con filtros (tipo, sucursal, período), buscador, totales presupuestado / facturado y el detalle de cada uno. Desde un presupuesto se toca \"Pasar a venta\" y, al emitirla, el presupuesto queda \"vendido\" con el número de la venta.",
+      "PUNTO, AL RECARGAR NO SE BORRA NADA (\"cuando refrescás no debería borrarse nada de lo que cargué\"): la venta empezada, los borradores, el pedido que se está tomando (cliente, entrega, fecha, dirección, notas), los clientes y pedidos nuevos, quién vende y en qué sucursal quedan en la compu y vuelven al recargar. Cada pestaña tiene lo suyo; lo de una pestaña cerrada lo levanta la próxima. Lo emitido hoy vuelve a la Caja y al Contable. Si los artículos de GBP no cargan, lo guardado espera y vuelve cuando carguen.",
+      "PUNTO, ARREGLOS: un remito o un pedido interno ya no entran al Libro IVA como factura; el Contable muestra el cliente de una factura aunque se haya cargado en otra compu; el recargo de tarjeta y el margen salen con el descuento restado; en Pedidos el buscador devuelve el cursor al sumar.",
+    ],
+  },
   {
     version: "V.0.99.77",
     date: "2026-11-21",

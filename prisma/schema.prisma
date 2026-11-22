@@ -418,3 +418,54 @@ model Actividad {
   @@index([fecha])
   @@index([usuario])
 }
+
+/// Lo que se emite en el sistema Punto (migracion 50): presupuestos,
+/// facturas, remitos, pedidos internos y ventas sin comprobante. Damian,
+/// 21/11/2026: "el presupuesto que emiti donde queda? deberian mostrarse
+/// todos los presupuestos y ver lo que estuve presupuestando o facturando".
+/// Las facturas de Punto todavia NO van a ARCA: no tienen CAE ni valen como
+/// comprobante fiscal. Lo escribe src/lib/punto-documentos.ts. No se borra.
+model PuntoDocumento {
+  id        String   @id @default(cuid())
+  /// Lo genera el navegador al emitir: si el pedido se repite (doble clic,
+  /// corte de conexion), devuelve el mismo documento y no gasta otro numero.
+  idLocal   String   @unique
+  createdAt DateTime @default(now())
+  /// presupuesto | factura | remito | pedido-interno | sin-comprobante
+  tipo      String
+  /// Como se eligio en la venta: "02.Factura B", "03.Presupuesto".
+  comp      String
+  /// A, B, X, R o P. Null en la venta sin comprobante.
+  letra     String?
+  /// srl | cnc | tsl
+  sucursal  String
+  pv        String
+  numero    Int?
+  /// El P-NNNN del tramite.
+  pedido    Int
+  /// El usuario que entro (de la sesion) y el vendedor elegido en la venta.
+  usuario   String
+  vendedor  String
+  puesto    String
+  cliente   String
+  /// En pesos, con centavos: el ticket los tiene (el recargo de tarjeta).
+  total     Float
+  /// El presupuesto del que salio esta venta, si salio de uno.
+  origenId  String?
+  /// Los renglones con el precio y el costo de ese momento, el cliente, la
+  /// forma de pago, el descuento, el recargo y el deposito.
+  datos     Json
+
+  @@unique([sucursal, letra, numero])
+  @@index([createdAt])
+  @@index([tipo, createdAt])
+  @@index([origenId])
+}
+
+/// Los numeradores de Punto (migracion 50): el ultimo numero usado de cada
+/// serie ("srl:B", "tsl:X", "pedido"). Sube adentro de la misma transaccion
+/// que crea el documento, asi dos puestos nunca sacan el mismo.
+model PuntoNumerador {
+  clave  String @id
+  ultimo Int    @default(0)
+}
