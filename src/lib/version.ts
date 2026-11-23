@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.198";
+export const APP_VERSION = "V.0.11.199";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.199",
+    date: "2026-11-23",
+    changes: [
+      "Rubros (\"los caños figuran como grifería, ¿qué es eso?\"): la palabra caño ya no manda a Grifería (agarraba unos 170 caños de agua y desagüe); las canillas con caño siguen en Grifería por su subrubro de GBP. Los bajo mesada pasan a Accesorios y lo de desagüe a Varios.",
+      "Venta (\"redistribuí el total para que se vea mejor artículos de la venta\"): la columna del Total es más angosta y sus botones más apretados; ese lugar se lo lleva la grilla de los artículos.",
+    ],
+  },
   {
     version: "V.0.11.198",
     date: "2026-11-23",
