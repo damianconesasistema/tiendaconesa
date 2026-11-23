@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.201";
+export const APP_VERSION = "V.0.11.202";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.202",
+    date: "2026-11-23",
+    changes: [
+      "Crear uno (\"haceme proveedor y después marca\"; \"en marca me debería dar a elegir las marcas que tengo, si no crear una nueva\"): primero el Proveedor (los de Proveedores y los que tienen los artículos, o uno nuevo) y después la Marca, de una lista con todas (las del proveedor elegido arriba) o \"+ Crear una marca nueva\". Si la nueva ya existe, se elige esa. El proveedor se guarda en el artículo y se toma su flete %.",
+      "Crear uno (\"ahí escribe siempre en mayúscula\"): el título, la marca y el proveedor nuevos y el código del fabricante pasan a mayúscula mientras se escriben.",
+      "Crear uno (\"ponele código de fabricante\"): el campo \"Código del proveedor\" pasa a \"Código de fabricante\" y se guarda en el servidor (el de un artículo cargado en Punto se perdía al recargar).",
+    ],
+  },
   {
     version: "V.0.11.201",
     date: "2026-11-23",
