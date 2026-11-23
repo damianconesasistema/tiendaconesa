@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.84";
+export const APP_VERSION = "V.0.99.85";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,25 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.85",
+    date: "2026-11-23",
+    changes: [
+      "TODOS LOS ARTÍCULOS DE GBP (\"tenés los artículos para crearlos ... tomar la lista de costos, Lista 1 y Lista 2\"): Importar, en Artículos, lee los tres Excel que exporta GBP, juntos o de a uno: el de listas (crea y actualiza los artículos con su costo, Lista 1, Lista 2 y stock), el de descuentos y el de artículos (código del fabricante, mínimo y óptimo). Se guardan de a tandas. Un artículo sin Lista 2 no se crea. Solo va a Punto: la tienda no se toca.",
+      "LOS DESCUENTOS DE CADA ARTÍCULO (\"entrando en cada artículo debería ver los descuentos que tiene el costo, Lista 1, Lista 2\"): el costo sale como lo arma GBP: la lista del proveedor, cada descuento uno sobre otro, los recargos y el IVA. La ficha del artículo lo muestra paso a paso hasta la Lista 1 y la Lista 2, y al lado lo que dice GBP. En la tabla, la cadena de descuentos va debajo del costo. Antes el costo se sacaba de la Lista 1 ÷ 1,25, que daba bien en Piazza pero no en las marcas con otro margen: ahora el margen que se ve es el de verdad.",
+      "OCHO DESCUENTOS (\"lo que ves en negativo son descuentos también ... que se puedan poner 8\"): un artículo puede tener hasta 8 descuentos uno sobre otro (eran 6). Los recargos negativos de GBP entran como descuentos, después de los cuatro de GBP; los positivos quedan como recargo.",
+      "ELIMINAR UN PEDIDO A PROVEEDOR (\"que se pueda eliminar si quiero hacer un pedido y me arrepiento\"): botón Eliminar el pedido. El que todavía no se guardó se descarta; el guardado queda anulado (no se borra) y deja de verse en la lista.",
+      "LA TABLA DE ARTÍCULOS DE A 300: con 7.000 artículos se trababa al pintarlos todos. Se ven los primeros 300 y Mostrar más suma otros 300; para encontrar uno, Buscar.",
+      "ÍCONO DEL SISTEMA (\"ponele un favicon pero que se diferencie de la tienda ... el mismo en otro color más claro\"): la pestaña de Punto lleva el ícono de la tienda en un rojo más claro, para no confundirlas.",
+      "QUIÉN ESTÁ EN LÍNEA (\"avisame qué usuarios están online en usuarios\"): arriba de Usuarios, la franja En línea ahora con un punto verde por cada uno que tiene Punto o el panel abierto; en cada usuario, en línea o la última vez que anduvo (hace 2 horas, ayer a las 18:40). Se actualiza sola cada minuto. Cada pestaña abierta avisa que sigue ahí aunque no se toque nada.",
+      "RESETEAR CONTRASEÑA EN TODOS (\"a todos los usuarios poneme resetear contraseña ... que pueda Carlos, Daniel y Damián hacerlo, por las dudas\"): el botón está en cada usuario. Carlos, Daniel y Damián resetean la de cualquiera (menos la propia) y por eso entran a Usuarios; los demás que administran usuarios, solo la de los que son solo de Punto. En el tuyo, Cambiar mi contraseña.",
+      "FILTROS DE ARTÍCULOS A LA VISTA (\"buscar por proveedor, por el nombre, el código, marca, que esté más destacado ... si quiero ver solamente los de Piazza\"): arriba de la tabla, un buscador grande (código, nombre o código del fabricante) y tres listas: Marca, Proveedor y Rubro, cada una con cuántos tiene. Las 30 marcas con más artículos están a un toque (Piazza, Pringles, FV, Dema...). Limpiar filtros vuelve a todo. Lo elegido ya no se pierde al importar. Los artículos sin marca en GBP toman el nombre del proveedor en vez de una palabra suelta.",
+      "EXPORTAR A EXCEL Y PDF (\"que se puedan exportar los proveedores, todo que sea exportable en PDF y en Excel\"): en Proveedores y en Artículos, botones Excel y PDF que exportan lo que estás viendo (con los filtros puestos: por ejemplo, solo Piazza). El Excel es un .xlsx con los números como números, la primera fila fija y el filtro puesto; el PDF abre la hoja para imprimir o guardar como PDF.",
+      "BOTÓN SUBIR (\"un botón subir abajo a la derecha ... que se habilite cuando se hace largo el scroll\"): aparece abajo a la derecha cuando bajaste más de una pantalla y media, y te lleva arriba de todo.",
+      "LO QUE ENCONTRÓ LA REVISIÓN: los descuentos de GBP de más de 95% (unidades sacadas del precio de una caja, hasta 99,5%) ya no se recortan; el simulador de precios y el pedido a proveedor cuentan los recargos de GBP (el pedido los muestra); unos 260 artículos cuyos descuentos de GBP dan un costo más alto que su Lista 1 (DELTA, SALADILLO, DISEÑOS MODERNOS) sacan el costo de la Lista 1 ÷ 1,25 y quedan marcados \"no cierra\" para revisarlos en GBP; importar solo el Excel de descuentos o el de artículos ya no hace olvidar lo corregido a mano en cada compu; los artículos que cambiaron de código en GBP se encuentran por su ID; si al Excel de descuentos o de artículos le falta una columna, no se importa; si una tanda falla, la pantalla se pone al día con lo que sí se guardó; los descuentos se escriben con coma.",
+      "MÁS RÁPIDO CON 7.000 ARTÍCULOS: el stock, los importes y la búsqueda por código se arman una sola vez. Cargar el catálogo pasó de varios segundos a menos de medio, y Rentabilidad y Gerencia no se traban.",
+    ],
+  },
   {
     version: "V.0.99.84",
     date: "2026-11-23",

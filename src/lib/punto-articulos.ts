@@ -60,6 +60,10 @@ export type ArticuloPunto = {
   stockTS: number;
   /** El ID interno de GBP. */
   gbpId: number | null;
+  /** "USD" si el Costo de GBP viene en dolares (V.0.99.85: GUNDIN, GENEBRE,
+   *  ABRAGOM...). La pagina lo pasa a pesos con el dolar del formador. No
+   *  esta = pesos. La Lista 1 y la 2 siempre van en pesos. */
+  mon?: "USD";
   /** Flete fijo en pesos por unidad (V.0.99.82). No esta = sin flete. */
   flete?: number;
   /** Otro costo en pesos por unidad, con IVA (V.0.99.82). No esta = nada. */
@@ -68,11 +72,36 @@ export type ArticuloPunto = {
   otroNombre?: string;
   /** Se compra solo de a N unidades (2 a 10.000). No esta = suelto. */
   bulto?: number;
+  // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
+  // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
+  // articulos, uno por uno ... entrando en cada articulo deberia ver los
+  // descuentos que tiene el costo, lista 1, lista 2". Son de GBP (cada
+  // import de ese Excel los reemplaza), pero importar el Excel de LISTAS no
+  // los borra: vienen de otro archivo.
+  /** "Descuento #1..#4" de GBP, en %, uno sobre otro, sin los ceros. No
+   *  esta = todavia no se importo el Excel de descuentos; [] = no tiene. */
+  dtos?: number[];
+  /** "Recargo #1..#4" de GBP, en %, igual que los descuentos. */
+  recs?: number[];
+  /** "Codigo del Proveedor / Fabricante" (Excel de estructura). */
+  fab?: string;
+  /** "UPB - Unidades por Bulto" de GBP, cuando es 2 o mas. */
+  upb?: number;
+  /** "Cantidad Minima" y "Cantidad Optima" de stock de GBP. */
+  min?: number;
+  opt?: number;
 };
 
 /** Lo que se carga en Punto y el import de GBP no pisa nunca. */
 export const CAMPOS_DE_PUNTO = ["flete", "otroCosto", "otroNombre", "bulto"] as const;
 type CampoDePunto = (typeof CAMPOS_DE_PUNTO)[number];
+/** Lo de GBP que llega en los Excel de descuentos y de estructura: el Excel
+ *  de listas no los trae, asi que importarlo no los toca. */
+export const CAMPOS_DE_OTRO_EXCEL = ["dtos", "recs", "fab", "upb", "min", "opt"] as const;
+/** Un renglon del Excel de descuentos, ya limpio. */
+export type DescuentosArticulo = { cod: string; gbpId?: number; dtos: number[]; recs: number[] };
+/** Un renglon del Excel de estructura, ya limpio. */
+export type EstructuraArticulo = { cod: string; gbpId?: number; fab?: string; upb?: number; min?: number; opt?: number };
 /** Lo que se cambia con PATCH: null saca el valor. */
 export type CostosArticulo = {
   flete?: number | null;
@@ -83,8 +112,11 @@ export type CostosArticulo = {
 
 export type Guardados = {
   articulos: ArticuloPunto[];
+  /** El ultimo import del Excel de LISTAS (los precios). */
   fecha: string | null;
   por: string | null;
+  /** El ultimo import del Excel de descuentos (V.0.99.85). */
+  fechaDescuentos?: string | null;
 };
 
 const texto = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
@@ -128,13 +160,68 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     stockBA: entero(o.stockBA),
     stockTS: entero(o.stockTS),
     gbpId: Number.isInteger(gbpId) ? gbpId : null,
+    ...(o.mon === "USD" ? { mon: "USD" as const } : {}),
     // Solo cuenta para un articulo que todavia no tiene: el que ya tiene lo
     // conserva (guardarArticulos).
     ...(flete > 0 ? { flete } : {}),
     ...(typeof otroCosto === "number" ? { otroCosto } : {}),
     ...(typeof otroNombre === "string" ? { otroNombre } : {}),
     ...(typeof bulto === "number" ? { bulto } : {}),
+    ...deOtroExcel(o),
   };
+}
+
+/** Porcentajes de GBP (descuentos o recargos): hasta 4, cada uno entre
+ *  `rango[0]` y `rango[1]`, con dos decimales, en el orden en que vienen y
+ *  sin los ceros (no cambian la cuenta). En GBP hay recargos negativos
+ *  (-35%, -20%): son descuentos y se aceptan. null = no tiene forma. */
+export function limpiarPorcentajes(v: unknown, rango: readonly [number, number]): number[] | null {
+  if (!Array.isArray(v) || v.length > 4) return null;
+  const out: number[] = [];
+  for (const x of v) {
+    const n = typeof x === "number" ? x : Number(typeof x === "string" ? x.trim().replace(",", ".") : NaN);
+    if (!Number.isFinite(n) || n < rango[0] || n > rango[1]) return null;
+    const r = Math.round(n * 100) / 100;
+    if (r !== 0) out.push(r);
+  }
+  return out;
+}
+/** Un descuento del 100% o un recargo de -100% dejarian el costo en cero. */
+export const RANGO_DESCUENTO = [-1000, 99.99] as const;
+export const RANGO_RECARGO = [-99.99, 1000] as const;
+
+const enteroEntre = (v: unknown, min: number, max: number): number | undefined => {
+  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v.trim()) : NaN;
+  return Number.isInteger(n) && n >= min && n <= max ? n : undefined;
+};
+
+/** Lo del Excel de estructura, limpio: lo que no tiene forma no esta. */
+export function limpiarEstructura(o: Record<string, unknown>): Omit<EstructuraArticulo, "cod"> {
+  const fab = texto(o.fab, 40).replace(/[<>]/g, "");
+  const upb = enteroEntre(o.upb, 2, 100_000);
+  const min = enteroEntre(o.min, 0, 10_000_000);
+  const opt = enteroEntre(o.opt, 0, 10_000_000);
+  return {
+    ...(fab ? { fab } : {}),
+    ...(upb !== undefined ? { upb } : {}),
+    ...(min !== undefined ? { min } : {}),
+    ...(opt !== undefined ? { opt } : {}),
+  };
+}
+
+/** Lo de los otros dos Excel que venga adentro de un articulo (si alguna
+ *  vez llega todo junto). Lo que no tiene forma se ignora. */
+function deOtroExcel(o: Record<string, unknown>): Partial<ArticuloPunto> {
+  const out: Partial<ArticuloPunto> = {};
+  if ("dtos" in o) {
+    const d = limpiarPorcentajes(o.dtos, RANGO_DESCUENTO);
+    if (d) out.dtos = d;
+  }
+  if ("recs" in o) {
+    const r = limpiarPorcentajes(o.recs, RANGO_RECARGO);
+    if (r) out.recs = r;
+  }
+  return { ...out, ...limpiarEstructura(o) };
 }
 
 /** Saca del articulo lo que se carga en Punto, para volver a ponerlo como
@@ -156,8 +243,19 @@ function conLoDePunto(base: Omit<ArticuloPunto, CampoDePunto>, c: CostosArticulo
   return a;
 }
 
+/** Copia un campo de los otros Excel de un articulo a otro. */
+function copiar<K extends (typeof CAMPOS_DE_OTRO_EXCEL)[number]>(a: ArticuloPunto, de: ArticuloPunto, k: K): void {
+  a[k] = de[k];
+}
+
 /** Lo que hay en el renglon de la base, tal cual. */
-type Crudo = { articulos?: unknown; fecha?: string | null; por?: string | null };
+type Crudo = {
+  articulos?: unknown;
+  fecha?: string | null;
+  por?: string | null;
+  fechaDescuentos?: string | null;
+  fechaEstructura?: string | null;
+};
 
 async function leerCrudo(db: Pick<Prisma.TransactionClient, "setting">): Promise<{ d: Crudo; updatedAt: Date } | null> {
   const fila = await db.setting.findUnique({ where: { key: CLAVE_ARTICULOS } });
@@ -186,6 +284,7 @@ export async function leerArticulos(): Promise<Guardados> {
     articulos: Array.isArray(c.d.articulos) ? (c.d.articulos as ArticuloPunto[]) : [],
     fecha: c.d.fecha ?? c.updatedAt.toISOString(),
     por: c.d.por ?? null,
+    fechaDescuentos: c.d.fechaDescuentos ?? null,
   };
 }
 
@@ -209,26 +308,91 @@ export async function guardarArticulos(
       else nuevos++;
       // Lo que se cargo en Punto queda el que estaba; lo del Excel solo
       // cuenta si el articulo no tenia.
-      porCodigo.set(
-        a.cod,
-        conLoDePunto(sinLoDePunto(a), {
-          flete: ya?.flete ?? a.flete,
-          otroCosto: ya?.otroCosto ?? a.otroCosto,
-          otroNombre: ya?.otroNombre ?? a.otroNombre,
-          bulto: ya?.bulto ?? a.bulto,
-        }),
-      );
+      const nuevo = conLoDePunto(sinLoDePunto(a), {
+        flete: ya?.flete ?? a.flete,
+        otroCosto: ya?.otroCosto ?? a.otroCosto,
+        otroNombre: ya?.otroNombre ?? a.otroNombre,
+        bulto: ya?.bulto ?? a.bulto,
+      });
+      // Los descuentos y lo de la estructura vienen de otros Excel: si este
+      // no los trae, quedan los que ya tenia.
+      if (ya) for (const k of CAMPOS_DE_OTRO_EXCEL) if (nuevo[k] === undefined && ya[k] !== undefined) copiar(nuevo, ya, k);
+      porCodigo.set(a.cod, nuevo);
     }
     const articulos = [...porCodigo.values()];
     if (articulos.length > MAXIMO_ARTICULOS)
       throw new Error(`Son más de ${MAXIMO_ARTICULOS} artículos: no entran en un solo guardado.`);
-    const value = JSON.stringify({ articulos, fecha: new Date().toISOString(), por });
+    // Lo demas del renglon (la fecha de los descuentos...) queda como estaba.
+    const value = JSON.stringify({ ...(c?.d ?? {}), articulos, fecha: new Date().toISOString(), por });
     await tx.setting.upsert({
       where: { key: CLAVE_ARTICULOS },
       update: { value },
       create: { key: CLAVE_ARTICULOS, value },
     });
     return { nuevos, actualizados, total: articulos.length };
+  }, TIEMPO);
+}
+
+/** Pone lo del Excel de descuentos o el de estructura en los articulos que
+ *  ya estan (por codigo). Reemplaza lo que tenian de ese Excel: es de GBP.
+ *  Los codigos que no estan guardados no se crean (un articulo sin Lista 2
+ *  no entra): vuelven contados, con algunos de ejemplo. */
+export async function guardarDeOtroExcel(
+  filas: Array<DescuentosArticulo | EstructuraArticulo>,
+  tipo: "descuentos" | "estructura",
+  por: string,
+): Promise<{ actualizados: number; noEstan: number; ejemplos: string[]; total: number }> {
+  return prisma.$transaction(async (tx) => {
+    await bloquearArticulos(tx);
+    const c = await leerCrudo(tx);
+    const articulos: ArticuloPunto[] = c && Array.isArray(c.d.articulos) ? (c.d.articulos as ArticuloPunto[]) : [];
+    const porCodigo = new Map(articulos.map((a, i) => [a.cod, i]));
+    // Si el codigo no esta, por el ID de GBP: 58 de SIGAS y DEMA cambiaron
+    // de codigo entre un Excel y otro, con el mismo ID.
+    const porId = new Map<number, number>();
+    articulos.forEach((a, i) => {
+      if (typeof a.gbpId === "number" && !porId.has(a.gbpId)) porId.set(a.gbpId, i);
+    });
+    let actualizados = 0;
+    const faltan: string[] = [];
+    for (const f of filas) {
+      const i = porCodigo.get(f.cod) ?? (typeof f.gbpId === "number" ? porId.get(f.gbpId) : undefined);
+      if (i === undefined) {
+        faltan.push(f.cod);
+        continue;
+      }
+      const a = { ...articulos[i] };
+      if (tipo === "descuentos") {
+        const d = f as DescuentosArticulo;
+        a.dtos = d.dtos;
+        a.recs = d.recs;
+      } else {
+        const e = f as EstructuraArticulo;
+        delete a.fab;
+        delete a.upb;
+        delete a.min;
+        delete a.opt;
+        if (e.fab) a.fab = e.fab;
+        if (e.upb !== undefined) a.upb = e.upb;
+        if (e.min !== undefined) a.min = e.min;
+        if (e.opt !== undefined) a.opt = e.opt;
+      }
+      articulos[i] = a;
+      actualizados++;
+    }
+    if (actualizados) {
+      // La fecha y el usuario del ultimo import de LISTAS no se tocan: con
+      // ella cada compu decide si un precio corregido a mano ya quedo viejo,
+      // y este Excel no trae precios. Cada uno guarda la suya aparte.
+      const ahora = new Date().toISOString();
+      const value = JSON.stringify({
+        ...c?.d,
+        articulos,
+        ...(tipo === "descuentos" ? { fechaDescuentos: ahora } : { fechaEstructura: ahora }),
+      });
+      await tx.setting.update({ where: { key: CLAVE_ARTICULOS }, data: { value } });
+    }
+    return { actualizados, noEstan: faltan.length, ejemplos: faltan.slice(0, 8), total: articulos.length };
   }, TIEMPO);
 }
 

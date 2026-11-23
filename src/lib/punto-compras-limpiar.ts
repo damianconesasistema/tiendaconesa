@@ -53,8 +53,13 @@ export type RenglonCompra = {
   recibido: number;
   /** El precio de lista del proveedor, sin IVA. */
   lista: number;
-  /** La cadena de descuentos (hasta 6, cada uno de 0 a 95 %). */
+  /** La cadena de descuentos (hasta 8, cada uno de 0 a 99,99 %; eran 6 de
+   *  hasta 95 % antes de la V.0.99.85: GBP tiene descuentos de 99 % en
+   *  unidades sacadas del precio de una caja). */
   cadena: number[];
+  /** Los recargos de GBP sobre la lista (V.0.99.85), en %: sin ellos el
+   *  renglon no da el neto. No esta = no tiene. */
+  recs?: number[];
   /** El descuento de contado, en %. */
   cont: number;
   /** El costo unitario sin IVA, ya con los descuentos: lo calcula la pagina. */
@@ -146,15 +151,24 @@ function renglon(x: unknown, n: number): { renglon: RenglonCompra } | { error: s
 
   let cadena: number[] = [];
   if (o.cadena != null) {
-    if (!Array.isArray(o.cadena) || o.cadena.length > 6)
-      return { error: `${de}: la cadena de descuentos es una lista de hasta 6 porcentajes.` };
+    if (!Array.isArray(o.cadena) || o.cadena.length > 8)
+      return { error: `${de}: la cadena de descuentos es una lista de hasta 8 porcentajes.` };
     cadena = o.cadena.map(num);
-    if (cadena.some((d) => !Number.isFinite(d) || d < 0 || d > 95))
-      return { error: `${de}: cada descuento de la cadena va de 0 a 95 %.` };
+    if (cadena.some((d) => !Number.isFinite(d) || d < 0 || d > 99.99))
+      return { error: `${de}: cada descuento de la cadena va de 0 a 99,99 %.` };
+  }
+  let recs: number[] = [];
+  if (o.recs != null) {
+    if (!Array.isArray(o.recs) || o.recs.length > 8)
+      return { error: `${de}: los recargos son una lista de hasta 8 porcentajes.` };
+    recs = o.recs.map(num);
+    if (recs.some((r) => !Number.isFinite(r) || r < 0 || r > 1000))
+      return { error: `${de}: cada recargo va de 0 a 1.000 %.` };
+    recs = recs.filter((r) => r > 0);
   }
   const cont = o.cont == null || o.cont === "" ? 0 : num(o.cont);
-  if (!Number.isFinite(cont) || cont < 0 || cont > 95)
-    return { error: `${de}: el descuento de contado va de 0 a 95 %.` };
+  if (!Number.isFinite(cont) || cont < 0 || cont > 99.99)
+    return { error: `${de}: el descuento de contado va de 0 a 99,99 %.` };
 
   const neto = num(o.neto);
   if (!Number.isFinite(neto) || neto < 0 || neto > MAX_NETO)
@@ -184,6 +198,7 @@ function renglon(x: unknown, n: number): { renglon: RenglonCompra } | { error: s
   }
 
   const r: RenglonCompra = { cod, tit, cant, recibido, lista, cadena, cont, neto, iva, sinStockFabrica, origen };
+  if (recs.length) r.recs = recs;
   if (o.bulto != null && o.bulto !== "") {
     const bulto = num(o.bulto);
     if (!Number.isInteger(bulto) || bulto < 1 || bulto > MAX_BULTO)
@@ -214,7 +229,7 @@ export function juntarRenglones(
   for (const r of [...antes, ...llegan]) {
     const ya = porCod.get(r.cod);
     if (!ya) {
-      porCod.set(r.cod, { ...r, cadena: [...r.cadena], origen: [...r.origen] });
+      porCod.set(r.cod, { ...r, cadena: [...r.cadena], origen: [...r.origen], ...(r.recs ? { recs: [...r.recs] } : {}) });
       continue;
     }
     const cant = ya.cant + r.cant;
@@ -233,6 +248,8 @@ export function juntarRenglones(
       sinStockFabrica: ya.sinStockFabrica || r.sinStockFabrica,
       origen: [...ya.origen, ...r.origen].slice(-MAX_ORIGEN),
     };
+    // Los recargos, como la cadena: los de hoy (los que llegan).
+    if (r.recs && r.recs.length) junto.recs = [...r.recs];
     const bulto = r.bulto ?? ya.bulto;
     if (bulto != null) junto.bulto = bulto;
     // Lo que se necesitaba de verdad: si alguno lo dijo, se suma (el que no

@@ -2,9 +2,16 @@ import { registrar } from "@/lib/actividad";
 import {
   cambiarCostosArticulo,
   type CostosArticulo,
+  type DescuentosArticulo,
+  type EstructuraArticulo,
   guardarArticulos,
+  guardarDeOtroExcel,
   leerArticulos,
   limpiarArticulo,
+  limpiarEstructura,
+  limpiarPorcentajes,
+  RANGO_DESCUENTO,
+  RANGO_RECARGO,
   limpiarBulto,
   limpiarFleteArticulo,
   limpiarOtroCosto,
@@ -30,6 +37,14 @@ import { quienEntra } from "../clave";
 // que no vino queda); 0 o vacio lo saca (y el bulto, tambien 1). Con el
 // permiso "productos". Devuelve {ok, articulo}. Importar de nuevo el Excel
 // no pisa nada de esto.
+//
+// POST tambien acepta (V.0.99.85) los otros dos Excel de GBP, para los
+// articulos que ya estan (por codigo; los que no estan no se crean):
+// - {descuentos: [{cod, dtos: [%...], recs: [%...]}]}: el Excel de descuentos
+//   ("Descuento #1..#4", "Recargo #1..#4").
+// - {estructura: [{cod, fab?, upb?, min?, opt?}]}: el Excel de articulos
+//   (codigo del fabricante, unidades por bulto, cantidad minima y optima).
+// Devuelven {ok, actualizados, noEstan, ejemplos, total, descartados}.
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +82,7 @@ export async function POST(req: Request): Promise<Response> {
   if (!puedePunto(yo.permisos, "importar"))
     return json({ error: "Tu usuario no tiene permiso para importar. Pedíselo a quien administra los usuarios." }, 403);
 
-  let cuerpo: { articulos?: unknown; archivo?: unknown; yo?: unknown };
+  let cuerpo: { articulos?: unknown; descuentos?: unknown; estructura?: unknown; archivo?: unknown; yo?: unknown };
   try {
     cuerpo = (await req.json()) as typeof cuerpo;
   } catch {
@@ -78,6 +93,8 @@ export async function POST(req: Request): Promise<Response> {
   if (!cuerpo || typeof cuerpo !== "object") return json({ error: "No entendí lo que me mandaste." }, 400);
   const otro = deOtroUsuario(cuerpo.yo, yo.usuario);
   if (otro) return json({ error: otro });
+  if (Array.isArray(cuerpo.descuentos) || Array.isArray(cuerpo.estructura))
+    return deOtroExcel(cuerpo, yo.usuario);
   const crudos = Array.isArray(cuerpo.articulos) ? cuerpo.articulos : [];
   if (!crudos.length) return json({ error: "No llegó ningún artículo." }, 400);
   if (crudos.length > MAXIMO_ARTICULOS) return json({ error: `Son más de ${MAXIMO_ARTICULOS} artículos.` }, 413);
@@ -101,6 +118,49 @@ export async function POST(req: Request): Promise<Response> {
     // no puede decir que paso. El texto, sin lo de adentro de la base (ver
     // src/lib/punto-error.ts).
     return json({ error: motivoParaLaPantalla(e, "No pude guardar los artículos: probá de nuevo en un momento.") });
+  }
+}
+
+/** El Excel de descuentos o el de estructura: solo para los que ya estan. */
+async function deOtroExcel(
+  cuerpo: { descuentos?: unknown; estructura?: unknown; archivo?: unknown },
+  quien: string,
+): Promise<Response> {
+  const tipo = Array.isArray(cuerpo.descuentos) ? "descuentos" : "estructura";
+  const crudos = (tipo === "descuentos" ? cuerpo.descuentos : cuerpo.estructura) as unknown[];
+  if (!crudos.length) return json({ error: "No llegó ningún renglón." }, 400);
+  if (crudos.length > MAXIMO_ARTICULOS) return json({ error: `Son más de ${MAXIMO_ARTICULOS} renglones.` }, 413);
+  const filas: Array<DescuentosArticulo | EstructuraArticulo> = [];
+  const vistos = new Set<string>();
+  for (const x of crudos) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    const cod = typeof o.cod === "string" ? o.cod.trim().slice(0, 40) : "";
+    if (!cod || vistos.has(cod)) continue;
+    // El ID de GBP, para encontrarlo si cambio de codigo.
+    const id = typeof o.gbpId === "number" && Number.isInteger(o.gbpId) && o.gbpId > 0 ? o.gbpId : undefined;
+    if (tipo === "descuentos") {
+      const dtos = limpiarPorcentajes(o.dtos, RANGO_DESCUENTO);
+      const recs = limpiarPorcentajes(o.recs, RANGO_RECARGO);
+      if (!dtos || !recs) continue;
+      filas.push({ cod, ...(id ? { gbpId: id } : {}), dtos, recs });
+    } else {
+      filas.push({ cod, ...(id ? { gbpId: id } : {}), ...limpiarEstructura(o) });
+    }
+    vistos.add(cod);
+  }
+  if (!filas.length) return json({ error: "Ningún renglón tenía código y datos que se entiendan." }, 400);
+  try {
+    const r = await guardarDeOtroExcel(filas, tipo, quien);
+    const archivo = typeof cuerpo.archivo === "string" ? cuerpo.archivo.slice(0, 120) : "";
+    await registrar(
+      tipo === "descuentos" ? "Punto: importó los descuentos de GBP" : "Punto: importó la estructura de artículos de GBP",
+      `${r.actualizados} artículos actualizados${archivo ? ` desde ${archivo}` : ""}; ${r.noEstan} códigos no están cargados.`,
+      quien,
+    );
+    return json({ ok: true, ...r, descartados: crudos.length - filas.length });
+  } catch (e) {
+    return json({ error: motivoParaLaPantalla(e, "No pude guardar: probá de nuevo en un momento.") });
   }
 }
 

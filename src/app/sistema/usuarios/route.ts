@@ -9,7 +9,7 @@ import {
   leerPunto,
   nombreSucursalPunto,
 } from "@/lib/punto-permisos";
-import { yoPunto, type YoPunto } from "@/lib/punto-yo";
+import { reseteaATodos, yoPunto, type YoPunto } from "@/lib/punto-yo";
 import {
   claveProvisoria,
   estaConectado,
@@ -44,6 +44,10 @@ import { quienEntra } from "../clave";
 // si esta activo y si administra usuarios, solo de los que son solo de Punto
 // y no administran usuarios. Y nadie se saca a si mismo el permiso de
 // administrar ni se desactiva (no queda nadie para volver a darselo).
+// EXCEPCION decidida por Damian el 23/11/2026, sabiendo eso: carlos, daniel
+// y damian (RESETEAN_A_TODOS, src/lib/punto-yo.ts) resetean la contrasena de
+// cualquiera, menos la propia ("que pueda Carlos, Daniel y Damian hacerlo,
+// por las dudas"). Desactivar y dar o sacar "administra" sigue como estaba.
 //
 // Errores: 401 sin sesion, 403 si no le toca, 400 si lo que mando no sirve;
 // los del servidor con 200 y {error}, porque Cloudflare tapa los 5xx con su
@@ -91,6 +95,8 @@ function paraLaPantalla(u: Fila) {
     nombre: u.nombre.replace(/[<>]/g, ""),
     activo: u.activo,
     conectado: estaConectado(u.ultimaActividad),
+    // La ultima vez que anduvo por Punto o el panel ("anduvo hace 2 horas").
+    ultimaActividad: u.ultimaActividad ? u.ultimaActividad.toISOString() : null,
     ultimoIngreso: u.ultimoIngreso ? u.ultimoIngreso.toISOString() : null,
     punto: leerPunto(u.punto),
     sucursal: u.sucursal,
@@ -176,7 +182,13 @@ export async function GET(): Promise<Response> {
   if (yo instanceof Response) return yo;
   try {
     const filas = await prisma.adminUser.findMany({ orderBy: { nombre: "asc" }, select: CAMPOS });
-    return json({ usuarios: filas.map(paraLaPantalla), areas: AREAS_PUNTO, acciones: ACCIONES_PUNTO });
+    return json({
+      usuarios: filas.map(paraLaPantalla),
+      areas: AREAS_PUNTO,
+      acciones: ACCIONES_PUNTO,
+      // La pantalla muestra Resetear contrasena en todos si es uno de los duenos.
+      reseteaATodos: reseteaATodos(yo.usuario),
+    });
   } catch {
     return json({ error: "No pude leer los usuarios." });
   }
@@ -281,10 +293,11 @@ async function resetearClave(c: Cuerpo, yo: YoPunto): Promise<Response> {
   if (u instanceof Response) return u;
   if (u.username === yo.usuario)
     return json({ error: "Tu contraseña la cambiás vos desde tu usuario en el panel." }, 403);
-  if (yo.usuario !== PRINCIPAL && soloLoTocaAdmin(u)) return NO_LE_TOCA(u);
+  const duenio = reseteaATodos(yo.usuario);
+  if (!duenio && soloLoTocaAdmin(u)) return NO_LE_TOCA(u);
   const clave = claveProvisoria();
   const r = await prisma.adminUser.updateMany({
-    where: dondeLoPuedeTocar(u, yo),
+    where: duenio ? { id: u.id } : dondeLoPuedeTocar(u, yo),
     data: { passwordHash: huella(clave), debeCambiarClave: true },
   });
   if (!r.count) return CAMBIO_MIENTRAS();

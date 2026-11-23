@@ -12,6 +12,14 @@ import { PRINCIPAL } from "@/lib/usuarios";
 // src/app/sistema/route.ts) y las direcciones de /sistema lo vuelven a mirar
 // antes de importar, eliminar o numerar: la pagina solo esconde.
 
+/** Los duenos: resetean la contrasena de cualquiera (menos la propia) y por
+ *  eso administran los usuarios de Punto aunque no tengan tildado
+ *  "administra usuarios". Damian, 23/11/2026: "que pueda Carlos, Daniel y
+ *  Damian hacerlo, por las dudas" (antes solo admin podia resetear a los que
+ *  tambien entran al panel). */
+export const RESETEAN_A_TODOS: readonly string[] = ["carlos", "daniel", "damian"];
+export const reseteaATodos = (usuario: string) => usuario === PRINCIPAL || RESETEAN_A_TODOS.includes(usuario);
+
 export type YoPunto = {
   usuario: string;
   nombre: string;
@@ -42,6 +50,6 @@ export async function yoPunto(): Promise<YoPunto | null> {
     nombre: fila.nombre || s.username,
     permisos: permisosEfectivos(leerPunto(fila.punto)),
     sucursal: fila.sucursal || null,
-    adminUsuarios: fila.adminPunto,
+    adminUsuarios: fila.adminPunto || RESETEAN_A_TODOS.includes(s.username),
   };
 }
