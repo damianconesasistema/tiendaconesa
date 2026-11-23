@@ -304,10 +304,14 @@ section[hidden]{display:none}
 .mas-abajo[hidden]{display:none}
 /* V.0.11.200 (Damián: "el buscar destacámelo, así se ve mejor, con otro
    color"): el buscador de Artículos, amarillo. */
-.art-filtros .buscar input{background:#fff8e1; border:2px solid #f2b705; font-weight:600}
-.art-filtros .buscar input::placeholder{color:#9a7b1c; font-weight:500}
-.art-filtros .buscar input:focus{border-color:#d99a00; box-shadow:0 0 0 4px rgba(242,183,5,.25); background:#fffdf3}
-.art-filtros .buscar svg{color:#b8860b}
+/* V.0.11.205: en rojo ("ponelo en rojo para llamar la atención"). */
+.art-filtros .buscar input{background:var(--accent-soft, #fdecea); border:2px solid var(--accent); font-weight:600}
+.art-filtros .buscar input::placeholder{color:#b42318; font-weight:500; opacity:.85}
+.art-filtros .buscar input:focus{box-shadow:0 0 0 4px rgba(230,48,32,.18); background:#fff}
+.art-filtros .buscar svg{color:var(--accent)}
+/* Sin las etiquetas de proveedores ("no me pongas las etiquetas abajo
+   porque marea"): queda la lista Proveedor. */
+#fChips{display:none !important}
 /* V.0.11.201: Artículos se adapta a la pantalla, sin correrse de costado
    ("debería adaptarse y no generar scroll"). La tabla pedía 1.650 px. */
 #tbProd td:nth-child(1) small{overflow-wrap:anywhere}
@@ -1391,7 +1395,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.204</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.205</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1846,6 +1850,7 @@ footer{
   <div class="head">
     <h2>Artículos</h2>
   </div>
+  <div class="aviso" id="avisoBorrador" hidden style="margin-bottom:14px"></div>
   <div class="acc-art" id="accArt">
     <button type="button" class="acceso" data-art="gbp"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M10 9H8"/></svg></span><b>Importar de GBP</b>
       <span class="fr" id="gbpGuardados2">Los Excel que exporta GlobalBluePoint.</span></button>
@@ -3351,7 +3356,7 @@ function abrirVista(v){
 
 function avisarVista(v){
   window.scrollTo({top:0,behavior:"instant"});
-  if(v==="productos") pintarProd();
+  if(v==="productos"){ pintarProd(); setTimeout(() => { try{ revisarBorradorAlta().catch(() => {}); }catch(e){} }, 0); }
   if(v==="caja"){ pintarCaja(); traerPorCobrar(); }
   if(v==="comprobantes"){ traerPorCobrar(); traerPresuHoy(); }
   if(v==="gerencia") pintarGerencia();
@@ -5415,6 +5420,7 @@ function abrirAlta(p){
   revisarSku(); altaCuenta();
   pintarProvSel(p ? String(p.cat || "").trim() : "");
   pintarMarcaSel();
+  try{ pintarAvisoBorrador(null); }catch(e){}
   // Los de la pantalla Proveedores, si todavía no se trajeron (V.0.11.203).
   if(!PRV.lista.length) cargarPrvSiFalta().then(() => { pintarProvSel(provElegido()); pintarMarcaSel(); }).catch(() => {});
   document.getElementById("aTit").dispatchEvent(new Event("input"));
@@ -5530,6 +5536,7 @@ function cerrarAlta(){
   document.getElementById("altaCuerpo").hidden = true;
   document.getElementById("btnAbrirAlta").textContent = "Crear uno";
   ALTA.editando = null;
+  setTimeout(() => { try{ revisarBorradorAlta(); }catch(e){} }, 400);
 }
 document.getElementById("btnAbrirAlta").addEventListener("click",()=>{
   if(document.getElementById("altaCuerpo").hidden || ALTA.editando) abrirAlta(null); else cerrarAlta();
@@ -5629,6 +5636,120 @@ document.getElementById("aOtroSku").addEventListener("click",()=>{
   document.getElementById("aSku").value = /^\\d+$/.test(v) ? skuLegible() : skuSugerido();
   revisarSku();
 });
+/* ---------------------------------------------- el borrador del artículo
+   V.0.11.205 (Damián: "si estoy cargando un artículo, ¿hay forma de que me
+   guarde el borrador? recién recargué el sistema y me borró todo ... la
+   idea es que mantenga los datos el sistema"). Mientras Crear uno está
+   abierto, lo escrito se guarda solo: en el servidor (/sistema/borrador,
+   uno por usuario) y en esta compu. Se borra al guardar el artículo o al
+   tocar Descartar. */
+const BORR_URL = "/sistema/borrador";
+const BORR = { t:0, ultimo:"", actual:null, sin:false };
+const borrLocal = () => "punto.borrador.alta:" + (soyYo() || "");
+function fotoAlta(){
+  const c = document.getElementById("altaCuerpo"); if(!c || c.hidden) return null;
+  const campos = {};
+  for(const el of c.querySelectorAll("input[id], select[id], textarea[id]")){
+    if(el.type === "file" || el.id === "aProvSel" || el.id === "aMarcaSel") continue;
+    campos[el.id] = el.type === "checkbox" ? !!el.checked : el.value;
+  }
+  return { campos, seis: (ALTA.seis || []).slice(), recs: (ALTA.recs || []).slice(),
+    combo: ALTA.combo ? ALTA.combo.map(x => ({ cod:x.cod, cant:x.cant })) : null,
+    editando: ALTA.editando || null, fletePct: +ALTA.fletePct || 0, cat: provElegido() };
+}
+/** Si hay algo escrito de verdad (no solo lo que trae el formulario). */
+function altaConAlgo(f){
+  const c = f.campos || {};
+  return !!(String(c.aTit || "").trim() || String(c.aDesc || "").trim() || String(c.aCodProv || "").trim() ||
+    aNum(c.aLista || 0) > 0 || String(c.aMarca || "").trim() || f.cat || (f.combo && f.combo.length));
+}
+function guardarBorradorAlta(){
+  clearTimeout(BORR.t);
+  BORR.t = setTimeout(async () => {
+    const f = fotoAlta(); if(!f) return;
+    if(!f.editando && !altaConAlgo(f)) return;
+    const t = JSON.stringify(f); if(t === BORR.ultimo) return;
+    BORR.ultimo = t; BORR.sin = false;
+    const en = new Date().toISOString();
+    try{ localStorage.setItem(borrLocal(), JSON.stringify({ datos:f, en })); }catch(e){}
+    try{
+      await fetch(BORR_URL, { method:"POST", credentials:"same-origin", headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ que:"alta", datos:f }) });
+    }catch(e){ /* queda en esta compu; se vuelve a mandar con el próximo cambio */ }
+  }, 700);
+}
+async function borrarBorradorAlta(){
+  clearTimeout(BORR.t); BORR.ultimo = ""; BORR.actual = null; BORR.sin = true;
+  try{ localStorage.removeItem(borrLocal()); }catch(e){}
+  pintarAvisoBorrador(null);
+  try{
+    await fetch(BORR_URL, { method:"POST", credentials:"same-origin", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ que:"alta", datos:null }) });
+  }catch(e){}
+}
+/** El más nuevo entre el del servidor y el de esta compu. */
+async function traerBorradorAlta(){
+  let srv = null, loc = null;
+  try{
+    const r = await fetch(BORR_URL + "?que=alta", { cache:"no-store", credentials:"same-origin" });
+    const d = await r.json().catch(() => null);
+    srv = d && d.borrador ? d.borrador : null;
+  }catch(e){}
+  try{ loc = JSON.parse(localStorage.getItem(borrLocal()) || "null"); }catch(e){}
+  return [srv, loc].filter(x => x && x.datos).sort((a, b) => String(b.en || "").localeCompare(String(a.en || "")))[0] || null;
+}
+async function revisarBorradorAlta(){
+  if(BORR.sin) { pintarAvisoBorrador(null); return; }
+  const b = await traerBorradorAlta();
+  if(BORR.sin) return;
+  BORR.actual = b;
+  pintarAvisoBorrador(document.getElementById("altaCuerpo").hidden ? b : null);
+}
+function pintarAvisoBorrador(b){
+  const a = document.getElementById("avisoBorrador"); if(!a) return;
+  if(!b || !b.datos){ a.hidden = true; a.innerHTML = ""; return; }
+  const c = b.datos.campos || {};
+  const nom = String(c.aTit || "").trim() || (b.datos.editando ? "el " + b.datos.editando : "un artículo nuevo");
+  a.innerHTML = '<span>⚠</span><div><b>Tenés un artículo a medio cargar:</b> ' + txt(nom.slice(0, 70)) +
+    (b.en ? ' <span style="color:var(--ink-3)">· guardado el ' + txt(fechaAR(b.en)) + ' a las ' + txt(horaAR(b.en)) + '</span>' : '') +
+    '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">' +
+    '<button class="b1" type="button" data-borr="seguir" style="padding:6px 14px">Seguir cargándolo</button>' +
+    '<button class="b3" type="button" data-borr="descartar" style="padding:6px 12px">Descartar</button></div></div>';
+  a.hidden = false;
+}
+function aplicarBorradorAlta(f){
+  const caja = document.getElementById("altaCuerpo");
+  const c = f.campos || {};
+  for(const id of Object.keys(c)){
+    if(id === "aProvSel" || id === "aMarcaSel" || id === "aProvNuevo") continue;
+    const el = document.getElementById(id); if(!el || !caja.contains(el)) continue;
+    if(el.type === "checkbox") el.checked = !!c[id]; else el.value = c[id];
+  }
+  if(Array.isArray(f.seis)) ALTA.seis = f.seis.slice();
+  if(Array.isArray(f.recs)) ALTA.recs = f.recs.slice();
+  ALTA.combo = Array.isArray(f.combo) ? f.combo.filter(x => x && prod(x.cod)).map(x => ({ cod:x.cod, cant:x.cant })) : ALTA.combo;
+  ALTA.fletePct = +f.fletePct || 0;
+  pintarProvSel(f.cat || ""); pintarMarcaSel();
+  pintarCombo(); pintarMoneda(); pintarMay(); pintarAltaSeis(); revisarSku(); altaCuenta();
+  document.getElementById("aTit").dispatchEvent(new Event("input"));
+}
+document.getElementById("avisoBorrador").addEventListener("click", e => {
+  const b = e.target.closest("[data-borr]"); if(!b) return;
+  if(b.dataset.borr === "descartar"){
+    if(confirm("¿Descarto el artículo que estabas cargando? No se puede recuperar.")) borrarBorradorAlta();
+    return;
+  }
+  const d = BORR.actual && BORR.actual.datos; if(!d) return;
+  const p = d.editando ? prod(d.editando) : null;
+  if(d.editando && !p) toast("Ese artículo ya no está en el catálogo: sigue como uno nuevo.");
+  abrirAlta(p || null);
+  aplicarBorradorAlta(d);
+  BORR.ultimo = "";
+  toast("Seguís con el artículo que estabas cargando.");
+});
+for(const ev of ["input", "change", "click"])
+  document.getElementById("altaCuerpo").addEventListener(ev, guardarBorradorAlta);
+
 /* V.0.11.204 (Damián: "si escribís directo te pone 010 y no 10: debería
    reemplazar al cero cuando me pongo a escribir"). En las casillas de
    números: con 0 se vacía al entrar (si se sale sin escribir, vuelve el 0);
@@ -5759,7 +5880,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
       const np = productoDeGbp(crudo);
       for(const k of CAMPOS_GBP_PUNTO) p[k] = np[k];
       llenarSelects(); pintarProd(); buscar(); pintarTicket();
-      cerrarAlta();
+      borrarBorradorAlta(); cerrarAlta();
       toast(cod+" guardado"+(Object.keys(extras).length ? " para todas las compus" : "")+". "+
         (Math.abs(antes - p.contado) < 0.5 ? "La Lista 2 quedó igual." : "La Lista 2 pasa a "+fmt(p.unPago)+"."));
       return;
@@ -5767,7 +5888,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
     Object.assign(p, datos);
     p.tocado = true; guardarCatalogo();
     llenarSelects(); pintarProd(); buscar(); pintarTicket();
-    cerrarAlta();
+    borrarBorradorAlta(); cerrarAlta();
     toast(cod+" guardado. "+(antes===contado
       ? "La Lista 2 quedó igual."
       : "La Lista 2 pasa a "+fmt(pr.lista2)+"."));
@@ -5779,7 +5900,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   PRODUCTOS.push(p);
   guardarCatalogo();
   llenarSelects(); pintarProd(); buscar();
-  cerrarAlta();
+  borrarBorradorAlta(); cerrarAlta();
   toast(cod+" · "+tit.slice(0,40)+" cargado. Cuesta "+fmt(costo)+" con IVA y la Lista 2 queda en "+fmt(pr.lista2)+".");
 });
 // Después de guardar (este va después del de arriba): si era pieza de un

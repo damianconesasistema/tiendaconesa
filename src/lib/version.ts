@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.204";
+export const APP_VERSION = "V.0.11.205";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.205",
+    date: "2026-11-23",
+    changes: [
+      "BORRADOR DEL ARTÍCULO (\"si estoy cargando un artículo, ¿hay forma de que me guarde el borrador? recargué y me borró todo ... que mantenga los datos el sistema\"): lo que se escribe en Crear uno se guarda solo en el servidor (uno por usuario, /sistema/borrador) y en la compu. Si se recarga o se cierra sin guardar, en Artículos aparece \"Tenés un artículo a medio cargar\" con Seguir cargándolo y Descartar. Se borra al guardar el artículo.",
+      "Artículos: el buscador en rojo (\"ponelo en rojo para llamar la atención\") y sin las etiquetas de proveedores abajo (\"marea\"); queda la lista Proveedor.",
+    ],
+  },
   {
     version: "V.0.11.204",
     date: "2026-11-23",
