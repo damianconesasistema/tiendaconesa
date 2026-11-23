@@ -1191,10 +1191,10 @@ footer{
   .lin-t td:nth-child(8){grid-area:x; justify-self:end}
   .lin-t .c button{min-width:40px; min-height:40px; font-size:18px}
   /* Comprobantes: los pedidos por cobrar y lo emitido, como tarjetas. */
-  #tbPorCobrar, #tbCp{display:block}
-  #tbPorCobrar > tr, #tbCp > tr{display:grid; gap:4px 10px; padding:10px 12px; border-bottom:1px solid var(--line); align-items:center}
-  #tbPorCobrar > tr > td, #tbCp > tr > td{display:block; padding:0 !important; border:0 !important; min-width:0 !important; text-align:left}
-  #tbPorCobrar > tr > td[colspan], #tbCp > tr > td[colspan]{grid-column:1 / -1}
+  #tbPorCobrar, #tbCp, #tbPresu{display:block}
+  #tbPorCobrar > tr, #tbCp > tr, #tbPresu > tr{display:grid; gap:4px 10px; padding:10px 12px; border-bottom:1px solid var(--line); align-items:center}
+  #tbPorCobrar > tr > td, #tbCp > tr > td, #tbPresu > tr > td{display:block; padding:0 !important; border:0 !important; min-width:0 !important; text-align:left}
+  #tbPorCobrar > tr > td[colspan], #tbCp > tr > td[colspan], #tbPresu > tr > td[colspan]{grid-column:1 / -1}
   #tbPorCobrar > tr{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"cli tot" "ven lle" "art est" "acc acc"}
   #tbPorCobrar > tr > td:nth-child(1){grid-area:lle; text-align:right; font-size:12px}
   #tbPorCobrar > tr > td:nth-child(2){grid-area:ven}
@@ -1204,19 +1204,19 @@ footer{
   #tbPorCobrar > tr > td:nth-child(6){grid-area:est; text-align:right}
   #tbPorCobrar > tr > td:nth-child(7){grid-area:acc}
   #tbPorCobrar [data-cobrar]{width:100%; min-height:42px; font-size:14px !important}
-  #tbCp > tr.cp-fila{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"comp tot" "cli fec" "ven ven" "acc acc"}
-  #tbCp > tr.cp-fila > td:nth-child(1){grid-area:fec; text-align:right; font-size:12px !important}
-  #tbCp > tr.cp-fila > td:nth-child(2){grid-area:comp}
-  #tbCp > tr.cp-fila > td:nth-child(3){grid-area:cli}
-  #tbCp > tr.cp-fila > td:nth-child(4){grid-area:ven; font-size:12.5px}
-  #tbCp > tr.cp-fila > td:nth-child(5){grid-area:tot; text-align:right; font-size:15px}
-  #tbCp > tr.cp-fila > td:nth-child(6){grid-area:acc}
-  #tbCp > tr.cp-fila > td.cp-acc{display:flex; flex-wrap:wrap; gap:6px}
+  #tbCp > tr.cp-fila, #tbPresu > tr.cp-fila{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"comp tot" "cli fec" "ven ven" "acc acc"}
+  #tbCp > tr.cp-fila > td:nth-child(1), #tbPresu > tr.cp-fila > td:nth-child(1){grid-area:fec; text-align:right; font-size:12px !important}
+  #tbCp > tr.cp-fila > td:nth-child(2), #tbPresu > tr.cp-fila > td:nth-child(2){grid-area:comp}
+  #tbCp > tr.cp-fila > td:nth-child(3), #tbPresu > tr.cp-fila > td:nth-child(3){grid-area:cli}
+  #tbCp > tr.cp-fila > td:nth-child(4), #tbPresu > tr.cp-fila > td:nth-child(4){grid-area:ven; font-size:12.5px}
+  #tbCp > tr.cp-fila > td:nth-child(5), #tbPresu > tr.cp-fila > td:nth-child(5){grid-area:tot; text-align:right; font-size:15px}
+  #tbCp > tr.cp-fila > td:nth-child(6), #tbPresu > tr.cp-fila > td:nth-child(6){grid-area:acc}
+  #tbCp > tr.cp-fila > td.cp-acc, #tbPresu > tr.cp-fila > td.cp-acc{display:flex; flex-wrap:wrap; gap:6px}
   #tbPorCobrar > tr > td:nth-child(7){display:flex; flex-wrap:wrap; gap:6px}
   #tbPorCobrar > tr > td:nth-child(7) > *{flex:1 1 auto}
-  #tbCp > tr.cp-det{display:block; padding:0 0 8px}
-  #tbCp > tr.cp-det > td{display:block}
-  #tbCp > tr.cp-det .tabla-wrap, #tbCp > tr.cp-det table{overflow-x:auto}
+  #tbCp > tr.cp-det, #tbPresu > tr.cp-det{display:block; padding:0 0 8px}
+  #tbCp > tr.cp-det > td, #tbPresu > tr.cp-det > td{display:block}
+  #tbCp > tr.cp-det .tabla-wrap, #tbCp > tr.cp-det table, #tbPresu > tr.cp-det table{overflow-x:auto}
   /* Comprobantes, Caja y los demás: los encabezados de esas dos listas no
      hacen falta (cada dato se ve en su lugar). */
   #tbPorCobrar, #tbCp{width:100%}
@@ -1520,10 +1520,17 @@ footer{
   </div>
 
   <div class="card">
-    <div class="card-h"><h3>Lo emitido</h3><span class="sub" id="cpCount"></span></div>
+    <div class="card-h"><h3>Comprobantes</h3><span class="sub" id="cpCount"></span></div>
     <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto"><table class="densa"><thead><tr>
       <th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Vendedor</th><th class="r">Total</th><th></th>
     </tr></thead><tbody id="tbCp"></tbody></table></div>
+  </div>
+
+  <div class="card" style="margin-top:16px" id="cardPresu">
+    <div class="card-h"><h3>Presupuestos</h3><span class="sub" id="cpCountPresu"></span></div>
+    <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto"><table class="densa"><thead><tr>
+      <th>Fecha</th><th>Presupuesto</th><th>Cliente</th><th>Vendedor</th><th class="r">Total</th><th></th>
+    </tr></thead><tbody id="tbPresu"></tbody></table></div>
     <p class="nota">Tocá un renglón para ver los artículos. Un presupuesto se puede <b>Editar</b> mientras no se venda: queda con el mismo número. <b>Eliminar</b> lo saca de la lista y de la Caja, pero no lo borra del todo: queda en “Eliminados” y de ahí se recupera. Las facturas de Traslasierra salen por ARCA, con CAE: esas no se eliminan, se anulan con <b>Nota de crédito</b>. Las de Buenos Aires todavía son internas, sin CAE. La venta descuenta el stock al cobrarla (el presupuesto no).</p>
   </div>
 </section>
@@ -2710,10 +2717,15 @@ function listasMayor(p){
 /** El precio de un renglón de la venta con esa cantidad. */
 function precioLinea(p, cant){
   if(!p) return { contado: 0, unPago: 0, may: false };
+  // Con Lista 1 elegida arriba, el precio sale de la Lista 1 (en un artículo
+  // cargado a mano no hay Lista 1: va su precio).
+  const conL1 = S.lista === 1 && !p.aMano;
   if(p.may && +p.costo > 0 && cant >= Math.max(1, +p.mayDesde || 1)){
     const m = listasMayor(p);
-    return { contado: m.contado, unPago: m.lista2, may: true };
+    const un = conL1 ? m.lista1 : m.lista2;
+    return { contado: cent(un / RECARGO_1PAGO), unPago: un, may: true };
   }
+  if(conL1){ const un = lista1De(p); return { contado: cent(un / RECARGO_1PAGO), unPago: un, may: false }; }
   return { contado: p.contado, unPago: p.unPago, may: false };
 }
 /** Los precios de venta se redondean para arriba a los $100. */
@@ -2761,6 +2773,7 @@ const div0 = (a, b) => b ? a / b : 0;
 
 /* ====================================================== estado */
 const S = {
+  lista: 2,            // V.0.100.1: con qué lista se vende, 1 o 2 (como "Lista de Precios" de GBP)
   suc:"tsl",           // en que razon social se esta vendiendo (arranca Traslasierra)
   ordProd:{col:"margen", asc:true},   // por que columna se ordena la tabla
   cadenas:{},          // las cadenas que se cambiaron a mano, por proveedor
@@ -3467,6 +3480,8 @@ function pintarCamposVenta(){
         (puede("numeros") ? '<button type="button" class="link-chico" id="vtaNroEdit">'+
         (S.nroLibre ? "dejarlo como está" : "corregirlo")+'</button>' : '')+
       '</span></div>'+
+    campo("vtaLista","Lista de precios",["Lista 2","Lista 1"], S.lista === 1 ? "Lista 1" : "Lista 2",
+          S.lista === 1 ? "los precios de la Lista 1" : "los precios de la Lista 2")+
     campo("vtaCond","Condición de venta",Object.keys(MULT),cond,
           recargoDe(cond)==="sin recargo" ? sCond[1] : recargoDe(cond),!S.cond)+
     // El descuento, pegado a la condicion de venta: son las dos cosas que se
@@ -3541,6 +3556,7 @@ document.getElementById("camposVta").addEventListener("change",e=>{
   }
   if(id==="vtaComp") S.comp = e.target.value;
   if(id==="vtaCond"){ S.cond = e.target.value; S.forma = e.target.value; }
+  if(id==="vtaLista") S.lista = e.target.value === "Lista 1" ? 1 : 2;
   if(id==="vtaVend" && !VENDEDOR_LOGIN){
     S.usuario = e.target.value;
     document.getElementById("selUsuario").value = S.usuario;
@@ -3909,7 +3925,7 @@ function buscar(){
       'Te muestro lo que hay en ese rubro.</p>' : '')+
     '<div class="tabla-wrap"><table class="densa res-t"><thead><tr>'+
       '<th>Código</th><th>Artículo</th><th class="r">Stock</th>'+
-      '<th class="r">Lista 2</th><th class="r">Cant.</th><th></th>'+
+      '<th class="r">'+(S.lista === 1 ? "Lista 1" : "Lista 2")+'</th><th class="r">Cant.</th><th></th>'+
     '</tr></thead><tbody>'+
     hits.map(({p})=>{
       // El semaforo: el del mostrador ve si deja plata, sin ver el costo.
@@ -3925,7 +3941,7 @@ function buscar(){
           (p.promo?' <span class="pill p-ok">promo</span>':'')+
           '<small>'+p.rub.toLowerCase()+'</small></td>'+
         '<td class="r">'+st+'</td>'+
-        '<td class="r" style="font-weight:700;white-space:nowrap">'+fmt2(p.unPago)+'</td>'+
+        '<td class="r" style="font-weight:700;white-space:nowrap">'+fmt2(precioLinea(p, 1).unPago)+'</td>'+
         '<td class="r"><input class="cant" type="number" min="1" step="1" value="'+cy.cant+'" data-q="'+p.cod+'" aria-label="cantidad"></td>'+
         '<td><button class="sumar" data-add="'+p.cod+'">Sumar</button></td>'+
       '</tr>';
@@ -4332,7 +4348,7 @@ document.getElementById("btnBorrador").addEventListener("click",()=>{
   // El deposito pisado se va adentro del borrador y la venta siguiente
   // arranca limpia. Si no, el cliente que entraba despues le descontaba de
   // Buenos Aires sin que nadie lo hubiera pedido.
-  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
+  S.linea = []; S.desc = 0; S.lista = 2; S.comp = null; S.dep = null; S.nroLibre = false;
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   toast("Guardado como borrador. No gastó número ni movió stock: lo retomás cuando el cliente vuelva.");
 });
@@ -4363,9 +4379,14 @@ document.getElementById("btnMasAcc").addEventListener("click",e=>{
    los artículos cargados quedan. */
 document.getElementById("btnBorrarDatosVta").addEventListener("click", () => {
   if(EMITIENDO || trabadaPorDuda()) return;
-  S.cliente = ""; S.comp = null; S.cond = null; S.desc = 0; S.dep = null; S.nroLibre = false;
+  // V.0.100.1 (Damián: "ahí debería borrar todo si pongo borrar datos"):
+  // también los artículos. Si había, se pregunta antes.
+  if(S.linea.length && !confirm("¿Borrar todo? Se van los datos del comprobante y los " + S.linea.length +
+    (S.linea.length === 1 ? " artículo cargado." : " artículos cargados."))) return;
+  S.cliente = ""; S.comp = null; S.cond = null; S.desc = 0; S.lista = 2; S.dep = null; S.nroLibre = false;
+  S.linea = [];
   pintarCamposVenta(); pintarDtos(); pintarTicket();
-  toast("Datos del comprobante en blanco: consumidor final, sin descuento. Los artículos quedaron.");
+  toast("Venta en blanco: consumidor final, Lista 2, sin descuento y sin artículos.");
 });
 /* "+ Crear" (antes "Vaciar", abajo en Otras opciones): un comprobante nuevo,
    en blanco: sin artículos, consumidor final, sin descuento y el documento de
@@ -8369,7 +8390,7 @@ function trasEmitir(res){
 }
 
 function limpiarVentaEmitida(){
-  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
+  S.linea = []; S.desc = 0; S.lista = 2; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
   // El ticket de caja ya se cobró (o se mandó, o se devolvió).
   VSRV.caja = null; pintarCajaTicket();
@@ -8483,8 +8504,10 @@ const numeroCorto = g => String(g.nroTexto || "").replace(/^[A-Z] /, "");
 
 function pintarListaCp(){
   const tb = document.getElementById("tbCp"), cuenta = document.getElementById("cpCount");
-  if(CP.cargando && !CP.docs.length){ tb.innerHTML = '<tr><td colspan="6" class="vacio">Buscando…</td></tr>'; return; }
-  if(CP.error){ tb.innerHTML = '<tr><td colspan="6" class="vacio">' + txt(CP.error) + '</td></tr>'; cuenta.textContent = ""; return; }
+  const tbP = document.getElementById("tbPresu"), cuentaP = document.getElementById("cpCountPresu");
+  const vacio = t => '<tr><td colspan="6" class="vacio">' + t + '</td></tr>';
+  if(CP.cargando && !CP.docs.length){ tb.innerHTML = tbP.innerHTML = vacio("Buscando…"); return; }
+  if(CP.error){ tb.innerHTML = tbP.innerHTML = vacio(txt(CP.error)); cuenta.textContent = cuentaP.textContent = ""; return; }
   const toks = plano(document.getElementById("cpBusca").value).split(/\\s+/).filter(Boolean);
   const porId = {};
   for(const d of CP.docs) porId[d.id] = d;
@@ -8496,18 +8519,21 @@ function pintarListaCp(){
     return toks.every(x => t.indexOf(x) >= 0);
   });
   const suma = tipo => lista.filter(d => d.tipo === tipo && !d.eliminado).reduce((a, d) => a + d.total, 0);
-  const nP = lista.filter(d => d.tipo === "presupuesto").length;
-  cuenta.textContent = lista.length + (lista.length === 1 ? " comprobante" : " comprobantes") +
-    (nP ? " · presupuestado " + fmt(suma("presupuesto")) : "") +
+  // V.0.100.1: los presupuestos van en su propia lista, abajo.
+  const comps = lista.filter(d => d.tipo !== "presupuesto"), presus = lista.filter(d => d.tipo === "presupuesto");
+  cuenta.textContent = comps.length + (comps.length === 1 ? " comprobante" : " comprobantes") +
     (lista.some(d => d.tipo === "factura") ? " · facturado " + fmt(suma("factura")) : "") +
     (lista.some(d => d.tipo === "sin-comprobante") ? " · sin comprobante " + fmt(suma("sin-comprobante")) : "") +
+    (lista.some(d => d.tipo === "nota-credito") ? " · notas de crédito " + fmt(suma("nota-credito")) : "") +
     (CP.hayMas ? " · se ven los últimos 500" : "");
-  if(!lista.length){
-    tb.innerHTML = '<tr><td colspan="6" class="vacio">' +
-      (CP.docs.length ? "Nada coincide con lo que buscás." : "Todavía no hay nada emitido en este período.") + '</td></tr>';
-    return;
-  }
-  tb.innerHTML = lista.map(d => {
+  cuentaP.textContent = presus.length + (presus.length === 1 ? " presupuesto" : " presupuestos") +
+    (presus.length ? " · presupuestado " + fmt(suma("presupuesto")) : "");
+  // Con el filtro en "Presupuestos" no se ve la lista de comprobantes, y al revés.
+  const ft = document.getElementById("cpTipo").value;
+  tb.closest(".card").hidden = ft === "presupuesto";
+  document.getElementById("cardPresu").hidden = !!ft && ft !== "presupuesto" && ft !== "eliminados";
+  const nada = CP.docs.length ? "Nada coincide con lo que buscás." : "Todavía no hay nada en este período.";
+  const filaCp = d => {
     const dt = d.datos || {}, cli = dt.cliente || {};
     // Si se vendió lo dice el servidor, aparte de los filtros de la lista.
     const vendido = d.tipo === "presupuesto" ? d.vendidoEn : null;
@@ -8555,10 +8581,13 @@ function pintarListaCp(){
         '</div></td></tr>';
     }
     return h;
-  }).join("");
+  };
+  tb.innerHTML = comps.length ? comps.map(filaCp).join("") : vacio(nada);
+  tbP.innerHTML = presus.length ? presus.map(filaCp).join("") : vacio(nada);
 }
 
-document.getElementById("tbCp").addEventListener("click", e => {
+/* Los clics de las dos listas (Comprobantes y Presupuestos), en un solo lugar. */
+function clicCp(e){
   const b = e.target.closest("[data-pasar]");
   if(b){ const d = CP.docs.find(x => x.id === b.dataset.pasar); if(d) pasarAVenta(d); return; }
   const acc = e.target.closest("[data-acc]");
@@ -8583,7 +8612,8 @@ document.getElementById("tbCp").addEventListener("click", e => {
   if(!f) return;
   CP.abierto = CP.abierto === f.dataset.cp ? null : f.dataset.cp;
   pintarListaCp();
-});
+}
+for(const id of ["tbCp","tbPresu"]) document.getElementById(id).addEventListener("click", clicCp);
 for(const id of ["cpTipo","cpSuc","cpDias"])
   document.getElementById(id).addEventListener("change", () => { CP.abierto = null; pintarComprobantes(); });
 document.getElementById("cpBusca").addEventListener("input", pintarListaCp);
@@ -8896,7 +8926,7 @@ document.addEventListener("click", e => {
   if(!e.target.closest || !e.target.closest("#btnNoEditar")) return;
   if(EMITIENDO || trabadaPorDuda()) return;
   if(!confirm("¿Lo dejás? La venta de la pantalla se vacía y el presupuesto queda como estaba.")) return;
-  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
+  S.linea = []; S.desc = 0; S.lista = 2; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
   pintarCamposVenta(); pintarDtos(); pintarTicket(); guardarLocal();
 });
@@ -10755,7 +10785,7 @@ function guardarLocal(cerrando){
     d.tabs[MI_PESTANA] = {
       vivo: Date.now(), cerrada: !!cerrando || CERRANDO, oculta: document.visibilityState === "hidden",
       suc:S.suc, usuario:S.usuario,
-      venta:{ linea:S.linea, cliente:S.cliente, desc:S.desc, forma:S.forma, cond:S.cond,
+      venta:{ linea:S.linea, cliente:S.cliente, desc:S.desc, lista:S.lista, forma:S.forma, cond:S.cond,
               comp:S.comp, dep:S.dep, origen:S.origen || null, emision:S.emision || null,
               editando:S.editando || null, actualiza:S.actualiza || null,
               // V.0.99.82: cuál es en el servidor. Al abrir Punto en otra
@@ -10872,7 +10902,7 @@ function aplicarEntrada(e, cuenta, principal){
   if(lin.length && !S.linea.length){
     PANTALLA_SRV = srvGuardado(v.srv);
     if(PANTALLA_SRV) PANTALLA_SRV.cods = lin.map(l => l.cod);
-    S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0;
+    S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0; S.lista = +v.lista === 1 ? 1 : 2;
     if(forma){ S.forma = forma; S.cond = MULT[v.cond] ? v.cond : null; }
     S.comp = v.comp && LETRA[v.comp] ? v.comp : null;
     S.dep = v.dep === "BA" || v.dep === "TS" ? v.dep : null;
@@ -10893,7 +10923,7 @@ function aplicarEntrada(e, cuenta, principal){
     if(pantallaABorrador(bp)) S.borradores.unshift(bp);
     PANTALLA_SRV = srvGuardado(v.srv);
     if(PANTALLA_SRV) PANTALLA_SRV.cods = lin.map(l => l.cod);
-    S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0;
+    S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0; S.lista = +v.lista === 1 ? 1 : 2;
     if(forma){ S.forma = forma; S.cond = MULT[v.cond] ? v.cond : null; }
     S.comp = v.comp && LETRA[v.comp] ? v.comp : null;
     S.dep = v.dep === "BA" || v.dep === "TS" ? v.dep : null;
@@ -11178,7 +11208,7 @@ function datosDeVenta(){
     // El cliente viaja con la venta: el cajero de otra compu lo ve aunque
     // todavía no lo tenga en su lista.
     clienteDatos: clienteDatosDe(c),
-    desc:S.desc, forma:S.forma, cond:S.cond, comp:S.comp, dep:S.dep,
+    desc:S.desc, lista:S.lista, forma:S.forma, cond:S.cond, comp:S.comp, dep:S.dep,
     origen:S.origen || null, editando:S.editando || null, actualiza:S.actualiza || null
   };
 }
@@ -11213,7 +11243,7 @@ function soltarPantalla(aviso, aBorradores){
       editando:S.editando || null, actualiza:S.actualiza || null, linea:S.linea.map(l => ({ ...l })) });
   } else aBorradores = false;
   VSRV.id = null; VSRV.version = null; VSRV.caja = null;
-  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
+  S.linea = []; S.desc = 0; S.lista = 2; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
   pintarCajaTicket(); pintarCamposVenta(); pintarDtos(); pintarTicket(); pintarBorradores();
   VSRV.ultimo = JSON.stringify(datosDeVenta()) + "|" + S.suc;
@@ -11362,6 +11392,7 @@ function aplicarVentaDelServidor(v){
   S.linea = renglonesUsables(d.linea, cuenta);
   S.cliente = d.cliente && CLIENTES.some(c => c.id === d.cliente) ? d.cliente : "";
   S.desc = +d.desc || 0;
+  S.lista = +d.lista === 1 ? 1 : 2;
   if(MULT[d.forma]){ S.forma = d.forma; S.cond = MULT[d.cond] ? d.cond : null; }
   S.comp = d.comp && LETRA[d.comp] ? d.comp : null;
   S.dep = d.dep === "BA" || d.dep === "TS" ? d.dep : null;
@@ -11809,7 +11840,11 @@ function pintarPorCobrar(){
     const est = v.estado === "en-caja" ? '<span class="pill p-warn">espera</span>'
       : mia ? '<span class="pill p-ok">la tenés vos' + (v.lugar === MI_PESTANA ? "" : ", en otra pestaña") + '</span>'
       : '<span class="pill p-n">la cobra ' + txt(v.tomadoPor || "otro cajero") + '</span>';
-    const acc = ((mia && v.lugar === MI_PESTANA) || deOtro ? ""
+    // La que ya está abierta en esta pestaña: un botón que lleva a la venta
+    // (Damián: "¿cómo continúo ahí el pedido sin cobrar?").
+    const acc = (mia && v.lugar === MI_PESTANA
+      ? '<button class="b1" type="button" data-ir-venta="1" style="padding:5px 14px;font-size:12.5px">Ir a cobrarlo</button>'
+      : deOtro ? ""
       : '<button class="b1" type="button" data-cobrar="' + atrib(v.id) + '" style="padding:5px 14px;font-size:12.5px">Abrir y cobrar</button>') +
       // El cliente se fue sin pagar: sin esto quedaba en la caja para siempre.
       (v.estado === "en-caja" ? ' <button class="b3" type="button" data-anular="' + atrib(v.id) + '" style="padding:5px 10px;font-size:12.5px" title="El cliente no lo paga: sale de la caja">Anular</button>' : '');
@@ -11832,6 +11867,7 @@ function marcarNavCaja(){
   b.title = n + (n === 1 ? " venta espera" : " ventas esperan") + " en la caja";
 }
 document.getElementById("tbPorCobrar").addEventListener("click", e => {
+  if(e.target.closest("[data-ir-venta]")){ irA("mostrador"); window.scrollTo(0, 0); return; }
   const an = e.target.closest("[data-anular]"); if(an){ anularTicket(an.dataset.anular); return; }
   const b = e.target.closest("[data-cobrar]"); if(b) cobrarTicket(b.dataset.cobrar);
 });

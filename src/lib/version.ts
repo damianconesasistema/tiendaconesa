@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.100.0";
+export const APP_VERSION = "V.0.100.1";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.100.1",
+    date: "2026-11-23",
+    changes: [
+      "VENTA: \"Lista de precios\" arriba, como en GBP: Lista 2 (la de siempre) o Lista 1. Los renglones, la búsqueda, el total y el comprobante van con la lista elegida, y viaja con el pedido hasta la caja. El precio por mayor también respeta la lista elegida.",
+      "\"Borrar datos\" borra todo (\"ahí debería borrar todo si pongo borrar datos\"): los datos del comprobante y también los artículos. Si había artículos, pregunta antes.",
+      "Comprobantes: los presupuestos van en su propia lista, aparte de los comprobantes (\"separámelo de lo que es presupuestos y lo que es comprobantes\"). En Pedidos por cobrar, el que ya estás cobrando en esta pestaña tiene \"Ir a cobrarlo\", que lleva a la venta.",
+    ],
+  },
   {
     version: "V.0.100.0",
     date: "2026-11-23",
