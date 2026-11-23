@@ -87,6 +87,11 @@ export type ArticuloPunto = {
    *  ella con el mismo % de siempre. De Punto: el import no lo toca; null lo
    *  saca. */
   mayor?: { pct: number; desde: number } | null;
+  /** V.0.11.207: el subrubro de Punto (LAVATORIO, DUCHA, BIDET...). Damian,
+   *  23/11/2026: "en subrubro deberia aparecer ... son categorias lavatorio,
+   *  ducha, bidet". No es el "subrub" de GBP (que es la linea del
+   *  proveedor). De Punto: el import no lo toca; null lo saca. */
+  subrubro?: string | null;
   // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
   // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
   // articulos, uno por uno ... entrando en cada articulo deberia ver los
@@ -177,6 +182,14 @@ function limpiarCombo(v: unknown, cod: string): ComboArticulo | null | undefined
   return { piezas, l1: pct(o.l1), l2: pct(o.l2) };
 }
 
+/** El subrubro que llega: undefined si no vino, null (o vacio) para sacarlo. */
+function limpiarSubrubro(v: unknown): string | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  const t = texto(v, 40).replace(/[<>]/g, "").toUpperCase();
+  return t || null;
+}
+
 /** El por mayor que llega: undefined si no vino, null para sacarlo. */
 function limpiarMayor(v: unknown): { pct: number; desde: number } | null | undefined {
   if (v === undefined) return undefined;
@@ -211,6 +224,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   const dolarRef = plata(o.dolarRef);
   const combo = limpiarCombo(o.combo, cod);
   const mayor = limpiarMayor(o.mayor);
+  const subrubro = limpiarSubrubro(o.subrubro);
   return {
     cod,
     tit,
@@ -235,6 +249,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     ...(dolar > 0 ? { dolar } : {}),
     ...(combo !== undefined ? { combo } : {}),
     ...(mayor !== undefined ? { mayor } : {}),
+    ...(subrubro !== undefined ? { subrubro } : {}),
     ...deOtroExcel(o),
   };
 }
@@ -399,6 +414,9 @@ export async function guardarArticulos(
       // El por mayor, igual: de Punto.
       if (a.mayor === undefined && ya?.mayor) nuevo.mayor = ya.mayor;
       if (nuevo.mayor === null) delete nuevo.mayor;
+      // El subrubro (V.0.11.207), igual: de Punto.
+      if (a.subrubro === undefined && ya?.subrubro) nuevo.subrubro = ya.subrubro;
+      if (nuevo.subrubro === null) delete nuevo.subrubro;
       if (ya && conStock && !conStock.has(a.cod)) {
         nuevo.stockBA = ya.stockBA;
         nuevo.stockTS = ya.stockTS;

@@ -846,7 +846,7 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 }
 .sub-campo textarea{font-family:var(--font-raw); font-size:13px; font-weight:400; resize:vertical}
 .sub-campo input:focus, .sub-campo textarea:focus, .sub-campo select:focus{border-color:var(--accent); outline:none}
-#aMarca[hidden], #aProvNuevo[hidden]{display:none}
+#aMarca[hidden], #aProvNuevo[hidden], #aSubNuevo[hidden]{display:none}
 .por{font-size:12.5px; font-weight:500; color:var(--ink-2); line-height:1.45}
 .sub-campo .por{display:block; margin-top:5px; font-size:12.5px; font-weight:500; color:var(--ink-2)}
 .modo.chico button{font-size:11.5px; padding:5px 12px}
@@ -1395,7 +1395,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOgAAABNCAYAAACseCglAAAAAklEQVR4AewaftIAAA4vSURBVO3B/5OkCX0Q4OfTvRDk20wACUhIN5KOAuJ0ohRojp1eMEEqgR1UorGsmrm/YCd/wcyVVf5kFZPyB3/QyvZqKWpFnSs04F3kuiEcCZjQI4GAXYZeMKVEzPVU5I47ru/jWUOqd3Znut/5tv3O3fs8kZkqlUo51VQqldKqqVQqpVVTqVRKq6ZSqZRWTaVSKa2aSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqldUVJRMQObpi6jbXMHJghInpYNXUtM3tmiIg09RB6eMzUD2fm2F0iooPHTF3LzJ67RMQ2thztoczcdoyI6OAxU/3M7JghInZww2G30cNmZo4dIyJ6WHVgLzPbZoiIbWxiyYHb2MzMXTNERBNdrJray8y2yrFqSiAitnHDYQ0sm2/ZYW0ns+YumTm2OE2HNc03dq8G1tFT3NgMEbGDLSyZauDfR0THbLtYddiKykxXlMOGw/pYNUdELGPFYW0ns4Km8ug4rBERy5k5VtxtNBxYiYhOZvacQUQ0ccPxttFxhIhoY8XUPsZoOEqr/hL8A/wovo9EmC/xEnwXjxpO/o1LrqYcGqb2MrODt2BktrZ7dZzchnOUmduZGeib6mdmZOa22dru1XEyGw5rO7s1h30Et0ytRsSyoy07bCczm7jmaG/H+/AArmIVV3EVV3EVV3EVV3EVV7GKB/B+fNALQE05PGxqJSK6GGfmyGwd92pExLKTWVUeK+7VdjIbDhs4u2V3yMxd9BzWdrSBw7YiYiMze+7Wqv8p/F28Ez+KBhpooIEGGmiggQYaaKCBN+Mt+IBW/W0uuZpy2Ma+qXX0ImLZbG1Te6Y6LqGI6Jjqm+o4mXVT+xg4u7Z7jRSQmWM85LCbEbHhXq/CRxBIJBKJRCKRSCQSiUQi8Wp81CVXUwKZOUAH+6ZWsGm2jqmuqbbLqWOqZ2rV6XUyc+zsxs4gM7fxSw67GREdh/0FvBV1BAKBQCAQCAQCgUAgEHgp/qZW/bUusZqSyMwBOtg31XGMiGhiyVTbVEdx+8qjbaqNfT8QEW2ns+x8jNyr7QQycwcPOqzjT7Tqy/jbqDm7K3gH3uYSu6IEImKAzczsRcQIKw40Ha/tsHVTq4rbxbpy6Ji67rAOBorpY9WBTfSc3cgdImIbbXfIzJ4jREQHG9hGz/Fejw85EM6ujl/Qqv+u4WTsEqophxU8FhGJFVMDx+uYISLaitlVAhHRxJLjtRXXNXU9IprObhf7prZw3dQts63jG/iGw0amVvAGsyWew3NIxwsk/hZe65KqKbdtx2ubeigzA3umOooZ45bFa5vaz8zAg6Y6CsrMLvZNbTqjzBxj09H2se3k9rDr/2vVX4+fR5jt/+Jx/DaeMVvgjfhJl1RNOfwy+g7s42H8ZGYOzNZHHwMHeuijj2XH66OPvgNd9NFHPyKWHW2MPvroY2y2AfroY2C2Jvroo+vAAH30MYqIZUcbo48++g7soI8+mo43QB99jMyQmV18BH0HbuMW2pk5crwRbmHPgdu4hU5mjh1o4oNIsz2Bf4h/iqcV8yGt+utcQpGZKpWFa9XX0TXfF/EAXo09/BmzJf4Q1w0nv+WSqalUFq1VX8JfR5rte/iC4eQZw8l38F/wjNkCP4J3uoSuqFQuWqv+RlxzIJEIB/4Y78L7EI6X+AP8K1P/BO/B6833c1r1TxhOvu0SuaLkImIZHbTRca8RehhhlJkjM0REE2too+leA/TQy8yxOSKijWXzjTNz4A4R0cay+UaZOYqIjvMxyMyxI0REE2voYNm9Rhigl5kDxfxF/CNHm+DleIXZAl/D5019Ct/E6833fqzgEZfIFSUVEU1sYw1LjreKdQeuYeQIEdHGDlbNtoob2I+IHexk5tjxOviY+W5hw2EbuGG+axhhG6vO7hp67hARbWzjutlWse55EbGPUWa2zfZSvMbZPIlPG04m/sRw8qxW/VG8HS8326vwbjziEqkpoYjYxADrWHJGEbGNL2FVcUvYwigiOo43UEzHvcZOpucCRMQGvoTrTmYJK+b7vrP7Cv6de/0zfFMxV7XqP+YSqSmZiOjiY1hyDiKiiy2nt4THImLD2TQiYk3JRMQGbrpY6ex+03Aycrfh5GsYKOZdeMAlUlMiEdHFunMSEV2sOx83I6LjbNaUSER0cNPFqzmbP8JjjvcpPGG+JbzHJVJTEhGxjXXnJCLWsO587UbEstNbi4hl5dF1OTyOxx3vEfxX8yXerVX/sy6JmhKIiDa2nK8d528J205vCWtKICI6aLgcPmM4+bbjDCf/E583X+Dt+KBLoqYcdpyjiNhAw8W4ERFNp7emHNZcDt/C4+b7dXzLfK/EqkuiZsEiooNV52vbxdpwetcjomnx2k5mD330se/++TX8jvk+h88o5h1a9Xe4BK5YvA0ns4/NzOx6XkQ00cG250VEGw3F7GMtM3sR0cW6Yjaw7fTWsOPi3ELX0ZYxUtw+1jKz5w4RsYZNrLo4iUcMJ0+ZZzj5nlb9MfwiamZr4hewpeSuWLw1xe2jk5kDP5CZI3QjYteBDcXtZGbP8zJzIyLaWDFfIyKamTlyOhvYcXFGmdkzQ0QoaJCZPXfJzF3sRsSGi7OHgeJ+A1/Gitlejvdp1f++4eRZJVazQBHRwZLiNjJz4AiZOc7MMdYUt+OwHcV1nN5KRDRdDk0zZGbXxfnnhpPfV9Rw8nX8qmLegvcouZrF6iiun5m75msrpp+ZY4f1FNd2NpsWa6SYRkR03X9P4T87uR6eNN9rsK7kaharo7iuYpYUM3CXzBxhXzFtZ7NmsQaKW4+IbkQsu3jpwKfwTSf33/Ap870M79eqv0qJXbFYTcXtmiMiOoobO9oAq+ZrOpsGOi5GJyK23WsZg8zsYhcfU9w62hGxlpkjF+9XDCdPOKnh5A+16h/H3zDfn8bP4t8qqZrFaihmLzPHzlfP2TSc3aqLsYotbGELW9jCDTQ9LzNHuOVkVjCIiLaLM8EIv+n0fge3kY4XeAk2tOovU1I1l8PA/TPy4rGJfSezhC9FxIaL8Sz+heHkO07vf+FfIsz2UlzDm5RUzeUwUkzH2Y28SGTmGBtO52ZEbDh/f4xbzmI4eRIfx9NIxwu8Ah/Qqv+QEqqpvKhl5i4edDo3I6JjvlTMs/htw8nQ2X0dn8XEfA/idUqopvKil5ldPIh9J7cbEctmS8U8ga7zMJw8g3+M75nvp/BWJVRzOSwrpqdyKpnZRQf7TmYJO2Z7RjHfxH9wfj6JbyHNVsPPaNVfrmRqLoe2+6fjRSozB2hiz8msR0TT8cJ8T+OzhpPvOi/DyVP4BL5rvo+iqWSuWKx9LJlv1flro+f09p3MHlbcHw9l5ra7RETHHJk5RjsiulhX3Aa2Ha1ltsS38K+dv5v4KF5ptp/AO/FVJVKzWAMFRUTbfAPFLTtaUzEDJ9O1YJnZy8yeAjJzA7cU13GUVv0N+DmzBb6MLzhvw8nX8BWk2QLv1aq/UonULNZAcZvmyMyx4tqO1lDMyMkMcNvlsonbimk62rvwXrM9ic8YTp5zMXbxR+b7AN6hRGoWq6e4tYhYNl9fMR13iYg1xQ2c3I4SiIhmRLTNkZlj7Cqm4Wh/Cctm+zI+6eI8jN8z31vxl5VIzWL1FLeEXfP1FLMUEWsOW1Ncz8ntKocmvhQR2+YbO61W/c34abMlfstw8nUXZTj5Dr6IidkCP61Vf4WSqFmgzBzjYcWtRkQ3IpbdISKWI2I7ItroKW7TD0REG+uKuZ2ZAyeUmSPsWaCIaOINDmxFxCgiNhwhIpaxoZg993oA7zbbE/isi/dJjMz3AP6qkrhi8XZxXXHrWIuIXYzQRgdL6GVmLyJuo2G+1YgYYRcbitt1eju46WJtRcSW4/2SqQZuRsQOehg4sIw1NBQzcq8H8CqzfR59F+9z+CLearY3o4NHlUDNgmVmF7edzBLWsYXrWHJYV3EN3MCS4rpOb1c5LeE6trCFG2gorudOrfqPoW2+Rw0n/9tFG06exOfwPfP9lFb9tUqgphw2na8dF6efmQOnlJljPOyFZ9dhP48/73iJP8AX3D+fxu+abwXXlEBNCWTmLh52TjJzjIdcjE1n1/XCciszRw57L17jeIFdfNX9Mpx8FY+Y7w34GSVQUx4b2HNOMnMbe87XQ5k5cEaZuYt9Lwz72HanVr2Ft5ntWXzacLLv/nocT5kt0Naqv8aC1ZREZo7RwW3nZw37zsetzNx2fna9MKxl5shhH0bDbF/G77n/9vCo+Zr4sAWrKZHMHKONvnOQmSN0sOdsbmXmhvO143Lbx7XM7LnXz+LVZvtV/L77bTj5H/iE+V6LD1uwmpLJzHFmdvAgbjujzBygg192crfxkczccLxlxSy7Q2YOcNvJNJ2fPaf3MNqZ2XO3Vv3H8RbUHC3xFH7dcPK0xRjgNtLx6vgJrfqbLNAVJZWZXXQjYgNr6GDJ0fYwwtgRMnOMzYjYwSbW0HC8PrqZ2TVfE33zNd1rF23zLZvqO7teZu5ExDI6WEMbK453G7vYycyR430YP4x0tMBnMLI4Q+ziBtLRAq/DB/ArFiQy02UREU00HTbIzLFTiIiOw8aZOfAiFhEdd8nMniJa9Tfi41g129/BruHkaYvSqv81/Bpe4niJ/4S/Zzj5PxbgikskM0cYOSeZ2VM5JDN7Tu8X8SP4Np5zWA3P4Rt4zHDytMX6Cv4j/goS6bBADW/Ch9C1AFdUKufnx/HfHXgO4UDiCr6PL2Js8cb4BF6GZ5EIU4k6JvhzFiQyU6VSKaeaSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqlVVOpVEqrplKplFZNpVIprZpKpVJaNZVKpbT+H/ThmLvjr5fGAAAAAElFTkSuQmCC">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.206</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.207</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1973,6 +1973,11 @@ footer{
           <div class="sub-campo">
             <label for="aRubro">Rubro</label>
             <select id="aRubro"></select>
+          </div>
+          <div class="sub-campo">
+            <label for="aSubSel">Subrubro</label>
+            <select id="aSubSel"></select>
+            <input id="aSubNuevo" type="text" maxlength="40" placeholder="Escribí el subrubro nuevo: LAVATORIO, DUCHA, BIDET…" autocomplete="off" hidden style="margin-top:6px">
           </div>
           <div class="sub-campo">
             <label class="tilde" for="aPromo">
@@ -3117,6 +3122,9 @@ function articuloServidorDe(p){
     // Más de 4 descuentos: los que sobran van como recargo negativo, como en GBP.
     for(const d of seis.filter(d => d > 0).slice(4)) if(o.recs.length < 4) o.recs.push(-d); }
   if(+p.fleteFijo > 0) o.flete = +p.fleteFijo;
+  // El subrubro de Punto (V.0.11.207); vacío lo saca.
+  if(p.subrubro) o.subrubro = String(p.subrubro).slice(0, 40);
+  else if(crudo && crudo.subrubro) o.subrubro = null;
   // El código de fabricante (V.0.11.202): el servidor lo guarda como "fab",
   // el mismo dato que trae el Excel de artículos de GBP.
   const fab = String(p.codProv || "").replace(/[<>]/g, "").trim().toUpperCase().slice(0, 40);
@@ -5420,6 +5428,7 @@ function abrirAlta(p){
   revisarSku(); altaCuenta();
   pintarProvSel(p ? String(p.cat || "").trim() : "");
   pintarMarcaSel();
+  pintarSubSel(p ? p.subrubro || "" : "");
   try{ pintarAvisoBorrador(null); }catch(e){}
   // Los de la pantalla Proveedores, si todavía no se trajeron (V.0.11.203).
   if(!PRV.lista.length) cargarPrvSiFalta().then(() => { pintarProvSel(provElegido()); pintarMarcaSel(); }).catch(() => {});
@@ -5451,6 +5460,44 @@ function pintarProvSel(actual){
   else if(igual){ sel.value = igual; inp.value = ""; inp.hidden = true; }
   else { sel.value = "__nuevo"; inp.value = v; inp.hidden = false; }
 }
+/** V.0.11.207: los subrubros (Damián: "son categorías LAVATORIO, DUCHA,
+    BIDET, etc."): los de siempre y los que ya tienen los artículos. */
+const SUBRUBROS_BASE = ["LAVATORIO","INODORO","BIDET","DEPÓSITO","ASIENTO","MINGITORIO","BACHA","DUCHA","BAÑERA",
+  "COCINA","LAVADERO","MONOCOMANDO","MAMPARA","RECEPTÁCULO","VANITORY","BOTIQUÍN","ESPEJO","ACCESORIO DE BAÑO",
+  "TERMOTANQUE","CALEFÓN","TANQUE DE AGUA","BOMBA","CAÑO","CONEXIÓN","VÁLVULA","REJILLA","REPUESTO"];
+function pintarSubSel(actual){
+  const sel = document.getElementById("aSubSel"), inp = document.getElementById("aSubNuevo");
+  if(!sel || !inp) return;
+  const cuenta = new Map(), nombre = new Map();
+  const poner = n => { n = String(n || "").replace(/\\s+/g, " ").trim().toUpperCase(); if(!n) return null; const k = plano(n); if(!nombre.has(k)) nombre.set(k, n); return k; };
+  for(const n of SUBRUBROS_BASE) poner(n);
+  for(const x of PRODUCTOS){ const k = poner(x.subrubro); if(k) cuenta.set(k, (cuenta.get(k) || 0) + 1); }
+  const ks = [...nombre.keys()].sort((a, b) => COLL_ES.compare(nombre.get(a), nombre.get(b)));
+  sel.innerHTML = '<option value="">Sin subrubro</option>' +
+    ks.map(k => '<option value="' + atrib(nombre.get(k)) + '">' + txt(nombre.get(k)) + (cuenta.get(k) ? ' (' + cuenta.get(k) + ')' : '') + '</option>').join("") +
+    '<option value="__nuevo">+ Crear un subrubro nuevo…</option>';
+  const v = String(actual || "").trim();
+  const igual = v ? nombre.get(plano(v.toUpperCase())) : null;
+  if(!v){ sel.value = ""; inp.value = ""; inp.hidden = true; }
+  else if(igual){ sel.value = igual; inp.value = ""; inp.hidden = true; }
+  else { sel.value = "__nuevo"; inp.value = v.toUpperCase(); inp.hidden = false; }
+}
+function subElegido(){
+  const sel = document.getElementById("aSubSel"); if(!sel) return "";
+  return sel.value === "__nuevo" ? document.getElementById("aSubNuevo").value.replace(/\\s+/g, " ").trim().toUpperCase() : sel.value;
+}
+document.getElementById("aSubSel").addEventListener("change", e => {
+  const inp = document.getElementById("aSubNuevo");
+  if(e.target.value === "__nuevo"){ inp.value = ""; inp.hidden = false; inp.focus(); }
+  else inp.hidden = true;
+});
+// El nuevo que se escribe: si ya existe, se elige ese de la lista.
+document.getElementById("aSubNuevo").addEventListener("change", e => {
+  const sel = document.getElementById("aSubSel");
+  const v = plano(e.target.value.trim().toUpperCase()); if(!v) return;
+  const opc = [...sel.options].find(o => o.value && o.value !== "__nuevo" && plano(o.value) === v);
+  if(opc){ sel.value = opc.value; e.target.hidden = true; toast(opc.value + " ya existe: quedó elegido de la lista."); }
+});
 /** El proveedor elegido (o el nuevo escrito). */
 function provElegido(){
   const sel = document.getElementById("aProvSel"); if(!sel) return "";
@@ -5650,12 +5697,12 @@ function fotoAlta(){
   const c = document.getElementById("altaCuerpo"); if(!c || c.hidden) return null;
   const campos = {};
   for(const el of c.querySelectorAll("input[id], select[id], textarea[id]")){
-    if(el.type === "file" || el.id === "aProvSel" || el.id === "aMarcaSel") continue;
+    if(el.type === "file" || el.id === "aProvSel" || el.id === "aMarcaSel" || el.id === "aSubSel" || el.id === "aSubNuevo") continue;
     campos[el.id] = el.type === "checkbox" ? !!el.checked : el.value;
   }
   return { campos, seis: (ALTA.seis || []).slice(), recs: (ALTA.recs || []).slice(),
     combo: ALTA.combo ? ALTA.combo.map(x => ({ cod:x.cod, cant:x.cant })) : null,
-    editando: ALTA.editando || null, fletePct: +ALTA.fletePct || 0, cat: provElegido() };
+    editando: ALTA.editando || null, fletePct: +ALTA.fletePct || 0, cat: provElegido(), sub: subElegido() };
 }
 /** Si hay algo escrito de verdad (no solo lo que trae el formulario). */
 function altaConAlgo(f){
@@ -5721,7 +5768,7 @@ function aplicarBorradorAlta(f){
   const caja = document.getElementById("altaCuerpo");
   const c = f.campos || {};
   for(const id of Object.keys(c)){
-    if(id === "aProvSel" || id === "aMarcaSel" || id === "aProvNuevo") continue;
+    if(id === "aProvSel" || id === "aMarcaSel" || id === "aProvNuevo" || id === "aSubSel" || id === "aSubNuevo") continue;
     const el = document.getElementById(id); if(!el || !caja.contains(el)) continue;
     if(el.type === "checkbox") el.checked = !!c[id]; else el.value = c[id];
   }
@@ -5729,7 +5776,7 @@ function aplicarBorradorAlta(f){
   if(Array.isArray(f.recs)) ALTA.recs = f.recs.slice();
   ALTA.combo = Array.isArray(f.combo) ? f.combo.filter(x => x && prod(x.cod)).map(x => ({ cod:x.cod, cant:x.cant })) : ALTA.combo;
   ALTA.fletePct = +f.fletePct || 0;
-  pintarProvSel(f.cat || ""); pintarMarcaSel();
+  pintarProvSel(f.cat || ""); pintarMarcaSel(); pintarSubSel(f.sub || "");
   pintarCombo(); pintarMoneda(); pintarMay(); pintarAltaSeis(); revisarSku(); altaCuenta();
   document.getElementById("aTit").dispatchEvent(new Event("input"));
 }
@@ -5769,7 +5816,7 @@ document.addEventListener("focusout", e => {
 /* MAYUSCULA_ALTA. V.0.11.202 (Damián: "ahí escribe siempre en mayúscula"):
    el título, la marca y el proveedor nuevos y el código del fabricante, en
    mayúscula mientras se escriben, sin mover el cursor. */
-for(const id of ["aTit", "aMarca", "aProvNuevo", "aCodProv"]){
+for(const id of ["aTit", "aMarca", "aProvNuevo", "aCodProv", "aSubNuevo"]){
   const i = document.getElementById(id); if(!i) continue;
   i.addEventListener("input", () => {
     const up = i.value.toUpperCase(); if(up === i.value) return;
@@ -5834,7 +5881,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   const contado = pr.contado;
   const bulto = bultoDeCampo();        // "Se compra de a": 0 es suelto
   const datos = {
-    cod, tit, rub, prov, cat: provElegido(),
+    cod, tit, rub, prov, cat: provElegido(), subrubro: subElegido(),
     desc: document.getElementById("aDesc").value.trim(),
     lista, seis: ALTA.seis.slice(), recs: ALTA.recs.slice(), l1, l2, iva,
     mon: usd ? "USD" : "ARS",          // en qué moneda vino la lista
@@ -7146,7 +7193,8 @@ document.getElementById("fBusca").addEventListener("input", () => {
     nombre, rubro, marca y proveedor. Se arma una vez por artículo. */
 function textoBuscaArt(p){
   const base = p.propio || "";
-  if(p._fa === undefined || p._faDe !== base){ p._faDe = base; p._fa = plano(base + " " + (p.cat || "")); }
+  const llave = base + "|" + (p.subrubro || "");
+  if(p._fa === undefined || p._faDe !== llave){ p._faDe = llave; p._fa = plano(base + " " + (p.cat || "") + " " + (p.subrubro || "")); }
   return p._fa;
 }
 /** Las marcas a un toque, cuántos coinciden y lo que está puesto resaltado. */
@@ -10742,7 +10790,7 @@ function soloLoDePunto(p, d){
   const ds = (d.seis || []).slice(0, N_DTOS).map(limD), ps = (Array.isArray(p.seis) ? p.seis : []).slice(0, N_DTOS).map(limD);
   while(ds.length < N_DTOS) ds.push(0);
   while(ps.length < N_DTOS) ps.push(0);
-  return may(d.tit) === may(p.tit) && may(d.prov) === may(p.prov) && d.rub === p.rub && may(d.cat) === may(p.cat) &&
+  return may(d.tit) === may(p.tit) && may(d.prov) === may(p.prov) && d.rub === p.rub && may(d.cat) === may(p.cat) && may(d.subrubro) === may(p.subrubro) &&
     String(d.desc || "").trim() === String(p.desc || "").trim() && may(d.codProv) === may(p.codProv) &&
     igual(d.lista, p.lista) && JSON.stringify(ds) === JSON.stringify(ps) &&
     igual(d.l1, p.l1) && igual(d.l2, p.l2) && igual(d.iva, ivaDe(p)) && igual(d.dctoCont, p.dctoCont) &&
@@ -13355,6 +13403,7 @@ function productoDeGbp(a){
   const codProv = fab || ((tit.match(/\\(([A-Z0-9][A-Z0-9\\/.-]{2,})\\)/i) || [])[1] || "").toUpperCase();
   const p = {
     cod: sinEtiquetas(a.cod), tit, rub: rubroDeGbp(a.subrub, tit), prov: sinEtiquetas(a.prov) || "VARIOS",
+    subrubro: sinEtiquetas(a.subrubro || ""),
     codProv, lista: listaArs, seis, seisOrig: seis.slice(), recs: gd ? gd.recs : cadenaGbp ? cadenaGbp.recs : [], dtoGbp: !!gd, l1, l2, iva,
     dtoInfo, cadenaGbp: dtoInfo ? cadenaGbp : null,
     ...(usd ? { mon:"USD", listaMon: +a.lista || 0, dolar: dolArt > 0 ? dolArt : null, dolarPropio: +a.dolar > 0 } : {}),
@@ -13430,7 +13479,7 @@ async function reintentarFletesProv(){
     compu. Lo guardado en esta compu no lo pisa. */
 const PUNTO_DEL_SERVIDOR = ["flete","fleteFijo","fletePct","otroCosto","otroNombre","bulto","dolar"];
 /** Lo que cambia en un artículo de GBP cuando se le vuelve a armar el precio. */
-const CAMPOS_GBP_PUNTO = ["costo","costoBase","contado","unPago","costoProducto","flete","fleteFijo","fletePct",
+const CAMPOS_GBP_PUNTO = ["costo","costoBase","contado","unPago","costoProducto","flete","fleteFijo","fletePct","subrubro",
   "otroCosto","otroNombre","bulto","markup"];
 
 /** Mete los de GBP en el catálogo. El mismo código pisa al de muestra. */

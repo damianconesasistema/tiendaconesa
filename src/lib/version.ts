@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.206";
+export const APP_VERSION = "V.0.11.207";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.207",
+    date: "2026-11-23",
+    changes: [
+      "SUBRUBRO (\"en subrubro debería aparecer, poneme para crear, son categorías lavatorio, ducha, bidet\"): en Crear uno, debajo de Rubro, una lista de subrubros (los de siempre y los que ya tienen los artículos) y \"+ Crear un subrubro nuevo\". Se guarda en el servidor como dato de Punto (el import de GBP no lo toca) y se puede buscar por él.",
+    ],
+  },
   {
     version: "V.0.11.206",
     date: "2026-11-23",
