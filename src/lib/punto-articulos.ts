@@ -92,6 +92,11 @@ export type ArticuloPunto = {
    *  ducha, bidet". No es el "subrub" de GBP (que es la linea del
    *  proveedor). De Punto: el import no lo toca; null lo saca. */
   subrubro?: string | null;
+  /** V.0.11.209: el descuento por pago contado del proveedor y a cuántos
+   *  días (Damián: "en qué cantidad de días es esa promoción, por default
+   *  60 días"). Va en el costo. Antes no se guardaba y al recargar el costo
+   *  salía sin él. De Punto: el import no lo toca; null lo saca. */
+  contado?: { pct: number; dias: number } | null;
   // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
   // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
   // articulos, uno por uno ... entrando en cada articulo deberia ver los
@@ -190,6 +195,17 @@ function limpiarSubrubro(v: unknown): string | null | undefined {
   return t || null;
 }
 
+/** El pago contado que llega: undefined si no vino, null para sacarlo. */
+function limpiarContado(v: unknown): { pct: number; dias: number } | null | undefined {
+  if (v === undefined) return undefined;
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const pct = Number(o.pct);
+  const dias = Number(o.dias);
+  if (!Number.isFinite(pct) || pct <= 0 || pct >= 100) return null;
+  return { pct: Math.round(pct * 100) / 100, dias: Number.isInteger(dias) && dias >= 0 && dias <= 365 ? dias : 60 };
+}
+
 /** El por mayor que llega: undefined si no vino, null para sacarlo. */
 function limpiarMayor(v: unknown): { pct: number; desde: number } | null | undefined {
   if (v === undefined) return undefined;
@@ -225,6 +241,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   const combo = limpiarCombo(o.combo, cod);
   const mayor = limpiarMayor(o.mayor);
   const subrubro = limpiarSubrubro(o.subrubro);
+  const contado = limpiarContado(o.contado);
   return {
     cod,
     tit,
@@ -250,6 +267,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     ...(combo !== undefined ? { combo } : {}),
     ...(mayor !== undefined ? { mayor } : {}),
     ...(subrubro !== undefined ? { subrubro } : {}),
+    ...(contado !== undefined ? { contado } : {}),
     ...deOtroExcel(o),
   };
 }
@@ -417,6 +435,9 @@ export async function guardarArticulos(
       // El subrubro (V.0.11.207), igual: de Punto.
       if (a.subrubro === undefined && ya?.subrubro) nuevo.subrubro = ya.subrubro;
       if (nuevo.subrubro === null) delete nuevo.subrubro;
+      // El pago contado (V.0.11.209), igual: de Punto.
+      if (a.contado === undefined && ya?.contado) nuevo.contado = ya.contado;
+      if (nuevo.contado === null) delete nuevo.contado;
       if (ya && conStock && !conStock.has(a.cod)) {
         nuevo.stockBA = ya.stockBA;
         nuevo.stockTS = ya.stockTS;

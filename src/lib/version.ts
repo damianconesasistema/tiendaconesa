@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.208";
+export const APP_VERSION = "V.0.11.209";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.209",
+    date: "2026-11-23",
+    changes: [
+      "Pago contado (\"en qué cantidad de días es esa promoción, por default 60 días\"): al lado del % del descuento por pago contado va a cuántos días (60 por defecto).",
+      "El descuento por pago contado ahora se guarda en el servidor con sus días (dato de Punto: el import de GBP no lo toca) y entra en el costo al recargar. Antes no se guardaba y, al recargar, el costo salía sin él.",
+    ],
+  },
   {
     version: "V.0.11.208",
     date: "2026-11-23",
