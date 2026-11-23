@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.196";
+export const APP_VERSION = "V.0.11.197";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.197",
+    date: "2026-11-23",
+    changes: [
+      "Web (\"acá se tiene que ver el panel de la tienda\"): la solapa muestra adentro el panel de la tienda (/admin), con el mismo usuario, y un link para abrirlo en otra pestaña. Los pedidos de ejemplo que había quedan escondidos.",
+      "El pie de Punto ya no dice que no toca la tienda ni el facturador (factura con ARCA y ahora muestra el panel).",
+      "Venta (\"apenas entrás acá andá al foco de la cantidad para empezar a cargar\"): al entrar a Venta el cursor queda en Cant., con el número marcado para escribir encima. En el celular no, para que no salte el teclado solo.",
+    ],
+  },
   {
     version: "V.0.11.196",
     date: "2026-11-23",
