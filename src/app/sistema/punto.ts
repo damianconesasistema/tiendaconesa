@@ -147,6 +147,20 @@ header{
    renglones, que para eso tiene flex-wrap. El usuario y la sucursal tambien
    se quedan: sin eso no se sabe con qué razón social se está vendiendo. */
 @media (max-width:980px){ .relo.dolar{display:none} }
+/* V.0.11.200 (Damián: "que se vea así en todas las resoluciones, el menú de
+   arriba lo pone en 2 renglones"): la barra en un renglón. Se achica de a
+   poco lo que menos se mira. */
+.relo .f-corta{display:none}
+.bar .user, .bar .relo, .bar a.ir{white-space:nowrap}
+@media (max-width:1700px){ .relo .f-larga{display:none} .relo .f-corta{display:inline} }
+@media (max-width:1560px){
+  .relo.dolar .dcomp{display:none}
+  .bar a.ir .et{display:none}
+  .bar a.ir{padding:6px 8px}
+}
+@media (max-width:1440px){ .bar .user .et{display:none} }
+@media (max-width:1220px){ .relo.dolar{display:none} }
+@media (max-width:1000px){ .bar .ver{display:none} }
 @media (max-width:820px){
   .bar{gap:8px 10px; padding:9px 14px}
   .bar-sep{display:none}
@@ -247,15 +261,53 @@ section[hidden]{display:none}
 .card-h .sub{font-size:12.5px; font-weight:500; color:var(--ink-2); margin-left:auto}
 
 .dos{display:grid; grid-template-columns:minmax(0,1fr) 420px; gap:18px; align-items:start}
-/* V.0.11.199: el Total más angosto en la venta ("redistribuí el total para
-   que se vea mejor artículos de la venta"): el lugar va a la grilla. */
-#v-mostrador > .dos{grid-template-columns:minmax(0,1fr) clamp(270px, 21vw, 320px); gap:14px}
-#v-mostrador .ticket .card-h{padding-top:10px; padding-bottom:10px}
-#v-mostrador .tk-tot{padding:10px 12px}
-#v-mostrador .tk-acc{padding:0 12px 12px; gap:6px}
-#v-mostrador .tk-acc .b1, #v-mostrador .tk-acc .b2{padding:9px 8px; font-size:13.5px}
-#v-mostrador .tk-acc .b3{padding:7px; font-size:12.5px}
+/* V.0.11.200 (Damián: "el total se puede hacer abajo y distribuirlo, y que
+   siempre esté visible"): en la compu la venta va a lo ancho y el Total es
+   una barra pegada abajo (arriba de la franja de atajos), con los números y
+   los botones en fila. Mientras hay resultados de búsqueda no va pegada:
+   taparía la lista. En el teléfono queda como estaba. */
+@media (min-width:901px){
+  #v-mostrador > .dos{grid-template-columns:minmax(0,1fr); gap:12px}
+  #v-mostrador .card.ticket{position:sticky; top:auto; bottom:34px; z-index:40;
+    display:flex; align-items:center; flex-wrap:wrap; gap:10px 22px; padding:10px 16px;
+    border-color:var(--line-2); box-shadow:0 -8px 24px rgba(0,0,0,.08)}
+  #v-mostrador:has(#res:not(:empty)) .card.ticket{position:relative; bottom:auto}
+  #v-mostrador .ticket > .card-h{display:none}
+  #v-mostrador #tkCaja{flex:1 1 100%}
+  #v-mostrador #tkCaja:empty{display:none}
+  #v-mostrador #tkCaja .aviso{margin:0 !important}
+  #v-mostrador .tk-tot{flex:0 1 auto; flex-direction:row; flex-wrap:wrap; align-items:center; gap:4px 20px; padding:0}
+  #v-mostrador .tk-tot .tr{flex-direction:column; align-items:flex-start; gap:1px; font-size:12px; line-height:1.25}
+  #v-mostrador .tk-tot .tr b{font-size:14px}
+  #v-mostrador .tk-tot .tr.big{flex-direction:row; align-items:baseline; gap:10px; margin:0; padding:0 0 0 20px;
+    border-top:0; border-left:1px solid var(--line); font-size:14px}
+  #v-mostrador .tk-tot .tr.big b{font-size:30px}
+  #v-mostrador .tk-acc{flex:1 1 auto; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; align-items:center;
+    gap:8px; padding:0; position:relative}
+  #v-mostrador .tk-acc > button{white-space:nowrap; padding:10px 16px; font-size:14px}
+  #v-mostrador .tk-acc > .b3{padding:9px 12px; font-size:13px}
+  /* "Otras opciones" y "¿a qué caja?" se abren arriba de la barra. */
+  #v-mostrador #masAcc, #v-mostrador #cajaElige{position:absolute; right:0; bottom:calc(100% + 14px); z-index:5;
+    width:340px; display:flex; flex-direction:column; gap:7px; padding:12px !important;
+    background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r); box-shadow:0 12px 32px rgba(0,0,0,.16)}
+  #v-mostrador #masAcc[hidden], #v-mostrador #cajaElige[hidden]{display:none}
+}
 @media (max-width:900px){.dos, #v-mostrador > .dos{grid-template-columns:1fr}}
+/* Los borradores, arriba de los artículos. */
+#v-mostrador #borradores{margin:0 0 12px; padding:9px 12px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r)}
+#v-mostrador #borradores:empty{display:none}
+/* "↓ 3 artículos más": lo que no entra en la grilla. */
+.card.armando{position:relative}
+.mas-abajo{position:absolute; left:50%; transform:translateX(-50%); z-index:6; border:0; cursor:pointer;
+  background:var(--accent); color:#fff; border-radius:999px; padding:7px 16px; font:inherit; font-size:13px; font-weight:700;
+  box-shadow:0 6px 18px rgba(0,0,0,.22)}
+.mas-abajo[hidden]{display:none}
+/* V.0.11.200 (Damián: "el buscar destacámelo, así se ve mejor, con otro
+   color"): el buscador de Artículos, amarillo. */
+.art-filtros .buscar input{background:#fff8e1; border:2px solid #f2b705; font-weight:600}
+.art-filtros .buscar input::placeholder{color:#9a7b1c; font-weight:500}
+.art-filtros .buscar input:focus{border-color:#d99a00; box-shadow:0 0 0 4px rgba(242,183,5,.25); background:#fffdf3}
+.art-filtros .buscar svg{color:#b8860b}
 
 /* ------------------------------------------------------ mostrador */
 .buscar{position:relative}
@@ -1316,15 +1368,15 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.199</span>
-    <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.200</span>
+    <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
     <span class="bar-sep ocultable"></span>
-    <span class="user">Usuario: <select id="selUsuario" aria-label="Usuario"></select></span>
+    <span class="user"><span class="et">Usuario: </span><select id="selUsuario" aria-label="Usuario"></select></span>
     <span class="bar-sep ocultable"></span>
-    <span class="user">Vendés como: <select id="selSuc" aria-label="Sucursal"></select></span>
-    <a class="ir" id="irUsuarios" href="#usuarios" data-v="usuarios" title="Usuarios y permisos" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Usuarios</a>
+    <span class="user"><span class="et">Vendés como: </span><select id="selSuc" aria-label="Sucursal"></select></span>
+    <a class="ir" id="irUsuarios" href="#usuarios" data-v="usuarios" title="Usuarios y permisos" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="et">Usuarios</span></a>
     <button class="salir" id="btnSalir" type="button">Salir</button>
   </div>
   <div class="nueva-ver" id="nuevaVer" role="status" hidden>
@@ -1392,6 +1444,7 @@ footer{
         <div class="campos" id="camposVta" hidden></div>
       </div>
 
+      <div class="borradores" id="borradores"></div>
       <div class="card armando">
         <div class="card-h"><h3>Artículos de la venta</h3><span class="sub" id="vtaCuenta"></span>
           <span class="sub" id="vtaDep" style="margin-left:auto"></span></div>
@@ -1400,6 +1453,7 @@ footer{
              esta la mano. -->
         <div class="aviso" id="avisoEdita" hidden style="margin:10px 14px 0"></div>
         <div class="tk-lineas" id="tkLineas"></div>
+        <button type="button" class="mas-abajo" id="masAbajo" hidden>&darr; <b></b></button>
         <div class="busca-pie">
           <div class="busca-fila">
             <label class="cant-fija" for="qCant"><span class="cant-et">Cant.</span>
@@ -1441,7 +1495,6 @@ footer{
           <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
           <p class="nota" style="padding:4px 0 0">La venta sin comprobante queda anotada igual, marcada como tal: no hay un segundo libro.</p>
         </div>
-        <div class="borradores" id="borradores"></div>
       </div>
     </div>
   </div>
@@ -1775,7 +1828,7 @@ footer{
       <span class="fr" id="gbpGuardados2">Los Excel que exporta GlobalBluePoint.</span></button>
     <button type="button" class="acceso" data-art="adj"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span><b>Adjuntar</b>
       <span class="fr">Una lista o factura del proveedor: carga varios de una vez.</span></button>
-    <button type="button" class="acceso" data-art="uno"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></span><b>Cargar uno</b>
+    <button type="button" class="acceso" data-art="uno"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></span><b>Crear uno</b>
       <span class="fr">Un artículo nuevo: el precio se arma solo.</span></button>
     <button type="button" class="acceso" data-art="combo"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="8" x="2" y="2" rx="1"/><rect width="8" height="8" x="14" y="2" rx="1"/><rect width="8" height="8" x="8" y="14" rx="1"/></svg></span><b>Armar un combo</b>
       <span class="fr">Con artículos que ya están, con su propio %.</span></button>
@@ -1873,7 +1926,7 @@ footer{
       <h3 id="altaTit">Uno por uno</h3>
       <span class="sub" id="altaSub">el precio se arma solo</span>
       <button class="b1" id="aGuardarArriba" type="button" style="margin-left:auto;padding:6px 18px" hidden>Guardar</button>
-      <button class="b2" id="btnAbrirAlta" style="margin-left:12px;padding:6px 16px">Cargar uno</button>
+      <button class="b2" id="btnAbrirAlta" style="margin-left:12px;padding:6px 16px">Crear uno</button>
     </div>
     <div id="altaCuerpo" hidden>
       <div class="alta">
@@ -3604,8 +3657,13 @@ document.getElementById("selUsuario").addEventListener("change",e=>{
     const h = new Date();
     const f = h.toLocaleDateString("es-AR",
       {weekday:"long", day:"numeric", month:"long", year:"numeric"});
-    el.textContent = f.charAt(0).toUpperCase() + f.slice(1)
-      + " · " + h.toLocaleTimeString("es-AR",
+    // V.0.11.200: también corta ("Lun 23/11"), para que la barra entre en
+    // un renglón en pantallas más chicas.
+    const dia = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"][h.getDay()];
+    const corta = dia + " " + h.getDate() + "/" + (h.getMonth() + 1);
+    el.innerHTML = '<span class="f-larga">' + f.charAt(0).toUpperCase() + f.slice(1) + '</span>' +
+      '<span class="f-corta">' + corta + '</span>' +
+      " · " + h.toLocaleTimeString("es-AR",
           {hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
   };
   tic(); setInterval(tic, 1000);
@@ -3624,7 +3682,7 @@ document.getElementById("selUsuario").addEventListener("change",e=>{
   if(!el) return;
   const hora = iso => { const f = iso ? new Date(iso) : null;
     return f && !isNaN(f) ? f.toLocaleString("es-AR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false, timeZone:"America/Argentina/Buenos_Aires" }) : "—"; };
-  const uno = (nombre, c) => c ? nombre+' <span class="cv">C</span> <b>'+plata2(c.compra)+'</b> <span class="cv">V</span> <b>'+plata2(c.venta)+'</b>' : "";
+  const uno = (nombre, c) => c ? nombre+'<span class="dcomp"> <span class="cv">C</span> <b>'+plata2(c.compra)+'</b></span> <span class="cv">V</span> <b>'+plata2(c.venta)+'</b>' : "";
   const mirar = async () => {
     try{
       const r = await fetch("/sistema/dolar", { cache:"no-store", credentials:"same-origin", signal: AbortSignal.timeout(12000) });
@@ -4421,7 +4479,17 @@ function ajustarGrilla(){
   const pie  = document.querySelector(".busca-pie");
   if(!caja || !pie || caja.offsetParent === null) return;
   const arriba = caja.getBoundingClientRect().top + window.scrollY;
-  const libre  = window.innerHeight - arriba - pie.offsetHeight - 22;
+  // V.0.11.200: en la compu el Total va pegado abajo, arriba de la franja de
+  // atajos: la grilla llega hasta él.
+  let barra = 0;
+  const tk = document.querySelector("#v-mostrador .card.ticket");
+  if(tk && matchMedia("(min-width:901px)").matches){
+    const tec = document.getElementById("teclas");
+    const th = tec && !tec.hidden && getComputedStyle(tec).display !== "none" ? tec.offsetHeight : 0;
+    tk.style.bottom = th + "px";
+    barra = tk.offsetHeight + th + 12;
+  }
+  const libre  = window.innerHeight - arriba - pie.offsetHeight - 22 - barra;
   // Con la venta vacia el hueco tiene que verse -para que se entienda que
   // los articulos van a aparecer ahi- pero poco: lo que de verdad tiene que
   // estar a la vista es el buscador de abajo, que es lo que se va a tocar.
@@ -4433,8 +4501,45 @@ function ajustarGrilla(){
   // max-height aca, el CSS gana y este calculo no sirve para nada.
   caja.style.minHeight = alto + "px";
   caja.style.maxHeight = alto + "px";
+  avisoMasAbajo();
 }
 addEventListener("resize", ajustarGrilla);
+/** V.0.11.200 (Damián: "que te avise que tenés más artículos en artículos de
+    venta"): si hay renglones que no se ven, abajo de la grilla aparece
+    "↓ 3 artículos más", que lleva hasta el último. */
+/** La barra del Total, si está pegada abajo (en la compu, sin búsqueda abierta). */
+function barraTotalPegada(){
+  const tk = document.querySelector("#v-mostrador .card.ticket");
+  return tk && getComputedStyle(tk).position === "sticky" && matchMedia("(min-width:901px)").matches ? tk : null;
+}
+function avisoMasAbajo(){
+  const c = document.getElementById("tkLineas"), a = document.getElementById("masAbajo");
+  if(!c || !a) return;
+  if(c.offsetParent === null){ a.hidden = true; return; }
+  // Lo que se ve de la grilla: hasta su borde o hasta la barra del Total,
+  // lo que esté más arriba.
+  const rc = c.getBoundingClientRect(), tk = barraTotalPegada();
+  const tope = tk ? Math.min(rc.bottom, tk.getBoundingClientRect().top) : rc.bottom;
+  const abajo = [...c.querySelectorAll("tbody tr[data-cod]")].filter(tr => tr.getBoundingClientRect().bottom > tope + 2).length;
+  a.hidden = !abajo || tope < rc.top + 50;
+  if(a.hidden) return;
+  a.querySelector("b").textContent = abajo === 1 ? "1 artículo más" : abajo + " artículos más";
+  a.style.top = (tope - c.closest(".card").getBoundingClientRect().top - 46) + "px";
+}
+let avisoRaf = 0;
+const avisoPronto = () => { cancelAnimationFrame(avisoRaf); avisoRaf = requestAnimationFrame(avisoMasAbajo); };
+document.getElementById("tkLineas").addEventListener("scroll", avisoPronto, { passive:true });
+addEventListener("scroll", avisoPronto, { passive:true });
+document.getElementById("masAbajo").addEventListener("click", () => {
+  const c = document.getElementById("tkLineas");
+  c.scrollTo({ top:c.scrollHeight, behavior:"smooth" });
+  // Si la tapa la barra del Total, baja la página hasta que se vea el final.
+  const tk = barraTotalPegada();
+  if(tk){
+    const falta = c.getBoundingClientRect().bottom - tk.getBoundingClientRect().top + 10;
+    if(falta > 0) window.scrollBy({ top:falta, behavior:"smooth" });
+  }
+});
 
 // Si ya tenes Punto abierto y pegas un link con #renta, la direccion
 // cambia pero la pagina no se vuelve a cargar: hay que escucharlo.
@@ -5297,7 +5402,7 @@ function cerrarAlta(){
   setTimeout(() => { try{ marcarAccArt(); }catch(e){} }, 0);
   document.getElementById("aGuardarArriba").hidden = true;
   document.getElementById("altaCuerpo").hidden = true;
-  document.getElementById("btnAbrirAlta").textContent = "Cargar uno";
+  document.getElementById("btnAbrirAlta").textContent = "Crear uno";
   ALTA.editando = null;
 }
 document.getElementById("btnAbrirAlta").addEventListener("click",()=>{
@@ -6643,7 +6748,9 @@ function llenarSelects(){
   llenarFiltro("fRub", cRub, "Todos los rubros");
   // Las marcas con más artículos, a un toque (Piazza, Pringles, FV...).
   // Las 30 con más artículos (sin VARIOS), en orden alfabético para encontrarlas.
-  FCHIPS = [...cProv.entries()].filter(([m]) => m !== "VARIOS").sort((a, b) => b[1] - a[1]).slice(0, 30)
+  // V.0.11.200: de proveedores, no de marcas (Damián: "las marcas en
+  // artículos no las muestres, solo proveedores").
+  FCHIPS = [...cCat.entries()].filter(([m]) => m && m !== "VARIOS").sort((a, b) => b[1] - a[1]).slice(0, 30)
     .sort((a, b) => COLL_ES.compare(a[0], b[0]));
   const provs = [...cProv.keys()].sort();
   const porProv = [...cProv.entries()].sort((a,b)=>b[1]-a[1]);
@@ -6776,17 +6883,17 @@ function pintarFiltrosArt(fp, fr, fc, toks, n){
     ? n.toLocaleString("es-AR") + " de " + PRODUCTOS.length.toLocaleString("es-AR") + " artículos con estos filtros"
     : PRODUCTOS.length.toLocaleString("es-AR") + " artículos";
   const chips = FCHIPS.slice();
-  if(fp && !chips.some(([m]) => m === fp)) chips.push([fp, PRODUCTOS.filter(p => p.prov === fp).length]);
-  document.getElementById("fChips").innerHTML = '<span class="et">Marcas</span>' +
-    '<button type="button" data-marca="" aria-pressed="'+(!fp)+'">Todas</button>' +
-    chips.map(([m, k]) => '<button type="button" data-marca="'+atrib(m)+'" aria-pressed="'+(m === fp)+'">'+txt(m)+'<small>'+k+'</small></button>').join("") +
-    '<span class="por" style="margin-left:4px">las demás, en Marca</span>';
+  if(fc && !chips.some(([m]) => m === fc)) chips.push([fc, PRODUCTOS.filter(p => String(p.cat || "").trim() === fc).length]);
+  document.getElementById("fChips").innerHTML = '<span class="et">Proveedores</span>' +
+    '<button type="button" data-cat="" aria-pressed="'+(!fc)+'">Todos</button>' +
+    chips.map(([m, k]) => '<button type="button" data-cat="'+atrib(m)+'" aria-pressed="'+(m === fc)+'">'+txt(m)+'<small>'+k+'</small></button>').join("") +
+    '<span class="por" style="margin-left:4px">los demás, en Proveedor</span>';
 }
 document.getElementById("fChips").addEventListener("click", e => {
-  const b = e.target.closest("button[data-marca]"); if(!b) return;
-  const sel = document.getElementById("fProv");
-  // Tocar la que ya está puesta la saca.
-  sel.value = (b.dataset.marca && sel.value !== b.dataset.marca) ? b.dataset.marca : "";
+  const b = e.target.closest("button[data-cat]"); if(!b) return;
+  const sel = document.getElementById("fCat");
+  // Tocar el que ya está puesto lo saca.
+  sel.value = (b.dataset.cat && sel.value !== b.dataset.cat) ? b.dataset.cat : "";
   pintarProd();
 });
 document.getElementById("fCat").addEventListener("input", pintarProd);

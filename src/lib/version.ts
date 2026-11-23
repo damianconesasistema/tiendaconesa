@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.199";
+export const APP_VERSION = "V.0.11.200";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.200",
+    date: "2026-11-23",
+    changes: [
+      "La barra de arriba en un solo renglón en todas las pantallas (\"el menú de arriba lo pone en 2 renglones\"): según el ancho, la fecha pasa a \"Lun 23/11\", del dólar queda la venta, Asistente y Usuarios quedan como ícono y se van las palabras Usuario/Vendés como.",
+      "Venta (\"el total se puede hacer abajo y distribuirlo, y que siempre esté visible\"): en la compu los artículos van a lo ancho y el Total es una barra pegada abajo, con los números y los botones en fila. Mientras hay resultados de búsqueda no va pegada, para no taparlos. Los borradores pasan arriba de los artículos.",
+      "Venta (\"que te avise que tenés más artículos\"): si hay renglones que no se ven, aparece \"↓ N artículos más\" y lleva hasta el último.",
+      "Artículos: el buscador destacado en amarillo; los botones de arriba son de proveedores y no de marcas; \"Cargar uno\" pasa a \"Crear uno\".",
+    ],
+  },
   {
     version: "V.0.11.199",
     date: "2026-11-23",
