@@ -1395,7 +1395,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.209</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.210</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -2041,6 +2041,13 @@ footer{
             <div><label for="aStockTS">Stock en Traslasierra</label>
               <input id="aStockTS" type="number" min="0" step="1" value="0"></div>
           </div>
+          <div class="sub-campo dos-chicos">
+            <div><label for="aMinBA">Stock mínimo en Buenos Aires</label>
+              <input id="aMinBA" type="number" min="0" step="1" value="0"></div>
+            <div><label for="aMinTS">Stock mínimo en Traslasierra</label>
+              <input id="aMinTS" type="number" min="0" step="1" value="0"></div>
+          </div>
+          <span class="por">Cuando el stock de esa sucursal baja de ahí, hay que pedir. En 0: sin mínimo.</span>
         </div>
 
         <div class="col">
@@ -3041,7 +3048,7 @@ const S = {
    la demo no se lleva puesto lo que cargaste. */
 const GUARDA = "punto.catalogo.v1";
 const CAMPOS_ED = ["tit","desc","rub","prov","codProv","lista","seis","recs","l1","l2","iva",
-                   "dctoCont","contDias","subrubro","promo","mon","listaMon","dolar","flete","fleteFijo","costoProducto","otroCosto","otroNombre","bulto",
+                   "dctoCont","contDias","subrubro","minBA","minTS","promo","mon","listaMon","dolar","flete","fleteFijo","costoProducto","otroCosto","otroNombre","bulto",
                    "may","mayPct","mayDesde","mayPrecio",
                    "costo","contado","unPago","markup"];
 
@@ -3127,6 +3134,10 @@ function articuloServidorDe(p){
     // Más de 4 descuentos: los que sobran van como recargo negativo, como en GBP.
     for(const d of seis.filter(d => d > 0).slice(4)) if(o.recs.length < 4) o.recs.push(-d); }
   if(+p.fleteFijo > 0) o.flete = +p.fleteFijo;
+  // El stock mínimo por sucursal (V.0.11.210); los dos en 0, se saca.
+  const mBA = Math.max(0, Math.floor(+p.minBA || 0)), mTS = Math.max(0, Math.floor(+p.minTS || 0));
+  if(mBA || mTS) o.minimo = { BA: mBA, TS: mTS };
+  else if(crudo && crudo.minimo) o.minimo = null;
   // El pago contado (V.0.11.209): el % y a cuántos días; sin %, se saca.
   if(limD(p.dctoCont) > 0) o.contado = { pct: limD(p.dctoCont), dias: Math.max(0, Math.min(365, Math.floor(+p.contDias || 60))) };
   else if(crudo && crudo.contado) o.contado = null;
@@ -5124,7 +5135,7 @@ function combosDePunto(){
 function pintarCombo(){
   const on = document.getElementById("aEsCombo").checked;
   document.getElementById("aComboPiezas").hidden = !on;
-  for(const id of ["aLista","aMoneda","aDolar","aCont","aFlete","aOtro","aStockBA","aStockTS"]){
+  for(const id of ["aLista","aMoneda","aDolar","aCont","aFlete","aOtro","aStockBA","aStockTS","aMinBA","aMinTS"]){
     const e = document.getElementById(id); if(e) e.disabled = on;
   }
   if(!on){ altaCuenta(); return; }
@@ -5333,10 +5344,13 @@ function altaCuenta(){
         (otro > 0 ? r("Más "+txt(otroNom || "otro costo"), "+"+fmt2(otro), null, "fijo por unidad") : "")+
         r("<b>Te cuesta puesto acá</b>", fmt2(costo), "total", "con lo que se le suma")
       : r("<b>Te cuesta</b>", fmt2(costo), "total", "el costo más el IVA"))+
-    r("Lista 1, "+pTxt(l1)+"% sobre el costo", fmt2(pr.lista1), null, "+"+fmt2(pr.lista1-costo))+
+    // V.0.11.210 ("acá debería aparecer Lista mayorista, Lista 1 y Lista 2"):
+    // en ese orden, y abajo la Lista 2 por mayor.
+    (may ? r("<b>Lista mayorista</b>, "+pTxt(mayPct)+"% sobre el costo", fmt2(mayPrecio), null,
+             "+"+fmt2(mayPrecio-costo)+" · reemplaza a la Lista 1 desde "+mayDesde+(mayDesde===1?" unidad":" unidades")) : "")+
+    r("<b>Lista 1</b>, "+pTxt(l1)+"% sobre el costo", fmt2(pr.lista1), null, "+"+fmt2(pr.lista1-costo))+
     r("<b>Lista 2</b>, "+pTxt(l2)+"% sobre la Lista 1", fmt2(pr.lista2), "total", "+"+fmt2(pr.lista2-pr.lista1))+
-    (may ? r("Lista mayorista, "+pTxt(mayPct)+"% sobre el costo (reemplaza a la Lista 1)", fmt2(mayPrecio), null, "+"+fmt2(mayPrecio-costo)) +
-           r("<b>Lista 2 por mayor</b>, "+pTxt(l2)+"% sobre la mayorista", fmt2(mayL2), "total",
+    (may ? r("<b>Lista 2 por mayor</b>, "+pTxt(l2)+"% sobre la mayorista", fmt2(mayL2), "total",
              "desde "+mayDesde+(mayDesde===1?" unidad":" unidades")) : "")+
     (may && mayL2 > pr.lista2
       ? '<p class="nota" style="padding:8px 0 0;color:var(--bad)">El precio por mayor te está quedando más caro que la Lista 2. Bajale el porcentaje.</p>'
@@ -5405,6 +5419,7 @@ function abrirAlta(p){
     V("aMayDesde", p.mayDesde || 10);
     V("aCodProv", p.codProv || "");
     V("aStockBA", p.dep.BA); V("aStockTS", p.dep.TS);
+    V("aMinBA", +p.minBA || 0); V("aMinTS", +p.minTS || 0);
     // Si nunca se le pusieron las dos listas, se deducen del precio que tiene
     // hoy: así abre mostrando lo que de verdad vale, no un precio inventado.
     const l1 = p.l1 != null ? p.l1 : 25;
@@ -5415,7 +5430,7 @@ function abrirAlta(p){
     // Un artículo nuevo arranca sin descuentos: los pone el que carga.
     ALTA.seis = CADENA_BASE.slice(); ALTA.recs = [];
     V("aMarca",""); V("aTit",""); V("aDesc","");
-    V("aStockBA",0); V("aStockTS",0); V("aL1",25); V("aL2",25); V("aIva",21); V("aCont",0); V("aContDias",60); V("aFlete","0,00"); V("aOtro","0,00"); V("aOtroNom",""); V("aBulto","");
+    V("aStockBA",0); V("aStockTS",0); V("aMinBA",0); V("aMinTS",0); V("aL1",25); V("aL2",25); V("aIva",21); V("aCont",0); V("aContDias",60); V("aFlete","0,00"); V("aOtro","0,00"); V("aOtroNom",""); V("aBulto","");
     V("aLista","0,00"); V("aMoneda","ARS");
     V("aDolar", DOLAR ? plata2(DOLAR) : "");
     document.getElementById("aDolarPropio").checked = false;
@@ -5916,6 +5931,8 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
     dolarPropio: usd && document.getElementById("aDolarPropio").checked,
     dctoCont: limD(document.getElementById("aCont").value),
     contDias: Math.max(0, Math.min(365, Math.floor(+document.getElementById("aContDias").value || 60))),
+    minBA: Math.max(0, Math.floor(+document.getElementById("aMinBA").value || 0)),
+    minTS: Math.max(0, Math.floor(+document.getElementById("aMinTS").value || 0)),
     promo: document.getElementById("aPromo").checked,
     may: document.getElementById("aMay").checked,
     mayPct: +document.getElementById("aMayPct").value || 0,
@@ -7173,7 +7190,8 @@ function pintarProd(){
       '<td class="r" style="white-space:nowrap;color:var(--ink-2)">'+fmt2(lista1De(p))+'</td>'+
       '<td class="r" style="font-weight:700;white-space:nowrap">'+fmt2(p.unPago)+'</td>'+
       '<td class="r" style="font-weight:600;color:'+(m<0?"var(--bad)":(m<S.objetivo?"var(--warn)":"var(--ok)"))+'">'+pct(m)+'</td>'+
-      '<td>'+estadoPill(m)+'</td><td class="r">'+p.stock+'</td>'+
+      '<td>'+estadoPill(m)+'</td><td class="r">'+p.stock+
+        ((+p["min"+depAct()] || 0) > 0 ? '<small style="display:block;font-weight:600;color:'+(p.stock < +p["min"+depAct()] ? 'var(--bad)' : 'var(--ink-3)')+'" title="stock mínimo en esta sucursal">mín '+(+p["min"+depAct()])+'</small>' : '')+'</td>'+
       '<td class="r"><button class="lapiz" data-ed="'+p.cod+'" title="Editar este artículo" aria-label="editar '+p.cod+'">'+
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" aria-hidden="true">'+
         '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button></td></tr>';
@@ -10820,7 +10838,7 @@ function soloLoDePunto(p, d){
   return may(d.tit) === may(p.tit) && may(d.prov) === may(p.prov) && d.rub === p.rub && may(d.cat) === may(p.cat) && may(d.subrubro) === may(p.subrubro) &&
     String(d.desc || "").trim() === String(p.desc || "").trim() && may(d.codProv) === may(p.codProv) &&
     igual(d.lista, p.lista) && JSON.stringify(ds) === JSON.stringify(ps) &&
-    igual(d.l1, p.l1) && igual(d.l2, p.l2) && igual(d.iva, ivaDe(p)) && igual(d.dctoCont, p.dctoCont) && igual(d.contDias || 60, p.contDias || 60) &&
+    igual(d.l1, p.l1) && igual(d.l2, p.l2) && igual(d.iva, ivaDe(p)) && igual(d.dctoCont, p.dctoCont) && igual(d.contDias || 60, p.contDias || 60) && igual(d.minBA, p.minBA) && igual(d.minTS, p.minTS) &&
     d.mon === (p.mon === "USD" ? "USD" : "ARS") && !!d.promo === !!p.promo && !!d.may === !!p.may &&
     (!d.may || (igual(d.mayPct, p.mayPct) && igual(d.mayDesde, p.mayDesde))) &&
     igual(d.dep.BA, p.dep.BA) && igual(d.dep.TS, p.dep.TS);
@@ -13435,6 +13453,7 @@ function productoDeGbp(a){
     cod: sinEtiquetas(a.cod), tit, rub: rubroDeGbp(a.subrub, tit), prov: sinEtiquetas(a.prov) || "VARIOS",
     subrubro: sinEtiquetas(a.subrubro || ""),
     dctoCont: contPct, contDias: a.contado && Number.isFinite(+a.contado.dias) ? Math.floor(+a.contado.dias) : 60,
+    minBA: a.minimo ? Math.max(0, Math.floor(+a.minimo.BA || 0)) : 0, minTS: a.minimo ? Math.max(0, Math.floor(+a.minimo.TS || 0)) : 0,
     codProv, lista: listaArs, seis, seisOrig: seis.slice(), recs: gd ? gd.recs : cadenaGbp ? cadenaGbp.recs : [], dtoGbp: !!gd, l1, l2, iva,
     dtoInfo, cadenaGbp: dtoInfo ? cadenaGbp : null,
     ...(usd ? { mon:"USD", listaMon: +a.lista || 0, dolar: dolArt > 0 ? dolArt : null, dolarPropio: +a.dolar > 0 } : {}),

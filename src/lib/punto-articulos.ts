@@ -97,6 +97,10 @@ export type ArticuloPunto = {
    *  60 días"). Va en el costo. Antes no se guardaba y al recargar el costo
    *  salía sin él. De Punto: el import no lo toca; null lo saca. */
   contado?: { pct: number; dias: number } | null;
+  /** V.0.11.210: el stock mínimo de Punto en cada sucursal (Damián:
+   *  "necesito setearle el stock mínimo del artículo por sucursal"). No es
+   *  el "min" del Excel de GBP. De Punto: el import no lo toca; null lo saca. */
+  minimo?: { BA: number; TS: number } | null;
   // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
   // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
   // articulos, uno por uno ... entrando en cada articulo deberia ver los
@@ -206,6 +210,19 @@ function limpiarContado(v: unknown): { pct: number; dias: number } | null | unde
   return { pct: Math.round(pct * 100) / 100, dias: Number.isInteger(dias) && dias >= 0 && dias <= 365 ? dias : 60 };
 }
 
+/** El stock mínimo que llega: undefined si no vino, null (o los dos en 0) para sacarlo. */
+function limpiarMinimo(v: unknown): { BA: number; TS: number } | null | undefined {
+  if (v === undefined) return undefined;
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const n = (x: unknown) => {
+    const k = Number(x);
+    return Number.isInteger(k) && k >= 0 && k <= 1_000_000 ? k : 0;
+  };
+  const BA = n(o.BA), TS = n(o.TS);
+  return BA || TS ? { BA, TS } : null;
+}
+
 /** El por mayor que llega: undefined si no vino, null para sacarlo. */
 function limpiarMayor(v: unknown): { pct: number; desde: number } | null | undefined {
   if (v === undefined) return undefined;
@@ -242,6 +259,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   const mayor = limpiarMayor(o.mayor);
   const subrubro = limpiarSubrubro(o.subrubro);
   const contado = limpiarContado(o.contado);
+  const minimo = limpiarMinimo(o.minimo);
   return {
     cod,
     tit,
@@ -268,6 +286,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     ...(mayor !== undefined ? { mayor } : {}),
     ...(subrubro !== undefined ? { subrubro } : {}),
     ...(contado !== undefined ? { contado } : {}),
+    ...(minimo !== undefined ? { minimo } : {}),
     ...deOtroExcel(o),
   };
 }
@@ -438,6 +457,9 @@ export async function guardarArticulos(
       // El pago contado (V.0.11.209), igual: de Punto.
       if (a.contado === undefined && ya?.contado) nuevo.contado = ya.contado;
       if (nuevo.contado === null) delete nuevo.contado;
+      // El stock mínimo (V.0.11.210), igual: de Punto.
+      if (a.minimo === undefined && ya?.minimo) nuevo.minimo = ya.minimo;
+      if (nuevo.minimo === null) delete nuevo.minimo;
       if (ya && conStock && !conStock.has(a.cod)) {
         nuevo.stockBA = ya.stockBA;
         nuevo.stockTS = ya.stockTS;

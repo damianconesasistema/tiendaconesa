@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.209";
+export const APP_VERSION = "V.0.11.210";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.210",
+    date: "2026-11-23",
+    changes: [
+      "Crear uno, el cálculo (\"acá debería aparecer lista mayorista, lista 1 y lista 2\"): después de Te cuesta van Lista mayorista, Lista 1 y Lista 2, y abajo la Lista 2 por mayor.",
+      "STOCK MÍNIMO POR SUCURSAL (\"necesito setearle el stock mínimo del artículo por sucursal\"): dos casillas debajo del stock de cada sucursal, guardadas en el servidor (dato de Punto: el import de GBP no lo toca). En la lista de Artículos, debajo del stock va \"mín N\", en rojo si está por debajo.",
+    ],
+  },
   {
     version: "V.0.11.209",
     date: "2026-11-23",
