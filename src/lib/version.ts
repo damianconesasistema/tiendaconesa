@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.89";
+export const APP_VERSION = "V.0.99.90";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.90",
+    date: "2026-11-23",
+    changes: [
+      "EL CIRCUITO DE PEDIDOS (\"el vendedor no puede emitir factura, sino que confirma y pasa a comprobantes/pedidos, y ahí el cajero es el que cobra\"): en Venta ya no se factura. Se emite presupuesto o se toca Confirmar pedido (eligiendo la caja, también de otra sucursal).",
+      "PEDIDOS POR COBRAR EN COMPROBANTES: arriba de Comprobantes, los pedidos confirmados que esperan, con un número en la solapa. El cajero toca Abrir y cobrar y elige: Emitir factura, Entregar sin comprobante o Cerrar como pedido interno. Si el cliente se fue, Anular.",
+      "EN PREPARACIÓN (\"que pase al otro estado, que es de preparación\"): en Comprobantes, el filtro En preparación (sin despachar) muestra lo emitido que el depósito todavía no despachó; ahí se toca Despachado.",
+      "BORRAR DATOS (\"un botón que borre todos los datos en comprobante por si quiero cambiarlo\"): en Venta, al lado de + Crear. El comprobante vuelve a consumidor final, sin descuento y el documento de siempre; los artículos quedan.",
+    ],
+  },
   {
     version: "V.0.99.89",
     date: "2026-11-23",

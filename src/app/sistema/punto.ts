@@ -1120,7 +1120,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.89</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.90</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1179,6 +1179,7 @@ footer{
       <div class="card" style="margin-bottom:16px">
         <div class="card-h"><h3>Comprobante</h3>
           <button class="b2" id="btnCrearVta" type="button" style="margin-left:auto;padding:5px 15px" title="Empezar un comprobante nuevo, en blanco">+ Crear</button>
+          <button class="b3" id="btnBorrarDatosVta" type="button" style="margin-left:6px;padding:5px 13px" title="Cliente, documento, condición, descuento y depósito vuelven a lo de siempre. Los artículos quedan.">Borrar datos</button>
           <button class="b3" id="btnCambiarVta" style="margin-left:6px;padding:5px 15px">Cambiar</button>
         </div>
         <!-- La tira de un renglón: lo mismo que los campos, para cuando
@@ -1222,9 +1223,11 @@ footer{
       <div id="tkCaja"></div>
       <div class="tk-tot" id="tkTot"></div>
       <div class="tk-acc">
-        <button class="b1" id="btnFactura">Emitir factura</button>
+        <button class="b1" id="btnFactura" hidden>Emitir factura</button>
+        <button class="b2" id="btnSinFacturaC" type="button" hidden>Entregar sin comprobante</button>
+        <button class="b2" id="btnPedInt" type="button" hidden title="Sin factura: queda anotado como pedido interno y pasa a preparación">Cerrar como pedido interno</button>
         <button class="b1 suave" id="btnPresu">Emitir presupuesto</button>
-        <button class="b2" id="btnCaja" title="La cobra el cajero: elegís a qué caja">Mandar a caja</button>
+        <button class="b1" id="btnCaja" title="Pasa a Comprobantes → Pedidos por cobrar: lo cobra el cajero. Elegís la caja (otra sucursal también).">Confirmar pedido</button>
         <div id="cajaElige" hidden style="padding:4px 0 6px">
           <span class="et" style="display:block;margin-bottom:6px">¿A qué caja la mandás? Otra sucursal también: se cobra con su CUIT.</span>
           <div id="cajaEligeBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
@@ -1374,6 +1377,7 @@ footer{
       <option value="sin-comprobante">Sin comprobante</option>
       <option value="remito">Remitos</option>
       <option value="pedido-interno">Pedidos internos</option>
+      <option value="preparacion">En preparación (sin despachar)</option>
       <option value="eliminados">Eliminados</option>
     </select>
     <select id="cpSuc" aria-label="Sucursal"></select>
@@ -1387,6 +1391,13 @@ footer{
     <input id="cpBusca" type="search" placeholder="Buscar: cliente, número, vendedor o artículo" autocomplete="off" style="min-width:300px">
     <button class="b1" id="cpNuevo" type="button" style="margin-left:auto;padding:9px 18px">+ Nuevo comprobante</button>
   </div>
+  <div class="card" id="porCobrarCard" hidden style="margin-bottom:16px">
+    <div class="card-h"><h3>Pedidos por cobrar</h3><span class="sub" id="porCobrarSub"></span></div>
+    <div class="tabla-wrap"><table class="densa"><thead><tr>
+      <th>Llegó</th><th>Vendedor</th><th>Cliente</th><th>Artículos</th><th class="r">Total</th><th>Estado</th><th></th>
+    </tr></thead><tbody id="tbPorCobrar"></tbody></table></div>
+  </div>
+
   <div class="card">
     <div class="card-h"><h3>Lo emitido</h3><span class="sub" id="cpCount"></span></div>
     <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto"><table class="densa"><thead><tr>
@@ -2108,12 +2119,6 @@ footer{
   <div class="head">
     <h2>Caja del día</h2>
     <p>Cada razón social tiene su caja. Elegí cuál mirás; «Todas» suma las tres. Esta pantalla no la ve el mostrador.</p>
-  </div>
-  <div class="card" id="porCobrarCard" hidden style="margin-bottom:16px">
-    <div class="card-h"><h3>Por cobrar</h3><span class="sub" id="porCobrarSub"></span></div>
-    <div class="tabla-wrap"><table class="densa"><thead><tr>
-      <th>Llegó</th><th>Vendedor</th><th>Cliente</th><th>Artículos</th><th class="r">Total</th><th>Estado</th><th></th>
-    </tr></thead><tbody id="tbPorCobrar"></tbody></table></div>
   </div>
   <div class="solapas" id="cajaSucs"></div>
   <div class="filtro-vend">
@@ -2967,6 +2972,7 @@ function avisarVista(v){
   window.scrollTo({top:0,behavior:"instant"});
   if(v==="productos") pintarProd();
   if(v==="caja"){ pintarCaja(); traerPorCobrar(); }
+  if(v==="comprobantes") traerPorCobrar();
   if(v==="gerencia") pintarGerencia();
   if(v==="renta") pintarRenta();
   if(v==="contable") pintarContable();
@@ -4116,12 +4122,19 @@ async function guardarPresu(){
 }
 
 document.getElementById("btnFactura").addEventListener("click",()=>{
-  // Sin permiso de cobrar, el botón (o Alt+F) manda a la caja.
-  if(!puedeCobrar()){ document.getElementById("btnCaja").click(); return; }
+  // Sin un pedido abierto para cobrar (o sin permiso), el botón (o Alt+F)
+  // confirma el pedido: en Venta no se factura.
+  if(!puedeCobrar() || !VSRV.caja){ document.getElementById("btnCaja").click(); return; }
   // El botón principal emite siempre un comprobante de verdad: si arriba
   // decía presupuesto, lo pasa a la factura que corresponde y la emite.
   const comp = compAct();
   if(esPresu(comp)) S.comp = facturaDe();
+  cerrar(true);
+});
+document.getElementById("btnSinFacturaC").addEventListener("click", () => document.getElementById("btnSinFactura").click());
+document.getElementById("btnPedInt").addEventListener("click", () => {
+  if(!VSRV.caja || !puedeCobrar()) return;
+  S.comp = "05.Pedido interno";
   cerrar(true);
 });
 document.getElementById("btnPresu").addEventListener("click",()=>{
@@ -4177,6 +4190,16 @@ document.getElementById("btnMasAcc").addEventListener("click",e=>{
   caja.hidden = !caja.hidden;
   e.target.setAttribute("aria-expanded", String(!caja.hidden));
   e.target.textContent = caja.hidden ? "Otras opciones" : "Menos opciones";
+});
+/* "Borrar datos" (V.0.99.90, Damián: "un botón que borre todos los datos en
+   comprobante por si quiero cambiarlo"): el comprobante vuelve a lo de
+   siempre (consumidor final, el documento que corresponde, sin descuento);
+   los artículos cargados quedan. */
+document.getElementById("btnBorrarDatosVta").addEventListener("click", () => {
+  if(EMITIENDO || trabadaPorDuda()) return;
+  S.cliente = ""; S.comp = null; S.cond = null; S.desc = 0; S.dep = null; S.nroLibre = false;
+  pintarCamposVenta(); pintarDtos(); pintarTicket();
+  toast("Datos del comprobante en blanco: consumidor final, sin descuento. Los artículos quedaron.");
 });
 /* "+ Crear" (antes "Vaciar", abajo en Otras opciones): un comprobante nuevo,
    en blanco: sin artículos, consumidor final, sin descuento y el documento de
@@ -7840,7 +7863,7 @@ async function emitirEnServidor(doc){
     // serie de otra); y la venta que volvió de la copia de esta compu espera
     // a saber cuál es en el servidor.
     if(doc.letra !== "X" && VSRV.caja && !VSRV.id){
-      toast("Ese ticket ya no está tomado por vos: no lo emito. Fijate en Caja, en «Por cobrar».");
+      toast("Ese ticket ya no está tomado por vos: no lo emito. Fijate en Comprobantes, en «Pedidos por cobrar».");
       return null;
     }
     if(doc.letra !== "X" && VSRV.caja && VSRV.caja.suc && doc.sucursal !== VSRV.caja.suc){
@@ -8118,13 +8141,15 @@ async function pintarComprobantes(){
   CP.cargando = true; pintarListaCp();
   try{
     const q = new URLSearchParams({ dias:String(dias) });
-    if(tipo) q.set("tipo", tipo);
+    if(tipo && tipo !== "preparacion") q.set("tipo", tipo);
     if(suc) q.set("suc", suc);
     const r = await fetch(DOCS_URL + "?" + q.toString(), { cache:"no-store", credentials:"same-origin" });
     const d = await r.json().catch(() => ({ error:"El servidor contestó " + r.status + "." }));
     if(este !== CP.pedido) return;
     if(!r.ok || d.error) throw new Error(d.error || "No se pudo leer.");
     CP.docs = d.documentos || []; CP.hayMas = !!d.hayMas; CP.error = "";
+    // En preparación: lo emitido (no presupuestos) que todavía nadie despachó.
+    if(tipo === "preparacion") CP.docs = CP.docs.filter(x => x && x.tipo !== "presupuesto" && !(x.datos && x.datos.despacho));
     if(d.contadores) sincronizarNumeros(d.contadores);
   }catch(e){
     if(este !== CP.pedido) return;
@@ -10968,10 +10993,11 @@ function pintarCajaTicket(){
   const vs = document.getElementById("vtaSuc");
   if(vs) vs.disabled = !!VSRV.caja || !!sucursalFija();
   const e = document.getElementById("tkCaja"); if(!e) return;
+  aplicarCobrar();
   if(!VSRV.caja){ e.innerHTML = ""; return; }
   const v = txt(VSRV.caja.vendedor || "el vendedor");
   e.innerHTML = '<div class="aviso" style="margin:0 14px 10px"><span>$</span><div>' +
-    '<b>Cobrando la venta de ' + v + '</b> · caja de ' + txt(sucDe(VSRV.caja.suc || S.suc).n) + '. Elegí con o sin comprobante y emití: ' +
+    '<b>Cobrando la venta de ' + v + '</b> · caja de ' + txt(sucDe(VSRV.caja.suc || S.suc).n) + '. Emití la factura, entregalo sin comprobante o cerralo como pedido interno; después pasa a preparación. ' +
     'el comprobante sale a nombre de ' + v + '.' +
     '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
     '<button class="b3" id="btnSoltar" type="button" style="padding:5px 12px;font-size:12.5px">Devolver a la caja sin cobrar</button>' +
@@ -11315,7 +11341,7 @@ document.addEventListener("click", async e => {
   if(EMITIENDO || trabadaPorDuda() || !VSRV.caja) return;
   // El ticket ya no está tomado por esta pantalla (lo tomó otro cajero, se
   // devolvió): solo se saca de acá. Queda en el servidor como está.
-  if(!VSRV.id){ soltarPantalla("Lo saqué de la pantalla: el ticket sigue en el servidor. Fijate en Caja, en «Por cobrar»."); traerPorCobrar(); return; }
+  if(!VSRV.id){ soltarPantalla("Lo saqué de la pantalla: el ticket sigue en el servidor. Fijate en Comprobantes, en «Pedidos por cobrar»."); traerPorCobrar(); return; }
   if(anu){ anularTicket(VSRV.id); return; }
   // Sin artículos no tiene sentido devolverlo: es que no se cobra.
   if(!S.linea.length){ anularTicket(VSRV.id); return; }
@@ -11335,10 +11361,16 @@ document.addEventListener("click", async e => {
   } finally { EMITIENDO = false; botonesEmitir(false); traerPorCobrar(); }
 });
 /** Sin permiso de cobrar, la venta se manda a caja: el botón grande es ese. */
+/** Desde la V.0.99.90 en Venta no se factura: se confirma el pedido y el
+    cajero lo cobra desde Comprobantes → Pedidos por cobrar. Los botones de
+    emitir aparecen solo mientras se cobra un pedido abierto desde ahí. */
 function aplicarCobrar(){
   const c = puedeCobrar();
-  for(const id of ["btnFactura", "btnSinFactura"]){ const b = document.getElementById(id); if(b) b.hidden = !c; }
-  const bc = document.getElementById("btnCaja"); if(bc) bc.className = c ? "b2" : "b1";
+  let cobrando = false;
+  try{ cobrando = !!VSRV.caja; }catch(e){ /* todavía no arrancó la venta */ }
+  for(const id of ["btnFactura", "btnSinFacturaC", "btnPedInt"]){ const b = document.getElementById(id); if(b) b.hidden = !(c && cobrando); }
+  const bs = document.getElementById("btnSinFactura"); if(bs) bs.hidden = true;
+  const bc = document.getElementById("btnCaja"); if(bc){ bc.hidden = cobrando; bc.className = "b1"; }
 }
 
 /* ---------------------------------------------- la caja: por cobrar */
@@ -11368,7 +11400,7 @@ function pintarPorCobrar(){
   const tb = document.getElementById("tbPorCobrar");
   if(COBRAR.error){ tb.innerHTML = '<tr><td colspan="7" class="vacio">' + txt(COBRAR.error) + '</td></tr>'; return; }
   if(!COBRAR.lista.length){
-    tb.innerHTML = '<tr><td colspan="7" class="vacio">No hay nada esperando. Cuando un vendedor mande una venta a esta caja, aparece acá.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="7" class="vacio">No hay pedidos esperando. Cuando un vendedor confirme un pedido para esta caja, aparece acá.</td></tr>';
     return;
   }
   const yo = soyYo(), ahora = Date.now();
@@ -11381,7 +11413,7 @@ function pintarPorCobrar(){
       : mia ? '<span class="pill p-ok">la tenés vos' + (v.lugar === MI_PESTANA ? "" : ", en otra pestaña") + '</span>'
       : '<span class="pill p-n">la cobra ' + txt(v.tomadoPor || "otro cajero") + '</span>';
     const acc = ((mia && v.lugar === MI_PESTANA) || deOtro ? ""
-      : '<button class="b1" type="button" data-cobrar="' + atrib(v.id) + '" style="padding:5px 14px;font-size:12.5px">Cobrar</button>') +
+      : '<button class="b1" type="button" data-cobrar="' + atrib(v.id) + '" style="padding:5px 14px;font-size:12.5px">Abrir y cobrar</button>') +
       // El cliente se fue sin pagar: sin esto quedaba en la caja para siempre.
       (v.estado === "en-caja" ? ' <button class="b3" type="button" data-anular="' + atrib(v.id) + '" style="padding:5px 10px;font-size:12.5px" title="El cliente no lo paga: sale de la caja">Anular</button>' : '');
     return '<tr><td class="num">' + txt(horaCorta(v.actualizadoEn)) + '</td><td>' + txt(v.vendedor) + '</td>' +
@@ -11390,7 +11422,7 @@ function pintarPorCobrar(){
   }).join("");
 }
 function marcarNavCaja(){
-  const a = document.querySelector('#nav [data-v="caja"]'); if(!a) return;
+  const a = document.querySelector('#nav [data-v="comprobantes"]'); if(!a) return;
   let b = a.querySelector(".cnt-caja");
   const n = COBRAR.lista.filter(v => v.estado === "en-caja").length;
   if(!n){ if(b) b.remove(); return; }
@@ -11452,7 +11484,7 @@ async function cobrarTicket(id){
     }
     aplicarVentaDelServidor(d.venta);
     abrirVista("mostrador");
-    toast("Cobrando la venta de " + (d.venta.vendedor || "el vendedor") + ". Elegí con o sin comprobante y emití.");
+    toast("Cobrando el pedido de " + (d.venta.vendedor || "el vendedor") + ": factura, sin comprobante o pedido interno.");
     traerPorCobrar();
     if(teniaAlgo) traerMias();
   } finally { VSRV.cambiando = false; EMITIENDO = false; botonesEmitir(false); }
