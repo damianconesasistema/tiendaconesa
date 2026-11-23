@@ -266,7 +266,10 @@ section[hidden]{display:none}
      pasaba 182 px de la caja y quedaban afuera el Precio, el Subtotal y la
      cruz de sacar el renglon. El nombre cede porque tiene el globito con el
      nombre completo y, ahora si, un codigo que no miente. */
-  max-width:255px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  /* V.0.99.82: entero, en dos o tres renglones si hace falta. Damián: "los
+     artículos no me deja leerlos". Mismo ancho: el Precio, el Subtotal y la
+     cruz siguen entrando. */
+  max-width:255px; white-space:normal; overflow-wrap:anywhere;
 }
 .lin-t td.nom small{display:inline; margin-left:8px; color:var(--ink-3)}
 .lin-t td.nom small::before{content:"\\00b7 "}
@@ -595,6 +598,31 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 .envio-acc{display:flex; flex-wrap:wrap; gap:8px; padding:14px 16px 16px}
 .envio-acc .b1,.envio-acc .b2{flex:1 1 auto; text-align:center; text-decoration:none; line-height:1.3}
 .envio-acc[hidden]{display:none}   /* el flex le gana al hidden si no se dice */
+
+/* Proveedores (V.0.99.82): el formulario de alta y edición, y los pedidos a
+   proveedores. Los campos del formulario son texto: el .campo input de las
+   listas los alinea a la derecha, que es para números. */
+#prvForm .campo input, #prvForm .campo textarea{text-align:left}
+#prvForm .campos{padding:12px 16px 0}
+#tbOc tr[data-oc]{cursor:pointer}
+#tbOc tr.oc-abierta td{background:var(--accent-soft)}
+.oc-ed, .oc-falt{border-top:1px solid var(--line); padding:12px 14px 14px}
+.oc-cab{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:6px}
+.oc-cab h4{margin:0; font-size:16px; font-weight:700; text-transform:uppercase; letter-spacing:.02em}
+.oc-cab > .b3{margin-left:auto; padding:5px 12px}
+.oc-busca{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:10px 0 6px}
+.oc-busca input[type=search]{flex:1 1 320px; background:var(--surface-2); border:1px solid var(--line-2);
+  border-radius:8px; padding:8px 10px; font:inherit}
+.oc-busca input[type=search]:focus, .oc-nota:focus{border-color:var(--accent); outline:none}
+.oc-nota{display:block; width:100%; max-width:640px; margin-top:10px; background:var(--surface-2);
+  border:1px solid var(--line-2); border-radius:8px; padding:7px 10px; font:inherit; font-size:13px}
+.oc-tot{max-width:440px; margin:12px 0 0 auto; display:flex; flex-direction:column; gap:5px}
+.oc-acc{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; align-items:center}
+.oc-acc button{padding:8px 14px}
+.oc-bulto{display:block; font-size:11.5px; color:var(--warn); font-weight:600; margin-top:2px}
+.oc-grupo{margin-top:14px}
+.oc-ya{display:flex; gap:4px; flex-wrap:wrap; margin-top:4px}
+.oc-ed td small, .oc-falt td small{display:block; color:var(--ink-3); font-size:11.5px; font-weight:500; margin-top:2px}
 
 /* El semáforo del stock, el mismo en la venta y en el pedido.
    Más de 10: tranquilo. De 1 a 10: se está por acabar. En cero: no hay. */
@@ -1026,7 +1054,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOgAAABNCAYAAACseCglAAAAAklEQVR4AewaftIAAA4vSURBVO3B/5OkCX0Q4OfTvRDk20wACUhIN5KOAuJ0ohRojp1eMEEqgR1UorGsmrm/YCd/wcyVVf5kFZPyB3/QyvZqKWpFnSs04F3kuiEcCZjQI4GAXYZeMKVEzPVU5I47ru/jWUOqd3Znut/5tv3O3fs8kZkqlUo51VQqldKqqVQqpVVTqVRKq6ZSqZRWTaVSKa2aSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqldUVJRMQObpi6jbXMHJghInpYNXUtM3tmiIg09RB6eMzUD2fm2F0iooPHTF3LzJ67RMQ2thztoczcdoyI6OAxU/3M7JghInZww2G30cNmZo4dIyJ6WHVgLzPbZoiIbWxiyYHb2MzMXTNERBNdrJray8y2yrFqSiAitnHDYQ0sm2/ZYW0ns+YumTm2OE2HNc03dq8G1tFT3NgMEbGDLSyZauDfR0THbLtYddiKykxXlMOGw/pYNUdELGPFYW0ns4Km8ug4rBERy5k5VtxtNBxYiYhOZvacQUQ0ccPxttFxhIhoY8XUPsZoOEqr/hL8A/wovo9EmC/xEnwXjxpO/o1LrqYcGqb2MrODt2BktrZ7dZzchnOUmduZGeib6mdmZOa22dru1XEyGw5rO7s1h30Et0ytRsSyoy07bCczm7jmaG/H+/AArmIVV3EVV3EVV3EVV3EVV7GKB/B+fNALQE05PGxqJSK6GGfmyGwd92pExLKTWVUeK+7VdjIbDhs4u2V3yMxd9BzWdrSBw7YiYiMze+7Wqv8p/F28Ez+KBhpooIEGGmiggQYaaKCBN+Mt+IBW/W0uuZpy2Ma+qXX0ImLZbG1Te6Y6LqGI6Jjqm+o4mXVT+xg4u7Z7jRSQmWM85LCbEbHhXq/CRxBIJBKJRCKRSCQSiUQi8Wp81CVXUwKZOUAH+6ZWsGm2jqmuqbbLqWOqZ2rV6XUyc+zsxs4gM7fxSw67GREdh/0FvBV1BAKBQCAQCAQCgUAgEHgp/qZW/bUusZqSyMwBOtg31XGMiGhiyVTbVEdx+8qjbaqNfT8QEW2ns+x8jNyr7QQycwcPOqzjT7Tqy/jbqDm7K3gH3uYSu6IEImKAzczsRcQIKw40Ha/tsHVTq4rbxbpy6Ji67rAOBorpY9WBTfSc3cgdImIbbXfIzJ4jREQHG9hGz/Fejw85EM6ujl/Qqv+u4WTsEqophxU8FhGJFVMDx+uYISLaitlVAhHRxJLjtRXXNXU9IprObhf7prZw3dQts63jG/iGw0amVvAGsyWew3NIxwsk/hZe65KqKbdtx2ubeigzA3umOooZ45bFa5vaz8zAg6Y6CsrMLvZNbTqjzBxj09H2se3k9rDr/2vVX4+fR5jt/+Jx/DaeMVvgjfhJl1RNOfwy+g7s42H8ZGYOzNZHHwMHeuijj2XH66OPvgNd9NFHPyKWHW2MPvroY2y2AfroY2C2Jvroo+vAAH30MYqIZUcbo48++g7soI8+mo43QB99jMyQmV18BH0HbuMW2pk5crwRbmHPgdu4hU5mjh1o4oNIsz2Bf4h/iqcV8yGt+utcQpGZKpWFa9XX0TXfF/EAXo09/BmzJf4Q1w0nv+WSqalUFq1VX8JfR5rte/iC4eQZw8l38F/wjNkCP4J3uoSuqFQuWqv+RlxzIJEIB/4Y78L7EI6X+AP8K1P/BO/B6833c1r1TxhOvu0SuaLkImIZHbTRca8RehhhlJkjM0REE2too+leA/TQy8yxOSKijWXzjTNz4A4R0cay+UaZOYqIjvMxyMyxI0REE2voYNm9Rhigl5kDxfxF/CNHm+DleIXZAl/D5019Ct/E6833fqzgEZfIFSUVEU1sYw1LjreKdQeuYeQIEdHGDlbNtoob2I+IHexk5tjxOviY+W5hw2EbuGG+axhhG6vO7hp67hARbWzjutlWse55EbGPUWa2zfZSvMbZPIlPG04m/sRw8qxW/VG8HS8326vwbjziEqkpoYjYxADrWHJGEbGNL2FVcUvYwigiOo43UEzHvcZOpucCRMQGvoTrTmYJK+b7vrP7Cv6de/0zfFMxV7XqP+YSqSmZiOjiY1hyDiKiiy2nt4THImLD2TQiYk3JRMQGbrpY6ex+03Aycrfh5GsYKOZdeMAlUlMiEdHFunMSEV2sOx83I6LjbNaUSER0cNPFqzmbP8JjjvcpPGG+JbzHJVJTEhGxjXXnJCLWsO587UbEstNbi4hl5dF1OTyOxx3vEfxX8yXerVX/sy6JmhKIiDa2nK8d528J205vCWtKICI6aLgcPmM4+bbjDCf/E583X+Dt+KBLoqYcdpyjiNhAw8W4ERFNp7emHNZcDt/C4+b7dXzLfK/EqkuiZsEiooNV52vbxdpwetcjomnx2k5mD330se/++TX8jvk+h88o5h1a9Xe4BK5YvA0ns4/NzOx6XkQ00cG250VEGw3F7GMtM3sR0cW6Yjaw7fTWsOPi3ELX0ZYxUtw+1jKz5w4RsYZNrLo4iUcMJ0+ZZzj5nlb9MfwiamZr4hewpeSuWLw1xe2jk5kDP5CZI3QjYteBDcXtZGbP8zJzIyLaWDFfIyKamTlyOhvYcXFGmdkzQ0QoaJCZPXfJzF3sRsSGi7OHgeJ+A1/Gitlejvdp1f++4eRZJVazQBHRwZLiNjJz4AiZOc7MMdYUt+OwHcV1nN5KRDRdDk0zZGbXxfnnhpPfV9Rw8nX8qmLegvcouZrF6iiun5m75msrpp+ZY4f1FNd2NpsWa6SYRkR03X9P4T87uR6eNN9rsK7kaharo7iuYpYUM3CXzBxhXzFtZ7NmsQaKW4+IbkQsu3jpwKfwTSf33/Ap870M79eqv0qJXbFYTcXtmiMiOoobO9oAq+ZrOpsGOi5GJyK23WsZg8zsYhcfU9w62hGxlpkjF+9XDCdPOKnh5A+16h/H3zDfn8bP4t8qqZrFaihmLzPHzlfP2TSc3aqLsYotbGELW9jCDTQ9LzNHuOVkVjCIiLaLM8EIv+n0fge3kY4XeAk2tOovU1I1l8PA/TPy4rGJfSezhC9FxIaL8Sz+heHkO07vf+FfIsz2UlzDm5RUzeUwUkzH2Y28SGTmGBtO52ZEbDh/f4xbzmI4eRIfx9NIxwu8Ah/Qqv+QEqqpvKhl5i4edDo3I6JjvlTMs/htw8nQ2X0dn8XEfA/idUqopvKil5ldPIh9J7cbEctmS8U8ga7zMJw8g3+M75nvp/BWJVRzOSwrpqdyKpnZRQf7TmYJO2Z7RjHfxH9wfj6JbyHNVsPPaNVfrmRqLoe2+6fjRSozB2hiz8msR0TT8cJ8T+OzhpPvOi/DyVP4BL5rvo+iqWSuWKx9LJlv1flro+f09p3MHlbcHw9l5ra7RETHHJk5RjsiulhX3Aa2Ha1ltsS38K+dv5v4KF5ptp/AO/FVJVKzWAMFRUTbfAPFLTtaUzEDJ9O1YJnZy8yeAjJzA7cU13GUVv0N+DmzBb6MLzhvw8nX8BWk2QLv1aq/UonULNZAcZvmyMyx4tqO1lDMyMkMcNvlsonbimk62rvwXrM9ic8YTp5zMXbxR+b7AN6hRGoWq6e4tYhYNl9fMR13iYg1xQ2c3I4SiIhmRLTNkZlj7Cqm4Wh/Cctm+zI+6eI8jN8z31vxl5VIzWL1FLeEXfP1FLMUEWsOW1Ncz8ntKocmvhQR2+YbO61W/c34abMlfstw8nUXZTj5Dr6IidkCP61Vf4WSqFmgzBzjYcWtRkQ3IpbdISKWI2I7ItroKW7TD0REG+uKuZ2ZAyeUmSPsWaCIaOINDmxFxCgiNhwhIpaxoZg993oA7zbbE/isi/dJjMz3AP6qkrhi8XZxXXHrWIuIXYzQRgdL6GVmLyJuo2G+1YgYYRcbitt1eju46WJtRcSW4/2SqQZuRsQOehg4sIw1NBQzcq8H8CqzfR59F+9z+CLearY3o4NHlUDNgmVmF7edzBLWsYXrWHJYV3EN3MCS4rpOb1c5LeE6trCFG2gorudOrfqPoW2+Rw0n/9tFG06exOfwPfP9lFb9tUqgphw2na8dF6efmQOnlJljPOyFZ9dhP48/73iJP8AX3D+fxu+abwXXlEBNCWTmLh52TjJzjIdcjE1n1/XCciszRw57L17jeIFdfNX9Mpx8FY+Y7w34GSVQUx4b2HNOMnMbe87XQ5k5cEaZuYt9Lwz72HanVr2Ft5ntWXzacLLv/nocT5kt0Naqv8aC1ZREZo7RwW3nZw37zsetzNx2fna9MKxl5shhH0bDbF/G77n/9vCo+Zr4sAWrKZHMHKONvnOQmSN0sOdsbmXmhvO143Lbx7XM7LnXz+LVZvtV/L77bTj5H/iE+V6LD1uwmpLJzHFmdvAgbjujzBygg192crfxkczccLxlxSy7Q2YOcNvJNJ2fPaf3MNqZ2XO3Vv3H8RbUHC3xFH7dcPK0xRjgNtLx6vgJrfqbLNAVJZWZXXQjYgNr6GDJ0fYwwtgRMnOMzYjYwSbW0HC8PrqZ2TVfE33zNd1rF23zLZvqO7teZu5ExDI6WEMbK453G7vYycyR430YP4x0tMBnMLI4Q+ziBtLRAq/DB/ArFiQy02UREU00HTbIzLFTiIiOw8aZOfAiFhEdd8nMniJa9Tfi41g129/BruHkaYvSqv81/Bpe4niJ/4S/Zzj5PxbgikskM0cYOSeZ2VM5JDN7Tu8X8SP4Np5zWA3P4Rt4zHDytMX6Cv4j/goS6bBADW/Ch9C1AFdUKufnx/HfHXgO4UDiCr6PL2Js8cb4BF6GZ5EIU4k6JvhzFiQyU6VSKaeaSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqlVVOpVEqrplKplFZNpVIprZpKpVJaNZVKpbT+H/ThmLvjr5fGAAAAAElFTkSuQmCC">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.81</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.82</span>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
     <span class="bar-sep ocultable"></span>
@@ -1108,12 +1136,18 @@ footer{
 
     <div class="card ticket">
       <div class="card-h">
-        <h3>Total</h3>
+        <h3>Total</h3><span class="sub" id="vtaNube"></span>
       </div>
+      <div id="tkCaja"></div>
       <div class="tk-tot" id="tkTot"></div>
       <div class="tk-acc">
         <button class="b1" id="btnFactura">Emitir factura</button>
         <button class="b1 suave" id="btnPresu">Emitir presupuesto</button>
+        <button class="b2" id="btnCaja" title="La cobra el cajero: elegís a qué caja">Mandar a caja</button>
+        <div id="cajaElige" hidden style="padding:4px 0 6px">
+          <span class="et" style="display:block;margin-bottom:6px">¿A qué caja la mandás? Otra sucursal también: se cobra con su CUIT.</span>
+          <div id="cajaEligeBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
         <button class="b2" id="btnBorrador">Guardar como borrador</button>
         <button class="b3" id="btnMasAcc" aria-expanded="false">Otras opciones</button>
         <div id="masAcc" hidden>
@@ -1606,6 +1640,28 @@ footer{
             </div>
             <span class="por">Se aplica sobre lo que queda de los seis.</span>
           </div>
+          <div class="sub-campo">
+            <label for="aFlete">Flete por unidad, con IVA</label>
+            <div class="plata"><span class="sig">$</span>
+              <input id="aFlete" type="text" inputmode="decimal" value="0,00" autocomplete="off"></div>
+            <span class="por">Lo que te cobran por traerlo. Es fijo: si cambia la lista del proveedor, el flete queda.</span>
+          </div>
+          <div class="sub-campo dos-chicos">
+            <div><label for="aOtroNom">Otro costo</label>
+              <input id="aOtroNom" type="text" maxlength="40" placeholder="ej. embalaje, comisión" autocomplete="off"></div>
+            <div><label for="aOtro">Monto por unidad, con IVA</label>
+              <div class="plata"><span class="sig">$</span>
+                <input id="aOtro" type="text" inputmode="decimal" value="0,00" autocomplete="off"></div></div>
+          </div>
+          <span class="por" style="display:block;margin:-4px 0 14px">Cualquier otro gasto que quieras sumarle al costo. Como el flete, queda fijo aunque cambie la lista.</span>
+          <div class="sub-campo">
+            <label for="aBulto">Se compra de a</label>
+            <div class="sku-fila">
+              <input id="aBulto" type="number" min="1" max="10000" step="1" placeholder="suelto" autocomplete="off">
+              <span class="pc-grande" style="font-size:13px">unidades</span>
+            </div>
+            <span class="por">Si el proveedor lo vende solo en caja cerrada (por ejemplo de a 6), ponelo: el pedido al proveedor se redondea para arriba y queda anotado cuánto necesitabas. Vacío o 1: se compra suelto.</span>
+          </div>
           <div class="sub-campo dos-chicos">
             <div><label for="aL1">Lista 1, sobre el costo</label>
               <div class="sku-fila"><input id="aL1" type="number" min="0" max="400" step="0.5" value="0"><span class="pc-grande">%</span></div></div>
@@ -1776,13 +1832,40 @@ footer{
 <section id="v-proveedores" hidden>
   <div class="head">
     <h2>Proveedores</h2>
-    <p>Los de GlobalBluePoint, guardados en el servidor: los ve cualquier puesto. Se cargan con el Excel de proveedores que exporta GBP; el que ya estaba (por su ID de GBP) se actualiza.</p>
+    <p>Los de GlobalBluePoint y los que cargues acá, guardados en el servidor: los ve cualquier puesto. Se cargan con el Excel de proveedores que exporta GBP (el que ya estaba se actualiza, menos lo que retocaste a mano) o de a uno con <b>+ Nuevo proveedor</b>.</p>
+  </div>
+  <!-- Pedidos a proveedores (órdenes de compra, OC-0001). Damián, 22/11/2026:
+       "el pedido que voy a pedirle al proveedor me lo pongas con los costos y
+       los valores ... cuánto es el valor de la mercadería que le estoy
+       pidiendo". -->
+  <div class="card" id="ocCard" style="margin-bottom:16px" hidden>
+    <div class="card-h">
+      <h3>Pedidos a proveedores</h3>
+      <span class="sub" id="ocCount"></span>
+      <label style="font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:6px"><input type="checkbox" id="ocTodos"> ver también los cerrados</label>
+      <button class="b2" id="ocSacar" type="button" style="padding:6px 14px" title="Junta lo que falta para los pedidos de clientes abiertos, por proveedor">Sacar faltantes</button>
+      <button class="b1" id="ocNuevo" type="button" style="padding:6px 14px">+ Nuevo pedido</button>
+    </div>
+    <div id="ocElegir" hidden style="padding:12px 14px;border-bottom:1px solid var(--line)">
+      <div class="filtros">
+        <input id="ocPrvBusca" type="search" placeholder="Buscá el proveedor" autocomplete="off" style="min-width:240px">
+        <select id="ocPrvSel" style="min-width:260px" aria-label="proveedor"></select>
+        <button class="b1" id="ocPrvOk" type="button" style="padding:6px 14px">Armar el pedido</button>
+        <button class="b3" id="ocPrvNo" type="button">Cancelar</button>
+      </div>
+    </div>
+    <div id="ocFalt" class="oc-falt" hidden></div>
+    <div class="tabla-wrap" style="max-height:34vh;overflow-y:auto"><table class="densa"><thead><tr>
+      <th>Pedido</th><th>Proveedor</th><th>Estado</th><th class="r">Renglones</th><th class="r">Total con IVA</th><th>Fecha</th>
+    </tr></thead><tbody id="tbOc"></tbody></table></div>
+    <div id="ocEd" class="oc-ed" hidden></div>
   </div>
   <div class="card" style="margin-bottom:16px">
     <div class="card-h">
       <h3>Desde GBP</h3>
       <span class="sub">el Excel de proveedores</span>
       <button class="b2" id="prvImportar" style="margin-left:12px;padding:6px 16px">Importar</button>
+      <button class="b1" id="prvNuevo" type="button" style="margin-left:8px;padding:6px 16px">+ Nuevo proveedor</button>
     </div>
     <div id="prvCuerpo" hidden style="padding:0 16px 16px">
       <div class="soltar" id="prvZona">
@@ -1798,14 +1881,66 @@ footer{
     </div>
   </div>
   <div class="filtros" style="margin:0 0 14px">
-    <input id="prvBusca" type="search" placeholder="Buscar: razón social, CUIT, localidad o teléfono" autocomplete="off" style="min-width:320px">
+    <input id="prvBusca" type="search" placeholder="Buscar: razón social, CUIT, localidad, teléfono o contacto" autocomplete="off" style="min-width:320px">
     <label><input type="checkbox" id="prvInactivos"> ver los inactivos</label>
+    <label id="prvElimEt"><input type="checkbox" id="prvElim"> ver los eliminados</label>
   </div>
   <div class="card">
     <div class="card-h"><h3>Lista</h3><span class="sub" id="prvCount"></span></div>
     <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto"><table class="densa"><thead><tr>
-      <th>Razón social</th><th>CUIT</th><th>Condición IVA</th><th>Localidad</th><th>Teléfono</th><th>Compra</th><th>Moneda</th><th class="r">ID GBP</th>
+      <th>Razón social</th><th>CUIT</th><th>Condición IVA</th><th>Localidad</th><th>Teléfono</th><th>Contacto</th><th>Compra</th><th>Moneda</th><th class="r" title="Lo que cobra de flete, sobre el costo. Se suma al costo de sus artículos que no tienen un flete fijo propio.">Flete %</th><th class="r">ID GBP</th><th></th>
     </tr></thead><tbody id="tbPrv"></tbody></table></div>
+  </div>
+  <!-- Proveedor nuevo o editar. Se cierra con la X, con Cancelar o con
+       Escape: nunca tocando afuera (como el cliente nuevo: se tocaba al lado
+       sin querer y se perdía todo lo cargado). -->
+  <div class="envio" id="prvForm" hidden>
+    <div class="envio-caja" style="width:min(760px,100%)">
+      <div class="envio-h">
+        <h3 id="pfTit">Proveedor nuevo</h3>
+        <button class="x" id="pfX" type="button" aria-label="cerrar">×</button>
+      </div>
+      <p class="envio-n" id="pfAyuda"></p>
+      <div class="campos">
+        <div class="campo ancho"><label for="pfCuit">CUIT</label>
+          <div class="con-mas">
+            <input id="pfCuit" type="text" inputmode="numeric" maxlength="20" placeholder="30-71234567-1" autocomplete="off">
+            <button class="b2 mas" id="pfTraer" type="button">Traer de ARCA</button>
+          </div>
+          <span class="por" id="pfAviso"></span></div>
+        <div class="campo ancho"><label for="pfRs">Razón social *</label>
+          <input id="pfRs" type="text" maxlength="120" placeholder="Como figura en la factura" autocomplete="off"></div>
+        <div class="campo"><label for="pfIva">Condición IVA</label>
+          <input id="pfIva" type="text" list="pfIvaOpc" maxlength="60" autocomplete="off"><datalist id="pfIvaOpc"></datalist></div>
+        <div class="campo"><label for="pfMon">Moneda</label>
+          <select id="pfMon"><option value="ARS">ARS (pesos)</option><option value="USD">USD (dólares)</option></select></div>
+        <div class="campo ancho"><label for="pfDom">Domicilio</label>
+          <input id="pfDom" type="text" maxlength="120" placeholder="Calle y número" autocomplete="off"></div>
+        <div class="campo"><label for="pfLoc">Localidad</label>
+          <input id="pfLoc" type="text" maxlength="60" autocomplete="off"></div>
+        <div class="campo"><label for="pfProvi">Provincia</label>
+          <input id="pfProvi" type="text" maxlength="60" autocomplete="off"></div>
+        <div class="campo"><label for="pfTel">Teléfono</label>
+          <input id="pfTel" type="text" maxlength="40" autocomplete="off"></div>
+        <div class="campo"><label for="pfContacto">Contacto (el vendedor)</label>
+          <input id="pfContacto" type="text" maxlength="80" placeholder="Nombre de quien te atiende" autocomplete="off"></div>
+        <div class="campo"><label for="pfWa">WhatsApp</label>
+          <input id="pfWa" type="tel" maxlength="20" placeholder="3544 15 123456" autocomplete="off"></div>
+        <div class="campo"><label for="pfMail">Mail</label>
+          <input id="pfMail" type="email" maxlength="120" placeholder="para mandarle los pedidos" autocomplete="off"></div>
+        <div class="campo"><label for="pfCond">Condición de compra</label>
+          <input id="pfCond" type="text" list="pfCondOpc" maxlength="60" autocomplete="off"><datalist id="pfCondOpc"></datalist></div>
+        <div class="campo"><label for="pfFlete">Flete %</label>
+          <input id="pfFlete" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+          <span class="por">sobre el costo de sus artículos</span></div>
+        <div class="campo ancho"><label for="pfNotas">Notas</label>
+          <textarea id="pfNotas" maxlength="500" rows="2"></textarea></div>
+      </div>
+      <div class="envio-acc">
+        <button class="b3" id="pfCancelar" type="button">Cancelar</button>
+        <button class="b1" id="pfGuardar" type="button">Guardar</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1876,6 +2011,12 @@ footer{
   <div class="head">
     <h2>Caja del día</h2>
     <p>Cada razón social tiene su caja. Elegí cuál mirás; «Todas» suma las tres. Esta pantalla no la ve el mostrador.</p>
+  </div>
+  <div class="card" id="porCobrarCard" hidden style="margin-bottom:16px">
+    <div class="card-h"><h3>Por cobrar</h3><span class="sub" id="porCobrarSub"></span></div>
+    <div class="tabla-wrap"><table class="densa"><thead><tr>
+      <th>Llegó</th><th>Vendedor</th><th>Cliente</th><th>Artículos</th><th class="r">Total</th><th>Estado</th><th></th>
+    </tr></thead><tbody id="tbPorCobrar"></tbody></table></div>
   </div>
   <div class="solapas" id="cajaSucs"></div>
   <div class="filtro-vend">
@@ -2221,6 +2362,21 @@ const ivaTxt = i => String(i == null ? 21 : i).replace(".", ",") + "%";
 const pTxt = n => String(n).replace(".", ",");
 /** Lo que cuesta sin IVA: es como viene la lista del proveedor. */
 const netoDe = p => Math.round((p.costo / facIva(ivaDe(p))) * 100) / 100;
+/** V.0.99.82: lo que se suma encima del producto (flete y otro costo), por unidad. */
+const extraDe = p => (+p.flete > 0 ? +p.flete : 0) + (+p.otroCosto > 0 ? +p.otroCosto : 0);
+/** El costo del producto solo, con IVA: lo que factura el proveedor. */
+const costoProdDe = p => +p.costoProducto > 0 ? +p.costoProducto
+  : Math.max(0, Math.round(((+p.costo || 0) - extraDe(p)) * 100) / 100);
+/** Y sin IVA. */
+const netoProdDe = p => Math.round((costoProdDe(p) / facIva(ivaDe(p))) * 100) / 100;
+/** Cambia el costo del producto: el flete (fijo, o el % del proveedor sobre
+    el costo nuevo) y el otro costo quedan encima. */
+function ponerCostoProducto(p, cp){
+  p.costoProducto = Math.round(cp * 100) / 100;
+  if(+p.fleteFijo > 0) p.flete = +p.fleteFijo;
+  else if(+p.fletePct > 0) p.flete = Math.round(p.costoProducto * p.fletePct) / 100;
+  p.costo = Math.round((p.costoProducto + extraDe(p)) * 100) / 100;
+}
 const RECARGO_CONTADO = 1.1363636363636365;   // el 12% de descuento al revés
 
 // Las cadenas de descuento de cada proveedor todavía no están cargadas:
@@ -2343,7 +2499,8 @@ const S = {
   presupuestos:0,
   objetivo:35,
   sim:null,
-  editando:null        // el presupuesto ya emitido que se está cambiando
+  editando:null,       // el presupuesto ya emitido que se está cambiando
+  actualiza:null       // el presupuesto viejo que se rehace a precios de hoy
 };
 
 /* ================================================= LO QUE CARGA EL QUE USA
@@ -2354,7 +2511,7 @@ const S = {
    la demo no se lleva puesto lo que cargaste. */
 const GUARDA = "punto.catalogo.v1";
 const CAMPOS_ED = ["tit","desc","rub","prov","codProv","lista","seis","l1","l2","iva",
-                   "dctoCont","promo","mon","listaMon","dolar",
+                   "dctoCont","promo","mon","listaMon","dolar","flete","fleteFijo","costoProducto","otroCosto","otroNombre","bulto",
                    "may","mayPct","mayDesde","mayPrecio",
                    "costo","contado","unPago","markup"];
 
@@ -2386,6 +2543,21 @@ function guardarCatalogo(){
     }));
   }catch(e){ /* sin espacio o en ventana privada: la demo anda igual */ }
 }
+/** V.0.99.82: el costo de un artículo de GBP con lo de Punto de ahora: el
+    producto, más el flete (fijo, o el % del proveedor), más el otro costo.
+    Los precios suben o bajan en la misma proporción: el margen queda. */
+function rearmarCostoGbp(p){
+  const cp = +p.costoProducto || 0;
+  if(!(cp > 0) || !(+p.costo > 0)) return;
+  const fl = +p.fleteFijo > 0 ? +p.fleteFijo : Math.round(cp * (+p.fletePct || 0)) / 100;
+  p.flete = fl;
+  const nuevo = Math.round((cp + fl + (+p.otroCosto || 0)) * 100) / 100;
+  if(Math.abs(nuevo - p.costo) < 0.005) return;
+  const f = nuevo / p.costo;
+  p.contado = Math.round(p.contado * f * 100) / 100;
+  p.unPago = Math.round(p.unPago * f * 100) / 100;
+  p.costo = nuevo; p.costoBase = nuevo;
+}
 function restaurarCatalogo(soloCambios){
   let d = null;
   try{ d = JSON.parse(localStorage.getItem(GUARDA) || "null"); }catch(e){ return 0; }
@@ -2395,7 +2567,12 @@ function restaurarCatalogo(soloCambios){
     const p = PRODUCTOS.find(x=>x.cod === o.cod);
     if(!p) continue;
     const dep = o.dep; delete o.dep;
-    Object.assign(p, o);
+    if(p.gbp){
+      const srv = {};
+      for(const k of ["flete","fleteFijo","fletePct","otroCosto","otroNombre","bulto"]) srv[k] = p[k];
+      Object.assign(p, o, srv);
+      rearmarCostoGbp(p);
+    } else Object.assign(p, o);
     // El stock de un artículo de GBP viene del servidor, no de esta compu.
     if(dep && !p.gbp){ p.dep.BA = dep.BA; p.dep.TS = dep.TS; }
     p.tocado = true; n++;
@@ -2504,19 +2681,19 @@ function abrirVista(v){
 function avisarVista(b){
   window.scrollTo({top:0,behavior:"instant"});
   if(b.dataset.v==="productos") pintarProd();
-  if(b.dataset.v==="caja") pintarCaja();
+  if(b.dataset.v==="caja"){ pintarCaja(); traerPorCobrar(); }
   if(b.dataset.v==="gerencia") pintarGerencia();
   if(b.dataset.v==="renta") pintarRenta();
   if(b.dataset.v==="contable") pintarContable();
   if(b.dataset.v==="web") pintarWeb();
-  if(b.dataset.v==="proveedores") pintarProveedores();
+  if(b.dataset.v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); }
   if(b.dataset.v==="usuarios") pintarUsuariosPunto();
   if(b.dataset.v==="simulador"){
     const f = document.getElementById("simFrame");
     if(f && !f.getAttribute("src")) f.setAttribute("src", "/simulador-de-costo");
   }
   if(b.dataset.v==="asistente") pintarAsistente();
-  if(b.dataset.v==="pedidos") pintarPedido();
+  if(b.dataset.v==="pedidos"){ pintarPedido(); refrescarPendPed(); }
   if(b.dataset.v==="comprobantes") pintarComprobantes();
   if(b.dataset.v==="mostrador"){ pintarCamposVenta(); pintarDtos(); }
 }
@@ -2544,6 +2721,11 @@ function pintarSucs(){
     SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("");
 }
 document.getElementById("selSuc").addEventListener("change",e=>{
+  if(window.VSRV && VSRV.caja){
+    e.target.value = S.suc;
+    toast("Estás cobrando un ticket de la caja de "+sucAct().n+": se cobra con esa sucursal. Para pasarlo a otra, usá Mandar a caja.");
+    return;
+  }
   S.suc = e.target.value;
   S.comp = null;                 // la numeracion es otra
   S.dep = null;                  // y cada sucursal vuelve a su deposito
@@ -2626,11 +2808,30 @@ const DESCUENTOS = [0,5,10,12,20,25];
 function clienteVta(){ return CLIENTES.find(c=>c.id===S.cliente) || null; }
 
 /** Que comprobante corresponde segun a quien se le vende. */
+/** Los documentos que se le pueden hacer a ese cliente. */
+const esRI = c => !!c && c.t === "Responsable Inscripto";
+const esMono = c => !!c && /monotribut/i.test(String(c.t || ""));
+/** El CUIT válido del cliente: el de su documento, o el que dio ARCA cuando
+    se lo cargó por DNI (c.cuit). Sin CUIT no hay Factura A. */
+const cuitDe = c => {
+  if(!c) return "";
+  for(const x of [c.cuit, c.doc]){ const d = soloNum(x || ""); if(d.length === 11 && cuitValido(d)) return d; }
+  return "";
+};
+/** Le corresponde Factura A: el responsable inscripto, y el monotributista
+    que tiene CUIT (el que se cargó solo con el DNI, B). */
+const conFacturaA = c => esRI(c) || (esMono(c) && !!cuitDe(c));
+function documentosDe(c){
+  const resto = ["03.Presupuesto","04.Remito","05.Pedido interno"];
+  if(esRI(c)) return ["01.Factura A"].concat(resto);
+  if(esMono(c)) return (cuitDe(c) ? ["01.Factura A","02.Factura B"] : ["02.Factura B"]).concat(resto);
+  return ["02.Factura B"].concat(resto);
+}
 function compDe(c){
   // Siempre arranca en presupuesto: mientras el cliente está mirando, no
   // se emite nada. Cuando dice que se lo lleva, se cambia acá y recién
   // ahí sale el comprobante. La ayuda ya dice cuál le corresponde.
-  const cual = (c && c.t==="Responsable Inscripto") ? "Factura A" : "Factura B";
+  const cual = conFacturaA(c) ? "Factura A" : "Factura B";
   return ["03.Presupuesto","si se lo lleva, cambialo a "+cual];
 }
 /** Que letra y que numeracion le toca a cada documento. */
@@ -2713,7 +2914,7 @@ function pintarCamposVenta(){
   const cond = S.cond || sCond[0];
   if(!S.cond) S.forma = cond;
   const opcCli = '<option value=""'+(S.cliente?"":" selected")+'>Consumidor final</option>' +
-    CLIENTES.map(x=>'<option value="'+x.id+'"'+(x.id===S.cliente?" selected":"")+'>'+x.n+'</option>').join("") +
+    CLIENTES.map(x=>'<option value="'+atrib(x.id)+'"'+(x.id===S.cliente?" selected":"")+'>'+txt(x.n)+'</option>').join("") +
     '<option value="__nuevo">+ Agregar un cliente nuevo…</option>';
 
   let info;
@@ -2721,7 +2922,8 @@ function pintarCamposVenta(){
     info = 'Venta al público. Si pide factura A, elegilo de la lista.';
   } else {
     const libre = c.lim - c.saldo;
-    info = c.t+' · CUIT '+c.doc+
+    info = txt(c.t)+' · '+(soloNum(c.doc).length === 11 ? 'CUIT ' : soloNum(c.doc).length ? 'DNI ' : 'documento ')+txt(c.doc)+
+      (cuitDe(c) && soloNum(c.doc).length !== 11 ? ' · CUIT '+txt(conGuiones(cuitDe(c))) : '')+
       (c.lim>0 ? ' · debe <b>'+fmt(c.saldo)+'</b> de <b>'+fmt(c.lim)+'</b>'+
         (libre<=0 ? ' <span class="pill p-bad">pasado del límite</span>'
                   : ' <span class="pill p-ok">le queda '+fmt(libre)+'</span>')
@@ -2735,7 +2937,8 @@ function pintarCamposVenta(){
     // mas del comprobante, es el marco de toda la venta.
     '<div class="fila-dos">'+
       '<div class="campo suc-sola"><label for="vtaSuc">Sucursal</label>'+
-        '<select id="vtaSuc"'+(sucursalFija() ? ' disabled title="Tu usuario es de esta sucursal"' : '')+'>'+
+        '<select id="vtaSuc"'+(sucursalFija() ? ' disabled title="Tu usuario es de esta sucursal"'
+          : (window.VSRV && VSRV.caja ? ' disabled title="Estás cobrando un ticket de esta caja: se cobra con esta sucursal"' : ''))+'>'+
           SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
         '</select>'+
         '<span class="por">punto de venta '+su.pv+' · depósito <b>'+DEPOSITOS[depAct()]+'</b></span></div>'+
@@ -2754,7 +2957,7 @@ function pintarCamposVenta(){
         '<button class="b2 mas" type="button" id="vtaCliNuevo" title="cargar un cliente nuevo">+ Cliente</button>'+
       '</div>'+
       '<span class="por">'+info+'</span></div>'+
-    campo("vtaComp","Documento a emitir",DOCUMENTOS,comp,sComp[1],!S.comp)+
+    campo("vtaComp","Documento a emitir",documentosDe(clienteVta()),comp,sComp[1],!S.comp)+
     // Todos los datos del comprobante se pueden tocar. El numero sale solo,
     // pero si la numeracion quedo desfasada hay que poder corregirla sin
     // entrar al codigo.
@@ -2829,6 +3032,11 @@ document.getElementById("btnCambiarVta").addEventListener("click",()=>{
 
 document.getElementById("camposVta").addEventListener("change",e=>{
   const id = e.target.id;
+  if(id==="vtaSuc" && window.VSRV && VSRV.caja){
+    e.target.value = S.suc;
+    toast("Estás cobrando un ticket de la caja de "+sucAct().n+": se cobra con esa sucursal. Para pasarlo a otra, usá Mandar a caja.");
+    return;
+  }
   if(id==="vtaSuc"){
     S.suc = e.target.value; S.comp = null;
     S.dep = null;   // cada sucursal vuelve a su deposito
@@ -2914,8 +3122,9 @@ document.getElementById("camposVta").addEventListener("click",e=>{
     arriba todavía diga presupuesto. */
 function facturaDe(){
   const c = clienteVta(), comp = compAct();
-  if(!esPresu(comp) && comp.indexOf("Factura")>=0) return comp;   // ya eligió una
-  return (c && c.t==="Responsable Inscripto") ? "01.Factura A" : "02.Factura B";
+  // Ya eligió una, y es de las que le corresponden a este cliente.
+  if(!esPresu(comp) && comp.indexOf("Factura")>=0 && documentosDe(c).indexOf(comp) >= 0) return comp;
+  return conFacturaA(c) ? "01.Factura A" : "02.Factura B";
 }
 function pintarAcciones(){
   const comp = compAct();
@@ -2973,6 +3182,7 @@ const conGuiones = d => d.length===11 ? d.slice(0,2)+"-"+d.slice(2,10)+"-"+d.sli
 
 function abrirCliente(){
   if(typeof PADRON_PIDIENDO === "number") PADRON_PIDIENDO++;
+  CN_CUIT = "";
   for(const id of ["cnDoc","cnNom","cnDir","cnTel","cnLoc","cnMail"]) document.getElementById(id).value = "";
   document.getElementById("cnProv").value = "Córdoba";
   document.getElementById("cnLista").value = "02.Lista 2";
@@ -2990,6 +3200,8 @@ document.getElementById("cliX").addEventListener("click", cerrarCliente);
 // es una tecla que se aprieta a proposito.
 
 let PADRON_PIDIENDO = 0;
+/** El CUIT que dio ARCA para el DNI que se cargó (ver traerPadron). */
+var CN_CUIT = "";
 async function traerPadron(){
   const d = soloNum(document.getElementById("cnDoc").value);
   const av = document.getElementById("cnAviso");
@@ -3020,14 +3232,21 @@ async function traerPadron(){
   const opc = [...pv.options].find(o => plano(o.text) === plano(r.provincia || "") ||
     (plano(r.provincia || "").indexOf("autonoma") >= 0 && plano(o.text).indexOf("autonoma") >= 0));
   if(opc) pv.value = opc.value || opc.text;
-  document.getElementById("cnDoc").value = conGuiones(r.cuit);
+  const porDni = d.length !== 11;
+  // El CUIT que dio ARCA queda guardado aparte aunque el documento siga
+  // siendo el DNI: la Factura A del monotributista va con él (antes se
+  // perdía y salía una Factura A con un DNI).
+  CN_CUIT = porDni && r.condicionIva !== "Consumidor Final" && cuitValido(soloNum(r.cuit || "")) ? soloNum(r.cuit) : "";
+  document.getElementById("cnDoc").value = porDni ? d : conGuiones(r.cuit);
   av.innerHTML = '<b style="color:var(--ok)">Listo, vino de ARCA:</b> '+txt(r.razonSocial)+' · '+txt(r.condicionIva)+'.' +
+    (porDni ? ' Queda con el DNI; su CUIT es '+txt(conGuiones(r.cuit))+(CN_CUIT ? ' y queda guardado para la Factura A.' : '.') : '') +
     (r.aviso ? ' <b style="color:var(--warn)">Ojo:</b> '+txt(r.aviso) : '');
 }
 document.getElementById("cnBuscar").addEventListener("click", traerPadron);
 document.getElementById("cnDoc").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); traerPadron(); } });
 // Con los 11 numeros puestos, lo busca solo: nadie quiere tocar otro botón.
 document.getElementById("cnDoc").addEventListener("input",e=>{
+  CN_CUIT = "";                  // otro documento: el CUIT de antes ya no es de este
   if(soloNum(e.target.value).length === 11) traerPadron();
 });
 
@@ -3043,6 +3262,7 @@ document.getElementById("cnGuardar").addEventListener("click",()=>{
   const id = "n"+(CLIENTES.length+1)+"-"+Date.now().toString(36);
   CLIENTES.push({
     nuevo:true, id, n:nom, t, doc: d ? conGuiones(d) : "—",
+    cuit: d.length === 11 ? d : CN_CUIT,
     saldo:0, lim: Math.max(0, +document.getElementById("cnLim").value||0),
     dir: document.getElementById("cnDir").value.trim(),
     loc: document.getElementById("cnLoc").value.trim(),
@@ -3053,6 +3273,9 @@ document.getElementById("cnGuardar").addEventListener("click",()=>{
     siempre: []
   });
   S.cliente = id; S.comp = null; S.cond = null;
+  // Al servidor al toque: lo ve cualquier compu. Si ya estaba (mismo CUIT),
+  // queda el de allá.
+  subirCliente(CLIENTES[CLIENTES.length - 1]);
   cerrarCliente();
   pintarCamposVenta(); pintarTicket();
   // el pedido usa la misma lista de clientes
@@ -3450,8 +3673,9 @@ function pintarTicket(){
     '<div class="tr big"><span>Total</span><b>'+fmt(total)+'</b></div>';
 
   const vacio = S.linea.length===0;
-  for(const b of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnWhatsVta"])
+  for(const b of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnWhatsVta","btnCaja"])
     document.getElementById(b).disabled = vacio || EMITIENDO;
+  if(vacio){ const ce = document.getElementById("cajaElige"); if(ce) ce.hidden = true; }
   pintarBorradores();
 }
 
@@ -3466,7 +3690,8 @@ function pintarBorradores(){
   c.innerHTML = '<span class="et">Borradores guardados</span>' + S.borradores.map(b=>{
     const cli = b.cliente ? (CLIENTES.find(x=>x.id===b.cliente)||{}).n : "Consumidor final";
     const tot = b.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
-    return '<span class="bo"><b>'+(cli||"Consumidor final").slice(0,22)+'</b> '+
+    return '<span class="bo"'+(b.otraPestana ? ' title="Quedó abierta en otra pestaña o en otra compu, sin terminar"' : '')+'><b>'+txt((cli||"Consumidor final").slice(0,22))+'</b> '+
+      (b.otraPestana ? '<span class="pill p-warn" style="font-size:10.5px">sin terminar</span> ' : '')+
       b.linea.length+' art. · '+fmt(tot)+' · '+b.hora+
       ' <button class="ret" data-ret="'+b.id+'">retomar</button>'+
       '<button data-bx="'+b.id+'" aria-label="borrar" title="borrar">×</button></span>';
@@ -3477,11 +3702,18 @@ document.getElementById("borradores").addEventListener("click",e=>{
   if(EMITIENDO && (r || x)){ toast("Esperá un segundo: se está guardando el comprobante."); return; }
   if(r && trabadaPorDuda()) return;
   if(x){
+    const bt = S.borradores.find(b=>b.id === x.dataset.bx);
+    if(bt && bt.srvId) tirarBorradorSrv(bt.srvId);
+    // Sin srvId puede estar subiendo (o haber subido a medias): queda anotado
+    // que se tiró, y al terminar (o en el próximo traerMias) se anula allá.
+    else if(bt) marcarSubido("t", bt.id);
     S.borradores = S.borradores.filter(b=>b.id !== x.dataset.bx);
     pintarBorradores(); toast("Borrador tirado."); return;
   }
   if(!r) return;
   const b = S.borradores.find(y=>y.id === r.dataset.ret); if(!b) return;
+  if(b.srvId){ retomarDelServidor(b); return; }
+  if(VSRV.caja){ toast("Estás cobrando un ticket: terminalo o devolvelo a la caja primero."); return; }
   if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el borrador?")) return;
   S.linea = b.linea.map(l=>({...l}));
   S.cliente = b.cliente; S.desc = b.desc; S.forma = b.forma; S.cond = b.forma; S.comp = null; S.suc = b.suc;
@@ -3498,6 +3730,8 @@ document.getElementById("borradores").addEventListener("click",e=>{
   // Si el borrador venía de un presupuesto, sigue unido a él; y si tenía un
   // comprobante en duda, también (al emitir, primero se pregunta).
   S.origen = b.origen || null; S.emision = b.emision || null; S.editando = editandoDe(b.editando);
+  S.actualiza = S.editando ? null : actualizaDe(b.actualiza);
+  pintarEdicion();
   pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar();
   // El foco al buscador: en el body, el Enter siguiente sumaría el primero
   // marcado (la trampa de #camposVta).
@@ -3526,6 +3760,11 @@ async function cerrar(conComp){
   if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos y los precios."); return; }
   const comp = S.comp || compDe(clienteVta())[0];
   const letra = conComp ? letraDe(comp) : null;
+  if(letra === "A" && !cuitDe(clienteVta())){
+    toast("Para Factura A hace falta el CUIT del cliente: cargáselo, o emití Factura B.");
+    return;
+  }
+  if(GBP.fleteFalta && !confirm("No pude leer el flete % de los proveedores: los precios de sus artículos pueden estar sin flete. ¿Emitís igual?")) return;
   // Lo que pasa después (anotarla, descontar, limpiar, avisar) está en
   // trasEmitir(), igual para todos los comprobantes.
   trasEmitir(await emitirEnServidor(armarDocumento(conComp ? comp : "Sin comprobante", letra)));
@@ -3535,6 +3774,7 @@ async function cerrar(conComp){
     stock ni caja. Se ve en Comprobantes y de ahí se pasa a venta. */
 async function guardarPresu(){
   if(EMITIENDO) return;
+  if(VSRV.caja){ toast("Es un ticket de caja: cobralo con o sin comprobante, o devolvelo a la caja."); return; }
   if(!S.linea.length){ toast("No hay nada para presupuestar."); return; }
   if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos y los precios."); return; }
   const doc = armarDocumento("03.Presupuesto", "X");
@@ -3546,10 +3786,13 @@ async function guardarPresu(){
     }
     doc.edita = { id:S.editando.id, base:S.editando.base };
   }
+  if(S.actualiza && !S.editando) doc.actualizaDe = S.actualiza.id;
   trasEmitir(await emitirEnServidor(doc));
 }
 
 document.getElementById("btnFactura").addEventListener("click",()=>{
+  // Sin permiso de cobrar, el botón (o Alt+F) manda a la caja.
+  if(!puedeCobrar()){ document.getElementById("btnCaja").click(); return; }
   // El botón principal emite siempre un comprobante de verdad: si arriba
   // decía presupuesto, lo pasa a la factura que corresponde y la emite.
   const comp = compAct();
@@ -3562,6 +3805,10 @@ document.getElementById("btnPresu").addEventListener("click",()=>{
 });
 document.getElementById("btnBorrador").addEventListener("click",()=>{
   if(EMITIENDO || trabadaPorDuda()) return;
+  if(VSRV.caja){ toast("Es un ticket de caja: cobralo, o devolvelo a la caja sin cobrar."); return; }
+  // La venta que volvió de la copia de esta compu todavía no se ató a la suya
+  // del servidor (puede ser un ticket de caja): no se copia a un borrador.
+  if(PANTALLA_SRV && !VSRV.id){ toast("Esperá un segundo: estoy buscando en el servidor la venta de la pantalla."); return; }
   if(!S.linea.length){ toast("No hay nada para guardar."); return; }
   const h = new Date();
   S.borradores.unshift({
@@ -3569,9 +3816,12 @@ document.getElementById("btnBorrador").addEventListener("click",()=>{
     hora: String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"),
     suc: S.suc, cliente: S.cliente, desc: S.desc, forma: S.forma,
     dep: S.dep, origen: S.origen || null, editando: S.editando || null,
+    actualiza: S.actualiza || null,
     linea: S.linea.map(l=>({...l}))
   });
-  if(S.borradores.length > 6) S.borradores.pop();
+  // Al servidor: lo ve cualquier compu (hasta 50 por usuario).
+  subirBorrador(S.borradores[0]);
+  if(S.borradores.length > 30) S.borradores.pop();
   // El presupuesto de origen se va con el borrador: la venta que sigue no
   // tiene nada que ver con él.
   S.origen = null; S.emision = null; terminarEdicion();
@@ -3582,7 +3832,10 @@ document.getElementById("btnBorrador").addEventListener("click",()=>{
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   toast("Guardado como borrador. No gastó número ni movió stock: lo retomás cuando el cliente vuelva.");
 });
-document.getElementById("btnSinFactura").addEventListener("click",()=>cerrar(false));
+document.getElementById("btnSinFactura").addEventListener("click",()=>{
+  if(!puedeCobrar()){ toast("Tu usuario no cobra: mandá la venta a caja y el cajero elige cómo."); return; }
+  cerrar(false);
+});
 document.getElementById("btnWhatsVta").addEventListener("click",()=>{
   const c = clienteVta(), comp = compAct();
   const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
@@ -3602,6 +3855,7 @@ document.getElementById("btnMasAcc").addEventListener("click",e=>{
 });
 document.getElementById("btnVaciar").addEventListener("click",()=>{
   if(EMITIENDO || trabadaPorDuda()) return;
+  if(VSRV.caja){ toast("Es un ticket de caja: si no se cobra, devolvelo a la caja."); return; }
   S.linea=[]; S.origen=null; S.emision=null; terminarEdicion(); pintarCamposVenta(); pintarTicket();
 });
 
@@ -3694,7 +3948,7 @@ const escribiendo = e => {
 document.addEventListener("keydown",e=>{
   // Escape cierra lo que esté abierto, en orden de encima hacia abajo.
   if(e.key === "Escape"){
-    for(const id of ["aMano","cliNuevo","envio"]){
+    for(const id of ["aMano","cliNuevo","prvForm","envio"]){
       const m = document.getElementById(id);
       if(m && !m.hidden){ m.hidden = true; e.preventDefault(); return; }
     }
@@ -3810,6 +4064,18 @@ function preciosDeLista(costo, l1, l2){
 const DOLAR_GUARDA = "punto.dolar.v1";
 let DOLAR = 0;
 try{ DOLAR = +localStorage.getItem(DOLAR_GUARDA) || 0; }catch(e){}
+// El que vale es el del servidor (lo ven todas las compus).
+(async () => {
+  try{
+    const r = await fetch("/sistema/dolar?formador=1", { cache:"no-store", credentials:"same-origin" });
+    const d = await r.json();
+    if(d && d.formador && +d.formador.valor > 0){ DOLAR = +d.formador.valor; try{ localStorage.setItem(DOLAR_GUARDA, String(DOLAR)); }catch(x){} }
+  }catch(e){ /* sin conexión: el último que se usó en esta compu */ }
+})();
+function guardarDolarFormador(v){
+  fetch("/sistema/dolar", { method:"POST", credentials:"same-origin", cache:"no-store",
+    headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ formador:v }) }).catch(() => {});
+}
 
 const enDolares = () => document.getElementById("aMoneda").value === "USD";
 const dolarAlta = () => aNum(document.getElementById("aDolar").value);
@@ -3829,6 +4095,7 @@ function pintarMoneda(){
   if(usd && !dolarAlta() && DOLAR) V("aDolar", plata2(DOLAR));
 }
 
+document.addEventListener("input", e => { if(e.target && /^(aFlete|aOtro|aOtroNom)$/.test(e.target.id)) altaCuenta(); });
 function altaCuenta(){
   const usd = enDolares();
   const dol = dolarAlta();
@@ -3842,7 +4109,16 @@ function altaCuenta(){
   const fac = factorDe(ds);
   const neto = cent(lista * fac);                       // después de los seis
   const conCont = cont > 0 ? cent(neto * (1 - cont/100)) : neto;
-  const costo = cent(conCont * facIva(iva));
+  const costoProd = cent(conCont * facIva(iva));
+  // El flete fijo del artículo se suma al costo: las listas salen de ahí.
+  const fleteFijoA = cent(aNum(document.getElementById("aFlete").value));
+  // Sin flete fijo, el % de su proveedor (como lo arma productoDeGbp): si
+  // no, abrir un artículo de GBP para tocarle otra cosa le sacaba el flete
+  // al precio.
+  const flete = fleteFijoA > 0 ? fleteFijoA : (ALTA.fletePct > 0 ? cent(costoProd * ALTA.fletePct / 100) : 0);
+  const otro = cent(aNum(document.getElementById("aOtro").value));
+  const otroNom = document.getElementById("aOtroNom").value.replace(/[<>]/g, "").trim().slice(0, 40);
+  const costo = cent(costoProd + flete + otro);
   const pr = preciosDeLista(costo, l1, l2);
   const contado = pr.contado;
   const mk = costo > 0 ? Math.round((contado/costo - 1) * 1000)/10 : 0;
@@ -3877,7 +4153,12 @@ function altaCuenta(){
       : "")+
     r("<b>Costo sin IVA</b>", "<b>"+fmt2(conCont)+"</b>")+
     r("Más IVA "+ivaTxt(iva), "+"+fmt2(costo-conCont))+
-    r("<b>Te cuesta</b>", fmt2(costo), "total", "el costo más el IVA")+
+    (flete > 0 || otro > 0
+      ? r("El producto te cuesta", fmt2(costoProd), null, "el costo más el IVA")+
+        (flete > 0 ? r("Más el flete", "+"+fmt2(flete), null, fleteFijoA > 0 ? "fijo por unidad" : pTxt(ALTA.fletePct)+"% del proveedor (con un flete fijo, manda el fijo)") : "")+
+        (otro > 0 ? r("Más "+txt(otroNom || "otro costo"), "+"+fmt2(otro), null, "fijo por unidad") : "")+
+        r("<b>Te cuesta puesto acá</b>", fmt2(costo), "total", "con lo que se le suma")
+      : r("<b>Te cuesta</b>", fmt2(costo), "total", "el costo más el IVA"))+
     r("Lista 1, "+pTxt(l1)+"% sobre el costo", fmt2(pr.lista1), null, "+"+fmt2(pr.lista1-costo))+
     r("<b>Lista 2</b>, "+pTxt(l2)+"% sobre la Lista 1", fmt2(pr.lista2), "total", "+"+fmt2(pr.lista2-pr.lista1))+
     (may ? r("<b>Por mayor</b>, "+pTxt(mayPct)+"% sobre el costo", fmt2(mayPrecio), "sub",
@@ -3904,6 +4185,7 @@ function abrirAlta(p){
   document.getElementById("armaTit").hidden = true;
   document.getElementById("btnArmarTit").textContent = "Armarlo";
   ALTA.editando = p ? p.cod : null;
+  ALTA.fletePct = p && !(+p.fleteFijo > 0) ? (+p.fletePct || 0) : 0;
   document.getElementById("altaTit").textContent = p ? "Editar el artículo" : "Uno por uno";
   document.getElementById("altaSub").textContent = p
     ? p.cod.split("+")[0]+" · "+p.tit.slice(0,40)
@@ -3919,6 +4201,8 @@ function abrirAlta(p){
     V("aDolar", p.mon === "USD" && p.dolar ? plata2(p.dolar) : (DOLAR ? plata2(DOLAR) : ""));
     V("aLista", plata2(p.mon === "USD" ? (p.listaMon || 0) : (p.lista || 0)));
     V("aCont", p.dctoCont || 0);
+    V("aFlete", plata2(p.fleteFijo || 0)); V("aOtro", plata2(p.otroCosto || 0)); V("aOtroNom", p.otroNombre || "");
+    V("aBulto", +p.bulto > 1 ? Math.floor(+p.bulto) : "");
     document.getElementById("aPromo").checked = !!p.promo;
     document.getElementById("aMay").checked = !!p.may;
     V("aMayPct", p.mayPct != null ? p.mayPct : 15);
@@ -3935,7 +4219,7 @@ function abrirAlta(p){
     // Un artículo nuevo arranca sin descuentos: los pone el que carga.
     ALTA.seis = [0,0,0,0,0,0];
     V("aMarca",""); V("aTit",""); V("aDesc","");
-    V("aStockBA",0); V("aStockTS",0); V("aL1",0); V("aL2",0); V("aIva",21); V("aCont",0);
+    V("aStockBA",0); V("aStockTS",0); V("aL1",0); V("aL2",0); V("aIva",21); V("aCont",0); V("aFlete","0,00"); V("aOtro","0,00"); V("aOtroNom",""); V("aBulto","");
     V("aLista","0,00"); V("aMoneda","ARS");
     V("aDolar", DOLAR ? plata2(DOLAR) : "");
     document.getElementById("aPromo").checked = false;
@@ -3983,7 +4267,7 @@ for(const id of ["aMayPct","aMayDesde"]) document.getElementById(id).addEventLis
 document.getElementById("aDolar").addEventListener("input", altaCuenta);
 document.getElementById("aDolar").addEventListener("blur",e=>{
   const v = aNum(e.target.value);
-  if(v > 0){ DOLAR = v; try{ localStorage.setItem(DOLAR_GUARDA, String(v)); }catch(e2){} }
+  if(v > 0){ if(v !== DOLAR) guardarDolarFormador(v); DOLAR = v; try{ localStorage.setItem(DOLAR_GUARDA, String(v)); }catch(e2){} }
   e.target.value = v ? plata2(v) : "";
   altaCuenta();
 });
@@ -4068,9 +4352,16 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   if(usd && dol <= 0){ toast("Poné a cuánto tomás el dólar: sin eso no hay costo en pesos."); document.getElementById("aDolar").focus(); return; }
   if(l1 <= 0){ toast("Falta la Lista 1: poné el porcentaje que le cargás al costo."); document.getElementById("aL1").focus(); return; }
 
-  const costo = costoDe(lista, ALTA.seis, null, iva, limD(document.getElementById("aCont").value));
+  const costoProd = costoDe(lista, ALTA.seis, null, iva, limD(document.getElementById("aCont").value));
+  const fleteFijoA = cent(aNum(document.getElementById("aFlete").value));
+  // El flete que va al costo: el fijo, o el % del proveedor (ver altaCuenta).
+  const flete = fleteFijoA > 0 ? fleteFijoA : (ALTA.fletePct > 0 ? cent(costoProd * ALTA.fletePct / 100) : 0);
+  const otro = cent(aNum(document.getElementById("aOtro").value));
+  const otroNom = document.getElementById("aOtroNom").value.replace(/[<>]/g, "").trim().slice(0, 40);
+  const costo = cent(costoProd + flete + otro);
   const pr = preciosDeLista(costo, l1, l2);
   const contado = pr.contado;
+  const bulto = bultoDeCampo();        // "Se compra de a": 0 es suelto
   const datos = {
     cod, tit, rub, prov,
     desc: document.getElementById("aDesc").value.trim(),
@@ -4088,6 +4379,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
     codProv: document.getElementById("aCodProv").value.trim().toUpperCase(),
     markup: Math.round((contado/costo - 1) * 1000)/10,
     costo, contado, unPago: pr.lista2,
+    costoProducto: costoProd, flete, fleteFijo: fleteFijoA, fletePct: fleteFijoA > 0 ? 0 : (ALTA.fletePct || 0), otroCosto: otro, otroNombre: otroNom, bulto,
     dep: { BA: Math.max(0, +document.getElementById("aStockBA").value||0),
            TS: Math.max(0, +document.getElementById("aStockTS").value||0) },
     propio: plano(cod+" "+document.getElementById("aCodProv").value+" "+tit+" "+rub+" "+prov+(document.getElementById("aPromo").checked?" promo promocion":"")),
@@ -4098,6 +4390,25 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
     const p = PRODUCTOS.find(x=>x.cod === ALTA.editando);
     if(!p){ toast("Ese artículo ya no está."); cerrarAlta(); return; }
     const antes = p.contado;
+    const extras = {};
+    if(p.gbp){
+      if((+p.fleteFijo || 0) !== fleteFijoA) extras.flete = fleteFijoA;
+      if((+p.otroCosto || 0) !== otro) extras.otroCosto = otro;
+      if((p.otroNombre || "") !== otroNom) extras.otroNombre = otroNom;
+      if((+p.bulto || 0) !== bulto) extras.bulto = bulto > 1 ? bulto : 1;
+      if(Object.keys(extras).length) guardarFleteServidor(cod, extras);
+    }
+    if(p.gbp && !p.tocado && GBP_CRUDO[p.cod] && soloLoDePunto(p, datos)){
+      const crudo = Object.assign({}, GBP_CRUDO[p.cod], { flete: fleteFijoA, otroCosto: otro, otroNombre: otroNom, bulto });
+      GBP_CRUDO[p.cod] = crudo;
+      const np = productoDeGbp(crudo);
+      for(const k of CAMPOS_GBP_PUNTO) p[k] = np[k];
+      llenarSelects(); pintarProd(); buscar(); pintarTicket();
+      cerrarAlta();
+      toast(cod+" guardado"+(Object.keys(extras).length ? " para todas las compus" : "")+". "+
+        (Math.abs(antes - p.contado) < 0.5 ? "La Lista 2 quedó igual." : "La Lista 2 pasa a "+fmt(p.unPago)+"."));
+      return;
+    }
     Object.assign(p, datos);
     p.tocado = true; guardarCatalogo();
     llenarSelects(); pintarProd(); buscar(); pintarTicket();
@@ -5196,7 +5507,7 @@ for(const id of ["xL1","xL2"]) adjG(id).addEventListener("input", avisoAdjSeis);
 adjG("xMoneda").addEventListener("change", pintarAdjMoneda);
 adjG("xDolar").addEventListener("blur", e=>{
   const v = aNum(e.target.value);
-  if(v > 0){ DOLAR = v; try{ localStorage.setItem(DOLAR_GUARDA, String(v)); }catch(e2){} }
+  if(v > 0){ if(v !== DOLAR) guardarDolarFormador(v); DOLAR = v; try{ localStorage.setItem(DOLAR_GUARDA, String(v)); }catch(e2){} }
   e.target.value = v ? plata2(v) : "";
 });
 adjG("adjCargar").addEventListener("click", cargarAdjuntos);
@@ -5248,10 +5559,11 @@ function pintarProd(){
         (p.promo?' <span class="pill p-ok">promo</span>':'')+
         '<small>'+p.rub+'</small></td>'+
       '<td>'+p.prov+'</td>'+
-      '<td class="r"><input class="ed" type="text" inputmode="decimal" data-cod="'+p.cod+'" value="'+plata2(netoDe(p))+'" aria-label="costo sin IVA"></td>'+
+      '<td class="r"><input class="ed" type="text" inputmode="decimal" data-cod="'+p.cod+'" value="'+plata2(netoProdDe(p))+'" aria-label="costo sin IVA"></td>'+
       '<td class="r"><select class="ed" data-iva="'+p.cod+'" aria-label="IVA del artículo">'+
         ALICUOTAS.map(a=>'<option value="'+a+'"'+(a===ivaDe(p)?" selected":"")+'>'+ivaTxt(a)+'</option>').join("")+
-      '</select><small style="display:block;color:var(--ink-3)">+'+fmt2(p.costo-netoDe(p))+'</small>'+
+      '</select><small style="display:block;color:var(--ink-3)">+'+fmt2(costoProdDe(p)-netoProdDe(p))+'</small>'+
+      (extraDe(p) > 0 ? '<small style="display:block;color:var(--ink-3)" title="flete y otros costos, por unidad">+'+fmt2(extraDe(p))+' flete</small>' : '')+
       '<small style="display:block;color:var(--ink-2);font-weight:600">= '+fmt2(p.costo)+'</small></td>'+
       '<td class="r">'+fmt(p.contado)+'</td><td class="r" style="color:var(--ink-3)">'+fmt(p.unPago)+'</td>'+
       '<td class="r" style="font-weight:600;color:'+(m<0?"var(--bad)":(m<S.objetivo?"var(--warn)":"var(--ok)"))+'">'+pct(m)+'</td>'+
@@ -5279,7 +5591,7 @@ document.getElementById("fObj").addEventListener("input",()=>{ pintarProd(); pin
 /** De dónde sale el número (o el texto) de cada columna. */
 const ORD_PROD = {
   cod:  p=>p.cod,      tit:  p=>p.tit,     prov: p=>p.prov,
-  neto: p=>netoDe(p),  costo:p=>p.costo,   contado:p=>p.contado,
+  neto: p=>netoProdDe(p),  costo:p=>p.costo,   contado:p=>p.contado,
   unPago:p=>p.unPago,  margen:p=>margen(p), stock:p=>p.stock
 };
 document.querySelector("#v-productos thead").addEventListener("click",e=>{
@@ -5305,9 +5617,9 @@ document.getElementById("tbProd").addEventListener("change",e=>{
   const sv = e.target.closest("select[data-iva]");
   if(sv){
     const p = prod(sv.dataset.iva); if(!p) return;
-    const neto = netoDe(p);                 // el neto no cambia: cambia el IVA
+    const neto = netoProdDe(p);             // el neto del producto no cambia: cambia el IVA
     p.iva = +sv.value;
-    p.costo = Math.round(neto * facIva(p.iva));
+    ponerCostoProducto(p, neto * facIva(p.iva));
     p.tocado = true; guardarCatalogo();
     pintarProd(); pintarTicket();
     toast(p.cod.split("+")[0]+" pasa a IVA "+ivaTxt(p.iva)+". Cuesta "+fmt(p.costo)+" con IVA.");
@@ -5316,10 +5628,10 @@ document.getElementById("tbProd").addEventListener("change",e=>{
   const i = e.target.closest("input[data-cod]"); if(!i) return;
   const p = prod(i.dataset.cod); if(!p) return;
   const neto = Math.max(0, aNum(i.value));
-  p.costo = cent(neto * facIva(ivaDe(p)));
+  ponerCostoProducto(p, cent(neto * facIva(ivaDe(p))));
   p.tocado = true; guardarCatalogo();
   pintarProd();
-  toast("Costo de "+p.cod.split("+")[0]+": "+fmt2(neto)+" sin IVA, "+fmt2(p.costo)+" con IVA. El margen ya está recalculado.");
+  toast("Costo de "+p.cod.split("+")[0]+": "+fmt2(neto)+" sin IVA, "+fmt2(costoProdDe(p))+" con IVA"+(extraDe(p) > 0 ? ", "+fmt2(p.costo)+" con el flete" : "")+". El margen ya está recalculado.");
 });
 
 /* ===================================================== LISTAS */
@@ -5430,14 +5742,17 @@ function pintarComparar(){
   const ds = PF.seis;
   const a = alcance();
   const ej = a.length ? a[0] : null;
-  const cc = ej ? costoDe(ej.lista, ds, null, ivaDe(ej), ej.dctoCont) : null;
+  const ccP = ej ? costoDe(ej.lista, ds, null, ivaDe(ej), ej.dctoCont) : null;
+  // Con el flete y el otro costo del artículo, como el simulador.
+  const cc = ccP == null ? null
+    : cent(ccP + (+ej.fleteFijo > 0 ? +ej.fleteFijo : ccP * (+ej.fletePct || 0) / 100) + (+ej.otroCosto || 0));
 
   document.getElementById("compararDesc").innerHTML =
     '<div class="c elegido">'+
       '<div class="k">'+cadenaTxt(ds)+'</div>'+
       '<div class="v">'+pTxt(Math.round(descEquiv(ds)*10)/10)+'% de descuento</div>'+
       '<div class="n">uno sobre otro, como los hace el proveedor'+
-        (cc!=null ? ' · costo '+fmt2(cc) : '')+'</div></div>';
+        (cc!=null ? ' · costo '+(cc !== ccP ? 'puesto ' : '')+fmt2(cc) : '')+'</div></div>';
 }
 
 function avisoMarkup(){
@@ -5468,7 +5783,12 @@ function pintarCadena(){
   const ds = cadenaArt(p);
   const fac = factorDe(ds);
   const neto = Math.round(p.lista * fac);
-  const costo = Math.round(neto * facIva(ivaDe(p)));
+  const costoP = Math.round(neto * facIva(ivaDe(p)));
+  // V.0.99.82: el flete (fijo, o el % del proveedor) y el otro costo van
+  // encima del producto: el markup se aplica sobre todo eso.
+  const fl = +p.fleteFijo > 0 ? +p.fleteFijo : Math.round(costoP * (+p.fletePct || 0) / 100);
+  const otroC = +p.otroCosto > 0 ? +p.otroCosto : 0;
+  const costo = costoP + fl + otroC;
   const mk = markupDe(p);
   const r = (k,v,cls) => '<div class="r2'+(cls?" "+cls:"")+'"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
 
@@ -5478,8 +5798,13 @@ function pintarCadena(){
     r("Lista del proveedor, sin IVA", fmt2(p.lista))+
     r("Descuentos: "+cadenaTxt(ds)+", uno sobre otro", "−"+fmt(p.lista-neto))+
     r("Queda neto", fmt(neto), "sub")+
-    r("IVA "+ivaTxt(ivaDe(p)), "+"+fmt(costo-neto))+
-    r("<b>Lo que te cuesta, con IVA</b>", fmt(costo), "total")+
+    r("IVA "+ivaTxt(ivaDe(p)), "+"+fmt(costoP-neto))+
+    (fl > 0 || otroC > 0
+      ? r("El producto, con IVA", fmt(costoP), "sub")+
+        (fl > 0 ? r(+p.fleteFijo > 0 ? "Más el flete, fijo" : "Más el flete, "+pTxt(+p.fletePct)+"% del proveedor", "+"+fmt(fl)) : "")+
+        (otroC > 0 ? r("Más "+txt(p.otroNombre || "otro costo"), "+"+fmt(otroC)) : "")+
+        r("<b>Lo que te cuesta puesto acá</b>", fmt(costo), "total")
+      : r("<b>Lo que te cuesta, con IVA</b>", fmt(costo), "total"))+
     r("Markup "+pTxt(mk)+"% sobre el costo", "+"+fmt(precioDe(costo,mk)-costo))+
     r("<b>Precio de contado</b>", fmt(precioDe(costo,mk)), "total")+
     r("Recargo 13,64% si paga en 1 pago", "+"+fmt(redondear(precioDe(costo,mk)*RECARGO_1PAGO)-precioDe(costo,mk)), "sub")+
@@ -5503,7 +5828,8 @@ document.getElementById("btnSim").addEventListener("click",()=>{
     if(PF.modo === "sube") lista = Math.round(lista * (1 + (+document.getElementById("sPct").value||0)/100));
     if(PF.modo === "desc") ds = PF.seis.slice();
     if(PF.modo === "mk")   mk = +document.getElementById("sMk").value || 0;
-    const nuevo = costoDe(lista, ds, null, ivaDe(p), p.dctoCont);
+    const nuevoProd = costoDe(lista, ds, null, ivaDe(p), p.dctoCont);
+    const nuevo = cent(nuevoProd + (p.fleteFijo > 0 ? p.fleteFijo : nuevoProd * (p.fletePct || 0) / 100) + (p.otroCosto || 0));
     const sugerido = precioDe(nuevo, mk);
     return {
       p, lista, ds, mk, nuevo, sugerido,
@@ -5780,7 +6106,7 @@ function entregaDe(p, cant){
 /** Las opciones de cliente del pedido, con Consumidor final primero. */
 function opcionesClientePedido(){
   return '<option value=""'+(PED.cliente ? '' : ' selected')+'>Consumidor final</option>' +
-    CLIENTES.map(c=>'<option value="'+c.id+'"'+(c.id===PED.cliente?" selected":"")+'>'+txt(c.n)+'</option>').join("");
+    CLIENTES.map(c=>'<option value="'+atrib(c.id)+'"'+(c.id===PED.cliente?" selected":"")+'>'+txt(c.n)+'</option>').join("");
 }
 document.getElementById("selCliente").innerHTML = opcionesClientePedido();
 
@@ -5788,8 +6114,8 @@ function pintarCliente(){
   const c = clienteDe(PED.cliente);
   const pasado = c.lim > 0 && c.saldo > c.lim;
   document.getElementById("cliDatos").innerHTML =
-    '<div><span>Condición</span><b style="font-size:12.5px;font-family:var(--font-b)">'+c.t+'</b></div>'+
-    '<div><span>CUIT</span><b>'+c.doc+'</b></div>'+
+    '<div><span>Condición</span><b style="font-size:12.5px;font-family:var(--font-b)">'+txt(c.t)+'</b></div>'+
+    '<div><span>'+(soloNum(c.doc).length === 11 || !soloNum(c.doc).length ? 'CUIT' : 'DNI')+'</span><b>'+txt(c.doc)+'</b></div>'+
     (c.lim > 0
       ? '<div><span>Cuenta corriente</span><b style="color:'+(pasado?"var(--bad)":"var(--ink)")+'">'+
         fmt(c.saldo)+' de '+fmt(c.lim)+'</b></div>'+
@@ -5824,7 +6150,7 @@ function pintarPedido(){
         '<td class="r"><input class="cant" type="number" min="1" step="1" value="'+l.cant+'" data-c="'+l.cod+'" aria-label="cantidad"></td>'+
         '<td class="r">'+fmt(p.contado)+'</td>'+
         '<td class="r" style="font-weight:600">'+fmt(sub)+'</td>'+
-        '<td><span class="pill '+e.cls+'">'+e.txt+'</span></td>'+
+        '<td>'+pillFaltaPed(l, p, e)+'</td>'+
         '<td><button class="quitar-fila" data-x="'+l.cod+'" aria-label="quitar">×</button></td></tr>').join("")
     : '<tr><td colspan="7" class="vacio">Todavía no hay renglones. Buscá arriba y apretá Enter.</td></tr>';
 
@@ -5838,7 +6164,7 @@ function pintarPedido(){
       '<b>'+faltan.length+(faltan.length===1?' renglón no se puede entregar':' renglones no se pueden entregar')+
       ' con lo que hay.</b> Faltan '+faltan.reduce((a,f)=>a+f.e.falta,0)+' unidades entre todos. '+
       'Decile al cliente ahora, no cuando venga a buscarlo.'+
-      '<div style="margin-top:8px"><button class="b2" id="btnAlProveedor" style="padding:6px 12px;font-size:12.5px;border-radius:7px">Sumarlos al pedido del proveedor</button></div>'+
+      '<div style="margin-top:8px">'+botonAlProveedor(faltan)+'</div>'+
       '</div></div>'
     : "";
 
@@ -5871,7 +6197,7 @@ function pintarPedido(){
     const cls = o.est==="listo para retirar" ? "p-ok"
       : o.est==="esperando mercadería" ? "p-bad" : "p-n";
     return '<tr><td class="num" style="font-size:12.5px">'+o.nro+'</td>'+
-      '<td style="font-weight:500">'+(c?c.n:"—")+'</td>'+
+      '<td style="font-weight:500">'+txt(c && c.id ? c.n : (o.cliN || (c ? c.n : "—")))+'</td>'+
       '<td class="nom" style="min-width:220px">'+o.lin.reduce((a,[,n])=>a+n,0)+' un. '+
         '<small>'+o.lin.map(([cod])=>prod(cod).tit.split("·")[0].slice(0,26)).join(" + ")+'</small></td>'+
       '<td style="font-size:12.5px">'+(o.ent==="retira"?"retira":"envío")+', '+o.cuando+'</td>'+
@@ -5985,7 +6311,8 @@ document.getElementById("tbPed").addEventListener("click",e=>{
 });
 document.getElementById("pedFaltan").addEventListener("click",e=>{
   if(!e.target.closest("#btnAlProveedor")) return;
-  toast("Los faltantes quedaron anotados en el pedido al proveedor. Los vas a ver en Listas cuando llegue la lista nueva.");
+  // Ahora van de verdad al pedido del proveedor (ver faltantesAlProveedor).
+  faltantesAlProveedor();
 });
 document.getElementById("formaEntrega").addEventListener("click",e=>{
   const b = e.target.closest("button[data-e]"); if(!b) return;
@@ -5996,23 +6323,62 @@ document.getElementById("formaEntrega").addEventListener("click",e=>{
 document.getElementById("senia").addEventListener("input",e=>{
   PED.senia = Math.max(0, +e.target.value || 0); pintarPedido();
 });
-document.getElementById("btnGuardarPed").addEventListener("click",()=>{
+// V.0.99.82: el pedido se guarda en el servidor y el número lo da él (la
+// misma serie que los comprobantes): dos puestos nunca sacan el mismo, y lo
+// ve cualquier compu.
+let GUARDANDO_PED = false;
+/** Lo que es el pedido de la pantalla: su marca vale mientras esto no cambie. */
+function firmaPedido(){
+  return JSON.stringify([PED.cliente, PED.linea.map(l => [l.cod, l.cant]), PED.entrega, valor("fecha"),
+    valor("dir"), valor("obsPed"), valor("intPed"), PED.senia]);
+}
+/** Guarda en el servidor el pedido de la pantalla y la deja lista para el
+    siguiente. Devuelve el pedido guardado (como los de la lista), o null
+    (y lo dice). Lo usa también "pedir los faltantes al proveedor": el
+    pedido al proveedor dice para qué pedido es, con su número de verdad. */
+async function guardarPedidoActual(){
+  if(GUARDANDO_PED || !PED.linea.length) return null;
   const c = clienteDe(PED.cliente);
   const total = PED.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
   const hayFalta = PED.linea.some(l=>entregaDe(prod(l.cod), l.cant).falta > 0);
-  PEDIDOS_ABIERTOS.unshift({
-    nuevo:true, id:"p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-    nro:"P-"+PED.nro, cli:PED.cliente,
-    est: hayFalta ? "esperando mercadería" : "preparando",
-    ent: PED.entrega, cuando: document.getElementById("fecha").value || "a confirmar",
-    lin: PED.linea.map(l=>[l.cod, l.cant]), senia: Math.min(PED.senia, total),
-  });
-  toast("Pedido P-"+PED.nro+" guardado para "+c.n+" por "+fmt(total)+
+  const cods = new Set(PED.linea.map(l=>l.cod));
+  // La marca: si se corta la respuesta y se vuelve a tocar Guardar (o se
+  // recarga), el servidor devuelve el mismo pedido y no saca otro número.
+  // Si el pedido cambió desde entonces, es otro: otra marca (si no, volvía
+  // el viejo y lo nuevo se perdía).
+  const firma = firmaPedido();
+  if(!PED.marca || PED.marcaFirma !== firma){
+    PED.marca = "pm" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    PED.marcaFirma = firma;
+    guardarLocal();               // al toque: si se recarga ahora, la marca sobrevive
+  }
+  GUARDANDO_PED = true;
+  const b = document.getElementById("btnGuardarPed"); b.disabled = true;
+  let d;
+  try{
+    d = (await pedirSrv(VTA_URL, { accion:"pedido", venta:{
+      datos:{ linea: PED.linea.map(l => Object.assign({}, l)), manuales: manualesDe(cods),
+              cliente: PED.cliente || "", clienteDatos: clienteDatosDe(c),
+              ped:{ entrega:PED.entrega, cuando: document.getElementById("fecha").value || "a confirmar",
+                    dir: valor("dir"), obs: valor("obsPed"), int: valor("intPed"),
+                    senia: Math.min(PED.senia, total), est: hayFalta ? "esperando mercadería" : "preparando", cfg: PEDCFG,
+                    marca: PED.marca } },
+      cliente: c.n, total, sucursal: S.suc, vendedor: VENDEDOR_LOGIN || S.usuario || "" } })).d;
+  } finally { GUARDANDO_PED = false; b.disabled = !PED.linea.length; }
+  if(!d.ok || !d.venta){ toast("No se guardó el pedido: " + (d.error || "probá de nuevo.") + " Queda en pantalla."); return null; }
+  PED.marca = null; PED.marcaFirma = null;
+  const p = pedidoDeServidor(d.venta);
+  if(!PEDIDOS_ABIERTOS.some(x => x.id === p.id)) PEDIDOS_ABIERTOS.unshift(p);
+  const nro = +((d.venta.datos || {}).ped || {}).nro || 0;
+  if(nro && S.nroPed < nro + 1) S.nroPed = nro + 1;
+  toast("Pedido "+p.nro+" guardado para "+c.n+" por "+fmt(total)+
     (hayFalta ? ". Queda esperando mercadería." : ". Ya se puede preparar."));
-  PED.nro++; PED.linea = []; PED.senia = 0;
+  PED.linea = []; PED.senia = 0;
   document.getElementById("senia").value = 0;
   pintarPedido();
-});
+  return p;
+}
+document.getElementById("btnGuardarPed").addEventListener("click", () => { guardarPedidoActual(); });
 document.getElementById("btnWhatsPed").addEventListener("click",()=>{
   const c = clienteDe(PED.cliente);
   const doc = PEDCFG.doc || docDe(c)[0];
@@ -6749,7 +7115,8 @@ function armarDocumento(comp, letra){
     // sigue al último, el mayor de los dos. Nunca baja.
     desdeNumero: letra ? S.nro[su.id][letra] : 1, desdePedido: S.nroPed,
     vendedor:VENDEDOR_LOGIN || S.usuario, puesto:S.puesto,
-    cliente: c ? { id:c.id, n:c.n, t:c.t, doc:c.doc } : { id:"", n:"Consumidor final", t:"Consumidor Final", doc:"" },
+    cliente: c ? { id:c.id, n:c.n, t:c.t, doc: letra === "A" && cuitDe(c) ? conGuiones(cuitDe(c)) : c.doc }
+               : { id:"", n:"Consumidor final", t:"Consumidor Final", doc:"" },
     forma:S.forma, recargo:MULT[S.forma], desc:S.desc,
     deposito:dep, traida: dep !== su.dep,
     renglones, bruto, descuento, total,
@@ -6761,7 +7128,7 @@ function armarDocumento(comp, letra){
 
 function firmaDe(doc){
   return JSON.stringify([doc.comp, doc.letra, doc.sucursal, doc.cliente.id, doc.forma,
-    doc.desc, doc.deposito, doc.origenId, doc.edita ? doc.edita.id : "", doc.renglones.map(r => [r.cod, r.cant])]);
+    doc.desc, doc.deposito, doc.origenId, doc.edita ? doc.edita.id : "", doc.actualizaDe || "", doc.renglones.map(r => [r.cod, r.cant])]);
 }
 /** La marca de este comprobante para el servidor. Si el mismo se manda dos
     veces (doble clic, se cortó la conexión), vuelve el que ya estaba y no se
@@ -6777,7 +7144,7 @@ function marcaDe(doc){
 }
 
 function botonesEmitir(trabados){
-  for(const id of ["btnFactura","btnPresu","btnBorrador","btnSinFactura"]){
+  for(const id of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnCaja"]){
     const b = document.getElementById(id);
     if(b) b.disabled = trabados || !S.linea.length;
   }
@@ -6837,10 +7204,32 @@ async function emitirEnServidor(doc){
       if(ya) return { g:ya, previo:true, igual: S.emision.firma === firmaDe(doc) };
       S.emision = null;
     }
+    // V.0.99.82: un ticket de caja que ya no está tomado por esta pantalla no
+    // se emite (saldría sin atarlo al ticket, y el ticket lo cobraría otro);
+    // uno se cobra en su caja (con otra sucursal salía con el CUIT y la
+    // serie de otra); y la venta que volvió de la copia de esta compu espera
+    // a saber cuál es en el servidor.
+    if(doc.letra !== "X" && VSRV.caja && !VSRV.id){
+      toast("Ese ticket ya no está tomado por vos: no lo emito. Fijate en Caja, en «Por cobrar».");
+      return null;
+    }
+    if(doc.letra !== "X" && VSRV.caja && VSRV.caja.suc && doc.sucursal !== VSRV.caja.suc){
+      toast("Ese ticket es de la caja de " + sucDe(VSRV.caja.suc).n + ": se cobra con esa sucursal. Para pasarlo a otra, usá Mandar a caja.");
+      return null;
+    }
+    if(PANTALLA_SRV && !VSRV.id){ toast("Esperá un segundo: estoy buscando en el servidor la venta de la pantalla."); return null; }
     doc.idLocal = marcaDe(doc);
     S.emision.enviada = true;
     guardarLocal();               // al toque: si se recarga ahora, la marca sobrevive
+    // V.0.99.82: la venta del servidor de la que sale (la que se armaba, o el
+    // ticket que tomó el cajero). El servidor la da por cobrada en la misma
+    // operación que crea el comprobante: dos cajeros no cobran el mismo
+    // ticket, y la comisión queda del vendedor.
+    if(VSRV.id && doc.letra !== "X") doc.ventaId = VSRV.id;
+    VSRV.cerrando = doc.ventaId || null;
     let d = null;
+    for(let vuelta = 0; vuelta < 2; vuelta++){
+    d = null;
     try{
       const ctl = new AbortController();
       const t = setTimeout(() => ctl.abort(), 30000);
@@ -6854,6 +7243,14 @@ async function emitirEnServidor(doc){
       clearTimeout(t);
       d = await r.json().catch(() => null);
     }catch(e){ d = null; }
+    // La venta que se armaba ya no está en el servidor (se vació en otra
+    // pestaña, se cortó el guardado): se emite sin atarla. Un ticket de caja
+    // no: ese tiene que estar tomado por el que cobra.
+    if(d && d.error && doc.ventaId && !VSRV.caja && /ya no está en el servidor/.test(d.error)){
+      delete doc.ventaId; VSRV.id = null; VSRV.version = null; continue;
+    }
+    break;
+    }
     if(d && d.documento) return { g:d.documento, previo:false, igual:true };
     if(d && d.error){
       S.emision.enviada = false; guardarLocal();
@@ -6994,6 +7391,7 @@ function trasEmitir(res){
   registrarEmitido(g);
   if(res.previo && !res.igual){
     S.emision = null; guardarLocal();
+    VSRV.id = null; VSRV.version = null; VSRV.caja = null; VSRV.ultimo = ""; pintarCajaTicket();
     toast("Ojo: el comprobante anterior SÍ se había guardado (" + g.comp.replace(/^\\d+\\./, "") + " " +
       (g.letra ? g.nroTexto.slice(2) : "P-" + g.pedido) + ", " + fmt(g.total) + "). " +
       "La venta de la pantalla tiene cambios y queda acá: si también va, emitila de nuevo.");
@@ -7007,8 +7405,16 @@ function trasEmitir(res){
 function limpiarVentaEmitida(){
   S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
+  // El ticket de caja ya se cobró (o se mandó, o se devolvió).
+  VSRV.caja = null; pintarCajaTicket();
+  // Lo emitido cerró la venta del servidor (iba con ventaId): ya no es de
+  // esta pantalla. Si quedaba atada y el guardado vacío fallaba, la venta
+  // nueva siguiente chocaba con la cobrada.
+  if(VSRV.cerrando && VSRV.cerrando === VSRV.id){ VSRV.id = null; VSRV.version = null; VSRV.ultimo = ""; }
+  VSRV.cerrando = null;
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   guardarLocal();                 // al toque: que no vuelva al recargar
+  asegurarGuardada();             // y en el servidor tampoco
   // El cursor al buscador para la venta que sigue. En el body, el Enter
   // sumaría el primero marcado (la trampa de #camposVta).
   const q = document.getElementById("q");
@@ -7141,6 +7547,8 @@ function pintarListaCp(){
       (vendido ? ' <span class="pill p-ok">vendido · ' + txt(vendido.comp.replace(/^\\d+\\./, "")) + ' ' + txt(numeroCorto(vendido)) + '</span>' : "") +
       (d.origenId ? ' <span class="pill p-n">de presupuesto' + (madre ? " " + txt(numeroCorto(madre)) : "") + '</span>' : "") +
       (dt.editado ? ' <span class="pill p-n">cambiado</span>' : "") +
+      (d.actualizadoEn ? ' <span class="pill p-n">actualizado en ' + txt(numeroCorto(d.actualizadoEn)) + '</span>' : "") +
+      (dt.actualizaDe ? ' <span class="pill p-n">actualiza ' + (porId[dt.actualizaDe] ? "al " + txt(numeroCorto(porId[dt.actualizaDe])) : "a uno anterior") + '</span>' : "") +
       (d.eliminado ? ' <span class="pill p-bad">eliminado</span>' : "");
     const abierto = CP.abierto === d.id;
     let h = '<tr class="cp-fila' + (abierto ? " cp-abierta" : "") + (d.eliminado ? " cp-elim" : "") + '" data-cp="' + txt(d.id) + '">' +
@@ -7148,7 +7556,7 @@ function pintarListaCp(){
       '<td><b>' + txt(nombreDoc(d)) + '</b> ' + txt(d.letra ? numeroCorto(d) : "") + pills +
         '<small>P-' + d.pedido + ' · ' + txt(sucDe(d.sucursal).n) + '</small></td>' +
       '<td>' + txt(d.cliente) + (cli.doc && cli.doc !== "—" ? '<small>' + txt(cli.doc) + '</small>' : "") + '</td>' +
-      '<td>' + txt(d.vendedor) + '</td>' +
+      '<td>' + txt(d.vendedor) + quienesCp(d) + '</td>' +
       '<td class="r" style="font-weight:600">' + fmt(d.total) + '</td>' +
       '<td class="r cp-acc">' + accionesCp(d, vendido) + '</td>' +
     '</tr>';
@@ -7164,7 +7572,9 @@ function pintarListaCp(){
         (dt.desc ? ' · descuento ' + (+dt.desc) + '% (' + fmt(+dt.descuento || 0) + ')' : '') +
         (dt.recargo && dt.recargo !== 1 ? ' · recargo de tarjeta ' + pTxt(Math.round((dt.recargo - 1) * 1000) / 10) + '%' : '') +
         ' · depósito ' + txt(DEPOSITOS[dt.deposito] || dt.deposito || "") + (dt.traida ? ' (se trae)' : '') +
-        ' · lo emitió ' + txt(d.usuario) +
+        ' · vendió ' + txt(d.vendedor) + (d.tipo !== "presupuesto" ? ' · cobró ' + txt(d.cobroNombre || d.usuario) : ' · lo hizo ' + txt(d.cobroNombre || d.usuario)) +
+        (dt.despacho ? ' · despachó ' + txt(dt.despacho.nombre || dt.despacho.por) + ' el ' + fechaAR(dt.despacho.en) + ' a las ' + horaAR(dt.despacho.en) +
+          (dt.despacho.nota ? ' (' + txt(dt.despacho.nota) + ')' : '') : '') +
         (cli.t ? ' · cliente ' + txt(cli.t) : '') +
         (dt.editado ? ' · cambiado ' + (+dt.editado.veces || 1) + ((+dt.editado.veces || 1) > 1 ? ' veces' : ' vez') +
           ', la última el ' + fechaAR(dt.editado.en) + ' a las ' + horaAR(dt.editado.en) + ' por ' + txt(dt.editado.por) : '') +
@@ -7185,11 +7595,14 @@ document.getElementById("tbCp").addEventListener("click", e => {
     if(!d) return;
     const a = acc.dataset.acc;
     if(a === "editar") editarPresu(d);
+    if(a === "actualizar") actualizarPresu(d);
     if(a === "pdf") traerPdf(d, acc, false);
     if(a === "whats") mandarPorWhats(d);
     if(a === "imprimir") traerPdf(d, acc, true);
     if(a === "eliminar") eliminarDoc(d, acc, false);
     if(a === "recuperar") eliminarDoc(d, acc, true);
+    if(a === "despachar") despacharDoc(d, acc, false);
+    if(a === "nodespachar") despacharDoc(d, acc, true);
     return;
   }
   const f = e.target.closest("tr[data-cp]");
@@ -7228,7 +7641,41 @@ function accionesCp(d, vendido){
       '<button class="b2" type="button" data-pasar="' + id + '">Pasar a venta</button>' : "") +
     bt("pdf", "PDF", "b2", "Bajar el PDF") + whats +
     bt("imprimir", "Imprimir", "b2") +
+    (d.tipo === "presupuesto" && puede("venta") ? bt("actualizar", "Precios de hoy", "b2", "Hace un presupuesto nuevo con los precios de hoy; este queda como está") : "") +
+    (d.tipo !== "presupuesto" && puede("despachar")
+      ? ((d.datos || {}).despacho
+          ? (((d.datos.despacho.por === soyYo()) || esAdminUsuarios()) ? bt("nodespachar", "Deshacer despacho", "b3", "Si se marcó por error") : "")
+          : bt("despachar", "Despachado", "b2", "Anota que la mercadería salió del depósito y quién la entregó"))
+      : "") +
     (puede("eliminar") ? bt("eliminar", "Eliminar", "b3", "Sale de la lista y de la Caja; se puede recuperar") : "");
+}
+/** Debajo del vendedor: quién cobró (si no es el mismo) y quién despachó. */
+function quienesCp(d){
+  if(d.tipo === "presupuesto") return "";
+  const cobro = d.cobroNombre || d.usuario || "";
+  const dp = (d.datos || {}).despacho;
+  const partes = [];
+  if(cobro && plano(cobro) !== plano(d.vendedor || "")) partes.push("cobró " + txt(cobro));
+  if(dp) partes.push("despachó " + txt(dp.nombre || dp.por));
+  return partes.length ? '<small>' + partes.join(" · ") + '</small>' : "";
+}
+/** "Despachado": la mercadería salió del depósito, y queda quién la entregó. */
+async function despacharDoc(d, boton, deshacer){
+  if(deshacer && !confirm("¿Deshago el despacho de " + nombreDoc(d) + " " + numeroCorto(d) + "?")) return;
+  boton.disabled = true;
+  try{
+    const r = await fetch(DOCS_URL + "/despachar", { method:"POST", credentials:"same-origin", cache:"no-store",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(Object.assign({ id:d.id, yo: soyYo() }, deshacer ? { deshacer:true } : {})) });
+    if(r.status === 401){ toast("Se cerró tu sesión: entrá de nuevo con tu usuario."); return; }
+    const x = await r.json().catch(() => null);
+    if(!x || x.error || !x.documento){ toast("No se anotó: " + ((x && x.error) || "probá de nuevo.")); return; }
+    const i = CP.docs.findIndex(y => y.id === d.id);
+    if(i >= 0) CP.docs[i] = x.documento;
+    pintarListaCp();
+    toast(deshacer ? "Listo: quedó sin despachar." : "Anotado: lo despachaste vos.");
+  }catch(e){ toast("No se anotó: revisá la conexión."); }
+  finally{ boton.disabled = false; }
 }
 
 /** El detalle de un comprobante ya emitido, con el link a su PDF. */
@@ -7359,6 +7806,7 @@ function editandoDe(x){
 /** Se terminó de cambiar el presupuesto (se guardó, se facturó, se dejó):
     la venta vuelve a la sucursal en la que estaba antes de abrirlo. */
 function terminarEdicion(){
+  S.actualiza = null;
   const e = S.editando;
   S.editando = null;
   if(sucursalFija()){
@@ -7377,6 +7825,14 @@ function terminarEdicion(){
 function pintarEdicion(){
   const a = document.getElementById("avisoEdita");
   if(!a) return;
+  if(!S.editando && S.actualiza){
+    a.hidden = false;
+    const hoy = S.linea.length ? armarDocumento("03.Presupuesto", "X").total : 0;
+    a.innerHTML = '<span>↻</span><div><b>Estás rehaciendo el Presupuesto ' + txt(S.actualiza.nro) + ' a precios de hoy.</b> ' +
+      'Antes ' + fmt(S.actualiza.total) + (hoy ? ', hoy ' + fmt(hoy) : '') + '. Al guardarlo sale un presupuesto nuevo, con otro número; el original queda como está. ' +
+      '<button class="b3" type="button" id="btnNoEditar" style="padding:2px 9px;margin-left:4px">Dejar</button></div>';
+    return;
+  }
   if(!S.editando){ a.hidden = true; a.innerHTML = ""; return; }
   a.hidden = false;
   a.innerHTML = '<span>✎</span><div><b>Estás cambiando el Presupuesto ' + txt(S.editando.nro) + ' de ' + txt(sucDe(S.editando.suc).n) + '.</b> ' +
@@ -7387,7 +7843,7 @@ function pintarEdicion(){
 document.addEventListener("click", e => {
   if(!e.target.closest || !e.target.closest("#btnNoEditar")) return;
   if(EMITIENDO || trabadaPorDuda()) return;
-  if(!confirm("¿Dejás de editar? La venta de la pantalla se vacía y el presupuesto queda como estaba.")) return;
+  if(!confirm("¿Lo dejás? La venta de la pantalla se vacía y el presupuesto queda como estaba.")) return;
   S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
   pintarCamposVenta(); pintarDtos(); pintarTicket(); guardarLocal();
@@ -7431,6 +7887,44 @@ function editarPresu(d){
     (S.editando.sucAntes ? " La venta pasó a " + sucDe(d.sucursal).n + ", que es la del presupuesto; al terminar vuelve a " + sucDe(S.editando.sucAntes).n + "." : "") +
     (faltan ? " " + faltan + (faltan > 1 ? " artículos ya no están" : " artículo ya no está") + " en el catálogo y quedó afuera." : "") +
     (cid && !hayCliente ? " El cliente no está cargado en esta compu: elegilo de nuevo." : ""));
+}
+
+/** Lo guardado de "precios de hoy", revisado. */
+function actualizaDe(x){
+  if(!x || typeof x !== "object" || typeof x.id !== "string" || !/^[A-Za-z0-9_-]{8,40}$/.test(x.id)) return null;
+  return { id:x.id, nro:String(x.nro || "").replace(/[<>&"']/g, "").slice(0, 20), total:+x.total || 0 };
+}
+/** Rehacer un presupuesto a precios de hoy: vuelve a la venta con los
+    precios de ahora y, al guardarlo, sale uno nuevo unido al viejo. Si en
+    cambio se factura, la venta queda unida al viejo (como Pasar a venta). */
+function actualizarPresu(d){
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando un comprobante."); return; }
+  if(trabadaPorDuda()) return;
+  if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
+  const ren = (d.datos && d.datos.renglones) || [];
+  recuperarManuales(ren);
+  const hay = ren.filter(r => prod(r.cod)), faltan = ren.length - hay.length;
+  if(!hay.length){ toast("Ninguno de esos artículos está hoy en el catálogo."); return; }
+  if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el presupuesto " + numeroCorto(d) + " a precios de hoy?")) return;
+  terminarEdicion();
+  S.linea = hay.map(r => ({ cod:r.cod, cant:Math.max(1, Math.floor(+r.cant || 1)) }));
+  const cid = d.datos && d.datos.cliente && d.datos.cliente.id;
+  const hayCliente = !!cid && CLIENTES.some(c => c.id === cid);
+  S.cliente = hayCliente ? cid : "";
+  S.desc = +(d.datos && d.datos.desc) || 0;
+  const fo = d.datos && d.datos.forma;
+  if(fo && MULT[fo]){ S.forma = fo; S.cond = fo; }
+  S.comp = null; S.dep = null; S.nroLibre = false;
+  S.origen = d.id; S.emision = null;
+  S.actualiza = { id:d.id, nro:numeroCorto(d), total:+d.total || 0 };
+  abrirVista("mostrador");
+  pintarCamposVenta(); pintarDtos(); pintarTicket();
+  guardarLocal();
+  const hoy = armarDocumento("03.Presupuesto", "X").total;
+  const dif = S.actualiza.total > 0 ? (hoy - S.actualiza.total) / S.actualiza.total * 100 : 0;
+  toast("Presupuesto " + numeroCorto(d) + " a precios de hoy: antes " + fmt(S.actualiza.total) + ", hoy " + fmt(hoy) +
+    " (" + (dif >= 0 ? "+" : "") + pTxt(Math.round(dif * 10) / 10) + "%)." +
+    (faltan ? " " + faltan + (faltan > 1 ? " artículos ya no están" : " artículo ya no está") + " en el catálogo." : ""));
 }
 
 /** Un presupuesto vuelve a la venta, a precio de hoy. Al emitirla queda
@@ -7613,25 +8107,31 @@ async function pintarProveedores(){
 }
 function pintarListaPrv(){
   const tb = prvG("tbPrv"), cuenta = prvG("prvCount");
-  if(PRV.error){ tb.innerHTML = '<tr><td colspan="8" class="vacio">'+txt(PRV.error)+'</td></tr>'; cuenta.textContent = ""; return; }
+  if(PRV.verElim){ pintarEliminadosPrv(); return; }
+  if(PRV.error){ tb.innerHTML = '<tr><td colspan="11" class="vacio">'+txt(PRV.error)+'</td></tr>'; cuenta.textContent = ""; return; }
   const toks = plano(prvG("prvBusca").value).split(/\\s+/).filter(Boolean);
   const inact = prvG("prvInactivos").checked;
   const lista = PRV.lista.filter(p => (inact || !p.inactivo) && (!toks.length ||
-    toks.every(t => plano(p.razonSocial+" "+p.cuit+" "+cuitTxt(p.cuit)+" "+p.localidad+" "+p.provincia+" "+p.telefono+" "+p.gbpId).indexOf(t) >= 0)));
+    toks.every(t => plano(p.razonSocial+" "+p.cuit+" "+cuitTxt(p.cuit)+" "+p.localidad+" "+p.provincia+" "+p.telefono+" "+(p.gbpId == null ? "" : p.gbpId)+
+      " "+(p.contacto || "")+" "+(p.whatsapp || "")+" "+(p.email || "")).indexOf(t) >= 0)));
   cuenta.textContent = lista.length + (lista.length === 1 ? " proveedor" : " proveedores") +
     (lista.length !== PRV.lista.length ? " de " + PRV.lista.length : "");
-  if(!PRV.lista.length){ tb.innerHTML = '<tr><td colspan="8" class="vacio">Todavía no hay proveedores cargados. Tocá Importar y elegí el Excel de GBP.</td></tr>'; return; }
-  if(!lista.length){ tb.innerHTML = '<tr><td colspan="8" class="vacio">Nada coincide con lo que buscás.</td></tr>'; return; }
+  if(!PRV.lista.length){ tb.innerHTML = '<tr><td colspan="11" class="vacio">Todavía no hay proveedores cargados. Tocá Importar y elegí el Excel de GBP, o cargá uno con + Nuevo proveedor.</td></tr>'; return; }
+  if(!lista.length){ tb.innerHTML = '<tr><td colspan="11" class="vacio">Nada coincide con lo que buscás.</td></tr>'; return; }
   tb.innerHTML = lista.map(p => '<tr'+(p.inactivo ? ' style="opacity:.55"' : '')+'>'+
-    '<td><b>'+txt(p.razonSocial)+'</b>'+(p.inactivo ? ' <span class="pill p-n">inactivo</span>' : '')+
+    '<td><b>'+txt(p.razonSocial)+'</b>'+(p.inactivo ? ' <span class="pill p-n">inactivo</span>' : '')+pillsPrv(p)+
       (p.domicilio ? '<small>'+txt(p.domicilio)+'</small>' : '')+'</td>'+
     '<td class="num" style="white-space:nowrap">'+txt(cuitTxt(p.cuit))+'</td>'+
     '<td style="font-size:12.5px">'+txt(p.claseFiscal || "—")+'</td>'+
     '<td>'+txt(p.localidad || "—")+(p.provincia ? '<small>'+txt(p.provincia)+'</small>' : '')+'</td>'+
     '<td style="font-size:12.5px">'+txt(p.telefono || "—")+'</td>'+
+    contactoPrv(p)+
     '<td style="font-size:12.5px">'+txt(formaCorta(p.condicionCompra || "") || "—")+'</td>'+
     '<td>'+(p.moneda === "USD" ? '<span class="pill p-warn">USD</span>' : 'ARS')+'</td>'+
-    '<td class="r num">'+txt(p.gbpId)+'</td></tr>').join("");
+    '<td class="r"><input class="cant" type="text" inputmode="decimal" data-flete="'+atrib(p.id)+'" value="'+(+p.flete > 0 ? pTxt(+p.flete) : "")+'" placeholder="0"'+
+      ((puede("productos") || puede("importar")) ? '' : ' disabled')+' style="width:70px" aria-label="flete por ciento"></td>'+
+    '<td class="r num">'+(p.gbpId == null ? '— <span class="pill p-n" title="Lo cargaste en Punto: no viene de GBP.">cargado acá</span>' : txt(p.gbpId))+'</td>'+
+    accionesPrv(p)+'</tr>').join("");
 }
 function prvAviso(html, clase){
   prvG("prvAviso").innerHTML = html ? '<div class="adj-est'+(clase ? " "+clase : "")+'">'+html+'</div>' : "";
@@ -7689,6 +8189,7 @@ async function guardarProveedores(){
     PRV.pendientes = null; prvG("prvAcc").hidden = true;
     prvAviso("<b>Listo:</b> "+(+d.nuevos || 0)+" nuevos y "+(+d.actualizados || 0)+" actualizados"+
       (d.descartados ? "; "+(+d.descartados)+" quedaron afuera porque no tenían ID o razón social" : "")+
+      (+d.eliminados > 0 ? "; "+(+d.eliminados)+(+d.eliminados === 1 ? " sigue eliminado" : " siguen eliminados")+": no los volví a cargar" : "")+
       ". Ya los ve cualquier puesto.");
     await pintarProveedores();
   }catch(e){ prvAviso("No se pudo guardar: revisá la conexión y probá de nuevo.", "mal"); }
@@ -7714,7 +8215,1291 @@ prvG("prvZona").addEventListener("drop", e => {
 });
 prvG("prvGuardar").addEventListener("click", guardarProveedores);
 prvG("prvBusca").addEventListener("input", pintarListaPrv);
+// El flete % de un proveedor: se guarda al salir de la casilla.
+prvG("tbPrv").addEventListener("change", async e => {
+  const i = e.target.closest("input[data-flete]"); if(!i) return;
+  const v = aNum(i.value);
+  if(!(v >= 0 && v <= 100)){ toast("El flete va de 0 a 100%."); return; }
+  try{
+    const r = await fetch(PRV_URL, { method:"PUT", credentials:"same-origin", cache:"no-store",
+      headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ id:i.dataset.flete, cambios:{ flete: v > 0 ? v : null }, yo:soyYo() }) });
+    const d = await r.json().catch(() => null);
+    if(!r.ok || !d || d.error){ toast("No se guardó el flete: " + ((d && d.error) || "probá de nuevo.")); return; }
+    const p = PRV.lista.find(x => x.id === i.dataset.flete);
+    if(p) Object.assign(p, d.proveedor && d.proveedor.id === p.id ? d.proveedor : { flete:v });
+    toast("Flete guardado: " + pTxt(v) + "%. Los precios de sus artículos se recalculan al recargar Punto.");
+  }catch(x){ toast("No se guardó el flete: revisá la conexión."); }
+});
 prvG("prvInactivos").addEventListener("change", pintarListaPrv);
+
+/* ===================================================== PROVEEDORES: CARGAR, EDITAR, ELIMINAR
+   Damián, 22/11/2026: "dame la posibilidad de editar esos proveedores y
+   también eliminar y cualquier cosa que quiera retocar"; "dar de alta un
+   nuevo proveedor ... que yo ponga el CUIT y me levante todos los datos
+   solo, que ponga un contacto de vendedor y algún número de teléfono de
+   WhatsApp ... También mail." Lo que se retoca a mano de uno de GBP lo
+   anota el servidor (editados) y el Excel de GBP ya no lo pisa. Eliminar no
+   borra: queda aparte y se puede restaurar. */
+
+/** Le pide algo al servidor y siempre contesta un objeto: el del servidor,
+    o {error} dicho para el que está en el mostrador. Los errores llegan como
+    200 + {error} (Cloudflare tapa el cuerpo de los 5xx); 401 es la sesión. */
+async function pedirJson(metodo, url, cuerpo){
+  try{
+    const r = await fetch(url, { method:metodo, credentials:"same-origin", cache:"no-store",
+      headers: cuerpo ? { "Content-Type":"application/json" } : undefined,
+      body: cuerpo ? JSON.stringify(cuerpo) : undefined });
+    if(r.status === 401) return { error:"Se cerró tu sesión: entrá de nuevo con tu usuario." };
+    const d = await r.json().catch(() => null);
+    if(!d || typeof d !== "object") return { error:"El servidor contestó " + r.status + ": probá de nuevo en un momento." };
+    if(!r.ok && !d.error) d.error = "El servidor contestó " + r.status + ": probá de nuevo en un momento.";
+    return d;
+  }catch(e){ return { error:"No hay conexión con el servidor: revisá internet y probá de nuevo." }; }
+}
+/** La razón social como clave: sin acentos ni espacios de más (la misma que
+    usa el flete % de cada proveedor). */
+const clavePrv = s => plano(String(s || "")).replace(/\\s+/g, " ").trim();
+const ordenarPrv = () => PRV.lista.sort((a, b) => String(a.razonSocial || "").localeCompare(String(b.razonSocial || ""), "es"));
+/** El mail, si tiene forma de mail (si no, no se arma el link). */
+const mailOk = m => { const t = String(m || "").trim(); return /^[^\\s@<>"']+@[^\\s@<>"']+\\.[^\\s@<>"']+$/.test(t) ? t : ""; };
+
+/** El número para wa.me, escrito como lo escribe cualquiera ("03544 15-123456",
+    "+54 9 3544 123456"). Los de acá sin el 54 llevan 549 adelante (así los
+    pide WhatsApp); el 0 de larga distancia y el 15 del celular se sacan. Los
+    de otro país (con + y otro código) van tal cual. */
+function waNumero(n){
+  const s = String(n || "").trim();
+  const crudo = soloNum(s);
+  const intl = s.charAt(0) === "+" || /^00/.test(crudo);
+  const d = crudo.replace(/^00/, "");
+  if(!d) return "";
+  let loc = null;                                   // el número de acá, sin 54 ni 9
+  if(d.slice(0, 2) === "54" && (intl || d.length >= 12)) loc = d.slice(2).replace(/^9/, "");
+  else if(!intl) loc = d;
+  if(loc === null) return d.length >= 8 ? d : "";
+  loc = loc.replace(/^0+/, "");
+  // El 15 va después de la característica, que tiene de 2 a 4 números:
+  // 11 15..., 351 15..., 3544 15...
+  if(loc.length === 12) for(const i of [2, 3, 4]) if(loc.substr(i, 2) === "15"){ loc = loc.slice(0, i) + loc.slice(i + 2); break; }
+  return loc.length === 10 ? "549" + loc : "";
+}
+
+/** Para decir qué se retocó a mano de uno de GBP. */
+const NOMBRE_CAMPO_PRV = { razonSocial:"razón social", cuit:"CUIT", claseFiscal:"condición IVA", domicilio:"domicilio",
+  localidad:"localidad", provincia:"provincia", pais:"país", telefono:"teléfono", condicionCompra:"condición de compra",
+  moneda:"moneda", inactivo:"inactivo" };
+function pillsPrv(p){
+  const ed = Array.isArray(p.editados) ? p.editados : [];
+  if(p.gbpId == null || !ed.length) return "";
+  const que = ed.map(k => NOMBRE_CAMPO_PRV[k] || String(k)).join(", ");
+  return ' <span class="pill p-n" title="'+atrib("Lo retocaste acá ("+que+"): cuando importes el Excel de GBP, eso no se pisa.")+'">editado</span>';
+}
+/** La celda de Contacto: el vendedor, su WhatsApp y su mail, con links. */
+function contactoPrv(p){
+  const wa = waNumero(p.whatsapp), mail = mailOk(p.email);
+  const links = [];
+  if(p.whatsapp) links.push(wa
+    ? '<a href="https://wa.me/'+atrib(wa)+'" target="_blank" rel="noopener" style="color:var(--accent)" title="Abrir el WhatsApp">'+txt(p.whatsapp)+'</a>'
+    : txt(p.whatsapp));
+  if(mail) links.push('<a href="mailto:'+atrib(mail)+'" style="color:var(--accent)">'+txt(mail)+'</a>');
+  if(!p.contacto && !links.length) return '<td style="font-size:12.5px">—</td>';
+  return '<td style="font-size:12.5px">'+(p.contacto ? '<b style="font-weight:600">'+txt(p.contacto)+'</b>' : '')+
+    (links.length ? (p.contacto ? '<small>'+links.join(" · ")+'</small>' : links.join(" · ")) : '')+'</td>';
+}
+function accionesPrv(p){
+  return '<td style="white-space:nowrap">'+
+    (puede("proveedores") ? '<button class="b3" type="button" data-prv-ed="'+atrib(p.id)+'" style="padding:4px 10px">Editar</button>' : '')+
+    (puede("eliminar") ? ' <button class="b3" type="button" data-prv-del="'+atrib(p.id)+'" style="padding:4px 10px">Eliminar</button>' : '')+
+    '</td>';
+}
+
+/* ---- los eliminados: se ven aparte y se restauran */
+function pintarEliminadosPrv(){
+  const tb = prvG("tbPrv"), cuenta = prvG("prvCount");
+  if(PRV.eliminados == null){
+    tb.innerHTML = '<tr><td colspan="11" class="vacio">Trayendo los eliminados…</td></tr>'; cuenta.textContent = "";
+    traerEliminadosPrv(); return;
+  }
+  if(typeof PRV.eliminados === "string"){ tb.innerHTML = '<tr><td colspan="11" class="vacio">'+txt(PRV.eliminados)+'</td></tr>'; cuenta.textContent = ""; return; }
+  const toks = plano(prvG("prvBusca").value).split(/\\s+/).filter(Boolean);
+  const lista = PRV.eliminados.filter(p => toks.every(t =>
+    plano(String(p.razonSocial || "")+" "+(p.cuit || "")+" "+cuitTxt(p.cuit)+" "+(p.contacto || "")).indexOf(t) >= 0));
+  cuenta.textContent = lista.length + (lista.length === 1 ? " eliminado" : " eliminados");
+  if(!lista.length){
+    tb.innerHTML = '<tr><td colspan="11" class="vacio">'+(PRV.eliminados.length ? 'Nada coincide con lo que buscás.' : 'No hay proveedores eliminados.')+'</td></tr>';
+    return;
+  }
+  tb.innerHTML = lista.map(p => '<tr style="opacity:.8">'+
+    '<td><b>'+txt(p.razonSocial)+'</b> <span class="pill p-bad">eliminado</span>'+
+      '<small>'+txt("lo eliminó " + (p.eliminadoPor || "—") + (p.eliminadoEn ? " el " + fechaAR(p.eliminadoEn) : ""))+'</small></td>'+
+    '<td class="num" style="white-space:nowrap">'+txt(cuitTxt(p.cuit))+'</td>'+
+    '<td style="font-size:12.5px">'+txt(p.claseFiscal || "—")+'</td>'+
+    '<td>'+txt(p.localidad || "—")+'</td>'+
+    '<td style="font-size:12.5px">'+txt(p.telefono || "—")+'</td>'+
+    contactoPrv(p)+
+    '<td style="font-size:12.5px">'+txt(formaCorta(String(p.condicionCompra || "")) || "—")+'</td>'+
+    '<td>'+(p.moneda === "USD" ? 'USD' : 'ARS')+'</td>'+
+    '<td class="r">'+(+p.flete > 0 ? txt(pTxt(+p.flete))+'%' : '—')+'</td>'+
+    '<td class="r num">'+(p.gbpId == null ? '—' : txt(p.gbpId))+'</td>'+
+    '<td>'+(puede("eliminar") ? '<button class="b2" type="button" data-prv-res="'+atrib(p.id)+'" style="padding:4px 10px">Restaurar</button>' : '')+'</td></tr>').join("");
+}
+async function traerEliminadosPrv(){
+  if(PRV.trayendoElim) return;
+  PRV.trayendoElim = true;
+  const d = await pedirJson("GET", PRV_URL + "?eliminados=1");
+  PRV.trayendoElim = false;
+  PRV.eliminados = d.error ? String(d.error) : (Array.isArray(d.proveedores) ? d.proveedores : []);
+  if(PRV.verElim) pintarListaPrv();
+}
+async function restaurarPrv(id, btn){
+  const p = (Array.isArray(PRV.eliminados) ? PRV.eliminados : []).find(x => x.id === id);
+  if(!p) return;
+  if(btn) btn.disabled = true;
+  const d = await pedirJson("PUT", PRV_URL, { id, restaurar:true, yo:soyYo() });
+  if(d.error){ if(btn) btn.disabled = false; toast(d.error); return; }
+  PRV.eliminados = PRV.eliminados.filter(x => x.id !== id);
+  const vuelto = d.proveedor && d.proveedor.id ? d.proveedor : Object.assign({}, p, { eliminadoEn:null, eliminadoPor:null });
+  PRV.lista = PRV.lista.filter(x => x.id !== id).concat([vuelto]);
+  ordenarPrv();
+  pintarListaPrv();
+  toast(p.razonSocial + " volvió a la lista de proveedores.");
+}
+async function eliminarPrv(id){
+  const p = PRV.lista.find(x => x.id === id);
+  if(!p || !puede("eliminar")) return;
+  if(!confirm("¿Eliminás a " + p.razonSocial + "? Sale de la lista de proveedores. Si te equivocás, lo recuperás con «ver los eliminados».")) return;
+  // Con "yo": si en esta compu entró otro usuario, el servidor no lo hace a su nombre.
+  const d = await pedirJson("DELETE", PRV_URL + "?id=" + encodeURIComponent(id) + "&yo=" + encodeURIComponent(soyYo()));
+  // Lo que diga el servidor, tal cual (por ejemplo, que tiene un pedido abierto).
+  if(d.error){ toast(d.error); return; }
+  PRV.lista = PRV.lista.filter(x => x.id !== id);
+  PRV.eliminados = null;                  // la próxima vez se vuelven a pedir
+  pintarListaPrv();
+  toast(p.razonSocial + " eliminado. Lo recuperás con «ver los eliminados».");
+}
+
+/* ---- el formulario: uno solo para el nuevo y para editar */
+const PRV_CAMPOS = ["cuit","razonSocial","claseFiscal","domicilio","localidad","provincia","telefono",
+  "contacto","whatsapp","email","condicionCompra","moneda","flete","notas"];
+const PF_IDS = { cuit:"pfCuit", razonSocial:"pfRs", claseFiscal:"pfIva", domicilio:"pfDom", localidad:"pfLoc",
+  provincia:"pfProvi", telefono:"pfTel", contacto:"pfContacto", whatsapp:"pfWa", email:"pfMail",
+  condicionCompra:"pfCond", moneda:"pfMon", flete:"pfFlete", notas:"pfNotas" };
+const PFORM = { id:null, orig:null };      // el que se está editando (id null = nuevo)
+let PF_PIDIENDO = 0;
+
+/** Los datos de un proveedor como se comparan: así "editar" manda solo lo
+    que de verdad cambió. */
+function valoresPrv(p){
+  const o = {};
+  for(const k of PRV_CAMPOS) o[k] = p[k] == null ? "" : String(p[k]).trim();
+  o.cuit = soloNum(o.cuit);
+  o.moneda = p.moneda === "USD" ? "USD" : "ARS";
+  o.flete = +p.flete > 0 ? +p.flete : null;
+  return o;
+}
+function leerFormPrv(){
+  const o = {};
+  for(const k of PRV_CAMPOS) o[k] = String(prvG(PF_IDS[k]).value || "").replace(/[<>]/g, "").trim();
+  o.cuit = soloNum(o.cuit);
+  o.whatsapp = o.whatsapp.replace(/[^\\d+]/g, "").replace(/(?!^)\\+/g, "").slice(0, 20);
+  o.email = o.email.toLowerCase();
+  o.moneda = o.moneda === "USD" ? "USD" : "ARS";
+  o.flete = o.flete === "" ? null : aNum(o.flete);
+  return o;
+}
+/** Las opciones de un campo: las de siempre y las que ya usan los proveedores. */
+function opcionesPrv(idLista, base, campo){
+  const vistos = new Set(), out = [];
+  for(const v of base.concat(PRV.lista.map(p => String(p[campo] || "").trim()))){
+    const k = plano(v);
+    if(!v || vistos.has(k)) continue;
+    vistos.add(k); out.push(v);
+  }
+  prvG(idLista).innerHTML = out.slice(0, 60).map(v => '<option value="'+atrib(v)+'">').join("");
+}
+function abrirFormPrv(p){
+  if(!puede("proveedores")){ toast("Tu usuario no tiene Proveedores."); return; }
+  PF_PIDIENDO++;                          // lo que estaba consultando ARCA ya no vale
+  PFORM.id = p ? p.id : null;
+  PFORM.orig = p ? valoresPrv(p) : null;
+  PFORM.gbp = !!(p && p.gbpId != null);
+  const v = PFORM.orig;
+  for(const k of PRV_CAMPOS){
+    const el = prvG(PF_IDS[k]);
+    if(!v) el.value = k === "moneda" ? "ARS" : "";
+    else if(k === "cuit") el.value = conGuiones(v.cuit);
+    else if(k === "flete") el.value = v.flete != null ? pTxt(v.flete) : "";
+    else el.value = v[k];
+  }
+  prvG("pfTit").textContent = p ? "Editar proveedor" : "Proveedor nuevo";
+  prvG("pfGuardar").textContent = p ? "Guardar los cambios" : "Guardar el proveedor";
+  prvG("pfAyuda").textContent = !p
+    ? "Poné el CUIT: la razón social, la condición de IVA y el domicilio vienen solos de ARCA. El contacto, el WhatsApp y el mail los completás vos."
+    : (p.gbpId != null
+      ? "Es de GBP: lo que cambies de sus datos queda marcado como editado y el Excel de GBP ya no lo pisa."
+      : "Lo cargaste en Punto: cambiá lo que quieras.");
+  prvG("pfAviso").innerHTML = p ? "Si cambiás el CUIT, con los 11 números trae los datos de ARCA." : "Sin guiones también vale. Con los 11 números lo busca solo.";
+  opcionesPrv("pfIvaOpc", ["Responsable Inscripto", "Monotributo", "IVA Exento"], "claseFiscal");
+  opcionesPrv("pfCondOpc", [], "condicionCompra");
+  prvG("prvForm").hidden = false;
+  prvG(p ? "pfRs" : "pfCuit").focus();
+}
+function cerrarFormPrv(){ PF_PIDIENDO++; prvG("prvForm").hidden = true; }
+/** "Ya está cargado": con el botón para abrir el que ya está. */
+function avisoYaEsta(texto, id){
+  prvG("pfAviso").innerHTML = '<b style="color:var(--bad)">'+txt(texto)+'</b>'+
+    (id ? ' <button class="link-chico" type="button" data-pf-abrir="'+atrib(id)+'">Abrir el que ya está</button>' : '');
+}
+/** Con el CUIT, los datos de ARCA (lo mismo que el cliente nuevo). */
+async function traerPadronPrv(){
+  const d = soloNum(prvG("pfCuit").value);
+  const av = prvG("pfAviso");
+  if(d.length !== 11){ av.innerHTML = '<b style="color:var(--bad)">Un CUIT tiene 11 números.</b> Van '+d.length+'.'; return; }
+  if(!cuitValido(d)){ av.innerHTML = '<b style="color:var(--bad)">Ese CUIT no cierra.</b> Está mal copiado: fijate algún número.'; return; }
+  const ya = PRV.lista.find(x => x.id !== PFORM.id && soloNum(x.cuit) === d);
+  if(ya){ avisoYaEsta("Ya está cargado: " + ya.razonSocial + ".", ya.id); return; }
+  const este = ++PF_PIDIENDO;
+  av.innerHTML = "Consultando en ARCA…";
+  const r = await pedirJson("GET", "/sistema/padron?doc=" + d);
+  if(este !== PF_PIDIENDO || prvG("prvForm").hidden) return;     // se pidió otro, o se cerró
+  if(!r || !r.encontrado){
+    av.innerHTML = '<b>'+txt((r && r.error) || "No pude consultar ARCA ahora.")+'</b> El número es válido: cargá los datos a mano.';
+    return;
+  }
+  // Editando, lo que ARCA no trae no borra lo que ya estaba.
+  const pon = (id, val) => { if(val || !PFORM.id) prvG(id).value = val || ""; };
+  // A uno de GBP no se le cambia la razón social con la de ARCA: sus
+  // artículos lo encuentran por la de GBP (ver guardarFormPrv).
+  if(!PFORM.gbp) pon("pfRs", r.razonSocial);
+  pon("pfIva", r.condicionIva); pon("pfDom", r.domicilio);
+  pon("pfLoc", r.localidad); pon("pfProvi", r.provincia);
+  prvG("pfCuit").value = conGuiones(soloNum(r.cuit) || d);
+  av.innerHTML = '<b style="color:var(--ok)">Listo, vino de ARCA:</b> '+txt(r.razonSocial)+' · '+txt(r.condicionIva)+'.' +
+    (r.aviso ? ' <b style="color:var(--warn)">Ojo:</b> '+txt(r.aviso) : '');
+}
+async function guardarFormPrv(){
+  const o = leerFormPrv();
+  const av = prvG("pfAviso");
+  const editando = PFORM.id;
+  if(!o.razonSocial){ toast("Falta la razón social."); prvG("pfRs").focus(); return; }
+  if(o.cuit && (!editando || o.cuit !== PFORM.orig.cuit)){
+    if(o.cuit.length !== 11){ av.innerHTML = '<b style="color:var(--bad)">Un CUIT tiene 11 números.</b> Van '+o.cuit.length+'.'; prvG("pfCuit").focus(); return; }
+    if(!cuitValido(o.cuit)){ av.innerHTML = '<b style="color:var(--bad)">Ese CUIT no es válido: revisá los números.</b>'; prvG("pfCuit").focus(); return; }
+  }
+  if(o.email && !mailOk(o.email)){ toast("Ese mail no parece bien escrito."); prvG("pfMail").focus(); return; }
+  if(o.flete != null && !(o.flete >= 0 && o.flete <= 100)){ toast("El flete va de 0 a 100%."); prvG("pfFlete").focus(); return; }
+  if(!(o.flete > 0)) o.flete = null;
+  let metodo, cuerpo;
+  if(editando){
+    const cambios = {};
+    for(const k of PRV_CAMPOS)
+      if(String(o[k] == null ? "" : o[k]) !== String(PFORM.orig[k] == null ? "" : PFORM.orig[k])) cambios[k] = o[k];
+    if(!Object.keys(cambios).length){ cerrarFormPrv(); toast("No cambiaste nada."); return; }
+    // Uno de GBP: sus artículos lo encuentran por la razón social que trae
+    // GBP. Si se cambia acá, dejan de encontrarlo (el pedido al proveedor
+    // sale aparte, sin su contacto, y su flete % deja de sumarse).
+    if(PFORM.gbp && cambios.razonSocial !== undefined &&
+       !confirm("Ojo: sus artículos de GBP lo encuentran por la razón social con la que vienen de GBP (" + PFORM.orig.razonSocial +
+         "). Si la cambiás acá, dejan de encontrarlo: el pedido al proveedor sale aparte, sin su contacto, y su flete % deja de sumarse a esos artículos " +
+         "hasta que GBP traiga el nombre nuevo. ¿La cambiás igual?")){ prvG("pfRs").focus(); return; }
+    metodo = "PUT"; cuerpo = { id:editando, cambios, yo:soyYo() };
+  } else {
+    metodo = "POST"; cuerpo = { proveedor: Object.assign({ pais:"Argentina" }, o), yo:soyYo() };
+  }
+  const b = prvG("pfGuardar");
+  b.disabled = true;
+  const d = await pedirJson(metodo, PRV_URL, cuerpo);
+  b.disabled = false;
+  if(d.error){
+    // El CUIT repetido viene con el id del que ya está: se ofrece abrirlo.
+    if(d.id) avisoYaEsta(d.error, d.id);
+    else av.innerHTML = '<b style="color:var(--bad)">No se guardó: '+txt(d.error)+'</b>';
+    toast("No se guardó: " + d.error);
+    return;
+  }
+  const p = d.proveedor;
+  if(p && p.id){
+    const i = PRV.lista.findIndex(x => x.id === p.id);
+    if(i >= 0) PRV.lista[i] = p; else PRV.lista.push(p);
+    ordenarPrv();
+  }
+  cerrarFormPrv();
+  if(p && p.id) pintarListaPrv(); else await pintarProveedores();
+  toast(editando ? "Cambios guardados." : "Proveedor cargado: " + ((p && p.razonSocial) || o.razonSocial) + ".");
+}
+
+prvG("prvNuevo").hidden = !puede("proveedores");
+// Ojo: .filtros label es flex y le gana al hidden.
+prvG("prvElimEt").style.display = puede("eliminar") ? "" : "none";
+prvG("prvNuevo").addEventListener("click", () => abrirFormPrv(null));
+prvG("pfX").addEventListener("click", cerrarFormPrv);
+prvG("pfCancelar").addEventListener("click", cerrarFormPrv);
+prvG("pfGuardar").addEventListener("click", guardarFormPrv);
+prvG("pfTraer").addEventListener("click", traerPadronPrv);
+prvG("pfCuit").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); traerPadronPrv(); } });
+// Con los 11 números puestos lo busca solo, como el cliente nuevo.
+prvG("pfCuit").addEventListener("input", e => { if(soloNum(e.target.value).length === 11) traerPadronPrv(); });
+prvG("pfAviso").addEventListener("click", async e => {
+  const b = e.target.closest("[data-pf-abrir]"); if(!b) return;
+  let p = PRV.lista.find(x => x.id === b.dataset.pfAbrir);
+  if(!p){ await pintarProveedores(); p = PRV.lista.find(x => x.id === b.dataset.pfAbrir); }
+  if(p) abrirFormPrv(p);
+  else toast("No lo encuentro en la lista: fijate en «ver los eliminados».");
+});
+prvG("tbPrv").addEventListener("click", e => {
+  const ed = e.target.closest("[data-prv-ed]");
+  if(ed){ const p = PRV.lista.find(x => x.id === ed.dataset.prvEd); if(p) abrirFormPrv(p); return; }
+  const del = e.target.closest("[data-prv-del]");
+  if(del){ eliminarPrv(del.dataset.prvDel); return; }
+  const res = e.target.closest("[data-prv-res]");
+  if(res) restaurarPrv(res.dataset.prvRes, res);
+});
+prvG("prvElim").addEventListener("change", () => {
+  PRV.verElim = prvG("prvElim").checked;
+  if(PRV.verElim) PRV.eliminados = null;            // siempre los de ahora
+  pintarListaPrv();
+});
+
+/* ===================================================== PEDIDOS A PROVEEDORES
+   Las órdenes de compra (OC-0001). Damián, 22/11/2026: "el pedido que voy a
+   pedirle al proveedor me lo pongas con los costos y los valores ... los
+   costos con los descuentos y cuánto es el valor de la mercadería que le
+   estoy pidiendo"; "cuando hago una orden de pedido y queda algo como
+   pendiente, si me vuelve la semana que viene a sacar faltantes, que quede
+   remarcado que ya está pedido los artículos que quedaron pendientes por sin
+   stock de fábrica." Viven en el servidor (/sistema/compras): numera, guarda
+   y vuelve a sacar los totales (no confía en los de la página). */
+const OC_URL = "/sistema/compras";
+const OC = { lista:[], error:"", cargando:false, ed:null, pend:{}, hits:[], falt:null, faltError:"", faltMin:false, trabado:false,
+  abiertos:[], pendError:"" };
+const ocG = id => document.getElementById(id);
+const ocPuede = () => puede("proveedores") || puede("pedidos");
+const OC_ESTADO = { abierto:["abierto","p-n"], enviado:["enviado","p-warn"], parcial:["llegó una parte","p-warn"],
+  recibido:["llegó todo","p-ok"], anulado:["anulado","p-bad"] };
+const ddmm = iso => { const f = new Date(iso); return isNaN(f) ? "" :
+  f.toLocaleDateString("es-AR", { day:"2-digit", month:"2-digit", timeZone:"America/Argentina/Buenos_Aires" }); };
+
+/** "Se compra de a" de la ficha: vacío o 1 es suelto (0). */
+function bultoDeCampo(){
+  const n = Math.floor(+document.getElementById("aBulto").value || 0);
+  return n > 1 ? Math.min(10000, n) : 0;
+}
+/** El bulto cerrado de un artículo (0 = se compra suelto). */
+const bultoArt = p => (p && +p.bulto > 1) ? Math.min(10000, Math.floor(+p.bulto)) : 0;
+/** Lo que se pide de verdad: si viene en caja cerrada, la caja entera.
+    Daniel: "por más que yo necesite 2, van a pedir 6". */
+const redondearBulto = (n, b) => b > 1 ? Math.ceil(n / b) * b : n;
+
+/** Que de un artículo de GBP solo se cambió lo de Punto (flete, otro costo,
+    bulto) y lo demás de la ficha quedó como estaba. Ahí no queda "tocado"
+    en esta compu (ver aGuardar). */
+function soloLoDePunto(p, d){
+  const igual = (a, b) => Math.abs((+a || 0) - (+b || 0)) < 0.005;
+  const may = t => String(t == null ? "" : t).trim().toUpperCase();
+  const ds = (d.seis || []).slice(0, 6).map(limD), ps = (Array.isArray(p.seis) ? p.seis : []).slice(0, 6).map(limD);
+  while(ds.length < 6) ds.push(0);
+  while(ps.length < 6) ps.push(0);
+  return may(d.tit) === may(p.tit) && may(d.prov) === may(p.prov) && d.rub === p.rub &&
+    String(d.desc || "").trim() === String(p.desc || "").trim() && may(d.codProv) === may(p.codProv) &&
+    igual(d.lista, p.lista) && JSON.stringify(ds) === JSON.stringify(ps) &&
+    igual(d.l1, p.l1) && igual(d.l2, p.l2) && igual(d.iva, ivaDe(p)) && igual(d.dctoCont, p.dctoCont) &&
+    d.mon === (p.mon === "USD" ? "USD" : "ARS") && !!d.promo === !!p.promo && !!d.may === !!p.may &&
+    (!d.may || (igual(d.mayPct, p.mayPct) && igual(d.mayDesde, p.mayDesde))) &&
+    igual(d.dep.BA, p.dep.BA) && igual(d.dep.TS, p.dep.TS);
+}
+/** La cadena de descuentos de un artículo para el pedido al proveedor. La
+    de GBP es la suya (lista contra costo): la de la marca que queda cargada
+    en la pantalla (por ejemplo, la de un artículo nuevo sin descuentos) no
+    vale para él. */
+const cadenaOC = p => (p && p.gbp && Array.isArray(p.seis)) ? p.seis.slice(0, 6) : cadenaArt(p);
+/** Lo que cobra el proveedor por unidad, sin IVA: la lista con sus
+    descuentos y el de pago contado. Sin flete ni otro costo: eso no lo
+    factura él. El de GBP: su costo del producto sin el IVA (es lo que
+    factura). Sin lista, el costo del producto sin el IVA. */
+function netoOC(p){
+  if(p.gbp && +p.costoProducto > 0) return cent(+p.costoProducto / facIva(ivaDe(p)));
+  if(+p.lista > 0) return cent(p.lista * factorDe(cadenaOC(p)) * (1 - limD(p.dctoCont) / 100));
+  return cent((+p.costoProducto || +p.costo || 0) / facIva(ivaDe(p)));
+}
+const ivaOC = p => { const i = ivaDe(p); return [0, 10.5, 21, 27].indexOf(i) >= 0 ? i : 21; };
+/** Un renglón del pedido al proveedor, con la foto de los costos de hoy:
+    si mañana cambia la lista, el pedido dice lo que se pidió. */
+function renglonOC(p, necesita, origen, cant){
+  const b = bultoArt(p);
+  const nec = Math.max(1, Math.min(100000, Math.floor(+necesita || 1)));
+  const r = { cod:String(p.cod).slice(0, 60), tit:String(p.tit || "").replace(/[<>]/g, "").slice(0, 200),
+    cant: Math.max(1, Math.min(100000, Math.floor(+cant || 0) || redondearBulto(nec, b))), recibido:0,
+    lista: cent(Math.max(0, +p.lista || 0)), cadena: cadenaOC(p).map(limD), cont: limD(p.dctoCont),
+    neto: netoOC(p), iva: ivaOC(p), sinStockFabrica:false, origen: (origen || []).slice(0, 20) };
+  if(b){ r.bulto = b; r.necesita = nec; }
+  return r;
+}
+/** Lo que se manda al servidor de cada renglón: los campos del contrato. */
+const CAMPOS_RENGLON_OC = ["cod","tit","cant","recibido","lista","cadena","cont","neto","iva","bulto","necesita","sinStockFabrica","origen"];
+function limpioRenglonOC(r){
+  const o = {};
+  for(const k of CAMPOS_RENGLON_OC) if(r[k] !== undefined && r[k] !== null) o[k] = r[k];
+  if(!(+o.bulto > 1)) delete o.bulto;
+  o.recibido = Math.max(0, Math.min(+o.cant || 0, Math.floor(+o.recibido || 0)));
+  return o;
+}
+/** Los totales, como los saca el servidor: cada renglón redondeado. */
+function totalesOC(rs){
+  let neto = 0, iva = 0;
+  for(const r of rs){ neto += cent(r.neto * r.cant); iva += cent(r.neto * r.cant * r.iva / 100); }
+  return { neto:cent(neto), iva:cent(iva), total:cent(neto + iva) };
+}
+function pillEstadoOC(c){
+  let [t, cls] = OC_ESTADO[c.estado] || [String(c.estado || ""), "p-n"];
+  if(c.estado === "recibido" && (c.renglones || []).some(r => (+r.recibido || 0) < (+r.cant || 0))) t = "cerrado, faltó algo";
+  return '<span class="pill '+cls+'">'+txt(t)+'</span>';
+}
+function descOC(r){
+  const ds = (r.cadena || []).filter(d => limD(d) > 0);
+  return [ds.length ? cadenaTxt(ds) : "", +r.cont > 0 ? pTxt(+r.cont) + "% contado" : ""].filter(Boolean).join(" + ") || "sin descuento";
+}
+/** Para quién es (los pedidos de clientes) o por qué entró. */
+function paraTxt(origen, conMano){
+  const vistos = new Set(), partes = [];
+  for(const o of (origen || [])){
+    if(!o) continue;
+    const t = o.tipo === "pedido" ? String(o.ref || "") + (o.cliente ? " (" + o.cliente + ")" : "")
+      : o.tipo === "faltante" ? "abajo del mínimo" : (o.tipo === "mano" && conMano ? "a mano" : "");
+    if(t && !vistos.has(t)){ vistos.add(t); partes.push(t); }
+  }
+  return partes.length > 6 ? partes.slice(0, 6).join(", ") + " y " + (partes.length - 6) + " más" : partes.join(", ");
+}
+function notaBultoOC(r){
+  if(!(+r.bulto > 1)) return "";
+  return '<span class="oc-bulto">bulto de '+(+r.bulto)+(+r.necesita > 0 && +r.necesita !== +r.cant ? ' · necesitabas '+(+r.necesita) : '')+'</span>';
+}
+/** El proveedor de una orden, de la lista de Proveedores (para el contacto). */
+function prvDeOC(c){
+  return (c.proveedorId && PRV.lista.find(x => x.id === c.proveedorId)) ||
+    PRV.lista.find(x => clavePrv(x.razonSocial) === clavePrv(c.proveedor)) || null;
+}
+/** El proveedor de un artículo: el de GBP viene en "cat"; si no, la marca. */
+function proveedorDeArt(p){
+  const nom = String(p.cat || p.prov || "").trim();
+  const k = clavePrv(nom);
+  const r = k ? PRV.lista.find(x => clavePrv(x.razonSocial) === k) : null;
+  return r ? { proveedorId:r.id, proveedor:String(r.razonSocial) } : { proveedorId:null, proveedor: nom || "SIN PROVEEDOR" };
+}
+function agruparPorProveedor(items){
+  const g = {};
+  for(const x of items){
+    const pv = proveedorDeArt(x.p);
+    const k = pv.proveedorId || "t:" + clavePrv(pv.proveedor);
+    (g[k] || (g[k] = Object.assign({ items:[] }, pv))).items.push(x);
+  }
+  return Object.keys(g).map(k => g[k]).sort((a, b) => a.proveedor.localeCompare(b.proveedor, "es"));
+}
+async function cargarPrvSiFalta(){
+  if(PRV.lista.length) return;
+  const d = await pedirJson("GET", PRV_URL);
+  if(!d.error && Array.isArray(d.proveedores)) PRV.lista = d.proveedores;
+}
+
+/* ---- la lista de pedidos a proveedores */
+async function pintarCompras(){
+  if(!ocPuede()) return;
+  OC.cargando = true; pintarListaOC();
+  const d = await pedirJson("GET", OC_URL + "?estado=" + (ocG("ocTodos").checked ? "todos" : "abiertos") + "&suc=" + encodeURIComponent(S.suc));
+  OC.cargando = false;
+  if(d.error) OC.error = String(d.error);
+  else { OC.lista = Array.isArray(d.compras) ? d.compras : []; OC.error = ""; }
+  // El que está abierto en pantalla, si otro lo cambió y acá no se tocó nada.
+  if(OC.ed && OC.ed.id && !OC.ed.sucio){
+    const c = OC.lista.find(x => x.id === OC.ed.id);
+    if(c && c.version !== OC.ed.version){ OC.ed = edDe(c); pintarEdOC(); return; }
+  }
+  pintarListaOC();
+}
+function pintarListaOC(){
+  const tb = ocG("tbOc"); if(!tb) return;
+  const todos = ocG("ocTodos").checked, n = OC.lista.length;
+  ocG("ocCount").textContent = (n ? n + (todos ? (n === 1 ? " pedido" : " pedidos") : " sin cerrar") + " · " : "") + sucAct().n;
+  if(OC.error){ tb.innerHTML = '<tr><td colspan="6" class="vacio">'+txt(OC.error)+'</td></tr>'; return; }
+  if(!n){
+    tb.innerHTML = '<tr><td colspan="6" class="vacio">'+(OC.cargando ? 'Trayendo los pedidos…'
+      : 'No hay pedidos '+(todos ? 'a proveedores' : 'sin cerrar')+'. Tocá <b>+ Nuevo pedido</b> o <b>Sacar faltantes</b>.')+'</td></tr>';
+    return;
+  }
+  tb.innerHTML = OC.lista.map(c => '<tr data-oc="'+atrib(c.id)+'"'+(OC.ed && OC.ed.id === c.id ? ' class="oc-abierta"' : '')+'>'+
+    '<td class="num"><b>'+txt(c.nroTexto)+'</b></td>'+
+    '<td>'+txt(c.proveedor)+'</td>'+
+    '<td>'+pillEstadoOC(c)+'</td>'+
+    '<td class="r">'+(Array.isArray(c.renglones) ? c.renglones.length : 0)+'</td>'+
+    '<td class="r">'+fmt2(+c.total || 0)+'</td>'+
+    '<td style="font-size:12.5px">'+txt(c.creadoEn ? fechaAR(c.creadoEn) : "")+'</td></tr>').join("");
+}
+/** El pedido que se está mirando: una copia, para poder cambiarla y
+    recién mandarla con Guardar. */
+function edDe(c){
+  return { id:c.id, nroTexto:String(c.nroTexto || ""), proveedorId:c.proveedorId || null, proveedor:String(c.proveedor || ""),
+    sucursal:c.sucursal, estado:c.estado, version:c.version, nota:String(c.nota || ""),
+    creadoPor:c.creadoPor || "", creadoEn:c.creadoEn || null, enviadoEn:c.enviadoEn || null, cerradoEn:c.cerradoEn || null,
+    renglones:(Array.isArray(c.renglones) ? c.renglones : []).map(r => Object.assign({}, r, { origen:Array.isArray(r.origen) ? r.origen.slice() : [] })),
+    sucio:false, base:c };
+}
+function ponerCompraEnLista(c){
+  const i = OC.lista.findIndex(x => x.id === c.id);
+  const final = c.estado === "recibido" || c.estado === "anulado";
+  if(final && !ocG("ocTodos").checked){ if(i >= 0) OC.lista.splice(i, 1); }
+  else if(i >= 0) OC.lista[i] = c;
+  else OC.lista.unshift(c);
+  pintarListaOC();
+}
+const dejarCambiosOC = () => !(OC.ed && OC.ed.sucio) || confirm("Tenés cambios sin guardar en el pedido que está abierto. ¿Los dejás?");
+/** + Nuevo pedido: si ya hay uno abierto a ese proveedor en esta sucursal,
+    se abre ese (el servidor junta igual lo del mismo proveedor). */
+function nuevoOC(p){
+  if(!dejarCambiosOC()) return;
+  const ya = OC.lista.find(c => c.estado === "abierto" && c.sucursal === S.suc &&
+    (c.proveedorId ? c.proveedorId === p.id : clavePrv(c.proveedor) === clavePrv(p.razonSocial)));
+  if(ya){
+    OC.ed = edDe(ya); pintarEdOC();
+    toast("Ya tenés un pedido abierto a " + p.razonSocial + ": es el " + ya.nroTexto + ". Lo que sumes va ahí.");
+    return;
+  }
+  OC.ed = { id:null, nroTexto:"", proveedorId:p.id, proveedor:String(p.razonSocial || ""), sucursal:S.suc, estado:"abierto",
+    version:0, renglones:[], nota:"", creadoPor:"", creadoEn:null, enviadoEn:null, cerradoEn:null, sucio:false, base:null };
+  pintarEdOC();
+  const q = ocG("ocBusca"); if(q) q.focus();
+}
+
+/* ---- el pedido abierto en pantalla */
+function pintarEdOC(){
+  const box = ocG("ocEd"), e = OC.ed;
+  if(!e){ box.hidden = true; box.innerHTML = ""; pintarListaOC(); return; }
+  const pv = prvDeOC(e);
+  const abierto = e.estado === "abierto";
+  const llegan = e.estado === "enviado" || e.estado === "parcial", vino = e.estado === "recibido";
+  const datosPrv = pv ? [pv.cuit ? "CUIT " + cuitTxt(pv.cuit) : "", pv.contacto || "", pv.whatsapp ? "WhatsApp " + pv.whatsapp : "",
+    mailOk(pv.email), pv.telefono ? "Tel. " + pv.telefono : ""].filter(Boolean) : [];
+  box.hidden = false;
+  box.innerHTML =
+    '<div class="oc-cab"><h4>'+txt(e.nroTexto || "Pedido nuevo")+' · '+txt(e.proveedor)+'</h4>'+pillEstadoOC(e)+
+      '<span class="por">'+txt(sucDe(e.sucursal).n)+
+        txt(e.creadoEn ? " · lo hizo " + (e.creadoPor || "—") + " el " + fechaAR(e.creadoEn) : " · todavía sin guardar")+
+        txt(e.enviadoEn ? " · enviado el " + fechaAR(e.enviadoEn) : "")+'</span>'+
+      '<button class="b3" type="button" data-oc-acc="salir">Cerrar</button></div>'+
+    '<div class="por">'+(datosPrv.length ? txt(datosPrv.join(" · "))
+      : (pv ? "Sin datos de contacto: cargalos con Editar, en la lista de proveedores." : "Este proveedor no está en la lista de Proveedores."))+'</div>'+
+    (abierto
+      ? '<div class="oc-busca"><input id="ocBusca" type="search" placeholder="Sumá un artículo: código, nombre o marca, y Enter" autocomplete="off">'+
+        '<label class="por" style="display:flex;align-items:center;gap:6px">Cant. <input id="ocCant" class="cant" type="number" min="1" step="1" value="1" aria-label="cantidad a sumar"></label></div>'+
+        '<div id="ocRes"></div>'
+      : (llegan ? '<p class="por" style="margin:10px 0 4px">Cuando llegue, poné en <b>Llegaron</b> cuántos vinieron de cada uno (en total) y tocá <b>Llegó la mercadería</b>. '+
+          'Si el proveedor te dijo que no tiene, tildá <b>sin stock de fábrica</b>: queda pendiente y se ve cuando saques faltantes. El stock de Punto todavía no se suma solo.</p>' : ''))+
+    '<div class="tabla-wrap"><table class="densa"><thead><tr>'+
+      '<th>Código</th><th>Artículo</th><th class="r">Cant.</th><th class="r">Lista s/IVA</th><th>Descuentos</th>'+
+      '<th class="r">Costo c/u s/IVA</th><th class="r">Subtotal s/IVA</th>'+
+      (llegan || vino ? '<th class="r">Llegaron</th><th></th>' : '')+'<th></th>'+
+    '</tr></thead><tbody id="ocTabla"></tbody></table></div>'+
+    (abierto
+      ? '<input id="ocNota" class="oc-nota" type="text" maxlength="500" placeholder="Nota para el proveedor (sale en el impreso y en el mensaje)" value="'+atrib(e.nota || "")+'" autocomplete="off">'
+      : (e.nota ? '<p class="por" style="margin-top:8px"><b>Nota:</b> '+txt(e.nota)+'</p>' : ''))+
+    '<div class="oc-tot" id="ocTot"></div>'+
+    '<div class="oc-acc" id="ocAcc"></div>';
+  OC.hits = [];
+  pintarTablaOC();
+  pintarListaOC();
+}
+function pintarTablaOC(){
+  const e = OC.ed, tb = ocG("ocTabla"); if(!e || !tb) return;
+  const abierto = e.estado === "abierto";
+  const llegan = e.estado === "enviado" || e.estado === "parcial", vino = e.estado === "recibido";
+  const cols = 8 + (llegan || vino ? 2 : 0);
+  tb.innerHTML = e.renglones.length ? e.renglones.map((r, i) => {
+    const para = paraTxt(r.origen, false);
+    return '<tr data-oc-i="'+i+'">'+
+      '<td class="num" style="font-size:12px">'+txt(r.cod)+'</td>'+
+      '<td class="nom">'+txt(r.tit)+'<span data-oc-nota="'+i+'">'+notaBultoOC(r)+'</span>'+(para ? '<small>para '+txt(para)+'</small>' : '')+'</td>'+
+      '<td class="r">'+(abierto ? '<input class="cant" type="number" min="1" max="100000" step="1" value="'+(+r.cant || 1)+'" data-oc-cant="'+i+'" aria-label="cantidad">' : (+r.cant || 0))+'</td>'+
+      '<td class="r">'+(+r.lista > 0 ? fmt2(r.lista) : '—')+'</td>'+
+      '<td style="font-size:12px">'+txt(descOC(r))+'</td>'+
+      '<td class="r">'+fmt2(r.neto)+'</td>'+
+      '<td class="r" style="font-weight:600" data-oc-sub="'+i+'">'+fmt2(cent(r.neto * r.cant))+'</td>'+
+      (llegan
+        ? '<td class="r"><input class="cant" type="number" min="0" max="'+(+r.cant || 0)+'" step="1" value="'+(+r.recibido || 0)+'" data-oc-lleg="'+i+'" aria-label="llegaron"></td>'+
+          '<td><label class="por" style="display:flex;gap:5px;align-items:center;white-space:nowrap"><input type="checkbox" data-oc-sin="'+i+'"'+(r.sinStockFabrica ? ' checked' : '')+'> sin stock de fábrica</label></td>'
+        : (vino ? '<td class="r">'+(+r.recibido || 0)+'</td><td>'+(r.sinStockFabrica ? '<span class="pill p-bad">sin stock de fábrica</span>' : '')+'</td>' : ''))+
+      '<td>'+(abierto ? '<button class="quitar-fila" type="button" data-oc-x="'+i+'" aria-label="quitar">×</button>' : '')+'</td></tr>';
+  }).join("") : '<tr><td colspan="'+cols+'" class="vacio">'+(abierto ? 'Todavía no tiene artículos. Buscalos arriba y apretá Enter.' : 'No tiene artículos.')+'</td></tr>';
+  pintarTotOC();
+}
+/** Lo que pidió Damián: el neto, el IVA y cuánto vale la mercadería. Mientras
+    se cambia, la cuenta sale de acá (igual que la hace el servidor); guardado,
+    la del servidor. */
+function pintarTotOC(){
+  const e = OC.ed, box = ocG("ocTot"); if(!e || !box) return;
+  const t = (e.sucio || !e.base) ? totalesOC(e.renglones) : { neto:+e.base.neto || 0, iva:+e.base.iva || 0, total:+e.base.total || 0 };
+  const u = e.renglones.reduce((a, r) => a + (+r.cant || 0), 0), n = e.renglones.length;
+  box.innerHTML =
+    '<div class="tr"><span>'+u+(u === 1 ? ' unidad' : ' unidades')+' en '+n+(n === 1 ? ' renglón' : ' renglones')+'</span><b></b></div>'+
+    '<div class="tr"><span>Neto (sin IVA)</span><b>'+fmt2(t.neto)+'</b></div>'+
+    '<div class="tr"><span>IVA</span><b>'+fmt2(t.iva)+'</b></div>'+
+    '<div class="tr big"><span>Valor de la mercadería, con IVA</span><b>'+fmt2(t.total)+'</b></div>';
+  pintarAccOC();
+}
+function pintarAccOC(){
+  const e = OC.ed, acc = ocG("ocAcc"); if(!e || !acc) return;
+  const pv = prvDeOC(e);
+  const wa = pv ? waNumero(pv.whatsapp) : "", mail = pv ? mailOk(pv.email) : "";
+  const hay = e.renglones.length > 0, listo = !!e.id && !e.sucio;
+  const tr = OC.trabado ? " disabled" : "";
+  const bt = (a, texto, cls, extra) => '<button class="'+cls+'" type="button" data-oc-acc="'+a+'"'+(extra || "")+tr+'>'+texto+'</button>';
+  const falta = !e.id ? ' disabled title="Guardalo primero: todavía no tiene número."' : ' disabled title="Guardá los cambios primero."';
+  let h = "";
+  if(e.estado === "abierto"){
+    h += bt("guardar", e.id ? "Guardar" : "Guardar el pedido", "b1", e.id && !e.sucio ? ' disabled title="No hay cambios para guardar."' : '');
+    h += bt("enviar", "Marcar como enviado", "b2", hay ? ' title="Cuando ya se lo mandaste al proveedor"' : ' disabled title="Sumá artículos primero."');
+    if(e.id) h += bt("anular", "Anular", "b3");
+  } else if(e.estado === "enviado" || e.estado === "parcial"){
+    h += bt("recibir", "Llegó la mercadería", "b1", ' title="Guarda lo que pusiste en Llegaron"');
+    h += bt("todo", "Llegó todo", "b3", ' title="Pone en Llegaron todo lo pedido (después tocá Llegó la mercadería)"');
+    h += e.estado === "enviado" ? bt("reabrir", "Reabrir", "b2", ' title="Vuelve a abierto para cambiarlo"') : bt("cerrar", "Cerrar (lo que falta no viene)", "b2");
+    h += bt("anular", "Anular", "b3");
+  }
+  if(hay){
+    h += '<span style="flex:1"></span>';
+    h += bt("imprimir", "Imprimir", "b2", listo ? '' : falta);
+    h += bt("wa", "WhatsApp", "b2", !listo ? falta : (wa ? ' title="Le manda el pedido, sin precios"' : ' disabled title="Este proveedor no tiene WhatsApp cargado: ponelo con Editar, en la lista de proveedores."'));
+    h += bt("mail", "Mail", "b2", !listo ? falta : (mail ? ' title="Le manda el pedido, sin precios"' : ' disabled title="Este proveedor no tiene mail cargado: ponelo con Editar, en la lista de proveedores."'));
+  }
+  if(e.sucio) h += '<span class="por" style="width:100%;color:var(--warn);font-weight:600">Tenés cambios sin guardar.</span>';
+  acc.innerHTML = h;
+}
+
+/* ---- sumar artículos al pedido abierto (el mismo buscador del mostrador) */
+function buscarOC(){
+  const caja = ocG("ocRes"), q = ocG("ocBusca"); if(!caja || !q || !OC.ed) return [];
+  const crudo = q.value.trim();
+  OC.hits = [];
+  if(!crudo){ caja.innerHTML = ""; return []; }
+  const hits = encontrar(plano(crudo).split(/\\s+/).filter(Boolean)).hits.map(h => h.p).filter(p => !p.aMano).slice(0, 8);
+  if(!hits.length){ caja.innerHTML = '<div class="vacio" style="padding:12px">Nada con <b>“'+txt(crudo)+'”</b>. Probá con menos palabras.</div>'; return []; }
+  const clave = clavePrv(OC.ed.proveedor);
+  OC.hits = hits;
+  caja.innerHTML = '<div class="tabla-wrap"><table class="densa res-t"><thead><tr><th>Código</th><th>Artículo</th><th>Proveedor</th>'+
+    '<th class="r">Stock</th><th class="r">Costo c/u s/IVA</th><th></th></tr></thead><tbody>'+
+    hits.map((p, k) => {
+      const b = bultoArt(p), de = String(p.cat || p.prov || "");
+      return '<tr data-oc-art="'+k+'"'+(k === 0 ? ' class="marcado"' : '')+' style="cursor:pointer">'+
+        '<td class="num" style="font-size:12px">'+txt(p.cod)+'</td>'+
+        '<td class="nom">'+txt(p.tit)+(b ? ' <span class="pill p-warn">de a '+b+'</span>' : '')+'</td>'+
+        '<td style="font-size:12px">'+txt(de)+(clavePrv(de) !== clave ? ' <span class="pill p-n">otro proveedor</span>' : '')+'</td>'+
+        '<td class="r">'+(+p.stock || 0)+'</td>'+
+        '<td class="r">'+fmt2(netoOC(p))+'</td>'+
+        '<td><button class="sumar" type="button" data-oc-add="'+k+'">Sumar</button></td></tr>';
+    }).join("")+'</tbody></table></div>';
+  return hits;
+}
+function sumarAlOC(p, cuantos){
+  const e = OC.ed; if(!e || e.estado !== "abierto" || !p) return;
+  const n = Math.max(1, Math.min(100000, Math.floor(+cuantos || 1)));
+  let r = e.renglones.find(x => x.cod === p.cod);
+  if(r){
+    // Ya estaba: se suma lo que hace falta y se vuelve a redondear al bulto.
+    const b = +r.bulto > 1 ? +r.bulto : bultoArt(p);
+    const nec = (+r.necesita > 0 ? +r.necesita : +r.cant) + n;
+    r.cant = Math.min(100000, redondearBulto(nec, b));
+    if(b > 1){ r.bulto = b; r.necesita = nec; } else if(r.necesita != null) r.necesita = nec;
+    if(!(r.origen || []).some(o => o && o.tipo === "mano")) r.origen = (r.origen || []).concat([{ tipo:"mano" }]).slice(0, 20);
+  } else {
+    r = renglonOC(p, n, [{ tipo:"mano" }]);
+    e.renglones.push(r);
+  }
+  e.sucio = true;
+  pintarTablaOC();
+  const fila = ocG("ocTabla").querySelector('tr[data-oc-i="'+e.renglones.indexOf(r)+'"]');
+  if(fila) fila.classList.add("nuevo");
+  toast(r.cant + " × " + String(p.tit || "").slice(0, 46) + (+r.bulto > 1 ? " (bulto de " + r.bulto + ")" : "") + " en el pedido.");
+  ocG("ocBusca").value = ""; ocG("ocRes").innerHTML = ""; ocG("ocCant").value = 1; OC.hits = [];
+  ocG("ocBusca").focus();
+}
+
+/* ---- guardar y los cambios de estado */
+/** Después de cada pedido al servidor: lo que volvió pasa a ser lo de la
+    pantalla. Si otro lo cambió en el medio, se muestra cómo quedó. */
+async function trasRespuestaOC(d, okMsg, id){
+  if(d && d.conflicto && d.compra){
+    OC.ed = edDe(d.compra); ponerCompraEnLista(d.compra); pintarEdOC();
+    toast("Otro lo cambió recién: te muestro cómo quedó.");
+    return null;
+  }
+  if(!d || d.error){ toast((d && d.error) || "No se pudo: probá de nuevo."); pintarAccOC(); return null; }
+  let c = d.compra || null;
+  if(!c && id){ await pintarCompras(); c = OC.lista.find(x => x.id === id) || null; }
+  if(c){ OC.ed = edDe(c); ponerCompraEnLista(c); }
+  pintarEdOC();
+  if(okMsg) toast(typeof okMsg === "function" ? okMsg(c) : okMsg);
+  return c;
+}
+async function guardarOC(){
+  const e = OC.ed; if(!e || OC.trabado) return null;
+  if(!e.id && !e.renglones.length){ toast("Sumá al menos un artículo."); return null; }
+  OC.trabado = true; pintarAccOC();
+  const eraNuevo = !e.id;
+  let d;
+  try{
+    if(!e.id){
+      // El primero va con "sumar": si alguien abrió recién otro pedido a este
+      // proveedor en la sucursal, se junta con ese y no quedan dos abiertos.
+      // Lo que va en caja cerrada y ese pedido ya tiene, solo lo que falta
+      // para que la caja alcance (el servidor suma tal cual).
+      await traerPendientesOC();
+      const abierto = abiertoOC(e.proveedorId, e.proveedor, e.sucursal);
+      const renglones = e.renglones.map(r => ajustarAlAbierto(Object.assign({}, r), abierto)).filter(Boolean);
+      if(!renglones.length && abierto){ OC.trabado = false; OC.ed = edDe(abierto); pintarEdOC();
+        toast("Ya está todo en el " + abierto.nroTexto + " a " + abierto.proveedor + ": te lo abro."); return abierto; }
+      // La marca: si se corta la respuesta y se vuelve a guardar, no se suma dos veces.
+      e.marcaSumar = e.marcaSumar || marcaOC();
+      d = await pedirJson("POST", OC_URL, { accion:"sumar", proveedorId:e.proveedorId || undefined, proveedor:e.proveedor,
+        sucursal:e.sucursal, renglones:renglones.map(limpioRenglonOC), marca:e.marcaSumar, yo:soyYo() });
+      if(!d.error && d.compra){
+        // Desde acá el pedido ya existe: lo de la pantalla pasa a ser ese. Si
+        // lo que sigue (la nota) falla, el reintento va por "guardar" con su
+        // versión y no vuelve a sumar (antes se duplicaban las cantidades).
+        const c = d.compra, nota = e.nota;
+        OC.ed = edDe(c); OC.ed.nota = nota; ponerCompraEnLista(c);
+        if(nota && c.nota !== nota){
+          OC.ed.sucio = true;
+          d = await pedirJson("POST", OC_URL, { accion:"guardar", id:c.id, version:c.version,
+            renglones:(c.renglones || []).map(limpioRenglonOC), nota, yo:soyYo() });
+          if(d.error && !d.conflicto) pintarEdOC();
+        }
+      }
+    } else {
+      d = await pedirJson("POST", OC_URL, { accion:"guardar", id:e.id, version:e.version,
+        renglones:e.renglones.map(limpioRenglonOC), nota:e.nota, yo:soyYo() });
+    }
+  } finally { OC.trabado = false; }
+  const ed = OC.ed || e;
+  return trasRespuestaOC(d, c => (!eraNuevo ? "Pedido guardado." : "Pedido guardado: es el " + ((c && c.nroTexto) || "nuevo") + ".") +
+    (!eraNuevo && !e.renglones.length ? " Quedó sin artículos: si no lo vas a usar, tocá Anular." : ""), ed.id);
+}
+async function accionOC(accion, extra, okMsg){
+  const e = OC.ed; if(!e || !e.id || OC.trabado) return null;
+  OC.trabado = true; pintarAccOC();
+  let d;
+  try{ d = await pedirJson("POST", OC_URL, Object.assign({ accion, id:e.id, yo:soyYo() }, extra || {})); }
+  finally{ OC.trabado = false; }
+  return trasRespuestaOC(d, okMsg, e.id);
+}
+async function enviarOC(){
+  const e = OC.ed; if(!e) return;
+  if(!e.renglones.length){ toast("Sumá artículos primero."); return; }
+  if(!e.id || e.sucio){ const c = await guardarOC(); if(!c) return; }
+  return accionOC("enviar", {}, "Listo: quedó como enviado. Cuando llegue la mercadería, anotá lo que vino.");
+}
+function recibirOC(){
+  const e = OC.ed; if(!e) return;
+  const recibidos = {}, sinStock = {};
+  for(const i of ocG("ocEd").querySelectorAll("input[data-oc-lleg]")){
+    const r = e.renglones[+i.dataset.ocLleg]; if(!r) continue;
+    recibidos[r.cod] = Math.max(0, Math.min(+r.cant || 0, Math.floor(+i.value || 0)));
+  }
+  for(const c of ocG("ocEd").querySelectorAll("input[data-oc-sin]")){
+    const r = e.renglones[+c.dataset.ocSin]; if(r) sinStock[r.cod] = c.checked;
+  }
+  // Ojo: esto no mueve el stock (todavía no está en el servidor).
+  const todo = e.renglones.every(r => recibidos[r.cod] >= r.cant);
+  return accionOC("recibir", { recibidos, sinStock },
+    todo ? "Llegó todo: el pedido queda cerrado." : "Anotado lo que llegó. Lo que falta queda pendiente y se ve cuando saques faltantes.");
+}
+function accionBotonOC(a){
+  const e = OC.ed; if(!e) return;
+  if(a === "salir"){ if(!dejarCambiosOC()) return; OC.ed = null; pintarEdOC(); return; }
+  if(a === "guardar") return guardarOC();
+  if(a === "enviar") return enviarOC();
+  if(a === "recibir") return recibirOC();
+  if(a === "todo"){
+    for(const i of ocG("ocEd").querySelectorAll("input[data-oc-lleg]")){ const r = e.renglones[+i.dataset.ocLleg]; if(r) i.value = r.cant; }
+    toast("Puse todo en Llegaron. Si está bien, tocá «Llegó la mercadería».");
+    return;
+  }
+  if(a === "reabrir") return accionOC("reabrir", {}, "Volvió a abierto: ya lo podés cambiar.");
+  if(a === "cerrar"){
+    if(!confirm("¿Cerrás el pedido " + e.nroTexto + "? Lo que falta llegar queda como que no viene.")) return;
+    return accionOC("cerrar", {}, "Pedido cerrado.");
+  }
+  if(a === "anular"){
+    if(!confirm("¿Anulás el pedido " + e.nroTexto + " a " + e.proveedor + "? No se puede deshacer.")) return;
+    return accionOC("anular", {}, "Pedido anulado.");
+  }
+  if(a === "imprimir") return imprimirOC();
+  if(a === "wa") return waOC();
+  if(a === "mail") return mailOC();
+}
+
+/* ---- imprimir y mandárselo al proveedor */
+function imprimirOC(){
+  const e = OC.ed; if(!e || !e.id) return;
+  const pv = prvDeOC(e);
+  const t = e.base && !e.sucio ? { neto:+e.base.neto || 0, iva:+e.base.iva || 0, total:+e.base.total || 0 } : totalesOC(e.renglones);
+  const prvTxt = pv ? [pv.cuit ? "CUIT " + cuitTxt(pv.cuit) : "", pv.claseFiscal, [pv.domicilio, pv.localidad].filter(Boolean).join(", "),
+    pv.contacto ? "Contacto: " + pv.contacto : "", pv.telefono ? "Tel. " + pv.telefono : "", pv.whatsapp ? "WhatsApp " + pv.whatsapp : "",
+    mailOk(pv.email)].filter(Boolean).join(" · ") : "";
+  const filas = e.renglones.map(r => '<tr><td>'+txt(r.cod)+'</td><td>'+txt(r.tit)+(+r.bulto > 1 ? '<br><small>bulto de '+(+r.bulto)+'</small>' : '')+'</td>'+
+    '<td class="r">'+(+r.cant || 0)+'</td><td class="r">'+(+r.lista > 0 ? fmt2(r.lista) : '—')+'</td><td>'+txt(descOC(r))+'</td>'+
+    '<td class="r">'+fmt2(r.neto)+'</td><td class="r">'+fmt2(cent(r.neto * r.cant))+'</td></tr>').join("");
+  const h = '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Pedido '+txt(e.nroTexto)+'</title><style>'+
+    'body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:24px;font-size:13px}h1{font-size:20px;margin:0 0 4px}p{margin:2px 0}'+
+    'table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border-bottom:1px solid #ccc;padding:5px 6px;text-align:left;vertical-align:top}'+
+    'th{font-size:11px;text-transform:uppercase;color:#555}.r{text-align:right;white-space:nowrap}small{color:#555}'+
+    '.tot{margin:14px 0 0 auto;width:340px}.tot div{display:flex;justify-content:space-between;padding:3px 0}'+
+    '.tot .big{font-size:16px;font-weight:bold;border-top:1px solid #111;padding-top:6px;margin-top:3px}'+
+    '</style></head><body>'+
+    '<h1>Pedido '+txt(e.nroTexto)+'</h1>'+
+    '<p>Sanitarios Conesa — '+txt(sucDe(e.sucursal).n)+' · '+txt(fechaAR(e.enviadoEn || e.creadoEn || new Date().toISOString()))+'</p>'+
+    '<p style="margin-top:10px"><b>Proveedor:</b> '+txt(e.proveedor)+'</p>'+(prvTxt ? '<p>'+txt(prvTxt)+'</p>' : '')+
+    '<table><thead><tr><th>Código</th><th>Artículo</th><th class="r">Cant.</th><th class="r">Lista s/IVA</th><th>Descuentos</th>'+
+    '<th class="r">Costo c/u s/IVA</th><th class="r">Subtotal s/IVA</th></tr></thead><tbody>'+filas+'</tbody></table>'+
+    '<div class="tot"><div><span>Neto (sin IVA)</span><b>'+fmt2(t.neto)+'</b></div><div><span>IVA</span><b>'+fmt2(t.iva)+'</b></div>'+
+    '<div class="big"><span>Valor de la mercadería, con IVA</span><span>'+fmt2(t.total)+'</span></div></div>'+
+    (e.nota ? '<p style="margin-top:14px"><b>Nota:</b> '+txt(e.nota)+'</p>' : '')+
+    '</body></html>';
+  // Como los PDF de los comprobantes (mandarAImprimir): a un marco escondido
+  // y de ahí a la impresora. Si el navegador no deja, en una ventana aparte.
+  const viejo = document.getElementById("marcoImprimirOC"); if(viejo) viejo.remove();
+  const f = document.createElement("iframe");
+  f.id = "marcoImprimirOC"; f.title = "Imprimir el pedido";
+  f.style.cssText = "position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0";
+  f.onload = () => setTimeout(() => {
+    try{ f.contentWindow.focus(); f.contentWindow.print(); }
+    catch(x){
+      const w = window.open("", "_blank");
+      if(w){ w.document.write(h); w.document.close(); w.focus(); w.print(); }
+      else toast("El navegador no dejó imprimir: probá de nuevo.");
+    }
+  }, 200);
+  f.srcdoc = h;
+  document.body.appendChild(f);
+}
+/** El texto para el proveedor: qué y cuánto, SIN precios. */
+function mensajeOC(e){
+  return "Pedido " + e.nroTexto + " de Sanitarios Conesa — " + sucDe(e.sucursal).n + ":\\n" +
+    e.renglones.map(r => (+r.cant || 0) + " × " + r.cod + " " + r.tit).join("\\n") +
+    (e.nota ? "\\n\\n" + e.nota : "");
+}
+function waOC(){
+  const e = OC.ed; if(!e || !e.id) return;
+  const pv = prvDeOC(e), n = pv ? waNumero(pv.whatsapp) : "";
+  if(!n){ toast("Este proveedor no tiene WhatsApp cargado."); return; }
+  window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(mensajeOC(e)), "_blank", "noopener");
+  if(e.estado === "abierto") toast("Cuando se lo mandes, tocá «Marcar como enviado».");
+}
+function mailOC(){
+  const e = OC.ed; if(!e || !e.id) return;
+  const pv = prvDeOC(e), m = pv ? mailOk(pv.email) : "";
+  if(!m){ toast("Este proveedor no tiene mail cargado."); return; }
+  const a = document.createElement("a");
+  a.href = "mailto:" + m + "?subject=" + encodeURIComponent("Pedido " + e.nroTexto) + "&body=" + encodeURIComponent(mensajeOC(e));
+  a.click();
+  if(e.estado === "abierto") toast("Cuando se lo mandes, tocá «Marcar como enviado».");
+}
+
+/* ---- lo que ya está pedido (para no pedirlo dos veces) */
+/** Por código: lo de los pedidos mandados que no llegó (el servidor) y lo
+    que está en un pedido abierto todavía sin mandar. Damián: "que quede
+    remarcado que ya está pedido". */
+async function traerPendientesOC(){
+  if(!ocPuede()) return false;
+  const suc = encodeURIComponent(S.suc);
+  const [dp, da] = await Promise.all([
+    pedirJson("GET", OC_URL + "?pendientes=1&suc=" + suc),
+    pedirJson("GET", OC_URL + "?estado=abiertos&suc=" + suc)
+  ]);
+  // Las dos hacen falta: sin una, lo que ya está pedido no se ve y Sacar
+  // faltantes lo traía tildado para pedirlo otra vez, sin avisar.
+  const pendOk = !dp.error && dp.pendientes && typeof dp.pendientes === "object";
+  const abOk = !da.error && Array.isArray(da.compras);
+  OC.pendError = !pendOk || !abOk ? String((!pendOk ? dp.error : da.error) || "No pude leer lo que ya está pedido.") : "";
+  if(!pendOk || !abOk) return false;
+  const m = {};
+  for(const cod of Object.keys(dp.pendientes)) if(Array.isArray(dp.pendientes[cod])) m[cod] = dp.pendientes[cod].slice();
+  if(!ocG("ocTodos").checked){ OC.lista = da.compras; OC.error = ""; pintarListaOC(); }
+  OC.abiertos = da.compras.filter(c => c.estado === "abierto");
+  for(const c of OC.abiertos)
+    for(const r of (c.renglones || [])) (m[r.cod] || (m[r.cod] = [])).push({ compraId:c.id, nroTexto:c.nroTexto, proveedor:c.proveedor,
+      estado:"abierto", enviadoEn:null, falta:+r.cant || 0, sinStockFabrica:false });
+  OC.pend = m;
+  return true;
+}
+/** Una marca nueva para un "sumar": si se corta la respuesta y se reintenta
+    con la misma, el servidor no suma dos veces. */
+const marcaOC = () => "oc" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+/** El pedido abierto de ese proveedor en esa sucursal (como lo busca el
+    servidor al sumar), de lo último que se trajo. */
+function abiertoOC(proveedorId, proveedor, suc){
+  const k = clavePrv(proveedor);
+  return (OC.abiertos || []).find(c => c.estado === "abierto" && c.sucursal === suc &&
+    (proveedorId ? (c.proveedorId === proveedorId || (!c.proveedorId && clavePrv(c.proveedor) === k)) : clavePrv(c.proveedor) === k)) || null;
+}
+/** Un renglón que se suma a un pedido abierto que ya tiene ese artículo en
+    caja cerrada: el servidor suma las cantidades tal cual, así que se manda
+    solo lo que falta para que la caja alcance (redondeado una vez sobre el
+    total, no una caja por cada pedido). null = la caja que ya está alcanza. */
+function ajustarAlAbierto(r, abierto){
+  const ya = abierto && (abierto.renglones || []).find(x => x.cod === r.cod);
+  if(!ya || !(+r.bulto > 1)) return r;
+  const yaNec = +ya.necesita > 0 ? +ya.necesita : (+ya.cant || 0);
+  const total = redondearBulto(yaNec + (+r.necesita || +r.cant || 0), +r.bulto);
+  const extra = Math.min(100000, total - (+ya.cant || 0));
+  if(extra <= 0) return null;
+  r.cant = extra;
+  return r;
+}
+function yaPedidoPills(lista){
+  return (lista || []).map(x => x.estado === "abierto"
+    ? '<span class="pill p-warn">ya está en '+txt(x.nroTexto)+', todavía sin mandar</span>'
+    : '<span class="pill p-warn">ya pedido en '+txt(x.nroTexto)+(x.enviadoEn ? ' el '+txt(ddmm(x.enviadoEn)) : '')+' · faltan llegar '+(+x.falta || 0)+'</span>'+
+      (x.sinStockFabrica ? ' <span class="pill p-bad">sin stock de fábrica</span>' : '')).join(" ");
+}
+
+/* ---- el pedido del cliente: lo que falta, al pedido del proveedor */
+/** El cartelito de cada renglón del pedido del cliente: si lo que falta ya
+    está pedido al proveedor, lo dice. */
+/** Cuánto de lo que falta de ese renglón ya se le pidió al proveedor (la
+    marca guarda la cantidad: si después se sube la cantidad del renglón, lo
+    nuevo queda pendiente). Una marca sin cantidad cubre todo. */
+const pedidoAlProv = l => (l.alProveedor && l.alProveedor.nroTexto) ? (+l.alProveedor.cant > 0 ? +l.alProveedor.cant : Infinity) : 0;
+function pillFaltaPed(l, p, e){
+  let cls = e.cls, t = e.txt;
+  if(e.falta > 0){
+    const al = l.alProveedor && l.alProveedor.nroTexto ? l.alProveedor : null;
+    const ya = al ? null : ((OC.pend[l.cod] || [])[0] || null);
+    if(al){
+      const n = pedidoAlProv(l);
+      cls = "p-warn";
+      t = "faltan " + e.falta + " · " + (n >= e.falta ? "pedidos en " + al.nroTexto
+        : (isFinite(n) ? n : 0) + " pedidos en " + al.nroTexto + ", faltan pedir " + (e.falta - n));
+    }
+    else if(ya){ cls = "p-warn"; t = "faltan " + e.falta + " · ya pedido en " + ya.nroTexto + (ya.sinStockFabrica ? ", sin stock de fábrica" : ""); }
+    const b = bultoArt(p);
+    if(b) t += " · de a " + b;
+  }
+  return '<span class="pill '+cls+'">'+txt(t)+'</span>';
+}
+function botonAlProveedor(faltan){
+  const ya = faltan.filter(f => f.l.alProveedor && f.l.alProveedor.nroTexto);
+  const todos = faltan.length > 0 && faltan.every(f => pedidoAlProv(f.l) >= entregaDe(f.p, f.l.cant).falta);
+  const nros = [...new Set(ya.map(f => String(f.l.alProveedor.nroTexto)))];
+  return '<button class="b2" id="btnAlProveedor" type="button" style="padding:6px 12px;font-size:12.5px;border-radius:7px"'+
+    (todos || !ocPuede() ? ' disabled' : '')+(ocPuede() ? ' title="Guarda el pedido (así el pedido al proveedor dice su número) y suma lo que falta al pedido abierto de cada proveedor"' : ' title="Tu usuario no tiene Pedidos a proveedores."')+'>'+
+    (todos ? 'Ya están en el pedido del proveedor' : 'Guardar el pedido y pedir los faltantes al proveedor')+'</button>'+
+    (nros.length ? ' <span class="por">pedidos en '+txt(nros.join(", "))+'</span>' : '');
+}
+/** "Pedir los faltantes al proveedor": primero se guarda el pedido (el
+    número lo da el servidor al guardarlo: el que mostraba la pantalla era
+    una estimación, y el pedido al proveedor quedaba diciendo para quién era
+    con el número de otro). Después cada faltante va al pedido abierto de su
+    proveedor (si no hay, se abre uno). */
+async function faltantesAlProveedor(){
+  if(!ocPuede()){ toast("Tu usuario no tiene Pedidos a proveedores."); return; }
+  if(OC.trabado || GUARDANDO_PED) return;
+  const faltan = PED.linea.map(l => ({ l, p:prod(l.cod) })).filter(x => x.p && !x.p.aMano && entregaDe(x.p, x.l.cant).falta > 0);
+  // De cada uno, lo que todavía no se pidió.
+  const nuevos = faltan.map(x => Object.assign(x, { necesita: entregaDe(x.p, x.l.cant).falta - pedidoAlProv(x.l) }))
+    .filter(x => x.necesita > 0 && isFinite(x.necesita));
+  if(!nuevos.length){ toast(faltan.length ? "Ya están en el pedido del proveedor." : "No falta nada."); return; }
+  OC.trabado = true;
+  const btn = document.getElementById("btnAlProveedor");
+  if(btn){ btn.disabled = true; btn.textContent = "Guardando…"; }
+  const hechos = [], errores = [];
+  let guardado = null;
+  try{
+    await cargarPrvSiFalta();
+    // Los pedidos abiertos de cada proveedor: lo que ya está en caja cerrada
+    // no se pide en otra caja si alcanza.
+    await traerPendientesOC();
+    const cli = String(clienteDe(PED.cliente).n || "").slice(0, 80);
+    guardado = await guardarPedidoActual();
+    if(!guardado) return;                       // ya lo dijo; el pedido sigue en pantalla
+    const origen = [{ tipo:"pedido", ref:String(guardado.nro || "").slice(0, 40), cliente:cli }];
+    const grupos = agruparPorProveedor(nuevos.map(x => ({ p:x.p, l:x.l, necesita:x.necesita })));
+    for(const g of grupos){
+      const abierto = abiertoOC(g.proveedorId, g.proveedor, S.suc);
+      const renglones = g.items.map(x => ajustarAlAbierto(renglonOC(x.p, x.necesita, origen), abierto)).filter(Boolean);
+      if(!renglones.length){ hechos.push(abierto.nroTexto + " (" + g.proveedor + ", ya alcanzaba con lo que tenía)"); continue; }
+      const d = await pedirJson("POST", OC_URL, { accion:"sumar", proveedorId:g.proveedorId || undefined, proveedor:g.proveedor,
+        sucursal:S.suc, renglones:renglones.map(limpioRenglonOC), marca:marcaOC(), yo:soyYo() });
+      if(d.error || !d.compra){ errores.push(g.proveedor + ": " + (d.error || "el servidor no contestó")); continue; }
+      hechos.push(String(d.compra.nroTexto || "") + " (" + g.proveedor + ")");
+      ponerCompraEnLista(d.compra);
+    }
+  } finally {
+    OC.trabado = false;
+    if(!guardado && btn){ btn.disabled = false; btn.textContent = "Guardar el pedido y pedir los faltantes al proveedor"; }
+  }
+  pintarPedido();
+  refrescarPendPed();
+  const ped = "Pedido " + guardado.nro + " guardado. ";
+  if(hechos.length) toast(ped + "Los faltantes quedaron en " + hechos.join(", ") + "." + (errores.length ? " No pude con " + errores.join("; ") + ": sumalos con Sacar faltantes, en Proveedores." : ""));
+  else toast(ped + "Los faltantes no se sumaron (" + (errores[0] || "probá de nuevo") + "): sumalos con Sacar faltantes, en Proveedores.");
+}
+/** Al abrir Pedidos: lo que ya está pedido a los proveedores, para marcarlo. */
+function refrescarPendPed(){
+  if(!ocPuede()) return;
+  traerPendientesOC().then(ok => { if(ok && vistaActual() === "pedidos") pintarPedido(); });
+}
+
+/* ---- sacar faltantes: lo que hay que pedir, por proveedor */
+async function sacarFaltantes(){
+  if(OC.trabado) return;
+  const b = ocG("ocSacar");
+  b.disabled = true; b.textContent = "Buscando…";
+  let pendOk = false;
+  try{
+    // Los pedidos de los clientes tienen que estar: sin ellos decía "No
+    // falta nada" aunque faltara.
+    if(puede("pedidos") && !PEDIDOS_LISTOS) await traerPedidos();
+    const r = await Promise.all([cargarPrvSiFalta(), traerPendientesOC()]);
+    pendOk = r[1] === true;
+  }
+  finally{ b.disabled = false; b.textContent = "Sacar faltantes"; }
+  const avisos = [];
+  if(!puede("pedidos")) avisos.push("Tu usuario no ve los pedidos de los clientes: acá solo sale lo que quedó abajo del mínimo.");
+  else if(!PEDIDOS_LISTOS) avisos.push("Todavía no pude traer los pedidos de los clientes: probá de nuevo en unos segundos.");
+  // Sin saber qué está pedido, nada viene tildado (se pediría otra vez).
+  if(!pendOk) avisos.push("No pude ver lo que ya está pedido a los proveedores (" + (OC.pendError || "sin conexión") +
+    "): nada viene tildado. Revisá antes de sumar, o probá de nuevo.");
+  // Lo que piden los pedidos de clientes abiertos de esta sucursal, junto
+  // por artículo: dos pedidos del mismo artículo no cuentan dos veces el
+  // mismo stock. Los de otra sucursal, no: cada sucursal pide lo suyo (y lo
+  // que ya está pedido se mira en la misma sucursal).
+  const dem = {};
+  for(const o of PEDIDOS_ABIERTOS){
+    if(o.suc && o.suc !== S.suc) continue;
+    const ref = String(o.nro || "").indexOf("P-") === 0 ? String(o.nro) : "P-" + o.nro;
+    const cli = String(clienteDe(o.cli).n || "");
+    for(const x of (Array.isArray(o.lin) ? o.lin : [])){
+      const p = Array.isArray(x) ? prod(x[0]) : null;
+      const n = Array.isArray(x) ? Math.floor(+x[1] || 0) : 0;
+      if(!p || p.aMano || !(n > 0)) continue;
+      const d = dem[p.cod] || (dem[p.cod] = { p, cant:0, origen:[] });
+      d.cant += n;
+      if(d.origen.length < 20 && !d.origen.some(q => q.ref === ref)) d.origen.push({ tipo:"pedido", ref:ref.slice(0, 40), cliente:cli.slice(0, 80) });
+    }
+  }
+  const items = [];
+  OC.faltMin = false;
+  const mirar = (p, d) => {
+    const pedidos = d ? entregaDe(p, d.cant).falta : 0;
+    const libre = (+p.stock || 0) - (d ? d.cant : 0);
+    const min = +p.min > 0 ? Math.max(0, +p.min - Math.max(0, libre)) : 0;
+    if(pedidos + min <= 0) return;
+    if(min > 0) OC.faltMin = true;
+    items.push({ p, necesita:pedidos + min, origen:(d ? d.origen : []).concat(min > 0 ? [{ tipo:"faltante" }] : []).slice(0, 20) });
+  };
+  for(const cod of Object.keys(dem)) mirar(dem[cod].p, dem[cod]);
+  // Lo que quedó abajo del mínimo, si el artículo lo tiene cargado (hoy
+  // ningún artículo trae mínimo: cuando aparezca el campo, entra solo).
+  for(const p of PRODUCTOS) if(+p.min > 0 && !p.aMano && !dem[p.cod]) mirar(p, null);
+  OC.falt = agruparPorProveedor(items).map(g => Object.assign(g, { items:g.items.map(x => netoFaltOC(x, pendOk)) }));
+  OC.faltError = avisos.join(" ");
+  pintarFaltOC();
+  ocG("ocFalt").scrollIntoView({ block:"nearest", behavior:"smooth" });
+}
+/** Lo que hace falta pedir de un artículo, descontado lo que ya está pedido
+    (lo mandado que no llegó y lo que está en un pedido abierto, de esta
+    sucursal). Antes se proponía pedirlo todo otra vez (tildado) o nada
+    (sin tildar), aunque lo pedido cubriera solo una parte. Viene tildado
+    solo si queda algo por pedir y se pudo ver lo que ya está pedido. */
+function netoFaltOC(x, pendOk){
+  const ya = pendOk ? (OC.pend[x.p.cod] || []) : [];
+  const yaCant = ya.reduce((a, y) => a + Math.max(0, +y.falta || 0), 0);
+  const neto = Math.max(0, x.necesita - yaCant);
+  return Object.assign(x, { ya, yaCant, neto, marcado: pendOk && neto > 0,
+    cant: Math.min(100000, redondearBulto(neto > 0 ? neto : 1, bultoArt(x.p))) });
+}
+function pintarFaltOC(){
+  const box = ocG("ocFalt");
+  if(!OC.falt){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  const cab = '<div class="oc-cab"><h4>Faltantes para pedir</h4><span class="por">Lo de los pedidos de clientes de '+txt(sucAct().n)+
+    ' que no se entrega con lo que hay'+(OC.faltMin ? ', y lo que quedó abajo del mínimo' : '')+
+    '. Lo que ya está pedido se descuenta: viene tildado solo lo que falta pedir.</span>'+
+    '<button class="b3" type="button" data-of-acc="cerrar">Cerrar</button></div>';
+  if(!OC.falt.length){
+    box.innerHTML = cab + (OC.faltError ? '<div class="adj-est mal">'+txt(OC.faltError)+'</div>'
+      : '<div class="vacio" style="padding:14px">No falta nada: lo de los pedidos abiertos se entrega con lo que hay.</div>');
+    return;
+  }
+  box.innerHTML = cab + (OC.faltError ? '<div class="adj-est mal">'+txt(OC.faltError)+'</div>' : '') +
+    OC.falt.map((g, gi) => '<div class="oc-grupo"><div class="oc-cab" style="margin-bottom:4px"><b>'+txt(g.proveedor)+'</b>'+
+      (g.proveedorId ? '' : ' <span class="pill p-n" title="No hay un proveedor con ese nombre en la lista: el pedido sale igual, a ese nombre.">no está en Proveedores</span>')+
+      '<span class="por">'+g.items.length+(g.items.length === 1 ? ' artículo' : ' artículos')+'</span></div>'+
+      '<div class="tabla-wrap"><table class="densa"><thead><tr><th></th><th>Código</th><th>Artículo</th>'+
+      '<th class="r">Hace falta</th><th class="r">Se pide</th><th>Para</th></tr></thead><tbody>'+
+      g.items.map((x, i) => {
+        const b = bultoArt(x.p);
+        return '<tr>'+
+          '<td><input type="checkbox" data-of="'+gi+':'+i+'"'+(x.marcado ? ' checked' : '')+' aria-label="pedirlo"></td>'+
+          '<td class="num" style="font-size:12px">'+txt(x.p.cod)+'</td>'+
+          '<td class="nom">'+txt(x.p.tit)+(b ? '<span class="oc-bulto">bulto de '+b+(x.neto > 0 && x.cant !== x.neto ? ' · necesitás '+x.neto : '')+'</span>' : '')+
+            (x.ya.length ? '<div class="oc-ya">'+yaPedidoPills(x.ya)+'</div>' : '')+'</td>'+
+          '<td class="r">'+x.necesita+(x.yaCant > 0 ? '<small>ya pedido '+x.yaCant+' · '+(x.neto > 0 ? 'falta pedir '+x.neto : 'alcanza')+'</small>' : '')+'</td>'+
+          '<td class="r"><input class="cant" type="number" min="1" step="1" value="'+x.cant+'" data-ofc="'+gi+':'+i+'" aria-label="se pide"></td>'+
+          '<td style="font-size:12px">'+txt(paraTxt(x.origen, true))+'</td></tr>';
+      }).join("")+'</tbody></table></div></div>').join("") +
+    '<div class="oc-acc"><button class="b1" type="button" data-of-acc="sumar"'+(OC.trabado ? ' disabled' : '')+'>Sumar a los pedidos</button>'+
+    '<span class="por" id="ocFaltCuenta"></span></div>';
+  cuentaFaltOC();
+}
+function cuentaFaltOC(){
+  const c = ocG("ocFaltCuenta"); if(!c || !OC.falt) return;
+  let n = 0, g = 0;
+  for(const x of OC.falt){ const k = x.items.filter(i => i.marcado).length; n += k; if(k) g++; }
+  c.textContent = n ? n + (n === 1 ? " artículo" : " artículos") + " para " + g + (g === 1 ? " proveedor" : " proveedores") : "no tildaste nada";
+}
+const itemFaltOC = s => { const [g, i] = String(s || "").split(":").map(Number); return (OC.falt && OC.falt[g] && OC.falt[g].items[i]) || null; };
+/** "Sumar a los pedidos": cada proveedor, a su pedido abierto. */
+async function sumarFaltOC(){
+  if(OC.trabado || !OC.falt) return;
+  const grupos = OC.falt.map(g => ({ g, items:g.items.filter(x => x.marcado) })).filter(x => x.items.length);
+  if(!grupos.length){ toast("No tildaste nada para pedir."); return; }
+  OC.trabado = true; pintarFaltOC();
+  const hechos = [], errores = [];
+  try{
+    for(const { g, items } of grupos){
+      // Lo que hace falta de verdad es lo que no estaba pedido (x.neto): eso
+      // se anota como "necesitabas". La cantidad ya viene redondeada sobre
+      // eso y lo pedido en el abierto ya cuenta como cubierto (no se pide
+      // otra caja de más).
+      const d = await pedirJson("POST", OC_URL, { accion:"sumar", proveedorId:g.proveedorId || undefined, proveedor:g.proveedor,
+        sucursal:S.suc, renglones:items.map(x => limpioRenglonOC(renglonOC(x.p, x.neto > 0 ? x.neto : x.cant, x.origen, x.cant))),
+        marca:marcaOC(), yo:soyYo() });
+      if(d.error || !d.compra){ errores.push(g.proveedor + ": " + (d.error || "el servidor no contestó")); continue; }
+      hechos.push(String(d.compra.nroTexto || ""));
+      ponerCompraEnLista(d.compra);
+      g.items = g.items.filter(x => !x.marcado);
+    }
+  } finally { OC.trabado = false; }
+  OC.falt = OC.falt.filter(g => g.items.length);
+  OC.faltError = errores.length ? "No se pudo sumar: " + errores.join(" · ") : "";
+  if(!OC.falt.length && !errores.length) OC.falt = null;
+  const ok = await traerPendientesOC();
+  // Los que quedaron sin tildar ya saben si están pedidos (y cuánto falta).
+  if(OC.falt && ok) for(const g of OC.falt) for(const x of g.items){
+    x.ya = OC.pend[x.p.cod] || [];
+    x.yaCant = x.ya.reduce((a, y) => a + Math.max(0, +y.falta || 0), 0);
+    x.neto = Math.max(0, x.necesita - x.yaCant);
+  }
+  pintarFaltOC();
+  if(hechos.length) toast("Listo: quedaron en " + [...new Set(hechos)].join(", ") + ". Abrilos en la lista para revisarlos y mandarlos.");
+  else if(errores.length) toast("No se sumó nada: " + errores[0]);
+}
+
+/* ---- los eventos */
+ocG("ocCard").hidden = !ocPuede();
+ocG("ocTodos").addEventListener("change", pintarCompras);
+ocG("ocSacar").addEventListener("click", sacarFaltantes);
+function llenarElegirOC(){
+  const toks = plano(ocG("ocPrvBusca").value).split(/\\s+/).filter(Boolean);
+  const l = PRV.lista.filter(p => !p.inactivo && toks.every(t => plano(String(p.razonSocial || "") + " " + (p.cuit || "")).indexOf(t) >= 0)).slice(0, 200);
+  ocG("ocPrvSel").innerHTML = l.length
+    ? l.map(p => '<option value="'+atrib(p.id)+'">'+txt(p.razonSocial)+'</option>').join("")
+    : '<option value="">— ninguno coincide —</option>';
+}
+function elegirPrvOC(){
+  const p = PRV.lista.find(x => x.id === ocG("ocPrvSel").value);
+  if(!p){ toast("Elegí el proveedor de la lista."); return; }
+  ocG("ocElegir").hidden = true;
+  nuevoOC(p);
+}
+ocG("ocNuevo").addEventListener("click", async () => {
+  const caja = ocG("ocElegir");
+  if(!caja.hidden){ caja.hidden = true; return; }
+  await cargarPrvSiFalta();
+  if(!PRV.lista.length){ toast("Primero cargá los proveedores: Importar el Excel de GBP o + Nuevo proveedor."); return; }
+  caja.hidden = false;
+  ocG("ocPrvBusca").value = "";
+  llenarElegirOC();
+  ocG("ocPrvBusca").focus();
+});
+ocG("ocPrvBusca").addEventListener("input", llenarElegirOC);
+ocG("ocPrvBusca").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); elegirPrvOC(); } });
+ocG("ocPrvOk").addEventListener("click", elegirPrvOC);
+ocG("ocPrvNo").addEventListener("click", () => { ocG("ocElegir").hidden = true; });
+ocG("tbOc").addEventListener("click", e => {
+  const t = e.target.closest("tr[data-oc]"); if(!t) return;
+  const c = OC.lista.find(x => x.id === t.dataset.oc); if(!c) return;
+  if(OC.ed && OC.ed.id === c.id) return;
+  if(!dejarCambiosOC()) return;
+  OC.ed = edDe(c); pintarEdOC();
+  ocG("ocEd").scrollIntoView({ block:"nearest", behavior:"smooth" });
+});
+ocG("ocEd").addEventListener("click", e => {
+  const b = e.target.closest("[data-oc-acc]");
+  if(b){ accionBotonOC(b.dataset.ocAcc); return; }
+  const x = e.target.closest("[data-oc-x]");
+  if(x && OC.ed){ OC.ed.renglones.splice(+x.dataset.ocX, 1); OC.ed.sucio = true; pintarTablaOC(); return; }
+  // Un resultado del buscador: el botón Sumar o el renglón entero (menos la cantidad).
+  if(e.target.closest("input")) return;
+  const t = e.target.closest("[data-oc-add]") || e.target.closest("tr[data-oc-art]");
+  if(!t) return;
+  const p = OC.hits[+(t.dataset.ocAdd != null ? t.dataset.ocAdd : t.dataset.ocArt)];
+  if(p) sumarAlOC(p, ocG("ocCant") ? ocG("ocCant").value : 1);
+});
+ocG("ocEd").addEventListener("input", e => {
+  if(e.target.id === "ocBusca"){ buscarOC(); return; }
+  if(e.target.id === "ocNota" && OC.ed){ OC.ed.nota = e.target.value.replace(/[<>]/g, "").slice(0, 500); OC.ed.sucio = true; pintarAccOC(); }
+});
+// La cantidad de un renglón: al salir de la casilla se redondea al bulto.
+// Se cambia en el lugar (sin volver a pintar la tabla) para no perder el foco.
+ocG("ocEd").addEventListener("change", e => {
+  const i = e.target.closest("input[data-oc-cant]"); if(!i || !OC.ed) return;
+  const k = +i.dataset.ocCant, r = OC.ed.renglones[k]; if(!r) return;
+  const n = Math.max(1, Math.min(100000, Math.floor(+i.value || 1)));
+  const b = +r.bulto > 1 ? +r.bulto : bultoArt(prod(r.cod));
+  r.cant = Math.min(100000, redondearBulto(n, b));
+  if(b > 1){ r.bulto = b; r.necesita = n; } else if(r.necesita != null) r.necesita = n;
+  i.value = r.cant;
+  OC.ed.sucio = true;
+  const sub = ocG("ocEd").querySelector('[data-oc-sub="'+k+'"]'); if(sub) sub.textContent = fmt2(cent(r.neto * r.cant));
+  const nb = ocG("ocEd").querySelector('[data-oc-nota="'+k+'"]'); if(nb) nb.innerHTML = notaBultoOC(r);
+  pintarTotOC();
+});
+// Enter suma el marcado con la cantidad de al lado; las flechas lo mueven.
+ocG("ocEd").addEventListener("keydown", e => {
+  if(e.target.id !== "ocBusca" && e.target.id !== "ocCant") return;
+  if(e.key === "ArrowDown" || e.key === "ArrowUp"){
+    if(e.target.id !== "ocBusca") return;
+    const fs = [...ocG("ocEd").querySelectorAll("#ocRes tr[data-oc-art]")]; if(!fs.length) return;
+    e.preventDefault();
+    let k = fs.findIndex(t => t.classList.contains("marcado")) + (e.key === "ArrowDown" ? 1 : -1);
+    if(k < 0) k = fs.length - 1;
+    if(k >= fs.length) k = 0;
+    for(const t of fs) t.classList.remove("marcado");
+    fs[k].classList.add("marcado"); fs[k].scrollIntoView({ block:"nearest" });
+    return;
+  }
+  if(e.key !== "Enter") return;
+  e.preventDefault();
+  if(!OC.hits.length) buscarOC();
+  const t = ocG("ocEd").querySelector("#ocRes tr.marcado") || ocG("ocEd").querySelector("#ocRes tr[data-oc-art]");
+  const p = t ? OC.hits[+t.dataset.ocArt] : null;
+  if(p) sumarAlOC(p, ocG("ocCant").value);
+  else if(ocG("ocBusca").value.trim()) toast("No encontré ese artículo.");
+});
+ocG("ocFalt").addEventListener("change", e => {
+  const c = e.target.closest("input[data-of]");
+  if(c){ const x = itemFaltOC(c.dataset.of); if(x) x.marcado = c.checked; cuentaFaltOC(); return; }
+  const q = e.target.closest("input[data-ofc]");
+  if(q){
+    const x = itemFaltOC(q.dataset.ofc); if(!x) return;
+    x.cant = Math.min(100000, redondearBulto(Math.max(1, Math.floor(+q.value || 1)), bultoArt(x.p)));
+    q.value = x.cant;
+  }
+});
+ocG("ocFalt").addEventListener("click", e => {
+  const b = e.target.closest("[data-of-acc]"); if(!b) return;
+  if(b.dataset.ofAcc === "cerrar"){ OC.falt = null; OC.faltError = ""; pintarFaltOC(); return; }
+  if(b.dataset.ofAcc === "sumar") sumarFaltOC();
+});
 
 /* Salir: cierra la sesión y vuelve a la pantalla de ingreso. Lo que se
    estaba armando queda guardado en esta compu, como al recargar. */
@@ -7781,6 +9566,9 @@ function guardarLocalPronto(){
   if(!LOCAL_LISTO) return;          // hasta restaurar, no pisar lo guardado
   clearTimeout(tLocal);
   tLocal = setTimeout(guardarLocal, 250);
+  // V.0.99.82: y al servidor, que es el que vale (la de acá es la copia
+  // para arrancar rápido).
+  guardarVentaPronto();
 }
 function valor(id){ const e = document.getElementById(id); return e ? e.value : ""; }
 function guardarLocal(cerrando){
@@ -7790,10 +9578,10 @@ function guardarLocal(cerrando){
     const d = leerTodo();
     // Clientes y pedidos nuevos: se juntan con los de las otras pestañas.
     const cli = {};
-    for(const c of (d.clientes || [])) if(c && c.id) cli[c.id] = c;
+    for(const c of (d.clientes || [])) if(c && c.id && !yaSubido("c", c.id)) cli[c.id] = c;
     for(const c of CLIENTES) if(c.nuevo) cli[c.id] = c;
     const peds = {};
-    for(const p of (d.pedidos || [])) if(p && p.id) peds[p.id] = p;
+    for(const p of (d.pedidos || [])) if(p && p.id && !yaSubido("p", p.id)) peds[p.id] = p;
     for(const p of PEDIDOS_ABIERTOS) if(p.nuevo && p.id) peds[p.id] = p;
     d.clientes = Object.keys(cli).map(k => cli[k]);
     d.pedidos = Object.keys(peds).map(k => peds[k]);
@@ -7810,10 +9598,15 @@ function guardarLocal(cerrando){
       suc:S.suc, usuario:S.usuario,
       venta:{ linea:S.linea, cliente:S.cliente, desc:S.desc, forma:S.forma, cond:S.cond,
               comp:S.comp, dep:S.dep, origen:S.origen || null, emision:S.emision || null,
-              editando:S.editando || null },
+              editando:S.editando || null, actualiza:S.actualiza || null,
+              // V.0.99.82: cuál es en el servidor. Al abrir Punto en otra
+              // pestaña (o al otro día) se busca esa y no se sube otra igual.
+              srv: srvDePantalla() },
       borradores: S.borradores,
       ped:{ cliente:PED.cliente, linea:PED.linea, entrega:PED.entrega, senia:PED.senia,
-            cuando:valor("fecha"), dir:valor("dir"), obs:valor("obsPed"), int:valor("intPed"), cfg:PEDCFG }
+            cuando:valor("fecha"), dir:valor("dir"), obs:valor("obsPed"), int:valor("intPed"), cfg:PEDCFG,
+            marca:PED.marca || null, marcaFirma:PED.marcaFirma || null },
+      clientes: clientesDeLaPantalla()
     };
     // Limpieza: pestañas cerradas hace mucho, o cerradas y vacías.
     const ahora = Date.now();
@@ -7891,7 +9684,7 @@ function restaurarLocalAntes(){
   if(VENDEDOR_LOGIN){ S.usuario = VENDEDOR_LOGIN; S.puesto = puestoDe(S.usuario); }
   if(sucursalFija() && SUCURSALES.some(x => x.id === sucursalFija())) S.suc = sucursalFija();
   for(const c of (d.clientes || []))
-    if(c && c.id && c.n && !CLIENTES.some(x => x.id === c.id))
+    if(c && c.id && c.n && !yaSubido("c", c.id) && !CLIENTES.some(x => x.id === c.id))
       CLIENTES.push(Object.assign({ saldo:0, lim:0, siempre:[] }, c, { nuevo:true }));
 }
 
@@ -7901,43 +9694,62 @@ function renglonesUsables(ls, cuenta){
     const ok = l && prod(l.cod) && +l.cant > 0;
     if(!ok && cuenta) cuenta.n++;
     return ok;
-  }).map(l => ({ cod:l.cod, cant:Math.max(1, Math.floor(+l.cant)) }));
+  }).map(l => Object.assign({ cod:l.cod, cant:Math.max(1, Math.floor(+l.cant)) },
+    // V.0.99.82: en un pedido, si los faltantes ya se le pidieron al proveedor.
+    l.alProveedor && typeof l.alProveedor === "object" ? { alProveedor: l.alProveedor } : {}));
 }
 
 /** Mete lo guardado de una pestaña en la pantalla. Si ya hay una venta
     empezada, la guardada pasa a borrador: nada se pisa. */
 function aplicarEntrada(e, cuenta, principal){
   if(!e) return;
+  // V.0.99.82: antes que nada, los clientes del servidor que usa (si no, la
+  // venta quedaba en Consumidor final hasta traerlos, y así se guardaba).
+  for(const c of (Array.isArray(e.clientes) ? e.clientes : [])) ponerClienteGuardado(c);
   const v = e.venta || {};
   const lin = renglonesUsables(v.linea, cuenta);
   const cliente = v.cliente === "" || CLIENTES.some(c => c.id === v.cliente) ? (v.cliente || "") : "";
   const forma = MULT[v.forma] ? v.forma : null;
   if(lin.length && !S.linea.length){
+    PANTALLA_SRV = srvGuardado(v.srv);
+    if(PANTALLA_SRV) PANTALLA_SRV.cods = lin.map(l => l.cod);
     S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0;
     if(forma){ S.forma = forma; S.cond = MULT[v.cond] ? v.cond : null; }
     S.comp = v.comp && LETRA[v.comp] ? v.comp : null;
     S.dep = v.dep === "BA" || v.dep === "TS" ? v.dep : null;
     S.origen = typeof v.origen === "string" ? v.origen : null;
     S.editando = editandoDe(v.editando);
+    S.actualiza = actualizaDe(v.actualiza);
     if(v.emision && v.emision.id) S.emision = v.emision;
   } else if(lin.length && v.emision && v.emision.enviada && !pendiente()){
     // La que tiene un comprobante en duda va a la pantalla (hay que
     // confirmarla antes que nada); la que había pasa a borrador.
     const h = new Date();
-    S.borradores.unshift({ id:"b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+    const bp = { id:"b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
       hora:String(h.getHours()).padStart(2,"0") + ":" + String(h.getMinutes()).padStart(2,"0"),
       suc:S.suc, cliente:S.cliente, desc:S.desc, forma:S.forma, dep:S.dep, origen:S.origen || null,
-      editando:S.editando || null, linea:S.linea.map(l => ({ ...l })) });
+      editando:S.editando || null, actualiza:S.actualiza || null, linea:S.linea.map(l => ({ ...l })) };
+    // V.0.99.82: sigue atada a la suya del servidor; un ticket de caja no
+    // pasa a ser borrador de nadie (queda en el servidor, en la caja).
+    if(pantallaABorrador(bp)) S.borradores.unshift(bp);
+    PANTALLA_SRV = srvGuardado(v.srv);
+    if(PANTALLA_SRV) PANTALLA_SRV.cods = lin.map(l => l.cod);
     S.linea = lin; S.cliente = cliente; S.desc = +v.desc || 0;
     if(forma){ S.forma = forma; S.cond = MULT[v.cond] ? v.cond : null; }
     S.comp = v.comp && LETRA[v.comp] ? v.comp : null;
     S.dep = v.dep === "BA" || v.dep === "TS" ? v.dep : null;
     S.origen = typeof v.origen === "string" ? v.origen : null;
     S.editando = editandoDe(v.editando);
+    S.actualiza = actualizaDe(v.actualiza);
     S.emision = v.emision;
-  } else if(lin.length){
+  } else if(lin.length && !(v.srv && v.srv.caja)){
+    // V.0.99.82: un ticket de caja de otra pestaña no pasa a ser borrador
+    // (es del vendedor, sigue en el servidor); una venta sigue atada a la
+    // suya del servidor (srvId).
     const h = new Date();
+    const srvB = srvGuardado(v.srv);
     S.borradores.unshift({ id:"b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      srvId: srvB ? srvB.id : undefined, actualiza: actualizaDe(v.actualiza),
       hora:String(h.getHours()).padStart(2,"0") + ":" + String(h.getMinutes()).padStart(2,"0"),
       suc: SUCURSALES.some(x => x.id === e.suc) ? e.suc : S.suc,
       cliente, desc:+v.desc || 0, forma: forma || S.forma, dep:v.dep || null,
@@ -7974,6 +9786,9 @@ function aplicarEntrada(e, cuenta, principal){
     if(CLIENTES.some(c => c.id === p.cliente)) PED.cliente = p.cliente;
     if(p.entrega === "retira" || p.entrega === "envio") PED.entrega = p.entrega;
     PED.senia = Math.max(0, +p.senia || 0);
+    if(typeof p.marca === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(p.marca)){
+      PED.marca = p.marca; PED.marcaFirma = typeof p.marcaFirma === "string" ? p.marcaFirma : null;
+    }
     const pon = (id, val) => { const x = document.getElementById(id); if(x && typeof val === "string" && val) x.value = val; };
     pon("fecha", p.cuando); pon("dir", p.dir); pon("obsPed", p.obs); pon("intPed", p.int);
     const se = document.getElementById("senia"); if(se) se.value = PED.senia;
@@ -7986,7 +9801,7 @@ function aplicarEntrada(e, cuenta, principal){
     que tienen artículos que no cargaron quedan guardados igual. */
 function aplicarPedidos(d){
   for(const pd of (d.pedidos || []).slice().reverse()){
-    if(!pd || !pd.id || PEDIDOS_ABIERTOS.some(x => x.id === pd.id)) continue;
+    if(!pd || !pd.id || yaSubido("p", pd.id) || PEDIDOS_ABIERTOS.some(x => x.id === pd.id)) continue;
     const lin = (Array.isArray(pd.lin) ? pd.lin : []).filter(x => Array.isArray(x) && prod(x[0]));
     if(lin.length && lin.length === pd.lin.length) PEDIDOS_ABIERTOS.unshift(Object.assign({}, pd, { nuevo:true }));
   }
@@ -8070,6 +9885,8 @@ function gbpLlegoTarde(){
   }
   const datos = leerTodo(); aplicarPedidos(datos);
   remapearVentasDeHoy(); repintarInformes();
+  // Lo del servidor que tiene artículos de GBP: recién ahora se puede mostrar.
+  traerMias(); traerPedidos();
 }
 
 /** Si al recargar había un comprobante viajando, se pregunta si quedó. */
@@ -8089,6 +9906,986 @@ async function verificarPendiente(){
   trasEmitir({ g:ya, previo:true, igual:mismos });
 }
 
+/* ================================================= TODO EN EL SERVIDOR
+   Damián, 22/11/2026: "Todo tiene que estar en el servidor, nada de en
+   ninguna máquina local, porque se va a leer con varios usuarios en
+   diferentes computadoras y en diferentes lugares." Desde la V.0.99.82:
+   - la venta que se arma se guarda sola en el servidor (/sistema/ventas,
+     src/lib/punto-ventas.ts). Lo del navegador queda como copia para
+     arrancar rápido;
+   - los borradores, los pedidos tomados y los clientes nuevos viven allá:
+     los ve cualquier compu, con el mismo usuario;
+   - "los vendedores no puedan cobrar, sino que el cajero es el encargado de
+     cobrar y emitir": el vendedor arma y la manda a la caja (de su sucursal
+     o de otra: es "pasar a otra sucursal", se cobra con el CUIT de esa); el
+     cajero la toma, elige con o sin comprobante y la emite. El comprobante
+     sale a nombre del vendedor: la comisión es suya (lo pone el servidor).
+   Lo de antes en esta compu (borradores, clientes y pedidos) se sube una
+   vez, solo. */
+var VTA_URL = "/sistema/ventas", CLI_URL = "/sistema/clientes";
+/** La venta de esta pestaña en el servidor. caja = el ticket que se está
+    cobrando ({vendedor, cliente, suc}), o null si es una venta propia.
+    epoca: sube cada vez que la pantalla pasa a otra venta (se toma un
+    ticket, se retoma un borrador, se saca de la pantalla); la respuesta de
+    un guardado que salió antes ya no es de esta venta y no se aplica.
+    cambiando: se está tomando o retomando otra (no se guarda en el medio).
+    pendiente: hubo un cambio mientras otro guardado iba en camino. */
+var VSRV = { id:null, version:null, t:0, enviando:null, otra:0, ultimo:"", caja:null, nube:"",
+             epoca:0, cambiando:false, pendiente:false, tReatar:0 };
+var ID_SRV = /^[A-Za-z0-9_-]{8,40}$/;
+/** La venta de la pantalla que volvió de la copia de esta compu y todavía no
+    se volvió a atar a la suya del servidor ({id, caja}). Mientras tanto no
+    se guarda (saldría una venta nueva repetida) ni se emite. */
+var PANTALLA_SRV = null;
+/** Lo que se está subiendo ahora (borradores y clientes): no se sube dos veces. */
+var SUBIENDO = new Set();
+/** Ya se trajeron los pedidos de los clientes del servidor (Sacar faltantes los necesita). */
+var PEDIDOS_LISTOS = false;
+function puedeCobrar(){ return puede("cobrar"); }
+/** El ticket que se cobra, como lo guarda la pantalla. */
+function cajaDe(v){ return { vendedor: v.vendedor || "", cliente: v.cliente || "", suc: v.sucursal || "" }; }
+
+/** GET (sin cuerpo) o POST con JSON. Siempre devuelve {d}: lo que contestó
+    el servidor o un {error} que se puede mostrar. red = no llegó una
+    respuesta que se pueda leer (se cortó, Cloudflare): lo pedido PUEDE
+    haberse hecho igual. */
+async function pedirSrv(url, cuerpo){
+  try{
+    const r = await fetch(url, cuerpo === undefined
+      ? { cache:"no-store", credentials:"same-origin" }
+      : { method:"POST", cache:"no-store", credentials:"same-origin", headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify(Object.assign({ yo: soyYo() }, cuerpo)) });
+    if(r.status === 401) return { sesion:true, d:{ error:"Se cerró tu sesión: entrá de nuevo con tu usuario." } };
+    const d = await r.json().catch(() => null);
+    if(!d || typeof d !== "object") return { red:true, d:{ error:"El servidor contestó " + r.status + "." } };
+    return { d };
+  }catch(e){ return { red:true, d:{ error:"No hay conexión con el servidor." } }; }
+}
+/** La venta que el servidor tiene abierta en esta pestaña con ese id, para
+    saber si un retomar o un tomar que se quedó sin respuesta se hizo igual.
+    null = no está; undefined = no se pudo saber. */
+async function verEnMiPestana(id){
+  const { d } = await pedirSrv(VTA_URL + "?vista=mias");
+  if(!Array.isArray(d.ventas)) return undefined;
+  return d.ventas.find(v => v.id === id && v.lugar === MI_PESTANA && (v.estado === "armando" || v.estado === "cobrando")) || null;
+}
+
+/* ---------------------------------------------- lo que ya se subió
+   Los clientes y pedidos que estaban solo en esta compu se suben una vez.
+   La marca queda acá para que el próximo arranque no los vuelva a subir
+   (un cliente sin CUIT saldría repetido). Se lee de nuevo cuando otra
+   pestaña escribe, y al marcar se junta con lo que escribieron las otras:
+   si no, la copia vieja de una pestaña borraba las marcas de la otra. */
+var SUBIDOS = null;
+function subidos(){
+  if(!SUBIDOS){
+    try{ SUBIDOS = JSON.parse(localStorage.getItem("punto.subidos.v1") || "{}") || {}; }catch(e){ SUBIDOS = {}; }
+  }
+  return SUBIDOS;
+}
+window.addEventListener("storage", e => { if(e.key === "punto.subidos.v1" || e.key === null) SUBIDOS = null; });
+function yaSubido(tipo, id){ return !!subidos()[tipo + ":" + id]; }
+function marcarSubido(tipo, id, nuevo){
+  SUBIDOS = null;                         // lo último que escribieron las otras pestañas
+  const m = subidos();
+  m[tipo + ":" + id] = nuevo || 1;
+  try{ localStorage.setItem("punto.subidos.v1", JSON.stringify(m)); }catch(e){}
+}
+/** De a una pestaña por vez (Web Locks): dos pestañas que arrancan juntas
+    no suben lo mismo. La segunda espera y, adentro, ve la marca de la
+    primera. Sin Web Locks, como antes. */
+async function deAUna(clave, f){
+  if(navigator.locks && typeof navigator.locks.request === "function"){
+    try{ return await navigator.locks.request("punto-subir-" + clave, f); }catch(e){ return undefined; }
+  }
+  return f();
+}
+
+/* ---------------------------------------------- la venta que se arma */
+/** Los artículos a mano de esos códigos, para que otra compu los pueda
+    mostrar (no están en su catálogo). */
+function manualesDe(cods){
+  return MANUALES.filter(p => cods.has(p.cod)).map(p => ({ cod:p.cod, tit:p.tit, contado:p.contado,
+    unPago:p.unPago, costo: p.sinCosto ? 0 : p.costo, iva:p.iva }));
+}
+/** El cliente como viaja con la venta (el cajero de otra compu lo ve). */
+function clienteDatosDe(c){ return c && c.id ? { id:c.id, n:c.n, t:c.t, doc:c.doc, cuit:c.cuit || "" } : null; }
+function datosDeVenta(){
+  const c = clienteVta();
+  return {
+    linea: S.linea.map(l => ({ cod:l.cod, cant:l.cant })),
+    manuales: manualesDe(new Set(S.linea.map(l => l.cod))),
+    cliente: S.cliente || "",
+    // El cliente viaja con la venta: el cajero de otra compu lo ve aunque
+    // todavía no lo tenga en su lista.
+    clienteDatos: clienteDatosDe(c),
+    desc:S.desc, forma:S.forma, cond:S.cond, comp:S.comp, dep:S.dep,
+    origen:S.origen || null, editando:S.editando || null, actualiza:S.actualiza || null
+  };
+}
+function totalDeVenta(){
+  const bruto = S.linea.reduce((a, l) => { const p = prod(l.cod); return a + (p ? p.contado * l.cant : 0); }, 0);
+  return Math.max(0, cent((bruto - Math.round(bruto * S.desc / 100)) * (MULT[S.forma] || 1)));
+}
+function marcarNube(estado, msg){
+  VSRV.nube = estado;
+  const e = document.getElementById("vtaNube"); if(!e) return;
+  e.textContent = estado === "ok" ? "guardada en el servidor" : estado === "mal" ? "sin guardar en el servidor" :
+    estado === "va" ? "guardando…" : "";
+  e.style.color = estado === "mal" ? "var(--bad)" : "";
+  e.title = estado === "mal" ? (msg || "No llegó al servidor.") + " Queda en esta compu y se vuelve a probar sola." : "";
+}
+function guardarVentaPronto(){
+  if(!LOCAL_LISTO || !GBP.listo) return;
+  clearTimeout(VSRV.t);
+  VSRV.t = setTimeout(() => { guardarVentaSrv(); }, 1200);
+}
+/** Saca la venta de la pantalla sin tocar el servidor: ya no es de esta
+    pantalla (se cobró, se mandó a la caja, la tomó otro cajero, se abrió en
+    otra pestaña). aBorradores: lo que se cambió acá y no llegó a guardarse
+    queda como borrador, no se pierde. */
+function soltarPantalla(aviso, aBorradores){
+  VSRV.epoca++; clearTimeout(VSRV.t);
+  if(aBorradores && S.linea.length){
+    const h = new Date();
+    S.borradores.unshift({ id:"b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      hora:String(h.getHours()).padStart(2,"0") + ":" + String(h.getMinutes()).padStart(2,"0"),
+      suc:S.suc, cliente:S.cliente, desc:S.desc, forma:S.forma, dep:S.dep, origen:S.origen || null,
+      editando:S.editando || null, actualiza:S.actualiza || null, linea:S.linea.map(l => ({ ...l })) });
+  } else aBorradores = false;
+  VSRV.id = null; VSRV.version = null; VSRV.caja = null;
+  S.linea = []; S.desc = 0; S.comp = null; S.dep = null; S.nroLibre = false;
+  S.origen = null; S.emision = null; terminarEdicion();
+  pintarCajaTicket(); pintarCamposVenta(); pintarDtos(); pintarTicket(); pintarBorradores();
+  VSRV.ultimo = JSON.stringify(datosDeVenta()) + "|" + S.suc;
+  marcarNube("");
+  guardarLocal();
+  if(aBorradores) subirBorrador(S.borradores[0]);
+  if(aviso) toast(aviso);
+}
+/** Un guardado chocó: la venta ya no está como la pantalla la creía.
+    "otra" = volver a guardar; "listo" = no hay nada más que hacer; "mal" =
+    no se pudo (se vuelve a probar sola). Nunca se vuelve a crear como venta
+    nueva algo que ya es de otro (un ticket, lo cobrado, lo que se mandó a
+    la caja): eso dejaba un segundo ticket igual y se cobraba dos veces. */
+async function resolverConflicto(d, datos, firma){
+  const v = d.venta;
+  if(v && (v.estado === "armando" || v.estado === "cobrando") && v.lugar === MI_PESTANA){
+    // Es la misma venta: solo se movió el número de versión.
+    VSRV.version = v.version; return "otra";
+  }
+  const eraTicket = !!VSRV.caja;
+  if(!datos.linea.length){
+    // La pantalla ya estaba vacía: solo se suelta.
+    VSRV.id = null; VSRV.version = null; VSRV.caja = null; VSRV.ultimo = firma;
+    pintarCajaTicket(); marcarNube("");
+    return "listo";
+  }
+  if(!eraTicket && v && v.estado === "borrador"){
+    // Mi venta pasó a borrador sin que esta pantalla lo pidiera (se tomó un
+    // ticket o se retomó otra venta y se cortó la respuesta, o quedó quieta
+    // más de 12 horas). Vuelve a ser la de esta pestaña: lo que el servidor
+    // tenga en la pestaña vuelve a donde estaba (a borradores, o el ticket a
+    // la caja). Así la pantalla sigue con lo que muestra y nada se pisa.
+    const r = (await pedirSrv(VTA_URL, { accion:"retomar", id:v.id, lugar:MI_PESTANA })).d;
+    if(r.ok && r.venta){ VSRV.id = r.venta.id; VSRV.version = r.venta.version; return "otra"; }
+    return "mal";
+  }
+  if(!eraTicket && !v && /ya no está/.test(d.error || "")){
+    // Se borró (quedó vacía en otra pestaña): lo de la pantalla sigue como
+    // una venta nueva.
+    VSRV.id = null; VSRV.version = null;
+    return "otra";
+  }
+  if(pendiente()){
+    // Hay un comprobante en duda: la pantalla queda como está hasta
+    // confirmarlo (Emitir pregunta primero). Sin id no se vuelve a guardar
+    // un ticket ni se emite atado a nada.
+    VSRV.id = null; VSRV.version = null; VSRV.ultimo = firma; marcarNube("");
+    toast(d.error + " Tocá Emitir: primero me fijo si el comprobante quedó guardado.");
+    return "listo";
+  }
+  // Lo que se cambió acá y no llegó a guardarse no se tira: queda como
+  // borrador (un borrador no se cobra solo; un ticket nuevo sí).
+  const guardar = !eraTicket && firma !== VSRV.ultimo;
+  soltarPantalla(d.error + (eraTicket ? " Lo saqué de la pantalla: el ticket sigue en el servidor."
+    : " Lo saqué de la pantalla para que no quede dos veces.") +
+    (guardar ? " Lo último que cambiaste quedó en borradores." : ""), guardar);
+  return "listo";
+}
+/** Guarda la venta de la pantalla en el servidor (si cambió). Vacía y sin
+    nada guardado, no hace nada; vacía con algo guardado, el servidor la
+    borra (o, si era un ticket de caja que se cobró, dice que ya no es de
+    esta pantalla y se suelta sin ruido). */
+async function guardarVentaSrv(forzar){
+  // Otro guardado en camino: al terminar ese se vuelve a mirar (sin esto el
+  // cambio de recién quedaba sin subir y el aviso decía "guardada").
+  if(VSRV.enviando){ VSRV.pendiente = true; return VSRV.enviando; }
+  if(VSRV.cambiando) return;
+  // La de la pantalla vino de la copia de esta compu y todavía no se sabe
+  // cuál es en el servidor: no se crea otra.
+  if(PANTALLA_SRV && !VSRV.id) return;
+  const datos = datosDeVenta();
+  const firma = JSON.stringify(datos) + "|" + S.suc;
+  if(!forzar && firma === VSRV.ultimo) return;
+  // Un ticket de caja sin su venta del servidor no se guarda como venta nueva.
+  if(VSRV.caja && !VSRV.id) return;
+  if(!VSRV.id && !datos.linea.length){ VSRV.ultimo = firma; marcarNube(""); return; }
+  // Un ticket que el cajero vació no se guarda vacío: lo que armó el
+  // vendedor queda en el servidor (si no se cobra, se devuelve o se anula).
+  if(VSRV.caja && !datos.linea.length){ marcarNube(""); return; }
+  marcarNube("va");
+  let reintentar = false;
+  const epoca = VSRV.epoca;
+  VSRV.pendiente = false;
+  VSRV.enviando = (async () => {
+    const c = clienteVta();
+    const { d } = await pedirSrv(VTA_URL, { accion:"guardar", lugar:MI_PESTANA, id:VSRV.id, version:VSRV.version,
+      venta:{ datos, cliente: c ? c.n : "Consumidor final", total: totalDeVenta(), sucursal:S.suc,
+              vendedor: VENDEDOR_LOGIN || S.usuario || "",
+              origenId: (S.origen && ID_SRV.test(S.origen)) ? S.origen : null } });
+    // Mientras iba, la pantalla pasó a otra venta: esta respuesta es de la
+    // de antes y no se toca nada.
+    if(VSRV.epoca !== epoca) return;
+    if(d.ok){
+      VSRV.ultimo = firma;
+      if(d.venta){ VSRV.id = d.venta.id; VSRV.version = d.venta.version; }
+      else { VSRV.id = null; VSRV.version = null; VSRV.caja = null; }
+      marcarNube(VSRV.id ? "ok" : "");
+      return;
+    }
+    if(d.conflicto){
+      const r = await resolverConflicto(d, datos, firma);
+      if(r === "otra"){ reintentar = true; return; }
+      if(r === "listo") return;
+    }
+    VSRV.pendiente = false;
+    marcarNube("mal", d.error);
+    clearTimeout(VSRV.t);
+    VSRV.t = setTimeout(() => { guardarVentaSrv(); }, 15000);   // se vuelve a probar sola
+  })();
+  try{ await VSRV.enviando; } finally { VSRV.enviando = null; }
+  if(reintentar && VSRV.otra < 3){ VSRV.otra++; return guardarVentaSrv(true); }
+  VSRV.otra = 0;
+  if(VSRV.pendiente){ VSRV.pendiente = false; return guardarVentaSrv(); }
+}
+/** Espera a que lo de la pantalla quede guardado. false = no llegó. Si ya
+    está guardada así, no se manda de nuevo: el reintento de mandar a caja
+    o de devolver un ticket tiene que llegar con la misma venta (si no, el
+    guardado chocaba con lo que ya se hizo y salía una venta repetida). */
+async function asegurarGuardada(){
+  clearTimeout(VSRV.t);
+  if(VSRV.enviando){ try{ await VSRV.enviando; }catch(e){} }
+  const firma = JSON.stringify(datosDeVenta()) + "|" + S.suc;
+  if(!(VSRV.id && firma === VSRV.ultimo && VSRV.nube === "ok")) await guardarVentaSrv(true);
+  return VSRV.nube !== "mal";
+}
+
+/** El cliente que viaja en la venta, si esta compu no lo tiene. Lo que llega
+    de otra compu se revisa: el id va adentro de atributos de la página. */
+function ponerClienteDeDatos(d){
+  const c = d && d.clienteDatos;
+  if(!c || typeof c !== "object" || !c.id || !c.n || !ID_SRV.test(String(c.id))) return;
+  if(CLIENTES.some(x => x.id === c.id)) return;
+  const corto = (x, n) => String(x == null ? "" : x).replace(/[<>]/g, "").trim().slice(0, n);
+  const cuit = soloNum(c.cuit || "");
+  CLIENTES.push({ id:String(c.id), n:corto(c.n, 120), t:corto(c.t, 40) || "Consumidor Final", doc:corto(c.doc, 20) || "—",
+    cuit: cuit.length === 11 ? cuit : "", saldo:0, lim:0, siempre:[], deOtra:true });
+}
+
+/** Una venta del servidor a la pantalla (la que se retoma o el ticket que
+    se toma en la caja). */
+function aplicarVentaDelServidor(v){
+  VSRV.epoca++; clearTimeout(VSRV.t);
+  const d = v.datos || {}, cuenta = { n:0 };
+  for(const m of (Array.isArray(d.manuales) ? d.manuales : [])) agregarManual(m);
+  ponerClienteDeDatos(d);
+  S.linea = renglonesUsables(d.linea, cuenta);
+  S.cliente = d.cliente && CLIENTES.some(c => c.id === d.cliente) ? d.cliente : "";
+  S.desc = +d.desc || 0;
+  if(MULT[d.forma]){ S.forma = d.forma; S.cond = MULT[d.cond] ? d.cond : null; }
+  S.comp = d.comp && LETRA[d.comp] ? d.comp : null;
+  S.dep = d.dep === "BA" || d.dep === "TS" ? d.dep : null;
+  S.origen = typeof d.origen === "string" ? d.origen : null;
+  S.editando = editandoDe(d.editando);
+  S.actualiza = actualizaDe(d.actualiza);
+  S.emision = null; S.nroLibre = false;
+  if(SUCURSALES.some(x => x.id === v.sucursal)) S.suc = v.sucursal;
+  VSRV.id = v.id; VSRV.version = v.version;
+  VSRV.caja = v.estado === "cobrando" ? cajaDe(v) : null;
+  // El de una sola sucursal se queda en la suya (un ticket de caja ya viene de la suya).
+  if(!VSRV.caja && sucursalFija() && S.suc !== sucursalFija()) S.suc = sucursalFija();
+  VSRV.ultimo = JSON.stringify(datosDeVenta()) + "|" + S.suc;
+  const ss = document.getElementById("selSuc"); if(ss) ss.value = S.suc;
+  pintarCamposVenta(); pintarDtos(); pintarTicket(); pintarCajaTicket();
+  marcarNube("ok");
+  const qb = document.getElementById("q"); if(qb){ qb.value = ""; buscar(); qb.focus(); }
+  if(cuenta.n) toast(cuenta.n + (cuenta.n > 1 ? " artículos de esa venta ya no están" : " artículo de esa venta ya no está") + " en el catálogo.");
+}
+
+/** El aviso del ticket de caja que se está cobrando. Mientras se cobra, la
+    sucursal no se cambia: el ticket se cobra con el CUIT de su caja. */
+function pintarCajaTicket(){
+  const ss = document.getElementById("selSuc");
+  if(ss) ss.disabled = !!VSRV.caja || !!sucursalFija();
+  const vs = document.getElementById("vtaSuc");
+  if(vs) vs.disabled = !!VSRV.caja || !!sucursalFija();
+  const e = document.getElementById("tkCaja"); if(!e) return;
+  if(!VSRV.caja){ e.innerHTML = ""; return; }
+  const v = txt(VSRV.caja.vendedor || "el vendedor");
+  e.innerHTML = '<div class="aviso" style="margin:0 14px 10px"><span>$</span><div>' +
+    '<b>Cobrando la venta de ' + v + '</b> · caja de ' + txt(sucDe(VSRV.caja.suc || S.suc).n) + '. Elegí con o sin comprobante y emití: ' +
+    'el comprobante sale a nombre de ' + v + '.' +
+    '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
+    '<button class="b3" id="btnSoltar" type="button" style="padding:5px 12px;font-size:12.5px">Devolver a la caja sin cobrar</button>' +
+    '<button class="b3" id="btnAnularTk" type="button" style="padding:5px 12px;font-size:12.5px" title="El cliente no lo paga: sale de la caja">Anular, no se cobra</button>' +
+    '</div></div></div>';
+}
+
+/* ---------------------------------------------- borradores */
+function horaCorta(iso){
+  const f = new Date(iso); if(isNaN(f)) return "";
+  const hh = String(f.getHours()).padStart(2, "0") + ":" + String(f.getMinutes()).padStart(2, "0");
+  return f.toDateString() === new Date().toDateString() ? hh : f.toLocaleDateString("es-AR", { day:"2-digit", month:"2-digit" }) + " " + hh;
+}
+function borradorDeServidor(v, cuenta, sinTerminar){
+  const d = v.datos || {};
+  for(const m of (Array.isArray(d.manuales) ? d.manuales : [])) agregarManual(m);
+  ponerClienteDeDatos(d);
+  const linea = renglonesUsables(d.linea, cuenta);
+  if(!linea.length) return null;
+  return { id:"s" + v.id, srvId:v.id, hora:horaCorta(v.actualizadoEn),
+    suc: SUCURSALES.some(x => x.id === v.sucursal) ? v.sucursal : S.suc,
+    cliente: d.cliente && CLIENTES.some(c => c.id === d.cliente) ? d.cliente : "",
+    desc:+d.desc || 0, forma: MULT[d.forma] ? d.forma : S.forma,
+    dep: d.dep === "BA" || d.dep === "TS" ? d.dep : null,
+    origen: typeof d.origen === "string" ? d.origen : null, editando: editandoDe(d.editando),
+    actualiza: actualizaDe(d.actualiza),
+    linea, otraPestana: !!sinTerminar };
+}
+/** El lugar de la venta con la que se sube un borrador de esta compu. */
+const lugarBorrador = b => "bo-" + String(b.id).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
+/** Un borrador que está solo en esta compu, al servidor: se guarda como una
+    venta de una pestaña propia y se pasa a borrador. Lleva su marca (bo):
+    si se corta en el medio, el próximo traerMias lo reconoce y no lo sube
+    otra vez. Uno con un comprobante en duda no se sube: la duda vive acá y
+    se pregunta al retomarlo. */
+async function subirBorrador(b){
+  if(!b || b.srvId || SUBIENDO.has("b" + b.id) || (b.emision && b.emision.enviada)) return;
+  SUBIENDO.add("b" + b.id);
+  try{
+    const cods = new Set(b.linea.map(l => l.cod));
+    const c = CLIENTES.find(x => x.id === b.cliente);
+    const bruto = b.linea.reduce((a, l) => { const p = prod(l.cod); return a + (p ? p.contado * l.cant : 0); }, 0);
+    const g = (await pedirSrv(VTA_URL, { accion:"guardar", lugar:lugarBorrador(b), venta:{
+      datos:{ linea: b.linea.map(l => ({ cod:l.cod, cant:l.cant })), manuales: manualesDe(cods),
+              cliente: b.cliente || "", clienteDatos: clienteDatosDe(c),
+              desc:+b.desc || 0, forma:b.forma, cond:b.forma, comp:null, dep:b.dep || null,
+              origen:b.origen || null, editando:b.editando || null, actualiza:b.actualiza || null, bo:String(b.id) },
+      cliente: c ? c.n : "Consumidor final", total: cent((bruto - Math.round(bruto * (+b.desc || 0) / 100)) * (MULT[b.forma] || 1)),
+      sucursal: SUCURSALES.some(x => x.id === b.suc) ? b.suc : S.suc, vendedor: VENDEDOR_LOGIN || S.usuario || "",
+      origenId: b.origen && ID_SRV.test(b.origen) ? b.origen : null } })).d;
+    if(!g.ok || !g.venta) return;
+    // Se tiró mientras subía: no queda en el servidor.
+    if(yaSubido("t", b.id)){ pedirSrv(VTA_URL, { accion:"anular", id:g.venta.id }); return; }
+    const r = (await pedirSrv(VTA_URL, { accion:"borrador", id:g.venta.id })).d;
+    if(r.ok){
+      if(yaSubido("t", b.id)){ pedirSrv(VTA_URL, { accion:"anular", id:g.venta.id }); return; }
+      b.srvId = g.venta.id; guardarLocalPronto();
+    }
+  } finally { SUBIENDO.delete("b" + b.id); }
+}
+async function tirarBorradorSrv(id){
+  const { d } = await pedirSrv(VTA_URL, { accion:"anular", id });
+  if(!d.ok) toast("No se pudo tirar en el servidor: " + d.error);
+}
+/** Retomar un borrador del servidor. Lo que había en pantalla no se pierde:
+    el servidor lo deja como borrador. */
+async function retomarDelServidor(b){
+  if(EMITIENDO || VSRV.cambiando) return;
+  if(VSRV.caja){ toast("Estás cobrando un ticket: terminalo o devolvelo a la caja primero."); return; }
+  if(!GBP.ok){ toast("Esperá: todavía no cargaron los artículos de GBP. Si no cargan, recargá la página."); return; }
+  if(PANTALLA_SRV && !VSRV.id){ toast("Esperá un segundo: estoy buscando en el servidor la venta de la pantalla."); return; }
+  if(S.linea.length && !confirm("Hay una venta empezada. La dejo como borrador y retomo esta?")) return;
+  const teniaAlgo = S.linea.length > 0;
+  EMITIENDO = true; botonesEmitir(true);
+  try{
+    // Lo que iba en camino termina antes: su respuesta es de la venta de ahora.
+    clearTimeout(VSRV.t);
+    if(VSRV.enviando){ try{ await VSRV.enviando; }catch(e){} }
+    if(teniaAlgo && !(await asegurarGuardada())){ toast("No pude guardar la venta de la pantalla: revisá la conexión."); return; }
+    VSRV.cambiando = true;
+    let { d, red } = await pedirSrv(VTA_URL, { accion:"retomar", id:b.srvId, lugar:MI_PESTANA });
+    // Sin respuesta: puede que se haya hecho igual. Se pregunta antes de seguir.
+    if(!d.ok && red){ const v = await verEnMiPestana(b.srvId); if(v) d = { ok:true, venta:v }; }
+    VSRV.cambiando = false;
+    if(!d.ok){ toast("No pude retomarlo: " + d.error); traerMias(); return; }
+    S.borradores = S.borradores.filter(y => y.id !== b.id);
+    aplicarVentaDelServidor(d.venta);
+    // Si el borrador tenía un comprobante en duda, la duda vuelve con él (al
+    // emitir, primero se pregunta). Y si rehacía un presupuesto, también.
+    if(b.emision && b.emision.enviada){ S.emision = b.emision; guardarLocal(); }
+    if(!S.actualiza && b.actualiza) S.actualiza = actualizaDe(b.actualiza);
+    if(S.actualiza) pintarEdicion();
+    toast("Borrador retomado. Seguí donde habías quedado." + (teniaAlgo ? " La que tenías quedó en borradores." : ""));
+    if(teniaAlgo) traerMias();
+  } finally { VSRV.cambiando = false; EMITIENDO = false; botonesEmitir(false); }
+}
+
+/** La venta de la pantalla vino de la copia de esta compu (otra pestaña que
+    se cerró, o al otro día): se busca la suya en el servidor. Si sigue
+    abierta, vuelve a ser la de esta pestaña; si ya se cobró, se mandó a la
+    caja o se cerró en otra compu, no se vuelve a abrir (antes se subía como
+    una venta nueva: repetida, y un ticket pasaba a ser venta del cajero). */
+async function reatarPantalla(ventas){
+  const ps = PANTALLA_SRV; if(!ps) return;
+  let reintentar = false;
+  try{
+    if(!S.linea.length || VSRV.id) return;
+    // En el medio la pantalla pasó a otra cosa (se retomó un borrador, se
+    // abrió un presupuesto): esa no se ata a la venta de antes.
+    if(Array.isArray(ps.cods) && !S.linea.some(l => ps.cods.indexOf(l.cod) >= 0)) return;
+    const v = ventas.find(x => x.id === ps.id);
+    if(v && v.lugar === MI_PESTANA && (v.estado === "armando" || v.estado === "cobrando")){
+      // Esta misma pestaña, recargada.
+      VSRV.id = v.id; VSRV.version = v.version; VSRV.ultimo = "";
+      VSRV.caja = v.estado === "cobrando" ? cajaDe(v) : null;
+      return;
+    }
+    if(v && !ps.caja && (v.estado === "armando" || v.estado === "borrador")){
+      const { d, red } = await pedirSrv(VTA_URL, { accion:"retomar", id:v.id, lugar:MI_PESTANA });
+      if(d.ok && d.venta){
+        VSRV.id = d.venta.id; VSRV.version = d.venta.version; VSRV.ultimo = "";
+        S.borradores = S.borradores.filter(b => b.srvId !== v.id);
+        pintarBorradores();
+        return;
+      }
+      if(red){ reintentar = true; return; }
+    } else if(v && ps.caja && v.estado === "cobrando" && v.tomadoPor === soyYo()){
+      const { d, red } = await pedirSrv(VTA_URL, { accion:"tomar", id:v.id, lugar:MI_PESTANA });
+      if(d.ok && d.venta){
+        VSRV.id = d.venta.id; VSRV.version = d.venta.version; VSRV.ultimo = ""; VSRV.caja = cajaDe(d.venta);
+        if(SUCURSALES.some(x => x.id === d.venta.sucursal)) S.suc = d.venta.sucursal;
+        return;
+      }
+      if(red){ reintentar = true; return; }
+    }
+    soltarPantalla(ps.caja
+      ? "El ticket que estabas cobrando en esta compu ya no lo tenés vos (se cobró, se devolvió o lo tomó otro cajero): no lo vuelvo a abrir. Mirá en Caja, «Por cobrar»."
+      : "La venta que había quedado abierta en esta compu ya no está abierta en el servidor (se cobró, se mandó a la caja o se cerró en otra compu): no la vuelvo a abrir.");
+  } finally {
+    if(reintentar){ clearTimeout(VSRV.tReatar); VSRV.tReatar = setTimeout(traerMias, 15000); }
+    else {
+      PANTALLA_SRV = null;
+      pintarCajaTicket();
+      if(VSRV.id) marcarNube("ok");
+      guardarVentaPronto();
+    }
+  }
+}
+
+/* ---------------------------------------------- la copia de esta compu
+   Cada pestaña guarda en el navegador su venta (guardarLocal). Desde acá
+   también cuál es en el servidor y los clientes del servidor que usa. */
+/** Cuál es en el servidor la venta de la pantalla (para la copia local). */
+function srvDePantalla(){
+  if(VSRV.id) return { id:VSRV.id, caja: VSRV.caja ? 1 : 0 };
+  return PANTALLA_SRV ? { id:PANTALLA_SRV.id, caja: PANTALLA_SRV.caja ? 1 : 0 } : null;
+}
+/** El srv guardado en la copia, revisado. */
+function srvGuardado(x){
+  return x && typeof x === "object" && typeof x.id === "string" && ID_SRV.test(x.id) ? { id:x.id, caja: x.caja ? 1 : 0 } : null;
+}
+/** Los clientes del servidor que usa lo de esta pestaña (la venta, los
+    borradores, el pedido): viajan con la copia. Al recargar, aplicarEntrada
+    corre antes de traerlos del servidor, y sin esto la venta quedaba en
+    Consumidor final y así se guardaba (en una Factura A, salía B). */
+function clientesDeLaPantalla(){
+  const ids = new Set([S.cliente, PED.cliente].concat(S.borradores.map(b => b.cliente)).filter(Boolean));
+  const out = [];
+  for(const id of ids){
+    const c = CLIENTES.find(x => x.id === id);
+    if(c && !c.nuevo && ID_SRV.test(String(c.id))) out.push({ id:c.id, n:c.n, t:c.t, doc:c.doc, cuit:c.cuit || "" });
+  }
+  return out;
+}
+/** Un cliente de la copia, a la lista (si no está). Con lo mínimo: se
+    completa al traerlo del servidor (traerClientes, ?ids=). */
+function ponerClienteGuardado(c){
+  if(!c || typeof c !== "object" || !c.id || !c.n || !ID_SRV.test(String(c.id))) return;
+  if(CLIENTES.some(x => x.id === c.id)) return;
+  const corto = (x, n) => String(x == null ? "" : x).replace(/[<>]/g, "").trim().slice(0, n);
+  const cuit = soloNum(c.cuit || "");
+  CLIENTES.push({ id:String(c.id), n:corto(c.n, 120), t:corto(c.t, 40) || "Consumidor Final", doc:corto(c.doc, 20) || "—",
+    cuit: cuit.length === 11 ? cuit : "", saldo:0, lim:0, siempre:[], srv:true, ref:true });
+}
+/** Lo de la pantalla pasa a un borrador porque entra otra venta (la copia
+    de otra pestaña con un comprobante en duda): el borrador sigue atado a
+    la suya del servidor, que pasa a borrador allá. Un ticket de caja no
+    pasa a ser borrador de nadie: es del vendedor y queda en el servidor.
+    false = no guardar el borrador. */
+function pantallaABorrador(b){
+  const srv = VSRV.id ? { id:VSRV.id, caja: !!VSRV.caja } : PANTALLA_SRV;
+  const eraTicket = !!VSRV.caja || !!(srv && srv.caja);
+  VSRV.epoca++; VSRV.id = null; VSRV.version = null; VSRV.caja = null; VSRV.ultimo = ""; PANTALLA_SRV = null;
+  if(eraTicket) return false;
+  if(srv){ b.srvId = srv.id; pedirSrv(VTA_URL, { accion:"borrador", id:srv.id }); }
+  return true;
+}
+
+/** Lo mío en el servidor: mi venta de esta pestaña, mis borradores y lo que
+    dejé abierto en otra pestaña o en otra compu. */
+var TRAYENDO_MIAS = null;
+function traerMias(){
+  if(!TRAYENDO_MIAS) TRAYENDO_MIAS = traerMiasYa().finally(() => { TRAYENDO_MIAS = null; });
+  return TRAYENDO_MIAS;
+}
+async function traerMiasYa(){
+  if(!GBP.ok || [...SUBIENDO].some(k => k[0] === "b")){
+    if(PANTALLA_SRV){ clearTimeout(VSRV.tReatar); VSRV.tReatar = setTimeout(traerMias, 5000); }
+    return false;
+  }
+  const { d } = await pedirSrv(VTA_URL + "?vista=mias");
+  if(!Array.isArray(d.ventas)){
+    if(PANTALLA_SRV){ clearTimeout(VSRV.tReatar); VSRV.tReatar = setTimeout(traerMias, 15000); }
+    return false;
+  }
+  if(PANTALLA_SRV) await reatarPantalla(d.ventas);
+  const cuenta = { n:0 }, enServidor = new Set(), ahora = Date.now();
+  let otraEnMiPestana = false;
+  for(const v of d.ventas){
+    if(v.estado === "pedido") continue;
+    if(VSRV.id && v.id === VSRV.id) continue;                     // la de la pantalla
+    const deAca = v.lugar === MI_PESTANA;
+    const bo = v.datos && typeof v.datos.bo === "string" ? v.datos.bo : "";
+    // Un borrador de esta compu que se tiró mientras subía: se anula.
+    if(bo && yaSubido("t", bo)){
+      if(v.estado === "armando" || v.estado === "borrador") pedirSrv(VTA_URL, { accion:"anular", id:v.id });
+      continue;
+    }
+    if(deAca && (v.estado === "armando" || v.estado === "cobrando")){
+      if(!VSRV.id && !PANTALLA_SRV && S.linea.length){
+        // Esta misma pestaña recargada: se sigue guardando sobre esa.
+        VSRV.id = v.id; VSRV.version = v.version;
+        if(v.estado === "cobrando") VSRV.caja = cajaDe(v);
+        continue;
+      }
+      // Lo que esta pestaña tenía en el servidor antes de recargar (el ticket
+      // que estaba cobrando, la venta que armaba) y la pantalla no tiene: vuelve
+      // a la pantalla (si no, la venta nueva siguiente se guardaba encima).
+      if(!VSRV.id && !PANTALLA_SRV && !S.linea.length){ aplicarVentaDelServidor(v); continue; }
+      // Otra venta en la pestaña de esta pantalla (un retomar o un tomar que
+      // se quedó sin respuesta): no se ata sin mirar. El guardado de la
+      // pantalla lo acomoda (ver resolverConflicto).
+      if(VSRV.id) otraEnMiPestana = true;
+      continue;
+    }
+    if(v.estado === "cobrando") continue;               // otra pestaña: aparece en Por cobrar
+    // La subida de un borrador que se cortó entre los dos pasos: se termina.
+    const aMedioSubir = v.estado === "armando" && typeof v.lugar === "string" && v.lugar.indexOf("bo-") === 0;
+    if(aMedioSubir){
+      if(ahora - Date.parse(v.actualizadoEn) < 120000) continue;   // puede estar subiendo ahora
+      pedirSrv(VTA_URL, { accion:"borrador", id:v.id });
+    }
+    // Una venta abierta en otra pestaña que se tocó recién: esa pestaña está viva.
+    else if(v.estado === "armando" && !deAca && ahora - Date.parse(v.actualizadoEn) < 120000) continue;
+    enServidor.add(v.id);
+    // El borrador de esta compu que ya había subido (la respuesta se cortó).
+    const local = bo ? S.borradores.find(b => b.id === bo && !b.srvId) : null;
+    if(local) local.srvId = v.id;
+    if(S.borradores.some(b => b.srvId === v.id)) continue;
+    const b = borradorDeServidor(v, cuenta, v.estado === "armando" && !aMedioSubir);
+    if(b) S.borradores.push(b);
+  }
+  // Los que ya no están (se retomaron o se tiraron en otra compu) se van de
+  // acá también; los que eran solo de esta compu se suben.
+  S.borradores = S.borradores.filter(b => !b.srvId || enServidor.has(b.srvId));
+  for(const b of S.borradores) if(!b.srvId) subirBorrador(b);
+  pintarBorradores(); pintarCajaTicket();
+  if(otraEnMiPestana) guardarVentaSrv(true);
+  return true;
+}
+
+/* ---------------------------------------------- mandar a caja */
+document.getElementById("btnCaja").addEventListener("click", () => {
+  if(EMITIENDO || trabadaPorDuda()) return;
+  if(!S.linea.length){ toast("No hay artículos en la venta."); return; }
+  const box = document.getElementById("cajaElige");
+  box.hidden = !box.hidden;
+  if(box.hidden) return;
+  const orden = [sucAct()].concat(SUCURSALES.filter(x => x.id !== S.suc));
+  document.getElementById("cajaEligeBtns").innerHTML = orden.map((x, i) =>
+    '<button type="button" class="' + (i ? "b3" : "b1") + '" data-caja="' + atrib(x.id) + '" style="padding:6px 14px">' +
+    txt(x.n) + (i ? "" : " (esta)") + '</button>').join("");
+});
+document.getElementById("cajaEligeBtns").addEventListener("click", e => {
+  const b = e.target.closest("[data-caja]"); if(b) mandarACaja(b.dataset.caja);
+});
+async function mandarACaja(suc){
+  if(EMITIENDO || trabadaPorDuda() || !S.linea.length) return;
+  if(S.editando){ toast("Estás cambiando un presupuesto: guardalo primero; después lo pasás a venta y lo mandás."); return; }
+  if(PANTALLA_SRV && !VSRV.id){ toast("Esperá un segundo: estoy buscando en el servidor la venta de la pantalla."); return; }
+  EMITIENDO = true; botonesEmitir(true);
+  try{
+    const ok = await asegurarGuardada();
+    if(!S.linea.length) return;                   // ya no era de esta pantalla (lo dijo el aviso)
+    if(!ok || !VSRV.id){
+      toast("No pude guardar la venta en el servidor: revisá la conexión y probá de nuevo. La venta sigue acá.");
+      return;
+    }
+    const pedido = { accion:"mandar", id:VSRV.id, version:VSRV.version, sucursal:suc };
+    let { d, red } = await pedirSrv(VTA_URL, pedido);
+    // Sin respuesta: se vuelve a mandar igual. Si el primero llegó, el
+    // servidor contesta que ya está en esa caja (no sale otro ticket).
+    if(!d.ok && red){ await esperar(1500); ({ d, red } = await pedirSrv(VTA_URL, pedido)); }
+    if(!d.ok){
+      if(d.conflicto && d.venta && d.venta.lugar === MI_PESTANA) VSRV.version = d.venta.version;
+      toast(red ? "No sé si llegó a la caja (" + d.error + "). Tocá de nuevo la misma caja: si ya había llegado, no se repite."
+        : "No se mandó: " + d.error);
+      return;
+    }
+    const cli = (clienteVta() || {}).n || "Consumidor final";
+    VSRV.id = null; VSRV.version = null; VSRV.caja = null; VSRV.ultimo = "";
+    document.getElementById("cajaElige").hidden = true;
+    limpiarVentaEmitida();
+    toast("Mandada a la caja de " + sucDe(suc).n + ": " + cli + ", " + fmt(d.venta.total) +
+      ". El cajero la ve en Caja, en «Por cobrar».");
+  } finally { EMITIENDO = false; botonesEmitir(false); }
+}
+/** Anular un ticket de la caja: el cliente se fue sin pagar. Lo puede el
+    cajero de esa caja (el que espera) o el que lo tiene tomado. */
+async function anularTicket(id){
+  if(EMITIENDO) return;
+  const v = COBRAR.lista.find(x => x.id === id);
+  const de = VSRV.id === id && VSRV.caja ? VSRV.caja.vendedor + ", " + (VSRV.caja.cliente || "Consumidor final")
+    : v ? (v.vendedor || "un vendedor") + ", " + (v.cliente || "Consumidor final") + " por " + fmt(v.total) : "";
+  if(!confirm("¿Anulás el ticket" + (de ? " de " + de : "") + "? No se cobra y sale de la caja. No se puede deshacer.")) return;
+  EMITIENDO = true; botonesEmitir(true);
+  try{
+    const { d } = await pedirSrv(VTA_URL, { accion:"anular", id });
+    if(!d.ok){ toast("No se anuló: " + d.error); return; }
+    if(VSRV.id === id){
+      VSRV.id = null; VSRV.version = null; VSRV.caja = null; VSRV.ultimo = "";
+      limpiarVentaEmitida();
+    }
+    toast("Ticket anulado: salió de la caja.");
+  } finally { EMITIENDO = false; botonesEmitir(false); traerPorCobrar(); }
+}
+// Devolver el ticket a la caja sin cobrarlo: lo puede tomar otro cajero.
+document.addEventListener("click", async e => {
+  const anu = e.target.closest("#btnAnularTk"), sol = e.target.closest("#btnSoltar");
+  if(!anu && !sol) return;
+  if(EMITIENDO || trabadaPorDuda() || !VSRV.caja) return;
+  // El ticket ya no está tomado por esta pantalla (lo tomó otro cajero, se
+  // devolvió): solo se saca de acá. Queda en el servidor como está.
+  if(!VSRV.id){ soltarPantalla("Lo saqué de la pantalla: el ticket sigue en el servidor. Fijate en Caja, en «Por cobrar»."); traerPorCobrar(); return; }
+  if(anu){ anularTicket(VSRV.id); return; }
+  // Sin artículos no tiene sentido devolverlo: es que no se cobra.
+  if(!S.linea.length){ anularTicket(VSRV.id); return; }
+  EMITIENDO = true; botonesEmitir(true);
+  try{
+    await asegurarGuardada();
+    if(!VSRV.id || !VSRV.caja) return;            // ya no era de esta pantalla (lo dijo el aviso)
+    const pedido = { accion:"soltar", id:VSRV.id };
+    let { d, red } = await pedirSrv(VTA_URL, pedido);
+    // Sin respuesta: devolverlo otra vez no hace daño (si ya volvió, el
+    // servidor contesta que está en la caja).
+    if(!d.ok && red){ await esperar(1500); ({ d, red } = await pedirSrv(VTA_URL, pedido)); }
+    if(!d.ok){ toast("No se pudo devolver: " + d.error); return; }
+    VSRV.id = null; VSRV.version = null; VSRV.caja = null; VSRV.ultimo = "";
+    limpiarVentaEmitida();
+    toast("Volvió a la caja sin cobrar: la puede tomar cualquier cajero.");
+  } finally { EMITIENDO = false; botonesEmitir(false); traerPorCobrar(); }
+});
+/** Sin permiso de cobrar, la venta se manda a caja: el botón grande es ese. */
+function aplicarCobrar(){
+  const c = puedeCobrar();
+  for(const id of ["btnFactura", "btnSinFactura"]){ const b = document.getElementById(id); if(b) b.hidden = !c; }
+  const bc = document.getElementById("btnCaja"); if(bc) bc.className = c ? "b2" : "b1";
+}
+
+/* ---------------------------------------------- la caja: por cobrar */
+var COBRAR = { lista:[], error:"", vistos:null };
+function sucDeCaja(){ return sucursalFija() || S.suc; }
+async function traerPorCobrar(){
+  if(!puedeCobrar()) return;
+  const suc = sucDeCaja();
+  const { d } = await pedirSrv(VTA_URL + "?vista=caja&suc=" + encodeURIComponent(suc));
+  if(Array.isArray(d.ventas)){
+    // Aviso al cajero cuando llega una nueva (no la primera vez).
+    const espera = d.ventas.filter(v => v.estado === "en-caja");
+    if(COBRAR.vistos){
+      const nueva = espera.find(v => !COBRAR.vistos.has(v.id));
+      if(nueva) toast("Llegó a la caja la venta de " + (nueva.vendedor || "un vendedor") + ": " + nueva.cliente + ", " + fmt(nueva.total) + ".");
+    }
+    COBRAR.vistos = new Set(espera.map(v => v.id));
+    COBRAR.lista = d.ventas; COBRAR.error = "";
+  } else COBRAR.error = d.error || "";
+  pintarPorCobrar(); marcarNavCaja();
+}
+function pintarPorCobrar(){
+  const card = document.getElementById("porCobrarCard"); if(!card) return;
+  card.hidden = !puedeCobrar();
+  if(card.hidden) return;
+  document.getElementById("porCobrarSub").textContent = "caja de " + sucDe(sucDeCaja()).n + " · se actualiza sola";
+  const tb = document.getElementById("tbPorCobrar");
+  if(COBRAR.error){ tb.innerHTML = '<tr><td colspan="7" class="vacio">' + txt(COBRAR.error) + '</td></tr>'; return; }
+  if(!COBRAR.lista.length){
+    tb.innerHTML = '<tr><td colspan="7" class="vacio">No hay nada esperando. Cuando un vendedor mande una venta a esta caja, aparece acá.</td></tr>';
+    return;
+  }
+  const yo = soyYo(), ahora = Date.now();
+  tb.innerHTML = COBRAR.lista.map(v => {
+    const d = v.datos || {};
+    const n = (Array.isArray(d.linea) ? d.linea : []).reduce((a, l) => a + (+l.cant || 0), 0);
+    const mia = v.estado === "cobrando" && v.tomadoPor === yo;
+    const deOtro = v.estado === "cobrando" && !mia && ahora - Date.parse(v.tomadoEn || 0) < 10 * 60000;
+    const est = v.estado === "en-caja" ? '<span class="pill p-warn">espera</span>'
+      : mia ? '<span class="pill p-ok">la tenés vos' + (v.lugar === MI_PESTANA ? "" : ", en otra pestaña") + '</span>'
+      : '<span class="pill p-n">la cobra ' + txt(v.tomadoPor || "otro cajero") + '</span>';
+    const acc = ((mia && v.lugar === MI_PESTANA) || deOtro ? ""
+      : '<button class="b1" type="button" data-cobrar="' + atrib(v.id) + '" style="padding:5px 14px;font-size:12.5px">Cobrar</button>') +
+      // El cliente se fue sin pagar: sin esto quedaba en la caja para siempre.
+      (v.estado === "en-caja" ? ' <button class="b3" type="button" data-anular="' + atrib(v.id) + '" style="padding:5px 10px;font-size:12.5px" title="El cliente no lo paga: sale de la caja">Anular</button>' : '');
+    return '<tr><td class="num">' + txt(horaCorta(v.actualizadoEn)) + '</td><td>' + txt(v.vendedor) + '</td>' +
+      '<td style="font-weight:500">' + txt(v.cliente) + '</td><td>' + n + ' un.</td>' +
+      '<td class="r" style="font-weight:600">' + fmt(v.total) + '</td><td>' + est + '</td><td style="white-space:nowrap">' + acc + '</td></tr>';
+  }).join("");
+}
+function marcarNavCaja(){
+  const a = document.querySelector('#nav [data-v="caja"]'); if(!a) return;
+  let b = a.querySelector(".cnt-caja");
+  const n = COBRAR.lista.filter(v => v.estado === "en-caja").length;
+  if(!n){ if(b) b.remove(); return; }
+  if(!b){
+    b = document.createElement("span"); b.className = "cnt-caja";
+    b.style.cssText = "margin-left:6px;background:var(--bad);color:#fff;border-radius:9px;padding:0 6px;font-size:11px;font-weight:700;line-height:17px";
+    a.appendChild(b);
+  }
+  b.textContent = String(n);
+  b.title = n + (n === 1 ? " venta espera" : " ventas esperan") + " en la caja";
+}
+document.getElementById("tbPorCobrar").addEventListener("click", e => {
+  const an = e.target.closest("[data-anular]"); if(an){ anularTicket(an.dataset.anular); return; }
+  const b = e.target.closest("[data-cobrar]"); if(b) cobrarTicket(b.dataset.cobrar);
+});
+/** Cuántos renglones de esa venta no están en el catálogo de esta compu
+    (después de sumar sus artículos a mano). */
+function faltanEnCatalogo(v){
+  const d = v.datos || {};
+  for(const m of (Array.isArray(d.manuales) ? d.manuales : [])) agregarManual(m);
+  return (Array.isArray(d.linea) ? d.linea : []).filter(l => !(l && prod(l.cod))).length;
+}
+async function cobrarTicket(id){
+  if(EMITIENDO || VSRV.cambiando || trabadaPorDuda()) return;
+  // Sin los artículos de GBP el ticket se vería sin esos renglones: se
+  // cobraría de menos y, al guardar, el ticket quedaba recortado.
+  if(!GBP.ok){ toast("Esperá: todavía no cargaron los artículos de GBP. Sin ellos el ticket se vería sin sus renglones. Si no cargan, recargá la página."); return; }
+  if(PANTALLA_SRV && !VSRV.id){ toast("Esperá un segundo: estoy buscando en el servidor la venta de la pantalla."); return; }
+  if(S.linea.length && !VSRV.caja && !confirm("Tenés una venta empezada en esta pantalla. La dejo como borrador y abro este ticket?")) return;
+  if(S.linea.length && VSRV.caja && !confirm("Ya estás cobrando otro ticket. Lo devuelvo a la caja y abro este?")) return;
+  // Lo de la pantalla queda guardado primero: al tomar el nuevo, el servidor
+  // lo pasa a borrador (o devuelve a la caja el ticket que tenías).
+  const teniaAlgo = S.linea.length > 0;
+  EMITIENDO = true; botonesEmitir(true);
+  try{
+    // Lo que iba en camino (el guardado vacío de lo recién cobrado, un
+    // reintento) termina antes: si no, su respuesta llegaba después y le
+    // borraba al ticket nuevo su aviso.
+    clearTimeout(VSRV.t);
+    if(VSRV.enviando){ try{ await VSRV.enviando; }catch(e){} }
+    if(teniaAlgo && !(await asegurarGuardada())){ toast("No pude guardar lo de la pantalla: revisá la conexión."); return; }
+    VSRV.cambiando = true;
+    let { d, red } = await pedirSrv(VTA_URL, { accion:"tomar", id, lugar:MI_PESTANA });
+    // Sin respuesta: puede que se haya tomado igual. Se pregunta antes de seguir.
+    if(!d.ok && red){ const v = await verEnMiPestana(id); if(v && v.estado === "cobrando") d = { ok:true, venta:v }; }
+    VSRV.cambiando = false;
+    if(!d.ok){ toast("No se pudo: " + d.error); traerPorCobrar(); if(teniaAlgo) traerMias(); return; }
+    // Un artículo del ticket que esta compu no tiene: no se abre recortado.
+    // Vuelve a la caja tal cual lo armó el vendedor.
+    const faltan = faltanEnCatalogo(d.venta);
+    if(faltan){
+      pedirSrv(VTA_URL, { accion:"soltar", id:d.venta.id }).then(() => traerPorCobrar());
+      toast("Ese ticket tiene " + faltan + (faltan > 1 ? " artículos que no están" : " artículo que no está") +
+        " en el catálogo de esta compu: no lo abro (se cobraría de menos). Recargá la página y probá de nuevo; " +
+        "si esos artículos ya no existen, anulalo y que el vendedor lo arme de nuevo." +
+        (teniaAlgo ? (VSRV.caja ? " El ticket que tenías volvió a la caja." : " Lo que tenías quedó en borradores.") : ""));
+      if(teniaAlgo){ soltarPantalla(""); traerMias(); }
+      return;
+    }
+    aplicarVentaDelServidor(d.venta);
+    abrirVista("mostrador");
+    toast("Cobrando la venta de " + (d.venta.vendedor || "el vendedor") + ". Elegí con o sin comprobante y emití.");
+    traerPorCobrar();
+    if(teniaAlgo) traerMias();
+  } finally { VSRV.cambiando = false; EMITIENDO = false; botonesEmitir(false); }
+}
+// La caja se mira sola cada 20 segundos (solo el que cobra, con la pestaña a la vista).
+setInterval(() => {
+  if(GBP.listo && puedeCobrar() && document.visibilityState === "visible") traerPorCobrar();
+}, 20000);
+
+/* ---------------------------------------------- clientes */
+function clienteDeServidor(c){
+  const cuit = soloNum(c.cuit || "");
+  // El que se cargó por DNI se sigue viendo con su DNI (Damián: "que cargue
+  // el DNI solamente"); su CUIT, si ARCA lo dio, queda en cuit para la
+  // Factura A. El responsable inscripto, con su CUIT.
+  const conDni = !!c.dni && (!c.cuit || c.condicionIva !== "Responsable Inscripto");
+  return { id:c.id, n:c.nombre, t:c.condicionIva || "Consumidor Final",
+    doc: conDni ? c.dni : (c.cuit ? conGuiones(c.cuit) : "—"), cuit: cuit.length === 11 ? cuit : "",
+    saldo:0, lim:+c.limite || 0, dir:c.domicilio || "", loc:c.localidad || "", prov:c.provincia || "",
+    tel:c.telefono || "", mail:c.email || "", lista:c.lista || "", siempre:[], srv:true };
+}
+function repintarClientes(){
+  repintarVentaConFoco();
+  const sc = document.getElementById("selCliente"); if(sc) sc.innerHTML = opcionesClientePedido();
+}
+function sumarClientes(lista){
+  let n = 0;
+  for(const c of (lista || [])){
+    if(!c || !c.id || !ID_SRV.test(c.id) || c.inactivo) continue;
+    const x = clienteDeServidor(c);
+    const i = CLIENTES.findIndex(y => y.id === x.id);
+    if(i >= 0){ Object.assign(CLIENTES[i], x); delete CLIENTES[i].ref; n++; } else { CLIENTES.push(x); n++; }
+  }
+  if(n) repintarClientes();
+}
+async function traerClientes(){
+  // Los 50 tocados más recientemente, y los que usa lo que volvió de esta
+  // compu (la venta, los borradores, el pedido): esos llegaron con lo
+  // mínimo y se completan acá, estén o no entre los 50.
+  const { d } = await pedirSrv(CLI_URL + "?q=");
+  if(Array.isArray(d.clientes)) sumarClientes(d.clientes);
+  const ids = CLIENTES.filter(c => c.ref && ID_SRV.test(c.id)).map(c => c.id).slice(0, 50);
+  if(ids.length){
+    const r = (await pedirSrv(CLI_URL + "?ids=" + encodeURIComponent(ids.join(",")))).d;
+    if(Array.isArray(r.clientes)) sumarClientes(r.clientes);
+  }
+}
+function cambiarIdCliente(viejo, nuevo){
+  if(S.cliente === viejo) S.cliente = nuevo;
+  if(PED.cliente === viejo) PED.cliente = nuevo;
+  for(const b of S.borradores) if(b.cliente === viejo) b.cliente = nuevo;
+  for(const p of PEDIDOS_ABIERTOS) if(p.cli === viejo) p.cli = nuevo;
+}
+/** Un cliente cargado en esta compu, al servidor. Si ya había uno con ese
+    CUIT, queda el de allá y este se va. */
+async function subirCliente(c){
+  if(!c || c.srv || c.deOtra || SUBIENDO.has("c" + c.id)) return;
+  const viejo = c.id;
+  SUBIENDO.add("c" + viejo);
+  try{
+    await deAUna("c:" + viejo, async () => {
+      // Otra pestaña ya lo subió mientras esta esperaba: se usa el de allá.
+      SUBIDOS = null;
+      const ya = subidos()["c:" + viejo];
+      if(ya){
+        if(typeof ya === "string" && ID_SRV.test(ya)){
+          if(CLIENTES.some(y => y.id === ya && y !== c)) CLIENTES.splice(CLIENTES.indexOf(c), 1);
+          else Object.assign(c, { id:ya, nuevo:false, srv:true });
+          cambiarIdCliente(viejo, ya);
+          guardarLocalPronto(); repintarClientes(); pintarTicket();
+        }
+        return;
+      }
+      const dig = soloNum(c.doc || ""), cuit = soloNum(c.cuit || "");
+      const { d } = await pedirSrv(CLI_URL, { cliente:{
+        // El CUIT que dio ARCA aunque el documento quede en DNI (el
+        // monotributista cargado por DNI: la Factura A va con el CUIT).
+        cuit: dig.length === 11 ? dig : (cuit.length === 11 ? cuit : ""), dni: dig.length === 7 || dig.length === 8 ? dig : "",
+        nombre:c.n, condicionIva:c.t, domicilio:c.dir || "", localidad:c.loc || "", provincia:c.prov || "",
+        telefono:c.tel || "", email:c.mail || "", lista:c.lista || "", limite:+c.lim || 0 } });
+      if(!d.ok || !d.cliente || !ID_SRV.test(d.cliente.id)) return;
+      const nuevo = d.cliente.id;
+      const otro = CLIENTES.find(y => y.id === nuevo && y !== c);
+      if(otro) CLIENTES.splice(CLIENTES.indexOf(c), 1);
+      else {
+        const doc = c.doc;
+        Object.assign(c, clienteDeServidor(d.cliente)); c.nuevo = false;
+        // Cargado por DNI: el documento que se ve sigue siendo el DNI.
+        if(dig.length === 7 || dig.length === 8) c.doc = doc;
+      }
+      cambiarIdCliente(viejo, nuevo);
+      marcarSubido("c", viejo, nuevo);
+      if(d.yaEstaba) toast(d.cliente.nombre + " ya estaba cargado: quedó el que estaba.");
+      guardarLocalPronto(); repintarClientes(); pintarTicket();
+    });
+  } finally { SUBIENDO.delete("c" + viejo); }
+}
+
+/* ---------------------------------------------- pedidos tomados */
+function pedidoDeServidor(v){
+  const d = v.datos || {}, p = d.ped || {};
+  for(const m of (Array.isArray(d.manuales) ? d.manuales : [])) agregarManual(m);
+  ponerClienteDeDatos(d);
+  const lin = (Array.isArray(d.linea) ? d.linea : []).filter(l => l && prod(l.cod) && +l.cant > 0)
+    .map(l => [l.cod, Math.floor(+l.cant)]);
+  return { id:v.id, srv:true, version:v.version, nro:"P-" + (+p.nro || "?"), cli:d.cliente || "", cliN:v.cliente || "",
+    est: typeof p.est === "string" && p.est ? p.est : "preparando", ent: p.entrega === "envio" ? "envio" : "retira",
+    cuando: typeof p.cuando === "string" && p.cuando ? p.cuando : "a confirmar", lin, senia:+p.senia || 0,
+    vend:v.vendedor || "", suc:v.sucursal };
+}
+/** Un pedido que estaba solo en esta compu (de antes de la 82), al servidor.
+    Va con su id como marca: si se corta la respuesta y se vuelve a subir,
+    el servidor devuelve el mismo (no saca otro número). */
+async function subirPedido(p){
+  if(!p || p.srv || SUBIENDO.has("p" + p.id)) return;
+  SUBIENDO.add("p" + p.id);
+  try{
+    await deAUna("p:" + p.id, async () => {
+      SUBIDOS = null;
+      if(yaSubido("p", p.id)){
+        // Lo subió otra pestaña: el de allá llega con los del servidor.
+        const i = PEDIDOS_ABIERTOS.indexOf(p);
+        if(i >= 0) PEDIDOS_ABIERTOS.splice(i, 1);
+        guardarLocalPronto();
+        if(vistaActual() === "pedidos") pintarPedido();
+        return;
+      }
+      const c = clienteDe(p.cli);
+      const cods = new Set(p.lin.map(([cod]) => cod));
+      const total = p.lin.reduce((a, [cod, n]) => a + prod(cod).contado * n, 0);
+      const marca = /^[A-Za-z0-9_-]{8,64}$/.test(String(p.id)) ? String(p.id)
+        : ("pl" + String(p.id).replace(/[^A-Za-z0-9_-]/g, "") + "00000000").slice(0, 64);
+      const { d } = await pedirSrv(VTA_URL, { accion:"pedido", venta:{
+        datos:{ linea: p.lin.map(([cod, cant]) => ({ cod, cant })), manuales: manualesDe(cods), cliente: p.cli || "",
+                clienteDatos: clienteDatosDe(c),
+                ped:{ entrega:p.ent, cuando:p.cuando, senia:+p.senia || 0, est:p.est, antes:p.nro, marca } },
+        cliente: c.n, total, sucursal:S.suc, vendedor: VENDEDOR_LOGIN || S.usuario || "" } });
+      if(!d.ok || !d.venta) return;
+      marcarSubido("p", p.id, d.venta.id);
+      const i = PEDIDOS_ABIERTOS.indexOf(p);
+      if(i >= 0) PEDIDOS_ABIERTOS.splice(i, 1, pedidoDeServidor(d.venta));
+      guardarLocalPronto();
+      if(vistaActual() === "pedidos") pintarPedido();
+    });
+  } finally { SUBIENDO.delete("p" + p.id); }
+}
+async function traerPedidos(){
+  if(!puede("pedidos") || !GBP.ok) return;
+  const { d } = await pedirSrv(VTA_URL + "?vista=pedidos");
+  if(!Array.isArray(d.ventas)) return;
+  const locales = PEDIDOS_ABIERTOS.filter(p => !p.srv && p.lin.every(([cod]) => prod(cod)));
+  PEDIDOS_ABIERTOS.length = 0;
+  for(const v of d.ventas){ const p = pedidoDeServidor(v); if(p.lin.length) PEDIDOS_ABIERTOS.push(p); }
+  for(const p of locales){ PEDIDOS_ABIERTOS.unshift(p); subirPedido(p); }
+  PEDIDOS_LISTOS = true;
+  if(vistaActual() === "pedidos") pintarPedido();
+}
+
+/** Después de arrancar: lo que está en el servidor, y lo de esta compu que
+    todavía no subió. */
+async function sincronizarServidor(){
+  await traerClientes();
+  for(const c of CLIENTES.slice()) if(c.nuevo && !c.srv) subirCliente(c);
+  await traerMias();
+  traerPedidos();
+  traerPorCobrar();
+  pintarPorCobrar();
+  guardarVentaPronto();
+}
+
 /** El arranque de los datos: primero GBP (si tarda, a los 8 segundos se
     sigue igual), después lo de esta compu y lo emitido hoy. */
 async function arrancar(){
@@ -8099,6 +10896,7 @@ async function arrancar(){
   restaurarLocalDespues();
   await verificarPendiente();
   await traerDocumentosDeHoy();
+  await sincronizarServidor();
   if(!aTiempo) pGbp.then(() => { if(GBP.ok) gbpLlegoTarde(); });
 }
 
@@ -8111,7 +10909,7 @@ document.getElementById("formaEntrega").addEventListener("click", guardarLocalPr
 
 restaurarLocalAntes();
 cargarSeis(); pintarCadena();
-pintarSucs(); pintarUsuarios(); ponerPuesto(); pintarEscritorio(); aplicarPermisos();
+pintarSucs(); pintarUsuarios(); ponerPuesto(); pintarEscritorio(); aplicarPermisos(); aplicarCobrar();
 pintarCamposVenta(); pintarDtos(); pintarTicket(); buscar(); pintarProd(); pintarWeb();
 // Si la direccion termina en #productos, abre ahi. Es lo que hace que
 // "abrir en una pestana nueva" sirva para algo.
@@ -8167,18 +10965,30 @@ function rubroDeGbp(sub, tit){
 /** Un artículo guardado, armado como los demás de Punto. */
 function productoDeGbp(a){
   const iva = +a.iva || 21;
-  const costo = cent(a.lista1 / 1.25);
-  const contado = cent(a.lista2 / RECARGO_1PAGO);
+  // El costo del producto sale de la Lista 1 de GBP. El flete (fijo del
+  // artículo, o el % de su proveedor) se suma y las dos listas suben en la
+  // misma proporción: el margen queda igual y el flete lo paga el precio.
+  const costoProd = cent(a.lista1 / 1.25);
+  const fleteFijo = +a.flete > 0 ? cent(+a.flete) : 0;
+  const fletePct = fleteFijo ? 0 : fletePctDe(a.cat);
+  const flete = fleteFijo || cent(costoProd * fletePct / 100);
+  const otroCosto = +a.otroCosto > 0 ? cent(+a.otroCosto) : 0;
+  const costo = cent(costoProd + flete + otroCosto);
+  const factor = (flete > 0 || otroCosto > 0) && costoProd > 0 ? costo / costoProd : 1;
+  const contado = cent(a.lista2 * factor / RECARGO_1PAGO);
   // El descuento que da ese costo, en uno solo: así la ficha muestra la
   // lista del proveedor y el descuento que de verdad tiene.
   const desc = a.lista > 0
-    ? Math.max(0, Math.min(95, Math.round((1 - costo / (a.lista * facIva(iva))) * 10000) / 100)) : 0;
+    ? Math.max(0, Math.min(95, Math.round((1 - costoProd / (a.lista * facIva(iva))) * 10000) / 100)) : 0;
   const tit = sinEtiquetas(a.tit);
   const codProv = ((tit.match(/\\(([A-Z0-9][A-Z0-9\\/.-]{2,})\\)/i) || [])[1] || "").toUpperCase();
   const p = {
     cod: sinEtiquetas(a.cod), tit, rub: rubroDeGbp(a.subrub, tit), prov: sinEtiquetas(a.prov) || "VARIOS",
     codProv, lista: +a.lista || 0, seis: [desc, 0, 0, 0, 0, 0], l1: 25, l2: 25, iva,
-    costo, costoBase: costo, contado, unPago: +a.lista2,
+    costo, costoBase: costo, contado, unPago: cent(+a.lista2 * factor),
+    costoProducto: costoProd, flete, fleteFijo, fletePct, otroCosto, otroNombre: sinEtiquetas(a.otroNombre || ""),
+    bulto: +a.bulto > 1 ? Math.min(10000, Math.floor(+a.bulto)) : 0,
+    cat: sinEtiquetas(a.cat || ""),
     markup: Math.round((contado / costo - 1) * 1000) / 10,
     dep: { BA: Math.max(0, Math.round(+a.stockBA || 0)), TS: Math.max(0, Math.round(+a.stockTS || 0)) },
     real: true, gbp: true
@@ -8188,12 +10998,68 @@ function productoDeGbp(a){
   return ponerStock(p);
 }
 
+/** El flete fijo de un artículo de GBP, guardado en el servidor. */
+async function guardarFleteServidor(cod, extras){
+  try{
+    const r = await fetch(GBP_URL, { method:"PATCH", credentials:"same-origin", cache:"no-store",
+      headers:{ "Content-Type":"application/json" }, body: JSON.stringify(Object.assign({ cod }, extras)) });
+    const d = await r.json().catch(() => null);
+    if(!r.ok || !d || d.error) toast("El flete de " + cod + " no se guardó en el servidor: " + ((d && d.error) || "probá de nuevo."));
+  }catch(e){ toast("El flete de " + cod + " no se guardó en el servidor: revisá la conexión."); }
+}
+/* El flete % de cada proveedor (Proveedores), por su razón social: el
+   artículo de GBP trae el proveedor en "cat" (la categoría de GBP). */
+const FLETE_PROV = {};
+function fletePctDe(cat){ return +FLETE_PROV[plano(String(cat || "")).replace(/\\s+/g, " ").trim()] || 0; }
+/** Lo que vino del servidor de cada artículo de GBP, tal cual: para volver a
+    armar su precio cuando cambia lo de Punto (flete, otro costo, bulto) o
+    cuando llega el flete % de los proveedores. */
+const GBP_CRUDO = {};
+/** El flete % de los proveedores, de lo que contestó /sistema/proveedores.
+    Si no se pudo leer, se avisa y se vuelve a probar solo: sin esto esa compu
+    vendía toda la sesión los artículos de esos proveedores sin el flete, y
+    nadie se enteraba. Antes de llenarlo se vacía: un % que se sacó no queda. */
+function ponerFletesProv(dp){
+  if(!(dp && Array.isArray(dp.proveedores))){
+    GBP.fleteFalta = true;
+    if(!GBP.avisoFlete){
+      GBP.avisoFlete = true;
+      toast("No pude leer el flete % de los proveedores: los precios de sus artículos pueden estar sin flete. Lo vuelvo a probar solo.");
+    }
+    clearTimeout(GBP.tFlete); GBP.tFlete = setTimeout(reintentarFletesProv, 20000);
+    return false;
+  }
+  for(const k of Object.keys(FLETE_PROV)) delete FLETE_PROV[k];
+  for(const p of dp.proveedores)
+    if(p && +p.flete > 0) FLETE_PROV[plano(String(p.razonSocial || "")).replace(/\\s+/g, " ").trim()] = +p.flete;
+  GBP.fleteFalta = false; GBP.avisoFlete = false;
+  return true;
+}
+async function reintentarFletesProv(){
+  let dp = null;
+  try{
+    const r = await fetch(PRV_URL, { cache:"no-store", credentials:"same-origin" });
+    dp = r.ok ? await r.json().catch(() => null) : null;
+  }catch(e){ dp = null; }
+  if(!ponerFletesProv(dp)) return;
+  const arts = Object.keys(GBP_CRUDO).map(k => GBP_CRUDO[k]);
+  if(arts.length && aplicarGbp(arts)){ restaurarCatalogo(true); repintarTodo(); }
+  toast("Listo: el flete % de los proveedores ya está en los precios.");
+}
+/** Lo de Punto de un artículo de GBP: lo guarda el servidor y lo ve cualquier
+    compu. Lo guardado en esta compu no lo pisa. */
+const PUNTO_DEL_SERVIDOR = ["flete","fleteFijo","fletePct","otroCosto","otroNombre","bulto"];
+/** Lo que cambia en un artículo de GBP cuando se le vuelve a armar el precio. */
+const CAMPOS_GBP_PUNTO = ["costo","costoBase","contado","unPago","costoProducto","flete","fleteFijo","fletePct",
+  "otroCosto","otroNombre","bulto","markup"];
+
 /** Mete los de GBP en el catálogo. El mismo código pisa al de muestra. */
 function aplicarGbp(arts){
   let n = 0;
   for(const a of (arts || [])){
     if(!a || !a.cod || !(+a.lista1 > 0) || !(+a.lista2 > 0)) continue;
     const p = productoDeGbp(a);
+    GBP_CRUDO[p.cod] = a;
     const i = PRODUCTOS.findIndex(x => x.cod === p.cod);
     if(i >= 0) PRODUCTOS[i] = p; else PRODUCTOS.push(p);
     n++;
@@ -8241,8 +11107,15 @@ function pintarGbpGuardados(d){
 
 async function traerDeGbp(){
   try{
-    const r = await fetch(GBP_URL, { cache: "no-store", credentials: "same-origin" });
+    const [r, rp] = await Promise.all([
+      fetch(GBP_URL, { cache: "no-store", credentials: "same-origin" }),
+      fetch(PRV_URL, { cache: "no-store", credentials: "same-origin" }).catch(() => null)
+    ]);
     if(!r.ok) return;
+    let dp = null;
+    try{ dp = rp && rp.ok ? await rp.json() : null; }catch(x){ dp = null; }
+    // Sin proveedores no hay flete %: se avisa y se vuelve a probar (ver ponerFletesProv).
+    ponerFletesProv(dp);
     const d = await r.json();
     GBP.ok = true;
     if(aplicarGbp(d.articulos)){ restaurarCatalogo(true); repintarTodo(); }
@@ -8353,7 +11226,11 @@ async function guardarGbp(){
     });
     const d = await r.json().catch(() => ({ error: "El servidor contestó "+r.status+"." }));
     if(!r.ok || d.error) throw new Error(d.error || "No se pudo guardar.");
-    aplicarGbp(arts);
+    aplicarGbp(arts.map(a => {
+      const y = GBP_CRUDO[a.cod];
+      return y ? Object.assign({}, a, { flete:y.flete, otroCosto:y.otroCosto, otroNombre:y.otroNombre, bulto:y.bulto }) : a;
+    }));
+    restaurarCatalogo(true);
     repintarTodo();
     GBP.pendientes = null;
     gbpG("gbpAcc").hidden = true;

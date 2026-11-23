@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.81";
+export const APP_VERSION = "V.0.99.82";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,26 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.82",
+    date: "2026-11-22",
+    changes: [
+      "TODO EN EL SERVIDOR (\"Todo tiene que estar en el servidor, nada de en ninguna máquina local, porque se va a leer con varios usuarios en diferentes computadoras\"): la venta que se está armando se guarda sola en el servidor; los borradores, los pedidos tomados y los clientes nuevos también, y se ven desde cualquier compu con el mismo usuario. Lo que había quedado solo en una compu se sube solo la primera vez (migración 55).",
+      "CAJA (\"los vendedores no puedan cobrar, sino que el cajero es el encargado de cobrar y emitir\"): permiso nuevo \"Cobrar y emitir\". El vendedor arma la venta y toca Mandar a caja; el cajero la ve en Caja → Por cobrar (se actualiza sola y avisa cuando llega una), la toma, elige con o sin comprobante y emite. Dos cajeros no pueden cobrar el mismo ticket. El que no tiene el permiso solo emite presupuestos. A los usuarios con permisos elegidos hay que tildarles Cobrar si cobran.",
+      "PASAR A OTRA SUCURSAL (\"un botón para pasar pedidos o presupuesto de sucursales ... como los diferentes CUITs\"): Mandar a caja deja elegir la caja de cualquier sucursal; se cobra con el CUIT de esa.",
+      "QUIÉN VENDIÓ, QUIÉN COBRÓ Y QUIÉN DESPACHÓ (\"que figure el nombre del primer vendedor ... quien le cobra en caja ... quien lo despacha\"): el comprobante sale a nombre del vendedor que armó la venta (la comisión es suya) y queda quién lo cobró. En Comprobantes, el botón Despachado anota quién entregó la mercadería del depósito y cuándo (permiso nuevo \"Despachar en el depósito\").",
+      "PRECIOS DE HOY EN PRESUPUESTOS (\"levantar un presupuesto viejo y ... actualizarlo a valores actuales, pero también mantenerme el viejo\"): botón Precios de hoy en Comprobantes. Hace un presupuesto nuevo con los precios de ahora y el viejo queda igual; los dos dicen de cuál salen.",
+      "FLETE Y OTRO COSTO (\"que el costo del envío se siga manteniendo\"): cada artículo puede tener un flete fijo por unidad y un \"otro costo\" con el nombre que quieras (embalaje, comisión...). Se suman al costo, la Lista 1 y la Lista 2 salen de ese costo, y no se pierden al volver a importar la lista de GBP. Cada proveedor puede tener un flete en % para los artículos que no tienen uno fijo.",
+      "PROVEEDORES COMPLETOS (\"dar de alta un nuevo proveedor ... que yo ponga el CUIT y me levante todos los datos solo ... un contacto de vendedor y algún número de WhatsApp ... También mail\"): alta con el CUIT (trae los datos de ARCA), editar cualquier dato, eliminar (se puede recuperar), contacto del vendedor, WhatsApp y mail. Lo que se retoca a mano no lo pisa el Excel de GBP.",
+      "PEDIDOS A PROVEEDORES (\"me lo pongas con los costos ... con los descuentos y cuánto es el valor de la mercadería que le estoy pidiendo\"): órdenes de compra OC-0001 por proveedor, con lista, descuentos, costo de cada artículo, neto, IVA y total. Se mandan por WhatsApp o mail y se imprimen. Los faltantes de un pedido de cliente se suman con un botón, y lo que quedó pendiente (sin stock de fábrica) aparece marcado como ya pedido la próxima vez.",
+      "BULTO DE COMPRA (\"ese artículo se vende en combo de 6 unidades ... por más que yo necesite 2, van a pedir 6\"): cada artículo puede decir de a cuántos se compra; el pedido al proveedor redondea para arriba y deja anotado cuántos hacían falta.",
+      "FACTURA A O B SEGÚN EL CLIENTE: a un consumidor final o exento solo se le ofrece Factura B; a un responsable inscripto, Factura A; a un monotributista, A (y B si se elige).",
+      "PADRÓN: si se escribe un DNI, queda el DNI (antes se cambiaba por el CUIT); si se escribe un CUIT, queda el CUIT entero.",
+      "DÓLAR DEL FORMADOR EN EL SERVIDOR: el valor que se usa para los precios en dólares es el mismo en todas las compus.",
+      "NOMBRE ENTERO EN LA VENTA (\"los artículos no me deja leerlos\"): el nombre del artículo ya no se corta con puntos suspensivos; baja de renglón.",
+      "UN PRESUPUESTO NO SE VENDE DOS VECES: si dos cajeros lo pasaban a venta a la vez, salían dos ventas del mismo presupuesto. Ahora el segundo recibe un aviso.",
+    ],
+  },
   {
     version: "V.0.99.81",
     date: "2026-11-22",

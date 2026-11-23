@@ -1,4 +1,7 @@
+import { registrar } from "@/lib/actividad";
 import { prisma } from "@/lib/db";
+import { puedePunto } from "@/lib/punto-permisos";
+import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
 
 // Las cotizaciones del dolar para Punto: blue y oficial del Banco Nacion,
@@ -13,6 +16,14 @@ import { quienEntra } from "../clave";
 //
 // Esto NO cambia el dolar del formador de precios: ese lo pone a mano quien
 // carga los articulos.
+//
+// El dolar del formador (V.0.99.82) tambien vive aca, aparte: hasta ahora
+// estaba en cada compu y dos puestos podian formar precios con dolares
+// distintos. Damian, 22/11/2026: "Todo tiene que estar en el servidor".
+//   GET  ?formador=1        -> {formador: {valor, fecha, por} | null}
+//   POST {formador: numero} -> {ok, formador} (permiso "productos" o "listas")
+// Se guarda en Setting "punto.dolar.formador". Los errores del servidor van
+// con 200 y {error}: Cloudflare tapa los 5xx.
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +31,9 @@ type Cotizacion = { compra: number; venta: number; fecha: string | null };
 type Cotizaciones = { blue: Cotizacion | null; oficial: Cotizacion | null; consultado: string };
 
 const CLAVE = "punto.dolar.cotizaciones";
+const CLAVE_FORMADOR = "punto.dolar.formador";
+
+type Formador = { valor: number; fecha: string; por: string };
 const VIGENCIA = 15 * 60 * 1000;
 let enMemoria: { cuando: number; datos: Cotizaciones } | null = null;
 
@@ -56,8 +70,15 @@ async function guardadas(): Promise<Cotizaciones | null> {
   }
 }
 
-export async function GET(): Promise<Response> {
+export async function GET(req: Request): Promise<Response> {
   if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
+  if (new URL(req.url).searchParams.has("formador")) {
+    try {
+      return json({ formador: await leerFormador() });
+    } catch {
+      return json({ error: "No pude leer el dólar del formador: probá de nuevo en un momento." });
+    }
+  }
   if (enMemoria && Date.now() - enMemoria.cuando < VIGENCIA) return json(enMemoria.datos);
 
   const [blue, oficial] = await Promise.all([traer("blue"), traer("oficial")]);
@@ -75,4 +96,70 @@ export async function GET(): Promise<Response> {
       .catch(() => {});
   }
   return json(datos);
+}
+
+// ------------------------------------------------------- DOLAR DEL FORMADOR
+
+async function leerFormador(): Promise<Formador | null> {
+  const f = await prisma.setting.findUnique({ where: { key: CLAVE_FORMADOR } });
+  if (!f) return null;
+  try {
+    const d = JSON.parse(f.value) as Partial<Formador>;
+    const valor = Number(d.valor);
+    if (!(valor > 0)) return null;
+    return { valor, fecha: typeof d.fecha === "string" ? d.fecha : f.updatedAt.toISOString(), por: String(d.por ?? "?") };
+  } catch {
+    return null;
+  }
+}
+
+/** La pagina se abrio con otro usuario que el de la sesion de ahora. */
+function deOtroUsuario(yo: unknown, quien: string): string | null {
+  if (typeof yo !== "string" || !yo || yo === quien) return null;
+  return `En esta compu ahora entró ${quien}: recargá la página para seguir con tu usuario. No se guardó nada.`;
+}
+
+export async function POST(req: Request): Promise<Response> {
+  if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
+  let cuerpo: { formador?: unknown; yo?: unknown };
+  try {
+    cuerpo = (await req.json()) as typeof cuerpo;
+  } catch {
+    return json({ error: "No entendí lo que me mandaste." }, 400);
+  }
+  if (!cuerpo || typeof cuerpo !== "object") return json({ error: "No entendí lo que me mandaste." }, 400);
+  let yo: Awaited<ReturnType<typeof yoPunto>>;
+  try {
+    yo = await yoPunto();
+  } catch {
+    return json({ error: "No pude leer los permisos de tu usuario: probá de nuevo en un momento." });
+  }
+  if (!yo) return json({ error: "Tenés que entrar con tu usuario." }, 401);
+  const otro = deOtroUsuario(cuerpo.yo, yo.usuario);
+  if (otro) return json({ error: otro });
+  if (!puedePunto(yo.permisos, "productos") && !puedePunto(yo.permisos, "listas"))
+    return json(
+      { error: "Tu usuario no tiene permiso para cambiar el dólar del formador. Pedíselo a quien administra los usuarios." },
+      403,
+    );
+  const crudo = cuerpo.formador;
+  const valor = typeof crudo === "number" ? crudo : typeof crudo === "string" ? Number(crudo.replace(",", ".")) : NaN;
+  if (!Number.isFinite(valor) || valor <= 0 || valor > 1e7)
+    return json({ error: "El dólar del formador tiene que ser un número mayor que cero." }, 400);
+
+  const formador: Formador = { valor: Math.round(valor * 100) / 100, fecha: new Date().toISOString(), por: yo.usuario };
+  try {
+    const value = JSON.stringify(formador);
+    // Un solo renglon, en un solo upsert: dos puestos a la vez, gana el
+    // ultimo y queda anotado quien.
+    await prisma.setting.upsert({ where: { key: CLAVE_FORMADOR }, create: { key: CLAVE_FORMADOR, value }, update: { value } });
+    await registrar(
+      "Punto: cambió el dólar del formador",
+      `$ ${formador.valor.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      yo.usuario,
+    );
+    return json({ ok: true, formador });
+  } catch {
+    return json({ error: "No pude guardar el dólar del formador: probá de nuevo en un momento." });
+  }
 }

@@ -42,6 +42,30 @@ export const ACCIONES_PUNTO: readonly DatosPermisoPunto[] = [
   { id: "importar", nombre: "Importar de GBP", ayuda: "Cargar los artículos y los proveedores desde los Excel de GBP." },
   { id: "eliminar", nombre: "Eliminar comprobantes", ayuda: "Eliminar o recuperar lo emitido." },
   { id: "numeros", nombre: "Corregir la numeración", ayuda: "Cambiar a mano el número del comprobante (para seguir el de GBP)." },
+  // V.0.99.82. Damian, 22/11/2026: "los vendedores no puedan cobrar, sino
+  // que el cajero es el encargado de cobrar y emitir una factura o un
+  // comprobante". El que no lo tiene presupuesta y manda la venta a caja
+  // (src/lib/punto-ventas.ts); /sistema/documentos le rechaza todo lo que no
+  // sea presupuesto. El que tiene todo (null en la base) lo tiene, como
+  // hasta hoy; al que tiene una lista de permisos hay que tildarselo.
+  // A proposito NO se le agrega solo al que ya tenia una lista (por ejemplo
+  // "venta"): esos son los vendedores, y los vendedores no cobran. Si se lo
+  // agregaramos, al subir esta version todos podrian emitir facturas.
+  {
+    id: "cobrar",
+    nombre: "Cobrar y emitir",
+    ayuda: "Cobra en caja y emite facturas, remitos y ventas sin comprobante. Sin esto, arma la venta y la manda a caja.",
+  },
+  // V.0.99.82. Damian, 22/11/2026: "si va a depósito a buscar caños o
+  // mercadería de depósito, que figure quien lo despacha". El que lo tiene
+  // marca en el comprobante que la mercaderia salio y queda su nombre
+  // (POST /sistema/documentos/despachar). Como "cobrar": el que tiene todo
+  // (null en la base) lo tiene; al que tiene una lista hay que tildarselo.
+  {
+    id: "despachar",
+    nombre: "Despachar en el depósito",
+    ayuda: "Marca que la mercadería de una venta salió del depósito y quién la entregó.",
+  },
 ];
 
 const TODOS = [...AREAS_PUNTO, ...ACCIONES_PUNTO].map((p) => p.id);

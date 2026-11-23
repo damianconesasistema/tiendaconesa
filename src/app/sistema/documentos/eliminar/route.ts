@@ -1,5 +1,6 @@
 import { registrar } from "@/lib/actividad";
 import { eliminarDocumento } from "@/lib/punto-documentos";
+import { motivoParaLaPantalla } from "@/lib/punto-error";
 import { puedePunto } from "@/lib/punto-permisos";
 import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../../clave";
@@ -34,6 +35,9 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return json({ error: "No entendí lo que me mandaste." }, 400);
   }
+  // Un cuerpo "null" es JSON valido: sin esto, leerle .yo tiraba un error
+  // que salia como 500 (y Cloudflare lo tapa).
+  if (!cuerpo || typeof cuerpo !== "object") return json({ error: "No entendí lo que me mandaste." }, 400);
   let yo: Awaited<ReturnType<typeof yoPunto>>;
   try {
     yo = await yoPunto();
@@ -61,6 +65,6 @@ export async function POST(req: Request): Promise<Response> {
     );
     return json({ ok: true, documento: r.doc });
   } catch (e) {
-    return json({ error: "No se pudo: " + ((e as Error).message || "error del servidor") + "." });
+    return json({ error: "No se pudo: " + motivoParaLaPantalla(e, "error del servidor") + "." });
   }
 }

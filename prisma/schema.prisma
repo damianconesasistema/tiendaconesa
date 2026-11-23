@@ -492,10 +492,14 @@ model PuntoNumerador {
 /// proveedor (no un Setting JSON): mas adelante cada uno lleva su cadena de
 /// descuentos. Lo escribe src/lib/punto-proveedores.ts.
 model PuntoProveedor {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   /// El ID de GBP: con ese se lo reconoce al volver a importar el Excel.
-  gbpId           Int      @unique
-  /// Solo los 11 numeros, sin guiones. Vacio si GBP no tenia uno valido.
+  /// Null en los que se dan de alta en Punto (migracion 55): en Postgres
+  /// muchos NULL no chocan en un unico.
+  gbpId           Int?      @unique
+  /// Solo numeros, sin guiones. Del Excel de GBP, los 11 del CUIT (vacio si
+  /// no tenia 11). Dado de alta a mano en Punto, hasta 11 (un CUIT, que pasa
+  /// el digito verificador, o un DNI).
   cuit            String
   razonSocial     String
   /// Como viene de GBP: "IVA Responsable Inscripto", "Responsable Monotributo"...
@@ -510,15 +514,163 @@ model PuntoProveedor {
   /// La moneda de su cuenta corriente: ARS | USD
   moneda          String
   /// La columna "Inactivo" de GBP. No se borra: se marca.
-  inactivo        Boolean  @default(false)
+  inactivo        Boolean   @default(false)
   /// La cadena de descuentos del proveedor (para mas adelante). Volver a
   /// importar el Excel no la toca.
   cadena          Json?
-  creadoEn        DateTime @default(now())
-  actualizadoEn   DateTime @updatedAt
-  /// El usuario que lo importo por ultima vez.
+  creadoEn        DateTime  @default(now())
+  actualizadoEn   DateTime  @updatedAt
+  /// El usuario que lo importo por ultima vez (desde la migracion 55, o que
+  /// lo cambio a mano en Punto).
   actualizadoPor  String
+  /// El flete del proveedor, en % sobre el costo (0 a 100). Se carga en
+  /// Punto (migracion 55): volver a importar el Excel no lo toca. Null = sin
+  /// flete.
+  flete           Float?
+  // ---- Migracion 55, V.0.99.82. Damian, 22/11/2026: "dame la posibilidad
+  // de editar esos proveedores y tambien eliminar", "que ponga un contacto
+  // de vendedor y algun numero de telefono de WhatsApp ... Tambien mail".
+  // Lo que sigue lo carga Punto: GBP no lo tiene y el Excel no lo toca.
+  /// El vendedor o la persona de contacto del proveedor.
+  contacto        String    @default("")
+  /// Solo numeros, con un + adelante si se quiere (hasta 20).
+  whatsapp        String    @default("")
+  /// En minuscula (hasta 120).
+  email           String    @default("")
+  notas           String    @default("")
+  /// Los datos de GBP que se retocaron a mano en Punto: volver a importar
+  /// el Excel no los pisa.
+  editados        String[]  @default([])
+  /// El usuario que lo dio de alta en Punto. Vacio en los que vinieron de GBP.
+  creadoPor       String    @default("")
+  /// Eliminado en Punto: no se borra, se marca (como PuntoDocumento). Sale
+  /// de la lista, se puede restaurar, y el Excel no lo vuelve a cargar.
+  eliminadoEn     DateTime?
+  eliminadoPor    String?
 
   @@index([razonSocial])
+  @@index([cuit])
+}
+
+/// Los pedidos a los proveedores, las ordenes de compra de Punto (OC-0001),
+/// migracion 55. Damian, 22/11/2026: "el pedido que voy a pedirle al
+/// proveedor me lo pongas con los costos y los valores ... los costos con los
+/// descuentos y cuanto es el valor de la mercaderia que le estoy pidiendo", y
+/// "cuando hago una orden de pedido y queda algo como pendiente, si me vuelve
+/// la semana que viene a sacar faltantes, que quede remarcado que ya esta
+/// pedido". Lo escribe src/lib/punto-compras.ts.
+model PuntoCompra {
+  id            String    @id @default(cuid())
+  /// De la serie "n2:compra" de PuntoNumerador: arranca en 1.
+  nro           Int
+  /// El proveedor de la lista, si se eligio de ahi. Null = solo el nombre.
+  proveedorId   String?
+  /// La razon social como se ve en el pedido.
+  proveedor     String
+  /// srl | cnc | tsl
+  sucursal      String
+  /// abierto | enviado | parcial | recibido | anulado
+  estado        String
+  /// {cod, tit, cant, recibido, lista, cadena, cont, neto, iva,
+  /// sinStockFabrica, origen, bulto?, necesita?}: ver
+  /// src/lib/punto-compras-limpiar.ts.
+  renglones     Json
+  /// Los totales los calcula el servidor, nunca la pagina.
+  neto          Float
+  iva           Float
+  total         Float
+  nota          String    @default("")
+  /// Sube en cada cambio: dos que guardan el mismo pedido no se pisan.
+  version       Int       @default(1)
+  creadoPor     String
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
+  enviadoEn     DateTime?
+  cerradoEn     DateTime?
+  /// Las marcas de los ultimos "sumar" que entraron en este pedido (hasta
+  /// 30): el reintento de uno que ya entro no suma dos veces.
+  marcas        String[]  @default([])
+
+  @@index([estado, sucursal])
+  @@index([proveedorId])
+}
+
+/// La venta que se esta armando en Punto, y lo que sale de ella antes de
+/// emitirse: los borradores, los tickets que esperan en la caja y los
+/// pedidos tomados (migracion 55). Damian, 22/11/2026: "Todo tiene que estar
+/// en el servidor, nada de en ninguna maquina local, porque se va a leer con
+/// varios usuarios en diferentes computadoras y en diferentes lugares", y
+/// "que el comprobante pase a un estado de al cajero ... los vendedores no
+/// puedan cobrar". Lo escribe src/lib/punto-ventas.ts; el paso a "cobrada"
+/// lo hace src/lib/punto-documentos.ts al emitir, en la misma transaccion.
+model PuntoVenta {
+  id              String    @id @default(cuid())
+  creadoEn        DateTime  @default(now())
+  actualizadoEn   DateTime  @updatedAt
+  /// Sube en cada cambio: dos pestanas o dos puestos que guardan la misma
+  /// venta no se pisan (el segundo recibe "conflicto").
+  version         Int       @default(1)
+  /// armando | borrador | en-caja | cobrando | cobrada | anulada | pedido
+  estado          String
+  /// Quien la tiene ahora: el vendedor, o el cajero mientras la cobra.
+  usuario         String
+  /// El nombre del vendedor que sale en el comprobante (la comision es suya
+  /// aunque la cobre el cajero) y su usuario.
+  vendedor        String
+  vendedorUsuario String
+  /// srl | cnc | tsl. En caja y cobrando: la caja que la tiene que cobrar.
+  sucursal        String
+  /// La pestana del navegador de la venta que se esta armando: una abierta
+  /// por usuario y pestana. Null en todo lo demas.
+  lugar           String?
+  /// El cajero que la esta cobrando y desde cuando.
+  tomadoPor       String?
+  tomadoEn        DateTime?
+  /// El comprobante con el que se cobro.
+  documentoId     String?
+  /// El presupuesto del que salio, si salio de uno.
+  origenId        String?
+  /// El nombre del cliente y el total como se guardaron (para las listas).
+  cliente         String
+  total           Float
+  /// Lo que arma la pagina: renglones {cod,cant}, articulos a mano, cliente,
+  /// descuento, forma de pago, comprobante, deposito, nota y, en un pedido,
+  /// ped (entrega, fecha, direccion, sena, estado, nro).
+  datos           Json
+
+  @@unique([usuario, lugar])
+  @@index([estado, sucursal])
+  @@index([usuario, estado])
+}
+
+/// Los clientes de Punto, en el servidor (migracion 55): los ve cualquier
+/// puesto. Antes vivian en la memoria de cada compu. Lo escribe
+/// src/lib/punto-clientes.ts.
+model PuntoCliente {
+  id            String   @id @default(cuid())
+  /// El ID del cliente en GBP, si vino de alla.
+  gbpId         Int?     @unique
+  /// Solo los 11 numeros, o vacio.
+  cuit          String
+  dni           String
+  nombre        String
+  /// Como lo eligio la pagina: "Responsable Inscripto", "Consumidor Final"...
+  condicionIva  String
+  domicilio     String
+  localidad     String
+  provincia     String
+  telefono      String
+  email         String
+  /// La lista de precios que le toca ("01.Lista 1"...).
+  lista         String
+  /// Limite de la cuenta corriente, en pesos. 0 = sin cuenta.
+  limite        Float    @default(0)
+  /// No se borra: se marca.
+  inactivo      Boolean  @default(false)
+  creadoPor     String
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@index([nombre])
   @@index([cuit])
 }

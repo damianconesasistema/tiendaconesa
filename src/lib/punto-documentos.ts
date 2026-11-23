@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { linkDocumento } from "@/lib/punto-link";
+import { nombreSucursalPunto } from "@/lib/punto-permisos";
 
 // Lo que se emite en el sistema Punto, guardado en la base (migracion 50).
 //
@@ -73,6 +74,12 @@ export type DocumentoNuevo = {
   descuento: number;
   total: number;
   origenId: string | null;
+  /** Solo en un presupuesto: el presupuesto viejo que este pone a precios de
+   *  hoy (V.0.99.82). El viejo queda como estaba. */
+  actualizaDe: string | null;
+  /** La venta del servidor (PuntoVenta, src/lib/punto-ventas.ts) de la que
+   *  sale este comprobante: al emitir pasa a "cobrada" (V.0.99.82). */
+  ventaId: string | null;
 };
 
 export type DocumentoGuardado = {
@@ -87,7 +94,15 @@ export type DocumentoGuardado = {
   pedido: number;
   /** "B 0003-00048214", o "P-2842" en la venta sin comprobante. */
   nroTexto: string;
+  /** El usuario que lo emitio: en una venta, el que COBRO (el cajero). */
   usuario: string;
+  /** Su nombre para mostrar (AdminUser.nombre; si no tiene, el usuario).
+   *  V.0.99.82, Damian: "despues pasa a caja, que figure el nombre de quien
+   *  le cobra en caja". */
+  cobroNombre: string;
+  /** El que atendio y tomo el pedido: "que figure el nombre del primer
+   *  vendedor que lo atiende". En un ticket de caja es el que armo la venta,
+   *  no el cajero (lo pone el servidor, ver ventaParaEmitir). */
   vendedor: string;
   puesto: string;
   cliente: string;
@@ -114,6 +129,9 @@ const entero = (v: unknown, min: number, max: number) => {
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : min;
 };
+
+/** Un id de la base (cuid): letras, numeros, - y _. */
+export const ID_VALIDO = /^[A-Za-z0-9_-]{8,40}$/;
 
 /** Lo que manda el navegador, revisado. Lo que no tiene forma de documento
  *  se rechaza con el motivo, para que la pantalla lo diga. */
@@ -174,6 +192,13 @@ export function limpiarDocumento(x: unknown): { doc: DocumentoNuevo } | { error:
   const cli = (o.cliente && typeof o.cliente === "object" ? o.cliente : {}) as Record<string, unknown>;
   const recargo = Number(o.recargo);
   const origenId = texto(o.origenId, 40) || null;
+  // "Actualizar a precios de hoy" (V.0.99.82): solo tiene sentido en un
+  // presupuesto nuevo. Que exista y sea un presupuesto lo mira
+  // crearDocumento, adentro de la transaccion.
+  const actualizaDe = letra === "X" ? texto(o.actualizaDe, 40) || null : null;
+  if (actualizaDe && !ID_VALIDO.test(actualizaDe)) return { error: "No sé qué presupuesto estás actualizando." };
+  const ventaId = texto(o.ventaId, 40) || null;
+  if (ventaId && !ID_VALIDO.test(ventaId)) return { error: "No sé de qué venta sale este comprobante." };
 
   return {
     doc: {
@@ -203,6 +228,8 @@ export function limpiarDocumento(x: unknown): { doc: DocumentoNuevo } | { error:
       descuento: Number.isFinite(descuento) ? descuento : 0,
       total,
       origenId,
+      actualizaDe,
+      ventaId,
     },
   };
 }
@@ -245,6 +272,9 @@ function aGuardado(d: {
     pedido: d.pedido,
     nroTexto: d.letra && d.numero != null ? `${d.letra} ${d.pv}-${pad8(d.numero)}` : `P-${d.pedido}`,
     usuario: d.usuario,
+    // El nombre de verdad lo pone conNombres() (lee la tabla de usuarios);
+    // hasta entonces, el usuario.
+    cobroNombre: d.usuario,
     vendedor: d.vendedor,
     puesto: d.puesto,
     cliente: d.cliente,
@@ -254,6 +284,32 @@ function aGuardado(d: {
     eliminado: d.eliminadoEn ? { en: d.eliminadoEn.toISOString(), por: d.eliminadoPor ?? "?" } : null,
     link: linkDocumento(d.id),
   };
+}
+
+/** Les pone a los documentos el nombre de quien los emitio (cobroNombre),
+ *  de una sola consulta para toda la lista. "admin" no esta en la tabla
+ *  (src/lib/usuarios.ts) y queda como "admin". Si la tabla no contesta,
+ *  quedan los usuarios: un nombre que falta no puede hacer fallar un
+ *  comprobante que ya se guardo (la pantalla diria "no se pudo" y se
+ *  volveria a emitir). */
+async function conNombres<T extends DocumentoGuardado>(docs: T[]): Promise<T[]> {
+  const usuarios = [...new Set(docs.map((d) => d.usuario))];
+  if (!usuarios.length) return docs;
+  try {
+    const filas = await prisma.adminUser.findMany({
+      where: { username: { in: usuarios } },
+      select: { username: true, nombre: true },
+    });
+    const nombres = new Map(filas.map((f) => [f.username, f.nombre.replace(/[<>]/g, "").trim()]));
+    for (const d of docs) d.cobroNombre = nombres.get(d.usuario) || d.usuario;
+  } catch {
+    // Quedan los usuarios (ver arriba).
+  }
+  return docs;
+}
+
+async function conNombre(doc: DocumentoGuardado): Promise<DocumentoGuardado> {
+  return (await conNombres([doc]))[0];
 }
 
 /** Lo guardado, menos lo que es solo del servidor: las marcas de las
@@ -290,14 +346,118 @@ async function siguiente(tx: Prisma.TransactionClient, clave: string, desde: num
   return n;
 }
 
+/** El numero del pedido tomado (V.0.99.82, src/lib/punto-ventas.ts): de la
+ *  misma serie "pedido" que los comprobantes, asi un P-NNNN no se repite
+ *  entre un pedido y una venta. Adentro de la transaccion que lo guarda. */
+export function siguientePedido(tx: Prisma.TransactionClient): Promise<number> {
+  return siguiente(tx, `${NUMERADOR}pedido`, 1);
+}
+
+/** El numero del pedido a proveedor, OC-0001 (V.0.99.82,
+ *  src/lib/punto-compras.ts): una serie propia, "n2:compra", que arranca en
+ *  1. Adentro de la transaccion que lo crea, como los comprobantes: si el
+ *  pedido no se guarda, el numero no se gasta. */
+export function siguienteCompra(tx: Prisma.TransactionClient): Promise<number> {
+  return siguiente(tx, `${NUMERADOR}compra`, 1);
+}
+
 function esRepetido(e: unknown): boolean {
   return e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002";
 }
 
-export async function crearDocumento(
-  d: DocumentoNuevo,
+// ------------------------------------------------- LA VENTA QUE SE EMITE
+// Desde la V.0.99.82 la venta que se arma vive en el servidor (PuntoVenta,
+// src/lib/punto-ventas.ts). Al emitir, la pagina dice de cual sale el
+// comprobante (ventaId) y aca, en la MISMA transaccion que lo crea, la venta
+// pasa a "cobrada" con el id del comprobante (un presupuesto no la cierra:
+// ver ventaParaEmitir). Asi:
+// - dos cajeros, o dos pestañas, que emiten el mismo ticket a la vez no lo
+//   cobran dos veces: el FOR UPDATE hace esperar al segundo, que despues la
+//   ve cobrada;
+// - si el comprobante no se crea, la venta sigue como estaba (ROLLBACK);
+// - el vendedor de un ticket de caja es el que armo la venta, no el cajero:
+//   asi la comision queda con el vendedor. Lo pone el servidor, no la pagina.
+// Se emite solo lo que esta en las manos del que emite: su venta armandose,
+// o el ticket que el mismo tomo en la caja.
+
+type VentaAEmitir =
+  /** cerrar: la venta pasa a "cobrada" con este comprobante. Un presupuesto
+   *  no la cierra. */
+  | { vendedor: string | null; cerrar: boolean }
+  | { error: string }
+  /** Ya se cobro con ESTE mismo comprobante (dos envios iguales a la vez). */
+  | { yaEmitido: DocumentoGuardado };
+
+// Un presupuesto (letra X) no cobra nada: la venta de la que sale no pasa a
+// "cobrada". La que se estaba armando queda como estaba (la pagina la vacia
+// sola con el guardado de siempre). Un ticket que el cajero tomo en la caja
+// no se presupuesta: el cliente vino a pagar, y si se cerrara con un
+// presupuesto saldria de la caja sin cobrarse.
+async function ventaParaEmitir(
+  tx: Prisma.TransactionClient,
+  ventaId: string,
   usuario: string,
-): Promise<{ doc: DocumentoGuardado; repetido: boolean }> {
+  idLocal: string,
+  letra: string | null,
+  sucursal: string,
+): Promise<VentaAEmitir> {
+  const bloqueo = await tx.$queryRaw<{ id: string }[]>`
+    SELECT "id" FROM "PuntoVenta" WHERE "id" = ${ventaId} FOR UPDATE`;
+  const v = bloqueo.length ? await tx.puntoVenta.findUnique({ where: { id: ventaId } }) : null;
+  if (!v) return { error: "Esa venta ya no está en el servidor: recargá la página. No se emitió nada." };
+  const presupuesto = letra === "X";
+  switch (v.estado) {
+    case "armando":
+      return v.usuario === usuario
+        ? { vendedor: null, cerrar: !presupuesto }
+        : { error: "Esa venta es de otro usuario: recargá la página. No se emitió nada." };
+    case "cobrando":
+      if (v.tomadoPor !== usuario) return { error: `La está cobrando ${v.tomadoPor || "otro cajero"}.` };
+      if (presupuesto) return { error: "Un ticket de caja se cobra con factura, remito o venta sin comprobante." };
+      // El ticket se cobra en la caja a la que lo mandaron: con el CUIT y la
+      // serie de esa sucursal. Para cobrarlo en otra, se manda a esa caja.
+      if (v.sucursal !== sucursal)
+        return { error: "Ese ticket es de la caja de " + nombreSucursalPunto(v.sucursal) + ": se cobra con esa sucursal. No se emitió nada." };
+      return { vendedor: v.vendedor, cerrar: true };
+    case "cobrada": {
+      const doc = v.documentoId ? await tx.puntoDocumento.findUnique({ where: { id: v.documentoId } }) : null;
+      if (doc && doc.idLocal === idLocal) return { yaEmitido: aGuardado(doc) };
+      return { error: doc ? `Esa venta ya se cobró (${aGuardado(doc).nroTexto}).` : "Esa venta ya se cobró." };
+    }
+    case "en-caja":
+      return { error: "Esa venta está esperando en la caja: tomala desde la caja para cobrarla." };
+    case "borrador":
+      return { error: "Esa venta quedó como borrador: retomala antes de emitirla." };
+    case "anulada":
+      return { error: "Esa venta se anuló." };
+    case "pedido":
+      return { error: "Eso es un pedido tomado: no se emite directo." };
+    default:
+      return { error: "Esa venta no se puede emitir." };
+  }
+}
+
+/** La venta queda cobrada con ese comprobante y suelta la pestaña: ahi se
+ *  puede empezar otra. */
+async function cerrarVenta(tx: Prisma.TransactionClient, ventaId: string, documentoId: string): Promise<void> {
+  await tx.puntoVenta.update({
+    where: { id: ventaId },
+    data: { estado: "cobrada", documentoId, lugar: null, version: { increment: 1 } },
+  });
+}
+
+type Emitido = { doc: DocumentoGuardado; repetido: boolean } | { error: string };
+
+/** El documento que vuelve, con el nombre de quien lo emitio. */
+async function conNombreSiHay(r: Emitido): Promise<Emitido> {
+  return "doc" in r ? { ...r, doc: await conNombre(r.doc) } : r;
+}
+
+export async function crearDocumento(d: DocumentoNuevo, usuario: string): Promise<Emitido> {
+  return conNombreSiHay(await crear(d, usuario));
+}
+
+async function crear(d: DocumentoNuevo, usuario: string): Promise<Emitido> {
   const ya = await prisma.puntoDocumento.findUnique({ where: { idLocal: d.idLocal } });
   if (ya) return { doc: aGuardado(ya), repetido: true };
 
@@ -313,14 +473,44 @@ export async function crearDocumento(
     bruto: d.bruto,
     descuento: d.descuento,
     fiscal: false,
+    // El presupuesto viejo que este pone a precios de hoy. No es origenId:
+    // ese quiere decir "se vendio de", y el viejo no se vendio.
+    ...(d.actualizaDe ? { actualizaDe: d.actualizaDe } : {}),
   };
   try {
-    const creado = await prisma.$transaction(async (tx) => {
-      if (d.origenId)
+    return await prisma.$transaction(async (tx): Promise<{ doc: DocumentoGuardado; repetido: boolean } | { error: string }> => {
+      // La venta primero: si no se puede emitir, se corta antes de gastar
+      // un numero.
+      let vendedor = d.vendedor;
+      let cerrar = false;
+      if (d.ventaId) {
+        const v = await ventaParaEmitir(tx, d.ventaId, usuario, d.idLocal, d.letra, d.sucursal);
+        if ("error" in v) return v;
+        if ("yaEmitido" in v) return { doc: v.yaEmitido, repetido: true };
+        if (v.vendedor) vendedor = v.vendedor;
+        cerrar = v.cerrar;
+      }
+      if (d.actualizaDe) {
+        const viejo = await tx.puntoDocumento.findUnique({ where: { id: d.actualizaDe }, select: { tipo: true } });
+        if (!viejo || viejo.tipo !== "presupuesto")
+          return { error: "El presupuesto que querés actualizar no está. No se guardó nada." };
+      }
+      if (d.origenId) {
         await tx.$queryRaw`SELECT "id" FROM "PuntoDocumento" WHERE "id" = ${d.origenId} FOR UPDATE`;
+        // Un presupuesto se vende una sola vez. Dos puestos que lo pasan a
+        // venta a la vez esperan uno al otro en el FOR UPDATE de arriba, y el
+        // segundo encuentra aca la venta del primero. Sin esto salian dos
+        // facturas del mismo presupuesto.
+        if (d.tipo !== "presupuesto") {
+          const vendido = await tx.puntoDocumento.findFirst({
+            where: { origenId: d.origenId, tipo: { not: "presupuesto" }, eliminadoEn: null },
+          });
+          if (vendido) return { error: `Ese presupuesto ya se vendió (${aGuardado(vendido).nroTexto}).` };
+        }
+      }
       const numero = d.letra ? await siguiente(tx, `${NUMERADOR}${d.sucursal}:${d.letra}`, d.desdeNumero) : null;
       const pedido = await siguiente(tx, `${NUMERADOR}pedido`, d.desdePedido);
-      return tx.puntoDocumento.create({
+      const creado = await tx.puntoDocumento.create({
         data: {
           idLocal: d.idLocal,
           tipo: d.tipo,
@@ -331,7 +521,7 @@ export async function crearDocumento(
           numero,
           pedido,
           usuario,
-          vendedor: d.vendedor,
+          vendedor,
           puesto: d.puesto,
           cliente: d.cliente.n,
           total: d.total,
@@ -339,8 +529,9 @@ export async function crearDocumento(
           datos: datos as Prisma.InputJsonValue,
         },
       });
+      if (d.ventaId && cerrar) await cerrarVenta(tx, d.ventaId, creado.id);
+      return { doc: aGuardado(creado), repetido: false };
     });
-    return { doc: aGuardado(creado), repetido: false };
   } catch (e) {
     // Dos pedidos con el mismo idLocal a la vez: el segundo choca contra el
     // unico y se devuelve el que gano.
@@ -380,13 +571,13 @@ export function limpiarEdicion(x: unknown): Edicion | null {
 const MAX_ANTERIORES = 20;
 const MAX_MARCAS = 30;
 
-export async function editarPresupuesto(
-  ed: Edicion,
-  d: DocumentoNuevo,
-  usuario: string,
-): Promise<{ doc: DocumentoGuardado; repetido: boolean } | { error: string }> {
+export async function editarPresupuesto(ed: Edicion, d: DocumentoNuevo, usuario: string): Promise<Emitido> {
+  return conNombreSiHay(await editar(ed, d, usuario));
+}
+
+async function editar(ed: Edicion, d: DocumentoNuevo, usuario: string): Promise<Emitido> {
   if (d.letra !== "X") return { error: "Al editar un presupuesto se guarda como presupuesto." };
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx): Promise<Emitido> => {
     // FOR UPDATE: el otro puesto que guarda el mismo presupuesto espera a
     // que este termine, y despues ve la version nueva.
     const bloqueo = await tx.$queryRaw<{ id: string }[]>`
@@ -414,6 +605,15 @@ export async function editarPresupuesto(
       select: { id: true },
     });
     if (vendido) return { error: "Ese presupuesto ya se vendió: no se puede cambiar." };
+    // La venta en la que se estaba editando (V.0.99.82) se revisa como al
+    // emitir (que sea suya, que no sea un ticket de caja). Como es un
+    // presupuesto no se cierra: queda como estaba (ver ventaParaEmitir).
+    let cerrar = false;
+    if (d.ventaId) {
+      const v = await ventaParaEmitir(tx, d.ventaId, usuario, "", d.letra, d.sucursal);
+      if ("error" in v) return v;
+      if ("cerrar" in v) cerrar = v.cerrar;
+    }
 
     const editadoAntes = prev.editado as { en?: string } | undefined;
     const anterior = {
@@ -444,6 +644,9 @@ export async function editarPresupuesto(
       editado: { en: new Date().toISOString(), por: usuario, veces: veces + 1 },
       marcas: [...marcas, d.idLocal].slice(-MAX_MARCAS),
       anteriores,
+      // Si este presupuesto puso a otro a precios de hoy (V.0.99.82), lo
+      // sigue diciendo despues de editarlo.
+      ...(typeof prev.actualizaDe === "string" ? { actualizaDe: prev.actualizaDe } : {}),
     };
     // El vendedor, el puesto, el numero, el pedido y la fecha son los del
     // presupuesto original. Quien lo cambio queda en datos.editado.
@@ -451,6 +654,7 @@ export async function editarPresupuesto(
       where: { id: ed.id },
       data: { cliente: d.cliente.n, total: d.total, datos: datos as Prisma.InputJsonValue },
     });
+    if (d.ventaId && cerrar) await cerrarVenta(tx, d.ventaId, nuevo.id);
     return { doc: aGuardado(nuevo), repetido: false };
   });
 }
@@ -470,7 +674,7 @@ export async function eliminarDocumento(
   const actual = await prisma.puntoDocumento.findUnique({ where: { id } });
   if (!actual) return { error: "Ese comprobante no está." };
   // Ya estaba como se pide (doble clic, otro puesto): no se toca de nuevo.
-  if (!!actual.eliminadoEn === !recuperar) return { doc: aGuardado(actual) };
+  if (!!actual.eliminadoEn === !recuperar) return { doc: await conNombre(aGuardado(actual)) };
   if (recuperar && actual.origenId && actual.tipo !== "presupuesto") {
     const otra = await prisma.puntoDocumento.findFirst({
       where: { origenId: actual.origenId, tipo: { not: "presupuesto" }, eliminadoEn: null, id: { not: id } },
@@ -489,14 +693,124 @@ export async function eliminarDocumento(
       ? { eliminadoEn: null, eliminadoPor: null }
       : { eliminadoEn: new Date(), eliminadoPor: usuario },
   });
-  return { doc: aGuardado(nuevo) };
+  return { doc: await conNombre(aGuardado(nuevo)) };
+}
+
+// ------------------------------------------------------------- DESPACHAR
+// V.0.99.82. Damian, 22/11/2026: "Que figure el nombre del primer vendedor
+// que lo atiende y le toma el pedido. Despues pasa a caja, que figure el
+// nombre de quien le cobra en caja. Y por tercero, si va a deposito a buscar
+// caños o mercaderia de deposito, que figure quien lo despacha". El vendedor
+// y el que cobro ya estan en el documento (vendedor, usuario/cobroNombre); el
+// que despacha se anota aca, en datos.despacho, cuando la mercaderia sale del
+// deposito. Se hace sobre el comprobante ya emitido: no cambia nada de lo
+// fiscal ni de lo cobrado.
+
+export type Despacho = { por: string; nombre: string; en: string; nota: string };
+
+function despachoDe(datos: Prisma.JsonValue): Despacho | null {
+  const d = datos && typeof datos === "object" && !Array.isArray(datos) ? (datos as Record<string, unknown>).despacho : null;
+  if (!d || typeof d !== "object" || Array.isArray(d)) return null;
+  const o = d as Record<string, unknown>;
+  return {
+    por: typeof o.por === "string" ? o.por : "?",
+    nombre: typeof o.nombre === "string" ? o.nombre : "",
+    en: typeof o.en === "string" ? o.en : "",
+    nota: typeof o.nota === "string" ? o.nota : "",
+  };
+}
+
+/** "22/11/2026 a las 15:30", en la hora de Argentina (UTC-3, sin horario de
+ *  verano, como inicioDelDiaAR): el servidor corre en UTC. */
+function fechaYHoraAR(iso: string): string {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return "?";
+  const ar = new Date(t - 3 * 3600_000);
+  const dos = (n: number) => String(n).padStart(2, "0");
+  return `${dos(ar.getUTCDate())}/${dos(ar.getUTCMonth() + 1)}/${ar.getUTCFullYear()} a las ${dos(ar.getUTCHours())}:${dos(ar.getUTCMinutes())}`;
+}
+
+/** La nota del despacho: sin < > (va a innerHTML), sin caracteres de
+ *  control (Postgres no acepta el 0x00 en un JSONB), cortada y sin mitades
+ *  de emoji. */
+const notaDespacho = (v: unknown): string =>
+  typeof v === "string"
+    ? v
+        .replace(/[<>]/g, "")
+        .replace(/[\u0000-\u001f\u007f]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 200)
+        .toWellFormed()
+    : "";
+
+/** Marca que salio del deposito (o lo deshace: un clic equivocado). En una
+ *  transaccion que bloquea el comprobante: dos que despachan el mismo a la
+ *  vez esperan uno al otro, y el segundo ve quien lo despacho. Deshacer lo
+ *  puede el mismo que lo despacho o quien administra los usuarios de Punto. */
+export async function despacharDocumento(
+  id: string,
+  yo: { usuario: string; nombre: string; admin: boolean },
+  p: { deshacer: boolean; nota: unknown },
+): Promise<{ doc: DocumentoGuardado; cambio: boolean } | { error: string }> {
+  if (!ID_VALIDO.test(id)) return { error: "No sé cuál es ese comprobante." };
+  const r = await prisma.$transaction(
+    async (tx): Promise<{ doc: DocumentoGuardado; cambio: boolean } | { error: string }> => {
+      const bloqueo = await tx.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "PuntoDocumento" WHERE "id" = ${id} FOR UPDATE`;
+      const actual = bloqueo.length ? await tx.puntoDocumento.findUnique({ where: { id } }) : null;
+      if (!actual) return { error: "Ese comprobante no está." };
+      // Un presupuesto no entrega nada: la mercaderia sale con la venta.
+      if (actual.tipo === "presupuesto") return { error: "Un presupuesto no se despacha: primero hay que venderlo." };
+      if (actual.eliminadoEn) return { error: "Ese comprobante está eliminado: no se despacha." };
+      const datos = (actual.datos && typeof actual.datos === "object" && !Array.isArray(actual.datos)
+        ? actual.datos
+        : {}) as Record<string, unknown>;
+      const ya = despachoDe(actual.datos);
+
+      if (p.deshacer) {
+        // Ya estaba sin despachar (doble clic, otro puesto): no se toca.
+        if (!ya) return { doc: aGuardado(actual), cambio: false };
+        if (ya.por !== yo.usuario && !yo.admin)
+          return {
+            error: `Lo despachó ${ya.nombre || ya.por}: solo esa persona o quien administra los usuarios lo puede deshacer.`,
+          };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { despacho, ...resto } = datos;
+        const nuevo = await tx.puntoDocumento.update({
+          where: { id },
+          data: { datos: resto as Prisma.InputJsonValue },
+        });
+        return { doc: aGuardado(nuevo), cambio: true };
+      }
+
+      // El mismo que lo despacho otra vez: es el reintento (se corto la
+      // respuesta, doble clic), no un error. Vuelve como esta, sin tocarlo:
+      // si no, el que despacho leia "Ya lo despachó" con su propio nombre.
+      if (ya && ya.por === yo.usuario) return { doc: aGuardado(actual), cambio: false };
+      if (ya) return { error: `Ya lo despachó ${ya.nombre || ya.por} el ${fechaYHoraAR(ya.en)}.` };
+      const despacho: Despacho = {
+        por: yo.usuario,
+        nombre: yo.nombre.replace(/[<>]/g, "").trim() || yo.usuario,
+        en: new Date().toISOString(),
+        nota: notaDespacho(p.nota),
+      };
+      const nuevo = await tx.puntoDocumento.update({
+        where: { id },
+        data: { datos: { ...datos, despacho } as Prisma.InputJsonValue },
+      });
+      return { doc: aGuardado(nuevo), cambio: true };
+    },
+    { maxWait: 10_000, timeout: 15_000 },
+  );
+  return "doc" in r ? { ...r, doc: await conNombre(r.doc) } : r;
 }
 
 /** Un documento por su id (para el PDF). */
 export async function documentoPorId(id: string): Promise<DocumentoGuardado | null> {
   if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) return null;
   const d = await prisma.puntoDocumento.findUnique({ where: { id } });
-  return d ? aGuardado(d) : null;
+  return d ? conNombre(aGuardado(d)) : null;
 }
 
 /** Las 00:00 de Argentina (UTC-3, sin horario de verano) de hace `diasAtras`
@@ -512,6 +826,9 @@ export type ConVenta = DocumentoGuardado & {
   /** En un presupuesto: la venta que salio de el, aunque no entre en los
    *  filtros de la lista (otro dia, otra sucursal, otro tipo). */
   vendidoEn?: { id: string; comp: string; nroTexto: string; tipo: string } | null;
+  /** En un presupuesto: el mas nuevo que lo puso a precios de hoy
+   *  (datos.actualizaDe = este id), o null. V.0.99.82. */
+  actualizadoEn?: { id: string; nroTexto: string } | null;
 };
 
 export async function listarDocumentos(f: {
@@ -535,7 +852,9 @@ export async function listarDocumentos(f: {
     orderBy: f.tipo === "eliminados" ? { eliminadoEn: "desc" } : { createdAt: "desc" },
     take: MAX_LISTADO + 1,
   });
-  const documentos: ConVenta[] = filas.slice(0, MAX_LISTADO).map(aGuardado);
+  // Con el nombre de quien cobro (cobroNombre) y, en datos.despacho, quien
+  // lo despacho en el deposito (despacharDocumento).
+  const documentos: ConVenta[] = await conNombres(filas.slice(0, MAX_LISTADO).map(aGuardado));
   // Si un presupuesto ya se vendio se sabe aparte de los filtros: si no, con
   // "solo presupuestos" volvia a ofrecer "Pasar a venta" y se vendia dos veces.
   const presus = documentos.filter((d) => d.tipo === "presupuesto").map((d) => d.id);
@@ -556,6 +875,29 @@ export async function listarDocumentos(f: {
       });
     }
     for (const d of documentos) if (d.tipo === "presupuesto") d.vendidoEn = porOrigen.get(d.id) ?? null;
+
+    // "Actualizar a precios de hoy" (V.0.99.82): el viejo queda intacto y la
+    // lista dice que ya hay uno nuevo, aunque el nuevo no entre en el filtro.
+    // Uno nuevo eliminado no cuenta. Se lee solo la marca, no los renglones.
+    const nuevos = await prisma.$queryRaw<
+      { id: string; letra: string | null; pv: string; numero: number | null; pedido: number; de: string }[]
+    >`
+      SELECT "id", "letra", "pv", "numero", "pedido", "datos"->>'actualizaDe' AS "de"
+        FROM "PuntoDocumento"
+       WHERE "tipo" = 'presupuesto'
+         AND "eliminadoEn" IS NULL
+         AND "datos"->>'actualizaDe' = ANY(${presus}::text[])
+       ORDER BY "createdAt" DESC`;
+    const porViejo = new Map<string, { id: string; nroTexto: string }>();
+    for (const n of nuevos) {
+      // Ordenados del mas nuevo al mas viejo: queda el primero.
+      if (porViejo.has(n.de)) continue;
+      porViejo.set(n.de, {
+        id: n.id,
+        nroTexto: n.letra && n.numero != null ? `${n.letra} ${n.pv}-${pad8(Number(n.numero))}` : `P-${n.pedido}`,
+      });
+    }
+    for (const d of documentos) if (d.tipo === "presupuesto") d.actualizadoEn = porViejo.get(d.id) ?? null;
   }
   return { documentos, hayMas: filas.length > MAX_LISTADO };
 }
@@ -565,12 +907,12 @@ export async function listarDocumentos(f: {
 export async function documentoPorMarca(idLocal: string): Promise<DocumentoGuardado | null> {
   if (!/^[A-Za-z0-9_-]{8,64}$/.test(idLocal)) return null;
   const d = await prisma.puntoDocumento.findUnique({ where: { idLocal } });
-  if (d) return aGuardado(d);
+  if (d) return conNombre(aGuardado(d));
   // La marca de una edicion de presupuesto queda adentro de datos.marcas.
   const editado = await prisma.puntoDocumento.findFirst({
     where: { tipo: "presupuesto", datos: { path: ["marcas"], array_contains: [idLocal] } },
   });
-  return editado ? aGuardado(editado) : null;
+  return editado ? conNombre(aGuardado(editado)) : null;
 }
 
 /** El ultimo numero usado de cada serie: la pantalla muestra el siguiente. */

@@ -86,6 +86,8 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const r = await leerComprobante(base64, mime);
-  if (r.error) return json({ error: r.error }, 502);
+  // Con 200 y {error}: un 5xx lo tapa Cloudflare con su propia pagina y la
+  // pantalla no podria decir que contesto la IA (la pagina mira d.error).
+  if (r.error) return json({ error: r.error });
   return json({ ok: true, filas: r.filas || [] });
 }
