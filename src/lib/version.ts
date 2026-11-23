@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.193";
+export const APP_VERSION = "V.0.11.194";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.194",
+    date: "2026-11-23",
+    changes: [
+      "FLETE POR MONTO EN CADA ARTÍCULO (\"por monto, no por porcentaje\"; el caso de PRECONS): en Artículos hay una columna \"Flete $\" para escribirlo ahí mismo, en pesos por unidad con IVA. Se suma al costo, las listas suben en la misma proporción (el margen queda) y se guarda en el servidor. Vacío: va el flete % del proveedor, si tiene. La columna se puede ordenar para ver juntos los que tienen flete.",
+    ],
+  },
   {
     version: "V.0.11.193",
     date: "2026-11-23",
