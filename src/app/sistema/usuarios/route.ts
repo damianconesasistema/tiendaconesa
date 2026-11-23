@@ -28,7 +28,8 @@ import { quienEntra } from "../clave";
 //   GET                                   -> la lista, las areas y las acciones
 //   POST {accion:"crear", nombre, usuario, clave, punto, sucursal}
 //   POST {accion:"permisos", id, punto, sucursal, adminPunto}
-//   POST {accion:"clave", id}             -> una provisoria, que se ve una vez
+//   POST {accion:"clave", id, clave?, cambiar?} -> la que eligio (o una
+//                                          provisoria), que se ve una vez
 //   POST {accion:"activo", id, activo}
 // Solo el que administra los usuarios de Punto (AdminUser.adminPunto, o
 // "admin"). Damian decidio que sean damian y daniel (migracion 54).
@@ -285,9 +286,11 @@ async function cambiarPermisos(c: Cuerpo, yo: YoPunto): Promise<Response> {
   return json({ ok: true, usuario: paraLaPantalla(nuevo) });
 }
 
-/** Se olvido la contrasena: una provisoria facil de dictar, que se muestra
- *  una sola vez. Al entrar con ella elige la suya. No se anota en ningun
- *  lado. */
+/** Se olvido la contrasena: la que escribe quien resetea o, si no escribe
+ *  ninguna, una provisoria facil de dictar. Se muestra una sola vez y no se
+ *  anota en ningun lado. Por defecto, al entrar con ella elige la suya
+ *  (cambiar: false = le queda esa). V.0.11.195, Damian: "que me deje elegir
+ *  una contraseña". */
 async function resetearClave(c: Cuerpo, yo: YoPunto): Promise<Response> {
   const u = await buscar(c.id);
   if (u instanceof Response) return u;
@@ -295,15 +298,24 @@ async function resetearClave(c: Cuerpo, yo: YoPunto): Promise<Response> {
     return json({ error: "Tu contraseña la cambiás vos desde tu usuario en el panel." }, 403);
   const duenio = reseteaATodos(yo.usuario);
   if (!duenio && soloLoTocaAdmin(u)) return NO_LE_TOCA(u);
-  const clave = claveProvisoria();
+  if (c.clave != null && typeof c.clave !== "string") return json({ error: "La contraseña es un texto." }, 400);
+  if (c.cambiar != null && typeof c.cambiar !== "boolean") return json({ error: "No entendí si la cambia al entrar." }, 400);
+  const elegida = typeof c.clave === "string" ? c.clave.trim() : "";
+  if (elegida) {
+    const mal = problemaConLaClave(elegida);
+    if (mal) return json({ error: mal }, 400);
+  }
+  const clave = elegida || claveProvisoria();
+  const cambiar = c.cambiar !== false;
   const r = await prisma.adminUser.updateMany({
     where: duenio ? { id: u.id } : dondeLoPuedeTocar(u, yo),
-    data: { passwordHash: huella(clave), debeCambiarClave: true },
+    data: { passwordHash: huella(clave), debeCambiarClave: cambiar },
   });
   if (!r.count) return CAMBIO_MIENTRAS();
   await registrar(
     `Punto: reseteó la contraseña de ${u.username}`,
-    "Le quedó una provisoria: al entrar elige la suya.",
+    (elegida ? "Le puso una que eligió" : "Le quedó una provisoria") +
+      (cambiar ? ": al entrar elige la suya." : ": le queda esa (no se la pide cambiar)."),
     yo.usuario,
   );
   return json({ ok: true, clave });
