@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.87";
+export const APP_VERSION = "V.0.99.88";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.88",
+    date: "2026-11-23",
+    changes: [
+      "INGRESO PROPIO DEL SISTEMA (\"eso tiene que ser un login aparte, no es el login de la página, es del sistema\"): la pantalla de ingreso a Punto ya no muestra el encabezado, el pie ni los botones de la tienda, y lleva el ícono del sistema.",
+    ],
+  },
   {
     version: "V.0.99.87",
     date: "2026-11-23",
