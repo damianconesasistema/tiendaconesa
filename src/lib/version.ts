@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.207";
+export const APP_VERSION = "V.0.11.208";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.208",
+    date: "2026-11-23",
+    changes: [
+      "Crear uno (\"cuando pongo un artículo nuevo y pongo guardar no me guardó\"; \"el código SKU que quede libre siempre\"): con el código vacío, Guardar frenaba sin ningún cartel. Ahora el código siempre queda libre: si se borra vuelve el que sigue, y al guardar, si está vacío o ya es de otro artículo, se pone uno libre solo, se avisa y se guarda.",
+      "El aviso del artículo a medio cargar dice quién lo estaba cargando y, sin título, de qué proveedor y marca es.",
+    ],
+  },
   {
     version: "V.0.11.207",
     date: "2026-11-23",
