@@ -1264,6 +1264,13 @@ footer{
   .acceso.grande{grid-column:1 / -1}
   .acc-art{grid-template-columns:minmax(0,1fr)}
 }
+
+/* El número del comprobante, arriba (V.0.11.191). */
+.nro-arriba{display:inline-flex; align-items:center; gap:8px; margin-left:14px; flex-wrap:wrap}
+.nro-arriba label{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.nro-arriba #vtaNro{width:190px; padding:6px 10px; font-size:15px; font-weight:600}
+.nro-arriba .por{font-size:12px}
+@media (max-width:640px){ .nro-arriba{margin-left:0; width:100%} .nro-arriba #vtaNro{flex:1; width:auto; min-width:0} }
 </style>
 </head>
 <body>
@@ -1335,6 +1342,7 @@ footer{
     <div>
       <div class="card" style="margin-bottom:16px">
         <div class="card-h"><h3>Comprobante</h3>
+          <span class="nro-arriba" id="vtaNroArriba"></span>
           <button class="b2" id="btnCrearVta" type="button" style="margin-left:auto;padding:5px 15px" title="Empezar un comprobante nuevo, en blanco">+ Crear</button>
           <button class="b3" id="btnBorrarDatosVta" type="button" style="margin-left:6px;padding:5px 13px" title="Cliente, documento, condición, descuento y depósito vuelven a lo de siempre. Los artículos quedan.">Borrar datos</button>
           <button class="b3" id="btnCambiarVta" style="margin-left:6px;padding:5px 15px">Cambiar</button>
@@ -3504,6 +3512,9 @@ function nroDe(comp){
 
 function pintarCamposVenta(){
   guardarLocalPronto();
+  // El número, arriba al lado de "Comprobante" (V.0.11.191): se pinta abajo,
+  // cuando ya se sabe qué documento es.
+  pintarNroArriba();
   const c = clienteVta();
   const sComp = compDe(c), sCond = condVtaDe(c);
   const comp = S.comp || sComp[0];
@@ -3560,18 +3571,6 @@ function pintarCamposVenta(){
     // El numero sale solo y viene de solo lectura: es EL dato que llega a
     // ARCA y no se toca por apoyar el dedo. Para corregirlo hay que
     // destrabarlo a proposito con el boton de al lado.
-    '<div class="campo"><label for="vtaNro">Número</label>'+
-      '<input id="vtaNro" type="text" value="'+nroDe(comp)+'"'+
-        (S.nroLibre ? '' : ' readonly')+
-        ' style="text-align:left;font-variant-numeric:tabular-nums">'+
-      // El boton va en la linea de ayuda, que existe igual: al lado de la
-      // cajita no entraba sin comerse el numero o un renglon de la fila.
-      '<span class="por">'+(S.nroLibre
-        ? '<b>Ojo:</b> cambia la numeración de los que siguen. '
-        : 'sale solo · ')+
-        (puede("numeros") ? '<button type="button" class="link-chico" id="vtaNroEdit">'+
-        (S.nroLibre ? "dejarlo como está" : "corregirlo")+'</button>' : '')+
-      '</span></div>'+
     campo("vtaLista","Lista de precios",["Lista 2","Lista 1"], S.lista === 1 ? "Lista 1" : "Lista 2",
           S.lista === 1 ? "los precios de la Lista 1" : "los precios de la Lista 2")+
     campo("vtaCond","Condición de venta",Object.keys(MULT),cond,
@@ -3628,7 +3627,7 @@ document.getElementById("btnCambiarVta").addEventListener("click",()=>{
   pintarCamposVenta();
 });
 
-document.getElementById("camposVta").addEventListener("change",e=>{
+document.getElementById("camposVta").closest(".card").addEventListener("change",e=>{
   const id = e.target.id;
   if(id==="vtaSuc" && window.VSRV && VSRV.caja){
     e.target.value = S.suc;
@@ -3701,7 +3700,7 @@ document.getElementById("camposVta").addEventListener("change",e=>{
 
 // El "+" de al lado del cliente. Va delegado porque el bloque se redibuja
 // entero cada vez que cambia algo del comprobante.
-document.getElementById("camposVta").addEventListener("click",e=>{
+document.getElementById("camposVta").closest(".card").addEventListener("click",e=>{
   if(e.target.closest("#vtaCliNuevo")) abrirCliente();
   if(e.target.closest("#vtaNroEdit")){
     S.nroLibre = !S.nroLibre;
@@ -3715,6 +3714,26 @@ document.getElementById("camposVta").addEventListener("click",e=>{
   }
 });
 
+/** El número del comprobante, en la cabecera de la tarjeta. */
+function pintarNroArriba(){
+  const caja = document.getElementById("vtaNroArriba"); if(!caja) return;
+  const c = clienteVta(), comp = S.comp || compDe(c)[0];
+  // Si se está escribiendo el número, no se lo pisa.
+  if(document.activeElement && document.activeElement.id === "vtaNro" && S.nroLibre) return;
+  caja.innerHTML =
+    '<label for="vtaNro">Nº</label>'+
+      '<input id="vtaNro" type="text" value="'+nroDe(comp)+'"'+
+        (S.nroLibre ? '' : ' readonly')+
+        ' style="text-align:left;font-variant-numeric:tabular-nums">'+
+      // El boton va en la linea de ayuda, que existe igual: al lado de la
+      // cajita no entraba sin comerse el numero o un renglon de la fila.
+      '<span class="por">'+(S.nroLibre
+        ? '<b>Ojo:</b> cambia la numeración de los que siguen. '
+        : 'sale solo · ')+
+        (puede("numeros") ? '<button type="button" class="link-chico" id="vtaNroEdit">'+
+        (S.nroLibre ? "dejarlo como está" : "corregirlo")+'</button>' : '')+
+      '</span>';
+}
 /** El botón grande dice lo que va a pasar al tocarlo, no "emitir" a secas. */
 /** La factura que le toca a este cliente: A si es responsable inscripto,
     B en los demás casos. Es a lo que apunta el botón principal, aunque
