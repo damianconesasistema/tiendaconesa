@@ -1120,7 +1120,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.86</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.87</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1140,7 +1140,6 @@ footer{
     <a href="#comprobantes" data-v="comprobantes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>Comprobantes</a>
     <a href="#web" data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Web</a>
     <a href="#productos" data-v="productos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Artículos</a>
-    <a href="#listas" data-v="listas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>Listas</a>
     <a href="#proveedores" data-v="proveedores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62L18.3 9.38a1 1 0 0 0-.78-.38H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Proveedores</a>
     <a href="#simulador" data-v="simulador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M8 6h8"/><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01M16 19h.01"/></svg>Simulador</a>
     <a href="#caja" data-v="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Caja</a>
@@ -1157,6 +1156,12 @@ footer{
   <button type="button" data-g="gerencia">Resumen</button>
   <button type="button" data-g="renta">Rentabilidad</button>
   <button type="button" data-g="contable">Contable</button>
+</div>
+<!-- Las listas de los proveedores viven adentro de Proveedores (23/11/2026:
+     "el Listas debería ir adentro de Proveedores"). -->
+<div class="solapas subger" id="subPrv" hidden>
+  <button type="button" data-g="proveedores">Proveedores</button>
+  <button type="button" data-g="listas">Listas de precios</button>
 </div>
 
 <!-- ======================================================== MOSTRADOR -->
@@ -1544,12 +1549,12 @@ footer{
         <span class="por">Los tres que exporta GBP: el de <b>listas</b> (código, costo, Lista 1, Lista 2 y stock: crea y actualiza los artículos), el de <b>descuentos</b> (Descuento #1 a #4 y los recargos de cada artículo) y el de <b>artículos</b> (código del fabricante, mínimo y óptimo). Se guarda en el servidor, no en esta computadora, y lo ven todos los puestos. El mismo código se actualiza; lo demás queda como estaba. Solo va a Punto: la tienda no se toca.</span>
       </div>
       <div id="gbpEstado"></div>
-      <div id="gbpTabla"></div>
       <div class="envio-acc" id="gbpAcc" hidden style="padding:14px 0 0">
-        <button class="b1" id="gbpCargar">Guardar en el sistema</button>
+        <button class="b1" id="gbpCargar" style="padding:13px 30px;font-size:15px">Guardar en el sistema</button>
         <button class="b3" id="gbpOtro">Sumar otro Excel</button>
         <button class="b3" id="gbpLimpiar" type="button">Empezar de nuevo</button>
       </div>
+      <div id="gbpTabla"></div>
     </div>
   </div>
 
@@ -1793,7 +1798,7 @@ footer{
         <thead><tr>
           <th data-ord="cod">Código</th><th data-ord="tit">Artículo</th><th data-ord="prov">Marca</th>
           <th class="r" data-ord="neto">Costo sin IVA</th><th class="r" data-ord="costo">IVA y costo final</th>
-          <th class="r" data-ord="unPago">Lista 2</th>
+          <th class="r" data-ord="lista1">Lista 1</th><th class="r" data-ord="unPago">Lista 2</th>
           <th class="r" data-ord="margen">Margen</th><th>Estado</th><th class="r" data-ord="stock">Stock</th><th></th>
         </tr></thead>
         <tbody id="tbProd"></tbody>
@@ -2326,6 +2331,38 @@ footer{
 <script>var PUNTO_YO = null; /*YO*/</script>
 <script>
 "use strict";
+/* Si algo falla al abrir o usar la página, se ve (antes no se veía nada y
+   quedaban cosas sin andar: sin artículos, sin usuario, sin poder sumar).
+   "Reparar esta compu" borra lo guardado en este navegador y recarga: las
+   ventas, los borradores, los pedidos y los artículos están en el servidor. */
+(function(){
+  let visto = false;
+  function mostrar(msg){
+    if(visto) return; visto = true;
+    const c = document.createElement("div");
+    c.style.cssText = "position:fixed;left:12px;bottom:56px;z-index:300;max-width:540px;background:#b42318;color:#fff;" +
+      "padding:12px 14px;border-radius:12px;font:600 13px/1.45 system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25)";
+    c.innerHTML = 'Algo falló en esta pantalla: <span style="font-weight:400"></span><br>' +
+      '<button type="button" style="margin-top:8px;border:0;border-radius:999px;padding:6px 14px;font:700 12px system-ui;cursor:pointer">Reparar esta compu y recargar</button> ' +
+      '<button type="button" style="margin-top:8px;border:1px solid #fff;background:none;color:#fff;border-radius:999px;padding:5px 12px;font:600 12px system-ui;cursor:pointer">Cerrar</button>';
+    c.querySelector("span").textContent = msg;
+    const [rep, cer] = c.querySelectorAll("button");
+    rep.onclick = () => {
+      if(!confirm("¿Borro lo guardado en este navegador y recargo?\\n\\nLas ventas, los borradores, los pedidos y los artículos están en el servidor: no se pierde nada.")) return;
+      try{ for(const k of Object.keys(localStorage)) if(/^punto\\./.test(k)) localStorage.removeItem(k); }catch(e){}
+      try{ sessionStorage.clear(); }catch(e){}
+      location.reload();
+    };
+    cer.onclick = () => c.remove();
+    (document.body || document.documentElement).appendChild(c);
+  }
+  addEventListener("error", e => mostrar((e.message || "error") + (e.lineno ? " (línea " + e.lineno + ")" : "")));
+  addEventListener("unhandledrejection", e => {
+    const r = e.reason;
+    // Solo los errores de programa: un pedido que no llegó lo avisa cada pantalla.
+    if(r && (r instanceof TypeError || r instanceof ReferenceError) && !/fetch|network|Failed/i.test(r.message || "")) mostrar(r.message);
+  });
+})();
 /** ¿El que entró puede usar esto? (área o acción de src/lib/punto-permisos.ts).
     Sin datos de permisos, todo: es como funcionaba antes. */
 function puede(id){
@@ -2635,7 +2672,80 @@ function serialDe(p){
   for(const k of CAMPOS_ED) if(p[k] !== undefined) o[k] = p[k];
   return o;
 }
+/* NADA LOCAL (V.0.99.87). Lo que se carga o se edita de un artículo va al
+   servidor (/sistema/articulos, el mismo del import de GBP) y lo ven todas
+   las compus. Antes quedaba solo en el navegador de esa compu. */
+let CAT_PEND = new Set(), CAT_T = 0, CAT_SUBIENDO = false;
 function guardarCatalogo(){
+  for(const p of PRODUCTOS) if(p && (p.tocado || p.cargado)) CAT_PEND.add(p.cod);
+  clearTimeout(CAT_T);
+  CAT_T = setTimeout(subirCatalogo, 400);
+}
+/** Un artículo de la pantalla, como lo guarda el servidor. */
+function articuloServidorDe(p){
+  const crudo = GBP_CRUDO[p.cod] || null;
+  const costo = +p.costo || 0, cp = +p.costoProducto || costo;
+  // La Lista 2 sin el flete ni el otro costo (los suma Punto encima).
+  const fac = cp > 0 && costo > 0 ? cp / costo : 1;
+  const lista2 = cent((+p.unPago || 0) * fac);
+  const l2 = isFinite(+p.l2) ? +p.l2 : 25;
+  const lista1 = cent(lista2 / (1 + l2 / 100));
+  if(!(lista1 > 0) || !(lista2 > 0)) return null;
+  const usd = p.mon === "USD";
+  const seis = (p.seis || []).map(limD);
+  const igualQueGbp = p.seisOrig && JSON.stringify(seis) === JSON.stringify(p.seisOrig.map(limD));
+  // El costo sale de la lista con sus descuentos y recargos: si se corrigió
+  // el costo a mano (en la tabla), se ajusta la lista para que dé ese costo.
+  const facCad = factorDe(seis) * factorRecs(p.recs) * facIva(ivaDe(p));
+  let listaArs = +p.lista || 0;
+  if(cp > 0 && facCad > 0 && Math.abs(cent(listaArs * facCad) - cp) > 0.01) listaArs = cent(cp / facCad);
+  const dol = +p.dolar > 0 ? +p.dolar : DOLAR;
+  const listaO = usd ? (dol > 0 ? Math.round(listaArs / dol * 100) / 100 : (+p.listaMon || 0)) : listaArs;
+  const o = {
+    cod: p.cod, tit: String(p.tit || ""), prov: String(p.prov || "VARIOS"),
+    cat: String(p.cat || (crudo && crudo.cat) || ""), subrub: String((crudo && crudo.subrub) || p.rub || ""),
+    lista: listaO, lista1, lista2, iva: ivaDe(p),
+    stockBA: Math.round(+((p.dep || {}).BA) || 0), stockTS: Math.round(+((p.dep || {}).TS) || 0),
+    gbpId: crudo && crudo.gbpId ? crudo.gbpId : null
+  };
+  if(usd) o.mon = "USD";
+  if(igualQueGbp && crudo && Array.isArray(crudo.dtos)){ o.dtos = crudo.dtos; o.recs = crudo.recs || []; }
+  else { o.dtos = seis.filter(d => d > 0).slice(0, 4); o.recs = (p.recs || []).filter(r => +r > 0).slice(0, 4);
+    // Más de 4 descuentos: los que sobran van como recargo negativo, como en GBP.
+    for(const d of seis.filter(d => d > 0).slice(4)) if(o.recs.length < 4) o.recs.push(-d); }
+  if(+p.fleteFijo > 0) o.flete = +p.fleteFijo;
+  if(+p.otroCosto > 0){ o.otroCosto = +p.otroCosto; if(p.otroNombre) o.otroNombre = p.otroNombre; }
+  if(+p.bulto > 1) o.bulto = +p.bulto;
+  return o;
+}
+async function subirCatalogo(){
+  if(CAT_SUBIENDO || !CAT_PEND.size) return;
+  if(!puede("importar")){
+    toast("Ese cambio no se guarda: tu usuario no puede guardar artículos (le falta Importar de GBP en Usuarios).");
+    CAT_PEND.clear(); return;
+  }
+  CAT_SUBIENDO = true;
+  const cods = [...CAT_PEND]; CAT_PEND.clear();
+  const arts = cods.map(c => prod(c)).filter(Boolean).map(articuloServidorDe).filter(Boolean);
+  try{
+    for(let i = 0; i < arts.length; i += 500){
+      const r = await fetch(GBP_URL, { method:"POST", credentials:"same-origin", headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ articulos: arts.slice(i, i + 500), archivo: "cargado en Punto", yo: soyYo() || undefined }) });
+      const d = await r.json().catch(() => ({ error: "El servidor contestó " + r.status + "." }));
+      if(!r.ok || d.error) throw new Error(d.error || "No se guardó.");
+    }
+    for(const a of arts){
+      GBP_CRUDO[a.cod] = Object.assign({}, GBP_CRUDO[a.cod] || {}, a);
+      const p = prod(a.cod); if(p){ p.tocado = false; p.cargado = false; p.gbp = true; }
+    }
+    try{ localStorage.removeItem(GUARDA); }catch(e){}
+    if(arts.length) toast(arts.length === 1 ? "Guardado en el sistema: lo ven todas las compus." : arts.length + " artículos guardados en el sistema.");
+  }catch(e){
+    for(const c of cods) CAT_PEND.add(c);
+    toast("No se guardó en el servidor: " + (e.message || "probá de nuevo") + " Tocá Guardar de nuevo.");
+  }finally{ CAT_SUBIENDO = false; }
+}
+function guardarCatalogoViejo(){
   try{
     // Los cambios de artículos que todavía no cargaron (GBP tarda) no se
     // pierden: se mantienen los guardados que no están en pantalla.
@@ -2675,42 +2785,28 @@ function rearmarCostoGbp(p){
   p.unPago = Math.round(p.unPago * f * 100) / 100;
   p.costo = nuevo; p.costoBase = nuevo;
 }
-function restaurarCatalogo(soloCambios){
+function restaurarCatalogo(){
+  if(CAT_MIGRADO) return 0;
+  CAT_MIGRADO = true;
   let d = null;
-  try{ d = JSON.parse(localStorage.getItem(GUARDA) || "null"); }catch(e){ return 0; }
-  if(!d) return 0;
-  let n = 0, viejos = 0;
-  for(const o of (d.cambios || [])){
-    const p = PRODUCTOS.find(x=>x.cod === o.cod);
-    if(!p) continue;
-    // Un cambio hecho en esta compu a un artículo de GBP ANTES del último
-    // import no tapa los precios nuevos (Damián: "los que tenés ya cargados
-    // están mal algunos, así que reemplazalos"). Se olvida.
-    if(p.gbp && GBP.fechaMs > 0 && !(+o.t > GBP.fechaMs)){ viejos++; continue; }
-    const dep = o.dep; delete o.dep; delete o.t;
-    if(p.gbp){
-      const srv = {};
-      for(const k of ["flete","fleteFijo","fletePct","otroCosto","otroNombre","bulto"]) srv[k] = p[k];
-      Object.assign(p, o, srv);
-      rearmarCostoGbp(p);
-    } else Object.assign(p, o);
-    // El stock de un artículo de GBP viene del servidor, no de esta compu.
-    if(dep && !p.gbp){ p.dep.BA = dep.BA; p.dep.TS = dep.TS; }
-    p.tocado = true; n++;
-  }
-  // Lo olvidado sale también de lo guardado en esta compu.
-  if(viejos) guardarCatalogo();
-  for(const o of (soloCambios ? [] : (d.nuevos || []))){
-    if(PRODUCTOS.some(x=>x.cod === o.cod)) continue;
+  try{ d = JSON.parse(localStorage.getItem(GUARDA) || "null"); }catch(e){}
+  if(!d){ try{ localStorage.removeItem(GUARDA); }catch(e){} return 0; }
+  // Los cambios viejos a artículos de GBP se olvidan (GBP manda). Los
+  // artículos que se cargaron a mano solo en esta compu se suben al servidor.
+  let n = 0;
+  for(const o of (d.nuevos || [])){
+    if(!o || !o.cod || PRODUCTOS.some(x => x.cod === o.cod)) continue;
     const p = Object.assign({ costoBase:o.costo, cargado:true }, o);
+    p.dep = p.dep || { BA:0, TS:0 };
     p.propio = plano(p.cod+" "+p.tit+" "+p.rub+" "+p.prov);
     p.blob   = plano(p.cod+" "+p.tit+" "+p.rub+" "+p.prov+" "+(ALIAS[p.rub]||""));
     PRODUCTOS.push(ponerStock(p));
     n++;
   }
+  if(n) guardarCatalogo(); else { try{ localStorage.removeItem(GUARDA); }catch(e){} }
   return n;
 }
-restaurarCatalogo();
+let CAT_MIGRADO = false;
 
 // Los artículos cargados a mano en una venta: no son del catálogo (no salen
 // en Productos ni en Gerencia), pero el ticket y el comprobante los ven.
@@ -2818,28 +2914,34 @@ document.querySelector("header .bar").addEventListener("click",e=>{
 });
 /** Las tres pantallas que se abren desde la solapa Gerencia. */
 const GERENCIA_ADENTRO = ["gerencia","renta","contable"];
-document.getElementById("subGer").addEventListener("click",e=>{
+/** Y las dos de Proveedores. */
+const PROVEEDORES_ADENTRO = ["proveedores","listas"];
+const GRUPOS_SOLAPA = { gerencia: GERENCIA_ADENTRO, proveedores: PROVEEDORES_ADENTRO };
+const padreDe = v => Object.keys(GRUPOS_SOLAPA).find(k => GRUPOS_SOLAPA[k].indexOf(v) >= 0) || "";
+for(const id of ["subGer", "subPrv"]) document.getElementById(id).addEventListener("click",e=>{
   const b = e.target.closest("[data-g]"); if(!b) return;
   abrirVista(b.dataset.g);
 });
 /** Las solapitas de adentro de Gerencia: solo las que tiene tildadas, y
  *  solo si son dos o más (con una sola no hay nada que elegir). */
 function pintarSubGer(v){
-  const sub = document.getElementById("subGer");
-  let cuantas = 0;
-  for(const x of sub.querySelectorAll("[data-g]")){
-    x.hidden = !vistaPermitida(x.dataset.g);
-    if(!x.hidden) cuantas++;
-    x.setAttribute("aria-pressed", String(x.dataset.g === v));
+  for(const [id, grupo] of [["subGer", GERENCIA_ADENTRO], ["subPrv", PROVEEDORES_ADENTRO]]){
+    const sub = document.getElementById(id);
+    let cuantas = 0;
+    for(const x of sub.querySelectorAll("[data-g]")){
+      x.hidden = !vistaPermitida(x.dataset.g);
+      if(!x.hidden) cuantas++;
+      x.setAttribute("aria-pressed", String(x.dataset.g === v));
+    }
+    sub.hidden = grupo.indexOf(v) < 0 || cuantas < 2;
   }
-  sub.hidden = GERENCIA_ADENTRO.indexOf(v) < 0 || cuantas < 2;
 }
 
 /** Deja a la vista una solapa, venga de un click o de la direccion. */
 function abrirVista(v){
   // Gerencia es la puerta de Rentabilidad y Contable: si no tiene tildado
   // el resumen, entra a la primera de las tres que sí.
-  if(v === "gerencia" && !vistaPermitida(v)) v = GERENCIA_ADENTRO.find(vistaPermitida) || v;
+  if(GRUPOS_SOLAPA[v] && !vistaPermitida(v)) v = GRUPOS_SOLAPA[v].find(vistaPermitida) || v;
   // Lo que no tiene tildado no se abre (ni escribiendo la dirección): va a
   // la primera solapa que sí puede usar.
   if(!vistaPermitida(v)){
@@ -2848,7 +2950,7 @@ function abrirVista(v){
   }
   if(vistas.indexOf(v) < 0) return;
   // Rentabilidad y Contable prenden la solapa Gerencia, que es donde viven.
-  const solapa = GERENCIA_ADENTRO.indexOf(v) >= 0 ? "gerencia" : v;
+  const solapa = padreDe(v) || v;
   const b = document.querySelector('#nav [data-v="'+solapa+'"], .bar a.ir[data-v="'+solapa+'"]');
   if(!b) return;
   for(const x of vistas) document.getElementById("v-"+x).hidden = (x !== v);
@@ -2895,6 +2997,12 @@ async function mirarVersion(){
   if(!v || v === VER_PAGINA || v === VER_AVISADA) return;
   VER_AVISADA = v;
   document.getElementById("nuevaVerNro").textContent = v;
+  // Damián: "forzá para que siempre traiga la última versión". Si no hay nada
+  // a medio hacer, recarga sola; si hay, avisa con la franja.
+  const ocupado = (S.linea && S.linea.length) || (typeof US_SUCIO === "object" && Object.keys(US_SUCIO).length) ||
+    (typeof GBP === "object" && GBP.lotes && Object.keys(GBP.lotes).length) || CAT_PEND.size ||
+    !document.getElementById("altaCuerpo").hidden || (typeof OC === "object" && OC.ed && OC.ed.sucio);
+  if(!ocupado){ location.reload(); return; }
   document.getElementById("nuevaVer").hidden = false;
 }
 setInterval(mirarVersion, 120000);
@@ -4299,7 +4407,7 @@ function rearmarGbpEnDolares(){
   try{
     const usd = Object.values(GBP_CRUDO).filter(a => a && a.mon === "USD");
     if(!usd.length) return;
-    aplicarGbp(usd); restaurarCatalogo(true); repintarTodo();
+    aplicarGbp(usd); repintarTodo();
   }catch(e){ /* todavía no llegaron los de GBP: los arma traerDeGbp */ }
 }
 function guardarDolarFormador(v){
@@ -5859,17 +5967,17 @@ function pintarProd(){
       '</select><small style="display:block;color:var(--ink-3)">+'+fmt2(costoProdDe(p)-netoProdDe(p))+'</small>'+
       (extraDe(p) > 0 ? '<small style="display:block;color:var(--ink-3)" title="flete y otros costos, por unidad">+'+fmt2(extraDe(p))+' flete</small>' : '')+
       '<small style="display:block;color:var(--ink-2);font-weight:600">= '+fmt2(p.costo)+'</small></td>'+
+      '<td class="r" style="white-space:nowrap;color:var(--ink-2)">'+fmt2(lista1De(p))+'</td>'+
       '<td class="r" style="font-weight:700;white-space:nowrap">'+fmt2(p.unPago)+'</td>'+
       '<td class="r" style="font-weight:600;color:'+(m<0?"var(--bad)":(m<S.objetivo?"var(--warn)":"var(--ok)"))+'">'+pct(m)+'</td>'+
       '<td>'+estadoPill(m)+'</td><td class="r">'+p.stock+'</td>'+
       '<td class="r"><button class="lapiz" data-ed="'+p.cod+'" title="Editar este artículo" aria-label="editar '+p.cod+'">'+
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" aria-hidden="true">'+
         '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button></td></tr>';
-  }).join("") || '<tr><td colspan="10" class="vacio">Nada con esos filtros.</td></tr>';
+  }).join("") || '<tr><td colspan="11" class="vacio">Nada con esos filtros.</td></tr>';
 
   const bajo = PRODUCTOS.filter(p=>margen(p)<0);
   const flojos = PRODUCTOS.filter(p=>{const m=margen(p); return m>=0 && m<S.objetivo;});
-  const mios = PRODUCTOS.filter(p=>p.cargado || p.tocado).length;
   document.getElementById("prodPie").innerHTML =
     (todos.length > lista.length
       ? "Se ven los primeros <b>"+lista.length+"</b> de <b>"+todos.length+"</b> que coinciden ("+PRODUCTOS.length+" artículos en total). "+
@@ -5878,20 +5986,18 @@ function pintarProd(){
       : "Se ven <b>"+lista.length+"</b> de "+PRODUCTOS.length+" artículos. ")+
     "En todo el catálogo: <b>"+bajo.length+
     "</b> se venden por debajo del costo y <b>"+flojos.length+"</b> no llegan al "+S.objetivo+
-    "%. El costo se puede corregir acá mismo y el margen se recalcula solo."+
-    (mios ? ' <b>'+mios+'</b> '+(mios===1 ? "artículo lo cargaste o lo editaste vos y queda guardado"
-                                          : "artículos los cargaste o los editaste vos y quedan guardados")+
-            ' en esta computadora. <button class="b3" id="btnOlvidar" style="padding:3px 11px;font-size:12px;margin-left:4px">Volver al catálogo original</button>'
-          : "");
+    "%. El costo se puede corregir acá mismo y se guarda en el sistema.";
 }
 for(const id of ["fProv","fRub"]) document.getElementById(id).addEventListener("input",pintarProd);
 // El objetivo ahora vive en Rentabilidad, que es la pantalla que lo usa.
 document.getElementById("fObj").addEventListener("input",()=>{ if(vistaActual() === "productos") pintarProd(); pintarRenta(); });
 /** De dónde sale el número (o el texto) de cada columna. */
+/** La Lista 1 de un artículo: la Lista 2 sin su porcentaje (con el flete, como la 2). */
+const lista1De = p => cent((+p.unPago || 0) / (1 + (isFinite(+p.l2) ? +p.l2 : 25) / 100));
 const ORD_PROD = {
   cod:  p=>p.cod,      tit:  p=>p.tit,     prov: p=>p.prov,
   neto: p=>netoProdDe(p),  costo:p=>p.costo,   contado:p=>p.contado,
-  unPago:p=>p.unPago,  margen:p=>margen(p), stock:p=>p.stock
+  unPago:p=>p.unPago,  lista1:p=>lista1De(p), margen:p=>margen(p), stock:p=>p.stock
 };
 document.querySelector("#v-productos thead").addEventListener("click",e=>{
   const th = e.target.closest("th[data-ord]"); if(!th) return;
@@ -8482,7 +8588,7 @@ const US_URL = "/sistema/usuarios";
 /** Esconde lo que el usuario no tiene tildado. Corre al arrancar. */
 function aplicarPermisos(){
   for(const a of document.querySelectorAll("#nav [data-v], .bar a.ir[data-v]"))
-    a.hidden = a.dataset.v === "gerencia" ? !GERENCIA_ADENTRO.some(vistaPermitida) : !vistaPermitida(a.dataset.v);
+    a.hidden = GRUPOS_SOLAPA[a.dataset.v] ? !GRUPOS_SOLAPA[a.dataset.v].some(vistaPermitida) : !vistaPermitida(a.dataset.v);
   const importar = puede("importar");
   for(const id of ["btnGbp", "prvImportar"]){ const b = document.getElementById(id); if(b) b.hidden = !importar; }
   const nuevo = document.getElementById("cpNuevo"); if(nuevo) nuevo.hidden = !puede("venta");
@@ -11657,7 +11763,7 @@ function productoDeGbp(a){
   const codProv = fab || ((tit.match(/\\(([A-Z0-9][A-Z0-9\\/.-]{2,})\\)/i) || [])[1] || "").toUpperCase();
   const p = {
     cod: sinEtiquetas(a.cod), tit, rub: rubroDeGbp(a.subrub, tit), prov: sinEtiquetas(a.prov) || "VARIOS",
-    codProv, lista: listaArs, seis, recs: gd ? gd.recs : [], dtoGbp: !!gd, l1, l2, iva,
+    codProv, lista: listaArs, seis, seisOrig: seis.slice(), recs: gd ? gd.recs : [], dtoGbp: !!gd, l1, l2, iva,
     dtoInfo, cadenaGbp: dtoInfo ? cadenaGbp : null,
     ...(usd ? { mon:"USD", listaMon: +a.lista || 0, dolar: DOLAR > 0 ? DOLAR : null } : {}),
     // El mínimo y el óptimo de stock de GBP, para verlos en la ficha. NO son
@@ -11723,7 +11829,7 @@ async function reintentarFletesProv(){
   }catch(e){ dp = null; }
   if(!ponerFletesProv(dp)) return;
   const arts = Object.keys(GBP_CRUDO).map(k => GBP_CRUDO[k]);
-  if(arts.length && aplicarGbp(arts)){ restaurarCatalogo(true); repintarTodo(); }
+  if(arts.length && aplicarGbp(arts)) repintarTodo();
   toast("Listo: el flete % de los proveedores ya está en los precios.");
 }
 /** Lo de Punto de un artículo de GBP: lo guarda el servidor y lo ve cualquier
@@ -11824,7 +11930,9 @@ async function traerDeGbpUnaVez(){
     GBP.fechaMs = isFinite(f) ? f : 0;
     GBP.fechaDescuentos = d && d.fechaDescuentos ? d.fechaDescuentos : "";
     if(d && d.error) return d.error;
-    if(aplicarGbp(d.articulos)){ restaurarCatalogo(true); repintarTodo(); }
+    aplicarGbp(d.articulos);
+    restaurarCatalogo();
+    repintarTodo();
     pintarGbpGuardados(d);
     return true;
   }catch(e){ return (e && e.message) ? e.message : "sin conexión"; }
@@ -12040,13 +12148,21 @@ function pintarLotesGbp(mal){
       (l.repetidos ? l.repetidos+" códigos repetidos: vale el primero. " : ""));
   }
   const faltan = GBP_TIPOS.filter(t => !L[t]).map(t => GBP_NOMBRE[t]);
-  gbpEstado(partes.join("<br>")+
+  // Arriba, en una línea, lo que se va a cargar; las notas, en "Ver detalles".
+  const resumen = (L.listas ? "<b>Vas a cargar "+L.listas.filas.length.toLocaleString("es-AR")+" artículos</b>: código, descripción, costo, Lista 1, Lista 2 y stock de Buenos Aires y Córdoba" : "")+
+    (L.descuentos ? (L.listas ? ", con los descuentos de cada uno" : "<b>Vas a cargar los descuentos</b> de "+L.descuentos.filas.length.toLocaleString("es-AR")+" artículos") : "")+
+    (L.estructura ? (L.listas || L.descuentos ? ", y el código del fabricante, el mínimo y el óptimo" : "<b>Vas a cargar</b> el código del fabricante, el mínimo y el óptimo") : "")+
+    ". Tocá <b>Guardar en el sistema</b>.";
+  gbpEstado('<div style="font-size:15px;margin-bottom:6px">'+resumen+'</div>'+
+    '<details><summary style="cursor:pointer;color:var(--ink-2)">Ver detalles y avisos</summary><div style="margin-top:6px">'+
+    partes.join("<br>")+
     (L.listas && !L.descuentos
       ? (GBP.fechaDescuentos
         ? "<br>Sin el Excel de descuentos se usan los que ya están, del "+new Date(GBP.fechaDescuentos).toLocaleDateString("es-AR")+
           ". Si en GBP cambiaron, traé también el de descuentos. Los artículos nuevos, hasta que lo traigas, sacan el costo de la Lista 1 ÷ 1,25."
         : "<br>Sin el Excel de descuentos, el costo de los nuevos sale de la Lista 1 ÷ 1,25 hasta que lo traigas.") : "")+
     (faltan.length ? '<br><span style="color:var(--ink-3)">Podés sumar también el de '+faltan.join(" y el de ")+": elegilo y se agrega.</span>" : "")+
+    '</div></details>'+
     (mal && mal.length ? '<br><b style="color:var(--bad)">'+mal.join(".<br>")+".</b>" : ""));
 
   // Los primeros de la lista, con el costo como va a quedar.

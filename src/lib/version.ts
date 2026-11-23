@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.86";
+export const APP_VERSION = "V.0.99.87";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,18 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.87",
+    date: "2026-11-23",
+    changes: [
+      "NADA LOCAL (\"acordate que no quiero nada local\"): lo que se carga o se edita de un artículo (Cargar uno, la ficha, el costo o el IVA en la tabla, el simulador, las listas por adjunto) se guarda en el servidor y lo ven todas las compus. Antes quedaba solo en esa compu. Lo viejo guardado en cada compu se sube una vez (los artículos cargados a mano) o se olvida (los cambios a artículos de GBP) y se borra.",
+      "SIEMPRE LA ÚLTIMA VERSIÓN (\"forzá para que siempre traiga la última versión\"): si se sube una versión nueva y no estás en medio de nada (sin artículos en la venta, sin cambios sin guardar), la página se recarga sola. Si estás cargando algo, aparece la franja roja.",
+      "SI ALGO FALLA, SE VE: si la página no puede arrancar o algo se rompe, aparece abajo un aviso rojo con el motivo y el botón Reparar esta compu (borra lo guardado en ese navegador y recarga; no se pierde nada, todo está en el servidor). Antes no se veía nada y quedaban cosas sin andar.",
+      "ARTÍCULOS CON LISTA 1 Y LISTA 2 (\"vos tenés Lista 1, Lista 2, que debería aparecerte\"): la tabla muestra las dos.",
+      "LISTAS ADENTRO DE PROVEEDORES (\"el Listas debería ir adentro de Proveedores\"): en Proveedores hay dos solapitas, Proveedores y Listas de precios.",
+      "IMPORTAR MÁS SIMPLE (\"debería estar más visible\"): arriba una línea con lo que se va a cargar y el botón Guardar en el sistema grande; las notas, en Ver detalles.",
+    ],
+  },
   {
     version: "V.0.99.86",
     date: "2026-11-23",
