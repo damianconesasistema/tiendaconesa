@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.83";
+export const APP_VERSION = "V.0.99.84";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.84",
+    date: "2026-11-23",
+    changes: [
+      "CREAR ARRIBA (\"el botón ese de vaciar, poner crear arriba\"): en Venta, el botón Vaciar (que estaba abajo, en Otras opciones) pasa arriba, en Comprobante, como + Crear: empieza un comprobante nuevo en blanco (sin artículos, consumidor final). Si había artículos cargados, pregunta antes de sacarlos.",
+    ],
+  },
   {
     version: "V.0.99.83",
     date: "2026-11-23",
