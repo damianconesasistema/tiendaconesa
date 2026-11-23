@@ -2643,13 +2643,15 @@ const RECARGO_1PAGO = 1.1363636363636365;   // lo que agrega la tarjeta en 1 pag
 /* Como paga el cliente. El recargo es sobre el precio de contado: lo que
    agrega la tarjeta no es ganancia, es lo que se lleva la tarjeta. */
 const MULT = {
+  // Sobre la Lista elegida, como GBP (V.0.11.190): la Lista es el precio de
+  // contado y de 1 pago. Las cuotas, lo mismo que cobraban antes.
   "01-Efectivo":1,
   "02-Transferencia":1,
   "03-QR o billetera":1,
-  "04-Tarjeta de débito":RECARGO_1PAGO,
-  "05-Tarjeta de crédito 1 pago":RECARGO_1PAGO,
-  "06-Tarjeta de crédito 3 cuotas":1.2273,
-  "07-Tarjeta de crédito 6 cuotas":1.3636,
+  "04-Tarjeta de débito":1,
+  "05-Tarjeta de crédito 1 pago":1,
+  "06-Tarjeta de crédito 3 cuotas":1.08,
+  "07-Tarjeta de crédito 6 cuotas":1.2,
   "08-Cuenta corriente 30 días":1
 };
 /** El nombre sin el numero de adelante, para mostrarlo en los informes. */
@@ -2761,21 +2763,24 @@ function listasMayor(p){
   const l2 = isFinite(+p.l2) ? +p.l2 : 25;
   const lista1 = cent((+p.costo || 0) * (1 + (+p.mayPct || 0) / 100));
   const lista2 = cent(lista1 * (1 + l2 / 100));
-  return { lista1, lista2, contado: cent(lista2 / RECARGO_1PAGO) };
+  return { lista1, lista2, contado: lista2 };
 }
 /** El precio de un renglón de la venta con esa cantidad. */
 function precioLinea(p, cant){
   if(!p) return { contado: 0, unPago: 0, may: false };
   // Con Lista 1 elegida arriba, el precio sale de la Lista 1 (en un artículo
   // cargado a mano no hay Lista 1: va su precio).
-  const conL1 = S.lista === 1 && !p.aMano;
+  // Como GBP (V.0.11.190): el precio es el de la Lista elegida, tal cual.
+  // El artículo cargado a mano va con el precio que se le puso.
+  if(p.aMano) return { contado: p.contado, unPago: p.contado, may: false };
+  const conL1 = S.lista === 1;
   if(p.may && +p.costo > 0 && cant >= Math.max(1, +p.mayDesde || 1)){
     const m = listasMayor(p);
     const un = conL1 ? m.lista1 : m.lista2;
-    return { contado: cent(un / RECARGO_1PAGO), unPago: un, may: true };
+    return { contado: un, unPago: un, may: true };
   }
-  if(conL1){ const un = lista1De(p); return { contado: cent(un / RECARGO_1PAGO), unPago: un, may: false }; }
-  return { contado: p.contado, unPago: p.unPago, may: false };
+  const un = conL1 ? lista1De(p) : cent(+p.unPago || 0);
+  return { contado: un, unPago: un, may: false };
 }
 /** Los precios de venta se redondean para arriba a los $100. */
 function redondear(n){ return Math.ceil(n/100)*100; }
@@ -3441,7 +3446,7 @@ function condVtaDe(c){
 /** El recargo de la forma elegida, dicho en criollo. */
 function recargoDe(fo){
   const m = MULT[fo];
-  return m===1 ? "sin recargo" : "recarga un "+((m-1)*100).toFixed(1).replace(".",",")+"% sobre el contado";
+  return m===1 ? "sin recargo" : "recarga un "+((m-1)*100).toFixed(1).replace(".",",")+"% sobre la lista";
 }
 /** El numero que sigue, por letra. Sale solo, nadie lo escribe. */
 /** El numero de pedido de la venta que se esta armando. */
@@ -4263,7 +4268,7 @@ function pintarTicket(){
     : "IVA "+ivaTxt(alics[0])+", ya incluido";
 
   document.getElementById("tkTot").innerHTML =
-    (S.linea.length ? '<div class="tr"><span>'+unid+' artículos, de contado</span><b>'+fmt(bruto)+'</b></div>'+
+    (S.linea.length ? '<div class="tr"><span>'+unid+' artículos, a Lista '+(S.lista === 1 ? 1 : 2)+'</span><b>'+fmt(bruto)+'</b></div>'+
       (dto>0 ? '<div class="tr"><span>Descuento '+S.desc+'%</span><b>−'+fmt(dto)+'</b></div>' : '')+
       (MULT[S.forma]!==1 ? '<div class="tr"><span>Recargo '+S.forma.toLowerCase()+'</span><b>'+fmt(total-base)+'</b></div>' : '')+
       // Nada de margen en la pantalla de venta: del otro lado del mostrador
@@ -11354,7 +11359,7 @@ function datosDeVenta(){
   };
 }
 function totalDeVenta(){
-  const bruto = S.linea.reduce((a, l) => { const p = prod(l.cod); return a + (p ? p.contado * l.cant : 0); }, 0);
+  const bruto = S.linea.reduce((a, l) => { const p = prod(l.cod); return a + (p ? precioLinea(p, l.cant).contado * l.cant : 0); }, 0);
   return Math.max(0, cent((bruto - Math.round(bruto * S.desc / 100)) * (MULT[S.forma] || 1)));
 }
 function marcarNube(estado, msg){
@@ -11608,7 +11613,7 @@ async function subirBorrador(b){
   try{
     const cods = new Set(b.linea.map(l => l.cod));
     const c = CLIENTES.find(x => x.id === b.cliente);
-    const bruto = b.linea.reduce((a, l) => { const p = prod(l.cod); return a + (p ? p.contado * l.cant : 0); }, 0);
+    const bruto = b.linea.reduce((a, l) => { const p = prod(l.cod); return a + (p ? precioLinea(p, l.cant).contado * l.cant : 0); }, 0);
     const g = (await pedirSrv(VTA_URL, { accion:"guardar", lugar:lugarBorrador(b), venta:{
       datos:{ linea: b.linea.map(l => ({ cod:l.cod, cant:l.cant })), manuales: manualesDe(cods),
               cliente: b.cliente || "", clienteDatos: clienteDatosDe(c),

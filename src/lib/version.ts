@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.189";
+export const APP_VERSION = "V.0.11.190";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.190",
+    date: "2026-11-23",
+    changes: [
+      "PRECIO DE LA VENTA COMO GBP (\"Sí, como GBP\"): cada renglón va a la Lista elegida tal cual (Lista 2 o Lista 1). Efectivo, transferencia, QR y cuenta corriente ya no bajan 12% solos: el descuento se elige en Descuento, como en GBP. Antes el contado bajaba 12% solo y, con el Descuento 12% encima, quedaba un descuento doble.",
+      "Tarjeta, sobre la Lista: débito y crédito en 1 pago, la Lista; 3 cuotas +8%; 6 cuotas +20% (los mismos precios con tarjeta que antes).",
+    ],
+  },
   {
     version: "V.0.11.189",
     date: "2026-11-23",
