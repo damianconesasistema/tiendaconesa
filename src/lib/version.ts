@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.95";
+export const APP_VERSION = "V.0.99.96";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.96",
+    date: "2026-11-23",
+    changes: [
+      "NOTAS DE CRÉDITO Y DE DÉBITO A y B, atadas a la factura: en Comprobantes, cada factura A o B tiene \"Nota de crédito\" y \"Nota de débito\" (para quien puede cobrar). La de crédito: marcás cuántos de cada artículo devuelve y el motivo; el total es la parte de la factura, con su descuento o recargo, y lo devuelto vuelve al stock del depósito de la factura. No deja devolver más de lo que queda sin devolver. La de débito: un monto con IVA y el motivo. Cada una con su propia numeración por sucursal. Internas como las facturas de Punto: todavía sin CAE.",
+      "La nota de crédito aparece en el Contable (Notas de crédito) y la de débito en el Libro IVA y la Caja. Eliminar una nota de crédito vuelve a sacar del stock lo devuelto; una factura con notas vigentes no se puede eliminar (primero la nota).",
+      "Arreglo: al emitir, la compu que cobraba descontaba el stock dos veces en pantalla (el servidor estaba bien).",
+    ],
+  },
   {
     version: "V.0.99.95",
     date: "2026-11-23",

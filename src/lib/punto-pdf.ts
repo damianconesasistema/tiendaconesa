@@ -48,12 +48,15 @@ const TITULO: Record<string, string> = {
   remito: "Remito",
   "pedido-interno": "Pedido interno",
   "sin-comprobante": "Venta sin comprobante",
+  "nota-credito": "Nota de crédito",
+  "nota-debito": "Nota de débito",
 };
 
 /** "Factura B", "Presupuesto"... como se llama el papel. */
 export function tituloDe(d: Pick<DocumentoGuardado, "tipo" | "letra">): string {
   const t = TITULO[d.tipo] ?? "Comprobante";
-  return d.tipo === "factura" && d.letra ? `${t} ${d.letra}` : t;
+  const conLetra = d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito";
+  return conLetra && d.letra ? `${t} ${d.letra}` : t;
 }
 
 /** "0003-00003301", o "P-2842" en la venta sin comprobante. */
@@ -119,7 +122,8 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   const H = 841.89;
   const der = W - M;
   const anchoUtil = W - M * 2;
-  const esFactura = d.tipo === "factura";
+  // Las notas de credito y de debito (V.0.99.96) van como la factura: internas, sin CAE.
+  const esFactura = d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito";
   const letra = d.letra || "";
 
   // Marca de agua de la factura interna: en todas las hojas, abajo de todo.

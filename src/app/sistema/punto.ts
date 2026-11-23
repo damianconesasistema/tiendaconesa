@@ -1377,6 +1377,8 @@ footer{
       <option value="sin-comprobante">Sin comprobante</option>
       <option value="remito">Remitos</option>
       <option value="pedido-interno">Pedidos internos</option>
+      <option value="nota-credito">Notas de crédito</option>
+      <option value="nota-debito">Notas de débito</option>
       <option value="preparacion">En preparación (sin despachar)</option>
       <option value="eliminados">Eliminados</option>
     </select>
@@ -7421,6 +7423,22 @@ document.getElementById("escritorio").addEventListener("click",function(e){
 /* Las notas de crédito todavía no se emiten desde Punto: hasta que se
    puedan, no hay ninguna (antes había tres inventadas). */
 const NOTAS_CREDITO = [];
+/** V.0.99.96: una nota de crédito del servidor, como la muestra el Contable. */
+function ncDeDocumento(g){
+  const dt = g.datos || {};
+  return { suc: g.sucursal, nro: g.nroTexto, anula: sinEtiquetas(dt.facturaNro || ""), motivo: sinEtiquetas(dt.motivo || "Devolución"),
+    total: +g.total || 0, docId: g.id, letra: g.letra };
+}
+/** Suma la nota a lo del día: la de crédito al Contable, la de débito a la Caja. */
+function sumarNota(g){
+  if(!g || g.eliminado) return;
+  if(g.tipo === "nota-credito"){ if(!NOTAS_CREDITO.some(n => n.docId === g.id)) NOTAS_CREDITO.push(ncDeDocumento(g)); }
+  else if(g.tipo === "nota-debito"){ if(!S.ventas.some(v => v.docId === g.id)) S.ventas.push(ventaDeDocumento(g)); }
+}
+function sacarNota(id){
+  const i = NOTAS_CREDITO.findIndex(n => n.docId === id);
+  if(i >= 0) NOTAS_CREDITO.splice(i, 1);
+}
 
 const HOY = new Date().toLocaleDateString("es-AR");
 const neto21 = t => t/1.21;
@@ -7605,7 +7623,7 @@ function pintarContable(){
   document.getElementById("tbIva").innerHTML = fact.slice().reverse().map(v=>{
     const t = ventaCobrado(v), c = clienteDeVenta(v);
     return '<tr><td class="num" style="font-size:12px">'+HOY+'</td>'+
-      '<td><span class="pill '+(v.letra==="A"?"p-n":"p-ok")+'">Factura '+v.letra+'</span></td>'+
+      '<td><span class="pill '+(v.letra==="A"?"p-n":"p-ok")+'">'+(v.nd ? "Nota de débito " : "Factura ")+v.letra+'</span></td>'+
       '<td class="num" style="font-size:12px">'+v.nro+'</td>'+
       '<td style="font-size:12px;color:var(--ink-2);white-space:nowrap">'+sucDe(v.suc).n+'</td>'+
       '<td class="nom" style="min-width:160px">'+(c?c.n:"Consumidor final")+'</td>'+
@@ -8103,7 +8121,7 @@ function ventaDeDocumento(g){
     base: (+dt.bruto || 0) - (+dt.descuento || 0), descPesos: +dt.descuento || 0,
     letra: facturada ? g.letra : undefined, nro: g.nroTexto,
     cli: cli.id || "", cliN: sinEtiquetas(cli.n || ""), cliT: sinEtiquetas(cli.t || ""), cliDoc: sinEtiquetas(cli.doc || ""),
-    total: g.total, comp: g.comp, docId: g.id, _doc: g
+    total: g.total, comp: g.comp, docId: g.id, _doc: g, nd: g.tipo === "nota-debito"
   };
 }
 /** Los renglones que la pantalla puede mostrar: los de artículos que hoy
@@ -8143,13 +8161,9 @@ function registrarEmitido(g){
   const dt = g.datos || {};
   if(g.tipo !== "presupuesto"){
     if(!g.eliminado && !S.ventas.some(v => v.docId === g.id)){
+      // El stock lo descuenta el servidor y vuelve con la respuesta
+      // (ponerStockServidor, V.0.99.94).
       S.ventas.push(ventaDeDocumento(g));
-      // Descuenta del deposito de donde salio. Todavia solo en esta
-      // pantalla: el stock no queda guardado (etapa siguiente).
-      for(const r of (dt.renglones || [])){
-        const p = prod(r.cod), dep = dt.deposito;
-        if(p && p.dep && p.dep[dep] != null) p.dep[dep] = Math.max(0, p.dep[dep] - r.cant);
-      }
     }
   } else if(!fueCambio(g)){
     S.presupuestos++;
@@ -8261,6 +8275,7 @@ async function traerDocumentosDeHoy(){
     let n = 0;
     for(const g of (d.documentos || []).slice().reverse()){
       if(g.tipo === "presupuesto" || ya.has(g.id)) continue;
+      if(g.tipo === "nota-credito"){ sumarNota(g); continue; }
       S.ventas.push(ventaDeDocumento(g));
       n++;
     }
@@ -8278,7 +8293,8 @@ function repintarInformes(){
 /* ------------------------------------------------ COMPROBANTES (la vista) */
 const CP = { docs:[], hayMas:false, cargando:false, error:"", abierto:null, pedido:0 };
 const NOMBRE_TIPO = { "presupuesto":"Presupuesto", "factura":"Factura", "remito":"Remito",
-                      "pedido-interno":"Pedido interno", "sin-comprobante":"Sin comprobante" };
+                      "pedido-interno":"Pedido interno", "sin-comprobante":"Sin comprobante",
+                      "nota-credito":"Nota de crédito", "nota-debito":"Nota de débito" };
 
 document.getElementById("cpSuc").innerHTML = '<option value="">Las tres sucursales</option>' +
   SUCURSALES.map(x => '<option value="' + x.id + '">' + x.n + '</option>').join("");
@@ -8409,6 +8425,8 @@ document.getElementById("tbCp").addEventListener("click", e => {
     if(a === "recuperar") eliminarDoc(d, acc, true);
     if(a === "despachar") despacharDoc(d, acc, false);
     if(a === "nodespachar") despacharDoc(d, acc, true);
+    if(a === "nc") abrirNota(d, "credito");
+    if(a === "nd") abrirNota(d, "debito");
     return;
   }
   const f = e.target.closest("tr[data-cp]");
@@ -8453,7 +8471,82 @@ function accionesCp(d, vendido){
           ? (((d.datos.despacho.por === soyYo()) || esAdminUsuarios()) ? bt("nodespachar", "Deshacer despacho", "b3", "Si se marcó por error") : "")
           : bt("despachar", "Despachado", "b2", "Anota que la mercadería salió del depósito y quién la entregó"))
       : "") +
+    (d.tipo === "factura" && (d.letra === "A" || d.letra === "B") && puede("cobrar")
+      ? bt("nc", "Nota de crédito", "b2", "Devuelve artículos de esta factura: vuelven al stock") +
+        bt("nd", "Nota de débito", "b2", "Le suma un monto a esta factura (interés, diferencia de precio...)")
+      : "") +
     (puede("eliminar") ? bt("eliminar", "Eliminar", "b3", "Sale de la lista y de la Caja; se puede recuperar") : "");
+}
+/* V.0.99.96: la nota de crédito o de débito de una factura A o B. La de
+   crédito devuelve artículos (vuelven al stock del depósito de la factura);
+   la de débito suma un monto. Las dos internas, como la factura: sin CAE. */
+function abrirNota(d, clase){
+  if(document.getElementById("notaFondo")) return;
+  const dt = d.datos || {}, ren = dt.renglones || [];
+  const nc = clase === "credito";
+  const idLocal = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+    : Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+  const cuerpo = nc
+    ? '<p class="nota" style="margin:0 0 8px">Cuántos de cada artículo devuelve. Lo devuelto vuelve al stock de '+(dt.deposito === "TS" ? "Traslasierra" : "Buenos Aires")+'.</p>'+
+      '<div class="tabla-wrap"><table class="densa"><thead><tr><th>Artículo</th><th class="r">Facturado</th><th class="r">Devuelve</th></tr></thead><tbody>'+
+      ren.map((r, i) => '<tr><td><span class="num">'+txt(r.cod)+'</span> '+txt(String(r.tit || "").slice(0, 46))+'</td><td class="r">'+(+r.cant || 0)+'</td>'+
+        '<td class="r"><input type="number" min="0" max="'+(+r.cant || 0)+'" step="1" value="'+(+r.cant || 0)+'" data-nc="'+i+'" style="width:72px"></td></tr>').join("")+
+      '</tbody></table></div>'
+    : '<label style="display:block">Monto con IVA <input id="ndMonto" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="width:100%"></label>';
+  document.body.insertAdjacentHTML("beforeend",
+    '<div id="notaFondo" style="position:fixed;inset:0;background:rgba(20,20,20,.38);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px">'+
+    '<div class="card" style="max-width:660px;width:100%;max-height:90vh;overflow:auto;padding:18px">'+
+    '<h3 style="margin:0 0 2px">'+(nc ? "Nota de crédito " : "Nota de débito ")+txt(d.letra)+'</h3>'+
+    '<div class="por" style="margin-bottom:12px">De la factura '+txt(d.nroTexto)+' · '+txt(d.cliente)+' · '+fmt(d.total)+'</div>'+cuerpo+
+    '<label style="display:block;margin-top:10px">Motivo <input id="notaMotivo" type="text" maxlength="200" autocomplete="off" style="width:100%" placeholder="'+
+      (nc ? "Devolución, cambio, error en la factura..." : "Interés, diferencia de precio...")+'"></label>'+
+    '<div id="notaTotal" class="por" style="margin-top:8px"></div>'+
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">'+
+      '<button class="b2" type="button" id="notaCancelar">Cancelar</button>'+
+      '<button class="b1" type="button" id="notaHacer">'+(nc ? "Hacer la nota de crédito" : "Hacer la nota de débito")+'</button></div></div></div>');
+  const fondo = document.getElementById("notaFondo");
+  const cants = () => ren.map((r, i) => { const e = fondo.querySelector('[data-nc="'+i+'"]'); return e ? Math.max(0, Math.min(+r.cant || 0, Math.floor(+e.value || 0))) : 0; });
+  const cuenta = () => {
+    if(!nc){ const m = aNum(document.getElementById("ndMonto").value); document.getElementById("notaTotal").textContent = m > 0 ? "Total de la nota: " + fmt(m) : ""; return; }
+    const c = cants();
+    const peso = cs => ren.reduce((a, r, i) => a + (+r.contado || 0) * cs[i], 0);
+    const todo = peso(ren.map(r => +r.cant || 0));
+    const t = todo > 0 ? Math.round(d.total * peso(c) / todo * 100) / 100 : 0;
+    document.getElementById("notaTotal").textContent = "Total de la nota: aprox. " + fmt(t) + " (lo calcula el servidor con lo que ya se devolvió de esta factura).";
+  };
+  fondo.addEventListener("input", cuenta);
+  cuenta();
+  const cerrar = () => fondo.remove();
+  document.getElementById("notaCancelar").addEventListener("click", cerrar);
+  fondo.addEventListener("click", e => { if(e.target === fondo) cerrar(); });
+  document.getElementById("notaHacer").addEventListener("click", async e => {
+    const b = e.currentTarget;
+    const motivo = document.getElementById("notaMotivo").value.replace(/[<>]/g, "").trim();
+    const cuerpoPost = { facturaId: d.id, clase, idLocal, motivo, puesto: S.puesto, yo: soyYo() };
+    if(nc){ cuerpoPost.cants = cants(); if(!cuerpoPost.cants.some(x => x > 0)){ toast("Marcá cuántos de cada artículo se devuelven."); return; } }
+    else {
+      cuerpoPost.monto = aNum(document.getElementById("ndMonto").value);
+      if(!(cuerpoPost.monto > 0)){ toast("Poné el monto de la nota de débito."); document.getElementById("ndMonto").focus(); return; }
+      if(!motivo){ toast("Poné el motivo de la nota de débito."); document.getElementById("notaMotivo").focus(); return; }
+    }
+    b.disabled = true;
+    try{
+      const r = await fetch(DOCS_URL + "/nota", { method:"POST", credentials:"same-origin", cache:"no-store",
+        headers:{ "Content-Type":"application/json" }, body: JSON.stringify(cuerpoPost) });
+      if(r.status === 401){ toast("Se cerró tu sesión: entrá de nuevo con tu usuario."); return; }
+      const j = await r.json().catch(() => null);
+      if(!j || j.error || !j.documento){ toast((j && j.error) || "No se pudo. Probá de nuevo."); return; }
+      ponerStockServidor(j.stock);
+      sumarNota(j.documento);
+      cerrar();
+      repintarInformes();
+      pintarComprobantes();
+      toast("Lista la " + j.documento.comp + " " + String(j.documento.nroTexto).replace(/^[AB] /, "") + " por " + fmt(j.documento.total) + "." +
+        (nc ? " Lo devuelto volvió al stock." : ""));
+    }catch(x){ toast("Sin conexión: probá de nuevo."); }
+    finally{ if(document.body.contains(b)) b.disabled = false; }
+  });
+  const primero = fondo.querySelector(nc ? "[data-nc]" : "#ndMonto"); if(primero) primero.focus();
 }
 /** Debajo del vendedor: quién cobró (si no es el mismo) y quién despachó. */
 function quienesCp(d){
@@ -8580,10 +8673,12 @@ async function eliminarDoc(d, boton, recuperar){
     ponerStockServidor(j.stock);
     // La Caja, la Rentabilidad y el Contable de esta pantalla.
     if(recuperar){
-      if(j.documento.tipo !== "presupuesto" && esDeHoy(j.documento.createdAt) && !S.ventas.some(v => v.docId === j.documento.id))
+      if(j.documento.tipo === "nota-credito"){ if(esDeHoy(j.documento.createdAt)) sumarNota(j.documento); }
+      else if(j.documento.tipo !== "presupuesto" && esDeHoy(j.documento.createdAt) && !S.ventas.some(v => v.docId === j.documento.id))
         S.ventas.push(ventaDeDocumento(j.documento));
     } else {
       S.ventas = S.ventas.filter(v => v.docId !== d.id);
+      sacarNota(d.id);
     }
     if(S.editando && S.editando.id === d.id && !recuperar){
       terminarEdicion(); S.origen = null; pintarCamposVenta(); pintarTicket();

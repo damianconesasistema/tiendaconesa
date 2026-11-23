@@ -29,7 +29,14 @@ import { nombreSucursalPunto } from "@/lib/punto-permisos";
 export const MAX_RENGLONES = 300;
 export const MAX_LISTADO = 500;
 
-export type Tipo = "presupuesto" | "factura" | "remito" | "pedido-interno" | "sin-comprobante";
+export type Tipo =
+  | "presupuesto"
+  | "factura"
+  | "remito"
+  | "pedido-interno"
+  | "sin-comprobante"
+  | "nota-credito"
+  | "nota-debito";
 const TIPO_DE_LETRA: Record<string, Tipo> = {
   A: "factura",
   B: "factura",
@@ -37,7 +44,15 @@ const TIPO_DE_LETRA: Record<string, Tipo> = {
   R: "remito",
   P: "pedido-interno",
 };
-export const TIPOS: Tipo[] = ["presupuesto", "factura", "remito", "pedido-interno", "sin-comprobante"];
+export const TIPOS: Tipo[] = [
+  "presupuesto",
+  "factura",
+  "remito",
+  "pedido-interno",
+  "sin-comprobante",
+  "nota-credito",
+  "nota-debito",
+];
 const SUCURSALES = ["srl", "cnc", "tsl"];
 
 export type Renglon = {
@@ -676,6 +691,18 @@ export async function eliminarDocumento(
   if (!actual) return { error: "Ese comprobante no está." };
   // Ya estaba como se pide (doble clic, otro puesto): no se toca de nuevo.
   if (!!actual.eliminadoEn === !recuperar) return { doc: await conNombre(aGuardado(actual)) };
+  // Una factura con notas de credito o debito vigentes no se elimina: lo
+  // devuelto por la nota volveria al stock dos veces (V.0.99.96).
+  if (!recuperar && actual.tipo === "factura") {
+    const nota = await prisma.puntoDocumento.findFirst({
+      where: { tipo: { in: ["nota-credito", "nota-debito"] }, eliminadoEn: null, datos: { path: ["facturaId"], equals: id } },
+      select: { comp: true, letra: true, pv: true, numero: true },
+    });
+    if (nota)
+      return {
+        error: `Esa factura tiene la ${nota.comp} ${nota.pv}-${pad8(nota.numero ?? 0)}: eliminá primero la nota.`,
+      };
+  }
   if (recuperar && actual.origenId && actual.tipo !== "presupuesto") {
     const otra = await prisma.puntoDocumento.findFirst({
       where: { origenId: actual.origenId, tipo: { not: "presupuesto" }, eliminadoEn: null, id: { not: id } },
@@ -697,12 +724,182 @@ export async function eliminarDocumento(
   return { doc: await conNombre(aGuardado(nuevo)) };
 }
 
+// ------------------------------------------- NOTAS DE CREDITO Y DE DEBITO
+// V.0.99.96. Damian: "NC/ND A y B atadas a la factura". Salen de una factura
+// A o B que no este eliminada, con su misma letra, sucursal, punto de venta,
+// pedido y cliente; cada una con su propia serie (NC A, NC B, ND A, ND B por
+// sucursal). Internas, como las facturas de Punto: no van a ARCA.
+// - Credito: los renglones que se devuelven y cuantos (no mas de lo que
+//   queda sin devolver entre todas las notas vigentes de esa factura). El
+//   total es la parte de la factura que representan, con su descuento o
+//   recargo; la que devuelve lo ultimo da justo lo que faltaba. Lo devuelto
+//   vuelve al stock (ajustarStockDe).
+// - Debito: un monto con IVA y el motivo. No toca el stock.
+
+export type NotaNueva = {
+  clase: "credito" | "debito";
+  idLocal: string;
+  /** Credito: cuantos de cada renglon de la factura (por posicion). */
+  cants: number[];
+  /** Debito: el monto con IVA. */
+  monto: number;
+  motivo: string;
+  puesto: string;
+};
+
+export function limpiarNota(x: unknown): { facturaId: string; nota: NotaNueva } | { error: string } {
+  if (!x || typeof x !== "object") return { error: "No llegó la nota." };
+  const o = x as Record<string, unknown>;
+  const facturaId = texto(o.facturaId, 40);
+  if (!ID_VALIDO.test(facturaId)) return { error: "No sé de qué factura es la nota." };
+  const idLocal = texto(o.idLocal, 64);
+  if (!/^[A-Za-z0-9_-]{8,64}$/.test(idLocal)) return { error: "Falta la marca de la nota (idLocal)." };
+  if (o.clase !== "credito" && o.clase !== "debito") return { error: "¿Nota de crédito o de débito?" };
+  const cants = (Array.isArray(o.cants) ? o.cants.slice(0, MAX_RENGLONES) : []).map((c) => entero(c, 0, 1_000_000));
+  const monto = plata(o.monto);
+  return {
+    facturaId,
+    nota: {
+      clase: o.clase,
+      idLocal,
+      cants,
+      monto: Number.isFinite(monto) ? monto : 0,
+      motivo: texto(o.motivo, 200),
+      puesto: texto(o.puesto, 60) || "?",
+    },
+  };
+}
+
+const red2 = (n: number) => Math.round(n * 100) / 100;
+
+export async function crearNota(facturaId: string, n: NotaNueva, usuario: string): Promise<Emitido> {
+  const ya = await prisma.puntoDocumento.findUnique({ where: { idLocal: n.idLocal } });
+  if (ya) return conNombreSiHay({ doc: aGuardado(ya), repetido: true });
+  try {
+    const r = await prisma.$transaction(
+      async (tx): Promise<Emitido> => {
+        // La factura bloqueada: dos notas de la misma a la vez esperan una a
+        // la otra, y la segunda ve lo que ya devolvio la primera.
+        const bloqueo = await tx.$queryRaw<{ id: string }[]>`
+          SELECT "id" FROM "PuntoDocumento" WHERE "id" = ${facturaId} FOR UPDATE`;
+        const f = bloqueo.length ? await tx.puntoDocumento.findUnique({ where: { id: facturaId } }) : null;
+        if (!f) return { error: "Esa factura no está." };
+        if (f.tipo !== "factura" || (f.letra !== "A" && f.letra !== "B"))
+          return { error: "Las notas de crédito y de débito se hacen sobre una factura A o B." };
+        if (f.eliminadoEn) return { error: "Esa factura está eliminada: no lleva notas." };
+        const fd = (f.datos && typeof f.datos === "object" && !Array.isArray(f.datos) ? f.datos : {}) as Record<
+          string,
+          unknown
+        >;
+        const fren = (Array.isArray(fd.renglones) ? fd.renglones : []) as Renglon[];
+        const tipo: Tipo = n.clase === "credito" ? "nota-credito" : "nota-debito";
+        const facturaNro = `${f.letra} ${f.pv}-${pad8(f.numero ?? 0)}`;
+        let renglones: Renglon[];
+        let total: number;
+        let bruto: number;
+        let descuento = 0;
+        let cants: number[] = [];
+        if (tipo === "nota-credito") {
+          const otras = await tx.puntoDocumento.findMany({
+            where: { tipo: "nota-credito", eliminadoEn: null, datos: { path: ["facturaId"], equals: f.id } },
+            select: { datos: true, total: true },
+          });
+          const devuelto = fren.map(() => 0);
+          let totalOtras = 0;
+          for (const o of otras) {
+            totalOtras += o.total;
+            const od = (o.datos && typeof o.datos === "object" && !Array.isArray(o.datos) ? o.datos : {}) as Record<
+              string,
+              unknown
+            >;
+            const c = Array.isArray(od.cants) ? od.cants : [];
+            fren.forEach((_, i) => (devuelto[i] += Number(c[i]) || 0));
+          }
+          cants = fren.map((_, i) => n.cants[i] || 0);
+          for (let i = 0; i < fren.length; i++) {
+            const queda = Math.max(0, (Number(fren[i].cant) || 0) - devuelto[i]);
+            if (cants[i] > queda)
+              return {
+                error: `Del ${fren[i].cod} ${queda ? `queda${queda === 1 ? "" : "n"} ${queda} para devolver` : "ya se devolvió todo"}.`,
+              };
+          }
+          if (!cants.some((c) => c > 0)) return { error: "Marcá cuántos de cada artículo se devuelven." };
+          const peso = (cs: number[]) => fren.reduce((a, r, i) => a + (Number(r.contado) || 0) * cs[i], 0);
+          const todo = peso(fren.map((r) => Number(r.cant) || 0));
+          const ratio = todo > 0 ? peso(cants) / todo : 0;
+          const ultima = fren.every((r, i) => cants[i] + devuelto[i] >= (Number(r.cant) || 0));
+          total = ultima ? red2(f.total - totalOtras) : red2(f.total * ratio);
+          bruto = red2((Number(fd.bruto) || 0) * ratio);
+          descuento = red2((Number(fd.descuento) || 0) * ratio);
+          renglones = fren.map((r, i) => ({ ...r, cant: cants[i] })).filter((r) => r.cant > 0);
+        } else {
+          if (!(n.monto > 0)) return { error: "Poné el monto de la nota de débito." };
+          if (!n.motivo) return { error: "Poné el motivo de la nota de débito." };
+          total = n.monto;
+          bruto = n.monto;
+          renglones = [{ cod: "ND", tit: n.motivo, cant: 1, contado: n.monto, unPago: n.monto, costo: 0, iva: 21 }];
+        }
+        if (!(total > 0)) return { error: "La nota da $ 0: no hay nada para hacer." };
+        const serie = `${NUMERADOR}${f.sucursal}:${tipo === "nota-credito" ? "NC" : "ND"}${f.letra}`;
+        const numero = await siguiente(tx, serie, 1);
+        const datos = {
+          v: 1,
+          cliente: fd.cliente,
+          forma: fd.forma,
+          recargo: fd.recargo,
+          desc: fd.desc,
+          deposito: fd.deposito,
+          traida: fd.traida,
+          renglones,
+          bruto,
+          descuento,
+          fiscal: false,
+          facturaId: f.id,
+          facturaNro,
+          motivo: n.motivo,
+          ...(tipo === "nota-credito" ? { cants } : {}),
+        };
+        const creado = await tx.puntoDocumento.create({
+          data: {
+            idLocal: n.idLocal,
+            tipo,
+            comp: `${tipo === "nota-credito" ? "Nota de crédito" : "Nota de débito"} ${f.letra}`,
+            letra: f.letra,
+            sucursal: f.sucursal,
+            pv: f.pv,
+            numero,
+            pedido: f.pedido,
+            usuario,
+            vendedor: f.vendedor,
+            puesto: n.puesto,
+            cliente: f.cliente,
+            total,
+            origenId: null,
+            datos: datos as Prisma.InputJsonValue,
+          },
+        });
+        return { doc: aGuardado(creado), repetido: false };
+      },
+      { maxWait: 10_000, timeout: 15_000 },
+    );
+    return conNombreSiHay(r);
+  } catch (e) {
+    if (esRepetido(e)) {
+      const otro = await prisma.puntoDocumento.findUnique({ where: { idLocal: n.idLocal } });
+      if (otro) return conNombreSiHay({ doc: aGuardado(otro), repetido: true });
+    }
+    throw e;
+  }
+}
+
 // ------------------------------------------------------------- STOCK
 // V.0.99.94. Damian, 23/11/2026: descuenta "al cobrar": la factura, el sin
 // comprobante y el pedido interno ("tiene que descontar cuando vendes en
 // negro o vendes en blanco"). El presupuesto no: todavia no se vendio. El
 // remito tampoco: acompaña una venta que ya desconto.
-const MUEVEN_STOCK = ["factura", "sin-comprobante", "pedido-interno"];
+const MUEVEN_STOCK = ["factura", "sin-comprobante", "pedido-interno", "nota-credito"];
+/** V.0.99.96: lo de la nota de credito vuelve al deposito: mueve al reves. */
+const ENTRA_STOCK = ["nota-credito"];
 
 /** Pone el stock como corresponde al comprobante (devuelve como quedo cada
  *  articulo que cambio, para la pantalla): si esta vigente, lo suyo
@@ -726,7 +923,9 @@ export async function ajustarStockDe(id: string, alEmitir = false): Promise<Stoc
         const esta = datos.stock;
         if (esta === quiere) return [];
         if (esta !== "salio" && esta !== "devuelto" && !(alEmitir && quiere === "salio")) return [];
-        const signo = quiere === "salio" ? -1 : 1;
+        // "salio" = lo del comprobante esta hecho: en una venta salio del
+        // deposito; en una nota de credito, entro.
+        const signo = (quiere === "salio" ? -1 : 1) * (ENTRA_STOCK.includes(actual.tipo) ? -1 : 1);
         const renglones = Array.isArray(datos.renglones) ? (datos.renglones as Partial<Renglon>[]) : [];
         const stock = await moverStockEnTx(
           tx,
