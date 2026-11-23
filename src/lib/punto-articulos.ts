@@ -307,6 +307,11 @@ export async function leerArticulos(): Promise<Guardados> {
 export async function guardarArticulos(
   llegan: ArticuloPunto[],
   por: string,
+  /** V.0.99.94: los codigos que trajeron stock. Un articulo guardado desde
+   *  Punto sin tocarle el stock no lo trae: queda el del servidor, que pudo
+   *  haber bajado con una venta en otra compu. Sin esto, todos lo traen (el
+   *  import de GBP: "manda GBP"). */
+  conStock?: Set<string>,
 ): Promise<{ nuevos: number; actualizados: number; total: number }> {
   return prisma.$transaction(async (tx) => {
     await bloquearArticulos(tx);
@@ -331,6 +336,10 @@ export async function guardarArticulos(
       // Los descuentos y lo de la estructura vienen de otros Excel: si este
       // no los trae, quedan los que ya tenia.
       if (ya) for (const k of CAMPOS_DE_OTRO_EXCEL) if (nuevo[k] === undefined && ya[k] !== undefined) copiar(nuevo, ya, k);
+      if (ya && conStock && !conStock.has(a.cod)) {
+        nuevo.stockBA = ya.stockBA;
+        nuevo.stockTS = ya.stockTS;
+      }
       porCodigo.set(a.cod, nuevo);
     }
     const articulos = [...porCodigo.values()];
@@ -483,4 +492,67 @@ export async function cambiarCostosArticulo(cod: string, cambios: CostosArticulo
     await tx.setting.update({ where: { key: CLAVE_ARTICULOS }, data: { value } });
     return nuevo;
   }, TIEMPO);
+}
+
+// ------------------------------------------------------------------ STOCK
+// V.0.99.94. Damian, 23/11/2026: el stock lo manda GBP (cada import lo pisa)
+// y en el medio lo mueve Punto: lo que se cobra sale, lo que llega de una
+// compra entra.
+
+export type MovimientoStock = { cod: string; cant: number };
+/** Como quedo el stock de un articulo despues de moverlo. */
+export type StockArticulo = { cod: string; BA: number; TS: number };
+
+/** Suma (cant > 0) o resta (cant < 0) stock de un deposito, dentro de la
+ *  transaccion del que lo llama: cambia junto con la venta o la compra, o no
+ *  cambia. Un codigo que no esta (un renglon cargado a mano) no se toca. Un
+ *  combo "3480+3641" mueve cada pieza; si alguna pieza no esta, se mueve el
+ *  combo como articulo, si esta. Puede quedar negativo: se vendio mas de lo
+ *  que GBP decia. Devuelve como quedo cada articulo que cambio. */
+export async function moverStockEnTx(
+  tx: Prisma.TransactionClient,
+  dep: "BA" | "TS",
+  movs: MovimientoStock[],
+): Promise<StockArticulo[]> {
+  const suma = new Map<string, number>();
+  for (const m of movs) {
+    const cant = Number(m?.cant);
+    if (!m || typeof m.cod !== "string" || !m.cod.trim() || !Number.isFinite(cant) || !cant) continue;
+    const cod = m.cod.trim();
+    suma.set(cod, (suma.get(cod) ?? 0) + cant);
+  }
+  if (!suma.size) return [];
+  await bloquearArticulos(tx);
+  const c = await leerCrudo(tx);
+  if (!c || !Array.isArray(c.d.articulos)) return [];
+  const articulos = c.d.articulos as ArticuloPunto[];
+  const porCodigo = new Map<string, number>();
+  articulos.forEach((a, i) => {
+    if (a && typeof a.cod === "string") porCodigo.set(a.cod, i);
+  });
+  const campo = dep === "TS" ? "stockTS" : "stockBA";
+  const cambiados = new Set<number>();
+  const mover = (i: number, cant: number) => {
+    const a = articulos[i];
+    articulos[i] = { ...a, [campo]: Math.round(((Number(a[campo]) || 0) + cant) * 100) / 100 };
+    cambiados.add(i);
+  };
+  for (const [cod, cant] of suma) {
+    const piezas = cod.includes("+") ? cod.split("+").map((p) => p.trim()).filter(Boolean) : [];
+    const lugares = piezas.map((p) => porCodigo.get(p));
+    if (piezas.length > 1 && lugares.every((i) => i !== undefined)) {
+      for (const i of lugares) mover(i as number, cant);
+      continue;
+    }
+    const i = porCodigo.get(cod);
+    if (i !== undefined) mover(i, cant);
+  }
+  if (!cambiados.size) return [];
+  const value = JSON.stringify({ ...c.d, articulos });
+  await tx.setting.update({ where: { key: CLAVE_ARTICULOS }, data: { value } });
+  return [...cambiados].map((i) => ({
+    cod: articulos[i].cod,
+    BA: Number(articulos[i].stockBA) || 0,
+    TS: Number(articulos[i].stockTS) || 0,
+  }));
 }

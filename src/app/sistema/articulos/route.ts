@@ -99,12 +99,20 @@ export async function POST(req: Request): Promise<Response> {
   if (!crudos.length) return json({ error: "No llegó ningún artículo." }, 400);
   if (crudos.length > MAXIMO_ARTICULOS) return json({ error: `Son más de ${MAXIMO_ARTICULOS} artículos.` }, 413);
 
-  const buenos = crudos.map(limpiarArticulo).filter((a) => a !== null);
+  // V.0.99.94: el stock solo cuenta si vino (ver guardarArticulos).
+  const buenos: NonNullable<ReturnType<typeof limpiarArticulo>>[] = [];
+  const conStock = new Set<string>();
+  for (const c of crudos) {
+    const a = limpiarArticulo(c);
+    if (!a) continue;
+    buenos.push(a);
+    if (c && typeof c === "object" && ("stockBA" in c || "stockTS" in c)) conStock.add(a.cod);
+  }
   if (!buenos.length) return json({ error: "Ningún renglón tenía código, descripción, Lista 1 y Lista 2." }, 400);
 
   const quien = yo.usuario;
   try {
-    const r = await guardarArticulos(buenos, quien);
+    const r = await guardarArticulos(buenos, quien, conStock);
     const archivo = typeof cuerpo.archivo === "string" ? cuerpo.archivo.slice(0, 120) : "";
     const marcas = [...new Set(buenos.map((a) => a.prov))].slice(0, 8).join(", ");
     await registrar(

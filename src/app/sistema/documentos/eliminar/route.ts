@@ -1,5 +1,5 @@
 import { registrar } from "@/lib/actividad";
-import { eliminarDocumento } from "@/lib/punto-documentos";
+import { ajustarStockDe, eliminarDocumento } from "@/lib/punto-documentos";
 import { motivoParaLaPantalla } from "@/lib/punto-error";
 import { puedePunto } from "@/lib/punto-permisos";
 import { yoPunto } from "@/lib/punto-yo";
@@ -57,13 +57,15 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const r = await eliminarDocumento(String(cuerpo.id ?? ""), quien, recuperar);
     if ("error" in r) return json({ error: r.error });
+    // Eliminada, lo vendido vuelve al deposito; recuperada, sale otra vez.
+    const stock = await ajustarStockDe(r.doc.id);
     const total = r.doc.total.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     await registrar(
       `Punto: ${recuperar ? "recuperó" : "eliminó"} ${r.doc.comp.replace(/^\d+\./, "")} ${r.doc.nroTexto}`,
       `${r.doc.cliente} · $ ${total}`,
       quien,
     );
-    return json({ ok: true, documento: r.doc });
+    return json({ ok: true, documento: r.doc, stock });
   } catch (e) {
     return json({ error: "No se pudo: " + motivoParaLaPantalla(e, "error del servidor") + "." });
   }

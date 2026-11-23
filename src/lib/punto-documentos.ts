@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { linkDocumento } from "@/lib/punto-link";
+import { moverStockEnTx, type StockArticulo } from "@/lib/punto-articulos";
 import { nombreSucursalPunto } from "@/lib/punto-permisos";
 
 // Lo que se emite en el sistema Punto, guardado en la base (migracion 50).
@@ -694,6 +695,56 @@ export async function eliminarDocumento(
       : { eliminadoEn: new Date(), eliminadoPor: usuario },
   });
   return { doc: await conNombre(aGuardado(nuevo)) };
+}
+
+// ------------------------------------------------------------- STOCK
+// V.0.99.94. Damian, 23/11/2026: descuenta "al cobrar": la factura, el sin
+// comprobante y el pedido interno ("tiene que descontar cuando vendes en
+// negro o vendes en blanco"). El presupuesto no: todavia no se vendio. El
+// remito tampoco: acompaña una venta que ya desconto.
+const MUEVEN_STOCK = ["factura", "sin-comprobante", "pedido-interno"];
+
+/** Pone el stock como corresponde al comprobante (devuelve como quedo cada
+ *  articulo que cambio, para la pantalla): si esta vigente, lo suyo
+ *  salio del deposito; si esta eliminado, volvio. Lo anota en datos.stock
+ *  ("salio" / "devuelto"), asi un reintento o un doble clic no lo mueve dos
+ *  veces. Uno de antes de V.0.99.94 (sin la marca) solo se toca al emitirlo.
+ *  Nunca corta nada: si falla, la venta ya esta y queda en el log. */
+export async function ajustarStockDe(id: string, alEmitir = false): Promise<StockArticulo[]> {
+  if (!ID_VALIDO.test(id)) return [];
+  try {
+    return await prisma.$transaction(
+      async (tx): Promise<StockArticulo[]> => {
+        const bloqueo = await tx.$queryRaw<{ id: string }[]>`
+          SELECT "id" FROM "PuntoDocumento" WHERE "id" = ${id} FOR UPDATE`;
+        const actual = bloqueo.length ? await tx.puntoDocumento.findUnique({ where: { id } }) : null;
+        if (!actual || !MUEVEN_STOCK.includes(actual.tipo)) return [];
+        const datos = (actual.datos && typeof actual.datos === "object" && !Array.isArray(actual.datos)
+          ? actual.datos
+          : {}) as Record<string, unknown>;
+        const quiere = actual.eliminadoEn ? "devuelto" : "salio";
+        const esta = datos.stock;
+        if (esta === quiere) return [];
+        if (esta !== "salio" && esta !== "devuelto" && !(alEmitir && quiere === "salio")) return [];
+        const signo = quiere === "salio" ? -1 : 1;
+        const renglones = Array.isArray(datos.renglones) ? (datos.renglones as Partial<Renglon>[]) : [];
+        const stock = await moverStockEnTx(
+          tx,
+          datos.deposito === "TS" ? "TS" : "BA",
+          renglones.map((r) => ({ cod: String(r?.cod ?? ""), cant: signo * (Number(r?.cant) || 0) })),
+        );
+        await tx.puntoDocumento.update({
+          where: { id },
+          data: { datos: { ...datos, stock: quiere } as Prisma.InputJsonValue },
+        });
+        return stock;
+      },
+      { maxWait: 15_000, timeout: 60_000 },
+    );
+  } catch (e) {
+    console.error("Punto: no se pudo mover el stock del comprobante", id, e);
+    return [];
+  }
 }
 
 // ------------------------------------------------------------- DESPACHAR

@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.93";
+export const APP_VERSION = "V.0.99.94";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.94",
+    date: "2026-11-23",
+    changes: [
+      "STOCK EN EL SERVIDOR (\"tiene que descontar cuando vendés en negro o vendés en blanco\"; \"los presupuestos no descuentan\"): al cobrar, la factura, el sin comprobante y el pedido interno descuentan del depósito de donde sale la venta (Buenos Aires o Traslasierra). El presupuesto no toca el stock. Eliminar una venta devuelve lo vendido; recuperarla lo vuelve a descontar. Un combo descuenta cada pieza.",
+      "Cargar lo que llegó de una orden de compra suma al stock de esa sucursal (solo la diferencia con lo ya cargado).",
+      "El Excel de GBP sigue mandando: cada import pisa el stock. Guardar un artículo desde Punto ya no pisa el stock que bajó una venta en otra compu: solo lo manda si se lo cambió a mano.",
+    ],
+  },
   {
     version: "V.0.99.93",
     date: "2026-11-23",

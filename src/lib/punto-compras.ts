@@ -1,6 +1,7 @@
 import { Prisma, type PuntoCompra } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { siguienteCompra } from "@/lib/punto-documentos";
+import { moverStockEnTx } from "@/lib/punto-articulos";
 import {
   aplicarRecibidos,
   conLoQueYaLlego,
@@ -52,9 +53,8 @@ import {
 //   con el pedido como quedo.
 // - Los totales los calcula el servidor (punto-compras-limpiar.ts), nunca los
 //   de la pagina.
-// - Cargar lo que llego NO toca el stock: el stock todavia no esta en el
-//   servidor (vive en el Excel de GBP que se importa). Cuando este, se suma
-//   aca, en la misma transaccion.
+// - Cargar lo que llego suma al stock del deposito de la sucursal (V.0.99.94),
+//   en la misma transaccion: solo la diferencia con lo que ya se habia cargado.
 // - Lo que no se puede vuelve como { error } con el motivo, para que la
 //   pantalla lo diga.
 
@@ -473,8 +473,8 @@ async function reabrirCompra(id: string): Promise<ResultadoCompra> {
  *  cuanto mas). Con todo lo pedido recibido queda "recibido"; si llego algo
  *  pero no todo, "parcial". Si no llego nada (solo se marco "sin stock de
  *  fabrica", o se corrigio a 0 lo que se habia cargado de mas) queda
- *  "enviado": "llego una parte" diria algo que no paso. NO toca el stock
- *  (ver arriba). */
+ *  "enviado": "llego una parte" diria algo que no paso. Lo que llego de mas
+ *  desde la ultima carga entra al stock de la sucursal (V.0.99.94). */
 export async function recibirCompra(id: string, recibidos: unknown, sinStock: unknown): Promise<ResultadoCompra> {
   return enTransaccion(async (tx): Promise<ResultadoCompra> => {
     const c = await bloquear(tx, id);
@@ -483,6 +483,16 @@ export async function recibirCompra(id: string, recibidos: unknown, sinStock: un
     const r = aplicarRecibidos(renglonesDe(c.renglones), recibidos, sinStock);
     if ("error" in r) return r;
     const estado = r.completo ? "recibido" : r.algo ? "parcial" : "enviado";
+    // Al stock, la diferencia: si se corrige a menos lo cargado de mas, baja.
+    const antes = new Map<string, number>();
+    for (const x of renglonesDe(c.renglones)) antes.set(x.cod, (antes.get(x.cod) ?? 0) + (x.recibido || 0));
+    const ahora = new Map<string, number>();
+    for (const x of r.renglones) ahora.set(x.cod, (ahora.get(x.cod) ?? 0) + (x.recibido || 0));
+    const movs = [...new Set([...antes.keys(), ...ahora.keys()])].map((cod) => ({
+      cod,
+      cant: (ahora.get(cod) ?? 0) - (antes.get(cod) ?? 0),
+    }));
+    await moverStockEnTx(tx, c.sucursal === "tsl" ? "TS" : "BA", movs);
     const nueva = await tx.puntoCompra.update({
       where: { id: c.id },
       data: {

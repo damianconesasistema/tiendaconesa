@@ -1,6 +1,7 @@
 import { registrar } from "@/lib/actividad";
 import {
   contadores,
+  ajustarStockDe,
   crearDocumento,
   documentoPorId,
   documentoPorMarca,
@@ -168,6 +169,9 @@ export async function POST(req: Request): Promise<Response> {
     const r = await crearDocumento(limpio.doc, quien);
     if ("error" in r) return json({ error: r.error });
     const { doc, repetido } = r;
+    // El stock sale al cobrar. Tambien en el repetido: si el primero se
+    // corto antes de moverlo, lo hace este; si ya salio, no hace nada.
+    const stock = await ajustarStockDe(doc.id, true);
     if (!repetido) {
       const total = doc.total.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       await registrar(
@@ -176,7 +180,7 @@ export async function POST(req: Request): Promise<Response> {
         quien,
       );
     }
-    return json({ ok: true, documento: doc, repetido });
+    return json({ ok: true, documento: doc, repetido, stock });
   } catch (e) {
     return json({ error: "No se pudo guardar el comprobante: " + motivoParaLaPantalla(e, "error del servidor") + "." });
   }
