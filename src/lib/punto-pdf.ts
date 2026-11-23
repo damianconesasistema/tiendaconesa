@@ -2,8 +2,16 @@ import path from "node:path";
 import fs from "node:fs";
 import PDFDocument from "pdfkit";
 import type { DocumentoGuardado } from "@/lib/punto-documentos";
-import { arcaDe } from "@/lib/punto-arca";
-import { pngQr } from "@/lib/afip/qr";
+import type { ArcaPunto } from "@/lib/punto-arca";
+
+/** Lo que autorizo ARCA (datos.arca), si tiene CAE. Aca y no importado de
+ *  punto-arca: el PDF no carga lo de ARCA (la base, los certificados) para un
+ *  presupuesto. El QR se carga solo si hace falta. */
+function arcaDe(datos: unknown): ArcaPunto | null {
+  if (!datos || typeof datos !== "object" || Array.isArray(datos)) return null;
+  const a = (datos as Record<string, unknown>).arca as ArcaPunto | undefined;
+  return a && typeof a.cae === "string" && a.cae && Number.isInteger(a.cbteNro) ? a : null;
+}
 
 // El PDF de lo que se emite en Punto (presupuestos, facturas internas,
 // remitos, pedidos internos). Damian, 22/11/2026: "esto si fue emitido
@@ -403,6 +411,7 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     y += 10;
     doc.rect(M, y, anchoUtil, 84).strokeColor(BORDE).lineWidth(1).stroke();
     try {
+      const { pngQr } = await import("@/lib/afip/qr");
       const qr = await pngQr({
         fecha: new Date(arca.fecha + "T12:00:00"),
         cuit: arca.cuit,

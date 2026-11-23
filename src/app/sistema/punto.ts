@@ -1111,6 +1111,125 @@ footer{
   max-width:none; margin:0; padding:0 24px 40px;
   color:var(--ink-3); font-size:12px; line-height:1.6;
 }
+/* ==================================================== CELULAR (V.0.99.99)
+   Damián, 23/11/2026: "el sistema se va a poder utilizar desde el celular,
+   o sea, necesito que esté optimizado todo". Lo de dos columnas pasa a una
+   (antes la columna del ticket pedía 508 px y toda la página se achicaba y
+   se cortaba a la derecha), la barra de arriba se compacta y las solapas se
+   corren con el dedo. Las tablas largas se corren de costado adentro de su
+   marco, sin mover la página. */
+@media (max-width:900px){
+  .dos{grid-template-columns:minmax(0,1fr)}
+  .dos > *, .card, .campos > *{min-width:0}
+}
+@media (max-width:640px){
+  html, body{overflow-x:hidden}
+  main{padding:12px 10px 96px}
+  /* La barra de arriba no queda pegada: en el teléfono se comía un cuarto
+     de la pantalla. Se va al bajar y vuelve al subir del todo. */
+  header{position:static}
+  /* La barra: marca, versión, asistente y salir; abajo, usuario y sucursal,
+     sin el rótulo (el nombre y la sucursal se ven en el desplegable). */
+  .bar{gap:6px 8px; padding:8px 10px}
+  .marca{height:28px}
+  .app{font-size:11px; letter-spacing:.18em}
+  .relo{display:none}
+  .bar a.ir{padding:5px 8px; font-size:10.5px}
+  /* Asistente y Usuarios, solo el dibujito: así Salir entra en el renglón. */
+  .bar a.ir{font-size:0; gap:0; padding:6px 9px}
+  .salir{padding:5px 12px; font-size:12px}
+  .user{font-size:0; display:inline-flex; align-items:center}
+  .user select{max-width:150px; font-size:16px}
+  /* Las solapas, en una fila que se corre con el dedo. */
+  nav{padding:0 4px; scrollbar-width:none; -webkit-overflow-scrolling:touch}
+  nav::-webkit-scrollbar{display:none}
+  nav [data-v]{padding:11px 11px; gap:6px; font-size:11.5px}
+  .solapas{overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none}
+  .solapas button{flex:0 0 auto}
+  /* Tarjetas y campos. */
+  .card-h{flex-wrap:wrap; gap:8px; padding:12px 12px}
+  .card-h .sub{margin-left:0}
+  .campos{grid-template-columns:minmax(0,1fr); padding:12px}
+  .dos-chicos{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .alta{padding:12px}
+  .barra{grid-template-columns:70px minmax(0,1fr) 82px; gap:8px; font-size:12px}
+  .esc{grid-template-columns:minmax(0,1fr)}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px}
+  .bandeja{grid-template-columns:minmax(0,1fr); padding:10px}
+  .bajadas{grid-template-columns:minmax(0,1fr)}
+  .tabla-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  /* Los atajos de teclado no sirven en el teléfono; el ticket deja de ir
+     pegado (en una columna tapaba los renglones). */
+  #teclas{display:none}
+  .card.ticket{position:static}
+  /* La búsqueda de la venta: cada artículo es una tarjeta entera (nombre;
+     código, stock y precio; cantidad y Sumar), sin correr nada de costado. */
+  #res thead, .lin-t thead{display:none}
+  #res table, #res tbody, .lin-t, .lin-t tbody{display:block; width:100%}
+  #res tr{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"nom nom nom" "cod stk prc" "cant cant btn";
+    gap:6px 10px; align-items:center; padding:10px 12px; border-bottom:1px solid var(--line)}
+  #res td, .lin-t td{display:block; padding:0 !important; border:0 !important; min-width:0 !important; text-align:left}
+  #res td:nth-child(1){grid-area:cod}
+  #res td:nth-child(2){grid-area:nom; font-size:14px}
+  #res td:nth-child(3){grid-area:stk}
+  #res td:nth-child(4){grid-area:prc; text-align:right; font-size:15px}
+  #res td:nth-child(5){grid-area:cant; justify-self:end}
+  #res td:nth-child(6){grid-area:btn}
+  #res td:nth-child(5) input{width:72px}
+  #res .sumar{min-width:96px}
+  /* Los renglones de la venta, igual: nombre y sacar; código, precio y
+     subtotal; stock y el más y menos. */
+  .lin-t tr{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"nom nom x" "cod prc sub" "stk cant cant";
+    gap:6px 10px; align-items:center; padding:10px 12px; border-bottom:1px solid var(--line)}
+  .lin-t td.ix{display:none}
+  .lin-t td:nth-child(2){grid-area:cod}
+  .lin-t td:nth-child(3){grid-area:nom; font-size:14px}
+  .lin-t td:nth-child(4){grid-area:stk}
+  .lin-t td:nth-child(5){grid-area:cant; justify-self:end}
+  .lin-t td:nth-child(6){grid-area:prc; text-align:right}
+  .lin-t td:nth-child(7){grid-area:sub; text-align:right; font-size:15px}
+  .lin-t td:nth-child(8){grid-area:x; justify-self:end}
+  .lin-t .c button{min-width:40px; min-height:40px; font-size:18px}
+  /* Comprobantes: los pedidos por cobrar y lo emitido, como tarjetas. */
+  #tbPorCobrar, #tbCp{display:block}
+  #tbPorCobrar > tr, #tbCp > tr{display:grid; gap:4px 10px; padding:10px 12px; border-bottom:1px solid var(--line); align-items:center}
+  #tbPorCobrar > tr > td, #tbCp > tr > td{display:block; padding:0 !important; border:0 !important; min-width:0 !important; text-align:left}
+  #tbPorCobrar > tr > td[colspan], #tbCp > tr > td[colspan]{grid-column:1 / -1}
+  #tbPorCobrar > tr{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"cli tot" "ven lle" "art est" "acc acc"}
+  #tbPorCobrar > tr > td:nth-child(1){grid-area:lle; text-align:right; font-size:12px}
+  #tbPorCobrar > tr > td:nth-child(2){grid-area:ven}
+  #tbPorCobrar > tr > td:nth-child(3){grid-area:cli; font-weight:600}
+  #tbPorCobrar > tr > td:nth-child(4){grid-area:art}
+  #tbPorCobrar > tr > td:nth-child(5){grid-area:tot; text-align:right; font-size:15px}
+  #tbPorCobrar > tr > td:nth-child(6){grid-area:est; text-align:right}
+  #tbPorCobrar > tr > td:nth-child(7){grid-area:acc}
+  #tbPorCobrar [data-cobrar]{width:100%; min-height:42px; font-size:14px !important}
+  #tbCp > tr.cp-fila{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"comp tot" "cli fec" "ven ven" "acc acc"}
+  #tbCp > tr.cp-fila > td:nth-child(1){grid-area:fec; text-align:right; font-size:12px !important}
+  #tbCp > tr.cp-fila > td:nth-child(2){grid-area:comp}
+  #tbCp > tr.cp-fila > td:nth-child(3){grid-area:cli}
+  #tbCp > tr.cp-fila > td:nth-child(4){grid-area:ven; font-size:12.5px}
+  #tbCp > tr.cp-fila > td:nth-child(5){grid-area:tot; text-align:right; font-size:15px}
+  #tbCp > tr.cp-fila > td:nth-child(6){grid-area:acc}
+  #tbCp > tr.cp-fila > td.cp-acc{display:flex; flex-wrap:wrap; gap:6px}
+  #tbPorCobrar > tr > td:nth-child(7){display:flex; flex-wrap:wrap; gap:6px}
+  #tbPorCobrar > tr > td:nth-child(7) > *{flex:1 1 auto}
+  #tbCp > tr.cp-det{display:block; padding:0 0 8px}
+  #tbCp > tr.cp-det > td{display:block}
+  #tbCp > tr.cp-det .tabla-wrap, #tbCp > tr.cp-det table{overflow-x:auto}
+  /* Comprobantes, Caja y los demás: los encabezados de esas dos listas no
+     hacen falta (cada dato se ve en su lugar). */
+  #tbPorCobrar, #tbCp{width:100%}
+  #tbPorCobrar ~ thead, table:has(> #tbPorCobrar) > thead, table:has(> #tbCp) > thead{display:none}
+  table:has(> #tbPorCobrar), table:has(> #tbCp){display:block; width:100%}
+  /* Sin zoom solo al tocar un campo (iOS agranda la letra de menos de 16 px). */
+  input, select, textarea{font-size:16px}
+  /* Los botones grandes, para el dedo. */
+  button, .b1, .b2, .b3{min-height:38px}
+}
+/* Un aviso escondido no se ve (antes .aviso{display:flex} le ganaba a
+   hidden y quedaba una cajita roja vacía arriba de los renglones). */
+.aviso[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -1405,7 +1524,7 @@ footer{
     <div class="tabla-wrap" style="max-height:62vh; overflow-y:auto"><table class="densa"><thead><tr>
       <th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Vendedor</th><th class="r">Total</th><th></th>
     </tr></thead><tbody id="tbCp"></tbody></table></div>
-    <p class="nota">Tocá un renglón para ver los artículos. Un presupuesto se puede <b>Editar</b> mientras no se venda: queda con el mismo número. <b>Eliminar</b> lo saca de la lista y de la Caja, pero no lo borra del todo: queda en “Eliminados” y de ahí se recupera. Las facturas de Punto todavía no van a ARCA: no tienen CAE y no valen como comprobante fiscal. El stock que mueve una venta todavía no queda guardado.</p>
+    <p class="nota">Tocá un renglón para ver los artículos. Un presupuesto se puede <b>Editar</b> mientras no se venda: queda con el mismo número. <b>Eliminar</b> lo saca de la lista y de la Caja, pero no lo borra del todo: queda en “Eliminados” y de ahí se recupera. Las facturas de Traslasierra salen por ARCA, con CAE: esas no se eliminan, se anulan con <b>Nota de crédito</b>. Las de Buenos Aires todavía son internas, sin CAE. La venta descuenta el stock al cobrarla (el presupuesto no).</p>
   </div>
 </section>
 
@@ -4623,7 +4742,7 @@ function altaCuenta(){
   document.getElementById("aL1").closest("div").classList.toggle("falta", !(l1 > 0));
   document.getElementById("aListasAviso").innerHTML = l1 > 0
     ? "La 1 sobre el costo, la 2 sobre la 1."
-    : '<span class="aviso-falta">Falta la Lista 1.</span>';
+    : (l1 < 0 ? '<span class="aviso-falta">La Lista 1 queda por debajo del costo.</span>' : '<span class="aviso-falta">Falta la Lista 1.</span>');
 
   const r = (k,v,cls,x) => '<div class="r2'+(cls?" "+cls:"")+'"><span class="k">'+k+'</span>'+
     (x ? '<span class="x">'+x+'</span>' : '')+'<span class="v">'+v+'</span></div>';
@@ -8370,7 +8489,9 @@ function pintarListaCp(){
     const vendido = d.tipo === "presupuesto" ? d.vendidoEn : null;
     const madre = d.origenId ? porId[d.origenId] : null;
     const pills =
-      (d.tipo === "factura" ? ' <span class="pill p-warn">sin CAE</span>' : "") +
+      (d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito"
+        ? (((d.datos || {}).arca || {}).cae ? ' <span class="pill p-ok" title="Autorizada por ARCA">CAE</span>' : ' <span class="pill p-warn">sin CAE</span>')
+        : "") +
       (vendido ? ' <span class="pill p-ok">vendido · ' + txt(vendido.comp.replace(/^\\d+\\./, "")) + ' ' + txt(numeroCorto(vendido)) + '</span>' : "") +
       (d.origenId ? ' <span class="pill p-n">de presupuesto' + (madre ? " " + txt(numeroCorto(madre)) : "") + '</span>' : "") +
       (dt.editado ? ' <span class="pill p-n">cambiado</span>' : "") +
@@ -8471,7 +8592,7 @@ function accionesCp(d, vendido){
     bt("pdf", "PDF", "b2", "Bajar el PDF") + whats +
     bt("imprimir", "Imprimir", "b2") +
     (d.tipo === "presupuesto" && puede("venta") ? bt("actualizar", "Precios de hoy", "b2", "Hace un presupuesto nuevo con los precios de hoy; este queda como está") : "") +
-    (d.tipo !== "presupuesto" && puede("despachar")
+    (d.tipo !== "presupuesto" && d.tipo !== "nota-credito" && d.tipo !== "nota-debito" && puede("despachar")
       ? ((d.datos || {}).despacho
           ? (((d.datos.despacho.por === soyYo()) || esAdminUsuarios()) ? bt("nodespachar", "Deshacer despacho", "b3", "Si se marcó por error") : "")
           : bt("despachar", "Despachado", "b2", "Anota que la mercadería salió del depósito y quién la entregó"))

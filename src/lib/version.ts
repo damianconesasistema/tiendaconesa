@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.98";
+export const APP_VERSION = "V.0.99.99";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.99",
+    date: "2026-11-23",
+    changes: [
+      "PUNTO EN EL CELULAR (\"el sistema se va a poder utilizar desde el celular ... necesito que esté optimizado todo\"): ninguna pantalla se pasa del ancho del teléfono (antes la venta pedía 508 px y todo se veía achicado y cortado). Lo de dos columnas pasa a una, la barra de arriba queda en dos renglones y no se queda pegada, las solapas se corren con el dedo y los campos no hacen zoom al tocarlos.",
+      "En el celular, la búsqueda de la venta, los renglones de la venta, los pedidos por cobrar y lo emitido se ven como tarjetas enteras: precio, cantidad, Sumar, Abrir y cobrar y los botones de cada comprobante a la vista, sin correr de costado. Los atajos de teclado no se muestran en el teléfono.",
+      "Comprobantes: la factura con CAE dice CAE (la interna, sin CAE); una nota de crédito o de débito no ofrece Despachado; la nota al pie, al día. En la ficha del artículo, si la Lista 1 da por debajo del costo dice eso (decía \"Falta la Lista 1\"). Ya no se ve una cajita roja vacía arriba de los renglones de la venta.",
+    ],
+  },
   {
     version: "V.0.99.98",
     date: "2026-11-23",
