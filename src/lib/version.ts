@@ -7,7 +7,11 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.100.1";
+// Desde el 23/11/2026 (Damián): V.año.mes.número. El año arranca en 0
+// (2026), el mes va con dos cifras y el número cuenta las versiones del mes
+// (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
+// V.1.01.01.
+export const APP_VERSION = "V.0.11.189";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.189",
+    date: "2026-11-23",
+    changes: [
+      "INICIO CON ÍCONOS (\"los íconos deberían estar en la principal y que uno elija qué hacer\"): Punto abre en Inicio, \"¿Qué hacemos?\", con un ícono grande para Vender o presupuestar y uno por cada cosa: Comprobantes, Artículos, Proveedores, Caja, Web, Simulador, Gerencia, Usuarios y Asistente (solo lo que cada usuario puede usar). Lo de GBP con sus nombres quedó abajo, para desplegar.",
+      "Artículos: arriba, cuatro íconos con su frase: Importar de GBP, Adjuntar, Cargar uno y Armar un combo. Al buscar, si lo escrito es un proveedor o una marca, se ofrece elegirlo y queda elegido como filtro.",
+      "La versión pasa a numerarse V.año.mes.número: esta es la 189 de noviembre de 2026.",
+    ],
+  },
   {
     version: "V.0.100.1",
     date: "2026-11-23",

@@ -1230,6 +1230,40 @@ footer{
 /* Un aviso escondido no se ve (antes .aviso{display:flex} le ganaba a
    hidden y quedaba una cajita roja vacía arriba de los renglones). */
 .aviso[hidden]{display:none}
+
+/* ================================================ INICIO CON ÍCONOS (V.0.100.2)
+   La pantalla principal: un ícono por cosa que se hace, y uno elige. */
+.accesos{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px; margin-bottom:22px}
+.acceso{display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:18px 16px; text-align:left;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r); cursor:pointer; color:var(--ink);
+  font:inherit; transition:border-color .15s, transform .15s}
+.acceso:hover{border-color:var(--accent); transform:translateY(-1px)}
+.acceso .ic{display:inline-flex; width:46px; height:46px; border-radius:12px; align-items:center; justify-content:center;
+  background:var(--accent-soft, #fdecea); color:var(--accent)}
+.acceso .ic svg{width:24px; height:24px}
+.acceso b{font-family:var(--font-d); font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:.04em}
+.acceso span.fr{font-size:12.5px; color:var(--ink-2); line-height:1.35}
+.acceso.grande{grid-column:span 2; background:var(--accent); border-color:var(--accent); color:#fff}
+.acceso.grande .ic{background:rgba(255,255,255,.18); color:#fff}
+.acceso.grande span.fr{color:rgba(255,255,255,.9)}
+/* Artículos: las tres formas de cargar, como íconos arriba. */
+.acc-art{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:16px}
+.acc-art .acceso{padding:14px}
+.acc-art .acceso[aria-pressed="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset}
+.card:has(> #gbpCuerpo[hidden]), .card:has(> #adjCuerpo[hidden]), .card:has(> #altaCuerpo[hidden]){display:none}
+.card:has(> #gbpCuerpo) > .card-h, .card:has(> #adjCuerpo) > .card-h{display:none}
+/* Al buscar: el proveedor o la marca que coincide, para elegirlo. */
+.sugeridos{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 2px}
+.sugeridos[hidden]{display:none}
+.sugeridos button{border:1px solid var(--accent); background:var(--surface); color:var(--accent); border-radius:999px;
+  padding:6px 12px; font:inherit; font-size:13px; font-weight:600; cursor:pointer}
+.sugeridos button:hover{background:var(--accent); color:#fff}
+@media (max-width:640px){
+  .accesos{grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px}
+  .acceso{padding:14px 12px}
+  .acceso.grande{grid-column:1 / -1}
+  .acc-art{grid-template-columns:minmax(0,1fr)}
+}
 </style>
 </head>
 <body>
@@ -1255,6 +1289,7 @@ footer{
     <button type="button" id="nuevaVerRecargar">Recargar</button>
   </div>
   <nav id="nav">
+    <a href="#inicio" data-v="inicio" id="navInicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Inicio</a>
     <a href="#mostrador" data-v="mostrador" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2l2.7 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L21.7 7H5.1"/></svg>Venta</a>
     <a href="#comprobantes" data-v="comprobantes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>Comprobantes</a>
     <a href="#web" data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Web</a>
@@ -1263,7 +1298,6 @@ footer{
     <a href="#simulador" data-v="simulador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M8 6h8"/><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01M16 19h.01"/></svg>Simulador</a>
     <a href="#caja" data-v="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Caja</a>
     <a href="#gerencia" data-v="gerencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>Gerencia</a>
-    <a href="#inicio" data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Todo el sistema</a>
   </nav>
 </header>
 
@@ -1286,10 +1320,14 @@ footer{
 <!-- ======================================================== MOSTRADOR -->
 <section id="v-inicio" hidden>
   <div class="head">
-    <h2>Escritorio</h2>
-    <p>Todo lo que hoy se hace en GlobalBluePoint, con el nombre que le dan ustedes. Lo que está en gris todavía no se puede tocar.</p>
+    <h2>¿Qué hacemos?</h2>
+    <p>Tocá lo que necesitás.</p>
   </div>
-  <div class="esc" id="escritorio"></div>
+  <div class="accesos" id="accesos"></div>
+  <details class="card" style="padding:0">
+    <summary style="cursor:pointer;padding:14px 16px;font-weight:600">Todo lo de GlobalBluePoint, con el nombre que le dan ustedes</summary>
+    <div class="esc" id="escritorio" style="padding:0 14px 14px"></div>
+  </details>
 </section>
 
 <section id="v-mostrador">
@@ -1674,6 +1712,16 @@ footer{
   <div class="head">
     <h2>Artículos</h2>
   </div>
+  <div class="acc-art" id="accArt">
+    <button type="button" class="acceso" data-art="gbp"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M10 9H8"/></svg></span><b>Importar de GBP</b>
+      <span class="fr" id="gbpGuardados2">Los Excel que exporta GlobalBluePoint.</span></button>
+    <button type="button" class="acceso" data-art="adj"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span><b>Adjuntar</b>
+      <span class="fr">Una lista o factura del proveedor: carga varios de una vez.</span></button>
+    <button type="button" class="acceso" data-art="uno"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></span><b>Cargar uno</b>
+      <span class="fr">Un artículo nuevo: el precio se arma solo.</span></button>
+    <button type="button" class="acceso" data-art="combo"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="8" x="2" y="2" rx="1"/><rect width="8" height="8" x="14" y="2" rx="1"/><rect width="8" height="8" x="8" y="14" rx="1"/></svg></span><b>Armar un combo</b>
+      <span class="fr">Con artículos que ya están, con su propio %.</span></button>
+  </div>
 
   <div class="card" style="margin-bottom:16px">
     <div class="card-h">
@@ -1942,6 +1990,7 @@ footer{
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
         <input id="fBusca" type="search" placeholder="Código, nombre o código del fabricante · inodoro amalfi · 3495 · B0104" autocomplete="off" spellcheck="false">
       </div>
+      <div class="sugeridos" id="fSugeridos" hidden></div>
       <div class="art-sel">
         <label>Marca <select id="fProv"></select></label>
         <label>Proveedor <select id="fCat"></select></label>
@@ -3132,6 +3181,7 @@ function abrirVista(v){
   const b = document.querySelector('#nav [data-v="'+solapa+'"], .bar a.ir[data-v="'+solapa+'"]');
   if(!b) return;
   for(const x of vistas) document.getElementById("v-"+x).hidden = (x !== v);
+  if(v === "inicio") pintarAccesos();
   for(const x of document.querySelectorAll("#nav [data-v], .bar a.ir[data-v]")) x.setAttribute("aria-current", String(x===b));
   pintarSubGer(v);
   // La direccion dice en que solapa estas: asi recargar no te saca de ahi,
@@ -3204,6 +3254,43 @@ document.getElementById("nuevaVerRecargar").addEventListener("click", () => loca
 
 /** Lleva a una solapa como si la hubieran tocado. */
 function irA(v){ abrirVista(v); }
+
+/* ================================================ INICIO CON ÍCONOS (V.0.100.2)
+   Damián: "los íconos deberían estar en la principal y que uno elija qué
+   hacer". Cada ícono es una solapa; el dibujito es el mismo de la solapa.
+   Solo aparece lo que el usuario puede usar. */
+const ACCESOS = [
+  { v:"mostrador", t:"Vender o presupuestar", f:"Cargá los artículos y armá el presupuesto o el pedido.", grande:true },
+  { v:"comprobantes", t:"Comprobantes", f:"Pedidos por cobrar, facturas, notas y presupuestos." },
+  { v:"productos", t:"Artículos", f:"Buscar, precios, combos, importar de GBP." },
+  { v:"proveedores", t:"Proveedores", f:"Datos, listas y pedidos a proveedor." },
+  { v:"caja", t:"Caja", f:"Lo que entró hoy, por forma de pago." },
+  { v:"web", t:"Web", f:"La tienda online." },
+  { v:"simulador", t:"Simulador", f:"Cuánto cuesta y a cuánto vender." },
+  { v:"gerencia", t:"Gerencia", f:"Resumen, rentabilidad y contable." },
+  { v:"usuarios", t:"Usuarios", f:"Quién entra y qué puede hacer." },
+  { v:"asistente", t:"Asistente", f:"Preguntale al sistema." }
+];
+function pintarAccesos(){
+  const caja = document.getElementById("accesos"); if(!caja) return;
+  caja.innerHTML = ACCESOS.filter(a => {
+    const b = document.querySelector('#nav [data-v="'+a.v+'"], .bar a.ir[data-v="'+a.v+'"]');
+    return b && !b.hidden && vistaPermitida(a.v);
+  }).map(a => {
+    const b = document.querySelector('#nav [data-v="'+a.v+'"], .bar a.ir[data-v="'+a.v+'"]');
+    const svg = b && b.querySelector("svg") ? b.querySelector("svg").outerHTML : "";
+    return '<button type="button" class="acceso'+(a.grande ? " grande" : "")+'" data-acceso="'+a.v+'">'+
+      '<span class="ic">'+svg+'</span><b>'+a.t+'</b><span class="fr">'+a.f+'</span></button>';
+  }).join("");
+}
+document.getElementById("accesos").addEventListener("click", e => {
+  const b = e.target.closest("[data-acceso]"); if(!b) return;
+  location.hash = b.dataset.acceso;
+  abrirVista(b.dataset.acceso);
+  window.scrollTo(0, 0);
+  if(b.dataset.acceso === "mostrador"){ const q = document.getElementById("q"); if(q) setTimeout(() => q.focus(), 50); }
+});
+
 
 let tt;
 function toast(msg){
@@ -4930,6 +5017,7 @@ document.getElementById("aComboLista").addEventListener("click", e => {
 });
 document.getElementById("aIva").addEventListener("change", () => { if(document.getElementById("aEsCombo").checked) pintarCombo(); });
 function cerrarAlta(){
+  setTimeout(() => { try{ marcarAccArt(); }catch(e){} }, 0);
   document.getElementById("aGuardarArriba").hidden = true;
   document.getElementById("altaCuerpo").hidden = true;
   document.getElementById("btnAbrirAlta").textContent = "Cargar uno";
@@ -4939,6 +5027,34 @@ document.getElementById("btnAbrirAlta").addEventListener("click",()=>{
   if(document.getElementById("altaCuerpo").hidden || ALTA.editando) abrirAlta(null); else cerrarAlta();
 });
 document.getElementById("aCancelar").addEventListener("click", cerrarAlta);
+
+/* Artículos: los íconos de arriba abren lo mismo que los botones de antes. */
+document.getElementById("accArt").addEventListener("click", e => {
+  const b = e.target.closest("[data-art]"); if(!b) return;
+  const k = b.dataset.art;
+  if(k === "gbp") document.getElementById("btnGbp").click();
+  if(k === "adj") document.getElementById("btnAdj").click();
+  if(k === "uno" || k === "combo"){
+    if(k === "combo" || document.getElementById("altaCuerpo").hidden || ALTA.editando) abrirAlta(null); else cerrarAlta();
+    if(k === "combo"){ const c = document.getElementById("aEsCombo"); c.checked = true; c.dispatchEvent(new Event("change")); }
+  }
+  marcarAccArt();
+  const abierto = { gbp:"gbpCuerpo", adj:"adjCuerpo", uno:"altaCuerpo", combo:"altaCuerpo" }[k];
+  const el = document.getElementById(abierto);
+  if(el && !el.hidden) el.closest(".card").scrollIntoView({ block:"start", behavior:"smooth" });
+});
+function marcarAccArt(){
+  const ab = { gbp: !document.getElementById("gbpCuerpo").hidden, adj: !document.getElementById("adjCuerpo").hidden,
+    uno: !document.getElementById("altaCuerpo").hidden && !document.getElementById("aEsCombo").checked,
+    combo: !document.getElementById("altaCuerpo").hidden && document.getElementById("aEsCombo").checked };
+  for(const b of document.querySelectorAll("#accArt [data-art]")) b.setAttribute("aria-pressed", ab[b.dataset.art] ? "true" : "false");
+}
+// Lo que dice cuántos hay guardados de GBP, también en su ícono.
+new MutationObserver(() => {
+  const t = document.getElementById("gbpGuardados").textContent;
+  document.getElementById("gbpGuardados2").textContent = t || "Los Excel que exporta GlobalBluePoint.";
+}).observe(document.getElementById("gbpGuardados"), { childList:true, characterData:true, subtree:true });
+
 
 function pintarAltaSeis(){
   document.getElementById("aSeis").innerHTML = ALTA.seis.map((d,i)=>
@@ -6286,6 +6402,7 @@ function pintarProd(){
   // filtro o el orden vuelve a las primeras 300.
   const firma = fp+"|"+fr+"|"+fc+"|"+toks.join(" ")+"|"+fco+"|"+S.ordProd.col+"|"+S.ordProd.asc;
   pintarFiltrosArt(fp, fr, fc, toks, todos.length);
+  pintarSugeridos(toks);
   if(firma !== PROD_VER.firma){ PROD_VER.firma = firma; PROD_VER.max = PROD_DE_A; }
   const lista = todos.slice(0, PROD_VER.max);
   PROD_VER.todos = todos;       // lo que se exporta: todo lo filtrado, no solo las 300 filas
@@ -6391,6 +6508,29 @@ document.getElementById("fChips").addEventListener("click", e => {
 });
 document.getElementById("fCat").addEventListener("input", pintarProd);
 document.getElementById("fCombos").addEventListener("change", pintarProd);
+
+/* Al escribir el nombre de un proveedor o de una marca en la búsqueda, se
+   ofrece elegirlo como filtro, y queda elegido (Damián: "cuando busco
+   proveedor debería dejarme seleccionar y quedar seleccionado"). */
+function pintarSugeridos(toks){
+  const caja = document.getElementById("fSugeridos"); if(!caja) return;
+  const q = toks.join(" ");
+  if(q.length < 2){ caja.hidden = true; caja.innerHTML = ""; return; }
+  const cuenta = (k) => { const m = new Map(); for(const p of PRODUCTOS){ const n = String(p[k] || "").trim(); if(n) m.set(n, (m.get(n) || 0) + 1); } return m; };
+  const prov = [...cuenta("cat")].filter(([n]) => plano(n).indexOf(q) >= 0 && n !== document.getElementById("fCat").value).slice(0, 4);
+  const marca = [...cuenta("prov")].filter(([n]) => plano(n).indexOf(q) >= 0 && n !== document.getElementById("fProv").value).slice(0, 4);
+  caja.innerHTML = prov.map(([n, c]) => '<button type="button" data-sug-cat="'+atrib(n)+'">Proveedor: '+txt(n)+' ('+c+')</button>').join("") +
+    marca.map(([n, c]) => '<button type="button" data-sug-prov="'+atrib(n)+'">Marca: '+txt(n)+' ('+c+')</button>').join("");
+  caja.hidden = !(prov.length || marca.length);
+}
+document.getElementById("fSugeridos").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.sugCat != null) document.getElementById("fCat").value = b.dataset.sugCat;
+  if(b.dataset.sugProv != null) document.getElementById("fProv").value = b.dataset.sugProv;
+  document.getElementById("fBusca").value = "";
+  pintarProd();
+});
+
 document.getElementById("fLimpiar").addEventListener("click", () => {
   for(const id of ["fProv", "fRub", "fCat"]) document.getElementById(id).value = "";
   document.getElementById("fBusca").value = "";
@@ -9060,6 +9200,7 @@ function aplicarPermisos(){
   // Si la solapa de entrada no está permitida, a la primera que sí.
   const h = (location.hash || "").replace("#", "");
   if(h && vistas.indexOf(h) >= 0 && vistaPermitida(h)) abrirVista(h);
+  else if(!h) abrirVista("inicio");
   else if(!vistaPermitida(vistaActual())) abrirVista(vistaActual());
 }
 
