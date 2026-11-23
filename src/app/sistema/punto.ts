@@ -1696,6 +1696,19 @@ footer{
             <label for="aCodProv">Código del proveedor</label>
             <input id="aCodProv" type="text" placeholder="el que figura en su lista y en su factura" autocomplete="off">
           </div>
+          <div class="sub-campo" id="aComboCaja">
+            <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;font-weight:600">
+              <input type="checkbox" id="aEsCombo"> Es un combo de artículos que ya están</label>
+            <div id="aComboPiezas" hidden>
+              <div id="aComboLista" style="margin-top:6px"></div>
+              <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+                <input id="aComboCod" type="text" placeholder="Código del artículo" autocomplete="off" style="flex:1;min-width:0">
+                <input id="aComboCant" type="number" min="1" max="1000" step="1" value="1" style="width:64px" title="Cuántas de ese artículo lleva">
+                <button class="b2" id="aComboSumar" type="button">+ Sumar</button>
+              </div>
+              <span class="por" id="aComboAviso">El costo es la suma de las piezas; la Lista 1 es tu % sobre ese costo. El stock es el que alcanza para armarlo, y al venderlo se descuenta cada pieza.</span>
+            </div>
+          </div>
           <div class="sub-campo dos-chicos">
             <div><label for="aStockBA">Stock en Buenos Aires</label>
               <input id="aStockBA" type="number" min="0" step="1" value="0"></div>
@@ -1805,6 +1818,7 @@ footer{
         <label>Marca <select id="fProv"></select></label>
         <label>Proveedor <select id="fCat"></select></label>
         <label>Rubro <select id="fRub"></select></label>
+        <label style="flex-direction:row;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="fCombos"> Solo combos</label>
       </div>
       <div class="art-chips" id="fChips"></div>
     </div>
@@ -2702,6 +2716,7 @@ function ponerStockServidor(lista){
       if(p && p.dep){ p.dep.BA = Math.max(0, Math.round(+x.BA || 0)); p.dep.TS = Math.max(0, Math.round(+x.TS || 0)); }
       if(GBP_CRUDO[x.cod]){ GBP_CRUDO[x.cod].stockBA = +x.BA || 0; GBP_CRUDO[x.cod].stockTS = +x.TS || 0; }
     }
+    combosDePunto();
     if(vistaActual() === "productos") pintarProd();
     buscar(); pintarTicket();
   }catch(e){ /* que no frene la venta */ }
@@ -2747,6 +2762,9 @@ function articuloServidorDe(p){
   if(+p.bulto > 1) o.bulto = +p.bulto;
   if(p.dolarPropio && +p.dolar > 0) o.dolar = +p.dolar;
   if(usd && +p.dolar > 0) o.dolarRef = +p.dolar;
+  if(p.combo && Array.isArray(p.combo.piezas) && p.combo.piezas.length)
+    o.combo = { piezas: p.combo.piezas.map(x => ({ cod: x.cod, cant: x.cant })), l1: +p.combo.l1 || 0, l2: +p.combo.l2 || 0 };
+  else if(crudo && crudo.combo) o.combo = null;
   return o;
 }
 async function subirCatalogo(){
@@ -3811,6 +3829,11 @@ function sumar(cod, cuantos){
   if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
   const cant = Math.max(1, Math.floor(+cuantos || 1));
   const l = S.linea.find(x=>x.cod===cod);
+  const pc = prod(cod);
+  if(pc && pc.combo){
+    const falta = faltaParaCombo(pc, (l ? l.cant : 0) + cant);
+    if(falta){ toast("No se puede vender el combo: " + falta + "."); return; }
+  }
   if(l) l.cant += cant; else S.linea.push({cod, cant});
   pintarTicket();
   marcarNuevo(cod);
@@ -4370,7 +4393,93 @@ document.getElementById("teclasX").addEventListener("click",()=>{
    Todo junto: lo que se escribe, lo que cuesta y a cuánto se vende. El
    código lo propone el sistema y controla que no esté usado, que es el
    error que después cuesta una semana de desorden. */
-const ALTA = { seis:CADENA_BASE.slice(), recs:[], editando:null };
+const ALTA = { seis:CADENA_BASE.slice(), recs:[], editando:null, combo:null };
+
+/* ============================================================ COMBOS
+   V.0.99.95. Un combo es un artículo más armado con artículos que ya están:
+   su costo es la suma de los costos de las piezas, la Lista 1 es el % que
+   se le pone encima y la Lista 2 sobre la 1. Su stock es el que alcanza
+   para armarlo, y al venderlo el servidor descuenta cada pieza. */
+const esComboArt = p => !!(p && (p.combo || /\\bCOMBOS?\\b/i.test((p.tit || "") + " " + (p.rub || ""))));
+/** Lo que falta para vender n de ese combo en el depósito de la venta, o "". */
+function faltaParaCombo(c, n){
+  if(!c || !c.combo) return "";
+  const dep = depAct();
+  for(const x of c.combo.piezas){
+    const p = prod(x.cod);
+    if(!p) return "la pieza " + x.cod + " ya no está en Artículos";
+    const hace = n * (Math.max(1, +x.cant || 1)), hay = +((p.dep || {})[dep]) || 0;
+    if(hay < hace) return "falta stock de " + p.cod + " " + p.tit.slice(0, 34) + " (hay " + hay + ", hacen falta " + hace + ")";
+  }
+  return "";
+}
+/** Arma el precio y el stock de los combos con lo de hoy de sus piezas. */
+function combosDePunto(){
+  let n = 0;
+  for(const c of PRODUCTOS){
+    if(!c || !c.combo || !Array.isArray(c.combo.piezas) || !c.combo.piezas.length) continue;
+    const piezas = c.combo.piezas.map(x => ({ p: prod(x.cod), cant: Math.max(1, Math.floor(+x.cant || 1)) }));
+    c.comboFalta = piezas.some(x => !x.p || x.p === c || x.p.combo);
+    if(c.comboFalta) continue;
+    const costo = cent(piezas.reduce((a, x) => a + (+x.p.costo || 0) * x.cant, 0));
+    const l1 = +c.combo.l1 || 0, l2 = +c.combo.l2 || 0;
+    const pr = preciosDeLista(costo, l1, l2);
+    Object.assign(c, { costo, costoBase: costo, costoProducto: costo, flete: 0, fleteFijo: 0, fletePct: 0, otroCosto: 0,
+      lista: cent(costo / facIva(+c.iva || 21)), seis: CADENA_BASE.slice(), recs: [], l1, l2,
+      contado: pr.contado, unPago: pr.lista2, markup: costo > 0 ? Math.round((pr.contado / costo - 1) * 1000) / 10 : 0, real: true });
+    c.dep = { BA: Math.min(...piezas.map(x => Math.floor((+x.p.dep.BA || 0) / x.cant))),
+              TS: Math.min(...piezas.map(x => Math.floor((+x.p.dep.TS || 0) / x.cant))) };
+    n++;
+  }
+  return n;
+}
+/** La ficha cuando es combo: las piezas, y el costo y el stock salen de ellas. */
+function pintarCombo(){
+  const on = document.getElementById("aEsCombo").checked;
+  document.getElementById("aComboPiezas").hidden = !on;
+  for(const id of ["aLista","aMoneda","aDolar","aCont","aFlete","aOtro","aStockBA","aStockTS"]){
+    const e = document.getElementById(id); if(e) e.disabled = on;
+  }
+  if(!on){ altaCuenta(); return; }
+  const piezas = ALTA.combo || [];
+  document.getElementById("aComboLista").innerHTML = piezas.length ? piezas.map((x, i) => {
+    const p = prod(x.cod);
+    return '<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;padding:4px 0;border-bottom:1px solid #eee">'+
+      '<b>'+x.cant+' ×</b><span class="num">'+sinEtiquetas(x.cod)+'</span>'+
+      '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(p ? p.tit : '<span class="aviso-falta">no está en Artículos</span>')+'</span>'+
+      '<span class="num">'+(p ? fmt(cent((+p.costo || 0) * x.cant)) : '')+'</span>'+
+      '<button type="button" class="b2" data-combo-quitar="'+i+'" title="Sacar esta pieza" style="padding:2px 8px">✕</button></div>';
+  }).join("") : '<span class="por">Todavía no tiene piezas: poné el código de cada artículo y Sumar.</span>';
+  // El costo de las piezas va como lista sin descuentos ni flete: así la
+  // cuenta de siempre da ese costo y la Lista 1 es el % del combo.
+  const suma = cent(piezas.reduce((a, x) => { const p = prod(x.cod); return a + (p ? (+p.costo || 0) * x.cant : 0); }, 0));
+  const iva = +document.getElementById("aIva").value || 21;
+  V("aMoneda", "ARS"); V("aLista", plata2(cent(suma / facIva(iva))));
+  V("aCont", 0); V("aFlete", "0,00"); V("aOtro", "0,00");
+  ALTA.seis = CADENA_BASE.slice(); ALTA.recs = []; ALTA.fletePct = 0;
+  const dep = k => piezas.length ? Math.min(...piezas.map(x => { const p = prod(x.cod); return p ? Math.floor((+p.dep[k] || 0) / x.cant) : 0; })) : 0;
+  V("aStockBA", dep("BA")); V("aStockTS", dep("TS"));
+  pintarMoneda(); pintarAltaSeis(); altaCuenta();
+  document.getElementById("aComboAviso").innerHTML = piezas.length
+    ? "Las piezas suman <b>"+fmt(suma)+"</b> de costo con IVA. Alcanza para armar "+dep("BA")+" en Buenos Aires y "+dep("TS")+" en Traslasierra. Al venderlo se descuenta cada pieza."
+    : "El costo es la suma de las piezas; la Lista 1 es tu % sobre ese costo. Al venderlo se descuenta cada pieza.";
+}
+function sumarPiezaCombo(){
+  const cod = document.getElementById("aComboCod").value.trim();
+  const cant = Math.max(1, Math.min(1000, Math.floor(+document.getElementById("aComboCant").value || 1)));
+  if(!cod) return;
+  const p = prod(cod);
+  if(!p){ toast("No encuentro el artículo " + cod + " en Artículos."); return; }
+  if(p.cod === ALTA.editando){ toast("Un combo no puede llevarse a sí mismo."); return; }
+  if(p.combo){ toast(p.cod + " ya es un combo: sumá sus piezas sueltas."); return; }
+  ALTA.combo = ALTA.combo || [];
+  const ya = ALTA.combo.find(x => x.cod === p.cod);
+  if(ya) ya.cant = Math.min(1000, ya.cant + cant);
+  else { if(ALTA.combo.length >= 20){ toast("Hasta 20 piezas por combo."); return; } ALTA.combo.push({ cod: p.cod, cant }); }
+  V("aComboCod", ""); V("aComboCant", 1);
+  pintarCombo();
+  document.getElementById("aComboCod").focus();
+}
 
 /** El código que sigue, en la numeración que ya usa el catálogo. */
 function skuSugerido(){
@@ -4628,6 +4737,10 @@ function abrirAlta(p){
     V("aSku", skuSugerido());
   }
   while(ALTA.seis.length < N_DTOS) ALTA.seis.push(0);
+  ALTA.combo = p && p.combo ? p.combo.piezas.map(x => ({ cod: x.cod, cant: x.cant })) : null;
+  document.getElementById("aEsCombo").checked = !!(p && p.combo);
+  V("aComboCod", ""); V("aComboCant", 1);
+  pintarCombo();
   pintarMoneda();
   pintarMay();
   pintarAltaSeis();
@@ -4636,6 +4749,20 @@ function abrirAlta(p){
   document.getElementById(p ? "aTit" : "aMarca").focus();
 }
 document.getElementById("aGuardarArriba").addEventListener("click", () => document.getElementById("aGuardar").click());
+document.getElementById("aEsCombo").addEventListener("change", e => {
+  if(e.target.checked && !ALTA.combo) ALTA.combo = [];
+  pintarCombo();
+  if(e.target.checked) document.getElementById("aComboCod").focus();
+});
+document.getElementById("aComboSumar").addEventListener("click", sumarPiezaCombo);
+for(const id of ["aComboCod","aComboCant"])
+  document.getElementById(id).addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); sumarPiezaCombo(); } });
+document.getElementById("aComboLista").addEventListener("click", e => {
+  const b = e.target.closest("[data-combo-quitar]"); if(!b) return;
+  (ALTA.combo || []).splice(+b.dataset.comboQuitar, 1);
+  pintarCombo();
+});
+document.getElementById("aIva").addEventListener("change", () => { if(document.getElementById("aEsCombo").checked) pintarCombo(); });
 function cerrarAlta(){
   document.getElementById("aGuardarArriba").hidden = true;
   document.getElementById("altaCuerpo").hidden = true;
@@ -4753,6 +4880,10 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   if(usd && dol <= 0){ toast("Poné a cuánto tomás el dólar: sin eso no hay costo en pesos."); document.getElementById("aDolar").focus(); return; }
   if(l1 <= 0 && !(ALTA.editando && (prod(ALTA.editando) || {}).gbp)){ toast("Falta la Lista 1: poné el porcentaje que le cargás al costo."); document.getElementById("aL1").focus(); return; }
 
+  const esCombo = document.getElementById("aEsCombo").checked;
+  if(esCombo && !(ALTA.combo || []).length){ toast("El combo no tiene piezas: sumá al menos un artículo."); document.getElementById("aComboCod").focus(); return; }
+  if(esCombo && (ALTA.combo || []).some(x => !prod(x.cod))){ toast("Hay una pieza que ya no está en Artículos: sacala."); return; }
+  if(esCombo && l1 <= 0){ toast("Poné el % del combo en la Lista 1."); document.getElementById("aL1").focus(); return; }
   const costoProd = costoDe(lista * factorRecs(ALTA.recs), ALTA.seis, null, iva, limD(document.getElementById("aCont").value));
   const fleteFijoA = cent(aNum(document.getElementById("aFlete").value));
   // El flete que va al costo: el fijo, o el % del proveedor (ver altaCuenta).
@@ -4788,6 +4919,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
     blob: plano(cod+" "+document.getElementById("aCodProv").value+" "+tit+" "+rub+" "+prov+" "+(ALIAS[rub]||"")+(document.getElementById("aPromo").checked?" promo promocion":""))
   };
 
+  datos.combo = esCombo ? { piezas: ALTA.combo.map(x => ({ cod: x.cod, cant: x.cant })), l1, l2 } : null;
   if(ALTA.editando){
     const p = PRODUCTOS.find(x=>x.cod === ALTA.editando);
     if(!p){ toast("Ese artículo ya no está."); cerrarAlta(); return; }
@@ -4802,7 +4934,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
       if((p.dolarPropio ? +p.dolar : 0) !== dolPropio) extras.dolar = dolPropio;
       if(Object.keys(extras).length) guardarFleteServidor(cod, extras);
     }
-    if(p.gbp && !p.tocado && GBP_CRUDO[p.cod] && soloLoDePunto(p, datos)){
+    if(p.gbp && !p.tocado && GBP_CRUDO[p.cod] && !esCombo && !p.combo && soloLoDePunto(p, datos)){
       const crudo = Object.assign({}, GBP_CRUDO[p.cod], { flete: fleteFijoA, otroCosto: otro, otroNombre: otroNom, bulto,
         dolar: usd && document.getElementById("aDolarPropio").checked && dol > 0 ? dol : 0 });
       GBP_CRUDO[p.cod] = crudo;
@@ -4831,6 +4963,11 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   llenarSelects(); pintarProd(); buscar();
   cerrarAlta();
   toast(cod+" · "+tit.slice(0,40)+" cargado. Cuesta "+fmt(costo)+" con IVA y la Lista 2 queda en "+fmt(pr.lista2)+".");
+});
+// Después de guardar (este va después del de arriba): si era pieza de un
+// combo, el combo con lo de hoy de sus piezas (V.0.99.95).
+document.getElementById("aGuardar").addEventListener("click", () => {
+  try{ if(combosDePunto()){ if(vistaActual() === "productos") pintarProd(); buscar(); pintarTicket(); } }catch(e){}
 });
 
 /* ======================================= CREACIÓN POR ADJUNTO
@@ -5968,9 +6105,10 @@ function pintarProd(){
   const fr = document.getElementById("fRub").value;
   const fc = document.getElementById("fCat").value;
   const toks = plano(document.getElementById("fBusca").value).split(/\\s+/).filter(Boolean);
+  const fco = document.getElementById("fCombos").checked;
   const saca = ORD_PROD[S.ordProd.col] || ORD_PROD.margen;
   const todos = PRODUCTOS
-    .filter(p=>(!fp||p.prov===fp) && (!fr||p.rub===fr) && (!fc||String(p.cat||"").trim()===fc)
+    .filter(p=>(!fp||p.prov===fp) && (!fr||p.rub===fr) && (!fc||String(p.cat||"").trim()===fc) && (!fco||esComboArt(p))
              && (!toks.length || (b => toks.every(t=>b.includes(t)))(textoBuscaArt(p))))
     .sort((a,b)=>{
       const x = saca(a), y = saca(b);
@@ -5980,7 +6118,7 @@ function pintarProd(){
   // Con todo GBP son 7.000 filas: pintarlas todas trababa la pantalla en
   // cada tecla. Se ven de a 300; "Mostrar más" suma otras 300. Cambiar el
   // filtro o el orden vuelve a las primeras 300.
-  const firma = fp+"|"+fr+"|"+fc+"|"+toks.join(" ")+"|"+S.ordProd.col+"|"+S.ordProd.asc;
+  const firma = fp+"|"+fr+"|"+fc+"|"+toks.join(" ")+"|"+fco+"|"+S.ordProd.col+"|"+S.ordProd.asc;
   pintarFiltrosArt(fp, fr, fc, toks, todos.length);
   if(firma !== PROD_VER.firma){ PROD_VER.firma = firma; PROD_VER.max = PROD_DE_A; }
   const lista = todos.slice(0, PROD_VER.max);
@@ -6086,9 +6224,11 @@ document.getElementById("fChips").addEventListener("click", e => {
   pintarProd();
 });
 document.getElementById("fCat").addEventListener("input", pintarProd);
+document.getElementById("fCombos").addEventListener("change", pintarProd);
 document.getElementById("fLimpiar").addEventListener("click", () => {
   for(const id of ["fProv", "fRub", "fCat"]) document.getElementById(id).value = "";
   document.getElementById("fBusca").value = "";
+  document.getElementById("fCombos").checked = false;
   pintarProd();
   document.getElementById("fBusca").focus();
 });
@@ -11839,7 +11979,8 @@ function productoDeGbp(a){
     cat: sinEtiquetas(a.cat || ""),
     markup: Math.round((contado / costo - 1) * 1000) / 10,
     dep: { BA: Math.max(0, Math.round(+a.stockBA || 0)), TS: Math.max(0, Math.round(+a.stockTS || 0)) },
-    real: true, gbp: true
+    real: true, gbp: true,
+    ...(a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length ? { combo: a.combo } : {})
   };
   p.propio = plano(p.cod+" "+p.codProv+" "+p.tit+" "+p.rub+" "+p.prov);
   p.blob   = plano(p.cod+" "+p.codProv+" "+p.tit+" "+p.rub+" "+p.prov+" "+(ALIAS[p.rub]||""));
@@ -11916,7 +12057,7 @@ function aplicarGbp(arts){
     if(i !== undefined) PRODUCTOS[i] = p; else { idx.set(p.cod, PRODUCTOS.length); PRODUCTOS.push(p); }
     n++;
   }
-  if(n) combosDeGbp();
+  if(n){ combosDeGbp(); combosDePunto(); }
   return n;
 }
 

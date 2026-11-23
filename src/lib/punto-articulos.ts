@@ -79,6 +79,9 @@ export type ArticuloPunto = {
   /** V.0.99.92: el dolar de ESTE articulo (Costo en USD). No esta = el del
    *  formador, el mismo para todos. Se carga en Punto; el import no lo pisa. */
   dolar?: number;
+  /** V.0.99.95: es un combo armado en Punto con articulos que ya estan. El
+   *  import de GBP no lo toca; null al guardar lo saca. */
+  combo?: ComboArticulo | null;
   // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
   // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
   // articulos, uno por uno ... entrando en cada articulo deberia ver los
@@ -137,6 +140,38 @@ const entero = (v: unknown) => {
   return Number.isFinite(n) ? Math.max(-1e7, Math.min(1e7, Math.round(n))) : 0;
 };
 
+/** Un combo: sus piezas (codigo y cuantas de cada una) y el % de la Lista 1
+ *  sobre lo que suman los costos de las piezas, y el de la Lista 2 sobre la 1.
+ *  Al venderlo sale del stock cada pieza; el stock del combo es el que
+ *  alcanza para armarlo (lo cuenta la pantalla). */
+export type ComboArticulo = { piezas: Array<{ cod: string; cant: number }>; l1: number; l2: number };
+
+/** El combo que llega: undefined si no vino, null para sacarlo (o si no
+ *  queda ninguna pieza buena). Hasta 20 piezas; el articulo no es pieza de
+ *  si mismo. */
+function limpiarCombo(v: unknown, cod: string): ComboArticulo | null | undefined {
+  if (v === undefined) return undefined;
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const piezas: Array<{ cod: string; cant: number }> = [];
+  for (const x of Array.isArray(o.piezas) ? o.piezas.slice(0, 20) : []) {
+    if (!x || typeof x !== "object") continue;
+    const r = x as Record<string, unknown>;
+    const pc = texto(r.cod, 40);
+    const cant = Number(r.cant);
+    if (!pc || pc === cod || !Number.isInteger(cant) || cant < 1 || cant > 1000) continue;
+    const ya = piezas.find((p) => p.cod === pc);
+    if (ya) ya.cant = Math.min(1000, ya.cant + cant);
+    else piezas.push({ cod: pc, cant });
+  }
+  if (!piezas.length) return null;
+  const pct = (n: unknown) => {
+    const x = Number(n);
+    return Number.isFinite(x) ? Math.max(-99, Math.min(1000, Math.round(x * 100) / 100)) : 0;
+  };
+  return { piezas, l1: pct(o.l1), l2: pct(o.l2) };
+}
+
 /** Solo pasa lo que tiene forma de articulo. Lo demas se descarta. */
 export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   if (!x || typeof x !== "object") return null;
@@ -157,6 +192,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   const bulto = limpiarBulto(o.bulto);
   const dolar = plata(o.dolar);
   const dolarRef = plata(o.dolarRef);
+  const combo = limpiarCombo(o.combo, cod);
   return {
     cod,
     tit,
@@ -179,6 +215,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     ...(typeof otroNombre === "string" ? { otroNombre } : {}),
     ...(typeof bulto === "number" ? { bulto } : {}),
     ...(dolar > 0 ? { dolar } : {}),
+    ...(combo !== undefined ? { combo } : {}),
     ...deOtroExcel(o),
   };
 }
@@ -336,6 +373,10 @@ export async function guardarArticulos(
       // Los descuentos y lo de la estructura vienen de otros Excel: si este
       // no los trae, quedan los que ya tenia.
       if (ya) for (const k of CAMPOS_DE_OTRO_EXCEL) if (nuevo[k] === undefined && ya[k] !== undefined) copiar(nuevo, ya, k);
+      // El combo es de Punto: el import de GBP no lo trae y queda el que
+      // estaba; guardarlo desde Punto lo cambia, y null lo saca.
+      if (a.combo === undefined && ya?.combo) nuevo.combo = ya.combo;
+      if (nuevo.combo === null) delete nuevo.combo;
       if (ya && conStock && !conStock.has(a.cod)) {
         nuevo.stockBA = ya.stockBA;
         nuevo.stockTS = ya.stockTS;
@@ -538,6 +579,15 @@ export async function moverStockEnTx(
     cambiados.add(i);
   };
   for (const [cod, cant] of suma) {
+    const i0 = porCodigo.get(cod);
+    const combo = i0 !== undefined ? articulos[i0].combo : undefined;
+    if (combo && Array.isArray(combo.piezas) && combo.piezas.length) {
+      for (const pz of combo.piezas) {
+        const j = porCodigo.get(pz.cod);
+        if (j !== undefined && j !== i0) mover(j, cant * (Number(pz.cant) || 1));
+      }
+      continue;
+    }
     const piezas = cod.includes("+") ? cod.split("+").map((p) => p.trim()).filter(Boolean) : [];
     const lugares = piezas.map((p) => porCodigo.get(p));
     if (piezas.length > 1 && lugares.every((i) => i !== undefined)) {

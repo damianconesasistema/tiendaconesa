@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.94";
+export const APP_VERSION = "V.0.99.95";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.95",
+    date: "2026-11-23",
+    changes: [
+      "COMBOS (\"armar combos asignando los artículos y poniéndole aparte un porcentaje, como si fuera un artículo más ... y descuenta el stock de esos artículos\"): en la ficha de un artículo, \"Es un combo de artículos que ya están\": se suman las piezas por código y cantidad. El costo es la suma de los costos de las piezas, la Lista 1 es el % que le ponés encima y la Lista 2 sobre la 1. El stock es el que alcanza para armarlo en cada depósito, y al venderlo se descuenta cada pieza. Si cambia el costo de una pieza, el combo cambia solo.",
+      "Un combo sin stock de alguna pieza no se puede sumar a la venta: avisa cuál falta.",
+      "Artículos: \"Solo combos\" muestra los combos de GBP (los que dicen COMBO) y los armados en Punto. Un combo de GBP se puede abrir y armar con sus piezas: desde ahí descuenta las piezas.",
+    ],
+  },
   {
     version: "V.0.99.94",
     date: "2026-11-23",
