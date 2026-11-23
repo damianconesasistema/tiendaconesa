@@ -1250,6 +1250,23 @@ footer{
 .acc-art{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:16px}
 .acc-art .acceso{padding:14px}
 .acc-art .acceso[aria-pressed="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset}
+/* V.0.11.193: arriba de cada pantalla, lo que se hace ahí, con íconos. */
+.acc-mini{display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px; margin:0 0 16px}
+.acc-mini:empty{display:none}
+.acc-mini button{display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:6px; padding:11px 6px 10px;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r); cursor:pointer; color:var(--ink);
+  font:inherit; font-family:var(--font-d); font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.03em;
+  line-height:1.2; text-align:center; transition:border-color .15s, transform .15s}
+.acc-mini button[hidden]{display:none}
+.acc-mini button:hover{border-color:var(--accent); transform:translateY(-1px)}
+.acc-mini .ic{display:inline-flex; width:36px; height:36px; border-radius:10px; align-items:center; justify-content:center;
+  background:var(--accent-soft, #fdecea); color:var(--accent)}
+.acc-mini .ic svg{width:20px; height:20px}
+.acc-mini button[aria-pressed="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset; color:var(--accent)}
+.acc-mini button.fuerte{background:var(--accent); border-color:var(--accent); color:#fff}
+.acc-mini button.fuerte .ic{background:rgba(255,255,255,.18); color:#fff}
+/* Lo reemplazan los íconos de arriba. */
+#cpTipo, #cpNuevo{display:none}
 .card:has(> #gbpCuerpo[hidden]), .card:has(> #adjCuerpo[hidden]), .card:has(> #altaCuerpo[hidden]){display:none}
 .card:has(> #gbpCuerpo) > .card-h, .card:has(> #adjCuerpo) > .card-h{display:none}
 /* Al buscar: el proveedor o la marca que coincide, para elegirlo. */
@@ -1263,6 +1280,8 @@ footer{
   .acceso{padding:14px 12px}
   .acceso.grande{grid-column:1 / -1}
   .acc-art{grid-template-columns:minmax(0,1fr)}
+  .acc-mini{grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px}
+  .acc-mini button{font-size:10.5px; padding:9px 4px 8px}
 }
 
 /* El número del comprobante, arriba (V.0.11.191). */
@@ -1280,7 +1299,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.72.4</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.193</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1343,7 +1362,7 @@ footer{
       <div class="card" style="margin-bottom:16px">
         <div class="card-h"><h3>Comprobante</h3>
           <span class="nro-arriba" id="vtaNroArriba"></span>
-          <button class="b2" id="btnCrearVta" type="button" style="margin-left:auto;padding:5px 15px" title="Empezar un comprobante nuevo, en blanco">+ Crear</button>
+          <button class="b2" id="btnCrearVta" type="button" style="margin-left:auto;padding:5px 15px" title="Empezar un comprobante nuevo, en blanco">Crear</button>
           <button class="b3" id="btnBorrarDatosVta" type="button" style="margin-left:6px;padding:5px 13px" title="Cliente, documento, condición, descuento y depósito vuelven a lo de siempre. Los artículos quedan.">Borrar datos</button>
           <button class="b3" id="btnCambiarVta" style="margin-left:6px;padding:5px 15px">Cambiar</button>
         </div>
@@ -1372,7 +1391,7 @@ footer{
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
               <input id="q" type="text" placeholder="Agregar artículo: marca, rubro, nombre o código · 3*inodoro suma 3" autocomplete="off" spellcheck="false">
             </div>
-            <button class="b2" type="button" id="btnAMano" title="Un artículo que no está en el sistema" style="flex:0 0 auto;align-self:stretch;padding:0 14px">+ A mano</button>
+            <button class="b2" type="button" id="btnAMano" title="Un artículo que no está en el sistema" style="flex:0 0 auto;align-self:stretch;padding:0 14px">A mano</button>
           </div>
           <p class="ayuda-busca">Escribí pedazos, en cualquier orden. El stock va en <b style="color:var(--ok)">verde</b> si hay más de 10,
             en <b style="color:var(--warn)">amarillo</b> si quedan 10 o menos y en <b style="color:var(--bad)">rojo</b> si no hay; igual se puede elegir para ver el precio.</p>
@@ -1535,6 +1554,7 @@ footer{
     <h2>Comprobantes</h2>
     <p>Todo lo que se emitió en Punto, de todos los vendedores: presupuestos, facturas, remitos y ventas sin comprobante. Queda guardado aunque recargues.</p>
   </div>
+  <div class="acc-mini" id="accCp"></div>
   <div class="filtros" style="margin:0 0 14px">
     <select id="cpTipo" aria-label="Qué mostrar">
       <option value="">Todo</option>
@@ -2141,6 +2161,7 @@ footer{
     <h2>Proveedores</h2>
     <p>Los de GlobalBluePoint y los que cargues acá, guardados en el servidor: los ve cualquier puesto. Se cargan con el Excel de proveedores que exporta GBP (el que ya estaba se actualiza, menos lo que retocaste a mano) o de a uno con <b>+ Nuevo proveedor</b>.</p>
   </div>
+  <div class="acc-mini" id="accPrv"></div>
   <!-- Pedidos a proveedores (órdenes de compra, OC-0001). Damián, 22/11/2026:
        "el pedido que voy a pedirle al proveedor me lo pongas con los costos y
        los valores ... cuánto es el valor de la mercadería que le estoy
@@ -2151,7 +2172,7 @@ footer{
       <span class="sub" id="ocCount"></span>
       <label style="font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:6px"><input type="checkbox" id="ocTodos"> ver también los cerrados</label>
       <button class="b2" id="ocSacar" type="button" style="padding:6px 14px" title="Junta lo que falta para los pedidos de clientes abiertos, por proveedor">Sacar faltantes</button>
-      <button class="b1" id="ocNuevo" type="button" style="padding:6px 14px">+ Nuevo pedido</button>
+      <button class="b1" id="ocNuevo" type="button" style="padding:6px 14px">Nuevo pedido</button>
     </div>
     <div id="ocElegir" hidden style="padding:12px 14px;border-bottom:1px solid var(--line)">
       <div class="filtros">
@@ -2172,7 +2193,7 @@ footer{
       <h3>Desde GBP</h3>
       <span class="sub">el Excel de proveedores</span>
       <button class="b2" id="prvImportar" style="margin-left:12px;padding:6px 16px">Importar</button>
-      <button class="b1" id="prvNuevo" type="button" style="margin-left:8px;padding:6px 16px">+ Nuevo proveedor</button>
+      <button class="b1" id="prvNuevo" type="button" style="margin-left:8px;padding:6px 16px">Nuevo proveedor</button>
     </div>
     <div id="prvCuerpo" hidden style="padding:0 16px 16px">
       <div class="soltar" id="prvZona">
@@ -3200,6 +3221,8 @@ function abrirVista(v){
   if(!b) return;
   for(const x of vistas) document.getElementById("v-"+x).hidden = (x !== v);
   if(v === "inicio") pintarAccesos();
+  if(v === "comprobantes") pintarAccCp();
+  if(v === "proveedores") pintarAccPrv();
   for(const x of document.querySelectorAll("#nav [data-v], .bar a.ir[data-v]")) x.setAttribute("aria-current", String(x===b));
   pintarSubGer(v);
   // La direccion dice en que solapa estas: asi recargar no te saca de ahi,
@@ -3309,6 +3332,161 @@ document.getElementById("accesos").addEventListener("click", e => {
   if(b.dataset.acceso === "mostrador"){ const q = document.getElementById("q"); if(q) setTimeout(() => q.focus(), 50); }
 });
 
+
+/* ================================================ ÍCONOS EN TODO (V.0.11.193)
+   Damián: "en todo el sistema quiero que todo sea con íconos para acceder
+   de manera más rápido". Los dibujos son de la misma familia que los de las
+   solapas. Los botones los llevan por CSS (una máscara adelante del texto),
+   así no se pierden cuando el botón cambia de texto ni en los renglones que
+   se pintan después. */
+const ICO = {
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  filePlus:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/>',
+  fileText:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+  eraser:'<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7M5 11l9 9"/>',
+  pencil:'<path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/>',
+  penLine:'<path d="M12 20h9"/><path d="M16.38 3.62a1 1 0 0 1 3 3L7.37 18.64a2 2 0 0 1-.86.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.86z"/>',
+  save:'<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"/>',
+  receipt:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  package:'<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12M3.29 7 12 12l8.71-5M7.5 4.27l9 5.15"/>',
+  packageCheck:'<path d="m16 16 2 2 4-4"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m7.5 4.27 9 5.15M3.29 7 12 12l8.71-5M12 22V12"/>',
+  packagePlus:'<path d="M16 16h6M19 13v6"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m7.5 4.27 9 5.15M3.29 7 12 12l8.71-5M12 22V12"/>',
+  clipboard:'<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/>',
+  send:'<path d="M14.54 21.69a.5.5 0 0 0 .94-.03l6.5-19a.5.5 0 0 0-.64-.64l-19 6.5a.5.5 0 0 0-.03.94l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.93"/>',
+  more:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  message:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+  printer:'<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
+  trash:'<path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  undo:'<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>',
+  refresh:'<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  arrowRight:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+  minusCircle:'<circle cx="12" cy="12" r="10"/><path d="M8 12h8"/>',
+  plusCircle:'<circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/>',
+  xCircle:'<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+  banknote:'<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+  listChecks:'<path d="m3 17 2 2 4-4M3 7l2 2 4-4M13 6h8M13 12h8M13 18h8"/>',
+  userPlus:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+  barChart:'<path d="M12 20V10M18 20V4M6 20v-4"/>',
+  trendingUp:'<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>',
+  book:'<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>',
+  truck:'<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62L18.3 9.38a1 1 0 0 0-.78-.38H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+  layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'
+};
+const icoSvg = k => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || "") + '</svg>';
+/** Qué botón lleva qué dibujo. */
+const ICO_EN = [
+  ["filePlus", '#btnCrearVta'],
+  ["eraser", '#btnBorrarDatosVta'],
+  ["pencil", '#btnCambiarVta, [data-acc="editar"]'],
+  ["penLine", '#btnAMano'],
+  ["save", '#btnGuardarEd, #btnBorrador'],
+  ["receipt", '#btnFactura'],
+  ["package", '#btnSinFacturaC, #btnSinFactura'],
+  ["clipboard", '#btnPedInt'],
+  ["fileText", '#btnPresu, #subPrv [data-g="listas"]'],
+  ["send", '#btnCaja'],
+  ["more", '#btnMasAcc'],
+  ["message", '#btnWhatsVta, [data-acc="whats"]'],
+  ["download", '[data-acc="pdf"]'],
+  ["printer", '[data-acc="imprimir"]'],
+  ["trash", '[data-acc="eliminar"]'],
+  ["undo", '[data-acc="recuperar"], [data-acc="nodespachar"]'],
+  ["refresh", '[data-acc="actualizar"]'],
+  ["packageCheck", '[data-acc="despachar"]'],
+  ["minusCircle", '[data-acc="nc"]'],
+  ["plusCircle", '[data-acc="nd"]'],
+  ["arrowRight", '[data-pasar], [data-ir-venta]'],
+  ["banknote", '[data-cobrar]'],
+  ["xCircle", '[data-anular]'],
+  ["packagePlus", '#ocNuevo'],
+  ["listChecks", '#ocSacar'],
+  ["plus", '#prvNuevo'],
+  ["upload", '#prvImportar'],
+  ["userPlus", '#unCrear'],
+  ["barChart", '#subGer [data-g="gerencia"]'],
+  ["trendingUp", '#subGer [data-g="renta"]'],
+  ["book", '#subGer [data-g="contable"]'],
+  ["truck", '#subPrv [data-g="proveedores"]']
+];
+(function(){
+  const reglas = [], antes = [];
+  for(const [k, sel] of ICO_EN){
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + ICO[k] + '</svg>';
+    reglas.push(sel + '{--ico:url("data:image/svg+xml,' + encodeURIComponent(svg) + '")}');
+    for(const x of sel.split(",")) antes.push(x.trim() + "::before");
+  }
+  reglas.push(antes.join(",") + '{content:"";display:inline-block;flex:0 0 auto;width:1.15em;height:1.15em;margin:0 .45em 0 0;' +
+    'vertical-align:-.2em;background:currentColor;-webkit-mask:var(--ico) center/contain no-repeat;mask:var(--ico) center/contain no-repeat}');
+  const st = document.createElement("style"); st.id = "icoBotones"; st.textContent = reglas.join("\\n");
+  document.head.appendChild(st);
+})();
+
+/* Comprobantes: arriba, qué mostrar con íconos (antes era una lista para
+   desplegar) y "Nuevo comprobante". */
+const CP_ACC = [
+  ["nuevo", "Nuevo comprobante", "filePlus"],
+  ["", "Todo", "layers"],
+  ["factura", "Facturas", "receipt"],
+  ["sin-comprobante", "Sin comprobante", "package"],
+  ["remito", "Remitos", "truck"],
+  ["pedido-interno", "Pedidos internos", "clipboard"],
+  ["presupuesto", "Presupuestos", "fileText"],
+  ["nota-credito", "Notas de crédito", "minusCircle"],
+  ["nota-debito", "Notas de débito", "plusCircle"],
+  ["preparacion", "Sin despachar", "clock"],
+  ["eliminados", "Eliminados", "trash"]
+];
+document.getElementById("accCp").innerHTML = CP_ACC.map(([v, t, k]) =>
+  '<button type="button" data-cp="' + v + '"' + (v === "nuevo" ? ' class="fuerte"' : ' aria-pressed="false"') + '>' +
+  '<span class="ic">' + icoSvg(k) + '</span>' + t + '</button>').join("");
+function pintarAccCp(){
+  const caja = document.getElementById("accCp"), sel = document.getElementById("cpTipo");
+  if(!caja || !sel) return;
+  for(const b of caja.querySelectorAll("[data-cp]")){
+    if(b.dataset.cp === "nuevo"){ try{ b.hidden = !puede("venta"); }catch(e){} continue; }
+    b.setAttribute("aria-pressed", String(b.dataset.cp === sel.value));
+  }
+}
+document.getElementById("accCp").addEventListener("click", e => {
+  const b = e.target.closest("[data-cp]"); if(!b) return;
+  if(b.dataset.cp === "nuevo"){ document.getElementById("cpNuevo").click(); return; }
+  const sel = document.getElementById("cpTipo");
+  if(sel.value === b.dataset.cp) return;
+  sel.value = b.dataset.cp;
+  sel.dispatchEvent(new Event("change"));
+});
+
+/* Proveedores: arriba, lo que se hace ahí. Cada ícono toca el botón de
+   siempre (que sigue en su lugar) y lleva hasta ese cuadro. */
+const PRV_ACC = [
+  ["ocNuevo", "Pedido a proveedor", "packagePlus"],
+  ["ocSacar", "Sacar faltantes", "listChecks"],
+  ["prvNuevo", "Nuevo proveedor", "plus"],
+  ["prvImportar", "Importar de GBP", "upload"]
+];
+document.getElementById("accPrv").innerHTML = PRV_ACC.map(([id, t, k]) =>
+  '<button type="button" data-prv="' + id + '"><span class="ic">' + icoSvg(k) + '</span>' + t + '</button>').join("");
+function pintarAccPrv(){
+  const caja = document.getElementById("accPrv"); if(!caja) return;
+  let oc = false; try{ oc = ocPuede(); }catch(e){}
+  for(const b of caja.querySelectorAll("[data-prv]")){
+    const id = b.dataset.prv, btn = document.getElementById(id);
+    // Los pedidos, si puede pedir; el resto, lo mismo que su botón.
+    b.hidden = id === "ocNuevo" || id === "ocSacar" ? !oc : !btn || btn.hidden;
+  }
+}
+document.getElementById("accPrv").addEventListener("click", e => {
+  const b = e.target.closest("[data-prv]"); if(!b) return;
+  const btn = document.getElementById(b.dataset.prv); if(!btn) return;
+  // "Importar" abre y cierra: si ya está abierto, solo lleva hasta ahí.
+  const abierto = b.dataset.prv === "prvImportar" && !document.getElementById("prvCuerpo").hidden;
+  if(!abierto) btn.click();
+  const card = btn.closest(".card");
+  if(card) setTimeout(() => card.scrollIntoView({ behavior:"smooth", block:"start" }), 60);
+});
 
 let tt;
 function toast(msg){
@@ -8791,6 +8969,7 @@ function clicCp(e){
 for(const id of ["tbCp","tbPresu"]) document.getElementById(id).addEventListener("click", clicCp);
 for(const id of ["cpTipo","cpSuc","cpDias"])
   document.getElementById(id).addEventListener("change", () => { CP.abierto = null; pintarComprobantes(); });
+document.getElementById("cpTipo").addEventListener("change", pintarAccCp);
 document.getElementById("cpBusca").addEventListener("input", pintarListaCp);
 // Nuevo comprobante: la venta en blanco. Si había una empezada, se ofrece
 // guardarla como borrador (no se pierde).
@@ -10128,7 +10307,7 @@ function pintarListaOC(){
   if(OC.error){ tb.innerHTML = '<tr><td colspan="6" class="vacio">'+txt(OC.error)+'</td></tr>'; return; }
   if(!n){
     tb.innerHTML = '<tr><td colspan="6" class="vacio">'+(OC.cargando ? 'Trayendo los pedidos…'
-      : 'No hay pedidos '+(todos ? 'a proveedores' : 'sin cerrar')+'. Tocá <b>+ Nuevo pedido</b> o <b>Sacar faltantes</b>.')+'</td></tr>';
+      : 'No hay pedidos '+(todos ? 'a proveedores' : 'sin cerrar')+'. Tocá <b>Nuevo pedido</b> o <b>Sacar faltantes</b>.')+'</td></tr>';
     return;
   }
   tb.innerHTML = OC.lista.map(c => '<tr data-oc="'+atrib(c.id)+'"'+(OC.ed && OC.ed.id === c.id ? ' class="oc-abierta"' : '')+'>'+

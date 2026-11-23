@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.192";
+export const APP_VERSION = "V.0.11.193";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.193",
+    date: "2026-11-23",
+    changes: [
+      "ÍCONOS EN TODO (\"en todo el sistema quiero que todo sea con íconos para acceder más rápido\"): Comprobantes tiene arriba los íconos de qué mostrar (facturas, sin comprobante, remitos, pedidos internos, presupuestos, notas, sin despachar, eliminados) y \"Nuevo comprobante\"; Proveedores, los de pedido a proveedor, sacar faltantes, nuevo proveedor e importar de GBP.",
+      "Los botones de la venta, de cada renglón de Comprobantes, de los pedidos por cobrar, de las solapas de Gerencia y Proveedores y de Usuarios llevan su ícono adelante.",
+    ],
+  },
   {
     version: "V.0.11.192",
     date: "2026-11-23",
