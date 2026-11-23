@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.205";
+export const APP_VERSION = "V.0.11.206";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.206",
+    date: "2026-11-23",
+    changes: [
+      "La barra de arriba dice \"Sucursal:\" en vez de \"Vendés como:\".",
+      "Artículos (\"que me busque por proveedor también, no solo marca; primero siempre proveedor\"): los filtros van Proveedor, Marca, Rubro, y el buscador avisa que busca por proveedor y marca.",
+    ],
+  },
   {
     version: "V.0.11.205",
     date: "2026-11-23",
