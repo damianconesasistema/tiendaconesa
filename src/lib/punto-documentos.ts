@@ -463,7 +463,12 @@ async function cerrarVenta(tx: Prisma.TransactionClient, ventaId: string, docume
   });
 }
 
-type Emitido = { doc: DocumentoGuardado; repetido: boolean } | { error: string };
+type Emitido = { doc: DocumentoGuardado; repetido: boolean; stock?: StockArticulo[] } | { error: string };
+
+/** Lo emitido que se puede cambiar despues (V.0.11.192): lo que no es fiscal.
+ *  La factura solo si es interna (sin CAE); la que tiene CAE se corrige con
+ *  nota de credito. Las notas no: van atadas a su factura. */
+const EDITABLES = ["presupuesto", "pedido-interno", "sin-comprobante", "remito", "factura"];
 
 /** El documento que vuelve, con el nombre de quien lo emitio. */
 async function conNombreSiHay(r: Emitido): Promise<Emitido> {
@@ -623,7 +628,6 @@ export async function editarPresupuesto(ed: Edicion, d: DocumentoNuevo, usuario:
 }
 
 async function editar(ed: Edicion, d: DocumentoNuevo, usuario: string): Promise<Emitido> {
-  if (d.letra !== "X") return { error: "Al editar un presupuesto se guarda como presupuesto." };
   return prisma.$transaction(async (tx): Promise<Emitido> => {
     // FOR UPDATE: el otro puesto que guarda el mismo presupuesto espera a
     // que este termine, y despues ve la version nueva.
@@ -632,26 +636,41 @@ async function editar(ed: Edicion, d: DocumentoNuevo, usuario: string): Promise<
     if (!bloqueo.length) return { error: "Ese presupuesto no está." };
     const actual = await tx.puntoDocumento.findUnique({ where: { id: ed.id } });
     if (!actual) return { error: "Ese presupuesto no está." };
-    if (actual.tipo !== "presupuesto") return { error: "Solo se pueden cambiar los presupuestos." };
+    if (!EDITABLES.includes(actual.tipo)) return { error: "Ese comprobante no se puede cambiar." };
+    if (arcaDe(actual.datos))
+      return { error: "Ese comprobante tiene CAE de ARCA: no se cambia. Se corrige con una nota de crédito." };
+    // Se guarda como el mismo comprobante: un pedido interno sigue siendo
+    // pedido interno, con su letra y su numero.
+    if (d.tipo !== actual.tipo || (d.letra ?? null) !== (actual.letra ?? null))
+      return { error: `Al cambiarlo se guarda como el mismo comprobante (${actual.comp.replace(/^\d+\./, "")}).` };
+    const esPresu = actual.tipo === "presupuesto";
 
     const prev = (actual.datos && typeof actual.datos === "object" && !Array.isArray(actual.datos)
       ? actual.datos
       : {}) as Record<string, unknown>;
     const marcas = Array.isArray(prev.marcas) ? (prev.marcas as unknown[]).filter((m) => typeof m === "string") : [];
     if (marcas.includes(d.idLocal)) return { doc: aGuardado(actual), repetido: true };
-    if (actual.eliminadoEn) return { error: "Ese presupuesto está eliminado: recuperalo antes de cambiarlo." };
+    if (actual.eliminadoEn) return { error: "Ese comprobante está eliminado: recuperalo antes de cambiarlo." };
 
     const veces = entero(prev.ed, 0, 1_000_000);
     if (veces !== ed.base)
       return {
         error:
-          "Alguien cambió este presupuesto mientras lo editabas. Abrilo de nuevo desde Comprobantes para ver cómo quedó.",
+          "Alguien cambió este comprobante mientras lo editabas. Abrilo de nuevo desde Comprobantes para ver cómo quedó.",
       };
-    const vendido = await tx.puntoDocumento.findFirst({
-      where: { origenId: ed.id, tipo: { not: "presupuesto" }, eliminadoEn: null },
-      select: { id: true },
-    });
-    if (vendido) return { error: "Ese presupuesto ya se vendió: no se puede cambiar." };
+    if (esPresu) {
+      const vendido = await tx.puntoDocumento.findFirst({
+        where: { origenId: ed.id, tipo: { not: "presupuesto" }, eliminadoEn: null },
+        select: { id: true },
+      });
+      if (vendido) return { error: "Ese presupuesto ya se vendió: no se puede cambiar." };
+    } else {
+      const nota = await tx.puntoDocumento.findFirst({
+        where: { tipo: { in: ["nota-credito", "nota-debito"] }, eliminadoEn: null, datos: { path: ["facturaId"], equals: ed.id } },
+        select: { id: true },
+      });
+      if (nota) return { error: "Esa factura tiene notas de crédito o débito: no se cambia." };
+    }
     // La venta en la que se estaba editando (V.0.99.82) se revisa como al
     // emitir (que sea suya, que no sea un ticket de caja). Como es un
     // presupuesto no se cierra: queda como estaba (ver ventaParaEmitir).
@@ -687,6 +706,10 @@ async function editar(ed: Edicion, d: DocumentoNuevo, usuario: string): Promise<
       bruto: d.bruto,
       descuento: d.descuento,
       fiscal: false,
+      // Lo que no viene de la pantalla queda como estaba: si el stock ya
+      // salio, quien lo despacho.
+      ...(prev.stock !== undefined ? { stock: prev.stock } : {}),
+      ...(prev.despacho !== undefined ? { despacho: prev.despacho } : {}),
       ed: veces + 1,
       editado: { en: new Date().toISOString(), por: usuario, veces: veces + 1 },
       marcas: [...marcas, d.idLocal].slice(-MAX_MARCAS),
@@ -695,15 +718,36 @@ async function editar(ed: Edicion, d: DocumentoNuevo, usuario: string): Promise<
       // sigue diciendo despues de editarlo.
       ...(typeof prev.actualizaDe === "string" ? { actualizaDe: prev.actualizaDe } : {}),
     };
+    // El stock (V.0.11.192): si lo de este comprobante ya salio del deposito,
+    // vuelve lo de antes y sale lo de ahora (asi tambien si cambio el
+    // deposito). En la misma transaccion: cambia todo o nada.
+    let stock: StockArticulo[] = [];
+    if (prev.stock === "salio" && MUEVEN_STOCK.includes(actual.tipo)) {
+      const ren = (x: unknown) => (Array.isArray(x) ? (x as Partial<Renglon>[]) : []);
+      const dep = (x: unknown) => (x === "TS" ? "TS" : "BA");
+      const entra = await moverStockEnTx(
+        tx,
+        dep(prev.deposito),
+        ren(prev.renglones).map((r) => ({ cod: String(r?.cod ?? ""), cant: Number(r?.cant) || 0 })),
+      );
+      const sale = await moverStockEnTx(
+        tx,
+        dep(d.deposito),
+        d.renglones.map((r) => ({ cod: r.cod, cant: -(Number(r.cant) || 0) })),
+      );
+      const porCod = new Map<string, StockArticulo>();
+      for (const x of [...entra, ...sale]) porCod.set(x.cod, x);
+      stock = [...porCod.values()];
+    }
     // El vendedor, el puesto, el numero, el pedido y la fecha son los del
-    // presupuesto original. Quien lo cambio queda en datos.editado.
+    // comprobante original. Quien lo cambio queda en datos.editado.
     const nuevo = await tx.puntoDocumento.update({
       where: { id: ed.id },
       data: { cliente: d.cliente.n, total: d.total, datos: datos as Prisma.InputJsonValue },
     });
     if (d.ventaId && cerrar) await cerrarVenta(tx, d.ventaId, nuevo.id);
-    return { doc: aGuardado(nuevo), repetido: false };
-  });
+    return { doc: aGuardado(nuevo), repetido: false, stock };
+  }, { maxWait: 15_000, timeout: 60_000 });
 }
 
 // ------------------------------------------------------------- ELIMINAR

@@ -150,12 +150,12 @@ export async function POST(req: Request): Promise<Response> {
       if (!r.repetido) {
         const total = r.doc.total.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         await registrar(
-          `Punto: cambió el Presupuesto ${r.doc.nroTexto}`,
+          `Punto: cambió ${r.doc.comp.replace(/^\d+\./, "")} ${r.doc.nroTexto}`,
           `${r.doc.cliente} · $ ${total} · ${limpio.doc.renglones.length} renglones`,
           quien,
         );
       }
-      return json({ ok: true, documento: r.doc, repetido: r.repetido, editado: true });
+      return json({ ok: true, documento: r.doc, repetido: r.repetido, editado: true, stock: r.stock ?? [] });
     } catch (e) {
       // Sin lo de adentro de la base (ver src/lib/punto-error.ts).
       return json({ error: "No se pudo guardar el cambio: " + motivoParaLaPantalla(e, "error del servidor") + "." });

@@ -1388,6 +1388,7 @@ footer{
       <div id="tkCaja"></div>
       <div class="tk-tot" id="tkTot"></div>
       <div class="tk-acc">
+        <button class="b1" id="btnGuardarEd" type="button" hidden>Guardar cambios</button>
         <button class="b1" id="btnFactura" hidden>Emitir factura</button>
         <button class="b2" id="btnSinFacturaC" type="button" hidden>Entregar sin comprobante</button>
         <button class="b2" id="btnPedInt" type="button" hidden title="Sin factura: queda anotado como pedido interno y pasa a preparación">Cerrar como pedido interno</button>
@@ -2776,6 +2777,10 @@ function listasMayor(p){
 /** El precio de un renglón de la venta con esa cantidad. */
 function precioLinea(p, cant){
   if(!p) return { contado: 0, unPago: 0, may: false };
+  // Editando una venta ya emitida (V.0.11.192): lo que ya estaba, al precio
+  // con que se vendió; lo que se agrega, al de hoy.
+  const fijo = S.editando && S.editando.precios ? S.editando.precios[p.cod] : undefined;
+  if(fijo != null && isFinite(+fijo)) return { contado: +fijo, unPago: +fijo, may: false };
   // Con Lista 1 elegida arriba, el precio sale de la Lista 1 (en un artículo
   // cargado a mano no hay Lista 1: va su precio).
   // Como GBP (V.0.11.190): el precio es el de la Lista elegida, tal cual.
@@ -4414,6 +4419,7 @@ async function guardarPresu(){
   trasEmitir(await emitirEnServidor(doc));
 }
 
+document.getElementById("btnGuardarEd").addEventListener("click", guardarEdicionVenta);
 document.getElementById("btnFactura").addEventListener("click",()=>{
   // Sin un pedido abierto para cobrar (o sin permiso), el botón (o Alt+F)
   // confirma el pedido: en Venta no se factura.
@@ -8487,6 +8493,8 @@ function clienteDeVenta(v){
 /** Lo que pasa en la pantalla cuando un comprobante quedó guardado. */
 function registrarEmitido(g){
   const dt = g.datos || {};
+  const editada = g.tipo !== "presupuesto" && !!(dt.editado);
+  if(editada) S.ventas = S.ventas.filter(v => v.docId !== g.id);
   if(g.tipo !== "presupuesto"){
     if(!g.eliminado && !S.ventas.some(v => v.docId === g.id)){
       // El stock lo descuenta el servidor y vuelve con la respuesta
@@ -8503,7 +8511,7 @@ function registrarEmitido(g){
   // servidor (si recortó un salto grande, la pantalla no sigue mostrando el
   // número tipeado). Las otras series y el pedido, solo suben.
   // Un presupuesto cambiado conserva su número viejo: la serie no se toca.
-  if(!fueCambio(g) && g.letra && g.numero && S.nro[g.sucursal] && S.nro[g.sucursal][g.letra] != null)
+  if(!fueCambio(g) && !editada && g.letra && g.numero && S.nro[g.sucursal] && S.nro[g.sucursal][g.letra] != null)
     S.nro[g.sucursal][g.letra] = g.numero + 1;
   sincronizarNumeros(numerosDe(g));
 }
@@ -8513,6 +8521,9 @@ const fueCambio = g => g.tipo === "presupuesto" && !!(g.datos && g.datos.editado
 const conCaeTxt = g => { const a = (g.datos || {}).arca; return a && a.cae ? " Autorizada por ARCA: CAE " + a.cae + "." : ""; };
 function textoEmitido(g){
   const dt = g.datos || {}, su = sucDe(g.sucursal);
+  if(g.tipo !== "presupuesto" && dt.editado)
+    return g.comp.replace(/^\\d+\\./, "") + " " + (g.letra ? g.nroTexto.slice(2) : "P-" + g.pedido) + " cambiado, por " + fmt(g.total) +
+      ". Sigue con el mismo número, lo de antes quedó guardado y el stock se acomodó.";
   if((dt.arca || {}).cae && g.tipo === "factura")
     return g.comp.replace(/^\\d+\\./, "") + " " + g.nroTexto.slice(2) + " de " + su.n + " por " + fmt(g.total) + "." + conCaeTxt(g) +
       " Sale del depósito de " + (DEPOSITOS[dt.deposito] || dt.deposito) + ". En Comprobantes la bajás en PDF o se la mandás por WhatsApp.";
@@ -8759,7 +8770,7 @@ function clicCp(e){
     const d = CP.docs.find(x => x.id === acc.dataset.id);
     if(!d) return;
     const a = acc.dataset.acc;
-    if(a === "editar") editarPresu(d);
+    if(a === "editar"){ if(d.tipo === "presupuesto") editarPresu(d); else editarVenta(d); }
     if(a === "actualizar") actualizarPresu(d);
     if(a === "pdf") traerPdf(d, acc, false);
     if(a === "whats") mandarPorWhats(d);
@@ -8805,7 +8816,8 @@ function accionesCp(d, vendido){
   if(d.eliminado) return bt("pdf", "PDF") + (puede("eliminar") ? bt("recuperar", "Recuperar", "b2", "Vuelve a la lista y a la Caja") : "");
   const whats = bt("whats", "WhatsApp", "b2", "Mandarle al cliente el detalle con el link al PDF");
   const presuLibre = d.tipo === "presupuesto" && !vendido && puede("venta");
-  return (presuLibre ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número") +
+  return (esVentaEditable(d) && puede("cobrar") ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número y el stock se acomoda") : "") +
+    (presuLibre ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número") +
       '<button class="b2" type="button" data-pasar="' + id + '">Pasar a venta</button>' : "") +
     bt("pdf", "PDF", "b2", "Bajar el PDF") + whats +
     bt("imprimir", "Imprimir", "b2") +
@@ -9046,8 +9058,12 @@ const esDeHoy = iso => fechaAR(iso) === fechaAR(new Date().toISOString());
 function editandoDe(x){
   if(!x || typeof x !== "object" || typeof x.id !== "string" || !/^[A-Za-z0-9_-]{8,40}$/.test(x.id)) return null;
   if(!SUCURSALES.some(s => s.id === x.suc)) return null;
+  const precios = {};
+  if(x.precios && typeof x.precios === "object") for(const k of Object.keys(x.precios).slice(0, 300)) if(isFinite(+x.precios[k])) precios[k] = +x.precios[k];
+  const venta = ["pedido-interno","sin-comprobante","remito","factura"].indexOf(x.tipo) >= 0;
   return { id:x.id, nro:String(x.nro || "").replace(/[<>&"']/g, "").slice(0, 20), base:Math.max(0, Math.floor(+x.base || 0)), suc:x.suc,
-           sucAntes: SUCURSALES.some(s => s.id === x.sucAntes) ? x.sucAntes : null };
+           sucAntes: SUCURSALES.some(s => s.id === x.sucAntes) ? x.sucAntes : null,
+           ...(venta ? { tipo:x.tipo, comp:String(x.comp || "").slice(0, 40), letra: typeof x.letra === "string" ? x.letra.slice(0, 1) : null, precios } : {}) };
 }
 /** Se terminó de cambiar el presupuesto (se guardó, se facturó, se dejó):
     la venta vuelve a la sucursal en la que estaba antes de abrirlo. */
@@ -9055,6 +9071,7 @@ function terminarEdicion(){
   S.actualiza = null;
   const e = S.editando;
   S.editando = null;
+  setTimeout(() => { try{ aplicarCobrar(); }catch(x){} }, 0);
   if(sucursalFija()){
     if(S.suc !== sucursalFija()){ S.suc = sucursalFija(); S.comp = null; S.dep = null; }
     const sel = document.getElementById("selSuc"); if(sel) sel.value = S.suc;
@@ -9133,6 +9150,60 @@ function editarPresu(d){
     (S.editando.sucAntes ? " La venta pasó a " + sucDe(d.sucursal).n + ", que es la del presupuesto; al terminar vuelve a " + sucDe(S.editando.sucAntes).n + "." : "") +
     (faltan ? " " + faltan + (faltan > 1 ? " artículos ya no están" : " artículo ya no está") + " en el catálogo y quedó afuera." : "") +
     (cid && !hayCliente ? " El cliente no está cargado en esta compu: elegilo de nuevo." : ""));
+}
+
+/** V.0.11.192 (Damián: "siempre todo eso debería poder editarse"): un
+    pedido interno, una venta sin comprobante, un remito o una factura sin
+    CAE se abren en la venta para cambiarlos. Lo que ya tenían queda al
+    precio con que se vendió; "Guardar cambios" lo guarda con el mismo
+    número y el stock se acomoda a la diferencia. */
+const esVentaEditable = d => ["pedido-interno","sin-comprobante","remito","factura"].indexOf(d.tipo) >= 0 &&
+  !d.eliminado && !((d.datos || {}).arca || {}).cae;
+function editarVenta(d){
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando un comprobante."); return; }
+  if(trabadaPorDuda()) return;
+  if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
+  if(!esVentaEditable(d)){ toast("Ese comprobante no se puede cambiar."); return; }
+  if(sucursalFija() && sucursalFija() !== d.sucursal){ toast("Ese comprobante es de " + sucDe(d.sucursal).n + ": tu usuario no puede cambiarlo."); return; }
+  if(VSRV.caja){ toast("Estás cobrando un pedido: terminalo o devolvelo a la caja antes de cambiar otro comprobante."); return; }
+  const dt = d.datos || {}, ren = dt.renglones || [];
+  recuperarManuales(ren);
+  const hay = ren.filter(r => prod(r.cod)), faltan = ren.length - hay.length;
+  if(!hay.length){ toast("Ninguno de esos artículos está hoy en el catálogo."); return; }
+  if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por " + nombreDoc(d) + " " + (d.letra ? numeroCorto(d) : "P-" + d.pedido) + " para cambiarlo?")) return;
+  const precios = {};
+  for(const r of hay){ if(precios[r.cod] == null) precios[r.cod] = +r.contado || 0; }
+  S.linea = hay.map(r => ({ cod:r.cod, cant:Math.max(1, Math.floor(+r.cant || 1)) }));
+  const cid = dt.cliente && dt.cliente.id;
+  const hayCliente = !!cid && CLIENTES.some(c => c.id === cid);
+  S.cliente = hayCliente ? cid : "";
+  S.desc = +dt.desc || 0; S.lista = 2;
+  const fo = dt.forma;
+  if(fo && MULT[fo]){ S.forma = fo; S.cond = fo; }
+  terminarEdicion();
+  const sucAntes = S.suc;
+  if(SUCURSALES.some(x => x.id === d.sucursal)){ S.suc = d.sucursal; document.getElementById("selSuc").value = S.suc; }
+  S.comp = d.comp; S.nroLibre = false;
+  S.dep = dt.deposito && dt.deposito !== sucDe(d.sucursal).dep ? dt.deposito : null;
+  S.origen = null; S.emision = null;
+  S.editando = { id:d.id, nro: d.letra ? numeroCorto(d) : "P-" + d.pedido, base:+dt.ed || 0, suc:d.sucursal,
+                 sucAntes: sucAntes !== d.sucursal ? sucAntes : null,
+                 tipo:d.tipo, comp:d.comp, letra:d.letra || null, precios };
+  abrirVista("mostrador");
+  pintarCamposVenta(); pintarDtos(); pintarTicket(); aplicarCobrar();
+  guardarLocal();
+  window.scrollTo(0, 0);
+  toast(nombreDoc(d) + " " + S.editando.nro + " abierto para cambiarlo, con los precios con que se vendió. Cuando termines, tocá Guardar cambios." +
+    (faltan ? " " + faltan + (faltan > 1 ? " artículos ya no están" : " artículo ya no está") + " en el catálogo y quedó afuera." : "") +
+    (cid && !hayCliente ? " El cliente no está cargado en esta compu: elegilo de nuevo." : ""));
+}
+async function guardarEdicionVenta(){
+  if(EMITIENDO || !S.editando || !S.editando.tipo) return;
+  if(!S.linea.length){ toast("No quedó ningún artículo. Si no va, eliminalo desde Comprobantes."); return; }
+  if(S.suc !== S.editando.suc){ toast("Ese comprobante es de " + sucDe(S.editando.suc).n + ": volvé a esa sucursal arriba para guardarlo."); return; }
+  const doc = armarDocumento(S.editando.comp, S.editando.letra);
+  doc.edita = { id:S.editando.id, base:S.editando.base };
+  trasEmitir(await emitirEnServidor(doc));
 }
 
 /** Lo guardado de "precios de hoy", revisado. */
@@ -11961,6 +12032,15 @@ function aplicarCobrar(){
   const c = puedeCobrar();
   let cobrando = false;
   try{ cobrando = !!VSRV.caja; }catch(e){ /* todavía no arrancó la venta */ }
+  // Editando una venta ya emitida: solo "Guardar cambios" (V.0.11.192).
+  const ed = typeof S === "object" && S.editando && S.editando.tipo;
+  const bg = document.getElementById("btnGuardarEd");
+  if(bg){ bg.hidden = !ed; if(ed) bg.textContent = "Guardar cambios · " + (S.editando.comp || "").replace(/^\\d+\\./, "") + " " + S.editando.nro; }
+  if(ed){
+    for(const id of ["btnFactura","btnSinFacturaC","btnPedInt","btnPresu","btnCaja","btnBorrador","btnMasAcc","masAcc"]){ const b = document.getElementById(id); if(b) b.hidden = true; }
+    return;
+  }
+  for(const id of ["btnPresu","btnBorrador","btnMasAcc"]){ const b = document.getElementById(id); if(b) b.hidden = false; }
   for(const id of ["btnFactura", "btnSinFacturaC", "btnPedInt"]){ const b = document.getElementById(id); if(b) b.hidden = !(c && cobrando); }
   const bs = document.getElementById("btnSinFactura"); if(bs) bs.hidden = true;
   const bc = document.getElementById("btnCaja"); if(bc){ bc.hidden = cobrando; bc.className = "b1"; }
