@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.90";
+export const APP_VERSION = "V.0.99.91";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.91",
+    date: "2026-11-23",
+    changes: [
+      "TODO DESDE EL SERVIDOR (\"que todo sea desde el servidor\"): el dólar del formador sale solo del servidor (antes cada compu guardaba una copia) y la copia vieja se borra. En la compu queda solo el respaldo de la venta que se está cargando, por si se corta internet, y la marca que evita facturar dos veces si se corta justo al emitir: siempre manda lo del servidor.",
+    ],
+  },
   {
     version: "V.0.99.90",
     date: "2026-11-23",
