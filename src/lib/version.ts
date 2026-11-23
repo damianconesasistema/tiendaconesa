@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.195";
+export const APP_VERSION = "V.0.11.196";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.196",
+    date: "2026-11-23",
+    changes: [
+      "Usuarios, ventana de la contraseña (\"ponele un cerrar que no me deja salir de ahí\"): una X arriba, tocar afuera la cierra y, ya guardada, el botón dice \"Cerrar\".",
+      "Inicio: los íconos más grandes, y el desplegable de abajo (antes \"Todo lo de GlobalBluePoint, con el nombre que le dan ustedes\") se llama ÁRBOL DEL SISTEMA.",
+    ],
+  },
   {
     version: "V.0.11.195",
     date: "2026-11-23",
