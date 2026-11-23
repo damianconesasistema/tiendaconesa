@@ -72,6 +72,9 @@ export type ArticuloPunto = {
   otroNombre?: string;
   /** Se compra solo de a N unidades (2 a 10.000). No esta = suelto. */
   bulto?: number;
+  /** V.0.99.92: el dolar de ESTE articulo (Costo en USD). No esta = el del
+   *  formador, el mismo para todos. Se carga en Punto; el import no lo pisa. */
+  dolar?: number;
   // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
   // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
   // articulos, uno por uno ... entrando en cada articulo deberia ver los
@@ -93,7 +96,7 @@ export type ArticuloPunto = {
 };
 
 /** Lo que se carga en Punto y el import de GBP no pisa nunca. */
-export const CAMPOS_DE_PUNTO = ["flete", "otroCosto", "otroNombre", "bulto"] as const;
+export const CAMPOS_DE_PUNTO = ["flete", "otroCosto", "otroNombre", "bulto", "dolar"] as const;
 type CampoDePunto = (typeof CAMPOS_DE_PUNTO)[number];
 /** Lo de GBP que llega en los Excel de descuentos y de estructura: el Excel
  *  de listas no los trae, asi que importarlo no los toca. */
@@ -108,6 +111,7 @@ export type CostosArticulo = {
   otroCosto?: number | null;
   otroNombre?: string | null;
   bulto?: number | null;
+  dolar?: number | null;
 };
 
 export type Guardados = {
@@ -147,6 +151,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   const otroCosto = limpiarOtroCosto(o.otroCosto);
   const otroNombre = limpiarOtroNombre(o.otroNombre);
   const bulto = limpiarBulto(o.bulto);
+  const dolar = plata(o.dolar);
   return {
     cod,
     tit,
@@ -167,6 +172,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     ...(typeof otroCosto === "number" ? { otroCosto } : {}),
     ...(typeof otroNombre === "string" ? { otroNombre } : {}),
     ...(typeof bulto === "number" ? { bulto } : {}),
+    ...(dolar > 0 ? { dolar } : {}),
     ...deOtroExcel(o),
   };
 }
@@ -228,7 +234,7 @@ function deOtroExcel(o: Record<string, unknown>): Partial<ArticuloPunto> {
  *  corresponde. */
 function sinLoDePunto(a: ArticuloPunto): Omit<ArticuloPunto, CampoDePunto> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { flete, otroCosto, otroNombre, bulto, ...resto } = a;
+  const { flete, otroCosto, otroNombre, bulto, dolar, ...resto } = a;
   return resto;
 }
 
@@ -240,6 +246,7 @@ function conLoDePunto(base: Omit<ArticuloPunto, CampoDePunto>, c: CostosArticulo
   if (c.otroCosto && c.otroCosto > 0) a.otroCosto = c.otroCosto;
   if (c.otroNombre) a.otroNombre = c.otroNombre;
   if (c.bulto && c.bulto > 1) a.bulto = c.bulto;
+  if (c.dolar && c.dolar > 0) a.dolar = c.dolar;
   return a;
 }
 
@@ -313,6 +320,7 @@ export async function guardarArticulos(
         otroCosto: ya?.otroCosto ?? a.otroCosto,
         otroNombre: ya?.otroNombre ?? a.otroNombre,
         bulto: ya?.bulto ?? a.bulto,
+        dolar: ya?.dolar ?? a.dolar,
       });
       // Los descuentos y lo de la estructura vienen de otros Excel: si este
       // no los trae, quedan los que ya tenia.
@@ -462,6 +470,7 @@ export async function cambiarCostosArticulo(cod: string, cambios: CostosArticulo
       otroCosto: valor("otroCosto"),
       otroNombre: valor("otroNombre"),
       bulto: valor("bulto"),
+      dolar: valor("dolar"),
     });
     articulos[i] = nuevo;
     const value = JSON.stringify({ ...c.d, articulos });

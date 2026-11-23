@@ -1120,7 +1120,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.91</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.92</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1717,7 +1717,10 @@ footer{
               <select id="aMoneda"><option value="ARS">Pesos ($)</option><option value="USD">Dólares (U$S)</option></select></div>
             <div id="cajaDolar" hidden><label for="aDolar">Dólar, a cuánto lo tomás</label>
               <div class="plata"><span class="sig">$</span>
-                <input id="aDolar" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div></div>
+                <input id="aDolar" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
+              <label style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:12.5px;font-weight:500;text-transform:none;letter-spacing:0">
+                <input type="checkbox" id="aDolarPropio"> Solo para este artículo</label>
+              <span class="por" id="aDolarAviso">Sin tildar, es el dólar del formador: cambia para todos los artículos en dólares.</span></div>
           </div>
           <span class="por" style="display:block;margin:6px 0 14px">Antes de descuentos. La coma y el punto valen igual.</span>
           <div class="sub-campo">
@@ -2722,6 +2725,7 @@ function articuloServidorDe(p){
   if(+p.fleteFijo > 0) o.flete = +p.fleteFijo;
   if(+p.otroCosto > 0){ o.otroCosto = +p.otroCosto; if(p.otroNombre) o.otroNombre = p.otroNombre; }
   if(+p.bulto > 1) o.bulto = +p.bulto;
+  if(p.dolarPropio && +p.dolar > 0) o.dolar = +p.dolar;
   return o;
 }
 async function subirCatalogo(){
@@ -4567,6 +4571,7 @@ function abrirAlta(p){
     V("aSku", p.cod); V("aIva", ivaDe(p));
     V("aMoneda", p.mon === "USD" ? "USD" : "ARS");
     V("aDolar", p.mon === "USD" && p.dolar ? plata2(p.dolar) : (DOLAR ? plata2(DOLAR) : ""));
+    document.getElementById("aDolarPropio").checked = !!p.dolarPropio;
     V("aLista", plata2(p.mon === "USD" ? (p.listaMon || 0) : (p.lista || 0)));
     V("aCont", p.dctoCont || 0);
     V("aFlete", plata2(p.fleteFijo || 0)); V("aOtro", plata2(p.otroCosto || 0)); V("aOtroNom", p.otroNombre || "");
@@ -4590,6 +4595,7 @@ function abrirAlta(p){
     V("aStockBA",0); V("aStockTS",0); V("aL1",0); V("aL2",0); V("aIva",21); V("aCont",0); V("aFlete","0,00"); V("aOtro","0,00"); V("aOtroNom",""); V("aBulto","");
     V("aLista","0,00"); V("aMoneda","ARS");
     V("aDolar", DOLAR ? plata2(DOLAR) : "");
+    document.getElementById("aDolarPropio").checked = false;
     document.getElementById("aPromo").checked = false;
     document.getElementById("aMay").checked = false;
     V("aMayPct", 15); V("aMayDesde", 10);
@@ -4637,7 +4643,7 @@ for(const id of ["aMayPct","aMayDesde"]) document.getElementById(id).addEventLis
 document.getElementById("aDolar").addEventListener("input", altaCuenta);
 document.getElementById("aDolar").addEventListener("blur",e=>{
   const v = aNum(e.target.value);
-  if(v > 0){ const cambio = v !== DOLAR; if(cambio) guardarDolarFormador(v); DOLAR = v; if(cambio) rearmarGbpEnDolares(); }
+  if(v > 0 && !document.getElementById("aDolarPropio").checked){ const cambio = v !== DOLAR; if(cambio) guardarDolarFormador(v); DOLAR = v; if(cambio) rearmarGbpEnDolares(); }
   e.target.value = v ? plata2(v) : "";
   altaCuenta();
 });
@@ -4739,6 +4745,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
     mon: usd ? "USD" : "ARS",          // en qué moneda vino la lista
     listaMon: usd ? puesto : null,     // el número tal cual lo lista el proveedor
     dolar: usd ? dol : null,           // a cuánto se tomó el dólar ese día
+    dolarPropio: usd && document.getElementById("aDolarPropio").checked,
     dctoCont: limD(document.getElementById("aCont").value),
     promo: document.getElementById("aPromo").checked,
     may: document.getElementById("aMay").checked,
@@ -4766,10 +4773,13 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
       if((+p.otroCosto || 0) !== otro) extras.otroCosto = otro;
       if((p.otroNombre || "") !== otroNom) extras.otroNombre = otroNom;
       if((+p.bulto || 0) !== bulto) extras.bulto = bulto > 1 ? bulto : 1;
+      const dolPropio = usd && document.getElementById("aDolarPropio").checked && dol > 0 ? dol : 0;
+      if((p.dolarPropio ? +p.dolar : 0) !== dolPropio) extras.dolar = dolPropio;
       if(Object.keys(extras).length) guardarFleteServidor(cod, extras);
     }
     if(p.gbp && !p.tocado && GBP_CRUDO[p.cod] && soloLoDePunto(p, datos)){
-      const crudo = Object.assign({}, GBP_CRUDO[p.cod], { flete: fleteFijoA, otroCosto: otro, otroNombre: otroNom, bulto });
+      const crudo = Object.assign({}, GBP_CRUDO[p.cod], { flete: fleteFijoA, otroCosto: otro, otroNombre: otroNom, bulto,
+        dolar: usd && document.getElementById("aDolarPropio").checked && dol > 0 ? dol : 0 });
       GBP_CRUDO[p.cod] = crudo;
       const np = productoDeGbp(crudo);
       for(const k of CAMPOS_GBP_PUNTO) p[k] = np[k];
@@ -11747,7 +11757,8 @@ function productoDeGbp(a){
   // del formador, el mismo de los artículos cargados a mano en dólares. Sin
   // dólar cargado, el costo sale de la Lista 1 hasta que lo pongan.
   const usd = a.mon === "USD";
-  const listaArs = usd ? (DOLAR > 0 ? cent(+a.lista * DOLAR) : 0) : (+a.lista || 0);
+  const dolArt = +a.dolar > 0 ? +a.dolar : DOLAR;
+  const listaArs = usd ? (dolArt > 0 ? cent(+a.lista * dolArt) : 0) : (+a.lista || 0);
   // La cadena de GBP, para mostrarla aunque no se use.
   const cadenaGbp = dtosGbp(Object.assign({}, a, { lista: 1 }));
   let gd = listaArs > 0 ? cadenaGbp : null;
@@ -11784,7 +11795,7 @@ function productoDeGbp(a){
     cod: sinEtiquetas(a.cod), tit, rub: rubroDeGbp(a.subrub, tit), prov: sinEtiquetas(a.prov) || "VARIOS",
     codProv, lista: listaArs, seis, seisOrig: seis.slice(), recs: gd ? gd.recs : cadenaGbp ? cadenaGbp.recs : [], dtoGbp: !!gd, l1, l2, iva,
     dtoInfo, cadenaGbp: dtoInfo ? cadenaGbp : null,
-    ...(usd ? { mon:"USD", listaMon: +a.lista || 0, dolar: DOLAR > 0 ? DOLAR : null } : {}),
+    ...(usd ? { mon:"USD", listaMon: +a.lista || 0, dolar: dolArt > 0 ? dolArt : null, dolarPropio: +a.dolar > 0 } : {}),
     // El mínimo y el óptimo de stock de GBP, para verlos en la ficha. NO son
     // el "min" que usa el pedido al proveedor para sumar lo que quedó abajo
     // del mínimo: eso se prende cuando Damián diga (serían cientos de
@@ -11853,7 +11864,7 @@ async function reintentarFletesProv(){
 }
 /** Lo de Punto de un artículo de GBP: lo guarda el servidor y lo ve cualquier
     compu. Lo guardado en esta compu no lo pisa. */
-const PUNTO_DEL_SERVIDOR = ["flete","fleteFijo","fletePct","otroCosto","otroNombre","bulto"];
+const PUNTO_DEL_SERVIDOR = ["flete","fleteFijo","fletePct","otroCosto","otroNombre","bulto","dolar"];
 /** Lo que cambia en un artículo de GBP cuando se le vuelve a armar el precio. */
 const CAMPOS_GBP_PUNTO = ["costo","costoBase","contado","unPago","costoProducto","flete","fleteFijo","fletePct",
   "otroCosto","otroNombre","bulto","markup"];

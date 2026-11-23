@@ -178,6 +178,7 @@ export async function PATCH(req: Request): Promise<Response> {
     otroCosto?: unknown;
     otroNombre?: unknown;
     bulto?: unknown;
+    dolar?: unknown;
     yo?: unknown;
   };
   try {
@@ -226,6 +227,12 @@ export async function PATCH(req: Request): Promise<Response> {
     const bulto = limpiarBulto(cuerpo.bulto);
     if (bulto === "mal") return json({ error: "El bulto es un número entero de 1 a 10.000 unidades." }, 400);
     cambios.bulto = bulto;
+  }
+  if (vino("dolar")) {
+    // El dolar propio del articulo: vacio o 0 = vuelve al del formador.
+    const dolar = limpiarFleteArticulo(cuerpo.dolar);
+    if (dolar === "mal") return json({ error: "El dólar es un monto en pesos." }, 400);
+    cambios.dolar = dolar;
   }
   if (!Object.keys(cambios).length) return json({ error: "No llegó nada para cambiar del artículo." }, 400);
 
