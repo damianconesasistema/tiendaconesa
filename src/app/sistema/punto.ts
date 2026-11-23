@@ -1910,7 +1910,7 @@ footer{
               <div><label for="aMayDesde">Desde cuántas unidades</label>
                 <input id="aMayDesde" type="number" min="1" step="1" value="10"></div>
             </div>
-            <span class="por">Un precio aparte por cantidad.</span>
+            <span class="por">Desde esas unidades, la venta usa la lista mayorista en lugar de la Lista 1, y la Lista 2 sale de ella.</span>
           </div>
           <div class="cuenta" id="aCuenta"></div>
           <div class="envio-acc" style="padding:14px 0 0">
@@ -2698,6 +2698,24 @@ const precioDe = (costo, mk) => redondear(costo * (1 + (+mk||0)/100));
 const markupDe = p => p.markup != null ? p.markup : MARKUP_BASE;
 
 const margen = p => (p.contado - p.costo) / p.costo * 100;
+/** V.0.100.0: el precio por mayor. La lista mayorista (costo + % mayorista)
+    reemplaza a la Lista 1 y la Lista 2 sale de ella con el mismo % de Lista 2
+    del artículo. Va desde las unidades que tenga cargadas. */
+function listasMayor(p){
+  const l2 = isFinite(+p.l2) ? +p.l2 : 25;
+  const lista1 = cent((+p.costo || 0) * (1 + (+p.mayPct || 0) / 100));
+  const lista2 = cent(lista1 * (1 + l2 / 100));
+  return { lista1, lista2, contado: cent(lista2 / RECARGO_1PAGO) };
+}
+/** El precio de un renglón de la venta con esa cantidad. */
+function precioLinea(p, cant){
+  if(!p) return { contado: 0, unPago: 0, may: false };
+  if(p.may && +p.costo > 0 && cant >= Math.max(1, +p.mayDesde || 1)){
+    const m = listasMayor(p);
+    return { contado: m.contado, unPago: m.lista2, may: true };
+  }
+  return { contado: p.contado, unPago: p.unPago, may: false };
+}
 /** Los precios de venta se redondean para arriba a los $100. */
 function redondear(n){ return Math.ceil(n/100)*100; }
 // Un formateador armado una vez: toLocaleString arma uno nuevo en cada
@@ -2883,6 +2901,8 @@ function articuloServidorDe(p){
   if(+p.bulto > 1) o.bulto = +p.bulto;
   if(p.dolarPropio && +p.dolar > 0) o.dolar = +p.dolar;
   if(usd && +p.dolar > 0) o.dolarRef = +p.dolar;
+  if(p.may) o.mayor = { pct: +p.mayPct || 0, desde: Math.max(1, Math.floor(+p.mayDesde || 1)) };
+  else if(crudo && crudo.mayor) o.mayor = null;
   if(p.combo && Array.isArray(p.combo.piezas) && p.combo.piezas.length)
     o.combo = { piezas: p.combo.piezas.map(x => ({ cod: x.cod, cant: x.cant })), l1: +p.combo.l1 || 0, l2: +p.combo.l2 || 0 };
   else if(crudo && crudo.combo) o.combo = null;
@@ -3022,7 +3042,7 @@ function ventaCobrado(v){ return v.total != null ? v.total : ventaBase(v) * MULT
 function ventaMargen(v){
   const m = v.linea.reduce((a,l)=>{
     if(l.contado != null && l.costo != null) return a+(l.contado-l.costo)*l.cant;
-    const p=prod(l.cod); return a+(p.contado-p.costo)*l.cant;
+    const p=prod(l.cod); return a+(precioLinea(p, l.cant).contado-p.costo)*l.cant;
   },0);
   return m - (v.descPesos || 0);
 }
@@ -4087,7 +4107,8 @@ function pintarTicket(){
       '</tr></thead><tbody>'+
       S.linea.map((l,i)=>{
         const p = prod(l.cod);
-        const u = p.contado * MULT[S.forma];
+        const pl = precioLinea(p, l.cant);
+        const u = pl.contado * MULT[S.forma];
         // El stock del renglon, con el mismo color que en el buscador. Si
         // uno quedo en rojo se ve antes de emitir, no despues.
         const st = p.stock;
@@ -4096,7 +4117,8 @@ function pintarTicket(){
           '<td class="ix">'+(i+1)+'</td>'+
           '<td class="num" style="font-size:12px">'+txt(codVista(p))+'</td>'+
           '<td class="nom" style="min-width:230px" title="'+atrib(p.tit)+'">'+
-            '<div class="nomln">'+txt(p.tit)+'<small>'+txt(p.prov.toLowerCase())+'</small></div></td>'+
+            '<div class="nomln">'+txt(p.tit)+'<small>'+txt(p.prov.toLowerCase())+
+              (pl.may ? ' · <b style="color:var(--ok)">por mayor</b>' : (p.may ? ' · por mayor desde '+Math.max(1, +p.mayDesde || 1) : ''))+'</small></div></td>'+
           '<td>'+(p.aMano ? '<span class="stk" title="cargado a mano: no mueve stock">a mano</span>' : '<span class="stk '+scl+'">'+st+'</span>')+'</td>'+
           '<td class="r"><span class="c">'+
             '<button data-m="-" data-cod="'+l.cod+'" aria-label="uno menos">−</button>'+
@@ -4121,14 +4143,14 @@ function pintarTicket(){
   document.getElementById("vtaCuenta").textContent =
     S.linea.length ? unid+" unidades en "+S.linea.length+" renglones" : "";
 
-  const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  const bruto = S.linea.reduce((a,l)=>a+precioLinea(prod(l.cod), l.cant).contado*l.cant,0);
   const dto = Math.round(bruto * S.desc / 100);
   const base = bruto - dto;
   const total = base * MULT[S.forma];
   // El IVA incluido se arma renglón por renglón: si hay algo al 10,5%,
   // el total no lleva 21% y el libro tiene que decir la verdad.
   const ivaLin = S.linea.reduce((a,l)=>{
-    const p = prod(l.cod), t = p.contado * l.cant;
+    const p = prod(l.cod), t = precioLinea(p, l.cant).contado * l.cant;
     return a + (t - t/facIva(ivaDe(p)));
   }, 0);
   const iva = Math.round(ivaLin * (bruto>0 ? total/bruto : 1));
@@ -4320,7 +4342,7 @@ document.getElementById("btnSinFactura").addEventListener("click",()=>{
 });
 document.getElementById("btnWhatsVta").addEventListener("click",()=>{
   const c = clienteVta(), comp = compAct();
-  const bruto = S.linea.reduce((a,l)=>a+prod(l.cod).contado*l.cant,0);
+  const bruto = S.linea.reduce((a,l)=>a+precioLinea(prod(l.cod), l.cant).contado*l.cant,0);
   const total = (bruto - Math.round(bruto*S.desc/100)) * MULT[S.forma];
   abrirEnvio({
     quien: c ? c.n : "el cliente",
@@ -4731,6 +4753,7 @@ function altaCuenta(){
   const mayPct = +document.getElementById("aMayPct").value || 0;
   const mayDesde = Math.max(1, +document.getElementById("aMayDesde").value || 1);
   const mayPrecio = cent(costo * (1 + mayPct/100));
+  const mayL2 = cent(mayPrecio * (1 + l2/100));
   document.getElementById("aSeisAviso").innerHTML = lista > 0
     ? "<b>"+cadenaTxt(ds)+" = "+pTxt(Math.round(descEquiv(ds)*10)/10)+"%</b>"+
       ", uno sobre otro · te saca "+fmt2(lista-netoD)+" de la lista"+
@@ -4768,9 +4791,10 @@ function altaCuenta(){
       : r("<b>Te cuesta</b>", fmt2(costo), "total", "el costo más el IVA"))+
     r("Lista 1, "+pTxt(l1)+"% sobre el costo", fmt2(pr.lista1), null, "+"+fmt2(pr.lista1-costo))+
     r("<b>Lista 2</b>, "+pTxt(l2)+"% sobre la Lista 1", fmt2(pr.lista2), "total", "+"+fmt2(pr.lista2-pr.lista1))+
-    (may ? r("<b>Por mayor</b>, "+pTxt(mayPct)+"% sobre el costo", fmt2(mayPrecio), "sub",
+    (may ? r("Lista mayorista, "+pTxt(mayPct)+"% sobre el costo (reemplaza a la Lista 1)", fmt2(mayPrecio), null, "+"+fmt2(mayPrecio-costo)) +
+           r("<b>Lista 2 por mayor</b>, "+pTxt(l2)+"% sobre la mayorista", fmt2(mayL2), "total",
              "desde "+mayDesde+(mayDesde===1?" unidad":" unidades")) : "")+
-    (may && mayPrecio > pr.lista2
+    (may && mayL2 > pr.lista2
       ? '<p class="nota" style="padding:8px 0 0;color:var(--bad)">El precio por mayor te está quedando más caro que la Lista 2. Bajale el porcentaje.</p>'
       : "")+
     (costo>0 && l1 < 10
@@ -8043,8 +8067,8 @@ const fechaAR = iso => new Date(iso).toLocaleDateString("es-AR",
 function armarDocumento(comp, letra){
   const su = sucAct(), c = clienteVta(), dep = depAct();
   const renglones = S.linea.map(l => {
-    const p = prod(l.cod);
-    return { cod:p.cod, tit:p.tit, cant:l.cant, contado:p.contado, unPago:p.unPago,
+    const p = prod(l.cod), pl = precioLinea(p, l.cant);
+    return { cod:p.cod, tit:p.tit, cant:l.cant, contado:pl.contado, unPago:pl.unPago,
              costo:p.costo, iva:ivaDe(p) };
   });
   const bruto = renglones.reduce((a, r) => a + r.contado * r.cant, 0);
@@ -12178,7 +12202,10 @@ function productoDeGbp(a){
   // Con los descuentos, la Lista 1 y la 2 como están en GBP: la 1 sobre el
   // costo (25% en Piazza, 50% en Awaduct...) y la 2 sobre la 1.
   const l1 = gd && costoProd > 0 ? Math.round((L1 / costoProd - 1) * 10000) / 100 : 25;
-  const l2 = gd ? Math.round((L2 / L1 - 1) * 10000) / 100 : 25;
+  // La 2 sobre la 1, siempre como está en GBP (V.0.100.0). Sin el Excel de
+  // descuentos quedaba en 25 fijo y, al guardar la ficha, la Lista 2 se
+  // rearmaba con ese 25 en vez de la de GBP (90.000 pasaba a 99.995).
+  const l2 = L1 > 0 && L2 > 0 ? Math.round((L2 / L1 - 1) * 10000) / 100 : 25;
   const tit = sinEtiquetas(a.tit);
   // El código del fabricante: el del Excel de artículos de GBP; si no, el
   // que viene entre paréntesis en el nombre.
@@ -12201,7 +12228,8 @@ function productoDeGbp(a){
     markup: Math.round((contado / costo - 1) * 1000) / 10,
     dep: { BA: Math.max(0, Math.round(+a.stockBA || 0)), TS: Math.max(0, Math.round(+a.stockTS || 0)) },
     real: true, gbp: true,
-    ...(a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length ? { combo: a.combo } : {})
+    ...(a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length ? { combo: a.combo } : {}),
+    ...(a.mayor && +a.mayor.desde >= 1 ? { may: true, mayPct: +a.mayor.pct || 0, mayDesde: Math.floor(+a.mayor.desde) } : {})
   };
   p.propio = plano(p.cod+" "+p.codProv+" "+p.tit+" "+p.rub+" "+p.prov);
   p.blob   = plano(p.cod+" "+p.codProv+" "+p.tit+" "+p.rub+" "+p.prov+" "+(ALIAS[p.rub]||""));

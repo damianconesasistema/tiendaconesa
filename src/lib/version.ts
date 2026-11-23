@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.99";
+export const APP_VERSION = "V.0.100.0";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.100.0",
+    date: "2026-11-23",
+    changes: [
+      "PRECIO POR MAYOR (\"del costo, la Lista 1 se reemplaza por la lista mayorista y la Lista 2 lo calcula de la lista mayorista\"): en la ficha, \"Se ofrece por mayor\" arma la lista mayorista (costo + el % mayorista, en lugar de la Lista 1) y la Lista 2 por mayor (la mayorista + el % de Lista 2 del artículo). En la venta, desde las unidades que se pongan, ese renglón va a la Lista 2 por mayor y lo dice. Antes solo se veía en la ficha: no se usaba ni se guardaba. Ahora queda en el servidor, para todas las compus.",
+      "Arreglo: en los artículos de GBP sin el Excel de descuentos, el % de la Lista 2 sobre la Lista 1 quedaba en 25 fijo y, al guardar la ficha, la Lista 2 se rearmaba mal (por ejemplo, de $90.000 a $99.995). Ahora es siempre el de GBP.",
+    ],
+  },
   {
     version: "V.0.99.99",
     date: "2026-11-23",

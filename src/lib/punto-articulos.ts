@@ -82,6 +82,11 @@ export type ArticuloPunto = {
   /** V.0.99.95: es un combo armado en Punto con articulos que ya estan. El
    *  import de GBP no lo toca; null al guardar lo saca. */
   combo?: ComboArticulo | null;
+  /** V.0.100.0: el precio por mayor. La lista mayorista (costo + pct %)
+   *  reemplaza a la Lista 1 desde "desde" unidades, y la Lista 2 sale de
+   *  ella con el mismo % de siempre. De Punto: el import no lo toca; null lo
+   *  saca. */
+  mayor?: { pct: number; desde: number } | null;
   // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
   // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
   // articulos, uno por uno ... entrando en cada articulo deberia ver los
@@ -172,6 +177,18 @@ function limpiarCombo(v: unknown, cod: string): ComboArticulo | null | undefined
   return { piezas, l1: pct(o.l1), l2: pct(o.l2) };
 }
 
+/** El por mayor que llega: undefined si no vino, null para sacarlo. */
+function limpiarMayor(v: unknown): { pct: number; desde: number } | null | undefined {
+  if (v === undefined) return undefined;
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const pct = Number(o.pct);
+  const desde = Number(o.desde);
+  if (!Number.isFinite(pct) || pct < -50 || pct > 1000) return null;
+  if (!Number.isInteger(desde) || desde < 1 || desde > 100_000) return null;
+  return { pct: Math.round(pct * 100) / 100, desde };
+}
+
 /** Solo pasa lo que tiene forma de articulo. Lo demas se descarta. */
 export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   if (!x || typeof x !== "object") return null;
@@ -193,6 +210,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   const dolar = plata(o.dolar);
   const dolarRef = plata(o.dolarRef);
   const combo = limpiarCombo(o.combo, cod);
+  const mayor = limpiarMayor(o.mayor);
   return {
     cod,
     tit,
@@ -216,6 +234,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     ...(typeof bulto === "number" ? { bulto } : {}),
     ...(dolar > 0 ? { dolar } : {}),
     ...(combo !== undefined ? { combo } : {}),
+    ...(mayor !== undefined ? { mayor } : {}),
     ...deOtroExcel(o),
   };
 }
@@ -377,6 +396,9 @@ export async function guardarArticulos(
       // estaba; guardarlo desde Punto lo cambia, y null lo saca.
       if (a.combo === undefined && ya?.combo) nuevo.combo = ya.combo;
       if (nuevo.combo === null) delete nuevo.combo;
+      // El por mayor, igual: de Punto.
+      if (a.mayor === undefined && ya?.mayor) nuevo.mayor = ya.mayor;
+      if (nuevo.mayor === null) delete nuevo.mayor;
       if (ya && conStock && !conStock.has(a.cod)) {
         nuevo.stockBA = ya.stockBA;
         nuevo.stockTS = ya.stockTS;
