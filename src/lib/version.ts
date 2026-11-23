@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.200";
+export const APP_VERSION = "V.0.11.201";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.201",
+    date: "2026-11-23",
+    changes: [
+      "Artículos se adapta a la pantalla (\"no se ve todo; debería adaptarse y no generar scroll\"): la tabla pedía 1.650 px de ancho. Ahora la cadena de descuentos, el código del fabricante y los nombres largos se parten en renglones, las celdas van más juntas en pantallas medianas, debajo de 1440 px se va la columna Estado (el margen ya va en color) y debajo de 1180 px la Lista 1. Entra entera de 1024 a 1920 px.",
+    ],
+  },
   {
     version: "V.0.11.200",
     date: "2026-11-23",
