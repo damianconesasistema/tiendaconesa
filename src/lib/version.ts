@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.88";
+export const APP_VERSION = "V.0.99.89";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.89",
+    date: "2026-11-23",
+    changes: [
+      "SE RECARGABA SOLA (\"se está refrescando sola la web\"): con la 88 el número de versión de la página quedó en 87 y la página creía que siempre había una nueva. Ahora el número lo pone el servidor al entregar la página, y la recarga automática se hace una sola vez por versión.",
+      "BOTÓN GUARDAR ARRIBA EN LA FICHA (\"cuando editás un artículo tenga un botón guardar\").",
+      "DESCUENTOS INDIVIDUALES (\"estás sumando los descuentos del artículo ... tenés que ponerlo individualmente\"): cada descuento de GBP va en su casillero, también en los que no cierran con la Lista 1 (quedan marcados \"no cierra\").",
+    ],
+  },
   {
     version: "V.0.99.88",
     date: "2026-11-23",

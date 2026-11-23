@@ -1120,7 +1120,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.87</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.89</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1627,6 +1627,7 @@ footer{
     <div class="card-h">
       <h3 id="altaTit">Uno por uno</h3>
       <span class="sub" id="altaSub">el precio se arma solo</span>
+      <button class="b1" id="aGuardarArriba" type="button" style="margin-left:auto;padding:6px 18px" hidden>Guardar</button>
       <button class="b2" id="btnAbrirAlta" style="margin-left:12px;padding:6px 16px">Cargar uno</button>
     </div>
     <div id="altaCuerpo" hidden>
@@ -3002,7 +3003,12 @@ async function mirarVersion(){
   const ocupado = (S.linea && S.linea.length) || (typeof US_SUCIO === "object" && Object.keys(US_SUCIO).length) ||
     (typeof GBP === "object" && GBP.lotes && Object.keys(GBP.lotes).length) || CAT_PEND.size ||
     !document.getElementById("altaCuerpo").hidden || (typeof OC === "object" && OC.ed && OC.ed.sucio);
-  if(!ocupado){ location.reload(); return; }
+  let yaProbe = "";
+  try{ yaProbe = sessionStorage.getItem("punto.recargo") || ""; }catch(e){}
+  if(!ocupado && yaProbe !== v){
+    try{ sessionStorage.setItem("punto.recargo", v); }catch(e){}
+    location.reload(); return;
+  }
   document.getElementById("nuevaVer").hidden = false;
 }
 setInterval(mirarVersion, 120000);
@@ -4527,7 +4533,7 @@ function enGbpTxt(){
   return '<p class="nota" style="padding:8px 0 0">En GBP: '+partes.join(" · ")+"."+
     (p && p.dtoInfo === "no cierra" && p.cadenaGbp
       ? ' <b style="color:var(--warn)">Los descuentos de GBP ('+cadenaTxt(p.cadenaGbp.cadena)+(p.cadenaGbp.recs.length ? " y "+recsTxt(p.cadenaGbp.recs)+" de recargo" : "")+
-        ') dan un costo más alto que su Lista 1: revisalos en GBP.</b> Mientras, el costo sale de la Lista 1 ÷ 1,25.'
+        ') dan un costo más alto que su Lista 1: revisalos en GBP.</b> Así como está, se vende por debajo del costo.'
       : p && p.dtoInfo === "sin dólar" && p.cadenaGbp
       ? ' El costo de GBP está en dólares (U$S '+plata2(p.listaMon || 0)+') y falta el dólar del formador: el costo sale de la Lista 1 ÷ 1,25. Descuentos de GBP: '+cadenaTxt(p.cadenaGbp.cadena)+'.'
       : p && !p.dtoGbp ? " Sin los descuentos de GBP todavía: el costo sale de la Lista 1 ÷ 1,25." : "")+'</p>';
@@ -4536,6 +4542,7 @@ function enGbpTxt(){
 const V = (id,v) => { document.getElementById(id).value = v; };
 function abrirAlta(p){
   document.getElementById("altaCuerpo").hidden = false;
+  document.getElementById("aGuardarArriba").hidden = false;
   document.getElementById("btnAbrirAlta").textContent = "Cerrar";
   document.getElementById("aMarcas").innerHTML =
     [...new Set(PRODUCTOS.map(x=>x.prov))].sort().map(x=>'<option value="'+x+'">').join("");
@@ -4598,7 +4605,9 @@ function abrirAlta(p){
   document.getElementById("altaCuerpo").scrollIntoView({block:"nearest", behavior:"smooth"});
   document.getElementById(p ? "aTit" : "aMarca").focus();
 }
+document.getElementById("aGuardarArriba").addEventListener("click", () => document.getElementById("aGuardar").click());
 function cerrarAlta(){
+  document.getElementById("aGuardarArriba").hidden = true;
   document.getElementById("altaCuerpo").hidden = true;
   document.getElementById("btnAbrirAlta").textContent = "Cargar uno";
   ALTA.editando = null;
@@ -4712,7 +4721,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   if(!prov){ toast("Falta la marca o el proveedor."); document.getElementById("aMarca").focus(); return; }
   if(puesto <= 0){ toast("Falta la lista del proveedor: sin eso no hay costo."); document.getElementById("aLista").focus(); return; }
   if(usd && dol <= 0){ toast("Poné a cuánto tomás el dólar: sin eso no hay costo en pesos."); document.getElementById("aDolar").focus(); return; }
-  if(l1 <= 0){ toast("Falta la Lista 1: poné el porcentaje que le cargás al costo."); document.getElementById("aL1").focus(); return; }
+  if(l1 <= 0 && !(ALTA.editando && (prod(ALTA.editando) || {}).gbp)){ toast("Falta la Lista 1: poné el porcentaje que le cargás al costo."); document.getElementById("aL1").focus(); return; }
 
   const costoProd = costoDe(lista * factorRecs(ALTA.recs), ALTA.seis, null, iva, limD(document.getElementById("aCont").value));
   const fleteFijoA = cent(aNum(document.getElementById("aFlete").value));
@@ -5958,7 +5967,8 @@ function pintarProd(){
       '<td class="r"><input class="ed" type="text" inputmode="decimal" data-cod="'+p.cod+'" value="'+plata2(netoProdDe(p))+'" aria-label="costo sin IVA">'+
         (p.dtoGbp && (p.seis.some(d=>limD(d)>0) || (p.recs && p.recs.length))
           ? '<small style="display:block;color:var(--ink-3)" title="los descuentos de GBP sobre la lista del proveedor">'+
-              cadenaTxt(p.seis)+(p.recs && p.recs.length ? " · rec. "+recsTxt(p.recs) : "")+'</small>'
+              cadenaTxt(p.seis)+(p.recs && p.recs.length ? " · rec. "+recsTxt(p.recs) : "")+
+              (p.dtoInfo === "no cierra" ? ' <b style="color:var(--warn)" title="Con estos descuentos el costo da más que la Lista 1 de GBP: revisalo en GBP">· no cierra</b>' : "")+'</small>'
           : p.dtoInfo && p.cadenaGbp
           ? '<small style="display:block;color:var(--warn)" title="'+(p.dtoInfo === "no cierra" ? "Con estos descuentos el costo da más que la Lista 1 de GBP: revisalos en GBP. El costo sale de la Lista 1 ÷ 1,25." : "Falta el dólar del formador: el costo sale de la Lista 1 ÷ 1,25.")+'">'+
               cadenaTxt(p.cadenaGbp.cadena)+' · '+(p.dtoInfo === "no cierra" ? "no cierra" : "falta el dólar")+'</small>' : '')+'</td>'+
@@ -11737,7 +11747,8 @@ function productoDeGbp(a){
   // costo con los descuentos de GBP da más que su Lista 1: algo de GBP no
   // cierra. Ahí el costo sale de la Lista 1, como antes, y se avisa.
   let dtoInfo = "";
-  if(gd && !(+a.lista1 > cent(listaArs * gd.factor * facIva(iva)))){ dtoInfo = "no cierra"; gd = null; }
+  // Se usan igual, cada uno en su lugar: es lo que dice GBP. Se marca.
+  if(gd && !(+a.lista1 > cent(listaArs * gd.factor * facIva(iva)))) dtoInfo = "no cierra";
   else if(cadenaGbp && !gd && usd) dtoInfo = "sin dólar";
   const costoProd = gd ? cent(listaArs * gd.factor * facIva(iva)) : cent(a.lista1 / 1.25);
   const fleteFijo = +a.flete > 0 ? cent(+a.flete) : 0;
@@ -11751,7 +11762,7 @@ function productoDeGbp(a){
   // así la ficha muestra la lista del proveedor y el descuento que tiene.
   const desc = !gd && listaArs > 0
     ? Math.max(0, Math.min(95, Math.round((1 - costoProd / (listaArs * facIva(iva))) * 10000) / 100)) : 0;
-  const seis = (gd ? gd.cadena : [desc]).concat(CADENA_BASE).slice(0, N_DTOS);
+  const seis = (gd ? gd.cadena : cadenaGbp ? cadenaGbp.cadena : [desc]).concat(CADENA_BASE).slice(0, N_DTOS);
   // Con los descuentos, la Lista 1 y la 2 como están en GBP: la 1 sobre el
   // costo (25% en Piazza, 50% en Awaduct...) y la 2 sobre la 1.
   const l1 = gd && costoProd > 0 ? Math.round((a.lista1 / costoProd - 1) * 10000) / 100 : 25;
@@ -11763,7 +11774,7 @@ function productoDeGbp(a){
   const codProv = fab || ((tit.match(/\\(([A-Z0-9][A-Z0-9\\/.-]{2,})\\)/i) || [])[1] || "").toUpperCase();
   const p = {
     cod: sinEtiquetas(a.cod), tit, rub: rubroDeGbp(a.subrub, tit), prov: sinEtiquetas(a.prov) || "VARIOS",
-    codProv, lista: listaArs, seis, seisOrig: seis.slice(), recs: gd ? gd.recs : [], dtoGbp: !!gd, l1, l2, iva,
+    codProv, lista: listaArs, seis, seisOrig: seis.slice(), recs: gd ? gd.recs : cadenaGbp ? cadenaGbp.recs : [], dtoGbp: !!gd, l1, l2, iva,
     dtoInfo, cadenaGbp: dtoInfo ? cadenaGbp : null,
     ...(usd ? { mon:"USD", listaMon: +a.lista || 0, dolar: DOLAR > 0 ? DOLAR : null } : {}),
     // El mínimo y el óptimo de stock de GBP, para verlos en la ficha. NO son
@@ -12208,7 +12219,7 @@ function avisosListasGbp(l, ld){
   }
   if(nNo) x.push(nNo+" tienen descuentos en GBP que dan un costo más alto que su Lista 1 ("+
     Object.entries(noCierran).sort((p, q) => q[1] - p[1]).slice(0, 5).map(([m, k]) => txt(m)+" "+k).join(", ")+
-    "): para esos el costo sale de la Lista 1 ÷ 1,25 y quedan marcados para revisar en GBP");
+    "): con esos descuentos se venden por debajo del costo; quedan marcados para revisar en GBP");
   if(a.costoUsd) x.push(a.costoUsd+" tienen el costo en dólares: se pasa a pesos con el dólar del formador ("+(DOLAR > 0 ? fmt2(DOLAR) : "todavía sin cargar: ponelo en un artículo en dólares")+")");
   if(a.l1Usd) x.push(a.l1Usd+" tienen la Lista 1 en dólares: se toma la Lista 2 ÷ 1,25, que está en pesos");
   if(a.l2Usd) x.push(a.l2Usd+" tienen la Lista 2 en dólares y quedan afuera");

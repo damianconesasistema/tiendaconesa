@@ -1,6 +1,7 @@
 import { yoPunto } from "@/lib/punto-yo";
 import { noPasa, quienEntra } from "./clave";
 import { PUNTO_HTML } from "./punto";
+import { APP_VERSION } from "@/lib/version";
 
 // El sistema "Punto" (conesa.com.ar/sistema). Hasta el 22/11/2026 vivia en
 // /sistema/demo; la direccion vieja manda aca (next.config.ts).
@@ -53,7 +54,12 @@ export async function GET(): Promise<Response> {
     );
   }
   // Con funcion y no con texto: un "$'" o "$&" en el nombre no se expande.
-  const html = PUNTO_HTML.replace(MARCA_YO, () => `var PUNTO_YO = ${enScript(yo)};`);
+  const html = PUNTO_HTML.replace(MARCA_YO, () => `var PUNTO_YO = ${enScript(yo)};`)
+    // El numero de version lo pone el servidor al entregar la pagina, el
+    // mismo que contesta /sistema/version. Si quedaba el que se grabo al
+    // armar punto.ts y la version subia sin regenerarlo (V.0.99.88), la
+    // pagina creia que siempre habia una nueva y se recargaba sola.
+    .replace(/(<span class="ver" id="ver"[^>]*>)[^<]*(<\/span>)/, (_m, a: string, b: string) => a + APP_VERSION + b);
 
   return new Response(html, {
     status: 200,
