@@ -2726,6 +2726,7 @@ function articuloServidorDe(p){
   if(+p.otroCosto > 0){ o.otroCosto = +p.otroCosto; if(p.otroNombre) o.otroNombre = p.otroNombre; }
   if(+p.bulto > 1) o.bulto = +p.bulto;
   if(p.dolarPropio && +p.dolar > 0) o.dolar = +p.dolar;
+  if(usd && +p.dolar > 0) o.dolarRef = +p.dolar;
   return o;
 }
 async function subirCatalogo(){
@@ -4397,6 +4398,10 @@ function preciosDeLista(costo, l1, l2){
    computadora, así no hay que volver a escribirla en cada artículo. */
 const DOLAR_GUARDA = "punto.dolar.v1";
 let DOLAR = 0;
+/** El dólar con que vinieron las listas de GBP de los artículos en dólares
+    que se importaron el 23/11/2026, antes de cargar el dólar del formador
+    (BNA venta de ese día). Los que se importen después traen el suyo. */
+const DOLAR_REF_INICIAL = 1600;
 // Solo el del servidor (V.0.99.91): la copia vieja de esta compu se borra.
 try{ localStorage.removeItem(DOLAR_GUARDA); }catch(e){}
 // El que vale es el del servidor (lo ven todas las compus).
@@ -7612,7 +7617,7 @@ function filasArtExport(){
   return (PROD_VER.todos || []).map(p => {
     const a = GBP_CRUDO[p.cod];
     const ds = (p.seis || []).filter(d => limD(d) > 0);
-    const l1 = a && +a.lista1 > 0 ? +a.lista1 : cent((+p.costo || 0) * (1 + (+p.l1 || 0) / 100));
+    const l1 = lista1De(p);
     return [p.cod.split("+")[0], p.codProv || "", p.tit || "", p.prov || "", String(p.cat || "").trim(), p.rub || "",
       +p.lista > 0 ? cent(+p.lista) : "", ds.length ? cadenaTxt(ds) : "", p.recs && p.recs.length ? recsTxt(p.recs) : "",
       cent(netoProdDe(p)), ivaDe(p), cent(+p.costo || 0), l1, cent(+p.unPago || 0), cent(+p.contado || 0),
@@ -11758,6 +11763,12 @@ function productoDeGbp(a){
   // dólar cargado, el costo sale de la Lista 1 hasta que lo pongan.
   const usd = a.mon === "USD";
   const dolArt = +a.dolar > 0 ? +a.dolar : DOLAR;
+  // Las listas de un artículo con costo en dólares siguen al dólar: GBP las
+  // armó con el dólar del día del import (dolarRef). Con otro dólar suben o
+  // bajan en la misma proporción y el margen queda igual.
+  const refDol = usd ? (+a.dolarRef > 0 ? +a.dolarRef : DOLAR_REF_INICIAL) : 0;
+  const facDol = usd && refDol > 0 && dolArt > 0 ? dolArt / refDol : 1;
+  const L1 = cent(+a.lista1 * facDol), L2 = cent(+a.lista2 * facDol);
   const listaArs = usd ? (dolArt > 0 ? cent(+a.lista * dolArt) : 0) : (+a.lista || 0);
   // La cadena de GBP, para mostrarla aunque no se use.
   const cadenaGbp = dtosGbp(Object.assign({}, a, { lista: 1 }));
@@ -11767,16 +11778,16 @@ function productoDeGbp(a){
   // cierra. Ahí el costo sale de la Lista 1, como antes, y se avisa.
   let dtoInfo = "";
   // Se usan igual, cada uno en su lugar: es lo que dice GBP. Se marca.
-  if(gd && !(+a.lista1 > cent(listaArs * gd.factor * facIva(iva)))) dtoInfo = "no cierra";
+  if(gd && !(L1 > cent(listaArs * gd.factor * facIva(iva)))) dtoInfo = "no cierra";
   else if(cadenaGbp && !gd && usd) dtoInfo = "sin dólar";
-  const costoProd = gd ? cent(listaArs * gd.factor * facIva(iva)) : cent(a.lista1 / 1.25);
+  const costoProd = gd ? cent(listaArs * gd.factor * facIva(iva)) : cent(L1 / 1.25);
   const fleteFijo = +a.flete > 0 ? cent(+a.flete) : 0;
   const fletePct = fleteFijo ? 0 : fletePctDe(a.cat);
   const flete = fleteFijo || cent(costoProd * fletePct / 100);
   const otroCosto = +a.otroCosto > 0 ? cent(+a.otroCosto) : 0;
   const costo = cent(costoProd + flete + otroCosto);
   const factor = (flete > 0 || otroCosto > 0) && costoProd > 0 ? costo / costoProd : 1;
-  const contado = cent(a.lista2 * factor / RECARGO_1PAGO);
+  const contado = cent(L2 * factor / RECARGO_1PAGO);
   // Sin los descuentos de GBP: el descuento que da ese costo, en uno solo,
   // así la ficha muestra la lista del proveedor y el descuento que tiene.
   const desc = !gd && listaArs > 0
@@ -11784,8 +11795,8 @@ function productoDeGbp(a){
   const seis = (gd ? gd.cadena : cadenaGbp ? cadenaGbp.cadena : [desc]).concat(CADENA_BASE).slice(0, N_DTOS);
   // Con los descuentos, la Lista 1 y la 2 como están en GBP: la 1 sobre el
   // costo (25% en Piazza, 50% en Awaduct...) y la 2 sobre la 1.
-  const l1 = gd && costoProd > 0 ? Math.round((a.lista1 / costoProd - 1) * 10000) / 100 : 25;
-  const l2 = gd ? Math.round((a.lista2 / a.lista1 - 1) * 10000) / 100 : 25;
+  const l1 = gd && costoProd > 0 ? Math.round((L1 / costoProd - 1) * 10000) / 100 : 25;
+  const l2 = gd ? Math.round((L2 / L1 - 1) * 10000) / 100 : 25;
   const tit = sinEtiquetas(a.tit);
   // El código del fabricante: el del Excel de artículos de GBP; si no, el
   // que viene entre paréntesis en el nombre.
@@ -11801,7 +11812,7 @@ function productoDeGbp(a){
     // del mínimo: eso se prende cuando Damián diga (serían cientos de
     // renglones de una).
     minGbp: +a.min > 0 ? Math.floor(+a.min) : 0, optGbp: +a.opt > 0 ? Math.floor(+a.opt) : 0,
-    costo, costoBase: costo, contado, unPago: cent(+a.lista2 * factor),
+    costo, costoBase: costo, contado, unPago: cent(L2 * factor),
     costoProducto: costoProd, flete, fleteFijo, fletePct, otroCosto, otroNombre: sinEtiquetas(a.otroNombre || ""),
     bulto: +a.bulto > 1 ? Math.min(10000, Math.floor(+a.bulto)) : 0,
     cat: sinEtiquetas(a.cat || ""),
@@ -12048,7 +12059,7 @@ function filasListasGbp(filas, col){
       cod, tit, prov, cat, subrub: v(f, c.sub),
       // El Costo en dólares va en dólares, marcado: se pasa a pesos con el
       // dólar del formador (productoDeGbp), como los artículos cargados a mano.
-      lista: aNum(v(f, c.lista)), ...(costoUsd ? { mon:"USD" } : {}), lista1: l1, lista2: l2,
+      lista: aNum(v(f, c.lista)), ...(costoUsd ? Object.assign({ mon:"USD" }, DOLAR > 0 ? { dolarRef: DOLAR } : {}) : {}), lista1: l1, lista2: l2,
       iva: aNum(v(f, c.iva)) || 21,
       stockBA: Math.round(aNum(v(f, c.ba >= 0 ? c.ba : c.stk))),
       stockTS: Math.round(aNum(v(f, c.ts))),

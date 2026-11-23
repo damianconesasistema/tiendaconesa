@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.92";
+export const APP_VERSION = "V.0.99.93";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.93",
+    date: "2026-11-23",
+    changes: [
+      "LAS LISTAS SIGUEN AL DÓLAR (\"los que tienen precio en dólar, si varía el dólar, debería cambiar ... la Lista 1 y Lista 2\"): en los artículos con costo en dólares, la Lista 1 y la Lista 2 suben o bajan en la misma proporción que el dólar (del formador, o el propio del artículo) contra el dólar con que vinieron de GBP; el margen queda igual. Los importados el 23/11 vinieron a $1.600. Los artículos en pesos no cambian.",
+    ],
+  },
   {
     version: "V.0.99.92",
     date: "2026-11-23",

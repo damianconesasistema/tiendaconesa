@@ -64,6 +64,10 @@ export type ArticuloPunto = {
    *  ABRAGOM...). La pagina lo pasa a pesos con el dolar del formador. No
    *  esta = pesos. La Lista 1 y la 2 siempre van en pesos. */
   mon?: "USD";
+  /** V.0.99.93: con que dolar vinieron la Lista 1 y la 2 de un articulo con
+   *  Costo en USD (el del formador el dia del import). Con otro dolar, la
+   *  pagina las sube o baja en la misma proporcion. Es del import. */
+  dolarRef?: number;
   /** Flete fijo en pesos por unidad (V.0.99.82). No esta = sin flete. */
   flete?: number;
   /** Otro costo en pesos por unidad, con IVA (V.0.99.82). No esta = nada. */
@@ -152,6 +156,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   const otroNombre = limpiarOtroNombre(o.otroNombre);
   const bulto = limpiarBulto(o.bulto);
   const dolar = plata(o.dolar);
+  const dolarRef = plata(o.dolarRef);
   return {
     cod,
     tit,
@@ -166,6 +171,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     stockTS: entero(o.stockTS),
     gbpId: Number.isInteger(gbpId) ? gbpId : null,
     ...(o.mon === "USD" ? { mon: "USD" as const } : {}),
+    ...(o.mon === "USD" && dolarRef > 0 ? { dolarRef } : {}),
     // Solo cuenta para un articulo que todavia no tiene: el que ya tiene lo
     // conserva (guardarArticulos).
     ...(flete > 0 ? { flete } : {}),
