@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.96";
+export const APP_VERSION = "V.0.99.97";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.97",
+    date: "2026-11-23",
+    changes: [
+      "Arreglo: la primera nota de crédito B de una sucursal no se podía hacer (chocaba con la Factura B del mismo número). Ahora cada tipo de comprobante numera aparte, como en ARCA: Factura B, Nota de crédito B y Nota de débito B tienen cada una su serie.",
+    ],
+  },
   {
     version: "V.0.99.96",
     date: "2026-11-23",

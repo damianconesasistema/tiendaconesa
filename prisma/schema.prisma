@@ -471,7 +471,7 @@ model PuntoDocumento {
   eliminadoEn  DateTime?
   eliminadoPor String?
 
-  @@unique([sucursal, letra, numero])
+  @@unique([sucursal, tipo, letra, numero])
   @@index([createdAt])
   @@index([tipo, createdAt])
   @@index([origenId])
