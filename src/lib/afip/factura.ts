@@ -46,12 +46,14 @@ export function nombreComprobante(cbteTipo: number): string {
   if (cbteTipo === CBTE.FACTURA_B) return "FACTURA B";
   if (cbteTipo === CBTE.NOTA_CREDITO_A) return "NOTA DE CRÉDITO A";
   if (cbteTipo === CBTE.NOTA_CREDITO_B) return "NOTA DE CRÉDITO B";
+  if (cbteTipo === CBTE.NOTA_DEBITO_A) return "NOTA DE DÉBITO A";
+  if (cbteTipo === CBTE.NOTA_DEBITO_B) return "NOTA DE DÉBITO B";
   return `COMPROBANTE ${cbteTipo}`;
 }
 
 /** La letra grande del recuadro del medio. */
 export function letraComprobante(cbteTipo: number): string {
-  if (cbteTipo === CBTE.FACTURA_A || cbteTipo === CBTE.NOTA_CREDITO_A) return "A";
+  if (cbteTipo === CBTE.FACTURA_A || cbteTipo === CBTE.NOTA_CREDITO_A || cbteTipo === CBTE.NOTA_DEBITO_A) return "A";
   return "B";
 }
 

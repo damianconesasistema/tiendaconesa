@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { linkDocumento } from "@/lib/punto-link";
 import { moverStockEnTx, type StockArticulo } from "@/lib/punto-articulos";
+import { arcaDe, caeParaPunto, olvidarIntento, vaPorArca, type ArcaPunto } from "@/lib/punto-arca";
 import { nombreSucursalPunto } from "@/lib/punto-permisos";
 
 // Lo que se emite en el sistema Punto, guardado en la base (migracion 50).
@@ -524,7 +525,36 @@ async function crear(d: DocumentoNuevo, usuario: string): Promise<Emitido> {
           if (vendido) return { error: `Ese presupuesto ya se vendió (${aGuardado(vendido).nroTexto}).` };
         }
       }
-      const numero = d.letra ? await siguiente(tx, `${NUMERADOR}${d.sucursal}:${d.letra}`, d.desdeNumero) : null;
+      // V.0.99.98: la factura de Traslasierra la autoriza ARCA (punto de
+      // venta 6) y el numero es el suyo. Si ARCA no la autoriza, no se guarda
+      // nada y la venta queda como estaba.
+      let arca: ArcaPunto | null = null;
+      if (vaPorArca(d.sucursal, d.tipo, d.letra)) {
+        const serie = `${NUMERADOR}${d.sucursal}:${d.letra}`;
+        const r = await caeParaPunto(tx, {
+          idLocal: d.idLocal,
+          sucursal: d.sucursal,
+          tipo: d.tipo,
+          letra: d.letra ?? "",
+          total: d.total,
+          renglones: d.renglones,
+          cliente: d.cliente,
+          claveSerie: serie,
+        });
+        if ("error" in r) return r;
+        // El mismo comprobante entro mientras se esperaba el lock de ARCA
+        // (doble clic, reintento): vuelve ese, sin pedir otro CAE.
+        if ("repetidoId" in r) {
+          const otro = await tx.puntoDocumento.findUnique({ where: { id: r.repetidoId } });
+          return otro ? { doc: aGuardado(otro), repetido: true } : { error: "Probá de nuevo: no se emitió nada." };
+        }
+        arca = r;
+      }
+      const numero = arca
+        ? arca.cbteNro
+        : d.letra
+          ? await siguiente(tx, `${NUMERADOR}${d.sucursal}:${d.letra}`, d.desdeNumero)
+          : null;
       const pedido = await siguiente(tx, `${NUMERADOR}pedido`, d.desdePedido);
       const creado = await tx.puntoDocumento.create({
         data: {
@@ -542,12 +572,13 @@ async function crear(d: DocumentoNuevo, usuario: string): Promise<Emitido> {
           cliente: d.cliente.n,
           total: d.total,
           origenId: d.origenId,
-          datos: datos as Prisma.InputJsonValue,
+          datos: (arca ? { ...datos, fiscal: true, arca } : datos) as Prisma.InputJsonValue,
         },
       });
+      if (arca) await olvidarIntento(tx, d.idLocal);
       if (d.ventaId && cerrar) await cerrarVenta(tx, d.ventaId, creado.id);
       return { doc: aGuardado(creado), repetido: false };
-    });
+    }, { maxWait: 15_000, timeout: 120_000 });
   } catch (e) {
     // Dos pedidos con el mismo idLocal a la vez: el segundo choca contra el
     // unico y se devuelve el que gano.
@@ -691,6 +722,10 @@ export async function eliminarDocumento(
   if (!actual) return { error: "Ese comprobante no está." };
   // Ya estaba como se pide (doble clic, otro puesto): no se toca de nuevo.
   if (!!actual.eliminadoEn === !recuperar) return { doc: await conNombre(aGuardado(actual)) };
+  // V.0.99.98: un comprobante con CAE ya esta en ARCA: no se elimina, se
+  // anula con nota de credito.
+  if (!recuperar && arcaDe(actual.datos))
+    return { error: "Ese comprobante tiene CAE de ARCA: no se elimina. Se anula con una nota de crédito." };
   // Una factura con notas de credito o debito vigentes no se elimina: lo
   // devuelto por la nota volveria al stock dos veces (V.0.99.96).
   if (!recuperar && actual.tipo === "factura") {
@@ -841,7 +876,32 @@ export async function crearNota(facturaId: string, n: NotaNueva, usuario: string
         }
         if (!(total > 0)) return { error: "La nota da $ 0: no hay nada para hacer." };
         const serie = `${NUMERADOR}${f.sucursal}:${tipo === "nota-credito" ? "NC" : "ND"}${f.letra}`;
-        const numero = await siguiente(tx, serie, 1);
+        // V.0.99.98: la nota de una factura con CAE tambien va por ARCA, con
+        // esa factura asociada. La de una factura interna queda interna.
+        const fArca = arcaDe(f.datos);
+        let arca: ArcaPunto | null = null;
+        if (fArca) {
+          if (!vaPorArca(f.sucursal, tipo, f.letra))
+            return { error: "Esa factura tiene CAE pero su sucursal ya no factura por ARCA: no se puede hacer la nota desde acá." };
+          const r = await caeParaPunto(tx, {
+            idLocal: n.idLocal,
+            sucursal: f.sucursal,
+            tipo,
+            letra: f.letra ?? "",
+            total,
+            renglones,
+            cliente: fd.cliente as { doc?: string; t?: string } | undefined,
+            asociado: { cbteTipo: fArca.cbteTipo, ptoVta: fArca.ptoVta, cbteNro: fArca.cbteNro, fecha: fArca.fecha },
+            claveSerie: serie,
+          });
+          if ("error" in r) return r;
+          if ("repetidoId" in r) {
+            const otro = await tx.puntoDocumento.findUnique({ where: { id: r.repetidoId } });
+            return otro ? { doc: aGuardado(otro), repetido: true } : { error: "Probá de nuevo: no se emitió nada." };
+          }
+          arca = r;
+        }
+        const numero = arca ? arca.cbteNro : await siguiente(tx, serie, 1);
         const datos = {
           v: 1,
           cliente: fd.cliente,
@@ -858,6 +918,7 @@ export async function crearNota(facturaId: string, n: NotaNueva, usuario: string
           facturaNro,
           motivo: n.motivo,
           ...(tipo === "nota-credito" ? { cants } : {}),
+          ...(arca ? { fiscal: true, arca } : {}),
         };
         const creado = await tx.puntoDocumento.create({
           data: {
@@ -878,9 +939,10 @@ export async function crearNota(facturaId: string, n: NotaNueva, usuario: string
             datos: datos as Prisma.InputJsonValue,
           },
         });
+        if (arca) await olvidarIntento(tx, n.idLocal);
         return { doc: aGuardado(creado), repetido: false };
       },
-      { maxWait: 10_000, timeout: 15_000 },
+      { maxWait: 15_000, timeout: 120_000 },
     );
     return conNombreSiHay(r);
   } catch (e) {

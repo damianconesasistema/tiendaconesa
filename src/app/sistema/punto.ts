@@ -8181,8 +8181,13 @@ function registrarEmitido(g){
 }
 /** Un presupuesto ya emitido que se cambió (no uno nuevo). */
 const fueCambio = g => g.tipo === "presupuesto" && !!(g.datos && g.datos.editado);
+/** V.0.99.98: lo que autorizó ARCA, para decirlo al emitir. */
+const conCaeTxt = g => { const a = (g.datos || {}).arca; return a && a.cae ? " Autorizada por ARCA: CAE " + a.cae + "." : ""; };
 function textoEmitido(g){
   const dt = g.datos || {}, su = sucDe(g.sucursal);
+  if((dt.arca || {}).cae && g.tipo === "factura")
+    return g.comp.replace(/^\\d+\\./, "") + " " + g.nroTexto.slice(2) + " de " + su.n + " por " + fmt(g.total) + "." + conCaeTxt(g) +
+      " Sale del depósito de " + (DEPOSITOS[dt.deposito] || dt.deposito) + ". En Comprobantes la bajás en PDF o se la mandás por WhatsApp.";
   if(fueCambio(g))
     return "Presupuesto " + g.nroTexto.slice(2) + " de " + su.n + " cambiado, por " + fmt(g.total) +
       ". Sigue con el mismo número y lo de antes quedó guardado. En Comprobantes lo bajás en PDF.";
@@ -8475,7 +8480,7 @@ function accionesCp(d, vendido){
       ? bt("nc", "Nota de crédito", "b2", "Devuelve artículos de esta factura: vuelven al stock") +
         bt("nd", "Nota de débito", "b2", "Le suma un monto a esta factura (interés, diferencia de precio...)")
       : "") +
-    (puede("eliminar") ? bt("eliminar", "Eliminar", "b3", "Sale de la lista y de la Caja; se puede recuperar") : "");
+    (puede("eliminar") && !((d.datos || {}).arca || {}).cae ? bt("eliminar", "Eliminar", "b3", "Sale de la lista y de la Caja; se puede recuperar") : "");
 }
 /* V.0.99.96: la nota de crédito o de débito de una factura A o B. La de
    crédito devuelve artículos (vuelven al stock del depósito de la factura);
@@ -8541,7 +8546,7 @@ function abrirNota(d, clase){
       cerrar();
       repintarInformes();
       pintarComprobantes();
-      toast("Lista la " + j.documento.comp + " " + String(j.documento.nroTexto).replace(/^[AB] /, "") + " por " + fmt(j.documento.total) + "." +
+      toast("Lista la " + j.documento.comp + " " + String(j.documento.nroTexto).replace(/^[AB] /, "") + " por " + fmt(j.documento.total) + "." + conCaeTxt(j.documento) +
         (nc ? " Lo devuelto volvió al stock." : ""));
     }catch(x){ toast("Sin conexión: probá de nuevo."); }
     finally{ if(document.body.contains(b)) b.disabled = false; }

@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.97";
+export const APP_VERSION = "V.0.99.98";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.98",
+    date: "2026-11-23",
+    changes: [
+      "FACTURA ELECTRÓNICA EN TRASLASIERRA (\"adaptar la que tenías seteada en la tienda de Traslasierra ... el punto 6, y optimizar la factura para usarla en el sistema\"): en Punto, la Factura A y B de Traslasierra salen por ARCA con el CUIT de Carlos Daniel Conesa y el punto de venta 6 (el de la tienda de Traslasierra, que ya no vende). El número es el que da ARCA y queda con su CAE. Si ARCA no la autoriza, no se guarda nada y la venta queda como estaba. Las notas de crédito y de débito de esas facturas también van por ARCA, con la factura asociada. Buenos Aires sigue con comprobantes internos.",
+      "Va con la condición de IVA del cliente y el IVA separado por alícuota (21 % y 10,5 %). Si se corta la respuesta de ARCA, al volver a tocar el botón primero se fija en ARCA si ya salió, para no hacer dos facturas.",
+      "El PDF de la factura con CAE: sin marca de agua, con el código del comprobante, los datos fiscales del emisor (razón social, CUIT, Ingresos Brutos, inicio de actividades), el documento y la condición de IVA del cliente, la Factura A con los precios sin IVA y el IVA discriminado, la B con el IVA contenido (Ley 27.743), y el CAE con su vencimiento y el QR de ARCA.",
+      "Un comprobante con CAE no se puede eliminar: se anula con nota de crédito. En el PDF de la venta sin comprobante ya no queda una línea en blanco.",
+    ],
+  },
   {
     version: "V.0.99.97",
     date: "2026-11-23",

@@ -114,6 +114,13 @@ export type Comprobante = {
   /** Solo para notas de credito: la factura que se esta anulando.
    *  ARCA la exige, si no rechaza el comprobante. */
   asociado?: { cbteTipo: number; ptoVta: number; cbteNro: number; cuit: string; fecha: Date };
+  /** Opcional (Punto, V.0.99.98): CondicionIVAReceptorId de la RG 5616. La
+   *  tienda no lo manda y su XML queda como siempre. */
+  condicionIvaReceptor?: number;
+  /** Opcional (Punto): el IVA por alicuota (21 %, 10,5 %...). Sin esto, todo
+   *  al 21 % como siempre. La suma de las bases tiene que dar el neto y la de
+   *  los importes el IVA. */
+  alicuotas?: Array<{ id: number; base: number; importe: number }>;
 };
 
 export type Autorizacion = {
@@ -141,6 +148,44 @@ function fechaDeAfip(s: string): Date {
 
 function dosDecimales(n: number): string {
   return n.toFixed(2);
+}
+
+/** Un comprobante ya emitido, como lo tiene ARCA (FECompConsultar), o null
+ *  si ARCA dice que ese numero no existe. Solo pregunta: no emite nada. Lo usa
+ *  Punto (V.0.99.98) para no pedir dos veces el CAE de una misma venta cuando
+ *  se corto la respuesta. */
+export async function consultarComprobante(
+  ptoVta: number,
+  cbteTipo: number,
+  cbteNro: number,
+  sucursal?: string | null,
+): Promise<{ cae: string; caeVto: Date; cbteNro: number; total: number; docNro: string; fecha: string } | null> {
+  const a = await auth(sucursal);
+  const xml = await llamar(
+    "FECompConsultar",
+    `<ar:FECompConsultar>${bloqueAuth(a)}<ar:FeCompConsReq>` +
+      `<ar:CbteTipo>${cbteTipo}</ar:CbteTipo>` +
+      `<ar:CbteNro>${cbteNro}</ar:CbteNro>` +
+      `<ar:PtoVta>${ptoVta}</ar:PtoVta>` +
+      `</ar:FeCompConsReq></ar:FECompConsultar>`,
+  );
+  const res = entre(xml, "ResultGet");
+  const cae = entre(res, "CodAutorizacion");
+  if (!res || !cae) {
+    // 602 = no existe ese comprobante. Otro error: no se sabe, se avisa.
+    const errores = problemas(xml);
+    if (!errores.length || errores.some((m) => /\(602\)/.test(m))) return null;
+    throw new Error(`ARCA: ${errores.join(" · ")}`);
+  }
+  const f = entre(res, "CbteFch");
+  return {
+    cae,
+    caeVto: fechaDeAfip(entre(res, "FchVto")),
+    cbteNro: Number(entre(res, "CbteDesde")) || cbteNro,
+    total: Number(entre(res, "ImpTotal")) || 0,
+    docNro: entre(res, "DocNro"),
+    fecha: f.length === 8 ? `${f.slice(0, 4)}-${f.slice(4, 6)}-${f.slice(6, 8)}` : "",
+  };
 }
 
 /** Emite el comprobante y devuelve el CAE. */
@@ -177,11 +222,25 @@ export async function solicitarCae(c: Comprobante): Promise<Autorizacion> {
     `<ar:ImpTrib>0</ar:ImpTrib>` +
     `<ar:MonId>PES</ar:MonId>` +
     `<ar:MonCotiz>1</ar:MonCotiz>` +
-    `<ar:Iva><ar:AlicIva>` +
-    `<ar:Id>${IVA_21}</ar:Id>` +
-    `<ar:BaseImp>${dosDecimales(c.neto)}</ar:BaseImp>` +
-    `<ar:Importe>${dosDecimales(c.iva)}</ar:Importe>` +
-    `</ar:AlicIva></ar:Iva>` +
+    (c.condicionIvaReceptor
+      ? `<ar:CondicionIVAReceptorId>${c.condicionIvaReceptor}</ar:CondicionIVAReceptorId>`
+      : "") +
+    (c.alicuotas && c.alicuotas.length
+      ? `<ar:Iva>` +
+        c.alicuotas
+          .map(
+            (x) =>
+              `<ar:AlicIva><ar:Id>${x.id}</ar:Id>` +
+              `<ar:BaseImp>${dosDecimales(x.base)}</ar:BaseImp>` +
+              `<ar:Importe>${dosDecimales(x.importe)}</ar:Importe></ar:AlicIva>`,
+          )
+          .join("") +
+        `</ar:Iva>`
+      : `<ar:Iva><ar:AlicIva>` +
+        `<ar:Id>${IVA_21}</ar:Id>` +
+        `<ar:BaseImp>${dosDecimales(c.neto)}</ar:BaseImp>` +
+        `<ar:Importe>${dosDecimales(c.iva)}</ar:Importe>` +
+        `</ar:AlicIva></ar:Iva>`) +
     `</ar:FECAEDetRequest>`;
 
   const xml = await llamar(

@@ -46,6 +46,9 @@ export const CBTE = {
   FACTURA_B: 6,
   NOTA_CREDITO_A: 3,
   NOTA_CREDITO_B: 8,
+  // Punto (V.0.99.98).
+  NOTA_DEBITO_A: 2,
+  NOTA_DEBITO_B: 7,
 } as const;
 
 /** Tipos de documento del comprador, según la tabla de ARCA. */

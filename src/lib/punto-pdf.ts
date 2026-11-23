@@ -2,6 +2,8 @@ import path from "node:path";
 import fs from "node:fs";
 import PDFDocument from "pdfkit";
 import type { DocumentoGuardado } from "@/lib/punto-documentos";
+import { arcaDe } from "@/lib/punto-arca";
+import { pngQr } from "@/lib/afip/qr";
 
 // El PDF de lo que se emite en Punto (presupuestos, facturas internas,
 // remitos, pedidos internos). Damian, 22/11/2026: "esto si fue emitido
@@ -27,9 +29,23 @@ export type Emisor = {
   direccion?: string;
   telefono?: string;
   email?: string;
+  /** Lo fiscal (V.0.99.98), para la factura con CAE. */
+  razonSocial?: string;
+  cuit?: string;
+  iibb?: string;
+  inicioAct?: string;
 };
 
-type Renglon = { cod: string; tit: string; cant: number; contado: number };
+/** La condicion de IVA del receptor, como la manda Punto a ARCA. */
+const COND_IVA: Record<number, string> = {
+  1: "IVA Responsable Inscripto",
+  4: "IVA Sujeto Exento",
+  5: "Consumidor Final",
+  6: "Responsable Monotributo",
+  7: "Sujeto No Categorizado",
+};
+
+type Renglon = { cod: string; tit: string; cant: number; contado: number; iva?: number };
 type Datos = {
   cliente?: { n?: string; t?: string; doc?: string };
   forma?: string;
@@ -40,6 +56,9 @@ type Datos = {
   bruto?: number;
   descuento?: number;
   editado?: { en: string; por: string; veces: number } | null;
+  /** Notas de credito y de debito: la factura que modifican. */
+  facturaNro?: string;
+  motivo?: string;
 };
 
 const TITULO: Record<string, string> = {
@@ -123,8 +142,12 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   const der = W - M;
   const anchoUtil = W - M * 2;
   // Las notas de credito y de debito (V.0.99.96) van como la factura: internas, sin CAE.
-  const esFactura = d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito";
+  const arca = arcaDe(d.datos);
+  // Interna = sin CAE. La que autorizo ARCA (V.0.99.98) es la de verdad.
+  const esFactura = (d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito") && !arca;
   const letra = d.letra || "";
+  // La Factura A con CAE: los renglones sin IVA y el IVA discriminado abajo.
+  const sinIva = !!arca && letra === "A";
 
   // Marca de agua de la factura interna: en todas las hojas, abajo de todo.
   const marcaDeAgua = () => {
@@ -156,12 +179,19 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   const lineasEmisor = [emisor.direccion, emisor.telefono ? `Tel: ${emisor.telefono}` : "", emisor.email].filter(
     (x): x is string => !!x,
   );
-  doc.fillColor(NEGRO).font("Helvetica-Bold").fontSize(8.5).text(emisor.nombre, M + 14, tope + 56, { width: 215 });
+  doc
+    .fillColor(NEGRO)
+    .font("Helvetica-Bold")
+    .fontSize(8.5)
+    .text(arca && emisor.razonSocial ? emisor.razonSocial : emisor.nombre, M + 14, tope + 56, { width: 215 });
   doc
     .fillColor(GRIS)
     .font("Helvetica")
     .fontSize(7.5)
-    .text(lineasEmisor.join("\n"), M + 14, tope + 68, { width: 215, lineGap: 1 });
+    .text((arca ? [...lineasEmisor.slice(0, 1), "IVA Responsable Inscripto", ...lineasEmisor.slice(1)] : lineasEmisor).join("\n"), M + 14, tope + 68, {
+      width: 215,
+      lineGap: 1,
+    });
 
   // Derecha: que es, que numero, que dia.
   const dx = letra ? cajaX + 66 : W / 2 + 10;
@@ -178,8 +208,18 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     .fillColor(GRIS)
     .fontSize(8)
     .text(`Fecha: ${fecha(d.createdAt)} · ${hora(d.createdAt)}`, dx, tope + 52)
-    .text(d.letra ? `Pedido P-${d.pedido}` : "", dx, tope + 64)
-    .text(`Vendedor: ${d.vendedor}`, dx, tope + 76, { width: der - dx - 10 });
+    .text(arca ? `CUIT: ${emisor.cuit || arca.cuit}` : d.letra ? `Pedido P-${d.pedido}` : `Vendedor: ${d.vendedor}`, dx, tope + 64)
+    .text(
+      arca
+        ? `Ing. Brutos: ${emisor.iibb || "-"} · Inicio act.: ${emisor.inicioAct || "-"}`
+        : d.letra
+          ? `Vendedor: ${d.vendedor}`
+          : "",
+      dx,
+      tope + 76,
+      { width: der - dx - 10 },
+    );
+  if (arca) doc.text(`Pedido P-${d.pedido} · Vendedor: ${d.vendedor}`, dx, tope + 88, { width: der - dx - 10 });
   if (dt.editado && dt.editado.en)
     doc.text(`Modificado el ${fecha(dt.editado.en)} · ${hora(dt.editado.en)}`, dx, tope + 88, { width: der - dx - 10 });
 
@@ -195,7 +235,10 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
       .font("Helvetica")
       .fontSize(5.5)
       .fillColor(GRIS)
-      .text(esFactura ? "INTERNA" : "NO FISCAL", cajaX, tope + 28, { width: 50, align: "center" });
+      .text(arca ? `COD. ${String(arca.cbteTipo).padStart(3, "0")}` : esFactura ? "INTERNA" : "NO FISCAL", cajaX, tope + 28, {
+        width: 50,
+        align: "center",
+      });
   }
 
   // --------------------------------------------------- BANDA DE ADVERTENCIA
@@ -207,7 +250,11 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     .fontSize(8)
     .text(
       (d.eliminado ? `ELIMINADO EL ${fecha(d.eliminado.en)} · ` : "") +
-        (esFactura ? "COMPROBANTE INTERNO SIN CAE · NO VÁLIDO COMO FACTURA" : "DOCUMENTO NO VÁLIDO COMO FACTURA"),
+        (arca
+          ? `ORIGINAL · COMPROBANTE AUTORIZADO POR ARCA${dt.facturaNro ? ` · DE LA FACTURA ${dt.facturaNro}` : ""}`
+          : esFactura
+            ? "COMPROBANTE INTERNO SIN CAE · NO VÁLIDO COMO FACTURA"
+            : "DOCUMENTO NO VÁLIDO COMO FACTURA"),
       M,
       y + 6.5,
       { width: anchoUtil, align: "center" },
@@ -222,7 +269,19 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     .font("Helvetica-Bold")
     .fontSize(10)
     .text(cli.n || d.cliente || "Consumidor final", M + 12, y + 19, { width: anchoUtil - 24, lineBreak: false, ellipsis: true });
-  const sobreCliente = [cli.doc && cli.doc !== "—" ? `Doc.: ${cli.doc}` : "", cli.t || "", dt.forma ? `Forma de pago: ${sinPrefijo(dt.forma)}` : ""]
+  const docArca = arca
+    ? arca.docTipo === 80
+      ? `CUIT: ${arca.docNro.replace(/^(\d{2})(\d{8})(\d)$/, "$1-$2-$3")}`
+      : arca.docTipo === 96
+        ? `DNI: ${arca.docNro}`
+        : ""
+    : "";
+  const sobreCliente = [
+    arca ? docArca : cli.doc && cli.doc !== "—" ? `Doc.: ${cli.doc}` : "",
+    arca ? COND_IVA[arca.condIva] || "" : cli.t || "",
+    dt.forma ? `Forma de pago: ${sinPrefijo(dt.forma)}` : "",
+    dt.motivo ? `Motivo: ${dt.motivo}` : "",
+  ]
     .filter(Boolean)
     .join(" · ");
   doc.font("Helvetica").fontSize(8).fillColor(GRIS).text(sobreCliente, M + 12, y + 34, { width: anchoUtil - 24 });
@@ -248,8 +307,8 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     doc.text("CÓDIGO", col.cod, y + 7, { width: 78 });
     doc.text("DESCRIPCIÓN", col.desc, y + 7, { width: anchoDesc });
     doc.text("CANT.", col.cant, y + 7, { width: anchoCant, align: "right" });
-    doc.text("P. UNIT.", col.unit, y + 7, { width: anchoUnit, align: "right" });
-    doc.text("IMPORTE", col.tot, y + 7, { width: anchoTot, align: "right" });
+    doc.text(sinIva ? "P. UNIT. S/IVA" : "P. UNIT.", col.unit, y + 7, { width: anchoUnit, align: "right" });
+    doc.text(sinIva ? "IMPORTE S/IVA" : "IMPORTE", col.tot, y + 7, { width: anchoTot, align: "right" });
     y += 20;
   };
   let pagina = 1;
@@ -268,9 +327,11 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   };
 
   cabeceraTabla();
+  let netoRenglones = 0;
   for (const r of renglones) {
     const cant = num(r.cant);
-    const unit = num(r.contado);
+    const unit = sinIva ? Math.round((num(r.contado) / (1 + (num(r.iva) || 21) / 100)) * 100) / 100 : num(r.contado);
+    netoRenglones += unit * cant;
     const tit = String(r.tit ?? "");
     doc.font("Helvetica").fontSize(8);
     const alto = Math.max(16, doc.heightOfString(tit, { width: anchoDesc })) + 8;
@@ -294,11 +355,28 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   const bruto = num(dt.bruto) || renglones.reduce((a, r) => a + num(r.contado) * num(r.cant), 0);
   const descuento = num(dt.descuento);
   const recargo = Math.round((d.total - (bruto - descuento)) * 100) / 100;
-  const filas: [string, string, boolean][] = [["Subtotal", pesos(bruto), false]];
-  if (descuento > 0.004) filas.push([`Descuento ${num(dt.desc) ? num(dt.desc) + "%" : ""}`.trim(), `- ${pesos(descuento)}`, false]);
-  if (Math.abs(recargo) >= 0.5)
+  // En la A, el subtotal sin IVA y el ajuste solo si hubo descuento o recargo
+  // de verdad: si no, la diferencia de centavos de redondear cada renglon
+  // aparecia como "Descuento -$ 0,01".
+  const hayAjuste = descuento > 0.004 || Math.abs(recargo) >= 0.5;
+  const filas: [string, string, boolean][] = sinIva
+    ? hayAjuste
+      ? [["Subtotal sin IVA", pesos(netoRenglones), false]]
+      : []
+    : [["Subtotal", pesos(bruto), false]];
+  if (!sinIva && descuento > 0.004) filas.push([`Descuento ${num(dt.desc) ? num(dt.desc) + "%" : ""}`.trim(), `- ${pesos(descuento)}`, false]);
+  if (!sinIva && Math.abs(recargo) >= 0.5)
     filas.push([`${recargo > 0 ? "Recargo" : "Ajuste"} ${dt.forma ? sinPrefijo(dt.forma) : "forma de pago"}`, pesos(recargo), false]);
+  if (arca && letra === "A") {
+    // El descuento o el recargo de la forma de pago, sin IVA.
+    const ajuste = Math.round((arca.neto - netoRenglones) * 100) / 100;
+    if (hayAjuste && Math.abs(ajuste) >= 0.01)
+      filas.push([ajuste < 0 ? "Descuento sin IVA" : `Recargo ${dt.forma ? sinPrefijo(dt.forma) : "forma de pago"} sin IVA`, pesos(ajuste), false]);
+    filas.push(["Neto gravado", pesos(arca.neto), false]);
+    for (const a of arca.alicuotas) filas.push([`IVA ${String(a.pct).replace(".", ",")} %`, pesos(a.importe), false]);
+  }
   filas.push(["TOTAL", pesos(d.total), true]);
+  if (arca && letra === "B") filas.push(["IVA contenido (Ley 27.743)", pesos(arca.iva), false]);
 
   const altoTotales = filas.length * 15 + 30;
   if (y + 14 + altoTotales > PIE) otraHoja();
@@ -319,6 +397,42 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     y += fuerte ? 20 : 14;
   }
 
+  // --------------------------------------------------------- CAE Y QR (ARCA)
+  if (arca) {
+    if (y + 96 > PIE) otraHoja();
+    y += 10;
+    doc.rect(M, y, anchoUtil, 84).strokeColor(BORDE).lineWidth(1).stroke();
+    try {
+      const qr = await pngQr({
+        fecha: new Date(arca.fecha + "T12:00:00"),
+        cuit: arca.cuit,
+        ptoVta: arca.ptoVta,
+        tipoCmp: arca.cbteTipo,
+        nroCmp: arca.cbteNro,
+        importe: d.total,
+        tipoDocRec: arca.docTipo,
+        nroDocRec: arca.docNro,
+        cae: arca.cae,
+      });
+      doc.image(qr, M + 8, y + 7, { width: 70 });
+    } catch {
+      // Sin QR el CAE igual vale; se ve abajo.
+    }
+    const vto = arca.caeVto.split("-").reverse().join("/");
+    doc
+      .fillColor(NEGRO)
+      .font("Helvetica-Bold")
+      .fontSize(10)
+      .text(`CAE Nº ${arca.cae}`, M + 92, y + 16)
+      .font("Helvetica")
+      .fontSize(8.5)
+      .text(`Vencimiento del CAE: ${vto}`, M + 92, y + 32)
+      .fillColor(GRIS)
+      .fontSize(7.5)
+      .text("Comprobante autorizado por ARCA. Escaneá el QR para verificarlo.", M + 92, y + 50, { width: anchoUtil - 110 });
+    y += 84;
+  }
+
   // ------------------------------------------------------------------- PIE
   // En todas las hojas: que es y que no es este papel.
   const rango = doc.bufferedPageRange();
@@ -329,9 +443,11 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
       .font("Helvetica")
       .fontSize(7)
       .text(
-        esFactura
-          ? "Comprobante interno del sistema Punto. Todavía no fue autorizado por ARCA: no tiene CAE y no es válido como factura."
-          : "Documento no válido como factura.",
+        arca
+          ? `${tituloDe(d)} ${numeroDe(d)} · CAE ${arca.cae}`
+          : esFactura
+            ? "Comprobante interno del sistema Punto. Todavía no fue autorizado por ARCA: no tiene CAE y no es válido como factura."
+            : "Documento no válido como factura.",
         M,
         H - 50,
         { width: anchoUtil - 60, lineBreak: true },
