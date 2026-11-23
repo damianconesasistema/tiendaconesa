@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.85";
+export const APP_VERSION = "V.0.99.86";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.86",
+    date: "2026-11-23",
+    changes: [
+      "LISTA 2 COMO PRECIO (\"tenés que mostrar LISTA 2 SIEMPRE EL PRECIO, NO DE CONTADO NI DE 1 PAGO\"): el buscador de la venta y la tabla de Artículos muestran una sola columna, Lista 2, con los centavos, como viene del Excel de GBP.",
+      "LOS ARTÍCULOS DE GBP NO SE PIERDEN EN SILENCIO (\"los artículos no se ven\"): si al abrir Punto no llegan (el servidor se estaba reiniciando, se cortó internet), prueba de nuevo hasta 3 veces y, si sigue sin poder, avisa arriba con el motivo.",
+    ],
+  },
   {
     version: "V.0.99.85",
     date: "2026-11-23",
