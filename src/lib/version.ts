@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.203";
+export const APP_VERSION = "V.0.11.204";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.204",
+    date: "2026-11-23",
+    changes: [
+      "Casillas de números (\"si escribís directo te pone 010 y no 10\"): con 0 se vacían al entrar (si se sale sin escribir, vuelve el 0); con otro número quedan marcadas para escribir encima.",
+      "Crear uno: Lista 1 y Lista 2 arrancan en 25% (\"poneme Lista 1 y Lista 2 por default 25%\").",
+    ],
+  },
   {
     version: "V.0.11.203",
     date: "2026-11-23",
