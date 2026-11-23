@@ -7,7 +7,7 @@
 // cambios se anotaban solo en comentarios aca arriba y la pantalla quedo en
 // la V.0.60.0. Esos comentarios pasaron a la lista.
 
-export const APP_VERSION = "V.0.99.82";
+export const APP_VERSION = "V.0.99.83";
 
 export type VersionEntry = {
   version: string;
@@ -17,6 +17,18 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.99.83",
+    date: "2026-11-23",
+    changes: [
+      "LA BARRA DE ARRIBA, MÁS CORTA (\"gerencia ahí dentro mete contable y rentabilidad así hacemos lugar\"): Rentabilidad y Contable ahora están adentro de Gerencia, con tres solapitas: Resumen, Rentabilidad y Contable. La fila de solapas entra entera, sin correrse para el costado.",
+      "PEDIDOS SALE DE LA BARRA (\"pedido hay que sacarlo porque es redundante\"): los pedidos internos se hacen en Venta y se ven en Comprobantes. No se borró nada.",
+      "ASISTENTE Y USUARIOS ARRIBA (\"asistente que vaya arriba al lado de la versión\", \"usuarios ponelo al lado del botón salir\"): Asistente está al lado de la versión y Usuarios al lado de Salir.",
+      "PRODUCTOS PASA A LLAMARSE ARTÍCULOS (\"productos cambialo por artículos\"): la solapa, la pantalla y el tilde de Usuarios.",
+      "GUARDAR EN USUARIOS (\"me falta como un guardar ahí para confirmar\"): los tildes, la sucursal y \"administra usuarios\" ya no se guardan solos. El usuario tocado se marca en rojo con \"Sin guardar\" y se confirma con Guardar (o se vuelve atrás con Deshacer). Si se cierra la página con algo sin guardar, el navegador pregunta.",
+      "AVISO DE VERSIÓN NUEVA (\"avisame cuando hay una nueva versión en el sistema para recargar la página\"): cada 2 minutos Punto se fija si se subió una versión nueva. Si hay, aparece una franja roja arriba con el botón Recargar. No recarga sola, para no cortar una venta.",
+    ],
+  },
   {
     version: "V.0.99.82",
     date: "2026-11-22",

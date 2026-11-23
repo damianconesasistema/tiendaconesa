@@ -101,6 +101,39 @@ header{
   text-transform:uppercase; letter-spacing:.05em; color:var(--ink);
 }
 .salir:hover{border-color:var(--accent); color:var(--accent)}
+/* Asistente (al lado de la versión) y Usuarios (al lado de Salir) van en la
+   barra de arriba: son herramientas, no pantallas del mostrador, y así la
+   fila de solapas entra entera sin correrse para el costado. */
+.bar{gap:6px; padding:11px 12px}
+.relo.dolar{margin-left:10px; padding-left:10px}
+.bar a.ir{
+  display:inline-flex; align-items:center; gap:5px; text-decoration:none;
+  border:1px solid var(--line); border-radius:999px; padding:5px 10px; background:none;
+  font-family:var(--font-d); font-size:11.5px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.05em; color:var(--ink-2); white-space:nowrap;
+}
+.bar a.ir svg{width:14px; height:14px; flex:0 0 14px}
+.bar a.ir:hover, .bar a.ir[aria-current="true"]{border-color:var(--accent); color:var(--accent)}
+.bar a.ir[hidden]{display:none}
+/* Las solapas de adentro de Gerencia: Resumen, Rentabilidad y Contable. Van
+   juntas en un marco, para no confundirlas con las de sucursal. */
+.solapas.subger{
+  display:inline-flex; gap:2px; margin:-8px 0 18px; padding:3px;
+  border:1px solid var(--line-2); border-radius:999px; background:var(--surface);
+}
+.solapas.subger button{border:0; padding:7px 18px}
+.solapas.subger[hidden]{display:none}
+/* La franja de "hay una versión nueva", debajo de la barra de arriba. */
+.nueva-ver{
+  display:flex; align-items:center; gap:10px 14px; flex-wrap:wrap; padding:8px 24px;
+  background:var(--accent); color:var(--accent-ink); font-size:13.5px; font-weight:600;
+}
+.nueva-ver[hidden]{display:none}
+.nueva-ver button{
+  border:0; border-radius:999px; padding:6px 16px; background:var(--surface); color:var(--accent);
+  font-family:var(--font-d); font-size:12px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.05em; cursor:pointer;
+}
 /* En pantalla angosta se va el dólar, que es para mirar de reojo. La fecha
    se queda -es de las cosas que mas se miran- y la barra se parte en dos
    renglones, que para eso tiene flex-wrap. El usuario y la sucursal tambien
@@ -362,6 +395,8 @@ td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500;
 #tbPrv td small{display:block; color:var(--ink-3); font-size:11.5px; font-weight:500}
 .us-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; margin-bottom:12px}
 .us-card.inactivo{opacity:.6}
+.us-card.sucio{border-color:var(--accent); box-shadow:inset 3px 0 0 var(--accent)}
+.us-sucio{font-size:12.5px; font-weight:700; color:var(--accent)}
 .us-cab{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px}
 .us-cab b{font-size:16px}
 .us-cab small{color:var(--ink-3)}
@@ -1054,35 +1089,44 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.99.82</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.99.83</span>
+    <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
     <span class="bar-sep ocultable"></span>
     <span class="user">Usuario: <select id="selUsuario" aria-label="Usuario"></select></span>
     <span class="bar-sep ocultable"></span>
     <span class="user">Vendés como: <select id="selSuc" aria-label="Sucursal"></select></span>
+    <a class="ir" id="irUsuarios" href="#usuarios" data-v="usuarios" title="Usuarios y permisos" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Usuarios</a>
     <button class="salir" id="btnSalir" type="button">Salir</button>
+  </div>
+  <div class="nueva-ver" id="nuevaVer" role="status" hidden>
+    <span>Hay una versión nueva de Punto: <b id="nuevaVerNro"></b>. Cuando termines lo que estás haciendo, recargá la página para usarla.</span>
+    <button type="button" id="nuevaVerRecargar">Recargar</button>
   </div>
   <nav id="nav">
     <a href="#mostrador" data-v="mostrador" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2l2.7 12.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L21.7 7H5.1"/></svg>Venta</a>
     <a href="#comprobantes" data-v="comprobantes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>Comprobantes</a>
-    <a href="#pedidos" data-v="pedidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg>Pedidos</a>
     <a href="#web" data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Web</a>
-    <a href="#productos" data-v="productos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Productos</a>
+    <a href="#productos" data-v="productos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Artículos</a>
     <a href="#listas" data-v="listas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>Listas</a>
     <a href="#proveedores" data-v="proveedores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62L18.3 9.38a1 1 0 0 0-.78-.38H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Proveedores</a>
     <a href="#simulador" data-v="simulador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M8 6h8"/><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01M16 19h.01"/></svg>Simulador</a>
     <a href="#caja" data-v="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Caja</a>
-    <a href="#renta" data-v="renta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg>Rentabilidad</a>
-    <a href="#contable" data-v="contable"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>Contable</a>
     <a href="#gerencia" data-v="gerencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>Gerencia</a>
-    <a href="#asistente" data-v="asistente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
-    <a href="#usuarios" data-v="usuarios" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Usuarios</a>
     <a href="#inicio" data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Todo el sistema</a>
   </nav>
 </header>
 
 <main>
+
+<!-- Rentabilidad y Contable viven adentro de Gerencia (23/11/2026: "gerencia
+     ahí dentro mete contable y rentabilidad así hacemos lugar"). -->
+<div class="solapas subger" id="subGer" hidden>
+  <button type="button" data-g="gerencia">Resumen</button>
+  <button type="button" data-g="renta">Rentabilidad</button>
+  <button type="button" data-g="contable">Contable</button>
+</div>
 
 <!-- ======================================================== MOSTRADOR -->
 <section id="v-inicio" hidden>
@@ -1453,7 +1497,7 @@ footer{
 <!-- ======================================================= PRODUCTOS -->
 <section id="v-productos" hidden>
   <div class="head">
-    <h2>Creación de artículos</h2>
+    <h2>Artículos</h2>
   </div>
 
   <div class="card" style="margin-bottom:16px">
@@ -2641,7 +2685,10 @@ function ventaMargen(v){
 }
 
 /* ================================================== navegación */
-const vistas = ["mostrador","comprobantes","inicio","pedidos","web","productos","listas","proveedores","simulador","usuarios","caja","renta","contable","gerencia","asistente"];
+// Pedidos salió de la barra el 23/11/2026 ("pedido hay que sacarlo porque es
+// redundante"): los pedidos internos se hacen en Venta y se ven en
+// Comprobantes. Su pantalla queda en la página, escondida.
+const vistas = ["mostrador","comprobantes","inicio","web","productos","listas","proveedores","simulador","usuarios","caja","renta","contable","gerencia","asistente"];
 // Un <a> se activa con Enter pero no con la barra espaciadora; un <button>
 // con las dos. Al pasar a links se perdio el espacio: se lo devolvemos, que
 // hay gente que se mueve por el sistema sin tocar el mouse.
@@ -2660,43 +2707,98 @@ document.getElementById("nav").addEventListener("click",e=>{
   abrirVista(b.dataset.v);
 });
 
+// Asistente y Usuarios están en la barra de arriba, no en la de solapas.
+document.querySelector("header .bar").addEventListener("click",e=>{
+  const b = e.target.closest("a.ir[data-v]"); if(!b) return;
+  if(e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+  e.preventDefault();
+  abrirVista(b.dataset.v);
+});
+/** Las tres pantallas que se abren desde la solapa Gerencia. */
+const GERENCIA_ADENTRO = ["gerencia","renta","contable"];
+document.getElementById("subGer").addEventListener("click",e=>{
+  const b = e.target.closest("[data-g]"); if(!b) return;
+  abrirVista(b.dataset.g);
+});
+/** Las solapitas de adentro de Gerencia: solo las que tiene tildadas, y
+ *  solo si son dos o más (con una sola no hay nada que elegir). */
+function pintarSubGer(v){
+  const sub = document.getElementById("subGer");
+  let cuantas = 0;
+  for(const x of sub.querySelectorAll("[data-g]")){
+    x.hidden = !vistaPermitida(x.dataset.g);
+    if(!x.hidden) cuantas++;
+    x.setAttribute("aria-pressed", String(x.dataset.g === v));
+  }
+  sub.hidden = GERENCIA_ADENTRO.indexOf(v) < 0 || cuantas < 2;
+}
+
 /** Deja a la vista una solapa, venga de un click o de la direccion. */
 function abrirVista(v){
+  // Gerencia es la puerta de Rentabilidad y Contable: si no tiene tildado
+  // el resumen, entra a la primera de las tres que sí.
+  if(v === "gerencia" && !vistaPermitida(v)) v = GERENCIA_ADENTRO.find(vistaPermitida) || v;
   // Lo que no tiene tildado no se abre (ni escribiendo la dirección): va a
   // la primera solapa que sí puede usar.
   if(!vistaPermitida(v)){
     const otra = vistas.find(x => vistaPermitida(x) && x !== "inicio") || "inicio";
     if(otra !== v){ v = otra; }
   }
-  const b = document.querySelector('#nav [data-v="'+v+'"]');
+  if(vistas.indexOf(v) < 0) return;
+  // Rentabilidad y Contable prenden la solapa Gerencia, que es donde viven.
+  const solapa = GERENCIA_ADENTRO.indexOf(v) >= 0 ? "gerencia" : v;
+  const b = document.querySelector('#nav [data-v="'+solapa+'"], .bar a.ir[data-v="'+solapa+'"]');
   if(!b) return;
   for(const x of vistas) document.getElementById("v-"+x).hidden = (x !== v);
-  for(const x of document.querySelectorAll("#nav [data-v]")) x.setAttribute("aria-current", String(x===b));
+  for(const x of document.querySelectorAll("#nav [data-v], .bar a.ir[data-v]")) x.setAttribute("aria-current", String(x===b));
+  pintarSubGer(v);
   // La direccion dice en que solapa estas: asi recargar no te saca de ahi,
   // y el link que copiaste abre donde esperabas.
   try { history.replaceState(null, "", "#"+v); } catch(e){}
-  avisarVista(b);
+  avisarVista(v);
 }
 
-function avisarVista(b){
+function avisarVista(v){
   window.scrollTo({top:0,behavior:"instant"});
-  if(b.dataset.v==="productos") pintarProd();
-  if(b.dataset.v==="caja"){ pintarCaja(); traerPorCobrar(); }
-  if(b.dataset.v==="gerencia") pintarGerencia();
-  if(b.dataset.v==="renta") pintarRenta();
-  if(b.dataset.v==="contable") pintarContable();
-  if(b.dataset.v==="web") pintarWeb();
-  if(b.dataset.v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); }
-  if(b.dataset.v==="usuarios") pintarUsuariosPunto();
-  if(b.dataset.v==="simulador"){
+  if(v==="productos") pintarProd();
+  if(v==="caja"){ pintarCaja(); traerPorCobrar(); }
+  if(v==="gerencia") pintarGerencia();
+  if(v==="renta") pintarRenta();
+  if(v==="contable") pintarContable();
+  if(v==="web") pintarWeb();
+  if(v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); }
+  if(v==="usuarios") pintarUsuariosPunto();
+  if(v==="simulador"){
     const f = document.getElementById("simFrame");
     if(f && !f.getAttribute("src")) f.setAttribute("src", "/simulador-de-costo");
   }
-  if(b.dataset.v==="asistente") pintarAsistente();
-  if(b.dataset.v==="pedidos"){ pintarPedido(); refrescarPendPed(); }
-  if(b.dataset.v==="comprobantes") pintarComprobantes();
-  if(b.dataset.v==="mostrador"){ pintarCamposVenta(); pintarDtos(); }
+  if(v==="asistente") pintarAsistente();
+  if(v==="pedidos"){ pintarPedido(); refrescarPendPed(); }
+  if(v==="comprobantes") pintarComprobantes();
+  if(v==="mostrador"){ pintarCamposVenta(); pintarDtos(); }
 }
+
+/* Cada 2 minutos (y al volver a esta pestaña) pregunta qué versión está
+   andando. Si no es la de esta página, aparece la franja de arriba con el
+   botón Recargar. No recarga sola: puede haber alguien en medio de una venta. */
+const VER_PAGINA = (document.getElementById("ver").textContent || "").trim();
+let VER_AVISADA = "";
+async function mirarVersion(){
+  let d = null;
+  try{
+    const r = await fetch("/sistema/version", { cache:"no-store", credentials:"same-origin" });
+    if(r.ok) d = await r.json().catch(() => null);
+  }catch(e){ return; }
+  const v = d && typeof d.version === "string" ? d.version.trim() : "";
+  if(!v || v === VER_PAGINA || v === VER_AVISADA) return;
+  VER_AVISADA = v;
+  document.getElementById("nuevaVerNro").textContent = v;
+  document.getElementById("nuevaVer").hidden = false;
+}
+setInterval(mirarVersion, 120000);
+setTimeout(mirarVersion, 20000);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) mirarVersion(); });
+document.getElementById("nuevaVerRecargar").addEventListener("click", () => location.reload());
 
 /** Lleva a una solapa como si la hubieran tocado. */
 function irA(v){ abrirVista(v); }
@@ -6714,7 +6816,7 @@ document.getElementById("camposPed").addEventListener("change",function(e){
 /* ====================================== el escritorio, como el menú de GBP */
 const ESCRITORIO = [
   ["Vender", [
-    ["Generar nuevo pedido","Tomar lo que el cliente pide. Lo que no hay se ve en el renglón, no cuando llega el camión.","pedidos"],
+    ["Pedido interno","En Venta, con el comprobante Pedido interno. Después se ve en Comprobantes.","mostrador"],
     ["Venta de mostrador","Cobrar y entregar en el momento. Es el POS.","mostrador"],
     ["Presupuestos","Guardar sin mover stock ni caja, esperando que el cliente vuelva.","mostrador"],
     ["Rentabilidad","Qué deja cada venta, por rubro, marca, vendedor y sucursal.","renta"],
@@ -6724,7 +6826,7 @@ const ESCRITORIO = [
   ]],
   ["Cobrar", [
     ["Caja del día","Lo que entró, por dónde entró y quién lo vendió.","caja"],
-    ["Cuenta corriente de clientes","Quién debe, cuánto y cuánto le queda. Se ve al elegir el cliente.","pedidos"],
+    ["Cuenta corriente de clientes","Quién debe, cuánto y cuánto le queda. Se ve al elegir el cliente en Venta.","mostrador"],
     ["Ingresar cobranzas","Imputar un pago a las facturas que salda.",null],
     ["Valores recibidos","Cheques: dónde están y cuándo vencen.",null],
     ["Transferencias entre cajas y bancos","Mover plata entre cajas, bancos y sucursales.",null]
@@ -6739,7 +6841,7 @@ const ESCRITORIO = [
     ["Órdenes de pago","Pagarle y que quede imputado solo.",null]
   ]],
   ["Mercadería", [
-    ["Creación de artículos","","productos"],
+    ["Artículos","La lista entera, con costo, Lista 1 y Lista 2. Crear uno a mano o traerlos de GBP.","productos"],
     ["Consultar artículos","Buscar como lo nombra el cliente, no por código.","mostrador"],
     ["Ajustar stock","Corregir lo que el conteo dice distinto, con el motivo anotado.",null],
     ["Publicaciones","Mercado Libre y la tienda, con el mismo stock y el mismo precio.",null]
@@ -6753,7 +6855,7 @@ const ESCRITORIO = [
     ["Facturación ARCA","El CAE sale solo al cerrar la venta.",null],
     ["Libro IVA","Compras y ventas del mes, listo para el contador.",null],
     ["Asientos contables","Lo que ya pasó, asentado sin volver a cargarlo.",null],
-    ["Usuarios y permisos","Quién puede ver el costo y quién no.",null]
+    ["Usuarios y permisos","Quién entra, a qué sucursal y qué puede tocar. Arriba, al lado de Salir.","usuarios"]
   ]]
 ];
 
@@ -7967,7 +8069,8 @@ const US_URL = "/sistema/usuarios";
 
 /** Esconde lo que el usuario no tiene tildado. Corre al arrancar. */
 function aplicarPermisos(){
-  for(const a of document.querySelectorAll("#nav [data-v]")) a.hidden = !vistaPermitida(a.dataset.v);
+  for(const a of document.querySelectorAll("#nav [data-v], .bar a.ir[data-v]"))
+    a.hidden = a.dataset.v === "gerencia" ? !GERENCIA_ADENTRO.some(vistaPermitida) : !vistaPermitida(a.dataset.v);
   const importar = puede("importar");
   for(const id of ["btnGbp", "prvImportar"]){ const b = document.getElementById(id); if(b) b.hidden = !importar; }
   const nuevo = document.getElementById("cpNuevo"); if(nuevo) nuevo.hidden = !puede("venta");
@@ -8004,54 +8107,79 @@ function pintarListaUs(){
   if(!US.lista.length){ caja.innerHTML = '<div class="vacio" style="padding:20px">No hay usuarios todavía.</div>'; return; }
   const yo = (PUNTO_YO && PUNTO_YO.usuario) || "";
   caja.innerHTML = US.lista.map(u => {
-    const tiene = id => !Array.isArray(u.punto) || u.punto.indexOf(id) >= 0;
+    // Lo tocado y todavía no guardado manda sobre lo que dice el servidor:
+    // así guardar a uno no le borra lo tocado al de al lado.
+    const t = US_SUCIO[u.id];
+    const tiene = id => t ? t.punto.indexOf(id) >= 0 : (!Array.isArray(u.punto) || u.punto.indexOf(id) >= 0);
     const tilde = (id, nombre, ayuda) => '<label class="'+(tiene(id) ? "si" : "")+'" title="'+atrib(ayuda || "")+'">'+
       '<input type="checkbox" data-us="'+txt(u.id)+'" data-p="'+txt(id)+'"'+(tiene(id) ? " checked" : "")+'> '+txt(nombre)+'</label>';
     const esYo = u.username === yo;
     const puedeTocar = u.soloPunto && !u.adminPunto && !esYo;
-    return '<div class="us-card'+(u.activo ? "" : " inactivo")+'">'+
+    const suc = t ? t.sucursal : u.sucursal, adm = t ? t.adminPunto : u.adminPunto;
+    return '<div class="us-card'+(u.activo ? "" : " inactivo")+(t ? " sucio" : "")+'">'+
       '<div class="us-cab"><b>'+txt(u.nombre)+'</b><small>'+txt(u.username)+
         (u.conectado ? ' · <span style="color:var(--ok)">conectado</span>' : '')+
         (u.activo ? '' : ' · desactivado')+(u.debeCambiarClave ? ' · todavía no eligió su contraseña' : '')+'</small>'+
         '<label style="font-size:13px">Sucursal <select data-suc="'+txt(u.id)+'"'+'>'+
-          '<option value="">Cualquiera</option>'+SUCURSALES.map(x => '<option value="'+x.id+'"'+(u.sucursal === x.id ? " selected" : "")+'>'+x.n+'</option>').join("")+
+          '<option value="">Cualquiera</option>'+SUCURSALES.map(x => '<option value="'+x.id+'"'+(suc === x.id ? " selected" : "")+'>'+x.n+'</option>').join("")+
         '</select></label>'+
         '<label style="font-size:13px" title="Puede crear usuarios y cambiar lo que ve cada uno"><input type="checkbox" data-adm="'+txt(u.id)+'"'+
-          (u.adminPunto ? " checked" : "")+(esYo || !(yo === "admin" || (u.soloPunto && !u.adminPunto)) ? " disabled" : "")+'> administra usuarios</label>'+
+          (adm ? " checked" : "")+(esYo || !(yo === "admin" || (u.soloPunto && !u.adminPunto)) ? " disabled" : "")+'> administra usuarios</label>'+
         '<span class="us-acc">'+
+          (t ? '<span class="us-sucio">Sin guardar</span>'+
+            '<button class="b3" type="button" data-deshacer="'+txt(u.id)+'" style="padding:5px 10px">Deshacer</button>' : '')+
+          '<button class="b1" type="button" data-guardar="'+txt(u.id)+'" style="padding:5px 14px"'+(t ? '' : ' disabled title="Tocá algún tilde y después Guardar"')+'>Guardar</button>'+
           (puedeTocar ? '<button class="b2" type="button" data-clave="'+txt(u.id)+'" style="padding:5px 10px">Resetear contraseña</button>'+
             '<button class="b3" type="button" data-act="'+txt(u.id)+'" data-v="'+(u.activo ? "0" : "1")+'" style="padding:5px 10px">'+(u.activo ? "Desactivar" : "Activar")+'</button>' : '')+
         '</span></div>'+
-      '<div class="us-grupo"><span class="et">Qué ve</span><div class="us-tildes">'+US.areas.map(a => tilde(a.id, a.nombre, a.ayuda)).join("")+'</div></div>'+
+      '<div class="us-grupo"><span class="et">Qué ve</span><div class="us-tildes">'+US.areas.filter(a => US_OCULTAS.indexOf(a.id) < 0).map(a => tilde(a.id, a.nombre, a.ayuda)).join("")+'</div></div>'+
       '<div class="us-grupo"><span class="et">Qué puede hacer</span><div class="us-tildes">'+US.acciones.map(a => tilde(a.id, a.nombre, a.ayuda)).join("")+'</div></div>'+
     '</div>';
   }).join("");
 }
-/** Guarda lo que se tocó de un usuario (tildes, sucursal, administra). Si
-    se tocan varias cosas seguidas, se manda una sola vez, al final. */
-const US_ESPERA = {};
-function guardarUs(id){
-  clearTimeout(US_ESPERA[id]);
-  US_ESPERA[id] = setTimeout(() => guardarUsYa(id), 500);
-}
-async function guardarUsYa(id){
-  const u = US.lista.find(x => x.id === id); if(!u) return;
+/** Los tildes que no se muestran (su solapa salió de la barra). El que los
+    tenía los sigue teniendo al guardar. */
+const US_OCULTAS = ["pedidos"];
+/** Lo que se tocó de cada usuario y todavía no se guardó. Nada va al
+    servidor hasta que se toca Guardar (antes se guardaba solo al tildar). */
+const US_SUCIO = {};
+function leerUsTocado(id){
+  const u = US.lista.find(x => x.id === id);
   const ids = [...document.querySelectorAll('#usLista input[data-us="'+id+'"]')].filter(i => i.checked).map(i => i.dataset.p);
+  for(const o of US_OCULTAS)
+    if(u && (!Array.isArray(u.punto) || u.punto.indexOf(o) >= 0) && ids.indexOf(o) < 0) ids.push(o);
   const suc = document.querySelector('#usLista select[data-suc="'+id+'"]');
   const adm = document.querySelector('#usLista input[data-adm="'+id+'"]');
-  const d = await usPedir({ accion:"permisos", id, punto: ids, sucursal: suc && suc.value ? suc.value : null, adminPunto: !!(adm && adm.checked) });
-  if(d.error){ toast("No se guardó: " + d.error); }
-  else toast("Guardado: " + u.nombre + ". Lo nota la próxima vez que abra o recargue Punto.");
+  return { punto: ids, sucursal: suc && suc.value ? suc.value : null, adminPunto: !!(adm && adm.checked) };
+}
+let US_GUARDANDO = false;
+async function guardarUsYa(id){
+  const u = US.lista.find(x => x.id === id), t = US_SUCIO[id];
+  if(!u || !t || US_GUARDANDO) return;
+  US_GUARDANDO = true;
+  let d;
+  try{ d = await usPedir({ accion:"permisos", id, punto: t.punto, sucursal: t.sucursal, adminPunto: t.adminPunto }); }
+  finally{ US_GUARDANDO = false; }
+  if(d.error){ toast("No se guardó: " + d.error + " Lo tocado sigue en pantalla."); return; }
+  delete US_SUCIO[id];
+  toast("Guardado: " + u.nombre + ". Lo nota la próxima vez que abra o recargue Punto.");
   await pintarUsuariosPunto();
 }
 document.getElementById("usLista").addEventListener("change", e => {
   const t = e.target;
   const id = t.dataset.us || t.dataset.suc || t.dataset.adm;
   if(!id) return;
-  if(t.dataset.us) t.parentElement.classList.toggle("si", t.checked);
-  guardarUs(id);
+  US_SUCIO[id] = leerUsTocado(id);
+  pintarListaUs();
+});
+// Si se va de la página con algo sin guardar, el navegador pregunta.
+addEventListener("beforeunload", e => {
+  if(Object.keys(US_SUCIO).length){ e.preventDefault(); e.returnValue = ""; }
 });
 document.getElementById("usLista").addEventListener("click", async e => {
+  const gu = e.target.closest("[data-guardar]"), de = e.target.closest("[data-deshacer]");
+  if(gu){ gu.disabled = true; await guardarUsYa(gu.dataset.guardar); return; }
+  if(de){ delete US_SUCIO[de.dataset.deshacer]; pintarListaUs(); return; }
   const cl = e.target.closest("[data-clave]"), ac = e.target.closest("[data-act]");
   if(cl){
     const u = US.lista.find(x => x.id === cl.dataset.clave);
