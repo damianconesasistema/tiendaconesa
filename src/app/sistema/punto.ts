@@ -1179,7 +1179,7 @@ footer{
   #res .sumar{min-width:96px}
   /* Los renglones de la venta, igual: nombre y sacar; código, precio y
      subtotal; stock y el más y menos. */
-  .lin-t tr{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"nom nom x" "cod prc sub" "stk cant cant";
+  .lin-t tr{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"nom nom x" "cod prc sub" "stk dto cant";
     gap:6px 10px; align-items:center; padding:10px 12px; border-bottom:1px solid var(--line)}
   .lin-t td.ix{display:none}
   .lin-t td:nth-child(2){grid-area:cod}
@@ -1187,23 +1187,25 @@ footer{
   .lin-t td:nth-child(4){grid-area:stk}
   .lin-t td:nth-child(5){grid-area:cant; justify-self:end}
   .lin-t td:nth-child(6){grid-area:prc; text-align:right}
-  .lin-t td:nth-child(7){grid-area:sub; text-align:right; font-size:15px}
-  .lin-t td:nth-child(8){grid-area:x; justify-self:end}
+  .lin-t td:nth-child(7){grid-area:dto; text-align:right; font-size:13px}
+  .lin-t td:nth-child(7)::before{content:"c/desc. "; font-size:11px; font-weight:500; color:var(--ink-3)}
+  .lin-t td:nth-child(8){grid-area:sub; text-align:right; font-size:15px}
+  .lin-t td:nth-child(9){grid-area:x; justify-self:end}
   .lin-t .c button{min-width:40px; min-height:40px; font-size:18px}
   /* Comprobantes: los pedidos por cobrar y lo emitido, como tarjetas. */
-  #tbPorCobrar, #tbCp, #tbPresu{display:block}
-  #tbPorCobrar > tr, #tbCp > tr, #tbPresu > tr{display:grid; gap:4px 10px; padding:10px 12px; border-bottom:1px solid var(--line); align-items:center}
-  #tbPorCobrar > tr > td, #tbCp > tr > td, #tbPresu > tr > td{display:block; padding:0 !important; border:0 !important; min-width:0 !important; text-align:left}
-  #tbPorCobrar > tr > td[colspan], #tbCp > tr > td[colspan], #tbPresu > tr > td[colspan]{grid-column:1 / -1}
-  #tbPorCobrar > tr{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"cli tot" "ven lle" "art est" "acc acc"}
-  #tbPorCobrar > tr > td:nth-child(1){grid-area:lle; text-align:right; font-size:12px}
-  #tbPorCobrar > tr > td:nth-child(2){grid-area:ven}
-  #tbPorCobrar > tr > td:nth-child(3){grid-area:cli; font-weight:600}
-  #tbPorCobrar > tr > td:nth-child(4){grid-area:art}
-  #tbPorCobrar > tr > td:nth-child(5){grid-area:tot; text-align:right; font-size:15px}
-  #tbPorCobrar > tr > td:nth-child(6){grid-area:est; text-align:right}
-  #tbPorCobrar > tr > td:nth-child(7){grid-area:acc}
-  #tbPorCobrar [data-cobrar]{width:100%; min-height:42px; font-size:14px !important}
+  #tbPorCobrar, #tbPresuHoy, #tbCp, #tbPresu{display:block}
+  #tbPorCobrar > tr, #tbPresuHoy > tr, #tbCp > tr, #tbPresu > tr{display:grid; gap:4px 10px; padding:10px 12px; border-bottom:1px solid var(--line); align-items:center}
+  #tbPorCobrar > tr > td, #tbPresuHoy > tr > td, #tbCp > tr > td, #tbPresu > tr > td{display:block; padding:0 !important; border:0 !important; min-width:0 !important; text-align:left}
+  #tbPorCobrar > tr > td[colspan], #tbPresuHoy > tr > td[colspan], #tbCp > tr > td[colspan], #tbPresu > tr > td[colspan]{grid-column:1 / -1}
+  #tbPorCobrar > tr, #tbPresuHoy > tr{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"cli tot" "ven lle" "art est" "acc acc"}
+  #tbPorCobrar > tr > td:nth-child(1), #tbPresuHoy > tr > td:nth-child(1){grid-area:lle; text-align:right; font-size:12px}
+  #tbPorCobrar > tr > td:nth-child(2), #tbPresuHoy > tr > td:nth-child(2){grid-area:ven}
+  #tbPorCobrar > tr > td:nth-child(3), #tbPresuHoy > tr > td:nth-child(3){grid-area:cli; font-weight:600}
+  #tbPorCobrar > tr > td:nth-child(4), #tbPresuHoy > tr > td:nth-child(4){grid-area:art}
+  #tbPorCobrar > tr > td:nth-child(5), #tbPresuHoy > tr > td:nth-child(5){grid-area:tot; text-align:right; font-size:15px}
+  #tbPorCobrar > tr > td:nth-child(6), #tbPresuHoy > tr > td:nth-child(6){grid-area:est; text-align:right}
+  #tbPorCobrar > tr > td:nth-child(7), #tbPresuHoy > tr > td:nth-child(7){grid-area:acc}
+  #tbPorCobrar [data-cobrar], #tbPresuHoy [data-cobrar-presu]{width:100%; min-height:42px; font-size:14px !important}
   #tbCp > tr.cp-fila, #tbPresu > tr.cp-fila{grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"comp tot" "cli fec" "ven ven" "acc acc"}
   #tbCp > tr.cp-fila > td:nth-child(1), #tbPresu > tr.cp-fila > td:nth-child(1){grid-area:fec; text-align:right; font-size:12px !important}
   #tbCp > tr.cp-fila > td:nth-child(2), #tbPresu > tr.cp-fila > td:nth-child(2){grid-area:comp}
@@ -1212,16 +1214,16 @@ footer{
   #tbCp > tr.cp-fila > td:nth-child(5), #tbPresu > tr.cp-fila > td:nth-child(5){grid-area:tot; text-align:right; font-size:15px}
   #tbCp > tr.cp-fila > td:nth-child(6), #tbPresu > tr.cp-fila > td:nth-child(6){grid-area:acc}
   #tbCp > tr.cp-fila > td.cp-acc, #tbPresu > tr.cp-fila > td.cp-acc{display:flex; flex-wrap:wrap; gap:6px}
-  #tbPorCobrar > tr > td:nth-child(7){display:flex; flex-wrap:wrap; gap:6px}
-  #tbPorCobrar > tr > td:nth-child(7) > *{flex:1 1 auto}
+  #tbPorCobrar > tr > td:nth-child(7), #tbPresuHoy > tr > td:nth-child(7){display:flex; flex-wrap:wrap; gap:6px}
+  #tbPorCobrar > tr > td:nth-child(7) > *, #tbPresuHoy > tr > td:nth-child(7) > *{flex:1 1 auto}
   #tbCp > tr.cp-det, #tbPresu > tr.cp-det{display:block; padding:0 0 8px}
   #tbCp > tr.cp-det > td, #tbPresu > tr.cp-det > td{display:block}
   #tbCp > tr.cp-det .tabla-wrap, #tbCp > tr.cp-det table, #tbPresu > tr.cp-det table{overflow-x:auto}
   /* Comprobantes, Caja y los demás: los encabezados de esas dos listas no
      hacen falta (cada dato se ve en su lugar). */
-  #tbPorCobrar, #tbCp{width:100%}
-  #tbPorCobrar ~ thead, table:has(> #tbPorCobrar) > thead, table:has(> #tbCp) > thead{display:none}
-  table:has(> #tbPorCobrar), table:has(> #tbCp){display:block; width:100%}
+  #tbPorCobrar, #tbPresuHoy, #tbCp{width:100%}
+  #tbPorCobrar ~ thead, #tbPresuHoy ~ thead, table:has(> #tbPorCobrar) > thead, table:has(> #tbPresuHoy) > thead, table:has(> #tbCp) > thead{display:none}
+  table:has(> #tbPorCobrar), table:has(> #tbPresuHoy), table:has(> #tbCp){display:block; width:100%}
   /* Sin zoom solo al tocar un campo (iOS agranda la letra de menos de 16 px). */
   input, select, textarea{font-size:16px}
   /* Los botones grandes, para el dedo. */
@@ -1306,7 +1308,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.197</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.198</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>Asistente</a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1591,6 +1593,12 @@ footer{
     <div class="tabla-wrap"><table class="densa"><thead><tr>
       <th>Llegó</th><th>Vendedor</th><th>Cliente</th><th>Artículos</th><th class="r">Total</th><th>Estado</th><th></th>
     </tr></thead><tbody id="tbPorCobrar"></tbody></table></div>
+  </div>
+  <div class="card" id="presuHoyCard" hidden style="margin-bottom:16px">
+    <div class="card-h"><h3>Presupuestos de hoy</h3><span class="sub" id="presuHoySub"></span></div>
+    <div class="tabla-wrap" style="max-height:42vh;overflow-y:auto"><table class="densa"><thead><tr>
+      <th>Hora</th><th>Vendedor</th><th>Cliente</th><th>Artículos</th><th class="r">Total</th><th>Presupuesto</th><th></th>
+    </tr></thead><tbody id="tbPresuHoy"></tbody></table></div>
   </div>
 
   <div class="card">
@@ -2439,6 +2447,9 @@ footer{
   <p>Sanitarios Conesa · sistema Punto</p>
 </footer>
 
+<!-- Las localidades para elegir al escribir (V.0.11.198). -->
+<datalist id="dlLoc"></datalist>
+
 <!-- Alta de cliente en el momento, sin salir de la venta. -->
 <div class="envio" id="cliNuevo" hidden>
   <div class="envio-caja">
@@ -3248,7 +3259,7 @@ function avisarVista(v){
   window.scrollTo({top:0,behavior:"instant"});
   if(v==="productos") pintarProd();
   if(v==="caja"){ pintarCaja(); traerPorCobrar(); }
-  if(v==="comprobantes") traerPorCobrar();
+  if(v==="comprobantes"){ traerPorCobrar(); traerPresuHoy(); }
   if(v==="gerencia") pintarGerencia();
   if(v==="renta") pintarRenta();
   if(v==="contable") pintarContable();
@@ -3437,7 +3448,7 @@ const ICO_EN = [
   ["minusCircle", '[data-acc="nc"]'],
   ["plusCircle", '[data-acc="nd"]'],
   ["arrowRight", '[data-pasar], [data-ir-venta]'],
-  ["banknote", '[data-cobrar]'],
+  ["banknote", '[data-cobrar], [data-cobrar-presu]'],
   ["xCircle", '[data-anular]'],
   ["packagePlus", '#ocNuevo'],
   ["listChecks", '#ocSacar'],
@@ -4425,6 +4436,16 @@ addEventListener("hashchange",()=>{
   if(v && vistas.indexOf(v) >= 0) abrirVista(v);
 });
 
+/** Los encabezados de precio de los renglones (V.0.11.198, Damián: "en vez
+    de precio poné LISTA 2 y otra columna aplicándole el descuento que
+    selecciona arriba"): la Lista elegida, tal cual, y la otra con el
+    descuento (y el recargo de la tarjeta, si hay). */
+function thPrecios(){
+  const d = +S.desc || 0, rec = (MULT[S.forma] || 1) !== 1;
+  return '<th class="r">Lista ' + (S.lista === 1 ? 1 : 2) + '</th>' +
+    '<th class="r" title="La lista con el descuento elegido arriba' + (rec ? ' y el recargo de la tarjeta' : '') + '">' +
+    (d > 0 ? 'Con ' + d + '%' : 'Sin desc.') + (rec ? ' + rec.' : '') + '</th>';
+}
 function pintarTicket(){
   guardarLocalPronto();
   // Sin renglones, la venta ya no sale de ningún presupuesto. Salvo que se
@@ -4438,10 +4459,10 @@ function pintarTicket(){
     cont.innerHTML =
       '<div class="tabla-wrap"><table class="densa lin-t"><thead><tr>'+
         '<th class="ix"></th><th>Código</th><th>Artículo</th><th>Stock</th>'+
-        '<th class="r">Cantidad</th><th class="r">Precio</th>'+
+        '<th class="r">Cantidad</th>'+thPrecios()+
         '<th class="r">Subtotal</th><th></th>'+
       '</tr></thead><tbody>'+
-      '<tr class="invita"><td colspan="8">Escribí abajo lo que te están pidiendo '+
+      '<tr class="invita"><td colspan="9">Escribí abajo lo que te están pidiendo '+
       'y tocá <b>Sumar</b>. El primer artículo aparece acá.</td></tr>'+
       '</tbody></table></div>';
   } else {
@@ -4450,13 +4471,14 @@ function pintarTicket(){
     cont.innerHTML =
       '<div class="tabla-wrap"><table class="densa lin-t"><thead><tr>'+
         '<th class="ix"></th><th>Código</th><th>Artículo</th><th>Stock</th>'+
-        '<th class="r">Cantidad</th><th class="r">Precio</th>'+
+        '<th class="r">Cantidad</th>'+thPrecios()+
         '<th class="r">Subtotal</th><th></th>'+
       '</tr></thead><tbody>'+
       S.linea.map((l,i)=>{
         const p = prod(l.cod);
         const pl = precioLinea(p, l.cant);
-        const u = pl.contado * MULT[S.forma];
+        // Con el descuento de arriba (y el recargo de la tarjeta, si hay).
+        const u = pl.contado * (1 - (+S.desc || 0) / 100) * (MULT[S.forma] || 1);
         // El stock del renglon, con el mismo color que en el buscador. Si
         // uno quedo en rojo se ve antes de emitir, no despues.
         const st = p.stock;
@@ -4472,7 +4494,8 @@ function pintarTicket(){
             '<button data-m="-" data-cod="'+l.cod+'" aria-label="uno menos">−</button>'+
             '<b>'+l.cant+'</b>'+
             '<button data-m="+" data-cod="'+l.cod+'" aria-label="uno más">+</button></span></td>'+
-          '<td class="r" style="color:var(--ink-2)">'+fmt(u)+'</td>'+
+          '<td class="r" style="color:var(--ink-2)">'+fmt(pl.contado)+'</td>'+
+          '<td class="r con-dto"'+(+S.desc > 0 ? ' style="color:var(--ok);font-weight:600"' : ' style="color:var(--ink-2)"')+'>'+fmt(u)+'</td>'+
           '<td class="r" style="font-weight:600">'+fmt(u*l.cant)+'</td>'+
           '<td><button class="quitar-fila" data-m="x" data-cod="'+l.cod+'" title="sacar de la venta" aria-label="sacar de la venta">×</button></td>'+
         '</tr>';
@@ -12498,8 +12521,122 @@ async function cobrarTicket(id){
 }
 // La caja se mira sola cada 20 segundos (solo el que cobra, con la pestaña a la vista).
 setInterval(() => {
-  if(GBP.listo && puedeCobrar() && document.visibilityState === "visible") traerPorCobrar();
+  if(GBP.listo && puedeCobrar() && document.visibilityState === "visible"){
+    traerPorCobrar();
+    if(vistaActual() === "comprobantes") traerPresuHoy();
+  }
 }, 20000);
+
+/* ---------------------------------------------- presupuestos de hoy
+   V.0.11.198 (Damián: "cuando se emiten los presupuestos deberían quedar
+   en un lugar donde el cajero también lo puede ver"). Arriba en
+   Comprobantes, debajo de Pedidos por cobrar: los presupuestos de hoy de
+   esta caja que todavía no se vendieron, con "Cobrar" (lo pasa a la venta,
+   como "Pasar a venta"). */
+var PRESU_HOY = { lista:[], error:"", trayendo:false };
+async function traerPresuHoy(){
+  if(!puedeCobrar()){ pintarPresuHoy(); return; }
+  if(PRESU_HOY.trayendo) return;
+  PRESU_HOY.trayendo = true;
+  try{
+    const q = new URLSearchParams({ dias:"1", tipo:"presupuesto", suc:sucDeCaja() });
+    const r = await fetch(DOCS_URL + "?" + q.toString(), { cache:"no-store", credentials:"same-origin" });
+    const d = await r.json().catch(() => ({ error:"El servidor contestó " + r.status + "." }));
+    if(!r.ok || d.error) throw new Error(d.error || "No se pudo leer.");
+    const hoy = new Date().toDateString();
+    PRESU_HOY.lista = (d.documentos || []).filter(x => x && x.tipo === "presupuesto" && !x.eliminado && !x.vendidoEn &&
+      !x.actualizadoEn && new Date(x.createdAt).toDateString() === hoy);
+    PRESU_HOY.error = "";
+  }catch(e){ PRESU_HOY.error = "No pude traer los presupuestos de hoy: " + (e.message || "probá de nuevo."); }
+  finally{ PRESU_HOY.trayendo = false; }
+  pintarPresuHoy();
+}
+function pintarPresuHoy(){
+  const card = document.getElementById("presuHoyCard"); if(!card) return;
+  card.hidden = !puedeCobrar();
+  if(card.hidden) return;
+  document.getElementById("presuHoySub").textContent = sucDe(sucDeCaja()).n + " · los que todavía no se vendieron · se actualiza sola";
+  const tb = document.getElementById("tbPresuHoy");
+  if(PRESU_HOY.error){ tb.innerHTML = '<tr><td colspan="7" class="vacio">' + txt(PRESU_HOY.error) + '</td></tr>'; return; }
+  if(!PRESU_HOY.lista.length){
+    tb.innerHTML = '<tr><td colspan="7" class="vacio">Hoy no hay presupuestos sin vender. Cuando un vendedor emita uno, aparece acá.</td></tr>';
+    return;
+  }
+  tb.innerHTML = PRESU_HOY.lista.map(d => {
+    const ren = (d.datos && d.datos.renglones) || [];
+    const n = ren.reduce((a, r) => a + (+r.cant || 0), 0);
+    return '<tr><td class="num">' + txt(horaAR(d.createdAt)) + '</td><td>' + txt(d.vendedor || "") + '</td>' +
+      '<td style="font-weight:500">' + txt(d.cliente || "") + '</td><td>' + n + ' un.</td>' +
+      '<td class="r" style="font-weight:600">' + fmt(d.total) + '</td>' +
+      '<td><span class="pill p-n">' + txt(numeroCorto(d)) + '</span></td>' +
+      '<td style="white-space:nowrap"><button class="b1" type="button" data-cobrar-presu="' + txt(d.id) + '" style="padding:5px 14px;font-size:12.5px" title="Lo pasa a la venta para cobrarlo">Cobrar</button></td></tr>';
+  }).join("");
+}
+/* ---------------------------------------------- localidades
+   V.0.11.198 (Damián: "que me chequee las localidades para que sea más
+   fácil completarse"). Al escribir la localidad del cliente nuevo o del
+   proveedor se despliegan las conocidas: las de Traslasierra y alrededores,
+   las de Buenos Aires y las que ya tienen cargadas los clientes y los
+   proveedores. Si lo escrito es una de ellas, queda bien escrita y se pone
+   la provincia sola. */
+const LOC_BASE = {
+  "Córdoba": ["Villa Dolores","Mina Clavero","Villa Cura Brochero","Nono","Los Hornillos","Las Rabonas","Las Calles",
+    "Arroyo de los Patos","San Javier","Yacanto","Villa de las Rosas","Las Tapias","San Pedro","Luyaba","La Paz",
+    "Las Chacras","Panaholma","San Lorenzo","Salsacate","Taninga","Ciénaga del Coro","Villa Sarmiento","Los Cerrillos",
+    "Altautina","Ambul","Córdoba","Villa Carlos Paz","Alta Gracia","Río Cuarto","Villa María","Cosquín","La Falda","Jesús María"],
+  "San Luis": ["Merlo","San Luis","Villa Mercedes","Santa Rosa del Conlara","Concarán"],
+  "Buenos Aires": ["Avellaneda","Lanús","Quilmes","Bernal","Wilde","Lomas de Zamora","Banfield","Temperley","Adrogué","La Plata",
+    "Berazategui","Florencio Varela","Ezeiza","San Isidro","Vicente López","Olivos","Tigre","San Fernando","Pilar","Escobar",
+    "Morón","Haedo","Castelar","Ramos Mejía","San Justo","Hurlingham","Ituzaingó","Moreno","San Miguel","José C. Paz"],
+  "Ciudad Autónoma de Buenos Aires": ["Capital Federal"]
+};
+/** Lo que vino en mayúsculas, como se escribe: "CIENAGA DEL CORO" -> "Cienaga del Coro". */
+function nombreLindo(n){
+  if(n !== n.toUpperCase()) return n;
+  const chicas = ["de","del","la","las","los","el","y"];
+  return n.toLowerCase().split(" ").map((w, i) => i && chicas.indexOf(w) >= 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+function localidadesConocidas(){
+  const m = new Map();
+  const poner = (n, prov) => {
+    n = String(n || "").replace(/\\s+/g, " ").trim();
+    if(n.length < 3 || n === "—") return;
+    const k = plano(n);
+    if(!m.has(k)) m.set(k, { n: nombreLindo(n), prov: String(prov || "").trim() });
+  };
+  for(const prov of Object.keys(LOC_BASE)) for(const n of LOC_BASE[prov]) poner(n, prov);
+  try{ for(const c of CLIENTES) poner(c.loc, c.prov); }catch(e){}
+  try{ for(const p of (PRV.lista || [])) poner(p.localidad, p.provincia); }catch(e){}
+  return m;
+}
+function llenarLocalidades(){
+  const dl = document.getElementById("dlLoc"); if(!dl) return;
+  dl.innerHTML = [...localidadesConocidas().values()].sort((a, b) => COLL_ES.compare(a.n, b.n))
+    .map(x => '<option value="' + txt(x.n) + '">' + txt(x.prov ? nombreLindo(x.prov) : "") + '</option>').join("");
+}
+function chequearLocalidad(inp, provId){
+  const v = inp.value.replace(/\\s+/g, " ").trim(); if(!v) return;
+  const x = localidadesConocidas().get(plano(v)); if(!x) return;
+  inp.value = x.n;
+  const pv = document.getElementById(provId); if(!pv || !x.prov) return;
+  const p = plano(x.prov), caba = p.indexOf("autonoma") >= 0 || p === "capital federal" || p === "caba";
+  if(pv.tagName === "SELECT"){
+    const opc = [...pv.options].find(o => plano(o.text) === p || (caba && plano(o.text).indexOf("autonoma") >= 0));
+    if(opc) pv.value = opc.value || opc.text;
+  } else if(!pv.value.trim()) pv.value = nombreLindo(x.prov);
+}
+for(const [id, prov] of [["cnLoc", "cnProv"], ["pfLoc", "pfProvi"]]){
+  const i = document.getElementById(id); if(!i) continue;
+  i.setAttribute("list", "dlLoc");
+  i.addEventListener("focus", llenarLocalidades);
+  i.addEventListener("change", () => chequearLocalidad(i, prov));
+}
+
+document.getElementById("tbPresuHoy").addEventListener("click", e => {
+  const b = e.target.closest("[data-cobrar-presu]"); if(!b) return;
+  const d = PRESU_HOY.lista.find(x => x.id === b.dataset.cobrarPresu);
+  if(d) pasarAVenta(d);
+});
 
 /* ---------------------------------------------- clientes */
 function clienteDeServidor(c){

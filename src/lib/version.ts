@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.197";
+export const APP_VERSION = "V.0.11.198";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.198",
+    date: "2026-11-23",
+    changes: [
+      "PRESUPUESTOS PARA EL CAJERO (\"cuando se emiten los presupuestos deberían quedar en un lugar donde el cajero también lo puede ver\"): en Comprobantes, debajo de Pedidos por cobrar, \"Presupuestos de hoy\" de esa caja, los que todavía no se vendieron, con \"Cobrar\" (lo pasa a la venta). Se actualiza solo cada 20 segundos.",
+      "Localidad (\"que me chequee las localidades para que sea más fácil completarse\"): en el cliente nuevo y en el proveedor, al escribir se despliegan las localidades conocidas (Traslasierra y alrededores, Buenos Aires y las que ya tienen clientes y proveedores). Al elegirla queda bien escrita y se pone la provincia sola.",
+      "Venta (\"en vez de precio poné LISTA 2 y otra columna aplicándole el descuento que selecciona arriba\"): en los renglones, la columna Precio pasa a ser la Lista elegida y al lado va el precio con el descuento de arriba (y el recargo de la tarjeta, si hay); el subtotal sale de ese. El total se calcula igual.",
+    ],
+  },
   {
     version: "V.0.11.197",
     date: "2026-11-23",
