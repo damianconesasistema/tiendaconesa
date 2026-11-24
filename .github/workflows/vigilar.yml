@@ -74,6 +74,22 @@ jobs:
             [ "$code" = "$esperado" ]
           }
 
+          # El ingreso al panel. V.0.11.252: con Cloudflare Access delante de
+          # /admin (Damian, 24/11/2026, seguridad), sin el codigo del mail
+          # Cloudflare contesta con un desvio a su pagina de ingreso. Eso
+          # tambien es "anda": el que vigila no tiene mail. Que el servidor
+          # este vivo lo dice igual la portada.
+          panel_vivo() {
+            local out code destino
+            out=$(curl -s -o /dev/null -w "%{http_code} %{redirect_url}" --max-time 25 "$SITIO/admin/login")
+            code=${out%% *}; destino=${out#* }
+            [ "$code" = "200" ] && return 0
+            case "$code" in
+              301|302|303|307) [[ "$destino" == *cloudflareaccess.com* ]] && return 0 ;;
+            esac
+            return 1
+          }
+
           # El catalogo tiene productos de verdad. Si esto falla con el resto
           # en verde, la tienda esta andando pero no tiene nada para vender:
           # pasa si una importacion sale mal.
@@ -109,7 +125,7 @@ jobs:
             # Esto tiene que andar siempre, haya o no una tienda abierta.
             revisar "la portada"            contesta "$SITIO/"
             revisar "los precios"           precios_sanos
-            revisar "el panel"              contesta "$SITIO/admin/login"
+            revisar "el panel"              panel_vivo
 
             # Y esto solo si hay donde comprar. Con todas las tiendas
             # cerradas el sitio sigue sano: muestra los locales y manda a

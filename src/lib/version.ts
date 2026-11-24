@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.251";
+export const APP_VERSION = "V.0.11.252";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.252",
+    date: "2026-11-24",
+    changes: [
+      "El vigía que revisa la tienda cada 10 minutos acepta Cloudflare Access delante del panel: sin el código del mail, Cloudflare contesta con un desvío a su ingreso y eso cuenta como que el panel anda. Sin este cambio, al prender Access llegarían mails de tienda caída sin que lo esté.",
+    ],
+  },
   {
     version: "V.0.11.251",
     date: "2026-11-24",
