@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.215";
+export const APP_VERSION = "V.0.11.216";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.216",
+    date: "2026-11-23",
+    changes: [
+      "Combos, sumar piezas (\"deberías dejar buscar por nombre, código del fabricante, código SKU, etc.\"): la casilla de la pieza busca mientras se escribe, por código, código de fabricante, nombre, marca, proveedor, rubro o subrubro, en cualquier orden, y muestra hasta 8 artículos con su stock y Lista 2. Se elige con el mouse o con las flechas y Enter, y se suma.",
+    ],
+  },
   {
     version: "V.0.11.215",
     date: "2026-11-23",
