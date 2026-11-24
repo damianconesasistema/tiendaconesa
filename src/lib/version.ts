@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.219";
+export const APP_VERSION = "V.0.11.220";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.220",
+    date: "2026-11-23",
+    changes: [
+      "Combos sin stock (\"para presupuestar, si no hay en stock debería dejarme igual cargar el precio; no me permite venderlo pero sí presupuestar\"): el combo sin stock para armarlo se puede sumar a la venta (avisa qué falta) y el presupuesto sale igual. Lo que no deja es venderlo: al emitir la factura, el remito, el pedido interno o la venta sin comprobante, y al confirmar el pedido para la caja, se controla que alcancen las piezas (y que no haya algo que se vende solo en combo cargado suelto).",
+    ],
+  },
   {
     version: "V.0.11.219",
     date: "2026-11-23",
