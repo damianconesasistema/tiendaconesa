@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.227";
+export const APP_VERSION = "V.0.11.228";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.228",
+    date: "2026-11-24",
+    changes: [
+      "Punto, un presupuesto ya emitido no se emite de nuevo (\"le di emitir presupuesto y me lo duplicó; no debería dejarme volver a emitirlo si ya lo hice, solo imprimirlo\"): si la venta viene de un presupuesto y no se cambió nada (artículos, cantidades, descuento, cliente), el botón dice \"Imprimir presupuesto · 0006-…\" e imprime ese mismo, sin otro número; si se cambió algo, pregunta antes de emitir uno nuevo.",
+      "Punto, Presupuestos de hoy: botón Eliminar (\"que aparezca para eliminar los presupuestos ahí\"), el mismo de Comprobantes: va a Eliminados y se recupera; solo con el permiso de eliminar.",
+    ],
+  },
   {
     version: "V.0.11.227",
     date: "2026-11-24",

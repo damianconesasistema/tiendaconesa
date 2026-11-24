@@ -3728,7 +3728,7 @@ const ICO_EN = [
   ["message", '#btnWhatsVta, [data-acc="whats"], [data-wa-presu]'],
   ["download", '[data-acc="pdf"]'],
   ["printer", '[data-acc="imprimir"], [data-imp-presu]'],
-  ["trash", '[data-acc="eliminar"]'],
+  ["trash", '[data-acc="eliminar"], [data-del-presu]'],
   ["undo", '[data-acc="recuperar"], [data-acc="nodespachar"]'],
   ["refresh", '[data-acc="actualizar"]'],
   ["packageCheck", '[data-acc="despachar"]'],
@@ -4269,6 +4269,15 @@ function facturaDe(){
   if(!esPresu(comp) && comp.indexOf("Factura")>=0 && documentosDe(c).indexOf(comp) >= 0) return comp;
   return conFacturaA(c) ? "01.Factura A" : "02.Factura B";
 }
+/** Lo que hace que un presupuesto sea el mismo: artículos y cantidades,
+    descuento y cliente (V.0.11.228). */
+function firmaPresu(){
+  return JSON.stringify([S.linea.map(l => l.cod + "x" + l.cant).sort(), +S.desc || 0, S.cliente || ""]);
+}
+/** La venta es el presupuesto del que salió, sin cambios. */
+function mismoPresuOrigen(){
+  return !!(S.origenPresu && S.origen === S.origenPresu.id && !S.editando && firmaPresu() === S.origenPresu.firma);
+}
 function pintarAcciones(){
   const comp = compAct();
   const fc = facturaDe();
@@ -4278,7 +4287,9 @@ function pintarAcciones(){
     "Emitir " + principal.replace(/^\\d+\\./,"") + " · " + nroDe(principal).slice(2);
   document.getElementById("btnPresu").textContent = S.editando
     ? "Guardar cambios · " + S.editando.nro
-    : "Emitir presupuesto · " + nroDe("03.Presupuesto").slice(2);
+    : mismoPresuOrigen()
+      ? "Imprimir presupuesto · " + S.origenPresu.nro
+      : "Emitir presupuesto · " + nroDe("03.Presupuesto").slice(2);
 }
 
 /* Los descuentos de un toque, mas uno a medida. */
@@ -4896,6 +4907,7 @@ function pintarTicket(){
   for(const b of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnWhatsVta","btnCaja","btnOtraSuc"])
     document.getElementById(b).disabled = vacio || EMITIENDO;
   if(vacio){ const ce = document.getElementById("cajaElige"); if(ce) ce.hidden = true; }
+  if(S.origenPresu) pintarAcciones();
   pintarBorradores();
 }
 
@@ -5033,6 +5045,17 @@ document.getElementById("btnPedInt").addEventListener("click", () => {
   cerrar(true);
 });
 document.getElementById("btnPresu").addEventListener("click",()=>{
+  // V.0.11.228: el presupuesto del que salió, sin cambios, no se emite de
+  // nuevo ("no debería dejarme volver a emitirlo si ya lo hice, solo
+  // imprimirlo"): se imprime ese mismo.
+  if(!EMITIENDO && mismoPresuOrigen()){
+    traerPdf({ id:S.origenPresu.id }, document.getElementById("btnPresu"), true);
+    toast("El presupuesto " + S.origenPresu.nro + " ya está emitido: lo mando a imprimir, sin sacar otro número.");
+    return;
+  }
+  if(S.origenPresu && S.origen === S.origenPresu.id && !S.editando && S.linea.length &&
+     !confirm("Cambiaste el presupuesto " + S.origenPresu.nro + ". ¿Emitís uno nuevo con los cambios? Sale con otro número; el " +
+              S.origenPresu.nro + " queda como estaba.")) return;
   S.comp = "03.Presupuesto";
   guardarPresu();
 });
@@ -10225,7 +10248,7 @@ function trasEmitir(res){
 }
 
 function limpiarVentaEmitida(){
-  S.cobrarPresu = null;
+  S.cobrarPresu = null; S.origenPresu = null;
   S.linea = []; S.desc = 0; S.lista = 2; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
   // El ticket de caja ya se cobró (o se mandó, o se devolvió).
@@ -10932,6 +10955,8 @@ function pasarAVenta(d){
   S.comp = null; S.dep = null; S.nroLibre = false; S.cobrarPresu = null;
   terminarEdicion();
   S.origen = d.id; S.emision = null;
+  // V.0.11.228: si no se cambia nada, "Emitir presupuesto" imprime este mismo.
+  S.origenPresu = d.tipo === "presupuesto" ? { id:d.id, nro:numeroCorto(d), firma:firmaPresu() } : null;
   abrirVista("mostrador");
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   const q = document.getElementById("q");
@@ -13362,7 +13387,7 @@ function ponerClienteDeDatos(d){
     se toma en la caja). */
 function aplicarVentaDelServidor(v){
   VSRV.epoca++; clearTimeout(VSRV.t);
-  S.cobrarPresu = null;
+  S.cobrarPresu = null; S.origenPresu = null;
   const d = v.datos || {}, cuenta = { n:0 };
   for(const m of (Array.isArray(d.manuales) ? d.manuales : [])) agregarManual(m);
   ponerClienteDeDatos(d);
@@ -13993,6 +14018,7 @@ function pintarPresuHoy(){
       '<td style="white-space:nowrap;text-align:right">' +
         '<button class="b3" type="button" data-imp-presu="' + txt(d.id) + '" style="padding:5px 10px;font-size:12.5px;margin-right:6px" title="Imprimir el presupuesto otra vez">Imprimir</button>' +
         '<button class="b3" type="button" data-wa-presu="' + txt(d.id) + '" style="padding:5px 10px;font-size:12.5px;margin-right:6px" title="Mandárselo al cliente por WhatsApp">WhatsApp</button>' +
+        (puede("eliminar") ? '<button class="b3" type="button" data-del-presu="' + txt(d.id) + '" style="padding:5px 10px;font-size:12.5px;margin-right:6px" title="Va a Eliminados: de ahí se recupera">Eliminar</button>' : '') +
         '<button class="b1" type="button" data-cobrar-presu="' + txt(d.id) + '" style="padding:5px 14px;font-size:12.5px" title="Lo cobra: factura, sin comprobante o pedido interno">Cobrar</button></td></tr>';
   }).join("");
 }
@@ -14059,6 +14085,12 @@ for(const [id, prov] of [["cnLoc", "cnProv"], ["pfLoc", "pfProvi"]]){
 document.getElementById("tbPresuHoy").addEventListener("click", e => {
   const imp = e.target.closest("[data-imp-presu]");
   if(imp){ const d = PRESU_HOY.lista.find(x => x.id === imp.dataset.impPresu); if(d) traerPdf(d, imp, true); return; }
+  const del = e.target.closest("[data-del-presu]");
+  if(del){
+    const d = PRESU_HOY.lista.find(x => x.id === del.dataset.delPresu);
+    if(d) Promise.resolve(eliminarDoc(d, del, false)).then(() => traerPresuHoy()).catch(() => {});
+    return;
+  }
   const wa = e.target.closest("[data-wa-presu]");
   if(wa){ const d = PRESU_HOY.lista.find(x => x.id === wa.dataset.waPresu); if(d) mandarPorWhats(d); return; }
   const b = e.target.closest("[data-cobrar-presu]"); if(!b) return;
