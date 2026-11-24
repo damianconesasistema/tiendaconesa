@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.252";
+export const APP_VERSION = "V.0.11.253";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.253",
+    date: "2026-11-24",
+    changes: [
+      "Punto, cobro en efectivo (\"ingresar con cuánta plata me paga cuando es en efectivo para que me diga el vuelto a devolver y ahí recién sale el comprobante de ARCA o recibo X\"): antes de emitir la factura o el Recibo X sale \"Cobro en efectivo\" con el total, se escribe con cuánto paga (o se toca Justo o un redondeo) y dice el vuelto. Si no alcanza dice cuánto falta y no deja seguir; Enter cobra, Escape cancela sin emitir nada. Después de emitir vuelve a mostrar el vuelto. El presupuesto y el pedido interno no lo preguntan.",
+      "Punto, venta: el renglón ya no dice \"por mayor desde 1\" (el por mayor va solo con Lista Mayorista).",
+    ],
+  },
   {
     version: "V.0.11.252",
     date: "2026-11-24",
