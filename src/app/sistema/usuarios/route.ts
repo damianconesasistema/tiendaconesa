@@ -20,6 +20,7 @@ import {
   problemaConLaClave,
   usuarioLimpio,
 } from "@/lib/usuarios";
+import { FRENO_INGRESO } from "@/lib/freno-ingreso";
 import { quienEntra } from "../clave";
 
 // Los usuarios de Punto: que solapas ve cada uno, que puede hacer y con que
@@ -32,6 +33,9 @@ import { quienEntra } from "../clave";
 //   POST {accion:"clave", id, clave?, cambiar?} -> la que eligio (o una
 //                                          provisoria), que se ve una vez
 //   POST {accion:"activo", id, activo}
+//   POST {accion:"liberar", id}            -> V.0.11.243: le saca el freno por
+//                                          contraseñas equivocadas
+//                                          (src/lib/freno-ingreso.ts)
 // Solo el que administra los usuarios de Punto (AdminUser.adminPunto, o
 // "admin"). Damian decidio que sean damian y daniel (migracion 54).
 //
@@ -105,6 +109,8 @@ function paraLaPantalla(u: Fila) {
     adminPunto: u.adminPunto,
     soloPunto: u.permisos === SOLO_PUNTO,
     debeCambiarClave: u.debeCambiarClave,
+    // V.0.11.243: frenado por contraseñas equivocadas (se libera con Liberar).
+    frenado: FRENO_INGRESO.frenado(u.username.toLowerCase()),
   };
 }
 
@@ -342,6 +348,17 @@ async function cambiarActivo(c: Cuerpo, yo: YoPunto): Promise<Response> {
   return json({ ok: true, usuario: paraLaPantalla({ ...u, activo: c.activo }) });
 }
 
+/** Le saca el freno por contraseñas equivocadas. Lo puede cualquiera que
+ *  administre usuarios, a cualquiera: no da acceso, solo deja volver a
+ *  probar. */
+async function liberar(c: Cuerpo, yo: YoPunto): Promise<Response> {
+  const u = await buscar(c.id);
+  if (u instanceof Response) return u;
+  const estaba = FRENO_INGRESO.liberar(u.username.toLowerCase());
+  if (estaba) await registrar(`Punto: liberó a ${u.username}`, "Estaba frenado por contraseñas equivocadas.", yo.usuario);
+  return json({ ok: true, estaba, usuario: paraLaPantalla(u) });
+}
+
 export async function POST(req: Request): Promise<Response> {
   const yo = await quienAdministra();
   if (yo instanceof Response) return yo;
@@ -365,6 +382,7 @@ export async function POST(req: Request): Promise<Response> {
     if (c.accion === "permisos") return await cambiarPermisos(c, yo);
     if (c.accion === "clave") return await resetearClave(c, yo);
     if (c.accion === "activo") return await cambiarActivo(c, yo);
+    if (c.accion === "liberar") return await liberar(c, yo);
     return json({ error: "No sé qué querés hacer." }, 400);
   } catch (e) {
     return json({ error: "No se pudo: " + ((e as Error).message || "error del servidor") + "." });

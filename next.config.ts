@@ -12,6 +12,36 @@ const nextConfig: NextConfig = {
       { source: "/sistema/demo/:camino*", destination: "/sistema/:camino*", permanent: false },
     ];
   },
+  // V.0.11.243. Damian, 24/11/2026: "el sistema la url no tiene que estar
+  // taggeada en ningun buscador, hay alguna forma de darle seguridad".
+  async headers() {
+    // Lo de adentro (Punto y el panel): que ningun buscador lo guarde, que
+    // nadie lo pueda meter adentro de otra pagina para engañar (solo este
+    // mismo sitio: Punto muestra el panel en su solapa Web) y que al tocar
+    // un link de afuera no viaje la direccion de adentro.
+    const privado = [
+      { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+      { key: "Referrer-Policy", value: "same-origin" },
+    ];
+    return [
+      {
+        // Todo el sitio: siempre por https (el navegador ya no prueba por
+        // http) y que no adivine el tipo de un archivo.
+        source: "/:camino*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=31536000" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+        ],
+      },
+      { source: "/sistema", headers: privado },
+      { source: "/sistema/:camino*", headers: privado },
+      { source: "/admin", headers: privado },
+      { source: "/admin/:camino*", headers: privado },
+      { source: "/api/admin/:camino*", headers: privado },
+    ];
+  },
   experimental: {
     serverActions: {
       // Las fotos de productos pueden pesar varios MB. El default de

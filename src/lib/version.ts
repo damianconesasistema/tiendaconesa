@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.242";
+export const APP_VERSION = "V.0.11.243";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.243",
+    date: "2026-11-24",
+    changes: [
+      "Seguridad del ingreso (\"hay alguna forma de darle seguridad para que no sea vulnerada\"): el que prueba contraseñas se frena 15 minutos. 5 equivocadas con el mismo usuario desde la misma conexión, 20 desde la misma conexión a cualquier usuario, o 30 al mismo usuario desde cualquier lado. Queda anotado en Actividad con la conexión. Antes solo esperaba 0,4 segundos por intento.",
+      "Punto → Usuarios: botón Liberar (\"agregame también liberar usuario\"). Al que quedó frenado por equivocarse la contraseña lo deja volver a probar en el momento; también destraba la conexión del local, para que los demás no queden afuera. En la tarjeta dice \"frenado por contraseñas equivocadas\".",
+      "Buscadores (\"el sistema la url no tiene que estar taggeada en ningún buscador\"): /sistema y /admin ya no se nombran en robots.txt, que lo lee cualquiera; en su lugar el servidor manda \"noindex\" en todo lo de adentro. Además: siempre por https (HSTS), el ingreso no se puede meter adentro de otra página y los links de afuera no reciben la dirección de adentro.",
+    ],
+  },
   {
     version: "V.0.11.242",
     date: "2026-11-24",
