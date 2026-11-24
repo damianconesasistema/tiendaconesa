@@ -38,3 +38,11 @@ test("nombresSucursales", () => {
   assert.equal(nombresSucursales(["srl", "cnc"]), "CONESA SRL y SANITARIOS CNC");
   assert.equal(nombresSucursales(["tsl"]), "TRASLASIERRA");
 });
+
+import { ACCIONES_PUNTO, permisosEfectivos } from "../../src/lib/punto-permisos.ts";
+test("permiso Ver Recibo X: lo tienen los de todo, no los de una lista", () => {
+  assert.ok(ACCIONES_PUNTO.some((a) => a.id === "recibox"));
+  assert.ok(permisosEfectivos(null).includes("recibox"));
+  assert.equal(permisosEfectivos(["venta", "caja", "cobrar"]).includes("recibox"), false);
+  assert.ok(permisosEfectivos(["venta", "recibox"]).includes("recibox"));
+});

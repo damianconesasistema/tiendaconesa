@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.235";
+export const APP_VERSION = "V.0.11.236";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.236",
+    date: "2026-11-24",
+    changes: [
+      "Punto, Usuarios: permiso \"Ver Recibo X\" para cada usuario (que los empleados no vean lo vendido con Recibo X). Lo tienen los que tienen todo; al resto no les aparecen los Recibo X en Comprobantes, Caja ni Gerencia, y el servidor no se los manda (tampoco el PDF). Siguen guardados y en los informes de gerencia: un solo libro. El que cobra igual puede emitirlos.",
+    ],
+  },
   {
     version: "V.0.11.235",
     date: "2026-11-24",

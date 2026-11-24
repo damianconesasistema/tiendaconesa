@@ -1,4 +1,6 @@
 import { documentoPorId } from "@/lib/punto-documentos";
+import { puedePunto } from "@/lib/punto-permisos";
+import { yoPunto } from "@/lib/punto-yo";
 import { emisorDe } from "@/lib/punto-emisor";
 import { generarPdfPunto, nombreArchivo } from "@/lib/punto-pdf";
 import { quienEntra } from "../../clave";
@@ -27,6 +29,11 @@ export async function GET(req: Request): Promise<Response> {
   try {
     const d = await documentoPorId(id);
     if (!d) return json({ error: "No encontré ese comprobante." });
+    // V.0.11.236: el Recibo X, solo con "Ver Recibo X".
+    if (d.tipo === "sin-comprobante") {
+      const yo = await yoPunto();
+      if (!yo || !puedePunto(yo.permisos, "recibox")) return json({ error: "Tu usuario no ve los Recibo X." });
+    }
     if (remito && !["factura", "sin-comprobante", "pedido-interno", "remito"].includes(d.tipo))
       return json({ error: "El remito sale de una venta: una factura, un recibo X o un pedido interno." });
     const pdf = await generarPdfPunto(d, await emisorDe(d.sucursal), { remito });

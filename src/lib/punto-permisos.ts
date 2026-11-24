@@ -75,6 +75,15 @@ export const ACCIONES_PUNTO: readonly DatosPermisoPunto[] = [
     nombre: "Despachar en el depósito",
     ayuda: "Marca que la mercadería de una venta salió del depósito y quién la entregó.",
   },
+  // V.0.11.236. Damian, 24/11/2026: que los empleados no vean lo vendido con
+  // Recibo X. No se esconde del sistema (un solo libro: queda anotado y en los
+  // informes de gerencia): solo no le aparece al que no lo tiene. El que tiene
+  // todo (null) lo tiene; al que tiene una lista hay que tildarselo.
+  {
+    id: "recibox",
+    nombre: "Ver Recibo X",
+    ayuda: "Ve las ventas con Recibo X (sin factura) en Comprobantes, Caja y Gerencia. Sin esto no le aparecen; igual puede emitirlas si cobra.",
+  },
 ];
 
 const TODOS = [...AREAS_PUNTO, ...ACCIONES_PUNTO].map((p) => p.id);

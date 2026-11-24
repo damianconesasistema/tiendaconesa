@@ -72,6 +72,10 @@ export async function GET(req: Request): Promise<Response> {
     const marca = u.searchParams.get("idLocal");
     if (marca) return json({ documento: await documentoPorMarca(marca) });
     const dias = Math.min(366, Math.max(1, Math.round(Number(u.searchParams.get("dias")) || 30)));
+    // V.0.11.236: lo vendido con Recibo X solo le llega al que tiene "Ver
+    // Recibo X" (sigue guardado y en los informes de gerencia).
+    const yo = await yoPunto();
+    const veRecibos = !!yo && puedePunto(yo.permisos, "recibox");
     const [lista, numeros] = await Promise.all([
       listarDocumentos({
         dias,
@@ -80,7 +84,8 @@ export async function GET(req: Request): Promise<Response> {
       }),
       contadores(),
     ]);
-    return json({ ...lista, contadores: numeros, dias });
+    const documentos = veRecibos ? lista.documentos : lista.documentos.filter((d) => d.tipo !== "sin-comprobante");
+    return json({ ...lista, documentos, contadores: numeros, dias });
   } catch {
     return json({ error: "No pude leer los comprobantes guardados." });
   }

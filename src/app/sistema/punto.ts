@@ -3799,11 +3799,14 @@ const CP_ACC = [
 document.getElementById("accCp").innerHTML = CP_ACC.map(([v, t, k]) =>
   '<button type="button" data-cp="' + v + '"' + (v === "nuevo" ? ' class="fuerte"' : ' aria-pressed="false"') + '>' +
   '<span class="ic">' + icoSvg(k) + '</span>' + t + '</button>').join("");
+/** V.0.11.236: ¿ve los Recibo X? (permiso "Ver Recibo X"). */
+const veRecibosX = () => { try{ return puede("recibox"); }catch(e){ return false; } };
 function pintarAccCp(){
   const caja = document.getElementById("accCp"), sel = document.getElementById("cpTipo");
   if(!caja || !sel) return;
   for(const b of caja.querySelectorAll("[data-cp]")){
     if(b.dataset.cp === "nuevo"){ try{ b.hidden = !puede("venta"); }catch(e){} continue; }
+    if(b.dataset.cp === "sin-comprobante"){ b.hidden = !veRecibosX(); }
     b.setAttribute("aria-pressed", String(b.dataset.cp === sel.value));
   }
 }
@@ -10208,7 +10211,7 @@ function registrarEmitido(g){
   const editada = g.tipo !== "presupuesto" && !!(dt.editado);
   if(editada) S.ventas = S.ventas.filter(v => v.docId !== g.id);
   if(g.tipo !== "presupuesto"){
-    if(!g.eliminado && !S.ventas.some(v => v.docId === g.id)){
+    if(!g.eliminado && !S.ventas.some(v => v.docId === g.id) && (g.tipo !== "sin-comprobante" || veRecibosX())){
       // El stock lo descuenta el servidor y vuelve con la respuesta
       // (ponerStockServidor, V.0.99.94).
       S.ventas.push(ventaDeDocumento(g));
@@ -10419,6 +10422,8 @@ function pintarListaCp(){
   if(CP.cargando && !CP.docs.length){ tb.innerHTML = tbP.innerHTML = vacio("Buscando…"); return; }
   if(CP.error){ tb.innerHTML = tbP.innerHTML = vacio(txt(CP.error)); cuenta.textContent = cuentaP.textContent = ""; return; }
   const toks = plano(document.getElementById("cpBusca").value).split(/\\s+/).filter(Boolean);
+  // V.0.11.236: sin "Ver Recibo X" no se muestran (el servidor tampoco los manda).
+  if(!veRecibosX()) CP.docs = CP.docs.filter(d => d.tipo !== "sin-comprobante");
   const porId = {};
   for(const d of CP.docs) porId[d.id] = d;
   const lista = CP.docs.filter(d => {
