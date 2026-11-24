@@ -3725,9 +3725,9 @@ const ICO_EN = [
   ["truck", '#btnOtraSuc'],
   ["banknote", '#btnAnotarMov, #btnAnotarMovG'],
   ["more", '#btnMasAcc'],
-  ["message", '#btnWhatsVta, [data-acc="whats"]'],
+  ["message", '#btnWhatsVta, [data-acc="whats"], [data-wa-presu]'],
   ["download", '[data-acc="pdf"]'],
-  ["printer", '[data-acc="imprimir"]'],
+  ["printer", '[data-acc="imprimir"], [data-imp-presu]'],
   ["trash", '[data-acc="eliminar"]'],
   ["undo", '[data-acc="recuperar"], [data-acc="nodespachar"]'],
   ["refresh", '[data-acc="actualizar"]'],
@@ -4168,6 +4168,7 @@ document.getElementById("camposVta").closest(".card").addEventListener("change",
   if(id==="vtaCliente"){
     if(e.target.value==="__nuevo"){ e.target.value = S.cliente; abrirCliente(); return; }
     S.cliente = e.target.value; S.comp = null; S.cond = null;
+    if(S.cobrarPresu) S.comp = facturaDe();
   }
   if(id==="vtaComp") S.comp = e.target.value;
   if(id==="vtaCond"){ S.cond = e.target.value; S.forma = e.target.value; }
@@ -5018,7 +5019,7 @@ document.getElementById("btnGuardarEd").addEventListener("click", guardarEdicion
 document.getElementById("btnFactura").addEventListener("click",()=>{
   // Sin un pedido abierto para cobrar (o sin permiso), el botón (o Alt+F)
   // confirma el pedido: en Venta no se factura.
-  if(!puedeCobrar() || !VSRV.caja){ document.getElementById("btnCaja").click(); return; }
+  if(!puedeCobrar() || !(VSRV.caja || S.cobrarPresu)){ document.getElementById("btnCaja").click(); return; }
   // El botón principal emite siempre un comprobante de verdad: si arriba
   // decía presupuesto, lo pasa a la factura que corresponde y la emite.
   const comp = compAct();
@@ -5027,7 +5028,7 @@ document.getElementById("btnFactura").addEventListener("click",()=>{
 });
 document.getElementById("btnSinFacturaC").addEventListener("click", () => document.getElementById("btnSinFactura").click());
 document.getElementById("btnPedInt").addEventListener("click", () => {
-  if(!VSRV.caja || !puedeCobrar()) return;
+  if(!(VSRV.caja || S.cobrarPresu) || !puedeCobrar()) return;
   S.comp = "05.Pedido interno";
   cerrar(true);
 });
@@ -10218,9 +10219,13 @@ function trasEmitir(res){
   }
   limpiarVentaEmitida();
   toast((res.previo ? "Ya había quedado guardado. " : "") + textoEmitido(g));
+  // V.0.11.227: el presupuesto sale directo a la impresora ("lo que hice fue
+  // imprimirlo para dárselo al cliente"): el mismo PDF de Comprobantes → Imprimir.
+  if(g && g.tipo === "presupuesto" && g.id) traerPdf(g, null, true);
 }
 
 function limpiarVentaEmitida(){
+  S.cobrarPresu = null;
   S.linea = []; S.desc = 0; S.lista = 2; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
   // El ticket de caja ya se cobró (o se mandó, o se devolvió).
@@ -10233,10 +10238,14 @@ function limpiarVentaEmitida(){
   pintarCamposVenta(); pintarDtos(); pintarTicket();
   guardarLocal();                 // al toque: que no vuelva al recargar
   asegurarGuardada();             // y en el servidor tampoco
-  // El cursor al buscador para la venta que sigue. En el body, el Enter
-  // sumaría el primero marcado (la trampa de #camposVta).
+  // El cursor a Cant. para la venta que sigue (V.0.11.227, como al sumar un
+  // artículo). En el body, el Enter sumaría el primero marcado (la trampa de
+  // #camposVta); en Cant., Enter pasa al buscador.
   const q = document.getElementById("q");
-  q.value = ""; buscar(); q.focus();
+  q.value = ""; buscar();
+  const qc = document.getElementById("qCant");
+  qc.value = 1; qc.focus();
+  try{ qc.select(); }catch(e){}
 }
 
 /** Repinta el comprobante sin dejar el foco en el body (ver la trampa de
@@ -10920,7 +10929,7 @@ function pasarAVenta(d){
   S.desc = +(d.datos && d.datos.desc) || 0;
   const fo = d.datos && d.datos.forma;
   if(fo && MULT[fo]){ S.forma = fo; S.cond = fo; }
-  S.comp = null; S.dep = null; S.nroLibre = false;
+  S.comp = null; S.dep = null; S.nroLibre = false; S.cobrarPresu = null;
   terminarEdicion();
   S.origen = d.id; S.emision = null;
   abrirVista("mostrador");
@@ -13353,6 +13362,7 @@ function ponerClienteDeDatos(d){
     se toma en la caja). */
 function aplicarVentaDelServidor(v){
   VSRV.epoca++; clearTimeout(VSRV.t);
+  S.cobrarPresu = null;
   const d = v.datos || {}, cuenta = { n:0 };
   for(const m of (Array.isArray(d.manuales) ? d.manuales : [])) agregarManual(m);
   ponerClienteDeDatos(d);
@@ -13389,6 +13399,13 @@ function pintarCajaTicket(){
   if(vs) vs.disabled = !!VSRV.caja || !!sucursalFija();
   const e = document.getElementById("tkCaja"); if(!e) return;
   aplicarCobrar();
+  if(!VSRV.caja && S.cobrarPresu){
+    e.innerHTML = '<div class="aviso" style="margin:0 14px 10px"><span>$</span><div>' +
+      '<b>Cobrando el presupuesto ' + txt(S.cobrarPresu.nro) + '</b>, a precio de hoy. Ya viene elegida la factura que le toca al cliente (A si es responsable inscripto con CUIT, B si no); también podés entregarlo sin comprobante o cerrarlo como pedido interno.' +
+      '<div style="margin-top:8px"><button class="b3" id="btnNoCobrarPresu" type="button" style="padding:5px 12px;font-size:12.5px">No cobrar ahora</button></div>' +
+      '</div></div>';
+    return;
+  }
   if(!VSRV.caja){ e.innerHTML = ""; return; }
   const v = txt(VSRV.caja.vendedor || "el vendedor");
   e.innerHTML = '<div class="aviso" style="margin:0 14px 10px"><span>$</span><div>' +
@@ -13399,6 +13416,14 @@ function pintarCajaTicket(){
     '<button class="b3" id="btnAnularTk" type="button" style="padding:5px 12px;font-size:12.5px" title="El cliente no lo paga: sale de la caja">Anular, no se cobra</button>' +
     '</div></div></div>';
 }
+
+/* "No cobrar ahora": el presupuesto queda en la venta, como presupuesto. */
+document.getElementById("tkCaja").addEventListener("click", e => {
+  if(!e.target.closest("#btnNoCobrarPresu")) return;
+  S.cobrarPresu = null; S.comp = null;
+  pintarCamposVenta(); pintarDtos(); pintarCajaTicket();
+  toast("Listo: queda en la venta sin cobrar. Podés mandarlo a la caja o volver a tocar Cobrar en Presupuestos de hoy.");
+});
 
 /* ---------------------------------------------- borradores */
 function horaCorta(iso){
@@ -13777,7 +13802,7 @@ document.addEventListener("click", async e => {
 function aplicarCobrar(){
   const c = puedeCobrar();
   let cobrando = false;
-  try{ cobrando = !!VSRV.caja; }catch(e){ /* todavía no arrancó la venta */ }
+  try{ cobrando = !!VSRV.caja || !!(S && S.cobrarPresu); }catch(e){ /* todavía no arrancó la venta */ }
   // Editando una venta ya emitida: solo "Guardar cambios" (V.0.11.192).
   const ed = typeof S === "object" && S.editando && S.editando.tipo;
   const bg = document.getElementById("btnGuardarEd");
@@ -13965,7 +13990,10 @@ function pintarPresuHoy(){
       '<td style="font-weight:500">' + txt(d.cliente || "") + '</td><td>' + n + ' un.</td>' +
       '<td class="r" style="font-weight:600">' + fmt(d.total) + '</td>' +
       '<td><span class="pill p-n">' + txt(numeroCorto(d)) + '</span></td>' +
-      '<td style="white-space:nowrap"><button class="b1" type="button" data-cobrar-presu="' + txt(d.id) + '" style="padding:5px 14px;font-size:12.5px" title="Lo pasa a la venta para cobrarlo">Cobrar</button></td></tr>';
+      '<td style="white-space:nowrap;text-align:right">' +
+        '<button class="b3" type="button" data-imp-presu="' + txt(d.id) + '" style="padding:5px 10px;font-size:12.5px;margin-right:6px" title="Imprimir el presupuesto otra vez">Imprimir</button>' +
+        '<button class="b3" type="button" data-wa-presu="' + txt(d.id) + '" style="padding:5px 10px;font-size:12.5px;margin-right:6px" title="Mandárselo al cliente por WhatsApp">WhatsApp</button>' +
+        '<button class="b1" type="button" data-cobrar-presu="' + txt(d.id) + '" style="padding:5px 14px;font-size:12.5px" title="Lo cobra: factura, sin comprobante o pedido interno">Cobrar</button></td></tr>';
   }).join("");
 }
 /* ---------------------------------------------- localidades
@@ -14029,9 +14057,22 @@ for(const [id, prov] of [["cnLoc", "cnProv"], ["pfLoc", "pfProvi"]]){
 }
 
 document.getElementById("tbPresuHoy").addEventListener("click", e => {
+  const imp = e.target.closest("[data-imp-presu]");
+  if(imp){ const d = PRESU_HOY.lista.find(x => x.id === imp.dataset.impPresu); if(d) traerPdf(d, imp, true); return; }
+  const wa = e.target.closest("[data-wa-presu]");
+  if(wa){ const d = PRESU_HOY.lista.find(x => x.id === wa.dataset.waPresu); if(d) mandarPorWhats(d); return; }
   const b = e.target.closest("[data-cobrar-presu]"); if(!b) return;
   const d = PRESU_HOY.lista.find(x => x.id === b.dataset.cobrarPresu);
-  if(d) pasarAVenta(d);
+  if(!d) return;
+  pasarAVenta(d);
+  // V.0.11.227: el que cobra lo cobra ahí mismo, con la factura que le toca
+  // al cliente (A con CUIT de responsable inscripto, B si no) y la opción de
+  // entregarlo sin comprobante.
+  if(puedeCobrar() && S.origen === d.id){
+    S.cobrarPresu = { id:d.id, nro:numeroCorto(d) };
+    S.comp = null; S.comp = facturaDe();
+    pintarCamposVenta(); pintarDtos(); pintarCajaTicket();
+  }
 });
 
 /* ---------------------------------------------- clientes */

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.226";
+export const APP_VERSION = "V.0.11.227";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.227",
+    date: "2026-11-24",
+    changes: [
+      "Punto, el presupuesto se imprime solo al emitirlo (\"lo que hice fue imprimirlo para dárselo al cliente\"), con el mismo PDF de Comprobantes → Imprimir; después el cursor queda en Cant.",
+      "Punto, Presupuestos de hoy: Imprimir y WhatsApp al lado de Cobrar; y Cobrar lo cobra ahí mismo, con la Factura que le toca ya elegida (A si es responsable inscripto con CUIT, B si no) y a la vista Entregar sin comprobante y Cerrar como pedido interno (\"debería ya seleccionarse la Factura B en caso de DNI o Factura A en caso de CUIT; también que aparezca la parte de negro\"). \"No cobrar ahora\" lo deja en la venta.",
+      "Punto, el PDF con descuento (factura A y B, presupuesto y sin comprobante; \"el descuento que lo haga por ítem\"): cada renglón con el precio de lista, el precio con el descuento y el importe ya descontado; abajo el total y cuánto se descontó. Los renglones suman exacto el total del comprobante (en la A, el neto que tiene ARCA); si el descuento redondeado a pesos deja centavos, van en un renglón Redondeo. Los importes que van a ARCA no cambian.",
+    ],
+  },
   {
     version: "V.0.11.226",
     date: "2026-11-24",

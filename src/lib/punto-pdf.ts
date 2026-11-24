@@ -4,6 +4,32 @@ import PDFDocument from "pdfkit";
 import type { DocumentoGuardado } from "@/lib/punto-documentos";
 import type { ArcaPunto } from "@/lib/punto-arca";
 
+// Repartir centavos (V.0.11.227). Damian, 24/11/2026: "necesito que se vean
+// los precios con lista 2 y con descuento, y luego pones el total, pero el
+// descuento que lo haga por item" (factura A y B, presupuesto y sin factura).
+// Cada renglon con su descuento redondeado puede no sumar el total del
+// comprobante (el que ya tiene ARCA): el centavo que sobra o falta va a los
+// renglones que mas cerca estaban de redondear para ese lado. Aca y no en un
+// modulo aparte: el simulador y las pruebas cargan este archivo con node solo.
+/** Los renglones en centavos enteros que suman exacto `total` (centavos),
+ *  moviendo cada uno a lo sumo un centavo de su redondeo para abajo. null si
+ *  para llegar haria falta mover mas (ahi se muestra un "Redondeo" aparte). */
+export function ajustarCentavos(crudos: readonly number[], total: number): number[] | null {
+  const meta = Math.round(total);
+  if (!crudos.length) return meta === 0 ? [] : null;
+  const base = crudos.map((c) => Math.floor(c));
+  let falta = meta - base.reduce((a, b) => a + b, 0);
+  if (falta < -crudos.length || falta > crudos.length) return null;
+  const orden = crudos
+    .map((c, i) => ({ i, frac: c - Math.floor(c) }))
+    .sort((a, b) => b.frac - a.frac || a.i - b.i);
+  const out = base.slice();
+  // Para arriba: a los de mayor fraccion. Para abajo: a los de menor.
+  for (let j = 0; falta > 0; j++, falta--) out[orden[j].i] += 1;
+  for (let j = orden.length - 1; falta < 0; j--, falta++) out[orden[j].i] -= 1;
+  return out;
+}
+
 /** Lo que autorizo ARCA (datos.arca), si tiene CAE. Aca y no importado de
  *  punto-arca: el PDF no carga lo de ARCA (la base, los certificados) para un
  *  presupuesto. El QR se carga solo si hace falta. */
@@ -296,14 +322,21 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
 
   // ----------------------------------------------------------------- DETALLE
   y += 64;
-  const anchoTot = 85;
-  const anchoUnit = 80;
-  const anchoCant = 40;
+  // V.0.11.227: con descuento, cada renglon lo lleva puesto ("el descuento
+  // que lo haga por item"): el precio de lista, el precio con el descuento y
+  // el importe con el descuento. Abajo, el total.
+  const pctDto = num(dt.desc) > 0 && num(dt.descuento) > 0.004 ? num(dt.desc) : 0;
+  const porItem = pctDto > 0;
+  const anchoTot = porItem ? 78 : 85;
+  const anchoUnit = porItem ? 70 : 80;
+  const anchoDto = porItem ? 70 : 0;
+  const anchoCant = porItem ? 32 : 40;
   const col = {
     cod: M + 10,
     desc: M + 92,
-    cant: der - anchoTot - anchoUnit - anchoCant - 15,
-    unit: der - anchoTot - anchoUnit - 10,
+    cant: der - anchoTot - anchoDto - anchoUnit - anchoCant - (porItem ? 20 : 15),
+    unit: der - anchoTot - anchoDto - anchoUnit - (porItem ? 15 : 10),
+    dto: der - anchoTot - anchoDto - 10,
     tot: der - anchoTot - 8,
   };
   const anchoDesc = col.cant - col.desc - 10;
@@ -315,7 +348,11 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     doc.text("CÓDIGO", col.cod, y + 7, { width: 78 });
     doc.text("DESCRIPCIÓN", col.desc, y + 7, { width: anchoDesc });
     doc.text("CANT.", col.cant, y + 7, { width: anchoCant, align: "right" });
-    doc.text(sinIva ? "P. UNIT. S/IVA" : "P. UNIT.", col.unit, y + 7, { width: anchoUnit, align: "right" });
+    if (porItem) {
+      const pctTxt = String(pctDto).replace(".", ",") + "%";
+      doc.text(sinIva ? "LISTA S/IVA" : "P. LISTA", col.unit, y + 7, { width: anchoUnit, align: "right" });
+      doc.text(sinIva ? `CON ${pctTxt} S/IVA` : `CON ${pctTxt}`, col.dto, y + 7, { width: anchoDto, align: "right" });
+    } else doc.text(sinIva ? "P. UNIT. S/IVA" : "P. UNIT.", col.unit, y + 7, { width: anchoUnit, align: "right" });
     doc.text(sinIva ? "IMPORTE S/IVA" : "IMPORTE", col.tot, y + 7, { width: anchoTot, align: "right" });
     y += 20;
   };
@@ -335,11 +372,29 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   };
 
   cabeceraTabla();
+  const bruto = num(dt.bruto) || renglones.reduce((a, r) => a + num(r.contado) * num(r.cant), 0);
+  const descuento = num(dt.descuento);
+  const recargo = Math.round((d.total - (bruto - descuento)) * 100) / 100;
+  const unitDe = (r: Renglon) =>
+    sinIva ? Math.round((num(r.contado) / (1 + (num(r.iva) || 21) / 100)) * 100) / 100 : num(r.contado);
+  // Con descuento por renglon: lo que tienen que sumar los renglones es lo
+  // que dice el comprobante (sin IVA en la A: el neto que tiene ARCA, si no
+  // hay recargo de por medio).
+  const crudos = renglones.map((r) => unitDe(r) * num(r.cant) * (1 - pctDto / 100) * 100);
+  const meta = !porItem
+    ? null
+    : sinIva
+      ? arca && Math.abs(recargo) < 0.5
+        ? Math.round(arca.neto * 100)
+        : null
+      : Math.round((bruto - descuento) * 100);
+  const importesCent = porItem ? ((meta != null && ajustarCentavos(crudos, meta)) || crudos.map((c) => Math.round(c))) : null;
   let netoRenglones = 0;
-  for (const r of renglones) {
+  for (const [i, r] of renglones.entries()) {
     const cant = num(r.cant);
-    const unit = sinIva ? Math.round((num(r.contado) / (1 + (num(r.iva) || 21) / 100)) * 100) / 100 : num(r.contado);
-    netoRenglones += unit * cant;
+    const unit = unitDe(r);
+    const importe = importesCent ? importesCent[i] / 100 : unit * cant;
+    netoRenglones += importe;
     const tit = String(r.tit ?? "");
     doc.font("Helvetica").fontSize(8);
     const alto = Math.max(16, doc.heightOfString(tit, { width: anchoDesc })) + 8;
@@ -352,7 +407,9 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     doc.fillColor(NEGRO).fontSize(8).text(tit, col.desc, y + 4, { width: anchoDesc });
     doc.text(String(cant), col.cant, y + 4, { width: anchoCant, align: "right" });
     doc.text(pesos(unit), col.unit, y + 4, { width: anchoUnit, align: "right" });
-    doc.text(pesos(unit * cant), col.tot, y + 4, { width: anchoTot, align: "right" });
+    if (porItem)
+      doc.text(pesos(Math.round(unit * (1 - pctDto / 100) * 100) / 100), col.dto, y + 4, { width: anchoDto, align: "right" });
+    doc.text(pesos(importe), col.tot, y + 4, { width: anchoTot, align: "right" });
     y += alto;
     doc.moveTo(M, y).lineTo(der, y).strokeColor("#EEEEEE").lineWidth(0.5).stroke();
   }
@@ -360,19 +417,26 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   // ----------------------------------------------------------------- TOTALES
   // Los precios de los renglones son los de contado. Abajo, lo que los
   // lleva al total: el descuento y el recargo de la forma de pago.
-  const bruto = num(dt.bruto) || renglones.reduce((a, r) => a + num(r.contado) * num(r.cant), 0);
-  const descuento = num(dt.descuento);
-  const recargo = Math.round((d.total - (bruto - descuento)) * 100) / 100;
   // En la A, el subtotal sin IVA y el ajuste solo si hubo descuento o recargo
   // de verdad: si no, la diferencia de centavos de redondear cada renglon
   // aparecia como "Descuento -$ 0,01".
-  const hayAjuste = descuento > 0.004 || Math.abs(recargo) >= 0.5;
+  // Con el descuento por renglon (V.0.11.227) ya no es un ajuste de abajo.
+  const hayAjuste = (descuento > 0.004 && !porItem) || Math.abs(recargo) >= 0.5;
   const filas: [string, string, boolean][] = sinIva
     ? hayAjuste
       ? [["Subtotal sin IVA", pesos(netoRenglones), false]]
       : []
-    : [["Subtotal", pesos(bruto), false]];
-  if (!sinIva && descuento > 0.004) filas.push([`Descuento ${num(dt.desc) ? num(dt.desc) + "%" : ""}`.trim(), `- ${pesos(descuento)}`, false]);
+    : porItem
+      ? Math.abs(recargo) >= 0.5
+        ? [["Subtotal", pesos(bruto - descuento), false]]
+        : []
+      : [["Subtotal", pesos(bruto), false]];
+  if (!sinIva && descuento > 0.004 && !porItem) filas.push([`Descuento ${num(dt.desc) ? num(dt.desc) + "%" : ""}`.trim(), `- ${pesos(descuento)}`, false]);
+  // Lo que no entro repartiendo de a un centavo por renglon.
+  if (porItem && !sinIva) {
+    const redondeo = Math.round((bruto - descuento - netoRenglones) * 100) / 100;
+    if (Math.abs(redondeo) >= 0.01) filas.push(["Redondeo", pesos(redondeo), false]);
+  }
   if (!sinIva && Math.abs(recargo) >= 0.5)
     filas.push([`${recargo > 0 ? "Recargo" : "Ajuste"} ${dt.forma ? sinPrefijo(dt.forma) : "forma de pago"}`, pesos(recargo), false]);
   if (arca && letra === "A") {
@@ -380,10 +444,17 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     const ajuste = Math.round((arca.neto - netoRenglones) * 100) / 100;
     if (hayAjuste && Math.abs(ajuste) >= 0.01)
       filas.push([ajuste < 0 ? "Descuento sin IVA" : `Recargo ${dt.forma ? sinPrefijo(dt.forma) : "forma de pago"} sin IVA`, pesos(ajuste), false]);
+    else if (porItem && Math.abs(ajuste) >= 0.01) filas.push(["Redondeo sin IVA", pesos(ajuste), false]);
     filas.push(["Neto gravado", pesos(arca.neto), false]);
     for (const a of arca.alicuotas) filas.push([`IVA ${String(a.pct).replace(".", ",")} %`, pesos(a.importe), false]);
   }
   filas.push(["TOTAL", pesos(d.total), true]);
+  // Lo que se ahorro, ya puesto en cada renglon (en la A, sin IVA como los renglones).
+  if (porItem) {
+    const listaRenglones = renglones.reduce((a, r) => a + unitDe(r) * num(r.cant), 0);
+    const ahorro = sinIva ? Math.round((listaRenglones - netoRenglones) * 100) / 100 : descuento;
+    filas.push([`Descuento ${String(pctDto).replace(".", ",")}% ya aplicado en cada artículo${sinIva ? " (sin IVA)" : ""}`, pesos(ahorro), false]);
+  }
   if (arca && letra === "B") filas.push(["IVA contenido (Ley 27.743)", pesos(arca.iva), false]);
 
   const altoTotales = filas.length * 15 + 30;
