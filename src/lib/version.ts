@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.241";
+export const APP_VERSION = "V.0.11.242";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.242",
+    date: "2026-11-24",
+    changes: [
+      "Punto, Clientes: la lista ya no corta en la B (\"solo hay hasta la B\" / \"poné por páginas así no es interminable\"). Va por páginas de 100: « Primera · ‹ Anterior · Página 3 de 38 · Siguiente › · Última ». Buscar o filtrar vuelve a la primera; después de guardar una ficha queda en la misma página.",
+      "Punto, ficha del cliente: \"Lo que compró\". Sus comprobantes (sin los eliminados), el más nuevo primero, con fecha, número, sucursal, total y el PDF de cada uno; arriba cuánto compró en total (facturas y Recibo X, menos las notas de crédito), cuántas compras, la última y cuántos presupuestos. Se buscan por el cliente guardado en cada comprobante y también por su CUIT o DNI. Los Recibo X los ve solo el que tiene \"Ver Recibo X\". Lo vendido antes de Punto sigue en GBP.",
+    ],
+  },
   {
     version: "V.0.11.241",
     date: "2026-11-24",

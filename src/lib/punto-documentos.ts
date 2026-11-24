@@ -1258,6 +1258,40 @@ export async function listarDocumentos(f: {
   return { documentos, hayMas: filas.length > MAX_LISTADO };
 }
 
+/** Cuantos comprobantes de un cliente se traen para su ficha. */
+const MAX_DEL_CLIENTE = 200;
+
+/** Lo emitido a un cliente, para su ficha en la solapa Clientes (V.0.11.242).
+ *  Damian, 24/11/2026: lo que compro y cuando. Cada comprobante guarda el
+ *  cliente de ese momento en datos.cliente ({id, n, t, doc}): se busca por
+ *  el id del cliente y tambien por su CUIT o DNI (los que se vendieron antes
+ *  de tenerlo guardado, o con el cliente escrito a mano). Sin eliminados, el
+ *  mas nuevo primero, sin limite de fecha. */
+export async function documentosDeCliente(c: {
+  id: string;
+  cuit: string;
+  dni: string;
+}): Promise<{ documentos: DocumentoGuardado[]; hayMas: boolean }> {
+  const id = /^[A-Za-z0-9_-]{8,40}$/.test(c.id) ? c.id : "";
+  const cuit = /^\d{11}$/.test(c.cuit) ? c.cuit : "";
+  const dni = /^\d{7,8}$/.test(c.dni) ? c.dni : "";
+  if (!id && !cuit && !dni) return { documentos: [], hayMas: false };
+  const filas = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT "id" FROM "PuntoDocumento"
+     WHERE "eliminadoEn" IS NULL
+       AND (
+         (${id}::text <> '' AND "datos"->'cliente'->>'id' = ${id}::text)
+         OR (${cuit}::text <> '' AND regexp_replace(coalesce("datos"->'cliente'->>'doc', ''), '[^0-9]', '', 'g') = ${cuit}::text)
+         OR (${dni}::text <> '' AND regexp_replace(coalesce("datos"->'cliente'->>'doc', ''), '[^0-9]', '', 'g') = ${dni}::text)
+       )
+     ORDER BY "createdAt" DESC
+     LIMIT ${Prisma.raw(String(MAX_DEL_CLIENTE + 1))}`;
+  const ids = filas.slice(0, MAX_DEL_CLIENTE).map((f) => f.id);
+  if (!ids.length) return { documentos: [], hayMas: false };
+  const docs = await prisma.puntoDocumento.findMany({ where: { id: { in: ids } }, orderBy: { createdAt: "desc" } });
+  return { documentos: await conNombres(docs.map(aGuardado)), hayMas: filas.length > MAX_DEL_CLIENTE };
+}
+
 /** El documento con esa marca, si quedo guardado. Para cuando se corto la
  *  respuesta: la pagina pregunta antes de volver a mandarlo. */
 export async function documentoPorMarca(idLocal: string): Promise<DocumentoGuardado | null> {

@@ -5,6 +5,7 @@ import {
   crearDocumento,
   documentoPorId,
   documentoPorMarca,
+  documentosDeCliente,
   editarPresupuesto,
   ID_VALIDO,
   limpiarDocumento,
@@ -20,6 +21,8 @@ import { quienEntra } from "../clave";
 // remitos, ventas sin comprobante). Ver src/lib/punto-documentos.ts.
 //   GET  ?dias=30&tipo=&suc=   -> lo emitido, de todos los puestos
 //   GET  ?solo=contadores      -> el ultimo numero de cada serie
+//   GET  ?cliente=id&cuit=&dni= -> lo de ese cliente, para su ficha (area
+//                                 "clientes" o "comprobantes"), hasta 200
 //   GET  ?idLocal=...          -> si ese comprobante quedo guardado (para
 //                                 cuando se corto la respuesta al emitir)
 //   POST {documento}           -> lo guarda y le pone el numero
@@ -76,6 +79,20 @@ export async function GET(req: Request): Promise<Response> {
     // Recibo X" (sigue guardado y en los informes de gerencia).
     const yo = await yoPunto();
     const veRecibos = !!yo && puedePunto(yo.permisos, "recibox");
+    // V.0.11.242: lo de un cliente, para su ficha (solapa Clientes).
+    const cliente = u.searchParams.get("cliente");
+    if (cliente != null) {
+      if (!yo) return json({ error: "Se cerró tu sesión: entrá de nuevo con tu usuario." }, 401);
+      if (!puedePunto(yo.permisos, "clientes") && !puedePunto(yo.permisos, "comprobantes"))
+        return json({ error: "Tu usuario no ve los comprobantes." }, 403);
+      const r = await documentosDeCliente({
+        id: cliente.trim(),
+        cuit: (u.searchParams.get("cuit") ?? "").replace(/\D/g, ""),
+        dni: (u.searchParams.get("dni") ?? "").replace(/\D/g, ""),
+      });
+      const docs = veRecibos ? r.documentos : r.documentos.filter((d) => d.tipo !== "sin-comprobante");
+      return json({ documentos: docs, hayMas: r.hayMas });
+    }
     const [lista, numeros] = await Promise.all([
       listarDocumentos({
         dias,
