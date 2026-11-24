@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.250";
+export const APP_VERSION = "V.0.11.251";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.251",
+    date: "2026-11-24",
+    changes: [
+      "Punto, venta: la Lista Mayorista es el costo más el % mayorista y encima el % de Lista 2 (\"la lista mayorista es costo x porcentaje de lista mayorista, x la lista 2\"). El % mayorista es el del artículo, o 12 % si no tiene uno propio. El combo SENSUS 22105 a Mayorista: $504.643,73.",
+    ],
+  },
   {
     version: "V.0.11.250",
     date: "2026-11-24",
