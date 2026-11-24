@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.253";
+export const APP_VERSION = "V.0.11.254";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.254",
+    date: "2026-11-24",
+    changes: [
+      "Punto: Caja y Gerencia abren en la sucursal donde estás trabajando (\"caja del día que entre siempre en la sucursal donde estoy trabajando\" / \"lo mismo gerencia\"): la de arriba, o la fija del usuario. Si cambiás la sucursal de arriba estando ahí, la siguen. Adentro se puede elegir otra o Todas, y se respeta hasta que salís. El Resumen de Gerencia ahora también tiene las solapitas Todas / CONESA SRL / SANITARIOS CNC / TRASLASIERRA.",
+    ],
+  },
   {
     version: "V.0.11.253",
     date: "2026-11-24",
