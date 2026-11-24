@@ -1413,6 +1413,11 @@ footer{
 .suc-arriba:empty{display:none}
 .suc-arriba label{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
 .suc-arriba #vtaSuc{width:210px; padding:6px 10px; font-size:15px; font-weight:700}
+/* V.0.11.224: redondeados como los demás campos ("que sea redondeado como el resto"). */
+.suc-arriba #vtaSuc, .nro-arriba #vtaNro{border:1px solid var(--line-2); border-radius:10px}
+.suc-arriba #vtaSuc{background:var(--surface); font-family:var(--font-b)}
+.suc-arriba #vtaSuc:focus, .nro-arriba #vtaNro:focus{border-color:var(--accent); outline:none; box-shadow:0 0 0 3px rgba(230,48,32,.14)}
+.nro-arriba #vtaNro:not([readonly]){border-color:var(--accent)}
 .suc-arriba .por{font-size:12px}
 .fila-dos .cli-fila{flex:1 1 auto}
 @media (max-width:640px){ .nro-arriba{margin-left:0; width:100%} .nro-arriba #vtaNro{flex:1; width:auto; min-width:0}
