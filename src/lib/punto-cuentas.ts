@@ -8,6 +8,7 @@ import {
   type TipoCuenta,
   type TipoMovimiento,
   diaAR,
+  mismoPedido,
   RUBROS_BASE,
   signoOrigen,
 } from "@/lib/punto-cuentas-reglas";
@@ -96,16 +97,29 @@ function rangoAR(desdeDia: string, hastaDia: string): { gte: Date; lt: Date } {
   return { gte, lt };
 }
 
-/** Los movimientos entre esos dos dias de Argentina (inclusive). */
+/** Los que se muestran como lista: los mas nuevos primero, hasta este tope. */
+export const TOPE_LISTA = 5000;
+
+/** Los movimientos entre esos dos dias de Argentina (inclusive), para la
+ *  lista. truncado = habia mas que el tope (se avisa en la pantalla). */
 export async function listarMovimientos(f: {
   desdeDia: string;
   hastaDia: string;
   cuentaIds?: string[] | null;
-}): Promise<Movimiento[]> {
+}): Promise<{ movimientos: Movimiento[]; truncado: boolean }> {
   const filas = await prisma.puntoMovimiento.findMany({
     where: { fecha: rangoAR(f.desdeDia, f.hastaDia), ...(f.cuentaIds ? { cuentaId: { in: f.cuentaIds } } : {}) },
     orderBy: { fecha: "desc" },
-    take: 5000,
+    take: TOPE_LISTA + 1,
+  });
+  return { movimientos: filas.slice(0, TOPE_LISTA).map(movimientoDe), truncado: filas.length > TOPE_LISTA };
+}
+
+/** Todos los gastos de esos dias, sin tope: de aca salen los totales (la
+ *  lista puede venir cortada; los totales no). */
+export async function listarGastos(desdeDia: string, hastaDia: string): Promise<Movimiento[]> {
+  const filas = await prisma.puntoMovimiento.findMany({
+    where: { fecha: rangoAR(desdeDia, hastaDia), tipo: "gasto", anuladoEn: null },
   });
   return filas.map(movimientoDe);
 }
@@ -130,11 +144,14 @@ export async function anotarMovimiento(
   origen: Cuenta,
   destino: Cuenta | null,
   quien: string,
-): Promise<{ movimientos: Movimiento[]; yaEstaba: boolean }> {
+): Promise<{ movimientos: Movimiento[]; yaEstaba: boolean } | string> {
   const yaEstaban = async () =>
     (await prisma.puntoMovimiento.findMany({ where: { idLocal: p.idLocal }, orderBy: { monto: "asc" } })).map(movimientoDe);
+  // El mismo pedido otra vez (doble clic, corte): lo guardado. Con otros
+  // datos (cambiaron el monto y volvieron a tocar Guardar) no es el mismo.
+  const otroPedido = "Ese movimiento ya se había guardado con otros datos: cerrá el formulario y anotalo de nuevo.";
   const antes = await yaEstaban();
-  if (antes.length) return { movimientos: antes, yaEstaba: true };
+  if (antes.length) return mismoPedido(antes, p) ? { movimientos: antes, yaEstaba: true } : otroPedido;
   const fecha = p.fecha ? new Date(p.fecha) : new Date();
   const base = {
     idLocal: p.idLocal,
@@ -168,7 +185,7 @@ export async function anotarMovimiento(
     // lo del primero.
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       const ya = await yaEstaban();
-      if (ya.length) return { movimientos: ya, yaEstaba: true };
+      if (ya.length) return mismoPedido(ya, p) ? { movimientos: ya, yaEstaba: true } : otroPedido;
     }
     throw e;
   }

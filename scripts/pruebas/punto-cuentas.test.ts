@@ -13,6 +13,7 @@ import {
   resumenGastos,
   puedeMover,
   signoOrigen,
+  mismoPedido,
   type Cuenta,
   type Movimiento,
   type PedidoMovimiento,
@@ -135,6 +136,19 @@ test("puedeMover", () => {
   assert.equal(typeof puedeMover(vendedor, pedido(), efTsl, null), "string");
   assert.equal(typeof puedeMover(gerente, pedido(), inactiva, null), "string");
   assert.equal(typeof puedeMover(cajeroTsl, pedido(), inactiva, null), "string");
+  // Final review: lo que el formulario de Caja no ofrece, el servidor tampoco lo acepta del cajero.
+  assert.equal(typeof puedeMover(cajeroTsl, pedido({ fecha: "2026-10-01T15:00:00Z" }), efTsl, null), "string");
+  assert.equal(typeof puedeMover(cajeroTsl, pedido({ tipo: "ajuste", sentido: "entra" }), efTsl, null), "string");
+  assert.equal(typeof puedeMover(cajeroTsl, pedido({ iva: 100 }), efTsl, null), "string");
+  assert.equal(puedeMover(gerente, pedido({ fecha: "2026-10-01T15:00:00Z", iva: 100 }), efTsl, null), null);
+});
+
+test("mismoPedido: el reintento con otros datos no se confunde con el guardado", () => {
+  const guardado = [mov("x", "efTsl", "tsl", -1000, "2026-11-24T15:00:00Z", { grupo: "abc123" })];
+  assert.equal(mismoPedido(guardado, pedido({ monto: 1000 })), true);
+  assert.equal(mismoPedido(guardado, pedido({ monto: 999 })), false);
+  assert.equal(mismoPedido(guardado, pedido({ tipo: "retiro" })), false);
+  assert.equal(mismoPedido(guardado, pedido({ cuentaId: "otra" })), false);
 });
 
 import { AREAS_PUNTO, permisosEfectivos } from "../../src/lib/punto-permisos.ts";

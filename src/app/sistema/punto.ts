@@ -2651,7 +2651,7 @@ footer{
         <div class="barras" id="ctaRubros"></div>
       </div>
       <div class="card" style="margin-bottom:16px">
-        <div class="card-h"><h3>Cuentas</h3><span class="sub">el saldo de hoy</span>
+        <div class="card-h"><h3>Cuentas</h3><span class="sub">con lo anotado; las ventas todavía no suman</span>
           <button class="b2" type="button" id="btnNuevaCuenta" style="margin-left:auto;padding:5px 12px">Nueva cuenta</button></div>
         <div id="ctaCuentas"></div>
       </div>
@@ -8398,9 +8398,13 @@ function abrirMovimiento(op){
     const f = g("movFecha");
     if(f && f.value && f.value !== hoy) p.fecha = f.value + "T15:00:00.000Z";   // las 12 del mediodía de ese día
     ok.disabled = true; msg.textContent = "Guardando…";
-    const { d } = await pedirSrv(CTA_URL, p);
+    const { d, red } = await pedirSrv(CTA_URL, p);
     ok.disabled = false;
-    if(!d || d.error){ msg.textContent = "No se guardó: " + ((d && d.error) || "probá de nuevo."); return; }
+    // Sin respuesta pudo haber llegado igual: se vuelve a tocar Guardar en este
+    // mismo formulario (mismo idLocal) y no se anota dos veces.
+    if(!d || d.error){ msg.textContent = red
+      ? "No sé si llegó (" + ((d && d.error) || "sin conexión") + "). Tocá Guardar de nuevo: si ya había llegado, no se anota dos veces."
+      : "No se guardó: " + ((d && d.error) || "probá de nuevo."); return; }
     cerrar();
     toast(d.yaEstaba ? "Ya estaba anotado." : (TIPO_MOV[t] || "Movimiento") + " de " + fmt2(monto) + " anotado.");
     if(op.luego) op.luego();
@@ -8423,7 +8427,7 @@ async function pintarPlataCaja(forzar){
   const salio = movs.filter(m => !m.anulado && m.monto < 0).reduce((a, m) => a - m.monto, 0);
   document.getElementById("cajaPlataSub").textContent = suc ? "efectivo de " + nomSuc(suc) : "el efectivo de las tres";
   document.getElementById("cajaPlataTiles").innerHTML = cajas.length
-    ? tile("Efectivo en caja", plataTxt(cajas.reduce((a, c) => a + c.saldo, 0)), "lo que tiene que haber ahora") +
+    ? tile("Efectivo según lo anotado", plataTxt(cajas.reduce((a, c) => a + c.saldo, 0)), "lo del arranque más lo anotado; las ventas en efectivo todavía no suman") +
       tile("Gastos de hoy", fmt2(gastos), movs.filter(m => m.tipo === "gasto" && !m.anulado).length + " anotados") +
       tile("Salió de la caja hoy", fmt2(salio), "gastos, pagos, retiros y depósitos")
     : tile("Sin caja cargada", "—", PLATA.d.puedeTodo ? "Cargala en Gerencia → Cuentas y gastos" : "Pedile a gerencia que la cargue");
@@ -8480,7 +8484,7 @@ async function pintarCuentas(){
   document.getElementById("ctaTiles").innerHTML =
     tile("Gastos de hoy", desde <= d.hoy && d.hoy <= hasta ? fmt2(hoyGasto) : "—", suc ? nomSuc(suc) : "las tres razones sociales") +
     tile(CTA.per === "mes" ? "Gastos del mes" : "Gastos del período", fmt2(sumaPor(ps, suc)), nombre) +
-    tile("Plata en las cuentas", plataTxt(cuentas.filter(c => c.activa).reduce((a, c) => a + c.saldo, 0)), cuentas.filter(c => c.activa).length + " cuentas activas") +
+    tile("Plata en las cuentas", plataTxt(cuentas.filter(c => c.activa).reduce((a, c) => a + c.saldo, 0)), cuentas.filter(c => c.activa).length + " cuentas activas; las ventas todavía no suman") +
     tile("Pagos a proveedores", fmt2(sale("pago-proveedor")), nombre + "; no son gasto: la mercadería ya está en el costo") +
     tile("Retiros", fmt2(sale("retiro")), nombre);
   // Por día: las tres columnas siempre, para compararlas.
@@ -8515,7 +8519,8 @@ async function pintarCuentas(){
       : '<p class="nota" style="padding:4px 14px 10px;margin:0">Sin cuentas cargadas.</p>');
   }).join("");
   // Los movimientos del período.
-  document.getElementById("ctaMovSub").textContent = vivos.length + " " + nombre + (movs.length > vivos.length ? " (y " + (movs.length - vivos.length) + " anulados)" : "");
+  document.getElementById("ctaMovSub").textContent = vivos.length + " " + nombre + (movs.length > vivos.length ? " (y " + (movs.length - vivos.length) + " anulados)" : "") +
+    (d.truncado ? " · se ven los últimos 5.000 (los totales de arriba son de todos)" : "");
   document.getElementById("tbCtaMov").innerHTML = movs.length ? movs.map(filaMov).join("")
     : '<tr><td colspan="7" style="text-align:center;color:var(--ink-3);padding:18px">No hay movimientos ' + nombre + '.</td></tr>';
   document.getElementById("ctaRubrosLista").textContent = d.rubros.join(" · ");

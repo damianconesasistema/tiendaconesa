@@ -272,6 +272,14 @@ export function resumenGastos(
   return { porSucursal };
 }
 
+/** Si lo ya guardado con ese idLocal es el mismo pedido (misma cuenta de
+ *  origen, mismo tipo y mismo monto). Un reintento despues de cambiar el
+ *  formulario no tiene que devolver lo viejo como "ya estaba". */
+export function mismoPedido(guardados: readonly Movimiento[], p: PedidoMovimiento): boolean {
+  const o = guardados.find((m) => m.cuentaId === p.cuentaId);
+  return !!o && o.tipo === p.tipo && aCentavos(Math.abs(o.monto)) === aCentavos(p.monto);
+}
+
 /** Si ese usuario puede hacer ese movimiento. null = puede; si no, el motivo. */
 export function puedeMover(
   yo: { permisos: readonly string[]; sucursal: string | null },
@@ -285,6 +293,11 @@ export function puedeMover(
   if (origen.tipo !== "efectivo") return "Desde la caja solo se anota lo que sale o entra del efectivo.";
   if (yo.sucursal && origen.sucursal !== yo.sucursal) return "Esa caja es de otra sucursal.";
   if (pedido.reparto) return "Repartir un gasto entre razones sociales se hace desde Gerencia.";
+  // Lo que el formulario de Caja no ofrece tampoco se acepta a mano: otro dia
+  // cambiaria un mes ya cerrado y el cajero no lo veria ni podria anularlo.
+  if (pedido.fecha) return "Desde la caja se anota con la fecha de hoy. Otro día, desde Gerencia.";
+  if (pedido.tipo === "ajuste") return "Los ajustes se hacen desde Gerencia.";
+  if (pedido.iva > 0) return "El IVA de un gasto se carga desde Gerencia.";
   if (pedido.tipo === "transferencia" && (!destino || destino.sucursal !== origen.sucursal))
     return "Desde la caja solo se pasa plata a una cuenta de la misma sucursal.";
   return null;

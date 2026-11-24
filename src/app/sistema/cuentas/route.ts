@@ -8,6 +8,7 @@ import {
   hoyAR,
   leerRubros,
   listarCuentas,
+  listarGastos,
   listarMovimientos,
   movimientoPorId,
   todosLosMovimientosDe,
@@ -101,11 +102,14 @@ export async function GET(req: Request): Promise<Response> {
     const todas = await listarCuentas();
     const cuentas = visibles(yo, todas);
     const ids = cuentas.map((c) => c.id);
-    const [movimientos, deSiempre, rubros] = await Promise.all([
+    const [lista, deSiempre, rubros, gastos] = await Promise.all([
       listarMovimientos({ desdeDia: desde, hastaDia: hasta, cuentaIds: puedeTodo(yo) ? null : ids }),
       todosLosMovimientosDe(ids),
       leerRubros(),
+      // Los totales salen de todos los gastos, no de la lista (que tiene tope).
+      puedeTodo(yo) ? listarGastos(desde, hasta) : Promise.resolve([]),
     ]);
+    const { movimientos, truncado } = lista;
     return json({
       cuentas: cuentas.map((c) => ({ ...c, saldo: saldoDe(c, deSiempre) })),
       // El cajero deposita el efectivo en un banco de su sucursal: ve a donde
@@ -116,7 +120,8 @@ export async function GET(req: Request): Promise<Response> {
             .filter((c) => c.activa && c.tipo !== "efectivo" && (!yo.sucursal || c.sucursal === yo.sucursal))
             .map(({ id, sucursal, tipo, nombre, banco, clase, activa }) => ({ id, sucursal, tipo, nombre, banco, clase, activa })),
       movimientos,
-      resumen: puedeTodo(yo) ? resumenGastos(movimientos, todas, desde, hasta) : { porSucursal: {} },
+      truncado,
+      resumen: puedeTodo(yo) ? resumenGastos(gastos, todas, desde, hasta) : { porSucursal: {} },
       rubros,
       puedeTodo: puedeTodo(yo),
       sucursal: yo.sucursal,
@@ -154,6 +159,7 @@ export async function POST(req: Request): Promise<Response> {
       const no = puedeMover(yo, p, origen, destino);
       if (no) return json({ error: no });
       const r = await anotarMovimiento(p, origen, destino, quien);
+      if (typeof r === "string") return json({ error: r });
       if (!r.yaEstaba)
         await registrar(
           `Punto: anotó ${NOMBRE_TIPO[p.tipo] ?? "un movimiento"}`,
