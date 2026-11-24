@@ -537,6 +537,20 @@ td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500;
 
 /* ---------------------------------------------------------- tiles */
 .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(176px,1fr)); gap:12px; margin-bottom:16px}
+/* V.0.11.226: lo anulado se ve, tachado. */
+tr.mov-anulado td{color:var(--ink-3); text-decoration:line-through}
+tr.mov-anulado td:last-child{text-decoration:none}
+.mov-form{display:grid; grid-template-columns:1fr 1fr; gap:10px 12px}
+.mov-form label{display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-2)}
+.mov-form label.ancho{grid-column:1/-1}
+.mov-form input, .mov-form select{border:1px solid var(--line-2); border-radius:10px; padding:8px 10px; font-size:14px; font-weight:500;
+  text-transform:none; letter-spacing:0; color:var(--ink); background:var(--surface); font-family:var(--font-b)}
+.mov-form input:focus, .mov-form select:focus{border-color:var(--accent); outline:none}
+.mov-form [hidden]{display:none !important}
+.mov-reparto{display:flex; gap:10px; flex-wrap:wrap}
+.mov-reparto span{display:flex; align-items:center; gap:4px; font-size:13px; text-transform:none; letter-spacing:0; font-weight:600}
+.mov-reparto input{width:64px}
+@media (max-width:560px){ .mov-form{grid-template-columns:1fr} }
 .tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:13px 15px}
 .tile .k{font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--ink-3); font-weight:600}
 .tile .v{font-family:var(--font-d); font-size:28px; font-weight:700; line-height:1.05; margin-top:5px; font-variant-numeric:tabular-nums}
@@ -2582,6 +2596,15 @@ footer{
       </div>
     </div>
   </div>
+  <!-- V.0.11.226: la plata de la caja (Gerencia, parte 1: cuentas y gastos). -->
+  <div class="card" id="cajaPlata" style="margin-top:16px" hidden>
+    <div class="card-h"><h3>Plata de la caja</h3><span class="sub" id="cajaPlataSub"></span>
+      <button class="b1" type="button" id="btnAnotarMov" style="margin-left:auto;padding:7px 14px">Anotar movimiento</button></div>
+    <div class="tiles" id="cajaPlataTiles" style="padding:14px 14px 0"></div>
+    <div class="tabla-wrap"><table>
+      <thead><tr><th>Hora</th><th>Qué</th><th>Rubro y detalle</th><th>Cuenta</th><th>Quién</th><th class="r">Monto</th><th></th></tr></thead>
+      <tbody id="tbPlataCaja"></tbody></table></div>
+  </div>
 </section>
 
 <!-- ======================================================= GERENCIA -->
@@ -3462,7 +3485,7 @@ function abrirVista(v){
 function avisarVista(v){
   window.scrollTo({top:0,behavior:"instant"});
   if(v==="productos"){ pintarProd(); setTimeout(() => { try{ revisarBorradorAlta().catch(() => {}); }catch(e){} }, 0); }
-  if(v==="caja"){ pintarCaja(); traerPorCobrar(); }
+  if(v==="caja"){ pintarCaja(); traerPorCobrar(); pintarPlataCaja(true); }
   if(v==="comprobantes"){ traerPorCobrar(); traerPresuHoy(); }
   if(v==="gerencia") pintarGerencia();
   if(v==="renta") pintarRenta();
@@ -3642,6 +3665,7 @@ const ICO_EN = [
   ["fileText", '#btnPresu, #subPrv [data-g="listas"]'],
   ["send", '#btnCaja'],
   ["truck", '#btnOtraSuc'],
+  ["banknote", '#btnAnotarMov, #btnAnotarMovG'],
   ["more", '#btnMasAcc'],
   ["message", '#btnWhatsVta, [data-acc="whats"]'],
   ["download", '[data-acc="pdf"]'],
@@ -8115,6 +8139,7 @@ document.getElementById("cajaSucs").addEventListener("click",e=>{
   const b = e.target.closest("button[data-cs]"); if(!b) return;
   S.cajaSuc = b.dataset.cs;
   pintarCaja();
+  pintarPlataCaja(false);
 });
 
 function pintarCaja(){
@@ -8172,6 +8197,180 @@ function pintarCaja(){
 function tile(k,v,d,cls){
   return '<div class="tile'+(cls?" "+cls:"")+'"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="d">'+d+'</div></div>';
 }
+
+/* ============================== CUENTAS Y GASTOS (V.0.11.226)
+   Gerencia, parte 1. Damián: "en gerencia necesito que tenga un lugar donde
+   sea los gastos diarios y los gastos mensuales de cada sucursal"; "puede ser
+   efectivo, la caja de mercado pago, la caja de los bancos". Todo vive en el
+   servidor (/sistema/cuentas); acá solo se muestra y se manda. El cajero ve
+   el efectivo de su sucursal y lo de hoy; gerencia ("cuentas"), todo. */
+const CTA_URL = "/sistema/cuentas";
+const PLATA = { d:null, error:"", en:0 };
+const TIPO_MOV = { gasto:"Gasto", "pago-proveedor":"Pago a proveedor", retiro:"Retiro", cobranza:"Cobranza de cuenta corriente",
+  sena:"Seña", transferencia:"Pasar a otra cuenta", ajuste:"Ajuste" };
+const TIPO_CTA = { efectivo:"Efectivo", mercadopago:"Mercado Pago", banco:"Banco" };
+const nomSuc = id => (SUCURSALES.find(x => x.id === id) || {}).n || id;
+const cuentaPlata = id => ((PLATA.d && PLATA.d.cuentas) || []).concat((PLATA.d && PLATA.d.destinos) || []).find(c => c.id === id);
+const nombreCuenta = c => c ? (c.nombre + (c.tipo === "banco" && c.banco ? " · " + c.banco + (c.clase === "cc" ? " CC" : c.clase === "ca" ? " CA" : "") : "")) : "—";
+const idNuevo = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+  : Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+/** Lee /sistema/cuentas (hoy, o ese período si es gerencia). */
+async function traerPlata(desde, hasta){
+  const q = desde && hasta ? "?desde=" + encodeURIComponent(desde) + "&hasta=" + encodeURIComponent(hasta) : "";
+  const { d } = await pedirSrv(CTA_URL + q);
+  if(d && !d.error && Array.isArray(d.cuentas)){ PLATA.d = d; PLATA.error = ""; PLATA.en = Date.now(); }
+  else PLATA.error = (d && d.error) || "No pude leer las cuentas.";
+  return PLATA;
+}
+/** ¿Puede anular ese movimiento? Gerencia, todo; el cajero, lo suyo de hoy. */
+function puedeAnularMov(m){
+  if(!PLATA.d || m.anulado) return false;
+  if(PLATA.d.puedeTodo) return true;
+  const dia = new Date(Date.parse(m.fecha) - 3*3600e3).toISOString().slice(0, 10);
+  return m.usuario === soyYo() && dia === PLATA.d.hoy;
+}
+function filaMov(m){
+  const c = cuentaPlata(m.cuentaId);
+  const h = new Date(m.fecha);
+  const hora = h.toLocaleDateString("es-AR", { day:"2-digit", month:"2-digit", timeZone:"America/Argentina/Buenos_Aires" }) + " " +
+    h.toLocaleTimeString("es-AR", { hour:"2-digit", minute:"2-digit", timeZone:"America/Argentina/Buenos_Aires" });
+  const rep = m.reparto ? " · repartido " + Object.keys(m.reparto).map(k => nomSuc(k) + " " + m.reparto[k] + "%").join(", ") : "";
+  return '<tr' + (m.anulado ? ' class="mov-anulado" title="anulado"' : '') + '><td class="num">' + txt(hora) + '</td>' +
+    '<td>' + txt(TIPO_MOV[m.tipo] || m.tipo) + '</td>' +
+    '<td>' + txt([m.rubro, m.detalle].filter(Boolean).join(" · ")) + txt(rep) + '</td>' +
+    '<td>' + txt(nombreCuenta(c)) + (c ? ' <small style="color:var(--ink-3)">' + txt(nomSuc(c.sucursal)) + '</small>' : '') + '</td>' +
+    '<td>' + txt(m.usuario) + '</td>' +
+    '<td class="r" style="font-weight:600;color:' + (m.monto < 0 ? 'var(--bad)' : 'var(--ok)') + '">' + (m.monto < 0 ? "−" : "+") + fmt2(Math.abs(m.monto)) + '</td>' +
+    '<td>' + (m.anulado ? '<span class="pill p-n">anulado</span>' : puedeAnularMov(m) ? '<button class="b3" type="button" data-anular="' + atrib(m.id) + '" style="padding:3px 10px;font-size:12px">Anular</button>' : '') + '</td></tr>';
+}
+/** Anula (con el motivo) y vuelve a pintar. */
+async function anularMov(id, luego){
+  const motivo = (prompt("¿Por qué se anula este movimiento?") || "").trim();
+  if(!motivo) return;
+  const { d } = await pedirSrv(CTA_URL, { accion:"anular", id, motivo });
+  if(!d || d.error){ toast("No se anuló: " + ((d && d.error) || "probá de nuevo.")); return; }
+  toast("Anulado. Queda a la vista, tachado.");
+  if(luego) luego();
+}
+/** El formulario de un movimiento. op: { sucursal, soloEfectivo, luego } */
+function abrirMovimiento(op){
+  if(document.getElementById("movFondo") || !PLATA.d) return;
+  const todo = !!PLATA.d.puedeTodo;
+  const activas = PLATA.d.cuentas.filter(c => c.activa);
+  const origenes = activas.filter(c => !op.soloEfectivo || c.tipo === "efectivo");
+  if(!origenes.length){ toast(todo ? "Primero cargá una cuenta (Gerencia → Cuentas y gastos → Nueva cuenta)." : "Todavía no hay caja cargada: pedile a gerencia que la cargue."); return; }
+  const pre = origenes.find(c => c.tipo === "efectivo" && c.sucursal === op.sucursal) || origenes[0];
+  const idLocal = idNuevo();
+  const opc = (l, sel) => l.map(c => '<option value="' + atrib(c.id) + '"' + (c.id === sel ? " selected" : "") + '>' + txt(nomSuc(c.sucursal) + " · " + nombreCuenta(c)) + '</option>').join("");
+  const tipos = ["gasto","pago-proveedor","retiro","cobranza","sena","transferencia"].concat(todo ? ["ajuste"] : []);
+  const hoy = PLATA.d.hoy;
+  document.body.insertAdjacentHTML("beforeend",
+    '<div id="movFondo" style="position:fixed;inset:0;background:rgba(20,20,20,.38);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px">' +
+    '<div class="card" role="dialog" aria-modal="true" aria-labelledby="movTit" style="position:relative;max-width:560px;width:100%;padding:18px;max-height:92vh;overflow-y:auto">' +
+    '<button type="button" id="movX" class="cerrar-pop" aria-label="Cerrar" title="Cerrar" style="top:10px;right:10px">&times;</button>' +
+    '<h3 id="movTit" style="margin:0 40px 12px 0">Anotar movimiento de plata</h3>' +
+    '<div class="mov-form">' +
+      '<label>Qué es<select id="movTipo">' + tipos.map(t => '<option value="' + t + '">' + txt(t === "transferencia" ? (op.soloEfectivo ? "Depositar en el banco / pasar a otra cuenta" : "Pasar a otra cuenta") : TIPO_MOV[t]) + '</option>').join("") + '</select></label>' +
+      '<label>Monto<input id="movMonto" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></label>' +
+      '<label class="ancho">De qué cuenta<select id="movCuenta"' + (origenes.length < 2 ? " disabled" : "") + '>' + opc(origenes, pre.id) + '</select></label>' +
+      '<label class="ancho" id="movDestinoEt" hidden>A qué cuenta<select id="movDestino"></select></label>' +
+      '<label id="movSentidoEt" hidden>La plata<select id="movSentido"><option value="sale">Sale</option><option value="entra">Entra</option></select></label>' +
+      '<label id="movRubroEt">Rubro<select id="movRubro">' + PLATA.d.rubros.map(r => '<option>' + txt(r) + '</option>').join("") + '</select></label>' +
+      (todo ? '<label id="movFechaEt">Día<input id="movFecha" type="date" value="' + hoy + '" max="' + hoy + '"></label>' : '') +
+      '<label class="ancho">Detalle<input id="movDetalle" type="text" maxlength="200" autocomplete="off" placeholder="Ej.: nafta para la camioneta"></label>' +
+      (todo ? '<label id="movIvaEt">IVA incluido (si hay factura A)<input id="movIva" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></label>' +
+        '<label class="ancho" id="movRepEt"><span style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13.5px"><input type="checkbox" id="movRepartir" style="width:auto"> Repartir entre razones sociales</span>' +
+        '<span class="mov-reparto" id="movReparto" hidden>' + SUCURSALES.map(x => '<span>' + txt(x.n) + ' <input type="number" min="0" max="100" step="1" data-rep="' + x.id + '" value="' + (x.id === "srl" || x.id === "cnc" ? 50 : 0) + '">%</span>').join("") + '</span></label>' : '') +
+    '</div>' +
+    '<p class="nota" id="movMsg" style="margin:10px 0 0;min-height:1.2em"></p>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px">' +
+      '<button class="b3" type="button" id="movNo">Cancelar</button>' +
+      '<button class="b1" type="button" id="movOk">Guardar</button></div>' +
+    '</div></div>');
+  const g = id => document.getElementById(id);
+  const fondo = g("movFondo"), msg = g("movMsg"), ok = g("movOk");
+  const pintar = () => {
+    const t = g("movTipo").value, o = cuentaPlata(g("movCuenta").value);
+    g("movRubroEt").hidden = t !== "gasto";
+    g("movSentidoEt").hidden = t !== "ajuste";
+    if(g("movIvaEt")) g("movIvaEt").hidden = t !== "gasto";
+    if(g("movRepEt")) g("movRepEt").hidden = t !== "gasto";
+    g("movDestinoEt").hidden = t !== "transferencia";
+    if(t === "transferencia"){
+      // El cajero no ve los bancos con su saldo: le llegan aparte, solo el nombre (destinos).
+      const dest = activas.concat((PLATA.d.destinos || []).filter(c => c.activa)).filter(c => o && c.id !== o.id && (todo || c.sucursal === o.sucursal));
+      const antes = g("movDestino").value;
+      g("movDestino").innerHTML = opc(dest, antes || ((dest.find(c => c.tipo === "banco") || dest[0] || {}).id));
+    }
+  };
+  pintar();
+  g("movTipo").addEventListener("change", pintar);
+  g("movCuenta").addEventListener("change", pintar);
+  if(g("movRepartir")) g("movRepartir").addEventListener("change", e => { g("movReparto").hidden = !e.target.checked; });
+  setTimeout(() => g("movMonto").focus(), 30);
+  const cerrar = () => { fondo.remove(); document.removeEventListener("keydown", tecla, true); };
+  const tecla = e => { if(e.key === "Escape"){ e.stopPropagation(); cerrar(); } };
+  document.addEventListener("keydown", tecla, true);
+  g("movNo").addEventListener("click", cerrar);
+  g("movX").addEventListener("click", cerrar);
+  ok.addEventListener("click", async () => {
+    const t = g("movTipo").value;
+    const monto = aNum(g("movMonto").value);
+    if(!(monto > 0)){ msg.textContent = "Poné el monto."; g("movMonto").focus(); return; }
+    const p = { accion:"movimiento", idLocal, tipo:t, cuentaId:g("movCuenta").value, monto, detalle:g("movDetalle").value };
+    if(t === "gasto") p.rubro = g("movRubro").value;
+    if(t === "transferencia"){ p.cuentaDestinoId = g("movDestino").value; if(!p.cuentaDestinoId){ msg.textContent = "No hay otra cuenta a dónde pasarla."; return; } }
+    if(t === "ajuste") p.sentido = g("movSentido").value;
+    if(t === "gasto" && g("movIva")){ const iva = aNum(g("movIva").value); if(iva > 0) p.iva = iva; }
+    if(t === "gasto" && g("movRepartir") && g("movRepartir").checked){
+      const r = {}; let suma = 0;
+      for(const x of document.querySelectorAll("#movReparto [data-rep]")){ const v = Math.round(+x.value || 0); if(v > 0){ r[x.dataset.rep] = v; suma += v; } }
+      if(suma !== 100){ msg.textContent = "El reparto tiene que sumar 100% (ahora suma " + suma + "%)."; return; }
+      p.reparto = r;
+    }
+    const f = g("movFecha");
+    if(f && f.value && f.value !== hoy) p.fecha = f.value + "T15:00:00.000Z";   // las 12 del mediodía de ese día
+    ok.disabled = true; msg.textContent = "Guardando…";
+    const { d } = await pedirSrv(CTA_URL, p);
+    ok.disabled = false;
+    if(!d || d.error){ msg.textContent = "No se guardó: " + ((d && d.error) || "probá de nuevo."); return; }
+    cerrar();
+    toast(d.yaEstaba ? "Ya estaba anotado." : (TIPO_MOV[t] || "Movimiento") + " de " + fmt2(monto) + " anotado.");
+    if(op.luego) op.luego();
+  });
+}
+
+/* La plata de la caja: el efectivo de la sucursal elegida, lo de hoy. */
+async function pintarPlataCaja(forzar){
+  const card = document.getElementById("cajaPlata"); if(!card) return;
+  if(forzar || !PLATA.d || Date.now() - PLATA.en > 5000) await traerPlata();
+  if(PLATA.error || !PLATA.d){ card.hidden = true; return; }
+  card.hidden = false;
+  const suc = S.cajaSuc || "";
+  const cajas = PLATA.d.cuentas.filter(c => c.tipo === "efectivo" && c.activa && (!suc || c.sucursal === suc));
+  const ids = new Set(cajas.map(c => c.id));
+  const hoy = PLATA.d.hoy;
+  const diaDe = m => new Date(Date.parse(m.fecha) - 3*3600e3).toISOString().slice(0, 10);
+  const movs = PLATA.d.movimientos.filter(m => ids.has(m.cuentaId) && diaDe(m) === hoy);
+  const gastos = movs.filter(m => m.tipo === "gasto" && !m.anulado).reduce((a, m) => a - m.monto, 0);
+  const salio = movs.filter(m => !m.anulado && m.monto < 0).reduce((a, m) => a - m.monto, 0);
+  document.getElementById("cajaPlataSub").textContent = suc ? "efectivo de " + nomSuc(suc) : "el efectivo de las tres";
+  document.getElementById("cajaPlataTiles").innerHTML = cajas.length
+    ? tile("Efectivo en caja", fmt2(cajas.reduce((a, c) => a + c.saldo, 0)), "lo que tiene que haber ahora") +
+      tile("Gastos de hoy", fmt2(gastos), movs.filter(m => m.tipo === "gasto" && !m.anulado).length + " anotados") +
+      tile("Salió de la caja hoy", fmt2(salio), "gastos, pagos, retiros y depósitos")
+    : tile("Sin caja cargada", "—", PLATA.d.puedeTodo ? "Cargala en Gerencia → Cuentas y gastos" : "Pedile a gerencia que la cargue");
+  document.getElementById("tbPlataCaja").innerHTML = movs.length ? movs.map(filaMov).join("")
+    : '<tr><td colspan="7" style="text-align:center;color:var(--ink-3);padding:18px">Hoy no se anotó nada' + (cajas.length ? "" : " (todavía no hay caja cargada)") + '.</td></tr>';
+}
+document.getElementById("btnAnotarMov").addEventListener("click", async () => {
+  await traerPlata();
+  if(PLATA.error){ toast(PLATA.error); return; }
+  abrirMovimiento({ sucursal: S.cajaSuc || PLATA.d.sucursal || S.suc, soloEfectivo: true, luego: () => pintarPlataCaja(true) });
+});
+document.getElementById("tbPlataCaja").addEventListener("click", e => {
+  const b = e.target.closest("[data-anular]"); if(b) anularMov(b.dataset.anular, () => pintarPlataCaja(true));
+});
 
 /* =================================================== GERENCIA */
 function pintarGerencia(){

@@ -29,7 +29,7 @@ import { quienEntra } from "../clave";
 // y gastos; docs/superpowers/specs/2026-11-24-gerencia-cuentas-gastos-design.md).
 //
 // GET ?desde=YYYY-MM-DD&hasta=YYYY-MM-DD -> {cuentas (con saldo), movimientos,
-//   resumen, rubros, puedeTodo, hoy}.
+//   resumen, rubros, puedeTodo, hoy, destinos}.
 //   - Con el permiso "cuentas" (gerencia): todas las cuentas y el periodo
 //     pedido.
 //   - Con "caja" sin "cuentas" (el cajero): solo el efectivo de su sucursal
@@ -108,6 +108,13 @@ export async function GET(req: Request): Promise<Response> {
     ]);
     return json({
       cuentas: cuentas.map((c) => ({ ...c, saldo: saldoDe(c, deSiempre) })),
+      // El cajero deposita el efectivo en un banco de su sucursal: ve a donde
+      // puede pasarlo (solo el nombre, sin saldo ni saldo inicial).
+      destinos: puedeTodo(yo)
+        ? []
+        : todas
+            .filter((c) => c.activa && c.tipo !== "efectivo" && (!yo.sucursal || c.sucursal === yo.sucursal))
+            .map(({ id, sucursal, tipo, nombre, banco, clase, activa }) => ({ id, sucursal, tipo, nombre, banco, clase, activa })),
       movimientos,
       resumen: puedeTodo(yo) ? resumenGastos(movimientos, todas, desde, hasta) : { porSucursal: {} },
       rubros,
