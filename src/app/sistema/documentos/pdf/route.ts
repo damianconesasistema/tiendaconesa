@@ -19,16 +19,22 @@ function json(cuerpo: unknown, status = 200): Response {
 
 export async function GET(req: Request): Promise<Response> {
   if ((await quienEntra()) !== "ok") return json({ error: "Se cerró tu sesión: entrá de nuevo con tu usuario." }, 401);
-  const id = new URL(req.url).searchParams.get("id") ?? "";
+  const u = new URL(req.url);
+  const id = u.searchParams.get("id") ?? "";
+  // ?remito=1 (V.0.11.229): el remito de esa venta, sin precios, para firmar.
+  // Solo de lo que es una venta (no de un presupuesto ni de una nota).
+  const remito = u.searchParams.get("remito") === "1";
   try {
     const d = await documentoPorId(id);
     if (!d) return json({ error: "No encontré ese comprobante." });
-    const pdf = await generarPdfPunto(d, await emisorDe(d.sucursal));
+    if (remito && !["factura", "sin-comprobante", "pedido-interno", "remito"].includes(d.tipo))
+      return json({ error: "El remito sale de una venta: una factura, un recibo X o un pedido interno." });
+    const pdf = await generarPdfPunto(d, await emisorDe(d.sucursal), { remito });
     return new Response(new Uint8Array(pdf), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${nombreArchivo(d)}"`,
+        "Content-Disposition": `attachment; filename="${remito ? "remito-" : ""}${nombreArchivo(d)}"`,
         "Cache-Control": "private, no-store, max-age=0",
         "X-Robots-Tag": "noindex, nofollow, noarchive",
       },

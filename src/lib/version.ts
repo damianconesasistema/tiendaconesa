@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.228";
+export const APP_VERSION = "V.0.11.229";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.229",
+    date: "2026-11-24",
+    changes: [
+      "Punto, cobrar: sin el aviso de arriba (\"el cartel sacalo\"); \"Entregar sin comprobante\" pasa a ser \"Emitir Recibo X\" (\"tiene que ser un Recibo X\"): el PDF sale como RECIBO con la caja X no fiscal, y en las listas dice Recibo X.",
+      "Punto, Comprobantes: botón Remito en cada venta (factura, recibo X, pedido interno; \"falta la posibilidad de hacer REMITO\"): imprime el remito de esa venta con los mismos artículos y cantidades, sin precios, el total de unidades y \"Recibí conforme\" (firma, aclaración, DNI, fecha). No es otro comprobante: no tiene número propio ni mueve stock.",
+    ],
+  },
   {
     version: "V.0.11.228",
     date: "2026-11-24",

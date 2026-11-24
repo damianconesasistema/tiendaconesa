@@ -1539,7 +1539,7 @@ footer{
       <div class="tk-acc acc-arriba" id="vtaAcc">
         <button class="b1" id="btnGuardarEd" type="button" hidden>Guardar cambios</button>
         <button class="b1" id="btnFactura" hidden>Emitir factura</button>
-        <button class="b2" id="btnSinFacturaC" type="button" hidden>Entregar sin comprobante</button>
+        <button class="b2" id="btnSinFacturaC" type="button" hidden title="Sin factura: sale un Recibo X, no fiscal">Emitir Recibo X</button>
         <button class="b2" id="btnPedInt" type="button" hidden title="Sin factura: queda anotado como pedido interno y pasa a preparación">Cerrar como pedido interno</button>
         <button class="b1 suave" id="btnPresu">Emitir presupuesto</button>
         <button class="b1" id="btnCaja" title="Va a la caja de la sucursal donde estás (Caja → Por cobrar): lo cobra el cajero.">CONFIRMAR PEDIDO</button>
@@ -1553,7 +1553,7 @@ footer{
         <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
         <button class="b3" id="btnMasAcc" aria-expanded="false" hidden>Otras opciones</button>
         <div id="masAcc" hidden>
-          <button class="b2" id="btnSinFactura">Entregar sin comprobante</button>
+          <button class="b2" id="btnSinFactura">Emitir Recibo X</button>
           <p class="nota" style="padding:4px 0 0">La venta sin comprobante queda anotada igual, marcada como tal: no hay un segundo libro.</p>
         </div>
       </div>
@@ -3722,7 +3722,7 @@ const ICO_EN = [
   ["clipboard", '#btnPedInt'],
   ["fileText", '#btnPresu, #subPrv [data-g="listas"]'],
   ["send", '#btnCaja'],
-  ["truck", '#btnOtraSuc'],
+  ["truck", '#btnOtraSuc, [data-acc="remito"]'],
   ["banknote", '#btnAnotarMov, #btnAnotarMovG'],
   ["more", '#btnMasAcc'],
   ["message", '#btnWhatsVta, [data-acc="whats"], [data-wa-presu]'],
@@ -3767,7 +3767,7 @@ const CP_ACC = [
   ["nuevo", "Nuevo comprobante", "filePlus"],
   ["", "Todo", "layers"],
   ["factura", "Facturas", "receipt"],
-  ["sin-comprobante", "Sin comprobante", "package"],
+  ["sin-comprobante", "Recibo X", "package"],
   ["remito", "Remitos", "truck"],
   ["pedido-interno", "Pedidos internos", "clipboard"],
   ["presupuesto", "Presupuestos", "fileText"],
@@ -10325,7 +10325,7 @@ function repintarInformes(){
 /* ------------------------------------------------ COMPROBANTES (la vista) */
 const CP = { docs:[], hayMas:false, cargando:false, error:"", abierto:null, pedido:0 };
 const NOMBRE_TIPO = { "presupuesto":"Presupuesto", "factura":"Factura", "remito":"Remito",
-                      "pedido-interno":"Pedido interno", "sin-comprobante":"Sin comprobante",
+                      "pedido-interno":"Pedido interno", "sin-comprobante":"Recibo X",
                       "nota-credito":"Nota de crédito", "nota-debito":"Nota de débito" };
 
 document.getElementById("cpSuc").innerHTML = '<option value="">Las tres sucursales</option>' +
@@ -10463,6 +10463,7 @@ function clicCp(e){
     if(a === "pdf") traerPdf(d, acc, false);
     if(a === "whats") mandarPorWhats(d);
     if(a === "imprimir") traerPdf(d, acc, true);
+    if(a === "remito") traerPdf(d, acc, true, true);
     if(a === "eliminar") eliminarDoc(d, acc, false);
     if(a === "recuperar") eliminarDoc(d, acc, true);
     if(a === "despachar") despacharDoc(d, acc, false);
@@ -10510,6 +10511,9 @@ function accionesCp(d, vendido){
       '<button class="b2" type="button" data-pasar="' + id + '">Pasar a venta</button>' : "") +
     bt("pdf", "PDF", "b2", "Bajar el PDF") + whats +
     bt("imprimir", "Imprimir", "b2") +
+    // V.0.11.229: el remito de la venta, sin precios ("falta la posibilidad de hacer REMITO").
+    (["factura", "sin-comprobante", "pedido-interno"].indexOf(d.tipo) >= 0
+      ? bt("remito", "Remito", "b2", "Imprime el remito de esta venta, sin precios, para que firme el que recibe") : "") +
     (d.tipo === "presupuesto" && puede("venta") ? bt("actualizar", "Precios de hoy", "b2", "Hace un presupuesto nuevo con los precios de hoy; este queda como está") : "") +
     (d.tipo !== "presupuesto" && d.tipo !== "nota-credito" && d.tipo !== "nota-debito" && puede("despachar")
       ? ((d.datos || {}).despacho
@@ -10645,12 +10649,12 @@ const nombrePdf = d => (nombreDoc(d) + " " + numeroCorto(d)).normalize("NFD").re
   .replace(/[^A-Za-z0-9 _.-]/g, "").trim().replace(/\\s+/g, "-") + ".pdf";
 
 /** Baja el PDF que arma el servidor, o lo manda a la impresora. */
-async function traerPdf(d, boton, imprimir){
+async function traerPdf(d, boton, imprimir, remito){
   if(boton) boton.disabled = true;
   try{
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 30000);
-    const r = await fetch(DOCS_URL + "/pdf?id=" + encodeURIComponent(d.id),
+    const r = await fetch(DOCS_URL + "/pdf?id=" + encodeURIComponent(d.id) + (remito ? "&remito=1" : ""),
       { cache:"no-store", credentials:"same-origin", signal:ctl.signal });
     clearTimeout(t);
     if(r.status === 401){ toast("Se cerró tu sesión: entrá de nuevo con tu usuario."); return; }
@@ -13424,17 +13428,12 @@ function pintarCajaTicket(){
   if(vs) vs.disabled = !!VSRV.caja || !!sucursalFija();
   const e = document.getElementById("tkCaja"); if(!e) return;
   aplicarCobrar();
-  if(!VSRV.caja && S.cobrarPresu){
-    e.innerHTML = '<div class="aviso" style="margin:0 14px 10px"><span>$</span><div>' +
-      '<b>Cobrando el presupuesto ' + txt(S.cobrarPresu.nro) + '</b>, a precio de hoy. Ya viene elegida la factura que le toca al cliente (A si es responsable inscripto con CUIT, B si no); también podés entregarlo sin comprobante o cerrarlo como pedido interno.' +
-      '<div style="margin-top:8px"><button class="b3" id="btnNoCobrarPresu" type="button" style="padding:5px 12px;font-size:12.5px">No cobrar ahora</button></div>' +
-      '</div></div>';
-    return;
-  }
+  // V.0.11.229: sin aviso ("el cartel sacalo"): la factura ya viene elegida.
+  if(!VSRV.caja && S.cobrarPresu){ e.innerHTML = ""; return; }
   if(!VSRV.caja){ e.innerHTML = ""; return; }
   const v = txt(VSRV.caja.vendedor || "el vendedor");
   e.innerHTML = '<div class="aviso" style="margin:0 14px 10px"><span>$</span><div>' +
-    '<b>Cobrando la venta de ' + v + '</b> · caja de ' + txt(sucDe(VSRV.caja.suc || S.suc).n) + '. Emití la factura, entregalo sin comprobante o cerralo como pedido interno; después pasa a preparación. ' +
+    '<b>Cobrando la venta de ' + v + '</b> · caja de ' + txt(sucDe(VSRV.caja.suc || S.suc).n) + '. Emití la factura o el Recibo X, o cerralo como pedido interno; después pasa a preparación. ' +
     'el comprobante sale a nombre de ' + v + '.' +
     '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
     '<button class="b3" id="btnSoltar" type="button" style="padding:5px 12px;font-size:12.5px">Devolver a la caja sin cobrar</button>' +

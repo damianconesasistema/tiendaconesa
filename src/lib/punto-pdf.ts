@@ -100,7 +100,9 @@ const TITULO: Record<string, string> = {
   factura: "Factura",
   remito: "Remito",
   "pedido-interno": "Pedido interno",
-  "sin-comprobante": "Venta sin comprobante",
+  // V.0.11.229 (Damian: "entregar sin comprobante no pongas eso, tiene que
+  // ser un recibo X"): el papel de lo vendido sin factura es un Recibo X.
+  "sin-comprobante": "Recibo",
   "nota-credito": "Nota de crédito",
   "nota-debito": "Nota de débito",
 };
@@ -156,7 +158,10 @@ const num = (v: unknown) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Promise<Buffer> {
+/** remito (V.0.11.229): el remito de esa venta, para que firme el que recibe:
+ *  los mismos articulos y cantidades, sin precios. No es otro comprobante (no
+ *  tiene numero propio ni mueve stock: eso ya lo hizo la venta). */
+export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opciones: { remito?: boolean } = {}): Promise<Buffer> {
   const dt = (d.datos && typeof d.datos === "object" ? d.datos : {}) as Datos;
   const renglones = Array.isArray(dt.renglones) ? dt.renglones : [];
   const cli = dt.cliente ?? {};
@@ -176,10 +181,15 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   const der = W - M;
   const anchoUtil = W - M * 2;
   // Las notas de credito y de debito (V.0.99.96) van como la factura: internas, sin CAE.
-  const arca = arcaDe(d.datos);
+  // Damian, 24/11/2026: "falta la posibilidad de hacer REMITO, no la veo en
+  // cada comprobante". El remito es no fiscal aunque la venta tenga CAE.
+  const remito = !!opciones.remito;
+  const arca = remito ? null : arcaDe(d.datos);
   // Interna = sin CAE. La que autorizo ARCA (V.0.99.98) es la de verdad.
-  const esFactura = (d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito") && !arca;
-  const letra = d.letra || "";
+  const esFactura = (d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito") && !arca && !remito;
+  // El Recibo X (lo vendido sin factura, V.0.11.229) lleva la caja de la X
+  // como el presupuesto: no fiscal.
+  const letra = remito ? "X" : d.letra || (d.tipo === "sin-comprobante" ? "X" : "");
   // La Factura A con CAE: los renglones sin IVA y el IVA discriminado abajo.
   const sinIva = !!arca && letra === "A";
 
@@ -233,12 +243,20 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     .fillColor(NEGRO)
     .font("Helvetica-Bold")
     .fontSize(15)
-    .text(tituloDe(d).toUpperCase(), dx, tope + 14, { width: der - dx - 10 });
+    .text(remito ? "REMITO" : tituloDe(d).toUpperCase(), dx, tope + 14, { width: der - dx - 10 });
   doc
     .font("Helvetica")
     .fontSize(9.5)
     .fillColor(NEGRO)
-    .text(d.letra ? `Nº ${numeroDe(d)}` : `Pedido P-${d.pedido}`, dx, tope + 36)
+    .text(
+      remito
+        ? `De ${tituloDe(d)} ${d.letra ? numeroDe(d) : `P-${d.pedido}`}`
+        : d.letra
+          ? `Nº ${numeroDe(d)}`
+          : `Pedido P-${d.pedido}`,
+      dx,
+      tope + 36,
+    )
     .fillColor(GRIS)
     .fontSize(8)
     .text(`Fecha: ${fecha(d.createdAt)} · ${hora(d.createdAt)}`, dx, tope + 52)
@@ -325,7 +343,7 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   // V.0.11.227: con descuento, cada renglon lo lleva puesto ("el descuento
   // que lo haga por item"): el precio de lista, el precio con el descuento y
   // el importe con el descuento. Abajo, el total.
-  const pctDto = num(dt.desc) > 0 && num(dt.descuento) > 0.004 ? num(dt.desc) : 0;
+  const pctDto = !remito && num(dt.desc) > 0 && num(dt.descuento) > 0.004 ? num(dt.desc) : 0;
   const porItem = pctDto > 0;
   const anchoTot = porItem ? 78 : 85;
   const anchoUnit = porItem ? 70 : 80;
@@ -334,7 +352,8 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
   const col = {
     cod: M + 10,
     desc: M + 92,
-    cant: der - anchoTot - anchoDto - anchoUnit - anchoCant - (porItem ? 20 : 15),
+    // El remito: sin precios, la cantidad a la derecha de todo.
+    cant: remito ? der - 70 : der - anchoTot - anchoDto - anchoUnit - anchoCant - (porItem ? 20 : 15),
     unit: der - anchoTot - anchoDto - anchoUnit - (porItem ? 15 : 10),
     dto: der - anchoTot - anchoDto - 10,
     tot: der - anchoTot - 8,
@@ -348,6 +367,10 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
     doc.text("CÓDIGO", col.cod, y + 7, { width: 78 });
     doc.text("DESCRIPCIÓN", col.desc, y + 7, { width: anchoDesc });
     doc.text("CANT.", col.cant, y + 7, { width: anchoCant, align: "right" });
+    if (remito) {
+      y += 20;
+      return;
+    }
     if (porItem) {
       const pctTxt = String(pctDto).replace(".", ",") + "%";
       doc.text(sinIva ? "LISTA S/IVA" : "P. LISTA", col.unit, y + 7, { width: anchoUnit, align: "right" });
@@ -406,15 +429,46 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
       .text(String(r.cod ?? ""), col.cod, y + 5, { width: 78, lineBreak: false, ellipsis: true });
     doc.fillColor(NEGRO).fontSize(8).text(tit, col.desc, y + 4, { width: anchoDesc });
     doc.text(String(cant), col.cant, y + 4, { width: anchoCant, align: "right" });
-    doc.text(pesos(unit), col.unit, y + 4, { width: anchoUnit, align: "right" });
-    if (porItem)
-      doc.text(pesos(Math.round(unit * (1 - pctDto / 100) * 100) / 100), col.dto, y + 4, { width: anchoDto, align: "right" });
-    doc.text(pesos(importe), col.tot, y + 4, { width: anchoTot, align: "right" });
+    if (!remito) {
+      doc.text(pesos(unit), col.unit, y + 4, { width: anchoUnit, align: "right" });
+      if (porItem)
+        doc.text(pesos(Math.round(unit * (1 - pctDto / 100) * 100) / 100), col.dto, y + 4, { width: anchoDto, align: "right" });
+      doc.text(pesos(importe), col.tot, y + 4, { width: anchoTot, align: "right" });
+    }
     y += alto;
     doc.moveTo(M, y).lineTo(der, y).strokeColor("#EEEEEE").lineWidth(0.5).stroke();
   }
 
+  // ------------------------------------------- EL REMITO: UNIDADES Y FIRMA
+  if (remito) {
+    const unidades = renglones.reduce((a, r) => a + num(r.cant), 0);
+    if (y + 130 > PIE) otraHoja();
+    y += 12;
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(10)
+      .fillColor(NEGRO)
+      .text(`${unidades} ${unidades === 1 ? "unidad" : "unidades"} en ${renglones.length} ${renglones.length === 1 ? "renglón" : "renglones"}`, M, y, {
+        width: anchoUtil,
+        align: "right",
+      });
+    y += 30;
+    doc.rect(M, y, anchoUtil, 86).strokeColor(BORDE).lineWidth(1).stroke();
+    doc.font("Helvetica-Bold").fontSize(9).fillColor(NEGRO).text("RECIBÍ CONFORME", M + 12, y + 10);
+    const linea = (x: number, ancho: number, etq: string) => {
+      doc.moveTo(x, y + 62).lineTo(x + ancho, y + 62).strokeColor(GRIS).lineWidth(0.6).stroke();
+      doc.font("Helvetica").fontSize(7.5).fillColor(GRIS).text(etq, x, y + 66, { width: ancho, align: "center" });
+    };
+    const ancho = (anchoUtil - 24 - 30) / 4;
+    linea(M + 12, ancho, "Firma");
+    linea(M + 12 + (ancho + 10), ancho, "Aclaración");
+    linea(M + 12 + (ancho + 10) * 2, ancho, "DNI");
+    linea(M + 12 + (ancho + 10) * 3, ancho, "Fecha");
+    y += 96;
+  }
+
   // ----------------------------------------------------------------- TOTALES
+  if (!remito) {
   // Los precios de los renglones son los de contado. Abajo, lo que los
   // lleva al total: el descuento y el recargo de la forma de pago.
   // En la A, el subtotal sin IVA y el ajuste solo si hubo descuento o recargo
@@ -474,6 +528,8 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor): Pro
       .fillColor(NEGRO)
       .text(valor, tx + 130, y, { width: 100, align: "right" });
     y += fuerte ? 20 : 14;
+  }
+
   }
 
   // --------------------------------------------------------- CAE Y QR (ARCA)
