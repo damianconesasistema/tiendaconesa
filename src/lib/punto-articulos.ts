@@ -1,5 +1,14 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import {
+  type CambioExcel,
+  type ColumnasProveedor,
+  type FotoArticulo,
+  aplicarAlArticulo,
+  fotoDe,
+  igualPlata,
+  mismaFoto,
+} from "@/lib/punto-cambios-excel";
 
 // Los articulos de verdad del sistema Punto: los que se traen del Excel que
 // exporta GlobalBluePoint (codigo, descripcion, costo, Lista 1, Lista 2,
@@ -719,4 +728,204 @@ export async function moverStockEnTx(
     BA: Number(articulos[i].stockBA) || 0,
     TS: Number(articulos[i].stockTS) || 0,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// V.0.11.258: cambios de precios por Excel (el de Articulos de Punto editado,
+// o la lista de un proveedor). Las reglas: src/lib/punto-cambios-excel.ts.
+// Solo para los que YA estan (nunca crea); cada cambio trae lo que se vio y,
+// si otro lo cambio en el medio, no se pisa. Lo de antes queda en el
+// historial (las ultimas subidas) para poder deshacer.
+
+/** El historial de las subidas y las columnas de la lista de cada
+ *  proveedor (otro renglon de Setting: el de los articulos ya es grande). */
+export const CLAVE_CAMBIOS = "punto.articulos.cambios";
+const HISTORIAL_MAXIMO = 6;
+
+export type RenglonHistorial = { cod: string; antes: FotoArticulo; despues: FotoArticulo };
+export type SubidaHistorial = {
+  id: string;
+  fecha: string;
+  por: string;
+  /** "excel" (el de Articulos de Punto) | "proveedor" (su lista). */
+  origen: "excel" | "proveedor";
+  marca: string;
+  archivo: string;
+  n: number;
+  deshecho?: { fecha: string; por: string; n: number };
+  renglones: RenglonHistorial[];
+};
+type GuardadoCambios = { historial: SubidaHistorial[]; columnas: Record<string, ColumnasProveedor> };
+
+async function leerCambios(db: Pick<Prisma.TransactionClient, "setting">): Promise<GuardadoCambios> {
+  const fila = await db.setting.findUnique({ where: { key: CLAVE_CAMBIOS } });
+  try {
+    const d = fila ? (JSON.parse(fila.value) as Partial<GuardadoCambios>) : {};
+    return {
+      historial: Array.isArray(d.historial) ? d.historial : [],
+      columnas: d.columnas && typeof d.columnas === "object" ? d.columnas : {},
+    };
+  } catch {
+    return { historial: [], columnas: {} };
+  }
+}
+async function escribirCambios(db: Pick<Prisma.TransactionClient, "setting">, g: GuardadoCambios): Promise<void> {
+  const value = JSON.stringify(g);
+  await db.setting.upsert({ where: { key: CLAVE_CAMBIOS }, update: { value }, create: { key: CLAVE_CAMBIOS, value } });
+}
+/** Uno a la vez con el historial (hasta el COMMIT). */
+async function bloquearCambios(tx: Prisma.TransactionClient): Promise<void> {
+  await tx.$queryRaw`SELECT 1 AS "ok" FROM pg_advisory_xact_lock(hashtext(${CLAVE_CAMBIOS}))`;
+}
+
+/** Una subida sin sus renglones (para la pantalla). */
+const sinRenglones = (s: SubidaHistorial): Omit<SubidaHistorial, "renglones"> => ({
+  id: s.id, fecha: s.fecha, por: s.por, origen: s.origen, marca: s.marca, archivo: s.archivo, n: s.n,
+  ...(s.deshecho ? { deshecho: s.deshecho } : {}),
+});
+
+/** Las ultimas subidas (sin los renglones) y las columnas guardadas. */
+export async function leerHistorialCambios(): Promise<{
+  historial: Omit<SubidaHistorial, "renglones">[];
+  columnas: Record<string, ColumnasProveedor>;
+}> {
+  const g = await leerCambios(prisma);
+  return { historial: g.historial.map(sinRenglones), columnas: g.columnas };
+}
+
+/** Guarda las columnas de la lista de un proveedor (por marca). */
+export async function guardarColumnasProveedor(marca: string, c: ColumnasProveedor): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await bloquearCambios(tx);
+    const g = await leerCambios(tx);
+    g.columnas[marca] = c;
+    await escribirCambios(tx, g);
+  });
+}
+
+export type ResultadoCambios = {
+  id: string;
+  actualizados: number;
+  /** Codigos que no estan cargados: no se crean. */
+  noEstan: string[];
+  /** Cambiaron en el servidor despues de armar la revision: no se pisan. */
+  cambiados: string[];
+  /** No se pudieron poner (en dolares, combo, demasiados descuentos...). */
+  malos: { cod: string; motivo: string }[];
+};
+
+/** Pone los cambios en los articulos que ya estan, en una sola transaccion,
+ *  y anota la subida en el historial. */
+export async function aplicarCambiosExcel(
+  cambios: CambioExcel[],
+  info: { origen: "excel" | "proveedor"; marca: string; archivo: string; columnas: ColumnasProveedor | null },
+  por: string,
+): Promise<ResultadoCambios> {
+  return prisma.$transaction(async (tx) => {
+    await bloquearArticulos(tx);
+    await bloquearCambios(tx);
+    const c = await leerCrudo(tx);
+    const articulos: ArticuloPunto[] = c && Array.isArray(c.d.articulos) ? (c.d.articulos as ArticuloPunto[]) : [];
+    const porCodigo = new Map(articulos.map((a, i) => [a.cod, i]));
+    const r: ResultadoCambios = { id: "", actualizados: 0, noEstan: [], cambiados: [], malos: [] };
+    const renglones: RenglonHistorial[] = [];
+    const vistos = new Set<string>();
+    for (const cb of cambios) {
+      if (vistos.has(cb.cod)) continue;
+      vistos.add(cb.cod);
+      const i = porCodigo.get(cb.cod);
+      if (i === undefined) {
+        r.noEstan.push(cb.cod);
+        continue;
+      }
+      const a = articulos[i];
+      const tocaPrecio = ["lista", "cadena", "recargos", "lista1", "lista2", "iva"].some((k) => k in cb.despues);
+      if (tocaPrecio && a.mon === "USD") {
+        r.malos.push({ cod: cb.cod, motivo: "tiene el costo en dólares: cambialo en la ficha" });
+        continue;
+      }
+      if (tocaPrecio && a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length) {
+        r.malos.push({ cod: cb.cod, motivo: "es un combo: el costo sale de sus piezas" });
+        continue;
+      }
+      if (!igualPlata(a.lista, cb.antes.lista) || !igualPlata(a.lista1, cb.antes.lista1) || !igualPlata(a.lista2, cb.antes.lista2)) {
+        r.cambiados.push(cb.cod);
+        continue;
+      }
+      const nuevo = aplicarAlArticulo(a as unknown as Record<string, unknown>, cb.despues);
+      if (typeof nuevo === "string") {
+        r.malos.push({ cod: cb.cod, motivo: nuevo });
+        continue;
+      }
+      const antes = fotoDe(a as unknown as Record<string, unknown>);
+      const despues = fotoDe(nuevo);
+      if (mismaFoto(antes, despues)) continue;
+      articulos[i] = nuevo as unknown as ArticuloPunto;
+      renglones.push({ cod: cb.cod, antes, despues });
+      r.actualizados++;
+    }
+    const g = await leerCambios(tx);
+    if (info.origen === "proveedor" && info.marca && info.columnas) g.columnas[info.marca] = info.columnas;
+    if (renglones.length) {
+      // La fecha del ultimo import de LISTAS de GBP no se toca: esto no es GBP.
+      const value = JSON.stringify({ ...c?.d, articulos });
+      await tx.setting.update({ where: { key: CLAVE_ARTICULOS }, data: { value } });
+      r.id = "sub" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      g.historial = [
+        { id: r.id, fecha: new Date().toISOString(), por, origen: info.origen, marca: info.marca, archivo: info.archivo, n: renglones.length, renglones },
+        ...g.historial,
+      ].slice(0, HISTORIAL_MAXIMO);
+    }
+    await escribirCambios(tx, g);
+    return r;
+  }, TIEMPO);
+}
+
+/** Vuelve atras una subida: cada articulo vuelve a como estaba, salvo los
+ *  que se tocaron despues (esos quedan y se cuentan). */
+export async function deshacerCambiosExcel(
+  id: string,
+  por: string,
+): Promise<{ deshechos: number; tocadosDespues: string[]; noEstan: string[]; subida: Omit<SubidaHistorial, "renglones"> } | string> {
+  return prisma.$transaction(async (tx) => {
+    await bloquearArticulos(tx);
+    await bloquearCambios(tx);
+    const g = await leerCambios(tx);
+    const s = g.historial.find((h) => h.id === id);
+    if (!s) return "Esa subida ya no está en el historial.";
+    if (s.deshecho) return "Esa subida ya se deshizo.";
+    const c = await leerCrudo(tx);
+    const articulos: ArticuloPunto[] = c && Array.isArray(c.d.articulos) ? (c.d.articulos as ArticuloPunto[]) : [];
+    const porCodigo = new Map(articulos.map((a, i) => [a.cod, i]));
+    let deshechos = 0;
+    const tocadosDespues: string[] = [];
+    const noEstan: string[] = [];
+    for (const rg of s.renglones) {
+      const i = porCodigo.get(rg.cod);
+      if (i === undefined) {
+        noEstan.push(rg.cod);
+        continue;
+      }
+      const a = articulos[i] as unknown as Record<string, unknown>;
+      if (!mismaFoto(fotoDe(a), rg.despues)) {
+        tocadosDespues.push(rg.cod);
+        continue;
+      }
+      const n: Record<string, unknown> = { ...a };
+      for (const k of ["lista", "dtos", "recs", "lista1", "lista2", "iva", "tit", "fab"] as const) {
+        const v = rg.antes[k];
+        if (v === undefined) delete n[k];
+        else n[k] = Array.isArray(v) ? v.slice() : v;
+      }
+      articulos[i] = n as unknown as ArticuloPunto;
+      deshechos++;
+    }
+    if (deshechos) {
+      const value = JSON.stringify({ ...c?.d, articulos });
+      await tx.setting.update({ where: { key: CLAVE_ARTICULOS }, data: { value } });
+    }
+    s.deshecho = { fecha: new Date().toISOString(), por, n: deshechos };
+    await escribirCambios(tx, g);
+    return { deshechos, tocadosDespues, noEstan, subida: sinRenglones(s) };
+  }, TIEMPO);
 }

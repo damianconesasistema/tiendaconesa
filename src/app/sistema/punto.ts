@@ -573,6 +573,35 @@ tr.mov-anulado td:last-child{text-decoration:none}
 #efeCuerpo td small, #gerCierres td small{display:block;color:var(--ink-3);font-size:11.5px;font-weight:500}
 .efe-aviso{margin:12px 16px 0;padding:9px 12px;border-radius:9px;background:var(--accent-soft);font-size:13.5px}
 .efe-aviso.mal{background:#fdecea;color:var(--bad)}
+/* V.0.11.258: cambios de precios por Excel. */
+.cx-caja{width:min(1200px,100%); max-height:calc(100vh - 24px); display:flex; flex-direction:column}
+.cx-cuerpo{overflow:auto; padding:0 16px 8px; flex:1; min-height:0}
+.cx-map{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px 14px; margin:10px 0}
+.cx-map label{font-size:12px; font-weight:600; color:var(--ink-2); display:block; margin-bottom:4px}
+.cx-map select, .cx-map input{width:100%}
+.cx-descs{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; margin:2px 0 8px}
+.cx-descs label{display:flex; align-items:center; gap:5px; font-weight:500; color:var(--ink)}
+.cx-tabs{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 8px}
+.cx-tabs button{border:1px solid var(--line-2); background:var(--surface); border-radius:999px; padding:5px 12px; font-size:13px; cursor:pointer}
+.cx-tabs button[aria-pressed="true"]{background:var(--ink); color:#fff; border-color:var(--ink)}
+.cx-tabs button.mal{border-color:var(--bad); color:var(--bad)}
+.cx-tabs button.mal[aria-pressed="true"]{background:var(--bad); color:#fff}
+.cx-opc{display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px; font-size:13.5px; margin:6px 0}
+.cx-opc label{display:flex; align-items:center; gap:6px}
+.cx-nota{font-size:13px; color:var(--ink-2); margin:6px 0}
+.cx-res{margin:10px 0; padding:10px 12px; border-radius:9px; background:var(--ok-soft); color:var(--ok); font-size:13.5px}
+.cx-res.mal{background:var(--bad-soft); color:var(--bad)}
+table.cx-t td{vertical-align:top}
+table.cx-t td:last-child{min-width:230px}
+table.cx-t td small{display:block; color:var(--ink-3); font-size:11.5px}
+.cx-sube{color:var(--bad); font-weight:600}
+.cx-baja{color:var(--ok); font-weight:600}
+.cx-av{font-size:12px; color:var(--warn); display:block; margin-top:2px}
+.cx-av.mal{color:var(--bad)}
+.cx-hist{font-size:13px}
+.cx-hist div{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:5px 0; border-bottom:1px solid var(--line)}
+.cx-hist div:last-child{border-bottom:0}
+.cx-pie{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; border-top:1px solid var(--line)}
 /* V.0.11.257: la agenda de pagos a proveedores y su aviso. */
 .pg-aviso{display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; padding:9px 24px;
   background:var(--warn-soft); color:var(--warn); border-bottom:1px solid rgba(0,0,0,.08); font-size:13.5px}
@@ -1537,7 +1566,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.257</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.258</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -2329,6 +2358,7 @@ footer{
       <span class="por" style="margin-left:auto">Exportar lo que ves:</span>
       <button class="b3" id="fXlsx" type="button" style="padding:5px 14px">Excel</button>
       <button class="b3" id="fPdf" type="button" style="padding:5px 14px">PDF</button>
+      <button class="b2" id="fSubir" type="button" style="padding:5px 14px" title="El Excel de acá, editado, o la lista de un proveedor: te muestro qué cambia antes de aplicar" hidden>Subir Excel</button>
       <button class="b3" id="fLimpiar" type="button" style="margin-left:8px;padding:5px 14px" hidden>Limpiar filtros</button>
     </div>
     <div id="revFiltro" hidden></div>
@@ -2503,6 +2533,19 @@ footer{
     <div class="tabla-wrap" style="max-height:46vh;overflow-y:auto"><table class="densa"><thead><tr>
       <th>Vence</th><th>Proveedor</th><th>Concepto</th><th>Paga</th><th>Forma</th><th class="r">Monto</th><th>Situación</th><th></th>
     </tr></thead><tbody id="tbPg"></tbody></table></div>
+  </div>
+  <!-- Lista de precios del proveedor (V.0.11.258). Damián: "el excel de los
+       precios de FV ... tenes el precio del costo sin iva, y los descuentos"
+       / "solo tenemos que modificar los que tenemos cargados ... no cargar
+       nuevos" / "si hay algun error me lo tenes que hacer saber". -->
+  <div class="card" id="cxCard" style="margin-bottom:16px" hidden>
+    <div class="card-h">
+      <h3>Lista de precios del proveedor</h3>
+      <span class="sub">costo y descuentos de lo que ya está cargado</span>
+      <button class="b1" id="cxSubirPrv" type="button" style="margin-left:auto;padding:6px 14px">Subir la lista</button>
+    </div>
+    <p class="cx-nota" style="padding:8px 16px 0;margin:0">Subís el Excel del proveedor (el de FV, por ejemplo) y te muestro qué cambia antes de tocar nada. Solo se cambian los artículos que ya están cargados: <b>no se crea ninguno</b>. Lo que parezca mal (bolsas con precio por unidad, saltos grandes, códigos que no están) te lo marco aparte.</p>
+    <div class="cx-hist" id="cxHist" style="padding:6px 16px 12px"></div>
   </div>
   <!-- Pedidos a proveedores (órdenes de compra, OC-0001). Damián, 22/11/2026:
        "el pedido que voy a pedirle al proveedor me lo pongas con los costos y
@@ -3802,7 +3845,7 @@ function avisarVista(v){
     const f = document.getElementById("webFrame");
     if(f && !f.getAttribute("src")) f.setAttribute("src", "/admin");
   }
-  if(v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); pintarPagos(); }
+  if(v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); pintarPagos(); pintarCxCard(); }
   if(v==="clientes") pintarClientesV();
   if(v==="usuarios") pintarUsuariosPunto();
   if(v==="simulador"){
@@ -4058,7 +4101,8 @@ const PRV_ACC = [
   ["ocSacar", "Sacar faltantes", "listChecks"],
   ["prvNuevo", "Nuevo proveedor", "plus"],
   ["prvImportar", "Importar de GBP", "upload"],
-  ["pgNuevo", "Agendar un pago", "banknote"]
+  ["pgNuevo", "Agendar un pago", "banknote"],
+  ["cxSubirPrv", "Lista de precios", "upload"]
 ];
 document.getElementById("accPrv").innerHTML = PRV_ACC.map(([id, t, k]) =>
   '<button type="button" data-prv="' + id + '"><span class="ic">' + icoSvg(k) + '</span>' + t + '</button>').join("");
@@ -6877,7 +6921,7 @@ async function abrirZip(buf){
 }
 const letraACol = r => { let n = 0; for(const c of r) n = n*26 + (c.charCodeAt(0)-64); return n-1; };
 
-async function filasXlsx(buf){
+async function filasXlsx(buf, tipado){
   const zip = await abrirZip(buf);
   // GBP escribe las etiquetas con prefijo (<x:row>, <x:c>, <x:t>) y no se
   // leia ningun renglon: "Ese Excel está vacío". Se le saca el prefijo a la
@@ -6927,6 +6971,9 @@ async function filasXlsx(buf){
         const vm = cuerpo.match(/<v[^>]*>([\\s\\S]*?)<\\/v>/);
         v = vm ? vm[1] : "";
         v = t === "s" ? (vm ? (comunes[+v] || "") : "") : desescapar(v);
+        // V.0.11.258: con "tipado", un número de la planilla vuelve como
+        // número (así 60.123 no se confunde con sesenta mil ciento veintitrés).
+        if(tipado && v !== "" && (!t || t === "n") && isFinite(+v)) v = +v;
       }
       while(f.length < col) f.push("");
       f[col] = v;
@@ -10497,7 +10544,7 @@ document.getElementById("prvPdf").addEventListener("click", () => {
 const COLS_ART = [{ t:"Código", w:12 }, { t:"Cód. fabricante", w:16 }, { t:"Artículo", w:46 }, { t:"Marca", w:16 },
   { t:"Proveedor", w:26 }, { t:"Rubro", w:14 }, { t:"Lista prov. s/IVA", w:15, plata:true }, { t:"Descuentos", w:20 },
   { t:"Recargos", w:12 }, { t:"Costo s/IVA", w:13, plata:true }, { t:"IVA %", w:7, num:true }, { t:"Costo c/IVA", w:13, plata:true },
-  { t:"Lista 1", w:13, plata:true }, { t:"Lista 2 (1 pago)", w:15, plata:true }, { t:"Contado", w:13, plata:true },
+  { t:"Lista 1", w:13, plata:true }, { t:"Lista 2", w:13, plata:true }, { t:"Contado", w:13, plata:true },
   { t:"Margen %", w:9, num:true }, { t:"Stock Bs. As.", w:10, num:true }, { t:"Stock Traslasierra", w:12, num:true }];
 function filasArtExport(){
   return (PROD_VER.todos || []).map(p => {
@@ -10514,9 +10561,30 @@ function nombreArt(ext){
   const fp = document.getElementById("fProv").value, fc = document.getElementById("fCat").value;
   return "Articulos-" + (fp ? nombreArchivo(fp) + "-" : fc ? nombreArchivo(fc) + "-" : "") + hoyArchivo() + "." + ext;
 }
+/* V.0.11.258. Damián: "me trajo todos los descuentos juntos, que quiero que
+   me los separes en columna" y "en la lista 2 ... poner lista 2 nada más".
+   En el Excel cada descuento va en su columna (Desc. 1, Desc. 2...) y los
+   recargos igual; ese mismo Excel, editado, se sube con "Subir Excel". El
+   PDF sigue con los descuentos juntos (entra mejor en la hoja). */
+function xlsxArtSeparado(){
+  const ps = PROD_VER.todos || [];
+  const cad = p => (p.seis || []).filter(d => limD(d) > 0).map(d => Math.round(limD(d) * 100) / 100);
+  const rec = p => (p.recs || []).filter(r => +r > 0).map(r => Math.round(+r * 100) / 100);
+  const nD = Math.max(4, ...ps.map(p => cad(p).length)), nR = Math.max(0, ...ps.map(p => rec(p).length));
+  const cols = COLS_ART.slice(0, 7)
+    .concat(Array.from({ length:nD }, (_, i) => ({ t:"Desc. " + (i + 1), w:8, num:true })))
+    .concat(Array.from({ length:nR }, (_, i) => ({ t:"Rec. " + (i + 1), w:8, num:true })))
+    .concat(COLS_ART.slice(9));
+  const filas = filasArtExport().map((f, j) => {
+    const d = cad(ps[j]), r = rec(ps[j]);
+    return f.slice(0, 7).concat(Array.from({ length:nD }, (_, i) => d[i] != null ? d[i] : ""))
+      .concat(Array.from({ length:nR }, (_, i) => r[i] != null ? r[i] : "")).concat(f.slice(9));
+  });
+  return { cols, filas };
+}
 document.getElementById("fXlsx").addEventListener("click", () => {
-  const f = filasArtExport(); if(!f.length){ toast("No hay artículos con esos filtros."); return; }
-  bajarXlsx(nombreArt("xlsx"), "Artículos", COLS_ART, f);
+  const x = xlsxArtSeparado(); if(!x.filas.length){ toast("No hay artículos con esos filtros."); return; }
+  bajarXlsx(nombreArt("xlsx"), "Artículos", x.cols, x.filas);
 });
 document.getElementById("fPdf").addEventListener("click", () => {
   const f = filasArtExport(); if(!f.length){ toast("No hay artículos con esos filtros."); return; }
@@ -15411,6 +15479,584 @@ async function sincronizarServidor(){
 
 /** El arranque de los datos: primero GBP (si tarda, a los 8 segundos se
     sigue igual), después lo de esta compu y lo emitido hoy. */
+/* ============================== CAMBIOS DE PRECIOS POR EXCEL (V.0.11.258)
+   Dos caminos, una sola revisión:
+   - El Excel de Artículos de acá, editado: "si yo hago una modificación de
+     este Excel, que después se pueda subir para que tome los cambios".
+   - La lista de un proveedor (FV...): se eligen las columnas (código, precio
+     de lista, descuentos) y se recuerdan para la próxima.
+   Solo se tocan los artículos que YA están: nunca se crea uno. Antes de
+   aplicar se ve qué cambia, qué parece mal (bolsas por unidad, saltos
+   grandes) y qué no está. Las cuentas son las mismas de productoDeGbp(), así
+   el costo que se ve acá es el que va a quedar. El servidor
+   (/sistema/articulos/cambios) guarda lo de antes para poder deshacer. */
+const CX_URL = "/sistema/articulos/cambios";
+const CX = { hist:null, columnas:{}, error:"", m:null };
+const CX_SALTO = 15;
+const cxT = v => String(v == null ? "" : v).replace(/\\s+/g, " ").trim();
+/** Un número de una celda: los de la planilla ya vienen como número; lo
+    escrito a mano ("19,6", "1.234,50", "20%") se lee como acá. */
+const cxN = v => {
+  if(typeof v === "number") return isFinite(v) ? v : null;
+  const s = cxT(v).replace(/[%$]/g, "").trim();
+  if(!s || !/\\d/.test(s)) return null;
+  const n = aNum(s); return isFinite(n) ? n : null;
+};
+const cxIgual = (a, b, tol) => Math.abs((+a || 0) - (+b || 0)) <= (tol == null ? 0.05 : tol);
+const cxCad = ds => (ds || []).filter(d => +d > 0).map(d => Math.round(+d * 100) / 100);
+const cxMismaCad = (x, y) => x.length === y.length && x.every((d, i) => Math.abs(d - y[i]) < 0.005);
+const cxCadTxt = c => c.length ? c.map(d => pTxt(d)).join(" + ") : "sin desc.";
+const cxBolsaCod = cod => { const m = /-D(\\d{1,3})$/i.exec(cxT(cod)); const n = m ? +m[1] : 0; return n >= 2 ? n : 0; };
+/** La lista parece por unidad y el artículo por bolsa de N (igual que
+    pareceBolsa() de src/lib/punto-cambios-excel.ts). */
+function cxPareceBolsa(hoy, nueva, nCod){
+  if(!(hoy > 0) || !(nueva > 0)) return 0;
+  const r = hoy / nueva;
+  if(nCod >= 2 && Math.abs(r / nCod - 1) <= 0.25) return nCod;
+  const n = Math.round(r);
+  return n >= 2 && n <= 1000 && Math.abs(r / n - 1) <= 0.006 ? n : 0;
+}
+/** La cadena de un artículo guardado: los descuentos (con los recargos
+    negativos al final) y los recargos de verdad. */
+function cxCadenaDe(a){
+  const num = x => { const n = +x; return isFinite(n) ? n : 0; };
+  const ds = Array.isArray(a.dtos) ? a.dtos.map(num) : [], rs = Array.isArray(a.recs) ? a.recs.map(num) : [];
+  return { cadena: ds.filter(d => d > 0).concat(rs.filter(r => r < 0).map(r => -r)),
+           recargos: rs.filter(r => r > 0).concat(ds.filter(d => d < 0).map(d => -d)) };
+}
+/** El cambio puesto en una copia del artículo, como lo guarda el servidor
+    (aplicarAlArticulo): 4 descuentos y el resto como recargos negativos. */
+function cxAplicar(a, d){
+  const n = Object.assign({}, a);
+  if(d.lista !== undefined) n.lista = d.lista;
+  if(d.cadena !== undefined || d.recargos !== undefined){
+    const ya = cxCadenaDe(a), cad = d.cadena || ya.cadena, rec = d.recargos || ya.recargos;
+    const recs = rec.concat(cad.slice(4).map(x => -x));
+    if(recs.length > 4) return null;
+    n.dtos = cad.slice(0, 4); n.recs = recs;
+  }
+  for(const k of ["lista1", "lista2", "iva", "tit"]) if(d[k] !== undefined) n[k] = d[k];
+  if(d.fab !== undefined){ if(d.fab) n.fab = d.fab; else delete n.fab; }
+  return n;
+}
+/** Lo que multiplica a las listas por el flete y el otro costo: el Excel
+    las muestra con eso adentro; el artículo las guarda sin. */
+const cxFacFlete = p => (p.flete > 0 || p.otroCosto > 0) && p.costoProducto > 0 ? p.costo / p.costoProducto : 1;
+/** Arma un renglón: lo de hoy, lo nuevo y, si las listas acompañan al
+    costo, la Lista 1 y la 2 en la misma proporción (mismo margen). */
+function cxArmar(a, d, acompanar){
+  const p = productoDeGbp(a);
+  // Sin los descuentos de GBP el costo sale de la Lista 1: con una lista
+  // nueva, la cadena va explícita (la que se ve hoy) para que cuente.
+  if(d.lista !== undefined && d.cadena === undefined && !Array.isArray(a.dtos)) d.cadena = cxCad(p.seis);
+  let a2 = cxAplicar(a, d);
+  if(!a2) return { error:"tiene demasiados descuentos y recargos juntos (entran 8)" };
+  let p2 = productoDeGbp(a2);
+  const tocaCosto = ["lista", "cadena", "recargos", "iva"].some(k => d[k] !== undefined);
+  if(acompanar && tocaCosto && d.lista1 === undefined && d.lista2 === undefined && p.costoProducto > 0 && p2.costoProducto > 0){
+    const r = p2.costoProducto / p.costoProducto;
+    if(Math.abs(r - 1) > 1e-9){
+      d.lista1 = cent(+a.lista1 * r); d.lista2 = cent(+a.lista2 * r);
+      a2 = cxAplicar(a, d); p2 = productoDeGbp(a2);
+    }
+  }
+  return { p, p2 };
+}
+/** El índice de los artículos guardados por código (y por el código sin lo
+    que va después de un "+", si no se repite). */
+function cxIndice(){
+  const m = new Map(), corto = new Map();
+  for(const cod of Object.keys(GBP_CRUDO)){
+    const a = GBP_CRUDO[cod]; if(!a) continue;
+    m.set(cod, a);
+    const c = cod.split("+")[0];
+    corto.set(c, corto.has(c) ? null : a);
+  }
+  return cod => m.get(cod) || corto.get(cod) || null;
+}
+function cxMarcas(){
+  const n = {};
+  for(const cod of Object.keys(GBP_CRUDO)){ const a = GBP_CRUDO[cod]; if(a && a.prov) n[a.prov] = (n[a.prov] || 0) + 1; }
+  return Object.entries(n).sort((x, y) => COLL_ES.compare(x[0], y[0]));
+}
+
+/* ---- leer: el Excel de acá (editado) */
+function cxColsPunto(cab){
+  const h = cab.map(c => plano(cxT(c)));
+  const ix = n => h.indexOf(n);
+  const col = { cod: ix("codigo"), fab: ix("cod. fabricante"), tit: ix("articulo"), lista: ix("lista prov. s/iva"),
+    descTxt: ix("descuentos"), recTxt: ix("recargos"), iva: ix("iva %"), l1: ix("lista 1"),
+    l2: ix("lista 2") >= 0 ? ix("lista 2") : ix("lista 2 (1 pago)"), csin: ix("costo s/iva"), ccon: ix("costo c/iva"),
+    cont: ix("contado"), marg: ix("margen %"), sba: ix("stock bs. as."), sts: ix("stock traslasierra"), desc: [], rec: [] };
+  h.forEach((x, i) => {
+    let m = /^desc\\.? ?(\\d+)$/.exec(x); if(m) col.desc[+m[1] - 1] = i;
+    m = /^rec\\.? ?(\\d+)$/.exec(x); if(m) col.rec[+m[1] - 1] = i;
+  });
+  return col.cod >= 0 && col.tit >= 0 && (col.lista >= 0 || col.l2 >= 0) ? col : null;
+}
+/** "19,6% + 12,5% + 20%" (el Excel de antes, con los descuentos juntos). */
+const cxPartes = t => { const s = cxT(t); if(!s || /^sin/i.test(s)) return []; return s.split("+").map(cxN); };
+
+function cxRevisarPunto(m){
+  const col = m.colP, buscar = cxIndice(), filas = m.filas.slice(1), out = [], vistos = new Map();
+  for(const f of filas){
+    const cod = cxT(f[col.cod]); if(!cod) continue;
+    vistos.set(cod, (vistos.get(cod) || 0) + 1);
+  }
+  for(const f of filas){
+    const cod = cxT(f[col.cod]); if(!cod) continue;
+    const a = buscar(cod);
+    if(!a){ out.push({ cod, tit: cxT(f[col.tit]), estado:"nocargado" }); continue; }
+    const r = { cod: a.cod, a, tit: a.tit, estado:"igual", avisos:[], d:{} };
+    out.push(r);
+    if(vistos.get(cod) > 1){ r.estado = "error"; r.avisos.push("el código está repetido en el Excel"); continue; }
+    const p = productoDeGbp(a), d = r.d, mal = t => { r.estado = "error"; r.avisos.push(t); };
+    const usd = a.mon === "USD";
+    if(col.lista >= 0){
+      const v = cxN(f[col.lista]);
+      if(v != null && !cxIgual(v, cent(+p.lista))){ if(!(v > 0)) mal("la lista del proveedor quedó en cero o negativa"); else d.lista = cent(v); }
+    }
+    let nueva = null;
+    if(col.desc.length) nueva = col.desc.map(i => i == null ? null : cxN(f[i]));
+    else if(col.descTxt >= 0) nueva = cxPartes(f[col.descTxt]);
+    if(nueva){
+      if(nueva.some(v => v != null && (v < 0 || v >= 100))) mal("un descuento está fuera de 0 a 99,99 %");
+      else { const c = cxCad(nueva); if(!cxMismaCad(c, cxCad(p.seis))) d.cadena = c; }
+    }
+    let recs = null;
+    if(col.rec.length) recs = col.rec.map(i => i == null ? null : cxN(f[i]));
+    else if(col.recTxt >= 0) recs = cxPartes(f[col.recTxt]);
+    if(recs){
+      if(recs.some(v => v != null && (v < 0 || v > 1000))) mal("un recargo está fuera de 0 a 1000 %");
+      else { const c = cxCad(recs); if(!cxMismaCad(c, cxCad(p.recs))) d.recargos = c; }
+    }
+    if(col.iva >= 0){
+      const v = cxN(f[col.iva]);
+      if(v != null && !cxIgual(v, ivaDe(p), 0.001)){ if([0, 10.5, 21, 27].indexOf(v) < 0) mal("el IVA tiene que ser 0, 10,5, 21 o 27"); else d.iva = v; }
+    }
+    const t = cxT(f[col.tit]).replace(/[<>]/g, "");
+    if(t && t !== cxT(p.tit)) d.tit = t.slice(0, 200);
+    if(col.fab >= 0){ const x = cxT(f[col.fab]).toUpperCase().replace(/[<>]/g, "").slice(0, 40); if(x !== cxT(p.codProv).toUpperCase()) d.fab = x; }
+    const fac = cxFacFlete(p);
+    if(col.l1 >= 0){ const v = cxN(f[col.l1]); if(v != null && !cxIgual(v, lista1De(p))){ if(!(v > 0)) mal("la Lista 1 quedó en cero"); else d.lista1 = cent(v / fac); } }
+    if(col.l2 >= 0){ const v = cxN(f[col.l2]); if(v != null && !cxIgual(v, cent(+p.unPago || 0))){ if(!(v > 0)) mal("la Lista 2 quedó en cero"); else d.lista2 = cent(v / fac); } }
+    // Lo que se calcula solo: si lo cambiaron, se avisa y no se usa.
+    const calc = [[col.csin, cent(netoProdDe(p)), "Costo s/IVA"], [col.ccon, cent(+p.costo || 0), "Costo c/IVA"],
+      [col.cont, cent(+p.contado || 0), "Contado"], [col.marg, Math.round(margen(p) * 10) / 10, "Margen %", 0.15]];
+    for(const [i, hoy, n, tol] of calc){
+      if(i < 0) continue; const v = cxN(f[i]);
+      if(v != null && !cxIgual(v, hoy, tol)) r.avisos.push("cambiaste «" + n + "», que se calcula solo: no se usa (cambiá la lista o los descuentos)");
+    }
+    if((col.sba >= 0 && cxN(f[col.sba]) != null && cxN(f[col.sba]) !== (+p.dep.BA || 0)) ||
+       (col.sts >= 0 && cxN(f[col.sts]) != null && cxN(f[col.sts]) !== (+p.dep.TS || 0)))
+      r.avisos.push("el stock no se cambia por Excel (se mueve con las ventas): no se usa");
+    if(r.estado === "error") continue;
+    if(usd && ["lista", "cadena", "recargos", "lista1", "lista2", "iva"].some(k => d[k] !== undefined)){
+      mal("tiene el costo en dólares: cambialo en la ficha"); continue;
+    }
+    cxCompletar(r, m);
+  }
+  return out;
+}
+
+/* ---- leer: la lista de un proveedor */
+function cxAdivinar(filas){
+  let fila = 0;
+  for(let i = 0; i < Math.min(40, filas.length); i++){
+    const h = (filas[i] || []).map(c => plano(cxT(c)));
+    if(h.filter(Boolean).length >= 3 && h.some(x => /^cod|codigo|sku|^articulo$/.test(x)) && h.some(x => /precio|lista|costo/.test(x))){ fila = i + 1; break; }
+  }
+  if(!fila) fila = 1;
+  return Object.assign({ fila }, cxAdivinarCols(filas, fila));
+}
+function cxAdivinarCols(filas, fila){
+  const h = (filas[fila - 1] || []).map(c => plano(cxT(c)));
+  const cod = h.findIndex(x => /^cod|codigo|sku/.test(x));
+  const precio = h.findIndex(x => /precio|lista|costo/.test(x) && !/desc|bonif|dto/.test(x));
+  const descuentos = h.map((x, i) => /bonif|dto|descuento|^desc\\b/.test(x) && !/descrip/.test(x) ? i : -1)
+    .filter(i => i >= 0 && i !== cod && i !== precio);
+  return { cod: cod >= 0 ? cod : 0, precio: precio >= 0 ? precio : (cod === 1 ? 2 : 1), descuentos,
+    conIva: precio >= 0 ? /c\\/ ?iva|con iva/.test(h[precio]) : false };
+}
+const cxTitulos = (filas, fila) => (filas[fila - 1] || []).map(c => cxT(c).slice(0, 60));
+/** La marca de la lista: la que aparece en el nombre del archivo o en los
+    primeros renglones ("FV S.A"), la de más artículos si hay varias. */
+function cxAdivinarMarca(filas, archivo){
+  const t = " " + plano(archivo + " " + filas.slice(0, 4).map(f => f.map(cxT).join(" ")).join(" ")) + " ";
+  let mejor = "", n = 0;
+  for(const [mk, c] of cxMarcas()){
+    const k = plano(mk).trim(); if(k.length < 2) continue;
+    const re = new RegExp("[^a-z0-9]" + k.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&") + "[^a-z0-9]");
+    if(re.test(t) && c > n){ mejor = mk; n = c; }
+  }
+  return mejor;
+}
+
+function cxRevisarProveedor(m){
+  const out = [], col = m.col;
+  if(!m.marca) return out;
+  const mk = plano(m.marca).trim();
+  const deMarca = new Map();
+  for(const cod of Object.keys(GBP_CRUDO)){ const a = GBP_CRUDO[cod]; if(a && plano(a.prov || "").trim() === mk) deMarca.set(cxT(a.cod).toUpperCase(), a); }
+  const filas = m.filas.slice(col.fila), cab = plano(cxT((m.filas[col.fila - 1] || [])[col.cod]));
+  const veces = new Map();
+  for(const f of filas){ const c = cxT(f[col.cod]).toUpperCase(); if(c) veces.set(c, (veces.get(c) || 0) + 1); }
+  const vistos = new Set();
+  for(const f of filas){
+    const codX = cxT(f[col.cod]); if(!codX || plano(codX) === cab) continue;
+    const key = codX.toUpperCase();
+    const a = deMarca.get(key);
+    if(!a){ out.push({ cod: codX, tit: "", estado:"nocargado" }); continue; }
+    if(vistos.has(key)) continue;
+    vistos.add(key);
+    const r = { cod: a.cod, a, tit: a.tit, estado:"igual", avisos:[], d:{} };
+    out.push(r);
+    const mal = t => { r.estado = "error"; r.avisos.push(t); };
+    if(veces.get(key) > 1){
+      const iguales = filas.filter(x => cxT(x[col.cod]).toUpperCase() === key)
+        .map(x => [cxN(x[col.precio])].concat(col.descuentos.map(i => cxN(x[i]))).join("|"));
+      if(new Set(iguales).size > 1){ mal("el código está " + veces.get(key) + " veces en la lista, con precios distintos"); continue; }
+    }
+    const precio = cxN(f[col.precio]);
+    if(precio == null || !(precio > 0)){ mal("en la lista no tiene precio"); continue; }
+    const ds = col.descuentos.map(i => cxN(f[i]));
+    if(ds.some(v => v != null && (v < 0 || v >= 100))){ mal("un descuento de la lista está fuera de 0 a 99,99 %"); continue; }
+    if(a.mon === "USD"){ mal("tiene el costo en dólares: cambialo en la ficha"); continue; }
+    const p = productoDeGbp(a);
+    let lista = col.conIva ? precio / facIva(ivaDe(p)) : precio;
+    const bolsa = cxPareceBolsa(+a.lista, lista, cxBolsaCod(a.cod));
+    if(bolsa){
+      r.bolsa = bolsa;
+      if(!m.bolsaNo[a.cod]) lista = lista * bolsa;
+    }
+    lista = cent(lista);
+    // Un par de centavos de diferencia (redondeos de cada sistema) no es un cambio.
+    if(!cxIgual(lista, +a.lista, Math.max(0.05, Math.abs(+a.lista) * 0.0001))) r.d.lista = lista;
+    const c = cxCad(ds), hoy = Array.isArray(a.dtos) ? cxCadenaDe(a).cadena : cxCad(p.seis);
+    if(!cxMismaCad(c, cxCad(hoy))) r.d.cadena = c;
+    cxCompletar(r, m);
+  }
+  m.noEnLista = [];
+  for(const [k, a] of deMarca) if(!vistos.has(k)) m.noEnLista.push({ cod: a.cod, tit: a.tit });
+  return out;
+}
+
+/** Con lo que cambia ya armado: las cuentas, los saltos y si va tildado. */
+function cxCompletar(r, m){
+  if(!Object.keys(r.d).length){ r.estado = r.avisos.length ? "nota" : "igual"; return; }
+  const x = cxArmar(r.a, r.d, m.acompanar);
+  if(x.error){ r.estado = "error"; r.avisos.push(x.error); return; }
+  r.p = x.p; r.p2 = x.p2;
+  r.varCosto = r.p.costo > 0 ? (r.p2.costo / r.p.costo - 1) * 100 : 0;
+  r.estado = "cambia";
+  if(r.bolsa) r.avisos.push(m.bolsaNo[r.a.cod] ? "la lista parece por unidad y acá está por bolsa de " + r.bolsa + ": la dejaste tal cual"
+    : "la lista viene por unidad y acá está por bolsa de " + r.bolsa + ": se multiplica por " + r.bolsa);
+  r.salto = Math.abs(r.varCosto) > CX_SALTO;
+  if(r.salto) r.avisos.push("el costo " + (r.varCosto > 0 ? "sube" : "baja") + " " + pTxt(Math.round(Math.abs(r.varCosto) * 10) / 10) + " %: fijate antes de aplicar");
+  if(r.d.cadena && Array.isArray(r.a.dtos)){
+    const hoy = cxCadenaDe(r.a).cadena;
+    if(hoy.length && !cxMismaCad(cxCad(hoy), r.d.cadena)) r.cambiaDesc = true;
+  }
+  if(!(r.a.cod in m.tilde)) m.tilde[r.a.cod] = !r.salto;
+}
+
+/* ---- la ventana */
+async function abrirCambiosExcel(desde){
+  if(!puede("importar")){ toast("Tu usuario no puede cambiar precios por Excel (hace falta el permiso Importar)."); return; }
+  if(!Object.keys(GBP_CRUDO).length){ toast("Todavía no llegaron los artículos: esperá un momento y probá de nuevo."); return; }
+  const viejo = document.getElementById("cxModal"); if(viejo) viejo.remove();
+  CX.m = { desde, filas:null, archivo:"", modo:"", marca:"", col:null, colP:null, acompanar:true, tilde:{}, bolsaNo:{},
+    renglones:[], noEnLista:[], filtro:"cambia", resultado:null, aplicando:false };
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "cxModal";
+  fondo.innerHTML = '<div class="envio-caja cx-caja" role="dialog" aria-label="Subir cambios de precios por Excel">' +
+    '<div class="envio-h"><h3>' + (desde === "proveedor" ? "Lista de precios del proveedor" : "Subir cambios por Excel") + '</h3>' +
+      '<button class="x" type="button" data-cx-no aria-label="cerrar">×</button></div>' +
+    '<div class="cx-cuerpo" id="cxCuerpo"></div>' +
+    '<div class="cx-pie" id="cxPie"></div></div>';
+  document.body.appendChild(fondo);
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fondo.remove(); } });
+  fondo.addEventListener("click", cxClic);
+  fondo.addEventListener("change", cxCambio);
+  fondo.addEventListener("dragover", e => { if(e.target.closest("#cxZona")){ e.preventDefault(); e.target.closest("#cxZona").classList.add("encima"); } });
+  fondo.addEventListener("dragleave", e => { const z = e.target.closest("#cxZona"); if(z) z.classList.remove("encima"); });
+  fondo.addEventListener("drop", e => {
+    const z = e.target.closest("#cxZona"); if(!z) return;
+    e.preventDefault(); z.classList.remove("encima");
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if(f) cxLeer(f);
+  });
+  cxPintar();
+  cxTraerHist().then(() => { if(CX.m && !CX.m.filas) cxPintar(); });
+}
+async function cxTraerHist(){
+  const d = await pedirJson("GET", CX_URL);
+  if(d.error){ CX.error = d.error; return; }
+  CX.error = ""; CX.hist = d.historial || []; CX.columnas = d.columnas || {};
+}
+function cxHistHtml(){
+  if(CX.error) return '<span class="cx-av mal">' + txt(CX.error) + '</span>';
+  if(!CX.hist) return '<span class="cx-nota">Cargando las últimas subidas…</span>';
+  if(!CX.hist.length) return '<span class="cx-nota">Todavía no se subió ninguna.</span>';
+  const ult = CX.hist.find(h => !h.deshecho);
+  return '<b style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)">Últimas subidas</b>' +
+    CX.hist.map(h => '<div><span>' + fechaHoraAR(h.fecha) + '</span><span>' +
+      (h.origen === "proveedor" ? "Lista de <b>" + txt(h.marca) + "</b>" : "Excel de artículos") + (h.archivo ? ' · ' + txt(h.archivo) : '') + '</span>' +
+      '<span>' + h.n + (h.n === 1 ? ' artículo' : ' artículos') + ' · ' + txt(h.por) + '</span>' +
+      (h.deshecho ? '<span class="pill p-n">deshecha (' + h.deshecho.n + ')</span>'
+        : ult && ult.id === h.id ? '<button class="b3" type="button" data-cx-desh="' + atrib(h.id) + '" style="padding:3px 10px;margin-left:auto">Deshacer</button>' : '') +
+    '</div>').join("");
+}
+async function pintarCxCard(){
+  const c = document.getElementById("cxCard"); if(!c) return;
+  c.hidden = !puede("importar");
+  if(c.hidden) return;
+  document.getElementById("cxHist").innerHTML = cxHistHtml();
+  await cxTraerHist();
+  document.getElementById("cxHist").innerHTML = cxHistHtml();
+}
+async function cxDeshacer(id){
+  const h = (CX.hist || []).find(x => x.id === id); if(!h) return;
+  if(!confirm("¿Deshago esta subida? Los " + h.n + " artículos vuelven al costo, descuentos y listas que tenían antes.\\n\\nLos que se cambiaron después (a mano o con otra subida) quedan como están.")) return;
+  const r = await pedirJson("POST", CX_URL, { accion:"deshacer", id, yo: soyYo() });
+  if(r.error){ toast("No se deshizo: " + r.error); return; }
+  toast("Listo: " + r.deshechos + " artículos volvieron a como estaban" + (r.tocadosDespues.length ? " (" + r.tocadosDespues.length + " quedaron: se cambiaron después)." : "."));
+  await traerDeGbp();
+  try{ pintarProd(); }catch(e){}
+  await cxTraerHist();
+  const hc = document.getElementById("cxHist"); if(hc) hc.innerHTML = cxHistHtml();
+  if(CX.m && document.getElementById("cxModal")){ if(CX.m.filas) cxRevisar(); cxPintar(); }
+}
+
+async function cxLeer(file){
+  const m = CX.m; if(!m) return;
+  if(!/\\.xlsx$/i.test(file.name)){ toast("Tiene que ser un Excel .xlsx (si es .xls, abrilo y guardalo como .xlsx)."); return; }
+  let filas;
+  try{ filas = await filasXlsx(await file.arrayBuffer(), true); }
+  catch(e){ toast("No pude leer " + file.name + ": " + (e && e.message ? e.message : "¿es un Excel?")); return; }
+  m.filas = filas; m.archivo = file.name; m.tilde = {}; m.bolsaNo = {}; m.resultado = null; m.hecho = false;
+  m.colP = cxColsPunto(filas[0] || []);
+  if(m.colP){ m.modo = "excel"; m.filtro = "cambia"; }
+  else {
+    m.modo = "proveedor";
+    m.marca = cxAdivinarMarca(filas, file.name);
+    const g = cxAdivinar(filas);
+    const guardada = m.marca && CX.columnas[m.marca];
+    m.col = guardada && guardada.fila <= filas.length &&
+      cxTitulos(filas, guardada.fila).join("|") === (guardada.titulos || []).join("|") ? Object.assign({}, guardada) : g;
+    m.recordada = m.col === g ? false : true;
+    m.filtro = "cambia";
+  }
+  cxRevisar(); cxPintar();
+}
+function cxRevisar(){
+  const m = CX.m; if(!m || !m.filas) return;
+  m.renglones = m.modo === "excel" ? cxRevisarPunto(m) : cxRevisarProveedor(m);
+}
+function cxCuenta(){
+  const m = CX.m, n = { cambia:0, revisar:0, error:0, igual:0, nocargado:0, tildados:0 };
+  for(const r of m.renglones){
+    if(r.estado === "cambia"){ n.cambia++; if(m.tilde[r.a.cod]) n.tildados++; }
+    if(r.estado === "error") n.error++;
+    if(r.estado === "igual") n.igual++;
+    if(r.estado === "nocargado") n.nocargado++;
+    if(r.estado === "nota" || (r.estado === "cambia" && (r.avisos.length || r.cambiaDesc))) n.revisar++;
+  }
+  return n;
+}
+function cxPintar(){
+  const m = CX.m, cuerpo = document.getElementById("cxCuerpo"), pie = document.getElementById("cxPie");
+  if(!m || !cuerpo) return;
+  const zona = '<div class="soltar" id="cxZona" style="margin:12px 0"><input type="file" id="cxFile" accept=".xlsx" hidden>' +
+    '<div class="st"><b>' + (m.filas ? "Soltá otro Excel acá" : "Soltá el Excel acá") + '</b> o <button class="b2" type="button" data-cx-elegir>elegilo</button></div>' +
+    '<span class="por">' + (m.desde === "proveedor"
+      ? "La lista del proveedor como la manda (el Excel de FV, por ejemplo): elegís qué columna es el código, el precio de lista y los descuentos, y la próxima vez se acuerda."
+      : "El Excel que bajaste de Artículos (botón Excel), con tus cambios: lista del proveedor, descuentos (Desc. 1, 2…), recargos, IVA, Lista 1, Lista 2, descripción. También sirve la lista de un proveedor.") +
+    ' Solo se cambian artículos que ya están: no se crea ninguno.</span></div>';
+  if(!m.filas){
+    cuerpo.innerHTML = zona + '<div class="cx-hist" style="margin:4px 0 10px">' + cxHistHtml() + '</div>';
+    pie.innerHTML = '<button class="b3" type="button" data-cx-no>Cerrar</button>';
+    return;
+  }
+  let html = '<p class="cx-nota" style="margin-top:12px"><b>' + txt(m.archivo) + '</b> · ' +
+    (m.modo === "excel" ? "el Excel de Artículos de Punto" : "la lista de un proveedor") + ' · ' + (m.filas.length - 1) + ' renglones</p>';
+  if(m.modo === "proveedor") html += cxMapaHtml();
+  if(m.resultado) html += m.resultado;
+  const n = cxCuenta();
+  if(m.hecho){
+    html += '<p class="cx-nota">Para seguir cambiando, bajá el Excel de Artículos de nuevo (así trae los precios que quedaron) y subilo.</p>' +
+      zona + '<div class="cx-hist" style="margin:4px 0 10px">' + cxHistHtml() + '</div>';
+    cuerpo.innerHTML = html;
+    pie.innerHTML = '<button class="b3" type="button" data-cx-no>Cerrar</button>';
+    return;
+  }
+  if(m.modo === "proveedor" && !m.marca) html += '<p class="cx-res mal">Elegí de qué marca son los artículos de esta lista.</p>';
+  else {
+    html += '<div class="cx-opc"><label><input type="checkbox" id="cxAcomp"' + (m.acompanar ? ' checked' : '') + '> La Lista 1 y la 2 acompañan al costo (queda el mismo margen)</label>' +
+      '<span class="cx-nota" style="margin:0">Si en el Excel cambiaste la Lista 1 o la 2 a mano, manda lo tuyo.</span></div>';
+    const tabs = [["cambia", "Cambian", n.cambia], ["revisar", "Para revisar", n.revisar], ["error", "Con errores", n.error, true],
+      ["igual", "Sin cambios", n.igual]];
+    if(m.modo === "proveedor") tabs.push(["noenlista", "Cargados y no están en la lista", m.noEnLista.length]);
+    tabs.push(["nocargado", m.modo === "proveedor" ? "En la lista y no cargados" : "No están cargados", n.nocargado]);
+    html += '<div class="cx-tabs">' + tabs.map(([k, t, c, mal]) => '<button type="button" data-cx-f="' + k + '" aria-pressed="' + (m.filtro === k) + '"' +
+      (mal && c ? ' class="mal"' : '') + '>' + t + ' (' + c.toLocaleString("es-AR") + ')</button>').join("") + '</div>';
+    html += cxTablaHtml();
+  }
+  html += zona + '<div class="cx-hist" style="margin:4px 0 10px">' + cxHistHtml() + '</div>';
+  cuerpo.innerHTML = html;
+  pie.innerHTML = '<button class="b3" type="button" data-cx-no>Cerrar</button>' +
+    (n.cambia ? '<span class="cx-nota" style="margin:0 0 0 auto">' + n.tildados + ' de ' + n.cambia + ' tildados</span>' +
+      '<button class="b1" type="button" data-cx-aplicar' + (n.tildados && !m.aplicando ? '' : ' disabled') + '>' +
+        (m.aplicando ? 'Aplicando…' : 'Aplicar ' + n.tildados + (n.tildados === 1 ? ' cambio' : ' cambios')) + '</button>' : '');
+}
+function cxMapaHtml(){
+  const m = CX.m, c = m.col, cab = m.filas[c.fila - 1] || [], dato = m.filas[c.fila] || [];
+  const nCols = Math.max(cab.length, dato.length);
+  const nom = i => colLetra(i) + " · " + (cxT(cab[i]) || "(sin título)");
+  const opts = sel => Array.from({ length:nCols }, (_, i) => '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + txt(nom(i)) + '</option>').join("");
+  const muestra = i => { const v = dato[i]; return v === "" || v == null ? "" : " (" + txt(typeof v === "number" ? pTxt(Math.round(v * 100) / 100) : cxT(v).slice(0, 20)) + ")"; };
+  const marcas = cxMarcas();
+  return '<div class="cx-map">' +
+    '<div><label for="cxMarca">Marca de los artículos</label><select id="cxMarca"><option value="">Elegí la marca…</option>' +
+      marcas.map(([k, n]) => '<option value="' + atrib(k) + '"' + (k === m.marca ? ' selected' : '') + '>' + txt(k) + ' (' + n + ')</option>').join("") + '</select></div>' +
+    '<div><label for="cxFila">Fila de los títulos</label><input id="cxFila" type="number" min="1" max="40" value="' + c.fila + '"></div>' +
+    '<div><label for="cxCod">Código</label><select id="cxCod">' + opts(c.cod) + '</select></div>' +
+    '<div><label for="cxPrecio">Precio de lista</label><select id="cxPrecio">' + opts(c.precio) + '</select></div>' +
+    '<div><label for="cxIva">El precio viene</label><select id="cxIva"><option value="0"' + (c.conIva ? '' : ' selected') + '>sin IVA</option>' +
+      '<option value="1"' + (c.conIva ? ' selected' : '') + '>con IVA</option></select></div>' +
+    '</div><label style="font-size:12px;font-weight:600;color:var(--ink-2)">Descuentos (se aplican uno sobre otro, en este orden)</label>' +
+    '<div class="cx-descs">' + Array.from({ length:nCols }, (_, i) => i).filter(i => i !== c.cod && i !== c.precio).map(i =>
+      '<label><input type="checkbox" data-cx-d="' + i + '"' + (c.descuentos.indexOf(i) >= 0 ? ' checked' : '') + '>' + txt(nom(i)) + muestra(i) + '</label>').join("") + '</div>' +
+    (m.recordada ? '<p class="cx-nota">Usé las columnas que quedaron guardadas para ' + txt(m.marca) + '.</p>' : '');
+}
+function cxTablaHtml(){
+  const m = CX.m, f = m.filtro;
+  if(f === "noenlista"){
+    if(!m.noEnLista.length) return '<p class="cx-nota">Todos los artículos de ' + txt(m.marca) + ' están en la lista.</p>';
+    return '<p class="cx-nota">Estos artículos de ' + txt(m.marca) + ' están cargados pero <b>no aparecen en la lista</b>: quedan como están. Puede que el proveedor los haya discontinuado.</p>' +
+      '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa"><thead><tr><th>Código</th><th>Artículo</th></tr></thead><tbody>' +
+      m.noEnLista.slice(0, 1000).map(x => '<tr><td>' + txt(x.cod) + '</td><td>' + txt(x.tit) + '</td></tr>').join("") + '</tbody></table></div>';
+  }
+  const lista = m.renglones.filter(r => f === "revisar" ? (r.estado === "nota" || (r.estado === "cambia" && (r.avisos.length || r.cambiaDesc))) : r.estado === f);
+  if(f === "nocargado"){
+    if(!lista.length) return '<p class="cx-nota">Todos los códigos del Excel están cargados.</p>';
+    return '<p class="cx-nota">Estos códigos están en el Excel pero <b>no están cargados</b>: no se crean.</p>' +
+      '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa"><thead><tr><th>Código</th><th>Descripción</th></tr></thead><tbody>' +
+      lista.slice(0, 1000).map(x => '<tr><td>' + txt(x.cod) + '</td><td>' + txt(x.tit || "") + '</td></tr>').join("") +
+      (lista.length > 1000 ? '<tr><td colspan="2" class="vacio">y ' + (lista.length - 1000) + ' más</td></tr>' : '') + '</tbody></table></div>';
+  }
+  if(!lista.length) return '<p class="cx-nota">' + (f === "cambia" ? "No hay nada que cambiar: lo del Excel ya es lo que está cargado." :
+    f === "error" ? "Ningún renglón con errores." : f === "revisar" ? "Nada para revisar." : "Ninguno.") + '</p>';
+  const tope = 600, flecha = (h, n, fmt) => h === n ? fmt(h) : '<span style="color:var(--ink-3)">' + fmt(h) + '</span> → <b>' + fmt(n) + '</b>';
+  const filas = lista.slice(0, tope).map(r => {
+    const a = r.a;
+    if(r.estado === "error" || r.estado === "nota" || r.estado === "igual"){
+      return '<tr><td></td><td class="nom">' + txt(r.cod) + '<small>' + txt(r.tit || "") + '</small></td><td colspan="4"></td><td>' +
+        r.avisos.map(t => '<span class="cx-av' + (r.estado === "error" ? ' mal' : '') + '">' + txt(t) + '</span>').join("") + '</td></tr>';
+    }
+    const p = r.p, p2 = r.p2;
+    const cadH = cxCadTxt(cxCad(p.seis)), cadN = cxCadTxt(cxCad(p2.seis));
+    const v = r.varCosto, vt = Math.abs(v) < 0.05 ? "igual" : (v > 0 ? "+" : "−") + pTxt(Math.round(Math.abs(v) * 10) / 10) + " %";
+    const bolsa = r.bolsa ? '<label class="cx-av" style="display:flex;gap:5px;align-items:center"><input type="checkbox" data-cx-bolsa="' + atrib(a.cod) + '"' +
+      (m.bolsaNo[a.cod] ? '' : ' checked') + '> multiplicar por ' + r.bolsa + ' (bolsa)</label>' : '';
+    return '<tr><td><input type="checkbox" data-cx-t="' + atrib(a.cod) + '"' + (m.tilde[a.cod] ? ' checked' : '') + ' aria-label="aplicar ' + atrib(a.cod) + '"></td>' +
+      '<td class="nom">' + txt(a.cod) + '<small>' + txt(r.d.tit ? r.d.tit : a.tit) + '</small></td>' +
+      '<td class="r">' + flecha(cent(+p.lista), cent(+p2.lista), fmt2) + '</td>' +
+      '<td>' + flecha(cadH, cadN, x => txt(x)) + '</td>' +
+      '<td class="r">' + flecha(cent(p.costo), cent(p2.costo), fmt2) + '<small class="' + (v > 0.05 ? 'cx-sube' : v < -0.05 ? 'cx-baja' : '') + '">' + vt + '</small></td>' +
+      '<td class="r">' + flecha(cent(p.unPago), cent(p2.unPago), fmt2) + '</td>' +
+      '<td>' + r.avisos.map(t => '<span class="cx-av' + (r.salto ? ' mal' : '') + '">' + txt(t) + '</span>').join("") +
+        (r.cambiaDesc && !r.avisos.length ? '<span class="cx-av">cambian los descuentos</span>' : '') + bolsa + '</td></tr>';
+  }).join("");
+  const conTilde = f === "cambia" || f === "revisar";
+  return (conTilde ? '<div class="cx-opc"><button class="b3" type="button" data-cx-todos="1" style="padding:3px 10px">Tildar todos</button>' +
+      '<button class="b3" type="button" data-cx-todos="0" style="padding:3px 10px">Destildar todos</button></div>' : '') +
+    '<div class="tabla-wrap" style="max-height:48vh;overflow:auto"><table class="densa cx-t"><thead><tr><th></th><th>Código / artículo</th>' +
+    '<th class="r">Lista prov. s/IVA</th><th>Descuentos</th><th class="r">Costo c/IVA</th><th class="r">Lista 2</th><th>Aviso</th></tr></thead><tbody>' +
+    filas + (lista.length > tope ? '<tr><td colspan="7" class="vacio">Se ven los primeros ' + tope + ' de ' + lista.length.toLocaleString("es-AR") + ' (se aplican todos los tildados)</td></tr>' : '') +
+    '</tbody></table></div>';
+}
+function cxCambio(e){
+  const m = CX.m, t = e.target; if(!m) return;
+  if(t.id === "cxFile"){ const f = t.files && t.files[0]; t.value = ""; if(f) cxLeer(f); return; }
+  if(t.dataset.cxT){ m.tilde[t.dataset.cxT] = t.checked; cxPintarPie(); return; }
+  if(t.dataset.cxBolsa){ m.bolsaNo[t.dataset.cxBolsa] = !t.checked; delete m.tilde[t.dataset.cxBolsa]; cxRevisar(); cxPintar(); return; }
+  if(t.id === "cxAcomp"){ m.acompanar = t.checked; cxRevisar(); cxPintar(); return; }
+  if(m.modo !== "proveedor") return;
+  const c = m.col;
+  if(t.id === "cxMarca"){ m.marca = t.value; const g = CX.columnas[m.marca];
+    if(g && g.fila <= m.filas.length && cxTitulos(m.filas, g.fila).join("|") === (g.titulos || []).join("|")){ m.col = Object.assign({}, g); m.recordada = true; } }
+  else if(t.id === "cxFila"){ const f = Math.max(1, Math.min(40, Math.floor(+t.value || 1))); Object.assign(c, { fila: f }, cxAdivinarCols(m.filas, f)); m.recordada = false; }
+  else if(t.id === "cxCod"){ c.cod = +t.value; c.descuentos = c.descuentos.filter(i => i !== c.cod); m.recordada = false; }
+  else if(t.id === "cxPrecio"){ c.precio = +t.value; c.descuentos = c.descuentos.filter(i => i !== c.precio); m.recordada = false; }
+  else if(t.id === "cxIva"){ c.conIva = t.value === "1"; m.recordada = false; }
+  else if(t.dataset.cxD){ const i = +t.dataset.cxD; c.descuentos = c.descuentos.filter(x => x !== i); if(t.checked) c.descuentos.push(i); c.descuentos.sort((x, y) => x - y); m.recordada = false; }
+  else return;
+  m.tilde = {}; m.resultado = null;
+  cxRevisar(); cxPintar();
+}
+function cxPintarPie(){
+  const m = CX.m, b = document.querySelector("#cxPie [data-cx-aplicar]"); if(!b) return;
+  const n = cxCuenta();
+  b.disabled = !n.tildados || m.aplicando;
+  b.textContent = "Aplicar " + n.tildados + (n.tildados === 1 ? " cambio" : " cambios");
+  const s = document.querySelector("#cxPie .cx-nota"); if(s) s.textContent = n.tildados + " de " + n.cambia + " tildados";
+}
+async function cxClic(e){
+  const m = CX.m; if(!m) return;
+  const t = e.target;
+  if(t.closest("[data-cx-no]")){ document.getElementById("cxModal").remove(); return; }
+  if(t.closest("[data-cx-elegir]")){ document.getElementById("cxFile").click(); return; }
+  const z = t.closest("#cxZona"); if(z && !t.closest("button") && !t.closest("input")){ document.getElementById("cxFile").click(); return; }
+  const fb = t.closest("[data-cx-f]"); if(fb){ m.filtro = fb.dataset.cxF; cxPintar(); return; }
+  const todos = t.closest("[data-cx-todos]");
+  if(todos){
+    const si = todos.dataset.cxTodos === "1";
+    for(const r of m.renglones) if(r.estado === "cambia" && (m.filtro === "cambia" || r.avisos.length || r.cambiaDesc)) m.tilde[r.a.cod] = si;
+    cxPintar(); return;
+  }
+  const dh = t.closest("[data-cx-desh]"); if(dh){ cxDeshacer(dh.dataset.cxDesh); return; }
+  if(t.closest("[data-cx-aplicar]")) cxAplicarYa();
+}
+async function cxAplicarYa(){
+  const m = CX.m; if(!m || m.aplicando) return;
+  const van = m.renglones.filter(r => r.estado === "cambia" && m.tilde[r.a.cod]);
+  if(!van.length) return;
+  const saltos = van.filter(r => r.salto).length, bolsas = van.filter(r => r.bolsa && !m.bolsaNo[r.a.cod]).length;
+  if(!confirm("Se van a cambiar " + van.length + " artículos" + (m.modo === "proveedor" ? " de " + m.marca : "") + "." +
+      (saltos ? "\\n\\nOJO: " + saltos + " tienen un salto de costo de más del " + CX_SALTO + " %." : "") +
+      (bolsas ? "\\n" + bolsas + " son bolsas: el precio de la lista se multiplica por la cantidad de la bolsa." : "") +
+      (m.acompanar ? "\\n\\nLa Lista 1 y la 2 acompañan al costo (mismo margen)." : "\\n\\nLa Lista 1 y la 2 quedan como están (cambia el margen).") +
+      "\\n\\nSe puede deshacer después. ¿Aplico?")) return;
+  m.aplicando = true; cxPintarPie();
+  const cambios = van.map(r => ({ cod: r.a.cod, antes: { lista: +r.a.lista || 0, lista1: +r.a.lista1 || 0, lista2: +r.a.lista2 || 0 }, despues: r.d }));
+  const cuerpo = { accion:"aplicar", yo: soyYo(), origen: m.modo, marca: m.marca, archivo: m.archivo, cambios };
+  if(m.modo === "proveedor") cuerpo.columnas = Object.assign({}, m.col, { titulos: cxTitulos(m.filas, m.col.fila) });
+  const r = await pedirJson("POST", CX_URL, cuerpo);
+  m.aplicando = false;
+  if(r.error){ m.resultado = '<p class="cx-res mal">No se aplicó: ' + txt(r.error) + '</p>'; cxPintar(); return; }
+  const partes = ["<b>Listo: " + r.actualizados + (r.actualizados === 1 ? " artículo actualizado" : " artículos actualizados") + ".</b>"];
+  if(r.cambiados.length) partes.push(r.cambiados.length + " no se pisaron porque alguien los cambió mientras tanto: " + txt(r.cambiados.slice(0, 12).join(", ")) + (r.cambiados.length > 12 ? "…" : "") + ".");
+  if(r.malos.length) partes.push("No se pudieron: " + txt(r.malos.slice(0, 8).map(x => x.cod + " (" + x.motivo + ")").join(", ")) + (r.malos.length > 8 ? "…" : "") + ".");
+  if(r.noEstan.length) partes.push(r.noEstan.length + " ya no estaban cargados.");
+  partes.push("Abajo, en Últimas subidas, la podés deshacer.");
+  toast("Listo: " + r.actualizados + " artículos actualizados.");
+  await traerDeGbp();
+  try{ pintarProd(); }catch(e){}
+  await cxTraerHist();
+  const hc = document.getElementById("cxHist"); if(hc) hc.innerHTML = cxHistHtml();
+  // Con el Excel de Artículos no se vuelve a comparar: ese archivo tiene las
+  // Listas 1 y 2 de antes y propondría volverlas atrás. Para seguir, se baja
+  // uno nuevo. La lista del proveedor sí (muestra lo que quedó sin tildar).
+  m.tilde = {};
+  if(m.modo === "excel"){ m.renglones = []; m.hecho = true; } else cxRevisar();
+  m.resultado = '<p class="cx-res' + (r.cambiados.length || r.malos.length ? ' mal' : '') + '">' + partes.join("<br>") + '</p>';
+  cxPintar();
+}
+document.getElementById("fSubir").addEventListener("click", () => abrirCambiosExcel("excel"));
+document.getElementById("cxSubirPrv").addEventListener("click", () => abrirCambiosExcel("proveedor"));
+document.getElementById("cxHist").addEventListener("click", e => { const b = e.target.closest("[data-cx-desh]"); if(b) cxDeshacer(b.dataset.cxDesh); });
+setTimeout(() => { for(const id of ["fSubir", "cxSubirPrv"]){ const b = document.getElementById(id); if(b) b.hidden = !puede("importar"); } }, 0);
+
 /* ============================== AGENDA DE PAGOS (V.0.11.257)
    Damián, 24/11/2026: "NECESITO EN PROVEEDORES AGENDAS DE PAGO Y SETEARLAS
    CON FECHAS Y QUE ME AVISE EL SISTEMA QUE TENGO QUE REALIZAR PAGOS". Se

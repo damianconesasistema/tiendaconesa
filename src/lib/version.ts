@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.257";
+export const APP_VERSION = "V.0.11.258";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.258",
+    date: "2026-11-24",
+    changes: [
+      "Punto, CAMBIOS DE PRECIOS POR EXCEL (\"si yo hago una modificación de este Excel, que después se pueda subir para que tome los cambios\"). Botón Subir Excel en Artículos: el Excel de Artículos editado (lista del proveedor, descuentos, recargos, IVA, Lista 1, Lista 2, descripción, código de fabricante). Antes de aplicar muestra qué cambia (costo hoy → nuevo, con el %), lo que está mal (descuentos fuera de rango, códigos repetidos) y avisa si se tocó algo que se calcula solo o el stock (no se usan). Solo artículos que ya están: NUNCA crea uno. Se aplica lo tildado; queda en Actividad y se puede DESHACER (vuelve a como estaba, salvo lo que se cambió después).",
+      "Punto, Proveedores → Lista de precios del proveedor (\"el excel de los precios de FV ... tenés el precio del costo sin IVA y los descuentos\" / \"solo modificar los que tenemos cargados\"). Se elige qué columna es el código, el precio de lista y los descuentos (en FV: Bonif General, Matriz, Excepcional y las dos de Descuento Caja) y se recuerdan por marca. Avisa: cargados que no están en la lista, códigos de la lista que no están cargados (no se crean), bolsas con precio por unidad (-D5, -D10: se multiplica por la cantidad de la bolsa) y saltos de costo de más del 15 % (quedan sin tildar). La Lista 1 y la 2 acompañan al costo (mismo margen), o quedan como están si se destilda.",
+      "Punto, Excel de Artículos: un descuento por columna (Desc. 1, Desc. 2…) y los recargos igual (\"me trajo todos los descuentos juntos, que quiero que me los separes en columna\"); la columna es \"Lista 2\" a secas.",
+    ],
+  },
   {
     version: "V.0.11.257",
     date: "2026-11-24",
