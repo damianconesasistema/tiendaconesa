@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.221";
+export const APP_VERSION = "V.0.11.222";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.222",
+    date: "2026-11-24",
+    changes: [
+      "Punto, la Venta más ordenada (\"los botones ponelos arriba de Artículos de la venta\"; \"los totales abajo a la derecha, destacados con algún color\"; \"la sucursal ponela al lado del número de comprobante y subí todo un poco\"): Emitir presupuesto, Confirmar pedido, Guardar como borrador y Otras opciones pasan arriba de los artículos (lo que se abre, se abre para abajo); la barra de abajo queda con los totales a la derecha y el Total en rojo; la Sucursal va al lado del número y el Cliente sube al lado del Vendedor: un renglón menos y más lugar para los artículos.",
+    ],
+  },
   {
     version: "V.0.11.221",
     date: "2026-11-23",

@@ -276,23 +276,28 @@ section[hidden]{display:none}
   #v-mostrador #tkCaja{flex:1 1 100%}
   #v-mostrador #tkCaja:empty{display:none}
   #v-mostrador #tkCaja .aviso{margin:0 !important}
-  #v-mostrador .tk-tot{flex:0 1 auto; flex-direction:row; flex-wrap:wrap; align-items:center; gap:4px 20px; padding:0}
+  #v-mostrador .tk-tot{flex:0 1 auto; flex-direction:row; flex-wrap:wrap; align-items:center; gap:4px 20px; padding:0;
+    margin-left:auto; justify-content:flex-end}
   #v-mostrador .tk-tot .tr{flex-direction:column; align-items:flex-start; gap:1px; font-size:12px; line-height:1.25}
   #v-mostrador .tk-tot .tr b{font-size:14px}
-  #v-mostrador .tk-tot .tr.big{flex-direction:row; align-items:baseline; gap:10px; margin:0; padding:0 0 0 20px;
-    border-top:0; border-left:1px solid var(--line); font-size:14px}
-  #v-mostrador .tk-tot .tr.big b{font-size:30px}
-  #v-mostrador .tk-acc{flex:1 1 auto; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; align-items:center;
-    gap:8px; padding:0; position:relative}
+  #v-mostrador .tk-tot .tr.big{flex-direction:row; align-items:baseline; gap:12px; margin:0; padding:5px 18px;
+    border:1px solid rgba(230,48,32,.28); border-radius:10px; background:var(--accent-soft, #fdecea); font-size:14px}
+  #v-mostrador .tk-tot .tr.big span{color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:.05em; font-size:13px}
+  #v-mostrador .tk-tot .tr.big b{font-size:30px; color:var(--accent)}
+  #v-mostrador .tk-acc{flex-direction:row; flex-wrap:wrap; justify-content:flex-end; align-items:center;
+    gap:8px; padding:0; margin:0 0 10px; position:relative}
   #v-mostrador .tk-acc > button{white-space:nowrap; padding:10px 16px; font-size:14px}
   #v-mostrador .tk-acc > .b3{padding:9px 12px; font-size:13px}
-  /* "Otras opciones" y "¿a qué caja?" se abren arriba de la barra. */
-  #v-mostrador #masAcc, #v-mostrador #cajaElige{position:absolute; right:0; bottom:calc(100% + 14px); z-index:5;
+  /* "Otras opciones" y "¿a qué caja?" se abren abajo de los botones (V.0.11.222). */
+  #v-mostrador #masAcc, #v-mostrador #cajaElige{position:absolute; right:0; top:calc(100% + 8px); z-index:45;
     width:340px; display:flex; flex-direction:column; gap:7px; padding:12px !important;
     background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r); box-shadow:0 12px 32px rgba(0,0,0,.16)}
   #v-mostrador #masAcc[hidden], #v-mostrador #cajaElige[hidden]{display:none}
 }
 @media (max-width:900px){.dos, #v-mostrador > .dos{grid-template-columns:1fr}}
+#v-mostrador .acc-arriba{flex-direction:row; flex-wrap:wrap; justify-content:flex-end; padding:0; margin:0 0 10px}
+@media (max-width:900px){#v-mostrador .acc-arriba #masAcc, #v-mostrador .acc-arriba #cajaElige{flex:1 1 100%}}
+#v-mostrador .ticket .tr.big b{color:var(--accent)}
 /* Los borradores, arriba de los artículos. */
 #v-mostrador #borradores{margin:0 0 12px; padding:9px 12px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r)}
 #v-mostrador #borradores:empty{display:none}
@@ -1400,7 +1405,16 @@ footer{
 .nro-arriba label{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
 .nro-arriba #vtaNro{width:190px; padding:6px 10px; font-size:15px; font-weight:600}
 .nro-arriba .por{font-size:12px}
-@media (max-width:640px){ .nro-arriba{margin-left:0; width:100%} .nro-arriba #vtaNro{flex:1; width:auto; min-width:0} }
+/* V.0.11.222: la sucursal, al lado del número. */
+.card-h:has(#vtaSucArriba){flex-wrap:wrap; row-gap:8px}
+.suc-arriba{display:inline-flex; align-items:center; gap:8px; margin-left:22px; flex-wrap:wrap}
+.suc-arriba:empty{display:none}
+.suc-arriba label{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.suc-arriba #vtaSuc{width:210px; padding:6px 10px; font-size:15px; font-weight:700}
+.suc-arriba .por{font-size:12px}
+.fila-dos .cli-fila{flex:1 1 auto}
+@media (max-width:640px){ .nro-arriba{margin-left:0; width:100%} .nro-arriba #vtaNro{flex:1; width:auto; min-width:0}
+  .suc-arriba{margin-left:0; width:100%} .suc-arriba #vtaSuc{flex:1; width:auto; min-width:0} }
 </style>
 </head>
 <body>
@@ -1410,7 +1424,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.221</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.72.4</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1470,9 +1484,10 @@ footer{
 <section id="v-mostrador">
   <div class="dos">
     <div>
-      <div class="card" style="margin-bottom:16px">
+      <div class="card" style="margin-bottom:10px">
         <div class="card-h"><h3>Comprobante</h3>
           <span class="nro-arriba" id="vtaNroArriba"></span>
+          <span class="suc-arriba" id="vtaSucArriba"></span>
           <button class="b2" id="btnCrearVta" type="button" style="margin-left:auto;padding:5px 15px" title="Empezar un comprobante nuevo, en blanco">Crear</button>
           <button class="b3" id="btnBorrarDatosVta" type="button" style="margin-left:6px;padding:5px 13px" title="Cliente, documento, condición, descuento y depósito vuelven a lo de siempre. Los artículos quedan.">Borrar datos</button>
           <button class="b3" id="btnCambiarVta" style="margin-left:6px;padding:5px 15px">Cambiar</button>
@@ -1487,6 +1502,26 @@ footer{
       </div>
 
       <div class="borradores" id="borradores"></div>
+      <!-- V.0.11.222: los botones de la venta, arriba de los artículos. -->
+      <div class="tk-acc acc-arriba" id="vtaAcc">
+        <button class="b1" id="btnGuardarEd" type="button" hidden>Guardar cambios</button>
+        <button class="b1" id="btnFactura" hidden>Emitir factura</button>
+        <button class="b2" id="btnSinFacturaC" type="button" hidden>Entregar sin comprobante</button>
+        <button class="b2" id="btnPedInt" type="button" hidden title="Sin factura: queda anotado como pedido interno y pasa a preparación">Cerrar como pedido interno</button>
+        <button class="b1 suave" id="btnPresu">Emitir presupuesto</button>
+        <button class="b1" id="btnCaja" title="Pasa a Comprobantes → Pedidos por cobrar: lo cobra el cajero. Elegís la caja (otra sucursal también).">Confirmar pedido</button>
+        <div id="cajaElige" hidden style="padding:4px 0 6px">
+          <span class="et" style="display:block;margin-bottom:6px">¿A qué caja la mandás? Otra sucursal también: se cobra con su CUIT.</span>
+          <div id="cajaEligeBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+        <button class="b2" id="btnBorrador">Guardar como borrador</button>
+        <button class="b3" id="btnMasAcc" aria-expanded="false">Otras opciones</button>
+        <div id="masAcc" hidden>
+          <button class="b2" id="btnSinFactura">Entregar sin comprobante</button>
+          <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
+          <p class="nota" style="padding:4px 0 0">La venta sin comprobante queda anotada igual, marcada como tal: no hay un segundo libro.</p>
+        </div>
+      </div>
       <div class="card armando">
         <div class="card-h"><h3>Artículos de la venta</h3><span class="sub" id="vtaCuenta"></span>
           <span class="sub" id="vtaDep" style="margin-left:auto"></span></div>
@@ -1519,25 +1554,6 @@ footer{
       </div>
       <div id="tkCaja"></div>
       <div class="tk-tot" id="tkTot"></div>
-      <div class="tk-acc">
-        <button class="b1" id="btnGuardarEd" type="button" hidden>Guardar cambios</button>
-        <button class="b1" id="btnFactura" hidden>Emitir factura</button>
-        <button class="b2" id="btnSinFacturaC" type="button" hidden>Entregar sin comprobante</button>
-        <button class="b2" id="btnPedInt" type="button" hidden title="Sin factura: queda anotado como pedido interno y pasa a preparación">Cerrar como pedido interno</button>
-        <button class="b1 suave" id="btnPresu">Emitir presupuesto</button>
-        <button class="b1" id="btnCaja" title="Pasa a Comprobantes → Pedidos por cobrar: lo cobra el cajero. Elegís la caja (otra sucursal también).">Confirmar pedido</button>
-        <div id="cajaElige" hidden style="padding:4px 0 6px">
-          <span class="et" style="display:block;margin-bottom:6px">¿A qué caja la mandás? Otra sucursal también: se cobra con su CUIT.</span>
-          <div id="cajaEligeBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-        </div>
-        <button class="b2" id="btnBorrador">Guardar como borrador</button>
-        <button class="b3" id="btnMasAcc" aria-expanded="false">Otras opciones</button>
-        <div id="masAcc" hidden>
-          <button class="b2" id="btnSinFactura">Entregar sin comprobante</button>
-          <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
-          <p class="nota" style="padding:4px 0 0">La venta sin comprobante queda anotada igual, marcada como tal: no hay un segundo libro.</p>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -3949,32 +3965,32 @@ function pintarCamposVenta(){
   }
 
   const su = sucAct();
+  // La sucursal: de ella salen el punto de venta, la numeración y el depósito
+  // del que sale la mercadería. V.0.11.222: arriba, al lado del número, y se
+  // ve siempre (también con los datos cerrados).
+  document.getElementById("vtaSucArriba").innerHTML =
+    '<label for="vtaSuc">Sucursal</label>'+
+    '<select id="vtaSuc"'+(sucursalFija() ? ' disabled title="Tu usuario es de esta sucursal"'
+      : (window.VSRV && VSRV.caja ? ' disabled title="Estás cobrando un ticket de esta caja: se cobra con esta sucursal"' : ''))+'>'+
+      SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
+    '</select>'+
+    '<span class="por">punto de venta '+su.pv+' · depósito <b>'+DEPOSITOS[depAct()]+'</b></span>';
   document.getElementById("camposVta").innerHTML =
-    // La sucursal va arriba de todo y sola. De ella salen el punto de venta,
-    // la numeracion y el deposito del que sale la mercaderia: no es un dato
-    // mas del comprobante, es el marco de toda la venta.
     '<div class="fila-dos">'+
-      '<div class="campo suc-sola"><label for="vtaSuc">Sucursal</label>'+
-        '<select id="vtaSuc"'+(sucursalFija() ? ' disabled title="Tu usuario es de esta sucursal"'
-          : (window.VSRV && VSRV.caja ? ' disabled title="Estás cobrando un ticket de esta caja: se cobra con esta sucursal"' : ''))+'>'+
-          SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
-        '</select>'+
-        '<span class="por">punto de venta '+su.pv+' · depósito <b>'+DEPOSITOS[depAct()]+'</b></span></div>'+
-      // El vendedor va con la sucursal, no abajo entre el numero y el
-      // deposito: las dos contestan lo mismo, quien vende y desde donde.
+      '<div class="campo cli-fila"><label for="vtaCliente">Cliente</label>'+
+        // El "+" al lado del desplegable, que es donde la mano ya esta.
+        '<div class="con-mas">'+
+          '<select id="vtaCliente" data-k="cli">'+opcCli+'</select>'+
+          '<button class="b2 mas" type="button" id="vtaCliNuevo" title="cargar un cliente nuevo">+ Cliente</button>'+
+        '</div>'+
+        '<span class="por">'+info+'</span></div>'+
+      // El vendedor, al lado del cliente: quién vende y a quién.
       '<div class="campo vend"><label for="vtaVend">Vendedor</label>'+
         '<select id="vtaVend"'+(VENDEDOR_LOGIN ? ' disabled title="Entraste como '+VENDEDOR_LOGIN+'. Para vender con otro usuario, tocá Salir."' : '')+'>'+
           VENDEDORES.map(v=>'<option'+(v===S.usuario?" selected":"")+'>'+v+'</option>').join("")+
         '</select>'+
         '<span class="por">viene de tu usuario</span></div>'+
     '</div>'+
-    '<div class="campo ancho"><label for="vtaCliente">Cliente</label>'+
-      // El "+" al lado del desplegable, que es donde la mano ya esta.
-      '<div class="con-mas">'+
-        '<select id="vtaCliente" data-k="cli">'+opcCli+'</select>'+
-        '<button class="b2 mas" type="button" id="vtaCliNuevo" title="cargar un cliente nuevo">+ Cliente</button>'+
-      '</div>'+
-      '<span class="por">'+info+'</span></div>'+
     campo("vtaComp","Documento a emitir",documentosDe(clienteVta()),comp,sComp[1],!S.comp)+
     // Todos los datos del comprobante se pueden tocar. El numero sale solo,
     // pero si la numeracion quedo desfasada hay que poder corregirla sin
@@ -4011,7 +4027,6 @@ function pintarCamposVenta(){
     '<div class="vcel"><span class="vet">'+et+'</span>'+
     '<span class="vva">'+va+'</span></div>';
   document.getElementById("resumenVta").innerHTML =
-    cel("Sucursal", txt(su.n)+' <i>pv '+su.pv+'</i>')+
     cel("Cliente", txt(c ? c.n : "Consumidor final"))+
     cel("Documento", txt(limpio(comp))+' <i>'+nroDe(comp).slice(2)+'</i>')+
     cel("Pedido", nroPedido())+
