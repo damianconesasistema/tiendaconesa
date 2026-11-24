@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.248";
+export const APP_VERSION = "V.0.11.249";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.249",
+    date: "2026-11-24",
+    changes: [
+      "Punto: la lista de precios del cliente es Lista Mayorista, Lista 1 o Lista 2 (\"las listas son LISTA MAYORISTA, LISTA 1 Y LISTA 2\"); sale \"Lista 3 corralón\". En el cliente nuevo de la venta y en la ficha de Clientes, sin el número adelante.",
+    ],
+  },
   {
     version: "V.0.11.248",
     date: "2026-11-24",
