@@ -13838,16 +13838,16 @@ async function anularTicket(id){
   const v = COBRAR.lista.find(x => x.id === id);
   const de = VSRV.id === id && VSRV.caja ? VSRV.caja.vendedor + ", " + (VSRV.caja.cliente || "Consumidor final")
     : v ? (v.vendedor || "un vendedor") + ", " + (v.cliente || "Consumidor final") + " por " + fmt(v.total) : "";
-  if(!confirm("¿Anulás el ticket" + (de ? " de " + de : "") + "? No se cobra y sale de la caja. No se puede deshacer.")) return;
+  if(!confirm("¿Eliminás el pedido" + (de ? " de " + de : "") + "? No se cobra y sale de la caja. No se puede deshacer.")) return;
   EMITIENDO = true; botonesEmitir(true);
   try{
     const { d } = await pedirSrv(VTA_URL, { accion:"anular", id });
-    if(!d.ok){ toast("No se anuló: " + d.error); return; }
+    if(!d.ok){ toast("No se eliminó: " + d.error); return; }
     if(VSRV.id === id){
       VSRV.id = null; VSRV.version = null; VSRV.caja = null; VSRV.ultimo = "";
       limpiarVentaEmitida();
     }
-    toast("Ticket anulado: salió de la caja.");
+    toast("Pedido eliminado: salió de la caja.");
   } finally { EMITIENDO = false; botonesEmitir(false); traerPorCobrar(); }
 }
 // Devolver el ticket a la caja sin cobrarlo: lo puede tomar otro cajero.
@@ -13946,7 +13946,8 @@ function pintarPorCobrar(){
       : deOtro ? ""
       : '<button class="b1" type="button" data-cobrar="' + atrib(v.id) + '" style="padding:5px 14px;font-size:12.5px">Abrir y cobrar</button>') +
       // El cliente se fue sin pagar: sin esto quedaba en la caja para siempre.
-      (v.estado === "en-caja" ? ' <button class="b3" type="button" data-anular="' + atrib(v.id) + '" style="padding:5px 10px;font-size:12.5px" title="El cliente no lo paga: sale de la caja">Anular</button>' : '');
+      // V.0.11.237: también el que tenés vos ("que aparezca el botón de eliminar ahí").
+      (v.estado === "en-caja" || mia ? ' <button class="b3" type="button" data-anular="' + atrib(v.id) + '" style="padding:5px 10px;font-size:12.5px" title="No se cobra: sale de la caja">Eliminar</button>' : '');
     return '<tr><td class="num">' + txt(horaCorta(v.actualizadoEn)) + '</td><td>' + txt(v.vendedor) + '</td>' +
       '<td style="font-weight:500">' + txt(v.cliente) + '</td><td>' + n + ' un.</td>' +
       '<td class="r" style="font-weight:600">' + fmt(v.total) + '</td><td>' + est + '</td><td style="white-space:nowrap">' + acc + '</td></tr>';
