@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.214";
+export const APP_VERSION = "V.0.11.215";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.215",
+    date: "2026-11-23",
+    changes: [
+      "LA FORMA DE LA MARCA (\"que los artículos de una marca, por ejemplo PIAZZA, como cargué uno me guarde la forma ... así ya tengo\"): en Crear uno y en Adjuntar, al elegir la marca se copia la forma del último artículo de esa marca creado en Punto: proveedor, rubro, descuentos, pago contado y días, IVA, moneda, Lista 1, Lista 2 y por mayor. Solo se completa lo que todavía está como viene; se avisa qué se copió y \"No usarla\" lo deja como estaba.",
+      "Rubro COMBO (\"en rubro se pondría combo para que se sepa que ya es un combo\"): al tildar \"Es un combo\" el rubro pasa a COMBO (y vuelve al de antes si se destilda); los combos armados en Punto y los 25 de GBP con COMBO en el nombre se ven con rubro COMBO. COMBO va al final de la lista de rubros.",
+    ],
+  },
   {
     version: "V.0.11.214",
     date: "2026-11-23",
