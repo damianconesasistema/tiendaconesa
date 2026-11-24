@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.218";
+export const APP_VERSION = "V.0.11.219";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.219",
+    date: "2026-11-23",
+    changes: [
+      "Combos, el código de fabricante (\"debería sumarse los artículos que elijo y ponerse automáticamente como 3764+4387+5212\"): con cada pieza que se suma o se saca, el Código de fabricante del combo se arma solo con los de las piezas unidos con \"+\" (de cada pieza su código de fabricante; si no tiene, su código). Si se escribe otro a mano, ese queda.",
+    ],
+  },
   {
     version: "V.0.11.218",
     date: "2026-11-23",
