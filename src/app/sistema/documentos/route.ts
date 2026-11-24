@@ -13,7 +13,8 @@ import {
   listarDocumentos,
 } from "@/lib/punto-documentos";
 import { motivoParaLaPantalla } from "@/lib/punto-error";
-import { fueraDeSucursal, nombresSucursales, puedePunto } from "@/lib/punto-permisos";
+import { porQueNoCobra } from "@/lib/punto-cierres";
+import { fueraDeSucursal, nombreSucursalPunto, nombresSucursales, puedePunto } from "@/lib/punto-permisos";
 import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
 
@@ -181,6 +182,17 @@ export async function POST(req: Request): Promise<Response> {
     } catch (e) {
       // Sin lo de adentro de la base (ver src/lib/punto-error.ts).
       return json({ error: "No se pudo guardar el cambio: " + motivoParaLaPantalla(e, "error del servidor") + "." });
+    }
+  }
+  // V.0.11.256 (Damián: "a la mañana que primero abra caja para poder
+  // cobrar"): la factura y el Recibo X son cobros: con la caja de esa
+  // sucursal cerrada (o abierta desde otro día), no se emiten.
+  if (limpio.doc.tipo === "factura" || limpio.doc.tipo === "sin-comprobante") {
+    try {
+      const no = await porQueNoCobra(limpio.doc.sucursal, nombreSucursalPunto(limpio.doc.sucursal));
+      if (no) return json({ error: no });
+    } catch {
+      return json({ error: "No pude ver si la caja está abierta: probá de nuevo en un momento. No se emitió nada." });
     }
   }
   // Sin permiso para corregir la numeracion: desde 1, y siguiente() (en

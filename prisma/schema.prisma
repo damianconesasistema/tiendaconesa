@@ -774,6 +774,11 @@ model PuntoCierre {
   nota        String    @default("")
   usuario     String
   creadoEn    DateTime  @default(now())
+  /// Reset desde Gerencia (migracion 59, V.0.11.256): no se borra, deja de
+  /// contar. Damian: "poneme un reset pero solo en gerencia, ahora vamos a
+  /// completar a modo de ejemplo".
+  reseteadoEn  DateTime?
+  reseteadoPor String?
 
   @@index([sucursal, hasta])
 }

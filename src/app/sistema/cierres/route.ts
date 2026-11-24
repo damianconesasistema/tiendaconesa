@@ -1,5 +1,5 @@
 import { registrar } from "@/lib/actividad";
-import { cerrarCaja, estadoCaja, listarCierres } from "@/lib/punto-cierres";
+import { cerrarCaja, estadoCaja, listarCierres, resetearCaja } from "@/lib/punto-cierres";
 import { esSucursalPunto, fueraDeSucursal, nombreSucursalPunto, puedePunto } from "@/lib/punto-permisos";
 import { type YoPunto, yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
@@ -11,6 +11,9 @@ import { quienEntra } from "../clave";
 //   GET                    -> { cierres } los ultimos de las que puede ver
 //   POST {accion:"abrir"|"cerrar", sucursal, idLocal, billetes, retiro,
 //         destino, nota, yo?} -> { ok, cierre }
+//   POST {accion:"resetear", sucursal, yo?} -> { ok, reseteados } solo
+//         gerencia ("gerencia" o "cuentas"): los cierres dejan de contar
+//         (no se borran) y la caja vuelve a abrirse de cero
 // Ver: "caja", "gerencia" o "cuentas"; el que no es de gerencia, solo sus
 // sucursales. Abrir y cerrar: "caja" y "cobrar" (o "cuentas"), en su sucursal.
 // Los errores van con 200 y {error}: Cloudflare tapa los 5xx.
@@ -76,6 +79,23 @@ export async function POST(req: Request): Promise<Response> {
   if (!c || typeof c !== "object") return json({ error: "No entendí lo que me mandaste." }, 400);
   if (typeof c.yo === "string" && c.yo && c.yo !== yo.usuario)
     return json({ error: `En esta compu ahora entró ${yo.usuario}: recargá la página para seguir con tu usuario. No se guardó nada.` });
+  // V.0.11.256: el reset, solo gerencia ("solo en gerencia se pueda hacer").
+  if (c.accion === "resetear") {
+    if (!esGerencia(yo)) return json({ error: "El reset de la caja lo hace solo gerencia." }, 403);
+    const sr = typeof c.sucursal === "string" ? c.sucursal : "";
+    if (!esSucursalPunto(sr)) return json({ error: "Elegí de qué sucursal es la caja." }, 400);
+    try {
+      const n = await resetearCaja(sr, yo.usuario);
+      await registrar(
+        `Punto: reseteó la caja de efectivo de ${nombreSucursalPunto(sr)}`,
+        `${n} ${n === 1 ? "cierre queda" : "cierres quedan"} sin contar (no se borran); la caja vuelve a abrirse de cero.`,
+        yo.usuario,
+      );
+      return json({ ok: true, reseteados: n });
+    } catch {
+      return json({ error: "No pude resetear la caja: probá de nuevo en un momento. No se cambió nada." });
+    }
+  }
   const accion = c.accion === "abrir" ? "abrir" : c.accion === "cerrar" ? "cerrar" : null;
   if (!accion) return json({ error: "No sé qué querés hacer con la caja." }, 400);
   const puedeCerrar =

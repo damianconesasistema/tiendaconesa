@@ -571,6 +571,8 @@ tr.mov-anulado td:last-child{text-decoration:none}
 .cnt-retiro input{width:150px}
 #cntDestino{width:240px}
 #efeCuerpo td small, #gerCierres td small{display:block;color:var(--ink-3);font-size:11.5px;font-weight:500}
+.efe-aviso{margin:12px 16px 0;padding:9px 12px;border-radius:9px;background:var(--accent-soft);font-size:13.5px}
+.efe-aviso.mal{background:#fdecea;color:var(--bad)}
 .cnt-nota{align-items:center}
 .cnt-nota input{flex:1;min-width:200px}
 .efe-cuerpo{padding:14px 18px 4px}
@@ -1518,7 +1520,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOgAAABNCAYAAACseCglAAAAAklEQVR4AewaftIAAA4vSURBVO3B/5OkCX0Q4OfTvRDk20wACUhIN5KOAuJ0ohRojp1eMEEqgR1UorGsmrm/YCd/wcyVVf5kFZPyB3/QyvZqKWpFnSs04F3kuiEcCZjQI4GAXYZeMKVEzPVU5I47ru/jWUOqd3Znut/5tv3O3fs8kZkqlUo51VQqldKqqVQqpVVTqVRKq6ZSqZRWTaVSKa2aSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqldUVJRMQObpi6jbXMHJghInpYNXUtM3tmiIg09RB6eMzUD2fm2F0iooPHTF3LzJ67RMQ2thztoczcdoyI6OAxU/3M7JghInZww2G30cNmZo4dIyJ6WHVgLzPbZoiIbWxiyYHb2MzMXTNERBNdrJray8y2yrFqSiAitnHDYQ0sm2/ZYW0ns+YumTm2OE2HNc03dq8G1tFT3NgMEbGDLSyZauDfR0THbLtYddiKykxXlMOGw/pYNUdELGPFYW0ns4Km8ug4rBERy5k5VtxtNBxYiYhOZvacQUQ0ccPxttFxhIhoY8XUPsZoOEqr/hL8A/wovo9EmC/xEnwXjxpO/o1LrqYcGqb2MrODt2BktrZ7dZzchnOUmduZGeib6mdmZOa22dru1XEyGw5rO7s1h30Et0ytRsSyoy07bCczm7jmaG/H+/AArmIVV3EVV3EVV3EVV3EVV7GKB/B+fNALQE05PGxqJSK6GGfmyGwd92pExLKTWVUeK+7VdjIbDhs4u2V3yMxd9BzWdrSBw7YiYiMze+7Wqv8p/F28Ez+KBhpooIEGGmiggQYaaKCBN+Mt+IBW/W0uuZpy2Ma+qXX0ImLZbG1Te6Y6LqGI6Jjqm+o4mXVT+xg4u7Z7jRSQmWM85LCbEbHhXq/CRxBIJBKJRCKRSCQSiUQi8Wp81CVXUwKZOUAH+6ZWsGm2jqmuqbbLqWOqZ2rV6XUyc+zsxs4gM7fxSw67GREdh/0FvBV1BAKBQCAQCAQCgUAgEHgp/qZW/bUusZqSyMwBOtg31XGMiGhiyVTbVEdx+8qjbaqNfT8QEW2ns+x8jNyr7QQycwcPOqzjT7Tqy/jbqDm7K3gH3uYSu6IEImKAzczsRcQIKw40Ha/tsHVTq4rbxbpy6Ji67rAOBorpY9WBTfSc3cgdImIbbXfIzJ4jREQHG9hGz/Fejw85EM6ujl/Qqv+u4WTsEqophxU8FhGJFVMDx+uYISLaitlVAhHRxJLjtRXXNXU9IprObhf7prZw3dQts63jG/iGw0amVvAGsyWew3NIxwsk/hZe65KqKbdtx2ubeigzA3umOooZ45bFa5vaz8zAg6Y6CsrMLvZNbTqjzBxj09H2se3k9rDr/2vVX4+fR5jt/+Jx/DaeMVvgjfhJl1RNOfwy+g7s42H8ZGYOzNZHHwMHeuijj2XH66OPvgNd9NFHPyKWHW2MPvroY2y2AfroY2C2Jvroo+vAAH30MYqIZUcbo48++g7soI8+mo43QB99jMyQmV18BH0HbuMW2pk5crwRbmHPgdu4hU5mjh1o4oNIsz2Bf4h/iqcV8yGt+utcQpGZKpWFa9XX0TXfF/EAXo09/BmzJf4Q1w0nv+WSqalUFq1VX8JfR5rte/iC4eQZw8l38F/wjNkCP4J3uoSuqFQuWqv+RlxzIJEIB/4Y78L7EI6X+AP8K1P/BO/B6833c1r1TxhOvu0SuaLkImIZHbTRca8RehhhlJkjM0REE2too+leA/TQy8yxOSKijWXzjTNz4A4R0cay+UaZOYqIjvMxyMyxI0REE2voYNm9Rhigl5kDxfxF/CNHm+DleIXZAl/D5019Ct/E6833fqzgEZfIFSUVEU1sYw1LjreKdQeuYeQIEdHGDlbNtoob2I+IHexk5tjxOviY+W5hw2EbuGG+axhhG6vO7hp67hARbWzjutlWse55EbGPUWa2zfZSvMbZPIlPG04m/sRw8qxW/VG8HS8326vwbjziEqkpoYjYxADrWHJGEbGNL2FVcUvYwigiOo43UEzHvcZOpucCRMQGvoTrTmYJK+b7vrP7Cv6de/0zfFMxV7XqP+YSqSmZiOjiY1hyDiKiiy2nt4THImLD2TQiYk3JRMQGbrpY6ex+03Aycrfh5GsYKOZdeMAlUlMiEdHFunMSEV2sOx83I6LjbNaUSER0cNPFqzmbP8JjjvcpPGG+JbzHJVJTEhGxjXXnJCLWsO587UbEstNbi4hl5dF1OTyOxx3vEfxX8yXerVX/sy6JmhKIiDa2nK8d528J205vCWtKICI6aLgcPmM4+bbjDCf/E583X+Dt+KBLoqYcdpyjiNhAw8W4ERFNp7emHNZcDt/C4+b7dXzLfK/EqkuiZsEiooNV52vbxdpwetcjomnx2k5mD330se/++TX8jvk+h88o5h1a9Xe4BK5YvA0ns4/NzOx6XkQ00cG250VEGw3F7GMtM3sR0cW6Yjaw7fTWsOPi3ELX0ZYxUtw+1jKz5w4RsYZNrLo4iUcMJ0+ZZzj5nlb9MfwiamZr4hewpeSuWLw1xe2jk5kDP5CZI3QjYteBDcXtZGbP8zJzIyLaWDFfIyKamTlyOhvYcXFGmdkzQ0QoaJCZPXfJzF3sRsSGi7OHgeJ+A1/Gitlejvdp1f++4eRZJVazQBHRwZLiNjJz4AiZOc7MMdYUt+OwHcV1nN5KRDRdDk0zZGbXxfnnhpPfV9Rw8nX8qmLegvcouZrF6iiun5m75msrpp+ZY4f1FNd2NpsWa6SYRkR03X9P4T87uR6eNN9rsK7kaharo7iuYpYUM3CXzBxhXzFtZ7NmsQaKW4+IbkQsu3jpwKfwTSf33/Ap870M79eqv0qJXbFYTcXtmiMiOoobO9oAq+ZrOpsGOi5GJyK23WsZg8zsYhcfU9w62hGxlpkjF+9XDCdPOKnh5A+16h/H3zDfn8bP4t8qqZrFaihmLzPHzlfP2TSc3aqLsYotbGELW9jCDTQ9LzNHuOVkVjCIiLaLM8EIv+n0fge3kY4XeAk2tOovU1I1l8PA/TPy4rGJfSezhC9FxIaL8Sz+heHkO07vf+FfIsz2UlzDm5RUzeUwUkzH2Y28SGTmGBtO52ZEbDh/f4xbzmI4eRIfx9NIxwu8Ah/Qqv+QEqqpvKhl5i4edDo3I6JjvlTMs/htw8nQ2X0dn8XEfA/idUqopvKil5ldPIh9J7cbEctmS8U8ga7zMJw8g3+M75nvp/BWJVRzOSwrpqdyKpnZRQf7TmYJO2Z7RjHfxH9wfj6JbyHNVsPPaNVfrmRqLoe2+6fjRSozB2hiz8msR0TT8cJ8T+OzhpPvOi/DyVP4BL5rvo+iqWSuWKx9LJlv1flro+f09p3MHlbcHw9l5ra7RETHHJk5RjsiulhX3Aa2Ha1ltsS38K+dv5v4KF5ptp/AO/FVJVKzWAMFRUTbfAPFLTtaUzEDJ9O1YJnZy8yeAjJzA7cU13GUVv0N+DmzBb6MLzhvw8nX8BWk2QLv1aq/UonULNZAcZvmyMyx4tqO1lDMyMkMcNvlsonbimk62rvwXrM9ic8YTp5zMXbxR+b7AN6hRGoWq6e4tYhYNl9fMR13iYg1xQ2c3I4SiIhmRLTNkZlj7Cqm4Wh/Cctm+zI+6eI8jN8z31vxl5VIzWL1FLeEXfP1FLMUEWsOW1Ncz8ntKocmvhQR2+YbO61W/c34abMlfstw8nUXZTj5Dr6IidkCP61Vf4WSqFmgzBzjYcWtRkQ3IpbdISKWI2I7ItroKW7TD0REG+uKuZ2ZAyeUmSPsWaCIaOINDmxFxCgiNhwhIpaxoZg993oA7zbbE/isi/dJjMz3AP6qkrhi8XZxXXHrWIuIXYzQRgdL6GVmLyJuo2G+1YgYYRcbitt1eju46WJtRcSW4/2SqQZuRsQOehg4sIw1NBQzcq8H8CqzfR59F+9z+CLearY3o4NHlUDNgmVmF7edzBLWsYXrWHJYV3EN3MCS4rpOb1c5LeE6trCFG2gorudOrfqPoW2+Rw0n/9tFG06exOfwPfP9lFb9tUqgphw2na8dF6efmQOnlJljPOyFZ9dhP48/73iJP8AX3D+fxu+abwXXlEBNCWTmLh52TjJzjIdcjE1n1/XCciszRw57L17jeIFdfNX9Mpx8FY+Y7w34GSVQUx4b2HNOMnMbe87XQ5k5cEaZuYt9Lwz72HanVr2Ft5ntWXzacLLv/nocT5kt0Naqv8aC1ZREZo7RwW3nZw37zsetzNx2fna9MKxl5shhH0bDbF/G77n/9vCo+Zr4sAWrKZHMHKONvnOQmSN0sOdsbmXmhvO143Lbx7XM7LnXz+LVZvtV/L77bTj5H/iE+V6LD1uwmpLJzHFmdvAgbjujzBygg192crfxkczccLxlxSy7Q2YOcNvJNJ2fPaf3MNqZ2XO3Vv3H8RbUHC3xFH7dcPK0xRjgNtLx6vgJrfqbLNAVJZWZXXQjYgNr6GDJ0fYwwtgRMnOMzYjYwSbW0HC8PrqZ2TVfE33zNd1rF23zLZvqO7teZu5ExDI6WEMbK453G7vYycyR430YP4x0tMBnMLI4Q+ziBtLRAq/DB/ArFiQy02UREU00HTbIzLFTiIiOw8aZOfAiFhEdd8nMniJa9Tfi41g129/BruHkaYvSqv81/Bpe4niJ/4S/Zzj5PxbgikskM0cYOSeZ2VM5JDN7Tu8X8SP4Np5zWA3P4Rt4zHDytMX6Cv4j/goS6bBADW/Ch9C1AFdUKufnx/HfHXgO4UDiCr6PL2Js8cb4BF6GZ5EIU4k6JvhzFiQyU6VSKaeaSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqlVVOpVEqrplKplFZNpVIprZpKpVJaNZVKpbT+H/ThmLvjr5fGAAAAAElFTkSuQmCC">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.255</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.256</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -2832,7 +2834,8 @@ footer{
   <div class="solapas" id="gerSucs"></div>
   <div class="tiles" id="gerTiles"></div>
   <div class="card" style="margin-bottom:16px">
-    <div class="card-h"><h3>Cierres de caja</h3><span class="sub">efectivo: lo contado contra lo que tendría que haber</span></div>
+    <div class="card-h"><h3>Cierres de caja</h3><span class="sub">efectivo: lo contado contra lo que tendría que haber</span>
+      <button class="b3" type="button" id="gerResetCaja" style="margin-left:auto;padding:5px 14px;color:var(--bad)" hidden title="Solo gerencia: los cierres de esa caja dejan de contar (no se borran) y la caja vuelve a abrirse de cero">Resetear caja</button></div>
     <div class="tabla-wrap" style="max-height:40vh;overflow-y:auto"><table class="densa"><thead id="gerCierresCab"></thead><tbody id="gerCierres"></tbody></table></div>
   </div>
   <div class="dos">
@@ -5224,6 +5227,10 @@ async function cerrar(conComp){
   // después sale el comprobante (factura de ARCA o Recibo X). El presupuesto
   // y el pedido interno no son cobros: no se pregunta.
   const esCobro = !(conComp && (esPresu(comp) || /pedido interno/i.test(comp)));
+  if(esCobro){
+    const no = await cajaNoCobra(S.suc);
+    if(no){ toast(no); return; }
+  }
   let pago = null;
   if(esCobro && /^01-Efectivo/.test(S.forma || "")){
     pago = await pedirEfectivo(+doc.total || 0);
@@ -5236,6 +5243,18 @@ async function cerrar(conComp){
   if(res && pago && pago.vuelto > 0.004) setTimeout(() => toast("Vuelto: " + fmt2(pago.vuelto) + " (pagó con " + fmt2(pago.recibido) + ")."), 2600);
 }
 
+/** V.0.11.256: por qué no se puede cobrar en esa caja (o "" si se puede). Si
+    no se puede leer (sin permiso de Caja, sin conexión), no frena: el
+    servidor lo vuelve a mirar al emitir. */
+async function cajaNoCobra(suc){
+  const d = await pedirJson("GET", CIE_URL + "?suc=" + encodeURIComponent(suc));
+  const e = d && d.estado;
+  if(!e) return "";
+  const n = sucDe(suc).n;
+  if(!e.abierta) return "La caja de " + n + " está cerrada: abrila en Caja (contando los billetes) antes de cobrar.";
+  if(e.vieja) return "La caja de " + n + " quedó abierta desde el " + fechaAR(e.desde) + ": cerrala y volvé a abrirla en Caja antes de cobrar.";
+  return "";
+}
 /* V.0.11.253: "¿Con cuánto paga?". Devuelve { recibido, vuelto } o null si
    se cancela. Botones rápidos: justo y redondeos hacia arriba. Enter cobra,
    Escape cancela. No deja seguir si lo que paga no alcanza. */
@@ -8646,6 +8665,8 @@ document.getElementById("cajaSucs").addEventListener("click",e=>{
    abrió y cuánto tendría que haber, y guarda cada cierre con sus billetes. */
 const CIE_URL = "/sistema/cierres";
 const BILLETES_AR = [20000, 10000, 2000, 1000, 500, 200, 100, 50, 20, 10];
+/** Desde esta hora (Argentina) el cuadro recuerda cerrar la caja. */
+const HORA_CIERRE_CAJA = 19;
 const EFE = { suc:null, en:0, d:null, error:"", pidiendo:0 };
 /** Abrir y cerrar: el que cobra en esa caja, o gerencia. */
 const puedeCerrarCaja = () => puede("cuentas") || (puede("caja") && puede("cobrar"));
@@ -8707,10 +8728,28 @@ function dibujarEfectivo(){
     return;
   }
   const u = e.ultimo;
-  sub.textContent = n + " · desde " + fechaHoraAR(e.desde);
+  // V.0.11.256: cerrada → se abre a la mañana contando; abierta → se cierra a la noche.
+  if(!e.abierta){
+    sub.textContent = n + " · cerrada desde " + fechaHoraAR(u.hasta);
+    btn.hidden = !puedeCerrarCaja(); btn.textContent = "Abrir caja"; btn.dataset.acc = "abrir";
+    cuerpo.innerHTML = '<div class="efe-aviso">La caja está <b>cerrada</b>: para cobrar, primero abrila contando los billetes.</div>' +
+      '<div class="tiles" style="padding:12px 16px 4px;margin:0">' +
+        tile("Quedó al cerrar", fmt2(e.apertura), fechaHoraAR(u.hasta) + " · " + u.usuario) +
+        (Math.abs(e.movimientos) > 0.004 ? tile("Movimientos desde el cierre", fmt2(e.movimientos), "lo anotado en Plata de la caja") : "") +
+        tile("Tendría que haber al abrir", fmt2(e.esperado), "en la caja", "acc") +
+      '</div>' + hist;
+    return;
+  }
+  sub.textContent = n + " · abierta desde " + fechaHoraAR(e.desde);
   btn.hidden = !puedeCerrarCaja(); btn.textContent = "Cerrar caja"; btn.dataset.acc = "cerrar";
-  cuerpo.innerHTML = '<div class="tiles" style="padding:12px 16px 4px;margin:0">' +
-      tile("Abrió con", fmt2(e.apertura), (u.tipo === "apertura" ? "abierta el " : "quedó al cerrar el ") + fechaHoraAR(u.hasta) + " · " + u.usuario) +
+  const hAR = new Date(Date.now() - 3 * 3600e3), hora = hAR.getUTCHours();
+  const aviso = e.vieja
+    ? '<div class="efe-aviso mal">Quedó <b>abierta desde el ' + fechaAR(e.desde) + '</b>: cerrala y volvé a abrirla. Hasta entonces no se puede cobrar.</div>'
+    : hora >= HORA_CIERRE_CAJA
+    ? '<div class="efe-aviso">Ya son las ' + String(hora).padStart(2, "0") + ':' + String(hAR.getUTCMinutes()).padStart(2, "0") + ': cuando termines de cobrar, <b>cerrá la caja</b>.</div>'
+    : '';
+  cuerpo.innerHTML = aviso + '<div class="tiles" style="padding:12px 16px 4px;margin:0">' +
+      tile("Abrió con", fmt2(e.apertura), "abierta el " + fechaHoraAR(u.hasta) + " · " + u.usuario) +
       tile("Cobrado en efectivo", fmt2(e.ventas), "desde que abrió · factura y Recibo X") +
       tile("Gastos y retiros", fmt2(e.movimientos), "lo anotado en Plata de la caja") +
       tile("Tendría que haber", fmt2(e.esperado), "ahora, en la caja", "acc") +
@@ -8722,7 +8761,9 @@ function abrirConteo(acc){
   const d = EFE.d, e = d && d.estado, suc = EFE.suc;
   if(!suc){ toast("Elegí la sucursal arriba."); return; }
   const cerrar = acc === "cerrar";
-  const esperado = cerrar && e ? +e.esperado || 0 : 0;
+  // Al abrir después de un cierre también se compara: con lo que quedó.
+  const compara = cerrar || !!(e && e.ultimo);
+  const esperado = compara && e ? +e.esperado || 0 : 0;
   const viejo = document.getElementById("efeConteo"); if(viejo) viejo.remove();
   const idLocal = "cie" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const fondo = document.createElement("div");
@@ -8731,6 +8772,7 @@ function abrirConteo(acc){
     '<div class="envio-h"><h3>' + (cerrar ? "Cerrar la caja" : "Abrir la caja") + ' · ' + txt(sucDe(suc).n) + '</h3>' +
       '<button class="x" type="button" data-cnt-no aria-label="cerrar">×</button></div>' +
     '<p class="envio-n">' + (cerrar ? "Contá los billetes que hay en la caja y escribí cuántos hay de cada uno." :
+      compara ? "Contá los billetes que hay ahora: se compara con lo que quedó al cerrar." :
       "Contá los billetes que hay ahora: con eso arranca la caja.") + '</p>' +
     '<div class="cnt-grilla">' + BILLETES_AR.map(v =>
       '<label class="cnt-fila"><span class="cnt-den">' + fmt2(v).replace(",00", "") + '</span><span class="cnt-x">×</span>' +
@@ -8770,7 +8812,9 @@ function abrirConteo(acc){
         '<div class="cnt-l"><span>Diferencia</span><b style="color:' + difColor(dif) + '">' + difTxt(dif).toUpperCase() + '</b></div>' +
         (ret > 0 ? '<div class="cnt-l"><span>Se retira</span><b>' + fmt2(ret) + '</b></div>' : '') +
         '<div class="cnt-l grande"><span>Queda para mañana</span><b' + (ret > total ? ' style="color:var(--bad)"' : '') + '>' + fmt2(total - ret) + '</b></div>'
-      : '<div class="cnt-l grande"><span>La caja arranca con</span><b>' + fmt2(total) + '</b></div>');
+      : (compara ? '<div class="cnt-l"><span>Quedó al cerrar</span><b>' + fmt2(esperado) + '</b></div>' +
+          '<div class="cnt-l"><span>Diferencia</span><b style="color:' + difColor(dif) + '">' + difTxt(dif).toUpperCase() + '</b></div>' : '') +
+        '<div class="cnt-l grande"><span>La caja abre con</span><b>' + fmt2(total) + '</b></div>');
     return { b, total, ret };
   };
   const fin = () => fondo.remove();
@@ -8788,7 +8832,8 @@ function abrirConteo(acc){
     if(r.error){ ok.disabled = false; ok.textContent = cerrar ? "Cerrar caja" : "Abrir caja"; toast("No se guardó: " + r.error); return; }
     fin();
     const c = r.cierre;
-    toast(cerrar ? "Caja cerrada: " + difTxt(c.diferencia) + ". Mañana abre con " + fmt2(c.queda) + "." : "Caja abierta con " + fmt2(c.contado) + ".");
+    toast(cerrar ? "Caja cerrada: " + difTxt(c.diferencia) + ". Quedan " + fmt2(c.queda) + " para mañana." :
+      "Caja abierta con " + fmt2(c.contado) + (compara ? " (" + difTxt(c.diferencia) + ")" : "") + ". Ya se puede cobrar.");
     pintarEfectivo(true);
   });
   cuenta();
@@ -8801,10 +8846,29 @@ document.getElementById("efeAccion").addEventListener("click", async e => {
   if(EFE.d && !EFE.error) abrirConteo(acc);
 });
 
+/* ---- Reset de la caja (V.0.11.256, Damián: "poneme un reset también pero
+   solo en gerencia se pueda hacer porque ahora vamos a completar a modo de
+   ejemplo"). Los cierres no se borran: dejan de contar. */
+document.getElementById("gerResetCaja").addEventListener("click", async e => {
+  const suc = S_FIL.ger || "";
+  if(!suc){ toast("Elegí arriba de qué sucursal es la caja que querés resetear."); return; }
+  const n = sucDe(suc).n;
+  if(!confirm("¿Resetear la caja de efectivo de " + n + "? Los cierres que tiene dejan de contar (no se borran: quedan anotados en Actividad) y la caja vuelve a «todavía no se abrió»: se abre de nuevo contando los billetes.")) return;
+  const b = e.currentTarget; b.disabled = true;
+  const r = await pedirJson("POST", CIE_URL, { accion:"resetear", sucursal: suc, yo: soyYo() });
+  b.disabled = false;
+  if(r.error){ toast("No se reseteó: " + r.error); return; }
+  EFE.en = 0;
+  toast("Caja de " + n + " reseteada: " + (r.reseteados || 0) + (r.reseteados === 1 ? " cierre dejó" : " cierres dejaron") + " de contar. Se abre de nuevo desde Caja.");
+  pintarCierresGer();
+});
 /* ---- Gerencia: los cierres de la sucursal elegida (o de todas) */
 async function pintarCierresGer(){
   const tb = document.getElementById("gerCierres"); if(!tb) return;
   const suc = S_FIL.ger || "";
+  // V.0.11.256: el reset, solo gerencia.
+  const rb = document.getElementById("gerResetCaja");
+  if(rb) rb.hidden = !(puede("gerencia") || puede("cuentas"));
   const d = await pedirJson("GET", CIE_URL + (suc ? "?suc=" + encodeURIComponent(suc) : ""));
   const cab = document.getElementById("gerCierresCab");
   if(cab) cab.innerHTML = cabezaCierres(!suc);

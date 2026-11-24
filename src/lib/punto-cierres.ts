@@ -46,9 +46,15 @@ export type EstadoCaja = {
   /** Lo que tendria que haber ahora. */
   esperado: number;
   ahora: string;
+  /** V.0.11.256: abierta (se puede cobrar) o cerrada (se abre a la mañana). */
+  abierta: boolean;
+  /** Abierta desde un dia anterior: hay que cerrarla y volver a abrirla. */
+  vieja: boolean;
 };
 
 const MAX_HISTORIAL = 60;
+/** El dia en Argentina (UTC-3, sin horario de verano). */
+const diaAR = (d: Date) => new Date(d.getTime() - 3 * 3600e3).toISOString().slice(0, 10);
 const texto = (v: unknown, max: number) =>
   (typeof v === "string" ? v : "").replace(/[<>]/g, "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
 
@@ -104,7 +110,8 @@ async function efectivoEntre(db: Db, sucursal: string, desde: Date, hasta: Date)
 }
 
 async function ultimoDe(db: Db, sucursal: string): Promise<PuntoCierre | null> {
-  return db.puntoCierre.findFirst({ where: { sucursal }, orderBy: [{ hasta: "desc" }, { creadoEn: "desc" }] });
+  // Los reseteados desde Gerencia (V.0.11.256) no cuentan.
+  return db.puntoCierre.findFirst({ where: { sucursal, reseteadoEn: null }, orderBy: [{ hasta: "desc" }, { creadoEn: "desc" }] });
 }
 
 /** Como esta la caja ahora: con cuanto abrio y cuanto tendria que haber. */
@@ -112,9 +119,13 @@ export async function estadoCaja(sucursal: string): Promise<EstadoCaja> {
   const ahora = new Date();
   const ult = await ultimoDe(prisma, sucursal);
   if (!ult)
-    return { sucursal, ultimo: null, desde: null, apertura: 0, ventas: 0, movimientos: 0, esperado: 0, ahora: ahora.toISOString() };
+    return {
+      sucursal, ultimo: null, desde: null, apertura: 0, ventas: 0, movimientos: 0, esperado: 0,
+      ahora: ahora.toISOString(), abierta: false, vieja: false,
+    };
   const { ventas, movimientos } = await efectivoEntre(prisma, sucursal, ult.hasta, ahora);
   const c = cuentaCierre({ apertura: ult.queda, ventas, movimientos, contado: 0, retiro: 0 });
+  const abierta = ult.tipo === "apertura";
   return {
     sucursal,
     ultimo: aGuardado(ult),
@@ -124,17 +135,45 @@ export async function estadoCaja(sucursal: string): Promise<EstadoCaja> {
     movimientos,
     esperado: "error" in c ? 0 : c.esperado,
     ahora: ahora.toISOString(),
+    abierta,
+    vieja: abierta && diaAR(ult.hasta) !== diaAR(ahora),
   };
+}
+
+/** V.0.11.256 (Damián: "a la mañana que primero abra caja para poder
+ *  cobrar" / "a la hora de cierre que tiene que cerrar caja"): por que no se
+ *  puede cobrar en esa caja, o null si se puede. */
+export async function porQueNoCobra(sucursal: string, nombre: string): Promise<string | null> {
+  const ult = await ultimoDe(prisma, sucursal);
+  if (!ult || ult.tipo !== "apertura")
+    return `La caja de ${nombre} está cerrada: abrila en Caja (contando los billetes) antes de cobrar. No se emitió nada.`;
+  if (diaAR(ult.hasta) !== diaAR(new Date()))
+    return `La caja de ${nombre} quedó abierta desde el ${ult.hasta.toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}: cerrala y volvé a abrirla en Caja antes de cobrar. No se emitió nada.`;
+  return null;
 }
 
 /** Los ultimos cierres, de una sucursal o de todas (null). */
 export async function listarCierres(sucursales: string[] | null): Promise<CierreGuardado[]> {
   const filas = await prisma.puntoCierre.findMany({
-    where: sucursales ? { sucursal: { in: sucursales } } : {},
+    where: { reseteadoEn: null, ...(sucursales ? { sucursal: { in: sucursales } } : {}) },
     orderBy: [{ hasta: "desc" }, { creadoEn: "desc" }],
     take: MAX_HISTORIAL,
   });
   return filas.map(aGuardado);
+}
+
+/** Reset desde Gerencia (V.0.11.256): los cierres de esa caja dejan de
+ *  contar (no se borran: quedan marcados con cuando y quien) y la caja
+ *  vuelve a "todavia no se abrio". Devuelve cuantos se resetearon. */
+export async function resetearCaja(sucursal: string, usuario: string): Promise<number> {
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT 1 AS "ok" FROM pg_advisory_xact_lock(hashtext(${"punto-cierre:" + sucursal}))`;
+    const r = await tx.puntoCierre.updateMany({
+      where: { sucursal, reseteadoEn: null },
+      data: { reseteadoEn: new Date(), reseteadoPor: usuario },
+    });
+    return r.count;
+  });
 }
 
 /** Abre la caja la primera vez, o la cierra. Lo contado y lo esperado los
@@ -162,10 +201,15 @@ export async function cerrarCaja(p: {
       const ya = await tx.puntoCierre.findUnique({ where: { idLocal } });
       if (ya) return { cierre: aGuardado(ya), repetido: true };
       const ult = await ultimoDe(tx, p.sucursal);
-      if (p.accion === "abrir" && ult) return { error: "Esa caja ya está abierta: lo que corresponde es cerrarla." };
+      // V.0.11.256: abrir y cerrar se turnan. A la mañana se abre (contando:
+      // se compara con lo que quedó al cerrar) y a la noche se cierra.
+      const abierta = !!ult && ult.tipo === "apertura";
+      if (p.accion === "abrir" && abierta) return { error: "Esa caja ya está abierta: lo que corresponde es cerrarla." };
       if (p.accion === "cerrar" && !ult) return { error: "Esa caja todavía no se abrió: primero contá con cuánto arranca." };
+      if (p.accion === "cerrar" && !abierta) return { error: "Esa caja ya está cerrada: se abre a la mañana, contando los billetes." };
       const hasta = new Date();
       const plata = ult ? await efectivoEntre(tx, p.sucursal, ult.hasta, hasta) : { ventas: 0, movimientos: 0 };
+      // La primera vez no hay con qué comparar: lo contado es lo que hay.
       const apertura = ult ? ult.queda : b.contado;
       const c = cuentaCierre({ apertura, ventas: plata.ventas, movimientos: plata.movimientos, contado: b.contado, retiro });
       if ("error" in c) return c;
@@ -176,12 +220,12 @@ export async function cerrarCaja(p: {
           tipo: p.accion === "abrir" ? "apertura" : "cierre",
           desde: ult ? ult.hasta : null,
           hasta,
-          apertura: p.accion === "abrir" ? 0 : apertura,
+          apertura: ult ? apertura : 0,
           ventas: plata.ventas,
           movimientos: plata.movimientos,
-          esperado: p.accion === "abrir" ? b.contado : c.esperado,
+          esperado: ult ? c.esperado : b.contado,
           contado: b.contado,
-          diferencia: p.accion === "abrir" ? 0 : c.diferencia,
+          diferencia: ult ? c.diferencia : 0,
           retiro,
           destino: retiro > 0 ? texto(p.destino, 120) : "",
           queda: c.queda,

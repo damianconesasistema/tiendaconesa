@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.255";
+export const APP_VERSION = "V.0.11.256";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.256",
+    date: "2026-11-24",
+    changes: [
+      "Punto, caja de efectivo: se ABRE a la mañana y se CIERRA a la noche (\"a la mañana que primero abra caja para poder cobrar\" / \"a la hora de cierre que tiene que cerrar caja\"). Con la caja cerrada, o abierta desde otro día, no se puede cobrar (factura ni Recibo X): la venta lo avisa y el servidor tampoco lo emite. Al abrir se cuentan los billetes y se compara con lo que quedó al cerrar (faltan / sobran / justo). Desde las 19 hs el cuadro recuerda cerrar la caja.",
+      "Punto, Gerencia → Resumen → Cierres de caja: botón Resetear caja, solo gerencia (\"poneme un reset pero solo en gerencia, ahora vamos a completar a modo de ejemplo\"). Los cierres de esa caja dejan de contar (no se borran: quedan marcados con cuándo y quién, y en Actividad) y la caja vuelve a abrirse de cero. Migración 59.",
+    ],
+  },
   {
     version: "V.0.11.255",
     date: "2026-11-24",
