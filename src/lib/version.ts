@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.244";
+export const APP_VERSION = "V.0.11.245";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.245",
+    date: "2026-11-24",
+    changes: [
+      "Punto, Revisar: \"Precio raro\" pasa de 15 a 30 veces lo común en su marca y rubro. Con 15 saltaban 153, casi todos repuestos chicos o equipos grandes que están bien; con 30 quedan 72 y sigue apareciendo el RAMAL DX 110 en dólares a $27 millones.",
+    ],
+  },
   {
     version: "V.0.11.244",
     date: "2026-11-24",
