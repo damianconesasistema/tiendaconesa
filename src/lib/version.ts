@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.212";
+export const APP_VERSION = "V.0.11.213";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.213",
+    date: "2026-11-23",
+    changes: [
+      "Artículos, ÚLTIMOS CREADOS PRIMERO (\"cuando busco me tendría que aparecer últimos creados\"): el servidor anota cuándo se crea cada artículo nuevo; la lista arranca ordenada por eso (el más nuevo arriba), el botón \"Últimos creados\" vuelve a ese orden y los creados hace menos de 7 días llevan \"nuevo\".",
+      "Adjuntar, varios de una vez (\"por default Lista 1 25 y Lista 2 25, y lo otro que me deje seleccionar como si estuviera creando uno\"; \"no me tomó el proveedor\"): Lista 1 y Lista 2 arrancan en 25%; Proveedor, Marca, Rubro y Subrubro se eligen de listas como en Crear uno (con \"+ nuevo\"), y el pago contado lleva sus días. Los artículos cargados así guardan el proveedor (antes no había dónde ponerlo), el subrubro y el pago contado.",
+    ],
+  },
   {
     version: "V.0.11.212",
     date: "2026-11-23",

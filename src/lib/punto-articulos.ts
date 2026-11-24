@@ -101,6 +101,11 @@ export type ArticuloPunto = {
    *  "necesito setearle el stock mínimo del artículo por sucursal"). No es
    *  el "min" del Excel de GBP. De Punto: el import no lo toca; null lo saca. */
   minimo?: { BA: number; TS: number } | null;
+  /** V.0.11.213: cuándo se creó el artículo en el servidor (Damián: "cuando
+   *  busco me tendría que aparecer últimos creados"). Lo pone el servidor la
+   *  primera vez que guarda ese código; no viene de la página ni de GBP. Los
+   *  que ya estaban antes de esta versión no lo tienen. */
+  creado?: string;
   // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
   // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
   // articulos, uno por uno ... entrando en cada articulo deberia ver los
@@ -460,6 +465,12 @@ export async function guardarArticulos(
       // El stock mínimo (V.0.11.210), igual: de Punto.
       if (a.minimo === undefined && ya?.minimo) nuevo.minimo = ya.minimo;
       if (nuevo.minimo === null) delete nuevo.minimo;
+      // Cuándo se creó (V.0.11.213): el que ya estaba conserva el suyo (o
+      // ninguno); el código nuevo, ahora.
+      delete nuevo.creado;
+      if (ya) {
+        if (ya.creado) nuevo.creado = ya.creado;
+      } else nuevo.creado = new Date().toISOString();
       if (ya && conStock && !conStock.has(a.cod)) {
         nuevo.stockBA = ya.stockBA;
         nuevo.stockTS = ya.stockTS;
