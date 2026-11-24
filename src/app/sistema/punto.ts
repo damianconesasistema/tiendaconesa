@@ -553,6 +553,26 @@ tr.mov-anulado td:last-child{text-decoration:none}
 .mov-reparto span{display:flex; align-items:center; gap:4px; font-size:13px; text-transform:none; letter-spacing:0; font-weight:600}
 .mov-reparto input{width:64px}
 .us-sucs{display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 0}
+.cnt-grilla{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;padding:6px 18px 4px}
+@media (max-width:560px){.cnt-grilla{grid-template-columns:1fr}}
+.cnt-fila{display:grid;grid-template-columns:minmax(78px,auto) 14px 80px 1fr;align-items:center;gap:6px;font-size:14px;text-transform:none;letter-spacing:0;font-weight:600}
+.cnt-fila:last-child{grid-column:1/-1;grid-template-columns:minmax(150px,auto) 0 120px 1fr}
+.cnt-den{font-family:Montserrat,sans-serif;font-weight:800}
+.cnt-x{color:var(--ink-3);text-align:center}
+.cnt-fila input{width:100%;box-sizing:border-box;text-align:right;font-size:16px;font-weight:700;padding:6px 8px}
+.cnt-sub{text-align:right;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.cnt-cuenta{margin:10px 18px 0;padding:10px 14px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.cnt-l{display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;font-size:14px}
+.cnt-l b{font-variant-numeric:tabular-nums;font-size:16px}
+.cnt-l.grande{border-top:1px solid var(--line);margin-top:4px;padding-top:7px}
+.cnt-l.grande b{font-family:Montserrat,sans-serif;font-size:22px}
+.cnt-retiro,.cnt-nota{display:flex;flex-wrap:wrap;gap:8px 14px;padding:10px 18px 0;font-size:13px;text-transform:none;letter-spacing:0;font-weight:600}
+.cnt-retiro label{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0}
+.cnt-retiro input{width:150px}
+#cntDestino{width:240px}
+#efeCuerpo td small, #gerCierres td small{display:block;color:var(--ink-3);font-size:11.5px;font-weight:500}
+.cnt-nota{align-items:center}
+.cnt-nota input{flex:1;min-width:200px}
 .efe-cuerpo{padding:14px 18px 4px}
 .efe-fila{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 14px;font-size:15px}
 .efe-fila b{font-family:Montserrat,sans-serif;font-size:24px}
@@ -1498,7 +1518,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOgAAABNCAYAAACseCglAAAAAklEQVR4AewaftIAAA4vSURBVO3B/5OkCX0Q4OfTvRDk20wACUhIN5KOAuJ0ohRojp1eMEEqgR1UorGsmrm/YCd/wcyVVf5kFZPyB3/QyvZqKWpFnSs04F3kuiEcCZjQI4GAXYZeMKVEzPVU5I47ru/jWUOqd3Znut/5tv3O3fs8kZkqlUo51VQqldKqqVQqpVVTqVRKq6ZSqZRWTaVSKa2aSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqldUVJRMQObpi6jbXMHJghInpYNXUtM3tmiIg09RB6eMzUD2fm2F0iooPHTF3LzJ67RMQ2thztoczcdoyI6OAxU/3M7JghInZww2G30cNmZo4dIyJ6WHVgLzPbZoiIbWxiyYHb2MzMXTNERBNdrJray8y2yrFqSiAitnHDYQ0sm2/ZYW0ns+YumTm2OE2HNc03dq8G1tFT3NgMEbGDLSyZauDfR0THbLtYddiKykxXlMOGw/pYNUdELGPFYW0ns4Km8ug4rBERy5k5VtxtNBxYiYhOZvacQUQ0ccPxttFxhIhoY8XUPsZoOEqr/hL8A/wovo9EmC/xEnwXjxpO/o1LrqYcGqb2MrODt2BktrZ7dZzchnOUmduZGeib6mdmZOa22dru1XEyGw5rO7s1h30Et0ytRsSyoy07bCczm7jmaG/H+/AArmIVV3EVV3EVV3EVV3EVV7GKB/B+fNALQE05PGxqJSK6GGfmyGwd92pExLKTWVUeK+7VdjIbDhs4u2V3yMxd9BzWdrSBw7YiYiMze+7Wqv8p/F28Ez+KBhpooIEGGmiggQYaaKCBN+Mt+IBW/W0uuZpy2Ma+qXX0ImLZbG1Te6Y6LqGI6Jjqm+o4mXVT+xg4u7Z7jRSQmWM85LCbEbHhXq/CRxBIJBKJRCKRSCQSiUQi8Wp81CVXUwKZOUAH+6ZWsGm2jqmuqbbLqWOqZ2rV6XUyc+zsxs4gM7fxSw67GREdh/0FvBV1BAKBQCAQCAQCgUAgEHgp/qZW/bUusZqSyMwBOtg31XGMiGhiyVTbVEdx+8qjbaqNfT8QEW2ns+x8jNyr7QQycwcPOqzjT7Tqy/jbqDm7K3gH3uYSu6IEImKAzczsRcQIKw40Ha/tsHVTq4rbxbpy6Ji67rAOBorpY9WBTfSc3cgdImIbbXfIzJ4jREQHG9hGz/Fejw85EM6ujl/Qqv+u4WTsEqophxU8FhGJFVMDx+uYISLaitlVAhHRxJLjtRXXNXU9IprObhf7prZw3dQts63jG/iGw0amVvAGsyWew3NIxwsk/hZe65KqKbdtx2ubeigzA3umOooZ45bFa5vaz8zAg6Y6CsrMLvZNbTqjzBxj09H2se3k9rDr/2vVX4+fR5jt/+Jx/DaeMVvgjfhJl1RNOfwy+g7s42H8ZGYOzNZHHwMHeuijj2XH66OPvgNd9NFHPyKWHW2MPvroY2y2AfroY2C2Jvroo+vAAH30MYqIZUcbo48++g7soI8+mo43QB99jMyQmV18BH0HbuMW2pk5crwRbmHPgdu4hU5mjh1o4oNIsz2Bf4h/iqcV8yGt+utcQpGZKpWFa9XX0TXfF/EAXo09/BmzJf4Q1w0nv+WSqalUFq1VX8JfR5rte/iC4eQZw8l38F/wjNkCP4J3uoSuqFQuWqv+RlxzIJEIB/4Y78L7EI6X+AP8K1P/BO/B6833c1r1TxhOvu0SuaLkImIZHbTRca8RehhhlJkjM0REE2too+leA/TQy8yxOSKijWXzjTNz4A4R0cay+UaZOYqIjvMxyMyxI0REE2voYNm9Rhigl5kDxfxF/CNHm+DleIXZAl/D5019Ct/E6833fqzgEZfIFSUVEU1sYw1LjreKdQeuYeQIEdHGDlbNtoob2I+IHexk5tjxOviY+W5hw2EbuGG+axhhG6vO7hp67hARbWzjutlWse55EbGPUWa2zfZSvMbZPIlPG04m/sRw8qxW/VG8HS8326vwbjziEqkpoYjYxADrWHJGEbGNL2FVcUvYwigiOo43UEzHvcZOpucCRMQGvoTrTmYJK+b7vrP7Cv6de/0zfFMxV7XqP+YSqSmZiOjiY1hyDiKiiy2nt4THImLD2TQiYk3JRMQGbrpY6ex+03Aycrfh5GsYKOZdeMAlUlMiEdHFunMSEV2sOx83I6LjbNaUSER0cNPFqzmbP8JjjvcpPGG+JbzHJVJTEhGxjXXnJCLWsO587UbEstNbi4hl5dF1OTyOxx3vEfxX8yXerVX/sy6JmhKIiDa2nK8d528J205vCWtKICI6aLgcPmM4+bbjDCf/E583X+Dt+KBLoqYcdpyjiNhAw8W4ERFNp7emHNZcDt/C4+b7dXzLfK/EqkuiZsEiooNV52vbxdpwetcjomnx2k5mD330se/++TX8jvk+h88o5h1a9Xe4BK5YvA0ns4/NzOx6XkQ00cG250VEGw3F7GMtM3sR0cW6Yjaw7fTWsOPi3ELX0ZYxUtw+1jKz5w4RsYZNrLo4iUcMJ0+ZZzj5nlb9MfwiamZr4hewpeSuWLw1xe2jk5kDP5CZI3QjYteBDcXtZGbP8zJzIyLaWDFfIyKamTlyOhvYcXFGmdkzQ0QoaJCZPXfJzF3sRsSGi7OHgeJ+A1/Gitlejvdp1f++4eRZJVazQBHRwZLiNjJz4AiZOc7MMdYUt+OwHcV1nN5KRDRdDk0zZGbXxfnnhpPfV9Rw8nX8qmLegvcouZrF6iiun5m75msrpp+ZY4f1FNd2NpsWa6SYRkR03X9P4T87uR6eNN9rsK7kaharo7iuYpYUM3CXzBxhXzFtZ7NmsQaKW4+IbkQsu3jpwKfwTSf33/Ap870M79eqv0qJXbFYTcXtmiMiOoobO9oAq+ZrOpsGOi5GJyK23WsZg8zsYhcfU9w62hGxlpkjF+9XDCdPOKnh5A+16h/H3zDfn8bP4t8qqZrFaihmLzPHzlfP2TSc3aqLsYotbGELW9jCDTQ9LzNHuOVkVjCIiLaLM8EIv+n0fge3kY4XeAk2tOovU1I1l8PA/TPy4rGJfSezhC9FxIaL8Sz+heHkO07vf+FfIsz2UlzDm5RUzeUwUkzH2Y28SGTmGBtO52ZEbDh/f4xbzmI4eRIfx9NIxwu8Ah/Qqv+QEqqpvKhl5i4edDo3I6JjvlTMs/htw8nQ2X0dn8XEfA/idUqopvKil5ldPIh9J7cbEctmS8U8ga7zMJw8g3+M75nvp/BWJVRzOSwrpqdyKpnZRQf7TmYJO2Z7RjHfxH9wfj6JbyHNVsPPaNVfrmRqLoe2+6fjRSozB2hiz8msR0TT8cJ8T+OzhpPvOi/DyVP4BL5rvo+iqWSuWKx9LJlv1flro+f09p3MHlbcHw9l5ra7RETHHJk5RjsiulhX3Aa2Ha1ltsS38K+dv5v4KF5ptp/AO/FVJVKzWAMFRUTbfAPFLTtaUzEDJ9O1YJnZy8yeAjJzA7cU13GUVv0N+DmzBb6MLzhvw8nX8BWk2QLv1aq/UonULNZAcZvmyMyx4tqO1lDMyMkMcNvlsonbimk62rvwXrM9ic8YTp5zMXbxR+b7AN6hRGoWq6e4tYhYNl9fMR13iYg1xQ2c3I4SiIhmRLTNkZlj7Cqm4Wh/Cctm+zI+6eI8jN8z31vxl5VIzWL1FLeEXfP1FLMUEWsOW1Ncz8ntKocmvhQR2+YbO61W/c34abMlfstw8nUXZTj5Dr6IidkCP61Vf4WSqFmgzBzjYcWtRkQ3IpbdISKWI2I7ItroKW7TD0REG+uKuZ2ZAyeUmSPsWaCIaOINDmxFxCgiNhwhIpaxoZg993oA7zbbE/isi/dJjMz3AP6qkrhi8XZxXXHrWIuIXYzQRgdL6GVmLyJuo2G+1YgYYRcbitt1eju46WJtRcSW4/2SqQZuRsQOehg4sIw1NBQzcq8H8CqzfR59F+9z+CLearY3o4NHlUDNgmVmF7edzBLWsYXrWHJYV3EN3MCS4rpOb1c5LeE6trCFG2gorudOrfqPoW2+Rw0n/9tFG06exOfwPfP9lFb9tUqgphw2na8dF6efmQOnlJljPOyFZ9dhP48/73iJP8AX3D+fxu+abwXXlEBNCWTmLh52TjJzjIdcjE1n1/XCciszRw57L17jeIFdfNX9Mpx8FY+Y7w34GSVQUx4b2HNOMnMbe87XQ5k5cEaZuYt9Lwz72HanVr2Ft5ntWXzacLLv/nocT5kt0Naqv8aC1ZREZo7RwW3nZw37zsetzNx2fna9MKxl5shhH0bDbF/G77n/9vCo+Zr4sAWrKZHMHKONvnOQmSN0sOdsbmXmhvO143Lbx7XM7LnXz+LVZvtV/L77bTj5H/iE+V6LD1uwmpLJzHFmdvAgbjujzBygg192crfxkczccLxlxSy7Q2YOcNvJNJ2fPaf3MNqZ2XO3Vv3H8RbUHC3xFH7dcPK0xRjgNtLx6vgJrfqbLNAVJZWZXXQjYgNr6GDJ0fYwwtgRMnOMzYjYwSbW0HC8PrqZ2TVfE33zNd1rF23zLZvqO7teZu5ExDI6WEMbK453G7vYycyR430YP4x0tMBnMLI4Q+ziBtLRAq/DB/ArFiQy02UREU00HTbIzLFTiIiOw8aZOfAiFhEdd8nMniJa9Tfi41g129/BruHkaYvSqv81/Bpe4niJ/4S/Zzj5PxbgikskM0cYOSeZ2VM5JDN7Tu8X8SP4Np5zWA3P4Rt4zHDytMX6Cv4j/goS6bBADW/Ch9C1AFdUKufnx/HfHXgO4UDiCr6PL2Js8cb4BF6GZ5EIU4k6JvhzFiQyU6VSKaeaSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqlVVOpVEqrplKplFZNpVIprZpKpVJaNZVKpbT+H/ThmLvjr5fGAAAAAElFTkSuQmCC">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.254</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.255</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -2709,6 +2729,12 @@ footer{
     <select id="cajaVend"></select>
     <span class="n" id="cajaVendN"></span>
   </div>
+  <!-- V.0.11.255: la caja de efectivo, con su apertura y su cierre. -->
+  <div class="card" id="efeCard" style="margin-bottom:16px">
+    <div class="card-h"><h3>Caja de efectivo</h3><span class="sub" id="efeSub"></span>
+      <button class="b1" type="button" id="efeAccion" style="margin-left:auto;padding:7px 18px" hidden>Cerrar caja</button></div>
+    <div id="efeCuerpo"></div>
+  </div>
   <div class="hoy" id="hoyTira"></div>
   <div class="tiles" id="cajaTiles"></div>
   <div class="dos">
@@ -2805,6 +2831,10 @@ footer{
   </div>
   <div class="solapas" id="gerSucs"></div>
   <div class="tiles" id="gerTiles"></div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><h3>Cierres de caja</h3><span class="sub">efectivo: lo contado contra lo que tendría que haber</span></div>
+    <div class="tabla-wrap" style="max-height:40vh;overflow-y:auto"><table class="densa"><thead id="gerCierresCab"></thead><tbody id="gerCierres"></tbody></table></div>
+  </div>
   <div class="dos">
     <div>
       <div class="card" style="margin-bottom:16px">
@@ -3715,7 +3745,8 @@ function avisarVista(v){
   const enGer = x => GERENCIA_ADENTRO.indexOf(x) >= 0;
   if((v === "caja" && VISTA_ABIERTA !== "caja") || (enGer(v) && !enGer(VISTA_ABIERTA))) informesEnMiSucursal();
   if(v==="productos"){ pintarProd(); setTimeout(() => { try{ revisarBorradorAlta().catch(() => {}); }catch(e){} }, 0); }
-  if(v==="caja"){ pintarCaja(); traerPorCobrar(); pintarPlataCaja(true); }
+  // V.0.11.255: al entrar, la caja de efectivo se lee de nuevo (pudo entrar una venta).
+  if(v==="caja"){ EFE.en = 0; pintarCaja(); traerPorCobrar(); pintarPlataCaja(true); }
   if(v==="comprobantes"){ traerPorCobrar(); traerPresuHoy(); }
   if(v==="gerencia") pintarGerencia();
   if(v==="renta") pintarRenta();
@@ -8605,8 +8636,186 @@ document.getElementById("cajaSucs").addEventListener("click",e=>{
   pintarPlataCaja(false);
 });
 
+
+/* ================================================ CAJA DE EFECTIVO (V.0.11.255)
+   Damián, 24/11/2026: "caja en efectivo necesito todos los días cerrar la
+   misma y abrir y saber cuánto hay, es decir cuando abro a la mañana con X
+   plata que se contó el día anterior al cierre del día" y "necesitamos un
+   panel donde se ingrese los billetes que hay en la caja de efectivo".
+   El servidor (/sistema/cierres, src/lib/punto-cierres.ts) dice con cuánto
+   abrió y cuánto tendría que haber, y guarda cada cierre con sus billetes. */
+const CIE_URL = "/sistema/cierres";
+const BILLETES_AR = [20000, 10000, 2000, 1000, 500, 200, 100, 50, 20, 10];
+const EFE = { suc:null, en:0, d:null, error:"", pidiendo:0 };
+/** Abrir y cerrar: el que cobra en esa caja, o gerencia. */
+const puedeCerrarCaja = () => puede("cuentas") || (puede("caja") && puede("cobrar"));
+const fechaHoraAR = iso => fechaAR(iso) + " " + horaAR(iso);
+/** "faltan $1.350" / "sobran $200" / "justo". */
+const difTxt = d => Math.abs(d) < 0.005 ? "justo" : d < 0 ? "faltan " + fmt2(-d) : "sobran " + fmt2(d);
+const difColor = d => Math.abs(d) < 0.005 ? "var(--ok)" : d < 0 ? "var(--bad)" : "var(--warn)";
+/** "12 de $20.000 · 31 de $10.000 · monedas $1.350". */
+const billetesTxt = b => BILLETES_AR.filter(d => +b[d] > 0).map(d => b[d] + " de " + fmt2(d).replace(",00", "")).concat(+b.monedas > 0 ? ["monedas " + fmt2(+b.monedas)] : []).join(" · ") || "sin detalle";
+
+function filaCierre(c, conSuc){
+  return '<tr title="' + atrib(billetesTxt(c.billetes || {})) + '">' +
+    '<td class="num" style="white-space:nowrap;font-size:12.5px">' + fechaAR(c.hasta) + '<small>' + horaAR(c.hasta) + '</small></td>' +
+    (conSuc ? '<td style="font-size:12.5px">' + txt(sucDe(c.sucursal).n) + '</td>' : '') +
+    '<td style="font-size:12.5px">' + txt(c.usuario) + (c.tipo === "apertura" ? ' <span class="pill p-n">apertura</span>' : '') + '</td>' +
+    '<td class="r num">' + (c.tipo === "apertura" ? "—" : fmt2(c.esperado)) + '</td>' +
+    '<td class="r num">' + fmt2(c.contado) + '</td>' +
+    '<td class="r num" style="font-weight:700;color:' + (c.tipo === "apertura" ? "var(--ink-3)" : difColor(c.diferencia)) + '">' + (c.tipo === "apertura" ? "—" : difTxt(c.diferencia)) + '</td>' +
+    '<td class="r num">' + (c.retiro > 0 ? fmt2(c.retiro) + (c.destino ? '<small>' + txt(c.destino) + '</small>' : '') : "—") + '</td>' +
+    '<td class="r num">' + fmt2(c.queda) + '</td>' +
+    '<td style="font-size:12px;color:var(--ink-2)">' + txt(c.nota || "") + '</td></tr>';
+}
+const cabezaCierres = conSuc => '<tr><th>Cuándo</th>' + (conSuc ? '<th>Sucursal</th>' : '') +
+  '<th>Quién</th><th class="r">Tendría que haber</th><th class="r">Contado</th><th class="r">Diferencia</th><th class="r">Se retiró</th><th class="r">Quedó</th><th>Nota</th></tr>';
+
+async function pintarEfectivo(forzar){
+  const card = document.getElementById("efeCard"); if(!card) return;
+  const suc = S.cajaSuc || "";
+  if(!forzar && EFE.suc === suc && EFE.d && Date.now() - EFE.en < 20000){ dibujarEfectivo(); return; }
+  const este = ++EFE.pidiendo;
+  const d = await pedirJson("GET", CIE_URL + (suc ? "?suc=" + encodeURIComponent(suc) : ""));
+  if(este !== EFE.pidiendo) return;
+  EFE.suc = suc; EFE.en = Date.now();
+  if(d.error){ EFE.d = null; EFE.error = d.error; } else { EFE.d = d; EFE.error = ""; }
+  dibujarEfectivo();
+}
+function dibujarEfectivo(){
+  const card = document.getElementById("efeCard"), cuerpo = document.getElementById("efeCuerpo"), sub = document.getElementById("efeSub");
+  const btn = document.getElementById("efeAccion");
+  if(EFE.error){ cuerpo.innerHTML = '<p class="vacio" style="padding:14px 16px">' + txt(EFE.error) + '</p>'; btn.hidden = true; sub.textContent = ""; return; }
+  const d = EFE.d; if(!d){ cuerpo.innerHTML = '<p class="vacio" style="padding:14px 16px">Leyendo la caja…</p>'; btn.hidden = true; return; }
+  const cierres = d.cierres || [];
+  const hist = cierres.length
+    ? '<div class="tabla-wrap" style="max-height:32vh;overflow-y:auto"><table class="densa"><thead>' + cabezaCierres(!EFE.suc) + '</thead><tbody>' +
+        cierres.map(c => filaCierre(c, !EFE.suc)).join("") + '</tbody></table></div>'
+    : '';
+  if(!EFE.suc){
+    sub.textContent = "elegí una sucursal arriba para abrirla o cerrarla";
+    btn.hidden = true;
+    cuerpo.innerHTML = cierres.length ? '<p class="nota" style="padding:10px 16px 0">Los últimos cierres de las tres:</p>' + hist
+      : '<p class="vacio" style="padding:14px 16px">Todavía no se cerró ninguna caja.</p>';
+    return;
+  }
+  const e = d.estado, n = sucDe(EFE.suc).n;
+  if(!e || !e.ultimo){
+    sub.textContent = n + ": todavía no se abrió";
+    btn.hidden = !puedeCerrarCaja(); btn.textContent = "Abrir caja"; btn.dataset.acc = "abrir";
+    cuerpo.innerHTML = '<p class="nota" style="padding:12px 16px">La caja de efectivo de <b>' + txt(n) + '</b> arranca acá: contá los billetes que hay ahora y tocá <b>Abrir caja</b>. Desde ahí, cada cierre deja anotado con cuánto abre el día siguiente.</p>';
+    return;
+  }
+  const u = e.ultimo;
+  sub.textContent = n + " · desde " + fechaHoraAR(e.desde);
+  btn.hidden = !puedeCerrarCaja(); btn.textContent = "Cerrar caja"; btn.dataset.acc = "cerrar";
+  cuerpo.innerHTML = '<div class="tiles" style="padding:12px 16px 4px;margin:0">' +
+      tile("Abrió con", fmt2(e.apertura), (u.tipo === "apertura" ? "abierta el " : "quedó al cerrar el ") + fechaHoraAR(u.hasta) + " · " + u.usuario) +
+      tile("Cobrado en efectivo", fmt2(e.ventas), "desde que abrió · factura y Recibo X") +
+      tile("Gastos y retiros", fmt2(e.movimientos), "lo anotado en Plata de la caja") +
+      tile("Tendría que haber", fmt2(e.esperado), "ahora, en la caja", "acc") +
+    '</div>' + hist;
+}
+
+/* ---- el panel de billetes */
+function abrirConteo(acc){
+  const d = EFE.d, e = d && d.estado, suc = EFE.suc;
+  if(!suc){ toast("Elegí la sucursal arriba."); return; }
+  const cerrar = acc === "cerrar";
+  const esperado = cerrar && e ? +e.esperado || 0 : 0;
+  const viejo = document.getElementById("efeConteo"); if(viejo) viejo.remove();
+  const idLocal = "cie" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "efeConteo";
+  fondo.innerHTML = '<div class="envio-caja" style="width:min(560px,100%)" role="dialog" aria-label="Contar la caja">' +
+    '<div class="envio-h"><h3>' + (cerrar ? "Cerrar la caja" : "Abrir la caja") + ' · ' + txt(sucDe(suc).n) + '</h3>' +
+      '<button class="x" type="button" data-cnt-no aria-label="cerrar">×</button></div>' +
+    '<p class="envio-n">' + (cerrar ? "Contá los billetes que hay en la caja y escribí cuántos hay de cada uno." :
+      "Contá los billetes que hay ahora: con eso arranca la caja.") + '</p>' +
+    '<div class="cnt-grilla">' + BILLETES_AR.map(v =>
+      '<label class="cnt-fila"><span class="cnt-den">' + fmt2(v).replace(",00", "") + '</span><span class="cnt-x">×</span>' +
+      '<input type="number" min="0" step="1" inputmode="numeric" data-den="' + v + '" placeholder="0">' +
+      '<span class="cnt-sub" data-sub="' + v + '">—</span></label>').join("") +
+      '<label class="cnt-fila"><span class="cnt-den">Monedas y otros $</span><span class="cnt-x"></span>' +
+      '<input type="text" inputmode="decimal" data-den="monedas" placeholder="0"><span class="cnt-sub" data-sub="monedas">—</span></label>' +
+    '</div>' +
+    '<div class="cnt-cuenta" id="cntCuenta"></div>' +
+    (cerrar ? '<div class="cnt-retiro">' +
+      '<label>Se retira de la caja (al banco, al dueño) $ <input type="text" inputmode="decimal" id="cntRetiro" placeholder="0"></label>' +
+      '<label>¿Adónde va? <input type="text" id="cntDestino" maxlength="120" placeholder="Depósito banco, retiro del dueño…"></label></div>' : '') +
+    '<label class="cnt-nota">Nota <input type="text" id="cntNota" maxlength="300" placeholder="opcional"></label>' +
+    '<div class="envio-acc"><button class="b3" type="button" data-cnt-no>Cancelar</button>' +
+      '<button class="b1" type="button" id="cntOk">' + (cerrar ? "Cerrar caja" : "Abrir caja") + '</button></div>' +
+  '</div>';
+  document.body.appendChild(fondo);
+  const leer = () => {
+    const b = {}; let total = 0;
+    for(const i of fondo.querySelectorAll("input[data-den]")){
+      const den = i.dataset.den;
+      if(den === "monedas"){ const m = aNum(i.value) || 0; if(m > 0){ b.monedas = m; total += m; } fondo.querySelector('[data-sub="monedas"]').textContent = m > 0 ? fmt2(m) : "—"; continue; }
+      const c = Math.max(0, Math.floor(+i.value || 0));
+      if(c > 0) b[den] = c;
+      total += c * +den;
+      fondo.querySelector('[data-sub="' + den + '"]').textContent = c > 0 ? fmt2(c * +den) : "—";
+    }
+    return { b, total: Math.round(total * 100) / 100 };
+  };
+  const cuenta = () => {
+    const { b, total } = leer();
+    const ret = cerrar ? Math.max(0, aNum(fondo.querySelector("#cntRetiro").value) || 0) : 0;
+    const dif = Math.round((total - esperado) * 100) / 100;
+    fondo.querySelector("#cntCuenta").innerHTML =
+      '<div class="cnt-l"><span>Contado</span><b>' + fmt2(total) + '</b></div>' +
+      (cerrar ? '<div class="cnt-l"><span>Tendría que haber</span><b>' + fmt2(esperado) + '</b></div>' +
+        '<div class="cnt-l"><span>Diferencia</span><b style="color:' + difColor(dif) + '">' + difTxt(dif).toUpperCase() + '</b></div>' +
+        (ret > 0 ? '<div class="cnt-l"><span>Se retira</span><b>' + fmt2(ret) + '</b></div>' : '') +
+        '<div class="cnt-l grande"><span>Queda para mañana</span><b' + (ret > total ? ' style="color:var(--bad)"' : '') + '>' + fmt2(total - ret) + '</b></div>'
+      : '<div class="cnt-l grande"><span>La caja arranca con</span><b>' + fmt2(total) + '</b></div>');
+    return { b, total, ret };
+  };
+  const fin = () => fondo.remove();
+  fondo.addEventListener("input", cuenta);
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fin(); } });
+  fondo.addEventListener("click", async ev => {
+    if(ev.target.closest("[data-cnt-no]")){ fin(); return; }
+    if(!ev.target.closest("#cntOk")) return;
+    const { b, total, ret } = cuenta();
+    if(ret > total){ toast("No se puede retirar más de lo que se contó."); return; }
+    if(!(total > 0) && !confirm(cerrar ? "Contaste $0: ¿la caja queda vacía?" : "¿La caja arranca en $0?")) return;
+    const ok = fondo.querySelector("#cntOk"); ok.disabled = true; ok.textContent = "Guardando…";
+    const r = await pedirJson("POST", CIE_URL, { accion: acc, sucursal: suc, idLocal, billetes: b, retiro: ret,
+      destino: cerrar ? fondo.querySelector("#cntDestino").value : "", nota: fondo.querySelector("#cntNota").value, yo: soyYo() });
+    if(r.error){ ok.disabled = false; ok.textContent = cerrar ? "Cerrar caja" : "Abrir caja"; toast("No se guardó: " + r.error); return; }
+    fin();
+    const c = r.cierre;
+    toast(cerrar ? "Caja cerrada: " + difTxt(c.diferencia) + ". Mañana abre con " + fmt2(c.queda) + "." : "Caja abierta con " + fmt2(c.contado) + ".");
+    pintarEfectivo(true);
+  });
+  cuenta();
+  setTimeout(() => { const p = fondo.querySelector("input[data-den]"); if(p) p.focus(); }, 0);
+}
+document.getElementById("efeAccion").addEventListener("click", async e => {
+  const acc = e.currentTarget.dataset.acc || "cerrar";
+  // Lo que tendría que haber, de recién: pudo entrar una venta mientras tanto.
+  await pintarEfectivo(true);
+  if(EFE.d && !EFE.error) abrirConteo(acc);
+});
+
+/* ---- Gerencia: los cierres de la sucursal elegida (o de todas) */
+async function pintarCierresGer(){
+  const tb = document.getElementById("gerCierres"); if(!tb) return;
+  const suc = S_FIL.ger || "";
+  const d = await pedirJson("GET", CIE_URL + (suc ? "?suc=" + encodeURIComponent(suc) : ""));
+  const cab = document.getElementById("gerCierresCab");
+  if(cab) cab.innerHTML = cabezaCierres(!suc);
+  if(d.error){ tb.innerHTML = '<tr><td colspan="9" class="vacio">' + txt(d.error) + '</td></tr>'; return; }
+  const cs = d.cierres || [];
+  tb.innerHTML = cs.length ? cs.map(c => filaCierre(c, !suc)).join("") : '<tr><td colspan="9" class="vacio">Todavía no hay cierres de caja.</td></tr>';
+}
+
 function pintarCaja(){
   pintarCajaSucs();
+  pintarEfectivo(false);
   pintarFiltroVend();
   pintarHoy();
   const vs = ventasCaja();
@@ -9008,6 +9217,7 @@ function pintarGerencia(){
   S.objetivo = +document.getElementById("fObj").value || 35;
   // V.0.11.254: con su sucursal, como Caja ("lo mismo gerencia").
   solapas("gerSucs", "ger");
+  pintarCierresGer();
   const vs = filtrar(S_FIL.ger);
   const base = vs.reduce((a,v)=>a+ventaBase(v),0);
   const cobrado = vs.reduce((a,v)=>a+ventaCobrado(v),0);

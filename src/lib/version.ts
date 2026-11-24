@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.254";
+export const APP_VERSION = "V.0.11.255";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.255",
+    date: "2026-11-24",
+    changes: [
+      "Punto, CAJA DE EFECTIVO (\"todos los días cerrar la misma y abrir y saber cuánto hay\" / \"un panel donde se ingrese los billetes\"). En Caja, el cuadro Caja de efectivo de la sucursal elegida: con cuánto abrió (lo que quedó en el último cierre), lo cobrado en efectivo desde entonces (factura y Recibo X; la nota de crédito resta), los gastos y retiros anotados y lo que tendría que haber. Cerrar caja abre el panel de billetes ($20.000 a $10, más monedas): suma lo contado, lo compara con lo que tendría que haber (faltan / sobran / justo), y se puede anotar lo que se retira (al banco, al dueño) y adónde va; lo que queda es con lo que abre el siguiente. La primera vez se abre contando con cuánto arranca. Cada cierre va del anterior hasta ese momento, lo calcula el servidor en ese instante, no se reescribe y queda en Actividad. El historial se ve en Caja y en Gerencia → Resumen. Cierra el que cobra en esa caja (Caja y Cobrar) o gerencia. Tabla nueva PuntoCierre (migración 58).",
+    ],
+  },
   {
     version: "V.0.11.254",
     date: "2026-11-24",

@@ -738,3 +738,42 @@ model PuntoMovimiento {
   @@index([sucursal, fecha])
   @@index([grupo])
 }
+
+/// Los cierres (y la primera apertura) de la caja de efectivo de cada razon
+/// social (migracion 58, V.0.11.255). Cada cierre va desde el anterior hasta
+/// ese momento; guarda lo de ese momento y no se reescribe. Lo escribe
+/// src/lib/punto-cierres.ts.
+model PuntoCierre {
+  id          String    @id @default(cuid())
+  /// Lo genera la pagina: el reintento (doble clic, corte) no cierra dos veces.
+  idLocal     String    @unique
+  /// srl | cnc | tsl
+  sucursal    String
+  /// apertura (la primera vez) | cierre
+  tipo        String
+  /// El cierre anterior (null en la apertura).
+  desde       DateTime?
+  hasta       DateTime  @default(now())
+  /// Con lo que abrio (lo que quedo en el cierre anterior).
+  apertura    Float     @default(0)
+  /// Cobrado en efectivo en ese tiempo (las notas de credito restan).
+  ventas      Float     @default(0)
+  /// Movimientos del efectivo (gastos y retiros restan).
+  movimientos Float     @default(0)
+  esperado    Float
+  contado     Float
+  /// contado - esperado: negativo falta, positivo sobra.
+  diferencia  Float     @default(0)
+  /// Lo que se saco al cerrar (al banco, al dueño).
+  retiro      Float     @default(0)
+  destino     String    @default("")
+  /// Con lo que abre el siguiente: contado - retiro.
+  queda       Float
+  /// {"20000": 12, ..., "monedas": 1350}
+  billetes    Json
+  nota        String    @default("")
+  usuario     String
+  creadoEn    DateTime  @default(now())
+
+  @@index([sucursal, hasta])
+}
