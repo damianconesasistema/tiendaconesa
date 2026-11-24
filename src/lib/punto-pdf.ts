@@ -443,7 +443,7 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
   // ------------------------------------------- EL REMITO: UNIDADES Y FIRMA
   if (remito) {
     const unidades = renglones.reduce((a, r) => a + num(r.cant), 0);
-    if (y + 130 > PIE) otraHoja();
+    if (y + 160 > PIE) otraHoja();
     y += 12;
     doc
       .font("Helvetica-Bold")
@@ -453,7 +453,26 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
         width: anchoUtil,
         align: "right",
       });
-    y += 30;
+    // V.0.11.238 (Damian: "los remitos salen sin precio siempre, si con total
+    // como valor declarado sin impuesto"): el total de la venta sin IVA. En
+    // la factura con CAE, el neto que tiene ARCA; si no, renglon por
+    // renglon con su IVA.
+    const arcaVenta = arcaDe(d.datos);
+    const conIva = renglones.reduce((a, r) => a + num(r.contado) * num(r.cant), 0);
+    const sinIvaR = renglones.reduce((a, r) => a + (num(r.contado) * num(r.cant)) / (1 + (num(r.iva) || 21) / 100), 0);
+    const declarado = arcaVenta
+      ? arcaVenta.neto
+      : Math.round((conIva > 0 ? d.total * (sinIvaR / conIva) : 0) * 100) / 100;
+    y += 18;
+    doc
+      .font("Helvetica")
+      .fontSize(9)
+      .fillColor(GRIS)
+      .text("Valor declarado (sin impuestos)", M, y, { width: anchoUtil - 110, align: "right" })
+      .font("Helvetica-Bold")
+      .fillColor(NEGRO)
+      .text(pesos(declarado), der - 105, y, { width: 105, align: "right" });
+    y += 26;
     doc.rect(M, y, anchoUtil, 86).strokeColor(BORDE).lineWidth(1).stroke();
     doc.font("Helvetica-Bold").fontSize(9).fillColor(NEGRO).text("RECIBÍ CONFORME", M + 12, y + 10);
     const linea = (x: number, ancho: number, etq: string) => {
