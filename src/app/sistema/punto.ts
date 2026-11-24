@@ -274,6 +274,9 @@ section[hidden]{display:none}
   #v-mostrador:has(#res:not(:empty)) .card.ticket{position:relative; bottom:auto}
   #v-mostrador .ticket > .card-h{display:none}
   #v-mostrador #tkCaja{flex:1 1 100%}
+  /* V.0.11.223: con la venta a lo ancho, el nombre usa el lugar que sobra
+     ("podés usar menos líneas en la descripción"). */
+  #v-mostrador .lin-t td.nom .nomln{max-width:min(560px, 40vw)}
   #v-mostrador #tkCaja:empty{display:none}
   #v-mostrador #tkCaja .aviso{margin:0 !important}
   #v-mostrador .tk-tot{flex:0 1 auto; flex-direction:row; flex-wrap:wrap; align-items:center; gap:4px 20px; padding:0;
@@ -283,7 +286,7 @@ section[hidden]{display:none}
   #v-mostrador .tk-tot .tr.big{flex-direction:row; align-items:baseline; gap:12px; margin:0; padding:5px 18px;
     border:1px solid rgba(230,48,32,.28); border-radius:10px; background:var(--accent-soft, #fdecea); font-size:14px}
   #v-mostrador .tk-tot .tr.big span{color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:.05em; font-size:13px}
-  #v-mostrador .tk-tot .tr.big b{font-size:30px; color:var(--accent)}
+  #v-mostrador .tk-tot .tr.big b{font-size:30px; color:var(--ink)}
   #v-mostrador .tk-acc{flex-direction:row; flex-wrap:wrap; justify-content:flex-end; align-items:center;
     gap:8px; padding:0; margin:0 0 10px; position:relative}
   #v-mostrador .tk-acc > button{white-space:nowrap; padding:10px 16px; font-size:14px}
@@ -297,7 +300,6 @@ section[hidden]{display:none}
 @media (max-width:900px){.dos, #v-mostrador > .dos{grid-template-columns:1fr}}
 #v-mostrador .acc-arriba{flex-direction:row; flex-wrap:wrap; justify-content:flex-end; padding:0; margin:0 0 10px}
 @media (max-width:900px){#v-mostrador .acc-arriba #masAcc, #v-mostrador .acc-arriba #cajaElige{flex:1 1 100%}}
-#v-mostrador .ticket .tr.big b{color:var(--accent)}
 /* Los borradores, arriba de los artículos. */
 #v-mostrador #borradores{margin:0 0 12px; padding:9px 12px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r)}
 #v-mostrador #borradores:empty{display:none}
@@ -1515,10 +1517,10 @@ footer{
           <div id="cajaEligeBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
         </div>
         <button class="b2" id="btnBorrador">Guardar como borrador</button>
-        <button class="b3" id="btnMasAcc" aria-expanded="false">Otras opciones</button>
+        <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
+        <button class="b3" id="btnMasAcc" aria-expanded="false" hidden>Otras opciones</button>
         <div id="masAcc" hidden>
           <button class="b2" id="btnSinFactura">Entregar sin comprobante</button>
-          <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
           <p class="nota" style="padding:4px 0 0">La venta sin comprobante queda anotada igual, marcada como tal: no hay un segundo libro.</p>
         </div>
       </div>
@@ -13322,10 +13324,11 @@ function aplicarCobrar(){
   const bg = document.getElementById("btnGuardarEd");
   if(bg){ bg.hidden = !ed; if(ed) bg.textContent = "Guardar cambios · " + (S.editando.comp || "").replace(/^\\d+\\./, "") + " " + S.editando.nro; }
   if(ed){
-    for(const id of ["btnFactura","btnSinFacturaC","btnPedInt","btnPresu","btnCaja","btnBorrador","btnMasAcc","masAcc"]){ const b = document.getElementById(id); if(b) b.hidden = true; }
+    for(const id of ["btnFactura","btnSinFacturaC","btnPedInt","btnPresu","btnCaja","btnBorrador","btnMasAcc","masAcc","btnWhatsVta"]){ const b = document.getElementById(id); if(b) b.hidden = true; }
     return;
   }
-  for(const id of ["btnPresu","btnBorrador","btnMasAcc"]){ const b = document.getElementById(id); if(b) b.hidden = false; }
+  // V.0.11.223: sin "Otras opciones"; WhatsApp, a la vista.
+  for(const id of ["btnPresu","btnBorrador","btnWhatsVta"]){ const b = document.getElementById(id); if(b) b.hidden = false; }
   for(const id of ["btnFactura", "btnSinFacturaC", "btnPedInt"]){ const b = document.getElementById(id); if(b) b.hidden = !(c && cobrando); }
   const bs = document.getElementById("btnSinFactura"); if(bs) bs.hidden = true;
   const bc = document.getElementById("btnCaja"); if(bc){ bc.hidden = cobrando; bc.className = "b1"; }

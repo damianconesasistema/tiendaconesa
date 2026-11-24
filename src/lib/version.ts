@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.222";
+export const APP_VERSION = "V.0.11.223";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.223",
+    date: "2026-11-24",
+    changes: [
+      "Punto, la Venta: el nombre del artículo usa el lugar que sobra (\"podés usar menos líneas en la descripción\"): hasta 560 px en vez de 255, así un combo entra en dos renglones en vez de cuatro. El número del Total, en negro (\"el total ponelo en negro\"), con su recuadro. Y sin \"Otras opciones\" (\"mostrá todos\"): \"Mandárselo por WhatsApp\", que era lo único que tenía adentro, va en la fila con los otros botones.",
+    ],
+  },
   {
     version: "V.0.11.222",
     date: "2026-11-24",
