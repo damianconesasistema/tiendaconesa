@@ -136,3 +136,10 @@ test("puedeMover", () => {
   assert.equal(typeof puedeMover(gerente, pedido(), inactiva, null), "string");
   assert.equal(typeof puedeMover(cajeroTsl, pedido(), inactiva, null), "string");
 });
+
+import { AREAS_PUNTO, permisosEfectivos } from "../../src/lib/punto-permisos.ts";
+test("permiso cuentas", () => {
+  assert.ok(AREAS_PUNTO.some((a) => a.id === "cuentas"));
+  assert.ok(permisosEfectivos(null).includes("cuentas"));
+  assert.equal(permisosEfectivos(["caja"]).includes("cuentas"), false);
+});

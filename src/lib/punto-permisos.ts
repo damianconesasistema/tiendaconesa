@@ -32,6 +32,15 @@ export const AREAS_PUNTO: readonly DatosPermisoPunto[] = [
   { id: "caja", nombre: "Caja", ayuda: "La caja del día de cada razón social." },
   { id: "renta", nombre: "Rentabilidad", ayuda: "Qué deja de verdad lo que se vendió. Está adentro de Gerencia." },
   { id: "contable", nombre: "Contable", ayuda: "El libro IVA ventas y los archivos para el contador. Está adentro de Gerencia." },
+  // Gerencia, parte 1 (24/11/2026). Damian: "en gerencia necesito que tenga un
+  // lugar donde sea los gastos diarios y los gastos mensuales de cada
+  // sucursal". El cajero anota lo del efectivo desde Caja con el area "caja";
+  // esta es la de gerencia: todas las cuentas, saldos y gastos.
+  {
+    id: "cuentas",
+    nombre: "Cuentas y gastos",
+    ayuda: "Las cuentas de cada razón social (efectivo, Mercado Pago, bancos), sus saldos y los gastos. Está adentro de Gerencia.",
+  },
   { id: "gerencia", nombre: "Gerencia", ayuda: "Todos los vendedores y la web en una pantalla." },
   { id: "asistente", nombre: "Asistente", ayuda: "Preguntarle al sistema en castellano en vez de sacar un reporte." },
 ];

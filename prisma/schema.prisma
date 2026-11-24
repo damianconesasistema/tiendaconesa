@@ -674,3 +674,67 @@ model PuntoCliente {
   @@index([nombre])
   @@index([cuit])
 }
+
+/// Las cuentas de plata de cada razon social (migracion 57): el efectivo de
+/// la caja, Mercado Pago y cada banco (caja de ahorro o cuenta corriente).
+/// El saldo no se guarda: es saldoInicial mas los movimientos no anulados
+/// desde `desde` (src/lib/punto-cuentas-reglas.ts). Lo escribe
+/// src/lib/punto-cuentas.ts.
+model PuntoCuenta {
+  id            String            @id @default(cuid())
+  /// srl | cnc | tsl
+  sucursal      String
+  /// efectivo | mercadopago | banco
+  tipo          String
+  nombre        String
+  banco         String            @default("")
+  /// ca (caja de ahorro) | cc (cuenta corriente); null si no es banco.
+  clase         String?
+  saldoInicial  Float             @default(0)
+  /// YYYY-MM-DD: desde que dia cuentan los movimientos.
+  desde         String
+  /// No se borra: se da de baja.
+  activa        Boolean           @default(true)
+  creadoPor     String
+  creadoEn      DateTime          @default(now())
+  actualizadoEn DateTime          @updatedAt
+  movimientos   PuntoMovimiento[]
+
+  @@unique([sucursal, nombre])
+}
+
+/// Cada hecho de plata en una cuenta (migracion 57): un gasto, un pago a
+/// proveedor, un retiro, una cobranza, una sena, un ajuste, o una de las dos
+/// patas de un pase entre cuentas (mismo grupo). No se borra: se anula.
+model PuntoMovimiento {
+  id         String      @id @default(cuid())
+  /// Lo genera la pagina al abrir el formulario: el mismo pedido repetido
+  /// (doble clic, corte) no se guarda dos veces. Las dos patas de un pase lo
+  /// comparten; el unico es con la cuenta.
+  idLocal    String
+  grupo      String
+  fecha      DateTime    @default(now())
+  creadoEn   DateTime    @default(now())
+  usuario    String
+  /// La razon social de la cuenta.
+  sucursal   String
+  /// gasto | pago-proveedor | retiro | cobranza | sena | transferencia | ajuste
+  tipo       String
+  cuentaId   String
+  cuenta     PuntoCuenta @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
+  /// + entra a la cuenta, - sale.
+  monto      Float
+  rubro      String      @default("")
+  detalle    String      @default("")
+  iva        Float       @default(0)
+  /// Un gasto compartido: {"srl":50,"cnc":50}. Null = de la razon social de la cuenta.
+  reparto    Json?
+  anuladoEn  DateTime?
+  anuladoPor String?
+  motivo     String?
+
+  @@unique([idLocal, cuentaId])
+  @@index([cuentaId, fecha])
+  @@index([sucursal, fecha])
+  @@index([grupo])
+}
