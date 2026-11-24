@@ -1542,7 +1542,7 @@ footer{
         <button class="b2" id="btnSinFacturaC" type="button" hidden>Entregar sin comprobante</button>
         <button class="b2" id="btnPedInt" type="button" hidden title="Sin factura: queda anotado como pedido interno y pasa a preparación">Cerrar como pedido interno</button>
         <button class="b1 suave" id="btnPresu">Emitir presupuesto</button>
-        <button class="b1" id="btnCaja" title="Va a la caja de la sucursal donde estás (Caja → Por cobrar): lo cobra el cajero.">Confirmar pedido</button>
+        <button class="b1" id="btnCaja" title="Va a la caja de la sucursal donde estás (Caja → Por cobrar): lo cobra el cajero.">CONFIRMAR PEDIDO</button>
         <button class="b2" id="btnOtraSuc" type="button" title="Mandar el pedido a la caja de otra sucursal: se cobra con su CUIT.">Pasar a otra sucursal</button>
         <div id="cajaElige" hidden style="padding:4px 0 6px">
           <button type="button" class="cerrar-pop" id="cajaEligeCerrar" aria-label="Cerrar" title="Cerrar">&times;</button>
@@ -4641,11 +4641,17 @@ function sumar(cod, cuantos){
   // Igual que en Pedidos (agregarPed). El foco vuelve al buscador: si se
   // quedara en el body, el Enter global sumaría el primero marcado (la
   // trampa de #camposVta), y con el buscador vacío no queda nada marcado.
+  // V.0.11.226: el foco vuelve a Cant. (con el 1 marcado), no al buscador:
+  // "que vuelva el foco a cantidad siempre, para setear primero antes del
+  // artículo". Enter en Cant. pasa al buscador. Con el buscador vacío no hay
+  // nada marcado, así que un Enter suelto no suma nada.
   const q = document.getElementById("q");
   q.value = "";
-  document.getElementById("qCant").value = 1;
+  const qc = document.getElementById("qCant");
+  qc.value = 1;
   buscar();
-  q.focus();
+  qc.focus();
+  try{ qc.select(); }catch(e){}
 }
 /* El artículo a mano: el formulario y lo que pasa al sumarlo. */
 function abrirAMano(){
