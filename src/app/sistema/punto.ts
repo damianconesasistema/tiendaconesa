@@ -789,6 +789,17 @@ table.densa th{padding:8px 10px; font-size:11.5px}
    listas los alinea a la derecha, que es para números. */
 #prvForm .campo input, #prvForm .campo textarea{text-align:left}
 #prvForm .campos{padding:12px 16px 0}
+.rev-chips{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 16px}
+.rev-chip{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:150px;max-width:230px;flex:1 1 150px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+.rev-chip b{font-size:20px;line-height:1.1;color:var(--bad)}
+.rev-chip span{font-size:13px;font-weight:700}
+.rev-chip small{font-size:11.5px;color:var(--ink-3);font-weight:500;line-height:1.3}
+.rev-chip:hover:not([disabled]){border-color:var(--accent)}
+.rev-chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.rev-chip.cero{opacity:.55;cursor:default}
+.rev-chip.cero b{color:var(--ok)}
+#revFiltro{padding:9px 16px;background:var(--accent-soft);border-bottom:1px solid var(--line);font-size:13px}
+.rev-motivo{display:block;color:var(--bad);font-weight:600;font-size:12px;margin-top:2px}
 #clsForm .campo input, #clsForm .campo textarea{text-align:left}
 #clsForm .campos{padding:12px 16px 0}
 .cls-pag{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line);font-size:13px}
@@ -1475,7 +1486,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.243</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.244</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -2252,6 +2263,12 @@ footer{
     </div>
   </div>
 
+  <!-- V.0.11.244: lo que llama la atención en los artículos (Damián: "un verificador de renta"). -->
+  <div class="card" id="revCard" style="margin-bottom:16px">
+    <div class="card-h"><h3>Revisar</h3><span class="sub" id="revSub"></span></div>
+    <div class="rev-chips" id="revChips"></div>
+  </div>
+
   <div class="card" style="margin-bottom:16px">
     <div class="card-h">
       <h3>Buscar artículos</h3><span class="sub" id="fCuenta"></span>
@@ -2260,6 +2277,7 @@ footer{
       <button class="b3" id="fPdf" type="button" style="padding:5px 14px">PDF</button>
       <button class="b3" id="fLimpiar" type="button" style="margin-left:8px;padding:5px 14px" hidden>Limpiar filtros</button>
     </div>
+    <div id="revFiltro" hidden></div>
     <div class="art-filtros">
       <div class="buscar">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
@@ -7796,7 +7814,118 @@ function estadoPill(m){
   return '<span class="pill p-ok">bien</span>';
 }
 
+
+/* ===================================================== REVISAR (V.0.11.244)
+   Damián, 24/11/2026: "agregame en artículos un verificador de renta, es
+   decir si tengo algún artículo con algo mal que te llame la atención
+   hacémelo saber en el panel de artículos". Se calcula acá, con lo mismo que
+   muestra la lista (costo, Lista 1, Lista 2, margen), cada vez que se pinta.
+   Tocar un problema deja en la lista de abajo solo esos artículos, con el
+   motivo en rojo, para corregirlos ahí mismo. */
+const REV_TIPOS = [
+  { k:"pierde", t:"Pierde plata", f:"La Lista 1 o el contado quedan por debajo del costo." },
+  { k:"bajo", t:"Margen bajo", f:"Deja menos del 10% sobre el costo." },
+  { k:"reves", t:"Listas al revés", f:"La Lista 2 es menor que la Lista 1, o el precio por mayor es más caro que la Lista 1." },
+  { k:"falta", t:"Le falta algo", f:"Sin costo o sin precio." },
+  { k:"raro", t:"Precio raro", f:"Más de 15 veces arriba o abajo de lo común en su marca y rubro." },
+  { k:"nocierra", t:"No cierra con GBP", f:"Con los descuentos de GBP el costo da más que la Lista 1, o falta el dólar." },
+  { k:"combo", t:"Combos", f:"Combo sin piezas cargadas, o con una pieza que ya no está." },
+  { k:"stock", t:"Stock negativo", f:"Se vendió más de lo que había cargado: la lista lo muestra en 0." }
+];
+/** Menos que esto sobre el costo es "margen bajo". */
+const MARGEN_MIN_REV = 10;
+/** Cuántas veces lejos de lo común de su marca y rubro es "precio raro". */
+const VECES_RARO = 15;
+const REV = { sel:"", res:null };
+
+function calcularRevisar(){
+  const res = {};
+  for(const x of REV_TIPOS) res[x.k] = new Map();
+  // Lo común de cada marca y rubro: la mediana de la Lista 2 (con 5 o más).
+  const grupo = p => plano((p.prov || "") + "|" + (p.rub || ""));
+  const grupos = new Map();
+  for(const p of PRODUCTOS){
+    if(!(+p.unPago > 0)) continue;
+    const g = grupo(p);
+    if(!grupos.has(g)) grupos.set(g, []);
+    grupos.get(g).push(+p.unPago);
+  }
+  const mediana = new Map();
+  for(const [g, l] of grupos) if(l.length >= 5){ l.sort((a, b) => a - b); mediana.set(g, l[Math.floor(l.length / 2)]); }
+  for(const p of PRODUCTOS){
+    const pon = (k, m) => res[k].set(p.cod, m);
+    const costo = +p.costo || 0, l1 = lista1De(p), l2 = +p.unPago || 0;
+    const m = costo > 0 ? margen(p) : NaN;
+    if(costo > 0 && l2 > 0 && (l1 < costo || +p.contado < costo))
+      pon("pierde", "Costo " + fmt2(costo) + " · Lista 1 " + fmt2(l1) + " · contado " + fmt2(+p.contado || 0));
+    else if(isFinite(m) && l2 > 0 && m < MARGEN_MIN_REV)
+      pon("bajo", "Deja " + pct(m) + " sobre el costo (" + fmt2(costo) + ")");
+    if(isFinite(+p.l2) && +p.l2 < 0)
+      pon("reves", "Lista 2 " + fmt2(l2) + " menor que la Lista 1 " + fmt2(l1));
+    else if(p.may){
+      const ml = listasMayor(p).lista1;
+      if(ml > l1 + 0.01) pon("reves", "Por mayor " + fmt2(ml) + " más caro que la Lista 1 " + fmt2(l1));
+    }
+    const falta = [];
+    if(!(costo > 0)) falta.push("sin costo");
+    if(!(l2 > 0)) falta.push("sin precio");
+    if(falta.length) pon("falta", falta.join(" · "));
+    const med = mediana.get(grupo(p));
+    if(med && l2 > 0 && (l2 > med * VECES_RARO || l2 < med / VECES_RARO))
+      pon("raro", fmt2(l2) + (p.mon === "USD" ? " (en dólares)" : "") + " · lo común en " + (p.prov || "—") + " · " + (p.rub || "—") + " es " + fmt2(med));
+    if(p.dtoInfo === "no cierra") pon("nocierra", "Con los descuentos de GBP el costo da más que la Lista 1: revisalo en GBP");
+    else if(p.dtoInfo === "sin dólar") pon("nocierra", "Falta el dólar del formador");
+    if(esComboArt(p)){
+      const pz = p.combo && Array.isArray(p.combo.piezas) ? p.combo.piezas : [];
+      if(!pz.length) pon("combo", "Combo sin piezas cargadas");
+      else {
+        const faltan = pz.filter(x => !prod(x.cod)).map(x => x.cod);
+        if(faltan.length) pon("combo", "Pieza que ya no está: " + faltan.join(", "));
+      }
+    }
+    if(p.stockNeg) pon("stock", "Stock negativo en " + [p.stockNeg.BA ? "Buenos Aires (" + p.stockNeg.BA + ")" : "", p.stockNeg.TS ? "Córdoba (" + p.stockNeg.TS + ")" : ""].filter(Boolean).join(" y "));
+  }
+  return res;
+}
+function pintarRevisar(){
+  const caja = document.getElementById("revChips"); if(!caja) return;
+  REV.res = calcularRevisar();
+  const todos = new Set();
+  for(const k in REV.res) for(const c of REV.res[k].keys()) todos.add(c);
+  const n = x => x.toLocaleString("es-AR");
+  document.getElementById("revSub").textContent = !PRODUCTOS.length ? "todavía no hay artículos"
+    : todos.size ? n(todos.size) + (todos.size === 1 ? " artículo para mirar" : " artículos para mirar") + " de " + n(PRODUCTOS.length)
+    : "todo en orden";
+  if(REV.sel && !REV.res[REV.sel].size) REV.sel = "";
+  caja.innerHTML = REV_TIPOS.map(x => {
+    const c = REV.res[x.k].size;
+    return '<button type="button" class="rev-chip' + (c ? "" : " cero") + '" data-rev="' + x.k + '" aria-pressed="' + (REV.sel === x.k) + '"' +
+      (c ? "" : " disabled") + '><b>' + n(c) + '</b><span>' + txt(x.t) + '</span><small>' + txt(x.f) + '</small></button>';
+  }).join("");
+  const f = document.getElementById("revFiltro");
+  if(REV.sel){
+    const x = REV_TIPOS.find(y => y.k === REV.sel);
+    f.hidden = false;
+    f.innerHTML = 'Mostrando solo <b>' + txt(x.t) + '</b> (' + n(REV.res[REV.sel].size) + '): el motivo va en rojo debajo de cada uno. ' +
+      '<button class="link-chico" type="button" data-rev-fuera>Ver todos los artículos</button>';
+  } else { f.hidden = true; f.innerHTML = ""; }
+}
+document.getElementById("revChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-rev]"); if(!b || b.disabled) return;
+  REV.sel = REV.sel === b.dataset.rev ? "" : b.dataset.rev;
+  pintarProd();
+  if(REV.sel){
+    const card = document.getElementById("tbProd").closest(".card");
+    if(card) card.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+});
+document.getElementById("revFiltro").addEventListener("click", e => {
+  if(!e.target.closest("[data-rev-fuera]")) return;
+  REV.sel = ""; pintarProd();
+});
+
 function pintarProd(){
+  pintarRevisar();
   S.objetivo = +document.getElementById("fObj").value || 35;
   const fp = document.getElementById("fProv").value;
   const fr = document.getElementById("fRub").value;
@@ -7806,6 +7935,7 @@ function pintarProd(){
   const saca = ORD_PROD[S.ordProd.col] || ORD_PROD.margen;
   const todos = PRODUCTOS
     .filter(p=>(!fp||p.prov===fp) && (!fr||p.rub===fr) && (!fc||String(p.cat||"").trim()===fc) && (!fco||esComboArt(p))
+             && (!REV.sel || REV.res[REV.sel].has(p.cod))
              && (!toks.length || (b => toks.every(t=>b.includes(t)))(textoBuscaArt(p))))
     .sort((a,b)=>{
       const x = saca(a), y = saca(b);
@@ -7815,7 +7945,7 @@ function pintarProd(){
   // Con todo GBP son 7.000 filas: pintarlas todas trababa la pantalla en
   // cada tecla. Se ven de a 300; "Mostrar más" suma otras 300. Cambiar el
   // filtro o el orden vuelve a las primeras 300.
-  const firma = fp+"|"+fr+"|"+fc+"|"+toks.join(" ")+"|"+fco+"|"+S.ordProd.col+"|"+S.ordProd.asc;
+  const firma = fp+"|"+fr+"|"+fc+"|"+toks.join(" ")+"|"+fco+"|"+S.ordProd.col+"|"+S.ordProd.asc+"|"+REV.sel;
   pintarFiltrosArt(fp, fr, fc, toks, todos.length);
   pintarSugeridos(toks);
   if(firma !== PROD_VER.firma){ PROD_VER.firma = firma; PROD_VER.max = PROD_DE_A; }
@@ -7836,7 +7966,8 @@ function pintarProd(){
         (esNuevoArt(p)?' <span class="pill p-warn" title="creado hace menos de 7 días">nuevo</span>':'')+
         (!p.combo && p.vendeSuelto === false ? ' <span class="pill p-warn">solo en combo</span>' : '')+
         (!p.combo && p.vendeCombo === false ? ' <span class="pill p-n">solo suelto</span>' : '')+
-        '<small>'+p.rub+'</small></td>'+
+        '<small>'+p.rub+'</small>'+
+        (REV.sel && REV.res[REV.sel].has(p.cod) ? '<span class="rev-motivo">'+txt(REV.res[REV.sel].get(p.cod))+'</span>' : '')+'</td>'+
       '<td>'+p.prov+(p.cat && p.gbp ? '<small style="display:block;color:var(--ink-3);font-size:11.5px">'+txt(String(p.cat).trim())+'</small>' : '')+'</td>'+
       '<td class="r"><input class="ed" type="text" inputmode="decimal" data-cod="'+p.cod+'" value="'+plata2(netoProdDe(p))+'" aria-label="costo sin IVA">'+
         (p.dtoGbp && (p.seis.some(d=>limD(d)>0) || (p.recs && p.recs.length))
@@ -14971,6 +15102,9 @@ function productoDeGbp(a){
     cat: sinEtiquetas(a.cat || ""),
     markup: Math.round((contado / costo - 1) * 1000) / 10,
     dep: { BA: Math.max(0, Math.round(+a.stockBA || 0)), TS: Math.max(0, Math.round(+a.stockTS || 0)) },
+    // V.0.11.244: vendido de más; la lista lo muestra en 0 y Revisar lo avisa.
+    stockNeg: (+a.stockBA || 0) < 0 || (+a.stockTS || 0) < 0
+      ? { BA: (+a.stockBA || 0) < 0 ? Math.round(+a.stockBA) : 0, TS: (+a.stockTS || 0) < 0 ? Math.round(+a.stockTS) : 0 } : null,
     real: true, gbp: true,
     ...(a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length ? { combo: a.combo } : {}),
     ...(a.mayor && +a.mayor.desde >= 1 ? { may: true, mayPct: +a.mayor.pct || 0, mayDesde: Math.floor(+a.mayor.desde) } : {})

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.243";
+export const APP_VERSION = "V.0.11.244";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.244",
+    date: "2026-11-24",
+    changes: [
+      "Punto, Artículos: cuadro REVISAR (\"un verificador de renta: si tengo algún artículo con algo mal que te llame la atención hacémelo saber\"). Arriba de la lista, cuántos hay de cada cosa: Pierde plata (la Lista 1 o el contado por debajo del costo), Margen bajo (menos del 10%), Listas al revés (la Lista 2 menor que la 1, o el por mayor más caro que la Lista 1), Le falta algo (sin costo o sin precio), Precio raro (15 veces arriba o abajo de lo común en su marca y rubro), No cierra con GBP, Combos (sin piezas o con una pieza que ya no está) y Stock negativo (vendido de más; la lista lo mostraba en 0). Tocando uno, la lista de abajo muestra solo esos, con el motivo en rojo, para corregirlos ahí; Excel y PDF exportan esos mismos.",
+    ],
+  },
   {
     version: "V.0.11.243",
     date: "2026-11-24",
