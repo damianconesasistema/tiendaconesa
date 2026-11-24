@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.249";
+export const APP_VERSION = "V.0.11.250";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.250",
+    date: "2026-11-24",
+    changes: [
+      "Punto, venta: LISTA MAYORISTA en Lista de precios (\"la lista mayorista se tendría que aplicar si se quiere en el comprobante de venta, si viene un cliente y me pide yo habilitarlo, pero si no por default lista 2\"). La venta arranca siempre en Lista 2; la Mayorista se elige a mano y vale para todos los artículos: el costo más su % por mayor, o + 12 % si no tiene uno propio (como el simulador de costo). El precio por mayor ya no sale solo por cantidad: con \"desde 1 unidad\" toda venta iba a precio mayorista (el combo SENSUS 22105 salía a $504.643,73 en vez de $563.218,44).",
+      "Punto, venta: botón Actualizar precios en Artículos de la venta (\"no tenemos el botón de actualizar precios, traer nuevos precios\"). Trae los precios de ahora del servidor sin recargar y dice si el total cambió.",
+    ],
+  },
   {
     version: "V.0.11.249",
     date: "2026-11-24",
