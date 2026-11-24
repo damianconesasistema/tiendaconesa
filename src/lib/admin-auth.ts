@@ -40,6 +40,10 @@ export type AdminSession = {
   expiresAt: number;
 };
 
+/** Cuando se entro con esa sesion (ms). V.0.11.259: el cierre por
+ *  inactividad de la pagina no cuenta lo anotado antes (de otra sesion). */
+export const inicioDeSesion = (s: AdminSession): number => s.expiresAt - SESSION_HOURS * 60 * 60 * 1000;
+
 function parseToken(token: string): AdminSession | null {
   const parts = token.split(".");
   if (parts.length !== 3) return null;

@@ -15,8 +15,10 @@ export const metadata: Metadata = {
 // La entrada al sistema Punto, con los usuarios del panel. Damian,
 // 19/11/2026: "armame un panel de login para entrar con usuario que no sea
 // una flotante de windows para loguearte". Ver src/app/sistema/clave.ts.
-export default async function EntrarAlSistema() {
+export default async function EntrarAlSistema({ searchParams }: { searchParams: Promise<{ motivo?: string }> }) {
   if ((await quienEntra()) === "ok") redirect("/sistema");
+  // V.0.11.259: la pagina cierra la sesion despues de 2 horas sin usarla.
+  const porInactividad = (await searchParams).motivo === "inactividad";
 
   // Pantalla propia del sistema, sin el encabezado, el pie ni los botones de
   // la tienda (Damian, 23/11/2026: "eso tiene que ser un login aparte, no es
@@ -32,6 +34,11 @@ export default async function EntrarAlSistema() {
           <p className="mt-2 text-sm text-[var(--muted)]">
             Entrá con tu usuario y tu contraseña, los mismos del panel.
           </p>
+          {porInactividad && (
+            <p className="mt-4 rounded-lg bg-[#fbf0dd] px-3 py-2 text-sm text-[#a35a06]">
+              Se cerró la sesión porque pasaron 2 horas sin usar el sistema en esta compu. Lo que estabas armando quedó guardado.
+            </p>
+          )}
         </div>
         <LoginForm inicio="/sistema" />
       </div>

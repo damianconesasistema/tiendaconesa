@@ -601,6 +601,10 @@ table.cx-t td small{display:block; color:var(--ink-3); font-size:11.5px}
 .cx-hist{font-size:13px}
 .cx-hist div{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:5px 0; border-bottom:1px solid var(--line)}
 .cx-hist div:last-child{border-bottom:0}
+.ms-opc{display:grid; grid-template-columns:minmax(260px,2fr) minmax(120px,1fr); gap:10px 14px; margin:12px 0 4px}
+.ms-opc label{font-size:12px; font-weight:600; color:var(--ink-2); display:block; margin-bottom:4px}
+.ms-opc select, .ms-opc input{width:100%}
+@media (max-width:700px){ .ms-opc{grid-template-columns:1fr} }
 .cx-pie{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; border-top:1px solid var(--line)}
 /* V.0.11.257: la agenda de pagos a proveedores y su aviso. */
 .pg-aviso{display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; padding:9px 24px;
@@ -1566,7 +1570,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.258</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.259</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1596,6 +1600,8 @@ footer{
 </header>
 <!-- V.0.11.257: lo vencido y lo que vence de la agenda de pagos. -->
 <div class="pg-aviso" id="pgAviso" hidden></div>
+<!-- V.0.11.259: el aviso de que se va a cerrar la sesión por inactividad. -->
+<div class="pg-aviso mal" id="inactAviso" role="alert" hidden></div>
 
 <main>
 
@@ -2359,6 +2365,7 @@ footer{
       <button class="b3" id="fXlsx" type="button" style="padding:5px 14px">Excel</button>
       <button class="b3" id="fPdf" type="button" style="padding:5px 14px">PDF</button>
       <button class="b2" id="fSubir" type="button" style="padding:5px 14px" title="El Excel de acá, editado, o la lista de un proveedor: te muestro qué cambia antes de aplicar" hidden>Subir Excel</button>
+      <button class="b2" id="fMasivo" type="button" style="padding:5px 14px" title="Cambiar el margen o los precios de todos los artículos que ves con estos filtros" hidden>Cambiar precios</button>
       <button class="b3" id="fLimpiar" type="button" style="margin-left:8px;padding:5px 14px" hidden>Limpiar filtros</button>
     </div>
     <div id="revFiltro" hidden></div>
@@ -15800,7 +15807,9 @@ function cxHistHtml(){
   const ult = CX.hist.find(h => !h.deshecho);
   return '<b style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)">Últimas subidas</b>' +
     CX.hist.map(h => '<div><span>' + fechaHoraAR(h.fecha) + '</span><span>' +
-      (h.origen === "proveedor" ? "Lista de <b>" + txt(h.marca) + "</b>" : "Excel de artículos") + (h.archivo ? ' · ' + txt(h.archivo) : '') + '</span>' +
+      (h.origen === "proveedor" ? "Lista de <b>" + txt(h.marca) + "</b>" + (h.archivo ? ' · ' + txt(h.archivo) : '')
+        : h.origen === "masivo" ? "Cambio masivo: <b>" + txt(h.archivo) + "</b>" + (h.marca ? ' · ' + txt(h.marca) : '')
+        : "Excel de artículos" + (h.archivo ? ' · ' + txt(h.archivo) : '')) + '</span>' +
       '<span>' + h.n + (h.n === 1 ? ' artículo' : ' artículos') + ' · ' + txt(h.por) + '</span>' +
       (h.deshecho ? '<span class="pill p-n">deshecha (' + h.deshecho.n + ')</span>'
         : ult && ult.id === h.id ? '<button class="b3" type="button" data-cx-desh="' + atrib(h.id) + '" style="padding:3px 10px;margin-left:auto">Deshacer</button>' : '') +
@@ -16056,6 +16065,262 @@ document.getElementById("fSubir").addEventListener("click", () => abrirCambiosEx
 document.getElementById("cxSubirPrv").addEventListener("click", () => abrirCambiosExcel("proveedor"));
 document.getElementById("cxHist").addEventListener("click", e => { const b = e.target.closest("[data-cx-desh]"); if(b) cxDeshacer(b.dataset.cxDesh); });
 setTimeout(() => { for(const id of ["fSubir", "cxSubirPrv"]){ const b = document.getElementById(id); if(b) b.hidden = !puede("importar"); } }, 0);
+
+/* ============================== CIERRE POR INACTIVIDAD (V.0.11.259)
+   Damián, 24/11/2026: "si pasa más de 2 horas sin actividad un usuario, se
+   le cierra la sesión". Cuenta lo que hace la persona (mouse, teclado,
+   toques, ruedita), no lo que la página consulta sola. La última vez queda
+   en el navegador (localStorage "conesa.actividad"), compartida por las
+   pestañas de Punto y por el panel /admin (src/app/admin/cierre-
+   inactividad.tsx): lo que se hace en una cuenta para todas. 5 minutos antes
+   avisa arriba. Lo anotado antes de entrar con esta sesión (PUNTO_YO.
+   sesionDesde) es de otra y no cuenta. Al cerrarse, lo que se estaba armando
+   queda guardado en esta compu (como con Salir). Si la compu estuvo apagada o
+   el navegador cerrado más de 2 horas, al abrir Punto se cierra de una. */
+const INACTIVO_MS = 2 * 60 * 60 * 1000, INACTIVO_AVISO_MS = 5 * 60 * 1000, INACTIVO_KEY = "conesa.actividad";
+const INACT = { ultima: Date.now(), marcada: 0, cerrando: false, movio: 0 };
+function inactGuardada(){
+  let t = 0; try{ t = +localStorage.getItem(INACTIVO_KEY) || 0; }catch(e){}
+  const desde = (typeof PUNTO_YO === "object" && PUNTO_YO && +PUNTO_YO.sesionDesde) || 0;
+  return t && desde && t < desde ? 0 : t;
+}
+function inactMarcar(){
+  const ahora = Date.now(); INACT.ultima = ahora;
+  if(ahora - INACT.marcada > 15000){ INACT.marcada = ahora; try{ localStorage.setItem(INACTIVO_KEY, String(ahora)); }catch(e){} }
+  const b = document.getElementById("inactAviso"); if(b && !b.hidden) b.hidden = true;
+}
+async function inactCerrar(alAbrir){
+  if(INACT.cerrando) return;
+  // Mientras se guarda un comprobante no se corta: se prueba en la próxima vuelta.
+  try{ if(EMITIENDO) return; }catch(e){}
+  INACT.cerrando = true;
+  if(!alAbrir) try{ guardarLocal(); }catch(e){}
+  try{ localStorage.removeItem(INACTIVO_KEY); }catch(e){}
+  try{ await fetch("/api/admin/logout", { method:"POST", credentials:"same-origin" }); }catch(e){}
+  location.href = "/sistema/entrar?volver=/sistema&motivo=inactividad";
+}
+function inactRevisar(){
+  if(INACT.cerrando) return;
+  const quieto = Date.now() - Math.max(INACT.ultima, inactGuardada());
+  if(quieto >= INACTIVO_MS){ inactCerrar(false); return; }
+  const b = document.getElementById("inactAviso"); if(!b) return;
+  if(quieto >= INACTIVO_MS - INACTIVO_AVISO_MS){
+    const min = Math.max(1, Math.ceil((INACTIVO_MS - quieto) / 60000));
+    b.innerHTML = '<span><b>Hace casi 2 horas que no se usa Punto en esta compu.</b> En ' + min + (min === 1 ? ' minuto' : ' minutos') +
+      ' se cierra la sesión: mové el mouse o tocá una tecla para seguir.</span>';
+    b.hidden = false;
+  } else if(!b.hidden) b.hidden = true;
+}
+/** Lo que se hace adentro de la Web (/admin) y del Simulador también cuenta. */
+function inactEnMarco(f){
+  if(!f || f.dataset.inact) return;
+  f.dataset.inact = "1";
+  f.addEventListener("load", () => {
+    try{
+      const d = f.contentDocument; if(!d) return;
+      for(const ev of ["mousedown", "keydown", "wheel", "touchstart"]) d.addEventListener(ev, inactMarcar, { capture:true, passive:true });
+    }catch(e){}
+  });
+}
+(function(){
+  const t = inactGuardada();
+  if(t && Date.now() - t >= INACTIVO_MS){ setTimeout(() => inactCerrar(true), 0); return; }
+  inactMarcar();
+  for(const ev of ["mousedown", "keydown", "wheel", "touchstart"]) addEventListener(ev, inactMarcar, { capture:true, passive:true });
+  addEventListener("mousemove", () => { const t2 = Date.now(); if(t2 - INACT.movio > 5000){ INACT.movio = t2; inactMarcar(); } }, { capture:true, passive:true });
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) inactRevisar(); });
+  for(const f of document.querySelectorAll("iframe")) inactEnMarco(f);
+  setInterval(inactRevisar, 30000);
+})();
+
+/* ============================== CAMBIO MASIVO DE PRECIOS (V.0.11.259)
+   Damián, 24/11/2026: "agregame acá para modificar también masivamente, si
+   quiero hacer cambio de margen en los artículos filtrados que me lo haga
+   ... por ejemplo cambiar el margen de ganancia". Sobre todo lo que se ve con
+   los filtros de Artículos (no solo las filas que entran en la pantalla).
+   Va por el mismo camino que los cambios por Excel (/sistema/articulos/
+   cambios): revisión antes, solo artículos que ya están, en Actividad y se
+   puede deshacer. Las cuentas, con productoDeGbp() (las de la lista):
+   - Margen: lo que deja la venta de contado sobre el costo (la columna
+     Margen). Lista 2 = costo × (1 + %) × recargo de 1 pago; la Lista 1
+     guarda la misma distancia con la 2 que tenía.
+   - Lista 1: % sobre el costo; la 2 guarda su % sobre la 1.
+   - Lista 2: % sobre la Lista 1 (la 1 no se toca).
+   - Subir o bajar: las dos listas un % (negativo = bajar). */
+const MS_MODOS = [
+  { k:"margen", t:"Margen: lo que deja la venta de contado sobre el costo", costo:true,
+    ayuda:"La columna Margen de la lista. La Lista 2 se arma para que el contado deje ese % sobre el costo (con flete); la Lista 1 queda a la misma distancia de la 2 que tenía." },
+  { k:"l1", t:"Lista 1: % sobre el costo", costo:true,
+    ayuda:"La Lista 1 = costo × (1 + %). La Lista 2 queda con el mismo % sobre la Lista 1 que tenía cada artículo." },
+  { k:"l2", t:"Lista 2: % sobre la Lista 1", costo:false,
+    ayuda:"La Lista 2 = Lista 1 × (1 + %). La Lista 1 no se toca." },
+  { k:"subir", t:"Subir o bajar los precios (Lista 1 y Lista 2)", costo:false,
+    ayuda:"Las dos listas suben ese %. Con un número negativo (−5) bajan." }
+];
+let MS = null;
+const msPctTxt = n => (n > 0 ? "" : n < 0 ? "−" : "") + pTxt(Math.round(Math.abs(n) * 10) / 10) + " %";
+function msFiltroTxt(){
+  const sel = id => { const s = document.getElementById(id); if(!s || !s.value) return ""; const o = s.options[s.selectedIndex]; return o ? cxT(o.text).replace(/\\s*·\\s*[\\d.]+$/, "") : s.value; };
+  const b = cxT((document.getElementById("fBusca") || {}).value || "");
+  return [sel("fCat"), sel("fProv"), sel("fRub"), b ? "«" + b + "»" : ""].filter(Boolean).join(" · ") || "todos los artículos";
+}
+function msCalcular(){
+  const pct = cxN(MS.pct), modo = MS_MODOS.find(x => x.k === MS.modo);
+  MS.renglones = [];
+  for(const p0 of (PROD_VER.todos || [])){
+    const a = GBP_CRUDO[p0.cod];
+    const r = { cod: p0.cod, tit: p0.tit, estado:"igual", avisos:[] };
+    MS.renglones.push(r);
+    if(!a || !p0.gbp){ r.estado = "no"; r.avisos.push("no es un artículo guardado en el servidor"); continue; }
+    r.a = a;
+    if(a.mon === "USD"){ r.estado = "no"; r.avisos.push("tiene el costo en dólares: cambialo en la ficha"); continue; }
+    if(a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length){ r.estado = "no"; r.avisos.push("es un combo: el precio sale de sus piezas"); continue; }
+    const p = productoDeGbp(a); r.p = p;
+    if(modo.costo && !p.dtoGbp){ r.estado = "no"; r.avisos.push("no tiene la lista y los descuentos del proveedor (el costo sale de la Lista 1): no se puede calcular sobre el costo"); continue; }
+    if(pct == null) continue;
+    const L1 = +a.lista1, L2 = +a.lista2, rel = L1 > 0 && L2 > 0 ? L2 / L1 : 1.25;
+    let n1, n2;
+    if(MS.modo === "margen"){ n2 = cent(p.costoProducto * (1 + pct / 100) * RECARGO_1PAGO); n1 = cent(n2 / rel); }
+    else if(MS.modo === "l1"){ n1 = cent(p.costoProducto * (1 + pct / 100)); n2 = cent(n1 * rel); }
+    else if(MS.modo === "l2"){ n1 = L1; n2 = cent(L1 * (1 + pct / 100)); }
+    else { n1 = cent(L1 * (1 + pct / 100)); n2 = cent(L2 * (1 + pct / 100)); }
+    if(!(n1 > 0) || !(n2 > 0)){ r.estado = "no"; r.avisos.push("el precio quedaría en cero o negativo"); continue; }
+    r.d = {};
+    if(!cxIgual(n1, L1, 0.005)) r.d.lista1 = n1;
+    if(!cxIgual(n2, L2, 0.005)) r.d.lista2 = n2;
+    if(!Object.keys(r.d).length) continue;
+    r.p2 = productoDeGbp(cxAplicar(a, r.d));
+    r.estado = "cambia";
+    if(margen(r.p2) < 0) r.avisos.push("pierde plata: el contado queda debajo del costo");
+    if(r.d.lista2 !== undefined && (r.d.lista1 !== undefined ? r.d.lista1 : L1) > (r.d.lista2 !== undefined ? r.d.lista2 : L2))
+      r.avisos.push("la Lista 2 queda más barata que la Lista 1");
+    if(!(r.cod in MS.tilde)) MS.tilde[r.cod] = !(margen(r.p2) < 0);
+  }
+}
+function msCuenta(){
+  const n = { cambia:0, no:0, igual:0, tildados:0 };
+  for(const r of MS.renglones){ n[r.estado]++; if(r.estado === "cambia" && MS.tilde[r.cod]) n.tildados++; }
+  return n;
+}
+function abrirMasivo(){
+  if(!puede("importar")){ toast("Tu usuario no puede cambiar precios en masa (hace falta el permiso Importar)."); return; }
+  const total = (PROD_VER.todos || []).length;
+  if(!total){ toast("No hay artículos con esos filtros."); return; }
+  const viejo = document.getElementById("msModal"); if(viejo) viejo.remove();
+  MS = { modo:"margen", pct:"", tilde:{}, renglones:[], filtro:"cambia", aplicando:false, resultado:"", filtros: msFiltroTxt(), total };
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "msModal";
+  fondo.innerHTML = '<div class="envio-caja cx-caja" role="dialog" aria-label="Cambiar precios de los artículos filtrados">' +
+    '<div class="envio-h"><h3>Cambiar precios · ' + total.toLocaleString("es-AR") + (total === 1 ? ' artículo' : ' artículos') + '</h3>' +
+      '<button class="x" type="button" data-ms-no aria-label="cerrar">×</button></div>' +
+    '<div class="cx-cuerpo" id="msCuerpo"></div><div class="cx-pie" id="msPie"></div></div>';
+  document.body.appendChild(fondo);
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fondo.remove(); } });
+  fondo.addEventListener("click", msClic);
+  fondo.addEventListener("change", msCambio);
+  fondo.addEventListener("input", e => { if(e.target.id === "msPct"){ MS.pct = e.target.value; msCalcular(); msPintarTabla(); } });
+  msCalcular(); msPintar();
+  cxTraerHist().then(() => { const h = document.getElementById("msHist"); if(h) h.innerHTML = cxHistHtml(); });
+  setTimeout(() => { const i = document.getElementById("msPct"); if(i) i.focus(); }, 30);
+}
+function msPintar(){
+  const c = document.getElementById("msCuerpo"); if(!c || !MS) return;
+  const modo = MS_MODOS.find(x => x.k === MS.modo);
+  c.innerHTML = '<p class="cx-nota" style="margin-top:12px">Los <b>' + MS.total.toLocaleString("es-AR") + '</b> artículos que ves con estos filtros: <b>' + txt(MS.filtros) + '</b>.' +
+      ' Solo cambian la Lista 1 y la Lista 2; el costo no se toca.</p>' +
+    '<div class="ms-opc"><div><label for="msModo">Qué cambiar</label><select id="msModo">' +
+      MS_MODOS.map(m => '<option value="' + m.k + '"' + (m.k === MS.modo ? ' selected' : '') + '>' + txt(m.t) + '</option>').join("") + '</select></div>' +
+    '<div><label for="msPct">' + (MS.modo === "subir" ? "Cuánto (%)" : "Porcentaje") + '</label><input id="msPct" type="text" inputmode="decimal" autocomplete="off" placeholder="' +
+      (MS.modo === "margen" ? "objetivo: " + (S.objetivo || 35) : MS.modo === "subir" ? "5 o −5" : "25") + '" value="' + atrib(MS.pct) + '"></div></div>' +
+    '<p class="cx-nota" id="msAyuda">' + txt(modo.ayuda) + '</p>' +
+    '<div id="msRes">' + (MS.resultado || '') + '</div>' +
+    '<div id="msTabla"></div>' +
+    '<div class="cx-hist" id="msHist" style="margin:12px 0 10px">' + cxHistHtml() + '</div>';
+  msPintarTabla();
+}
+function msPintarTabla(){
+  const t = document.getElementById("msTabla"); if(!t || !MS) return;
+  const n = msCuenta(), f = MS.filtro;
+  const pct = cxN(MS.pct);
+  let html = '<div class="cx-tabs">' + [["cambia", "Cambian", n.cambia], ["no", "No se pueden", n.no, true], ["igual", "Sin cambios", n.igual]]
+    .map(([k, tt, c, mal]) => '<button type="button" data-ms-f="' + k + '" aria-pressed="' + (f === k) + '"' + (mal && c ? ' class="mal"' : '') + '>' + tt + ' (' + c.toLocaleString("es-AR") + ')</button>').join("") + '</div>';
+  const lista = MS.renglones.filter(r => r.estado === f);
+  if(pct == null && f === "cambia") html += '<p class="cx-nota">Escribí el porcentaje y te muestro cómo quedan los precios antes de aplicar.</p>';
+  else if(!lista.length) html += '<p class="cx-nota">' + (f === "cambia" ? "Con ese porcentaje no cambia ninguno." : "Ninguno.") + '</p>';
+  else {
+    const tope = 600, flecha = (h, x, fmt) => cxIgual(h, x, 0.005) ? fmt(h) : '<span style="color:var(--ink-3)">' + fmt(h) + '</span> → <b>' + fmt(x) + '</b>';
+    html += (f === "cambia" ? '<div class="cx-opc"><button class="b3" type="button" data-ms-todos="1" style="padding:3px 10px">Tildar todos</button>' +
+        '<button class="b3" type="button" data-ms-todos="0" style="padding:3px 10px">Destildar todos</button></div>' : '') +
+      '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa cx-t"><thead><tr><th></th><th>Código / artículo</th>' +
+      '<th class="r">Costo c/IVA</th><th class="r">Lista 1</th><th class="r">Lista 2</th><th class="r">Margen</th><th>Aviso</th></tr></thead><tbody>' +
+      lista.slice(0, tope).map(r => {
+        if(r.estado !== "cambia")
+          return '<tr><td></td><td class="nom">' + txt(r.cod) + '<small>' + txt(r.tit || "") + '</small></td><td class="r">' + (r.p ? fmt2(cent(r.p.costo)) : '') +
+            '</td><td class="r">' + (r.p ? fmt2(lista1De(r.p)) : '') + '</td><td class="r">' + (r.p ? fmt2(cent(r.p.unPago)) : '') + '</td><td class="r">' +
+            (r.p ? msPctTxt(margen(r.p)) : '') + '</td><td>' + r.avisos.map(x => '<span class="cx-av">' + txt(x) + '</span>').join("") + '</td></tr>';
+        const p = r.p, p2 = r.p2, m1 = margen(p), m2 = margen(p2);
+        return '<tr><td><input type="checkbox" data-ms-t="' + atrib(r.cod) + '"' + (MS.tilde[r.cod] ? ' checked' : '') + ' aria-label="aplicar ' + atrib(r.cod) + '"></td>' +
+          '<td class="nom">' + txt(r.cod) + '<small>' + txt(r.tit || "") + '</small></td>' +
+          '<td class="r">' + fmt2(cent(p.costo)) + '</td>' +
+          '<td class="r">' + flecha(lista1De(p), lista1De(p2), fmt2) + '</td>' +
+          '<td class="r">' + flecha(cent(p.unPago), cent(p2.unPago), fmt2) + '</td>' +
+          '<td class="r">' + flecha(m1, m2, msPctTxt) + '</td>' +
+          '<td>' + r.avisos.map(x => '<span class="cx-av mal">' + txt(x) + '</span>').join("") + '</td></tr>';
+      }).join("") +
+      (lista.length > tope ? '<tr><td colspan="7" class="vacio">Se ven los primeros ' + tope + ' de ' + lista.length.toLocaleString("es-AR") + ' (se aplican todos los tildados)</td></tr>' : '') +
+      '</tbody></table></div>';
+  }
+  t.innerHTML = html;
+  const pie = document.getElementById("msPie");
+  pie.innerHTML = '<button class="b3" type="button" data-ms-no>Cerrar</button>' +
+    (n.cambia ? '<span class="cx-nota" style="margin:0 0 0 auto">' + n.tildados + ' de ' + n.cambia + ' tildados</span>' +
+      '<button class="b1" type="button" data-ms-aplicar' + (n.tildados && !MS.aplicando ? '' : ' disabled') + '>' +
+      (MS.aplicando ? 'Aplicando…' : 'Aplicar a ' + n.tildados + (n.tildados === 1 ? ' artículo' : ' artículos')) + '</button>' : '');
+}
+function msCambio(e){
+  const t = e.target; if(!MS) return;
+  if(t.id === "msModo"){ MS.modo = t.value; MS.tilde = {}; MS.resultado = ""; msCalcular(); msPintar(); return; }
+  if(t.dataset.msT){ MS.tilde[t.dataset.msT] = t.checked; msPintarTabla(); }
+}
+async function msClic(e){
+  const t = e.target; if(!MS) return;
+  if(t.closest("[data-ms-no]")){ document.getElementById("msModal").remove(); return; }
+  const fb = t.closest("[data-ms-f]"); if(fb){ MS.filtro = fb.dataset.msF; msPintarTabla(); return; }
+  const td = t.closest("[data-ms-todos]");
+  if(td){ const si = td.dataset.msTodos === "1"; for(const r of MS.renglones) if(r.estado === "cambia") MS.tilde[r.cod] = si; msPintarTabla(); return; }
+  const dh = t.closest("[data-cx-desh]");
+  if(dh){ await cxDeshacer(dh.dataset.cxDesh); if(MS && document.getElementById("msModal")){ MS.tilde = {}; MS.resultado = ""; msCalcular(); msPintar(); } return; }
+  if(t.closest("[data-ms-aplicar]")) msAplicar();
+}
+async function msAplicar(){
+  if(!MS || MS.aplicando) return;
+  const van = MS.renglones.filter(r => r.estado === "cambia" && MS.tilde[r.cod]);
+  if(!van.length) return;
+  const modo = MS_MODOS.find(x => x.k === MS.modo), pct = cxN(MS.pct);
+  const que = (MS.modo === "margen" ? "Margen al " : MS.modo === "l1" ? "Lista 1 al " : MS.modo === "l2" ? "Lista 2 al " : (pct >= 0 ? "Subir " : "Bajar ")) +
+    pTxt(Math.abs(pct)) + " %" + (MS.modo === "l1" ? " sobre el costo" : MS.modo === "l2" ? " sobre la Lista 1" : MS.modo === "margen" ? " sobre el costo" : " las dos listas");
+  const pierden = van.filter(r => margen(r.p2) < 0).length;
+  if(!confirm(que + ": se cambian la Lista 1 y la 2 de " + van.length + " artículos (" + MS.filtros + ")." +
+      (pierden ? "\\n\\nOJO: " + pierden + " quedan perdiendo plata." : "") + "\\n\\nSe puede deshacer después. ¿Aplico?")) return;
+  MS.aplicando = true; msPintarTabla();
+  const cambios = van.map(r => ({ cod: r.a.cod, antes: { lista: +r.a.lista || 0, lista1: +r.a.lista1 || 0, lista2: +r.a.lista2 || 0 }, despues: r.d }));
+  const r = await pedirJson("POST", CX_URL, { accion:"aplicar", yo: soyYo(), origen:"masivo", marca: MS.filtros.slice(0, 60), archivo: que.slice(0, 120), cambios });
+  MS.aplicando = false;
+  if(r.error){ MS.resultado = '<p class="cx-res mal">No se aplicó: ' + txt(r.error) + '</p>'; msPintar(); return; }
+  const partes = ["<b>Listo: " + r.actualizados + (r.actualizados === 1 ? " artículo cambiado" : " artículos cambiados") + "</b> (" + txt(que) + ")."];
+  if(r.cambiados.length) partes.push(r.cambiados.length + " no se pisaron porque alguien los cambió mientras tanto.");
+  if(r.malos.length) partes.push("No se pudieron: " + txt(r.malos.slice(0, 8).map(x => x.cod + " (" + x.motivo + ")").join(", ")) + ".");
+  partes.push("Abajo, en Últimas subidas, lo podés deshacer.");
+  toast("Listo: " + r.actualizados + " artículos con precio nuevo.");
+  await traerDeGbp();
+  try{ pintarProd(); }catch(e){}
+  await cxTraerHist();
+  MS.tilde = {}; msCalcular();
+  MS.resultado = '<p class="cx-res' + (r.cambiados.length || r.malos.length ? ' mal' : '') + '">' + partes.join("<br>") + '</p>';
+  msPintar();
+}
+document.getElementById("fMasivo").addEventListener("click", abrirMasivo);
+setTimeout(() => { const b = document.getElementById("fMasivo"); if(b) b.hidden = !puede("importar"); }, 0);
 
 /* ============================== AGENDA DE PAGOS (V.0.11.257)
    Damián, 24/11/2026: "NECESITO EN PROVEEDORES AGENDAS DE PAGO Y SETEARLAS

@@ -23,7 +23,7 @@ import { quienEntra } from "../../clave";
 // GET -> {historial (las ultimas subidas, sin renglones), columnas (las de la
 //   lista de cada proveedor, por marca)}
 // POST {yo, accion}:
-//   - "aplicar" {origen: "excel"|"proveedor", marca, archivo, columnas?,
+//   - "aplicar" {origen: "excel"|"proveedor"|"masivo", marca, archivo, columnas?,
 //     cambios: [{cod, antes: {lista, lista1, lista2}, despues: {...}}]}:
 //     solo los articulos que ya estan; nunca crea. Devuelve {ok, id,
 //     actualizados, noEstan, cambiados, malos}.
@@ -93,7 +93,9 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     if (cuerpo.accion === "aplicar") {
-      const origen = cuerpo.origen === "proveedor" ? "proveedor" : "excel";
+      // V.0.11.259: "masivo" = el cambio de margen o de precios de lo filtrado en
+      // Articulos (marca = los filtros, archivo = que se hizo).
+      const origen = cuerpo.origen === "proveedor" ? "proveedor" : cuerpo.origen === "masivo" ? "masivo" : "excel";
       const marca = texto(cuerpo.marca, 60);
       const archivo = texto(cuerpo.archivo, 120);
       if (origen === "proveedor" && !marca) return json({ error: "Falta de qué marca es la lista." });
@@ -112,8 +114,12 @@ export async function POST(req: Request): Promise<Response> {
       const r = await aplicarCambiosExcel(cambios, { origen, marca, archivo, columnas }, quien);
       if (r.actualizados)
         await registrar(
-          origen === "proveedor" ? `Punto: actualizó costos con la lista de ${marca}` : "Punto: subió cambios de artículos por Excel",
-          `${r.actualizados} artículos${archivo ? ` desde ${archivo}` : ""}` +
+          origen === "proveedor"
+            ? `Punto: actualizó costos con la lista de ${marca}`
+            : origen === "masivo"
+              ? "Punto: cambió precios en masa"
+              : "Punto: subió cambios de artículos por Excel",
+          `${r.actualizados} artículos${origen === "masivo" ? ` · ${archivo}${marca ? ` · ${marca}` : ""}` : archivo ? ` desde ${archivo}` : ""}` +
             `${r.cambiados.length ? ` · ${r.cambiados.length} no se pisaron (cambiaron en el medio)` : ""}` +
             `${r.malos.length ? ` · ${r.malos.length} no se pudieron` : ""}` +
             `${r.noEstan.length ? ` · ${r.noEstan.length} no están cargados (no se crean)` : ""}`,
@@ -129,7 +135,7 @@ export async function POST(req: Request): Promise<Response> {
       if (typeof r === "string") return json({ error: r });
       await registrar(
         "Punto: deshizo una subida de precios por Excel",
-        `${r.subida.origen === "proveedor" ? `lista de ${r.subida.marca}` : "Excel de artículos"}${r.subida.archivo ? ` (${r.subida.archivo})` : ""}` +
+        `${r.subida.origen === "proveedor" ? `lista de ${r.subida.marca}` : r.subida.origen === "masivo" ? "cambio masivo" : "Excel de artículos"}${r.subida.archivo ? ` (${r.subida.archivo})` : ""}` +
           ` · ${r.deshechos} artículos volvieron a como estaban` +
           `${r.tocadosDespues.length ? ` · ${r.tocadosDespues.length} quedaron (se cambiaron después)` : ""}`,
         quien,

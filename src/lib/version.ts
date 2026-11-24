@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.258";
+export const APP_VERSION = "V.0.11.259";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.259",
+    date: "2026-11-24",
+    changes: [
+      "Punto, Artículos → CAMBIAR PRECIOS de todo lo filtrado (\"si quiero hacer cambio de margen en los artículos filtrados que me lo haga\"). Cuatro formas: Margen (lo que deja el contado sobre el costo, la columna Margen), Lista 1 % sobre el costo, Lista 2 % sobre la Lista 1, o subir/bajar las dos listas un %. Muestra Lista 1, Lista 2 y margen hoy → nuevo de cada uno antes de aplicar; los que no tienen la lista y los descuentos del proveedor, en dólares o combos quedan aparte; los que quedarían perdiendo plata van sin tildar. El costo no se toca. En Actividad y se puede deshacer (Últimas subidas).",
+      "Punto y el panel: la sesión se CIERRA después de 2 horas sin usarlos (\"si pasa más de 2 horas sin actividad un usuario, se le cierra la sesión\"). Cuenta lo que hace la persona (mouse, teclado, toques), en cualquier pestaña de Punto o del panel; 5 minutos antes avisa arriba. Lo que se estaba armando queda guardado. Si la compu estuvo apagada más de 2 horas, al abrir pide entrar de nuevo, con el motivo en la pantalla de ingreso.",
+    ],
+  },
   {
     version: "V.0.11.258",
     date: "2026-11-24",

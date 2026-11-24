@@ -1,3 +1,4 @@
+import { getAdminSession, inicioDeSesion } from "@/lib/admin-auth";
 import { yoPunto } from "@/lib/punto-yo";
 import { noPasa, quienEntra } from "./clave";
 import { PUNTO_HTML } from "./punto";
@@ -53,8 +54,12 @@ export async function GET(): Promise<Response> {
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store, max-age=0" } },
     );
   }
+  // V.0.11.259: desde cuando esta abierta la sesion (el cierre por
+  // inactividad de la pagina no cuenta lo anotado antes, de otra sesion).
+  const sesion = yo ? await getAdminSession() : null;
+  const conSesion = yo ? { ...yo, sesionDesde: sesion ? inicioDeSesion(sesion) : 0 } : yo;
   // Con funcion y no con texto: un "$'" o "$&" en el nombre no se expande.
-  const html = PUNTO_HTML.replace(MARCA_YO, () => `var PUNTO_YO = ${enScript(yo)};`)
+  const html = PUNTO_HTML.replace(MARCA_YO, () => `var PUNTO_YO = ${enScript(conSesion)};`)
     // El numero de version lo pone el servidor al entregar la pagina, el
     // mismo que contesta /sistema/version. Si quedaba el que se grabo al
     // armar punto.ts y la version subia sin regenerarlo (V.0.99.88), la

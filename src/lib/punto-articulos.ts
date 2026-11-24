@@ -740,6 +740,7 @@ export async function moverStockEnTx(
 /** El historial de las subidas y las columnas de la lista de cada
  *  proveedor (otro renglon de Setting: el de los articulos ya es grande). */
 export const CLAVE_CAMBIOS = "punto.articulos.cambios";
+export type OrigenCambios = "excel" | "proveedor" | "masivo";
 const HISTORIAL_MAXIMO = 6;
 
 export type RenglonHistorial = { cod: string; antes: FotoArticulo; despues: FotoArticulo };
@@ -747,8 +748,9 @@ export type SubidaHistorial = {
   id: string;
   fecha: string;
   por: string;
-  /** "excel" (el de Articulos de Punto) | "proveedor" (su lista). */
-  origen: "excel" | "proveedor";
+  /** "excel" (el de Articulos de Punto) | "proveedor" (su lista) | "masivo"
+   *  (V.0.11.259: el cambio de margen o de precios de lo filtrado). */
+  origen: OrigenCambios;
   marca: string;
   archivo: string;
   n: number;
@@ -818,7 +820,7 @@ export type ResultadoCambios = {
  *  y anota la subida en el historial. */
 export async function aplicarCambiosExcel(
   cambios: CambioExcel[],
-  info: { origen: "excel" | "proveedor"; marca: string; archivo: string; columnas: ColumnasProveedor | null },
+  info: { origen: OrigenCambios; marca: string; archivo: string; columnas: ColumnasProveedor | null },
   por: string,
 ): Promise<ResultadoCambios> {
   return prisma.$transaction(async (tx) => {
