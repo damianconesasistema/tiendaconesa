@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.245";
+export const APP_VERSION = "V.0.11.246";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.246",
+    date: "2026-11-24",
+    changes: [
+      "Punto → Usuarios: PERFILES (\"que los usuarios vean como ejemplo perfil vendedor, cajero, etc\"). Cada tarjeta tiene un selector Perfil: Vendedor (Venta, Comprobantes, Clientes; no cobra ni ve costos), Cajero (lo del vendedor más Caja, Cobrar y emitir y Ver Recibo X), Depósito (Comprobantes y Despachar), Encargado (lo anterior más Artículos, Proveedores, Listas, Simulador, Importar de GBP y Eliminar comprobantes) y Gerencia (todo). Elegir uno tilda sus permisos y se guarda con Guardar; si después se cambia un tilde, dice Personalizado. El perfil no se guarda aparte: se reconoce por lo tildado.",
+      "Punto → Usuarios: las sucursales (\"por qué algunos usuarios me marca las sucursales que tiene acceso y otros no\"). El que puede usar todas ahora se ve con las tres tildadas y \"(todas)\"; antes se veía sin ninguna, que quería decir lo mismo. Destildar todas avisa que queda con las tres.",
+    ],
+  },
   {
     version: "V.0.11.245",
     date: "2026-11-24",
