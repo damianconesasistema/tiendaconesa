@@ -782,3 +782,53 @@ model PuntoCierre {
 
   @@index([sucursal, hasta])
 }
+
+/// La agenda de pagos a proveedores (migracion 60, V.0.11.257). Damian,
+/// 24/11/2026: "necesito en proveedores agendas de pago y setearlas con
+/// fechas y que me avise el sistema que tengo que realizar pagos". Se carga a
+/// mano; al pagarlo se anota (si se elige una cuenta) un PuntoMovimiento
+/// "pago-proveedor". No se borra: se anula. Ver src/lib/punto-pagos.ts.
+model PuntoPago {
+  id            String    @id @default(cuid())
+  /// La marca de la carga (la genera la pagina): las cuotas de una misma
+  /// carga la comparten, y la misma carga repetida no se guarda dos veces.
+  grupo         String
+  cuota         Int       @default(1)
+  cuotas        Int       @default(1)
+  /// El proveedor de la lista, si se eligio de ahi. Null = solo el nombre.
+  proveedorId   String?
+  proveedor     String
+  /// srl | cnc | tsl: la razon social que paga.
+  sucursal      String
+  concepto      String    @default("")
+  monto         Float
+  /// YYYY-MM-DD
+  vence         String
+  /// transferencia | efectivo | cheque | echeq | otro | "" (sin decir)
+  forma         String    @default("")
+  /// Cuantos dias antes del vencimiento empieza a avisar.
+  avisar        Int       @default(3)
+  nota          String    @default("")
+  /// pendiente | pagado | anulado
+  estado        String    @default("pendiente")
+  /// Sube en cada cambio: dos que tocan el mismo pago no se pisan.
+  version       Int       @default(1)
+  creadoPor     String
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
+  /// YYYY-MM-DD en que se pago.
+  pagadoDia     String?
+  pagadoEn      DateTime?
+  pagadoPor     String?
+  montoPagado   Float?
+  /// La cuenta de donde salio (null = se marco sin anotarlo en una cuenta).
+  cuentaId      String?
+  /// La marca del pago: el idLocal (y el grupo) del movimiento en la cuenta.
+  marcaPago     String?
+  anuladoEn     DateTime?
+  anuladoPor    String?
+  motivo        String?
+
+  @@unique([grupo, cuota])
+  @@index([estado, vence])
+}

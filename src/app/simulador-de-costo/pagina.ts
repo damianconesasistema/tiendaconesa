@@ -1240,7 +1240,26 @@ export const PAGINA = String.raw`<!DOCTYPE html>
     var v = leer(this.value);
     if (isFinite(v)) { this.value = numero.format(v); guardar(); }
   });
-  el("lista").addEventListener("focus", function () { this.select(); });
+  // V.0.11.257. Damian, 24/11/2026: "cuando voy a ingresar valores o
+  // descuentos, los que estan cargados cuando hago click me lo deje ya para
+  // cambiar". Al entrar a cualquier numero (con el mouse o con Tab) queda
+  // todo seleccionado: lo que se escribe reemplaza lo de antes. Un segundo
+  // clic pone el cursor donde se toca, para corregir una cifra. El nombre del
+  // articulo del combo no: ahi se suele agregar al final.
+  // En Chrome el clic deselecciona al soltar el boton: ese primer soltar se
+  // frena (preventDefault) y la seleccion queda.
+  var recienEntro = null;
+  document.addEventListener("focusin", function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== "INPUT" || !/^(text|number|search|tel)$/.test(t.type)) return;
+    if (t.classList.contains("p-nombre")) return;
+    recienEntro = t;
+    try { t.select(); } catch (err) {}
+  });
+  document.addEventListener("mouseup", function (e) {
+    if (recienEntro && e.target === recienEntro) e.preventDefault();
+    recienEntro = null;
+  }, true);
   DESCUENTOS.forEach(function (id) { el(id).addEventListener("input", calcular); });
   CAMPOS.forEach(function (c) { el("p-" + c).addEventListener("input", calcular); });
   el("volver").addEventListener("click", function () { ponerLosDelExcel(); calcular(); });

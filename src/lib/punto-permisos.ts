@@ -28,6 +28,15 @@ export const AREAS_PUNTO: readonly DatosPermisoPunto[] = [
   { id: "productos", nombre: "Artículos", ayuda: "La lista de artículos con su costo, Lista 1 y Lista 2; crearlos o traerlos de GBP." },
   { id: "listas", nombre: "Listas", ayuda: "Las listas de precios de los proveedores (PDF, Excel, fotos)." },
   { id: "proveedores", nombre: "Proveedores", ayuda: "Los proveedores de GBP y sus datos." },
+  // V.0.11.257. Damian, 24/11/2026: "necesito en proveedores agendas de pago
+  // y setearlas con fechas y que me avise el sistema que tengo que realizar
+  // pagos". Va adentro de Proveedores (hace falta tambien esa solapa). El que
+  // tiene todo (null) la tiene; al que tiene una lista hay que tildarsela.
+  {
+    id: "pagos",
+    nombre: "Agenda de pagos",
+    ayuda: "Los pagos a proveedores con su vencimiento: cargarlos, marcarlos pagados y el aviso de lo que vence. Está adentro de Proveedores.",
+  },
   // V.0.11.241. Damian, 24/11/2026: "tendrias que hacerme una seccion clientes
   // donde estan todos los datos de ellos". Desde la venta se siguen buscando
   // y dando de alta con "venta"; esta es la lista entera y la ficha.

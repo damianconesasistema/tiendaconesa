@@ -573,6 +573,23 @@ tr.mov-anulado td:last-child{text-decoration:none}
 #efeCuerpo td small, #gerCierres td small{display:block;color:var(--ink-3);font-size:11.5px;font-weight:500}
 .efe-aviso{margin:12px 16px 0;padding:9px 12px;border-radius:9px;background:var(--accent-soft);font-size:13.5px}
 .efe-aviso.mal{background:#fdecea;color:var(--bad)}
+/* V.0.11.257: la agenda de pagos a proveedores y su aviso. */
+.pg-aviso{display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; padding:9px 24px;
+  background:var(--warn-soft); color:var(--warn); border-bottom:1px solid rgba(0,0,0,.08); font-size:13.5px}
+.pg-aviso.mal{background:var(--bad-soft); color:var(--bad)}
+.pg-aviso .pg-ir{margin-left:auto; padding:5px 14px}
+.pg-aviso .pg-x{border:0; background:none; color:inherit; font-size:22px; line-height:1; cursor:pointer; padding:0 4px}
+.pg-nav{display:inline-block; min-width:18px; padding:0 5px; margin-left:5px; border-radius:999px; background:var(--bad);
+  color:#fff; font-size:11px; font-weight:700; line-height:18px; text-align:center}
+#pgTiles .tile{cursor:pointer; min-width:0}
+#pgTiles .tile .v{font-size:clamp(18px,2.4vw,28px); overflow-wrap:anywhere}
+#pgTiles .tile.sel{outline:2px solid var(--accent); outline-offset:-2px}
+tr.pg-vencido td{background:var(--bad-soft)}
+tr.pg-hoy td{background:var(--warn-soft)}
+td.pg-acc{white-space:nowrap; text-align:right}
+td.pg-acc button{padding:4px 10px}
+.pg-cuotas{padding:2px 16px 4px; font-size:12.5px; color:var(--ink-2); min-height:1.2em}
+@media (max-width:820px){ .pg-aviso{padding:8px 14px} }
 .cnt-nota{align-items:center}
 .cnt-nota input{flex:1;min-width:200px}
 .efe-cuerpo{padding:14px 18px 4px}
@@ -1520,7 +1537,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.256</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.257</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1548,6 +1565,8 @@ footer{
     <a href="#gerencia" data-v="gerencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>Gerencia</a>
   </nav>
 </header>
+<!-- V.0.11.257: lo vencido y lo que vence de la agenda de pagos. -->
+<div class="pg-aviso" id="pgAviso" hidden></div>
 
 <main>
 
@@ -2462,6 +2481,29 @@ footer{
     <p>Los de GlobalBluePoint y los que cargues acá, guardados en el servidor: los ve cualquier puesto. Se cargan con el Excel de proveedores que exporta GBP (el que ya estaba se actualiza, menos lo que retocaste a mano) o de a uno con <b>+ Nuevo proveedor</b>.</p>
   </div>
   <div class="acc-mini" id="accPrv"></div>
+  <!-- Agenda de pagos (V.0.11.257). Damián, 24/11/2026: "NECESITO EN
+       PROVEEDORES AGENDAS DE PAGO Y SETEARLAS CON FECHAS Y QUE ME AVISE EL
+       SISTEMA QUE TENGO QUE REALIZAR PAGOS". Se cargan a mano. -->
+  <div class="card" id="pgCard" style="margin-bottom:16px" hidden>
+    <div class="card-h">
+      <h3>Agenda de pagos</h3>
+      <span class="sub" id="pgCount"></span>
+      <select id="pgVer" aria-label="qué pagos ver" style="margin-left:auto">
+        <option value="pend">Lo que hay que pagar</option>
+        <option value="pagados">Lo pagado (120 días)</option>
+        <option value="anulados">Lo anulado (120 días)</option>
+      </select>
+      <select id="pgSuc" aria-label="razón social"></select>
+      <button class="b1" id="pgNuevo" type="button" style="padding:6px 14px">Nuevo pago</button>
+    </div>
+    <div class="tiles" id="pgTiles" style="padding:12px 16px 4px;margin:0"></div>
+    <div class="filtros" style="padding:6px 16px 10px;margin:0">
+      <input id="pgBusca" type="search" placeholder="Buscar: proveedor, concepto o nota" autocomplete="off" style="min-width:280px">
+    </div>
+    <div class="tabla-wrap" style="max-height:46vh;overflow-y:auto"><table class="densa"><thead><tr>
+      <th>Vence</th><th>Proveedor</th><th>Concepto</th><th>Paga</th><th>Forma</th><th class="r">Monto</th><th>Situación</th><th></th>
+    </tr></thead><tbody id="tbPg"></tbody></table></div>
+  </div>
   <!-- Pedidos a proveedores (órdenes de compra, OC-0001). Damián, 22/11/2026:
        "el pedido que voy a pedirle al proveedor me lo pongas con los costos y
        los valores ... cuánto es el valor de la mercadería que le estoy
@@ -3760,7 +3802,7 @@ function avisarVista(v){
     const f = document.getElementById("webFrame");
     if(f && !f.getAttribute("src")) f.setAttribute("src", "/admin");
   }
-  if(v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); }
+  if(v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); pintarPagos(); }
   if(v==="clientes") pintarClientesV();
   if(v==="usuarios") pintarUsuariosPunto();
   if(v==="simulador"){
@@ -4015,7 +4057,8 @@ const PRV_ACC = [
   ["ocNuevo", "Pedido a proveedor", "packagePlus"],
   ["ocSacar", "Sacar faltantes", "listChecks"],
   ["prvNuevo", "Nuevo proveedor", "plus"],
-  ["prvImportar", "Importar de GBP", "upload"]
+  ["prvImportar", "Importar de GBP", "upload"],
+  ["pgNuevo", "Agendar un pago", "banknote"]
 ];
 document.getElementById("accPrv").innerHTML = PRV_ACC.map(([id, t, k]) =>
   '<button type="button" data-prv="' + id + '"><span class="ic">' + icoSvg(k) + '</span>' + t + '</button>').join("");
@@ -15368,6 +15411,350 @@ async function sincronizarServidor(){
 
 /** El arranque de los datos: primero GBP (si tarda, a los 8 segundos se
     sigue igual), después lo de esta compu y lo emitido hoy. */
+/* ============================== AGENDA DE PAGOS (V.0.11.257)
+   Damián, 24/11/2026: "NECESITO EN PROVEEDORES AGENDAS DE PAGO Y SETEARLAS
+   CON FECHAS Y QUE ME AVISE EL SISTEMA QUE TENGO QUE REALIZAR PAGOS". Se
+   cargan a mano: a quién, cuánto, cuándo vence (y si va en cuotas, cada
+   cuántos días). Al pagarlo se anota en la cuenta de donde sale la plata.
+   La franja de arriba avisa lo vencido, lo que vence hoy y lo que entra en
+   los días de aviso de cada pago. Las reglas y la base:
+   src/lib/punto-pagos-reglas.ts y src/app/sistema/pagos/route.ts. */
+const PG_URL = "/sistema/pagos";
+const PG = { d:null, error:"", ver:"pend", suc:"", sit:"", busca:"" };
+const PG_FORMAS = { "":"Sin decir", transferencia:"Transferencia", efectivo:"Efectivo", cheque:"Cheque", echeq:"eCheq", otro:"Otro" };
+const PG_SIT = { vencido:"Vencidos", hoy:"Vencen hoy", pronto:"Por vencer", despues:"Más adelante" };
+const PG_TIPO_CTA = { efectivo:"efectivo", mercadopago:"Mercado Pago", banco:"banco" };
+/** La agenda vive en Proveedores: hace falta el área y la solapa. */
+const pgPuede = () => puede("pagos") && vistaPermitida("proveedores");
+const pgDia = d => d ? String(d).split("-").reverse().join("/") : "";
+const pgDiasEntre = (a, b) => Math.round((Date.parse(b + "T12:00:00Z") - Date.parse(a + "T12:00:00Z")) / 864e5);
+const pgSumarDias = (d, n) => new Date(Date.parse(d + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
+const pgHoy = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+const pgMarca = () => "pg" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const pgQue = p => txt(p.proveedor) + (p.concepto ? " · " + txt(p.concepto) : "") + (p.cuotas > 1 ? " · cuota " + p.cuota + "/" + p.cuotas : "");
+function pgSituacion(p, hoy){
+  if(p.estado !== "pendiente") return p.estado;
+  const f = pgDiasEntre(hoy, p.vence);
+  return f < 0 ? "vencido" : f === 0 ? "hoy" : f <= p.avisar ? "pronto" : "despues";
+}
+function pgSitTxt(p, hoy){
+  if(p.estado === "pagado") return '<span class="pill p-ok">Pagado el ' + pgDia(p.pagadoDia) + '</span>';
+  if(p.estado === "anulado") return '<span class="pill p-n">Anulado</span>';
+  const f = pgDiasEntre(hoy, p.vence);
+  if(f < 0) return '<span class="pill p-bad">Vencido hace ' + (-f) + (f === -1 ? ' día' : ' días') + '</span>';
+  if(f === 0) return '<span class="pill p-warn">Vence hoy</span>';
+  return '<span class="pill ' + (f <= p.avisar ? 'p-warn' : 'p-n') + '">En ' + f + (f === 1 ? ' día' : ' días') + '</span>';
+}
+/** Puede deshacer: gerencia (Cuentas y gastos), o el que lo pagó hoy. */
+const pgPuedeDeshacer = (p, hoy) => puede("cuentas") || (p.pagadoPor === soyYo() && p.pagadoDia === hoy);
+
+async function pintarPagos(){
+  const card = document.getElementById("pgCard"); if(!card) return;
+  card.hidden = !puede("pagos");
+  document.getElementById("pgNuevo").hidden = card.hidden;
+  if(card.hidden) return;
+  const sel = document.getElementById("pgSuc");
+  if(!sel.options.length){
+    sel.innerHTML = '<option value="">Todas las razones sociales</option>' +
+      SUCURSALES.filter(s => puedeSuc(s.id)).map(s => '<option value="' + s.id + '">' + txt(s.n) + '</option>').join("");
+    sel.value = PG.suc;
+  }
+  if(!PG.d) pintarListaPg();
+  const d = await pedirJson("GET", PG_URL + "?dias=120");
+  if(d.error) PG.error = d.error; else { PG.d = d; PG.error = ""; }
+  pintarListaPg();
+  if(PG.d) pintarAvisoPagos(PG.d.resumen, PG.d.hoy);
+}
+function pintarListaPg(){
+  const tb = document.getElementById("tbPg"), cnt = document.getElementById("pgCount"), tiles = document.getElementById("pgTiles");
+  if(!tb) return;
+  if(PG.error && !PG.d){ tb.innerHTML = '<tr><td colspan="8" class="vacio">' + txt(PG.error) + '</td></tr>'; cnt.textContent = ""; tiles.innerHTML = ""; return; }
+  if(!PG.d){ tb.innerHTML = '<tr><td colspan="8" class="vacio">Cargando la agenda…</td></tr>'; cnt.textContent = ""; return; }
+  const hoy = PG.d.hoy || pgHoy();
+  const todos = (PG.d.pagos || []).filter(p => !PG.suc || p.sucursal === PG.suc);
+  const r = { vencido:{ n:0, c:0 }, hoy:{ n:0, c:0 }, pronto:{ n:0, c:0 }, despues:{ n:0, c:0 } };
+  for(const p of todos) if(p.estado === "pendiente"){ const s = pgSituacion(p, hoy); r[s].n++; r[s].c += Math.round(p.monto * 100); }
+  tiles.innerHTML = ["vencido", "hoy", "pronto", "despues"].map(k =>
+    '<div class="tile' + ((k === "vencido" || k === "hoy") && r[k].n ? " alerta" : "") + (PG.ver === "pend" && PG.sit === k ? " sel" : "") +
+      '" data-pg-sit="' + k + '" role="button" tabindex="0" title="Tocá para ver solo estos (otra vez, todos)">' +
+      '<div class="k">' + PG_SIT[k] + '</div><div class="v">' + fmt2(r[k].c / 100) + '</div>' +
+      '<div class="d">' + (r[k].n ? r[k].n + (r[k].n === 1 ? " pago" : " pagos") : "ninguno") +
+        (k === "pronto" ? " · dentro de los días de aviso" : k === "despues" ? " · todavía no avisa" : "") + '</div></div>').join("");
+  const toks = plano(PG.busca).split(/\\s+/).filter(Boolean);
+  const quiere = PG.ver === "pagados" ? "pagado" : PG.ver === "anulados" ? "anulado" : "pendiente";
+  let lista = todos.filter(p => p.estado === quiere);
+  if(quiere === "pendiente" && PG.sit) lista = lista.filter(p => pgSituacion(p, hoy) === PG.sit);
+  if(toks.length) lista = lista.filter(p => {
+    const h = plano(p.proveedor + " " + p.concepto + " " + p.nota + " " + (PG_FORMAS[p.forma] || ""));
+    return toks.every(t => h.indexOf(t) >= 0);
+  });
+  if(quiere === "pendiente") lista.sort((a, b) => a.vence < b.vence ? -1 : a.vence > b.vence ? 1 : 0);
+  else if(quiere === "pagado") lista.sort((a, b) => String(b.pagadoDia).localeCompare(String(a.pagadoDia)));
+  const montoDe = p => p.estado === "pagado" && p.montoPagado != null ? p.montoPagado : p.monto;
+  const total = lista.reduce((s, p) => s + Math.round(montoDe(p) * 100), 0) / 100;
+  cnt.textContent = lista.length + (lista.length === 1 ? " pago" : " pagos") + " · " + fmt2(total) +
+    (quiere === "pendiente" && PG.sit ? " · " + PG_SIT[PG.sit].toLowerCase() : "") + (PG.d.truncado ? " · hay más, no entran todos" : "");
+  if(!lista.length){
+    const hay = todos.some(p => p.estado === "pendiente");
+    tb.innerHTML = '<tr><td colspan="8" class="vacio">' + (quiere !== "pendiente" ? "Nada en los últimos 120 días." :
+      hay ? "Ninguno con ese filtro." : "No hay pagos agendados. Tocá <b>Nuevo pago</b> para cargar el primero.") + '</td></tr>';
+    return;
+  }
+  const cuentaN = id => { const c = (PG.d.cuentas || []).find(x => x.id === id); return c ? c.nombre : ""; };
+  tb.innerHTML = lista.map(p => {
+    const s = pgSituacion(p, hoy), id = atrib(p.id);
+    const acc = p.estado === "pendiente"
+      ? '<button class="b1" type="button" data-pg-pagar="' + id + '">Pagar</button> <button class="b3" type="button" data-pg-ed="' + id + '">Editar</button> ' +
+        '<button class="b3" type="button" data-pg-anu="' + id + '" title="No se va a pagar">Anular</button>'
+      : p.estado === "pagado" && pgPuedeDeshacer(p, hoy) ? '<button class="b3" type="button" data-pg-desh="' + id + '" title="Vuelve a pendiente y anula el movimiento en la cuenta">Deshacer</button>' : '';
+    const pagoDistinto = p.estado === "pagado" && p.montoPagado != null && Math.round(p.montoPagado * 100) !== Math.round(p.monto * 100);
+    const det = p.estado === "pagado" ? "Pagó " + txt(p.pagadoPor || "") + (p.cuentaId ? " · de " + txt(cuentaN(p.cuentaId) || "una cuenta") : " · sin anotar en una cuenta")
+      : p.estado === "anulado" ? "Anuló " + txt(p.anuladoPor || "") + (p.motivo ? ": " + txt(p.motivo) : "")
+      : p.nota ? txt(p.nota) : "Lo agendó " + txt(p.creadoPor);
+    return '<tr' + (p.estado === "pendiente" && (s === "vencido" || s === "hoy") ? ' class="pg-' + s + '"' : '') + '>' +
+      '<td>' + pgDia(p.vence) + '</td>' +
+      '<td class="nom">' + txt(p.proveedor) + '<small>' + det + '</small></td>' +
+      '<td>' + txt(p.concepto || "—") + (p.cuotas > 1 ? ' <span class="pill p-n">cuota ' + p.cuota + '/' + p.cuotas + '</span>' : '') + '</td>' +
+      '<td>' + txt(sucDe(p.sucursal).n) + '</td>' +
+      '<td>' + txt(PG_FORMAS[p.forma] || "—") + '</td>' +
+      '<td class="r">' + fmt2(montoDe(p)) + (pagoDistinto ? '<small style="display:block;color:var(--ink-3)">de ' + fmt2(p.monto) + '</small>' : '') + '</td>' +
+      '<td>' + pgSitTxt(p, hoy) + '</td>' +
+      '<td class="pg-acc">' + acc + '</td></tr>';
+  }).join("");
+}
+
+/** Cargar uno nuevo (p = null) o cambiar uno pendiente. */
+async function abrirFormPg(p){
+  if(!puede("pagos")){ toast("Tu usuario no tiene la agenda de pagos."); return; }
+  const viejo = document.getElementById("pgForm"); if(viejo) viejo.remove();
+  try{ await cargarPrvSiFalta(); }catch(e){}
+  const nuevo = !p, idLocal = pgMarca();
+  const sucs = SUCURSALES.filter(s => puedeSuc(s.id));
+  if(!sucs.length){ toast("Tu usuario no tiene ninguna razón social."); return; }
+  const sucIni = p ? p.sucursal : (PG.suc || sucursalFija() || (puedeSuc(S.suc) ? S.suc : sucs[0].id));
+  const prvs = (PRV.lista || []).filter(x => x && !x.inactivo);
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "pgForm";
+  fondo.innerHTML = '<div class="envio-caja" style="width:min(680px,100%)" role="dialog" aria-label="Pago a proveedor">' +
+    '<div class="envio-h"><h3>' + (nuevo ? "Agendar un pago" : "Cambiar el pago") + '</h3>' +
+      '<button class="x" type="button" data-pgf-no aria-label="cerrar">×</button></div>' +
+    '<p class="envio-n">' + (nuevo ? "A quién, cuánto y cuándo vence. Si va en cuotas (por ejemplo cheques a 30, 60 y 90 días), poné cuántas y cada cuántos días: el total se reparte." :
+      "Cambiá la fecha, el monto o lo que haga falta." + (p.cuotas > 1 ? " Es la cuota " + p.cuota + " de " + p.cuotas + ": las otras no se tocan." : "")) + '</p>' +
+    '<div class="campos">' +
+      '<div class="campo ancho"><label for="pgfPrv">Proveedor *</label><input id="pgfPrv" type="text" list="pgfPrvOpc" maxlength="120" autocomplete="off" placeholder="Escribí y elegilo de la lista (o uno que no esté)">' +
+        '<datalist id="pgfPrvOpc">' + prvs.map(x => '<option value="' + atrib(x.razonSocial) + '"></option>').join("") + '</datalist></div>' +
+      '<div class="campo"><label for="pgfSuc">Paga *</label><select id="pgfSuc">' +
+        sucs.map(s => '<option value="' + s.id + '"' + (s.id === sucIni ? ' selected' : '') + '>' + txt(s.n) + '</option>').join("") + '</select></div>' +
+      '<div class="campo"><label for="pgfForma">Cómo se paga</label><select id="pgfForma">' +
+        Object.keys(PG_FORMAS).map(k => '<option value="' + k + '">' + PG_FORMAS[k] + '</option>').join("") + '</select></div>' +
+      '<div class="campo ancho"><label for="pgfConc">Concepto</label><input id="pgfConc" type="text" maxlength="120" autocomplete="off" placeholder="Factura A 0001-00001234, saldo de la cuenta, cheque n° …"></div>' +
+      '<div class="campo"><label for="pgfMonto">' + (nuevo ? "Monto total *" : "Monto *") + '</label><input id="pgfMonto" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>' +
+      '<div class="campo"><label for="pgfVence">' + (nuevo ? "Vence (la primera) *" : "Vence *") + '</label><input id="pgfVence" type="date"></div>' +
+      (nuevo ? '<div class="campo"><label for="pgfCuotas">Cuotas</label><input id="pgfCuotas" type="number" min="1" max="36" step="1" value="1"></div>' +
+        '<div class="campo"><label for="pgfCada">Cada cuántos días</label><input id="pgfCada" type="number" min="1" max="366" step="1" value="30"></div>' : '') +
+      '<div class="campo"><label for="pgfAvisar">Avisar (días antes)</label><input id="pgfAvisar" type="number" min="0" max="60" step="1" value="3"></div>' +
+      '<div class="campo ancho"><label for="pgfNota">Nota</label><input id="pgfNota" type="text" maxlength="300" autocomplete="off" placeholder="opcional"></div>' +
+    '</div>' +
+    '<div class="pg-cuotas" id="pgfVer"></div>' +
+    '<div class="envio-acc"><button class="b3" type="button" data-pgf-no>Cancelar</button>' +
+      '<button class="b1" type="button" id="pgfOk">' + (nuevo ? "Agendar" : "Guardar") + '</button></div></div>';
+  document.body.appendChild(fondo);
+  const $ = id => fondo.querySelector("#" + id);
+  if(p){
+    $("pgfPrv").value = p.proveedor; $("pgfForma").value = p.forma || ""; $("pgfConc").value = p.concepto || "";
+    $("pgfMonto").value = plata2(p.monto); $("pgfVence").value = p.vence; $("pgfAvisar").value = p.avisar; $("pgfNota").value = p.nota || "";
+  }
+  const ver = () => {
+    if(!nuevo) return;
+    const n = Math.max(1, Math.floor(+$("pgfCuotas").value || 1)), cada = Math.max(1, Math.floor(+$("pgfCada").value || 30));
+    const m = aNum($("pgfMonto").value) || 0, v = $("pgfVence").value;
+    $("pgfCada").closest(".campo").style.opacity = n > 1 ? "" : ".45";
+    if(n < 2 || !(m > 0) || !v){ $("pgfVer").textContent = ""; return; }
+    const tot = Math.round(m * 100), base = Math.floor(tot / n);
+    $("pgfVer").textContent = n + " cuotas: " + Array.from({ length:n }, (_, i) =>
+      pgDia(pgSumarDias(v, i * cada)) + " " + fmt2((i === n - 1 ? tot - base * (n - 1) : base) / 100)).join(" · ");
+  };
+  const fin = () => fondo.remove();
+  fondo.addEventListener("input", ver);
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fin(); } });
+  fondo.addEventListener("click", async ev => {
+    if(ev.target.closest("[data-pgf-no]")){ fin(); return; }
+    if(!ev.target.closest("#pgfOk")) return;
+    const nombre = $("pgfPrv").value.replace(/\\s+/g, " ").trim();
+    const elegido = prvs.find(x => clavePrv(x.razonSocial) === clavePrv(nombre));
+    const cuerpo = { yo: soyYo(), proveedor: elegido ? elegido.razonSocial : nombre, proveedorId: elegido ? elegido.id : null,
+      sucursal: $("pgfSuc").value, forma: $("pgfForma").value, concepto: $("pgfConc").value, monto: aNum($("pgfMonto").value) || 0,
+      vence: $("pgfVence").value, avisar: $("pgfAvisar").value === "" ? 3 : +$("pgfAvisar").value, nota: $("pgfNota").value };
+    if(!cuerpo.proveedor){ toast("Decí a qué proveedor hay que pagarle."); $("pgfPrv").focus(); return; }
+    if(!(cuerpo.monto > 0)){ toast("Poné el monto."); $("pgfMonto").focus(); return; }
+    if(!cuerpo.vence){ toast("Poné la fecha en que vence."); $("pgfVence").focus(); return; }
+    if(nuevo){ cuerpo.accion = "cargar"; cuerpo.idLocal = idLocal; cuerpo.cuotas = +$("pgfCuotas").value || 1; cuerpo.cada = +$("pgfCada").value || 30; }
+    else { cuerpo.accion = "cambiar"; cuerpo.id = p.id; cuerpo.version = p.version; }
+    const ok = $("pgfOk"); ok.disabled = true; ok.textContent = "Guardando…";
+    const r = await pedirJson("POST", PG_URL, cuerpo);
+    if(r.error){ ok.disabled = false; ok.textContent = nuevo ? "Agendar" : "Guardar"; toast("No se guardó: " + r.error); return; }
+    fin();
+    toast(nuevo ? (r.pagos.length > 1 ? "Agendadas " + r.pagos.length + " cuotas: la primera vence el " + pgDia(r.pagos[0].vence) + "." :
+      "Pago agendado: vence el " + pgDia(r.pagos[0].vence) + ".") : "Pago cambiado.");
+    pintarPagos();
+  });
+  ver();
+  setTimeout(() => $(p ? "pgfVence" : "pgfPrv").focus(), 30);
+}
+
+/** Marcarlo pagado: de qué cuenta sale, cuánto y qué día. */
+function abrirPagarPg(p){
+  const viejo = document.getElementById("pgPagar"); if(viejo) viejo.remove();
+  const idLocal = pgMarca(), hoy = (PG.d && PG.d.hoy) || pgHoy();
+  const cuentas = ((PG.d && PG.d.cuentas) || []).slice().sort((a, b) =>
+    (a.sucursal === p.sucursal ? 0 : 1) - (b.sucursal === p.sucursal ? 0 : 1) || COLL_ES.compare(a.nombre, b.nombre));
+  // La que va con la forma de pago, de la razón social que paga.
+  const quiere = p.forma === "efectivo" ? "efectivo" : (p.forma === "transferencia" || p.forma === "cheque" || p.forma === "echeq") ? "banco" : "";
+  const prefer = quiere ? cuentas.find(c => c.sucursal === p.sucursal && c.tipo === quiere) : null;
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "pgPagar";
+  fondo.innerHTML = '<div class="envio-caja" style="width:min(580px,100%)" role="dialog" aria-label="Marcar pagado">' +
+    '<div class="envio-h"><h3>Marcar pagado</h3><button class="x" type="button" data-pgp-no aria-label="cerrar">×</button></div>' +
+    '<p class="envio-n"><b>' + pgQue(p) + '</b><br>' + txt(sucDe(p.sucursal).n) + ' · agendado ' + fmt2(p.monto) + ' · vence el ' + pgDia(p.vence) + '</p>' +
+    '<div class="campos">' +
+      '<div class="campo ancho"><label for="pgpCuenta">¿De dónde sale la plata?</label><select id="pgpCuenta">' +
+        cuentas.map(c => '<option value="' + atrib(c.id) + '"' + (prefer && prefer.id === c.id ? ' selected' : '') + '>' + txt(c.nombre) + ' · ' +
+          txt(sucDe(c.sucursal).n) + ' (' + (PG_TIPO_CTA[c.tipo] || txt(c.tipo)) + ')</option>').join("") +
+        '<option value=""' + (prefer ? '' : ' selected') + '>No anotarlo en una cuenta</option></select>' +
+        '<span class="por">' + (cuentas.length ? 'Se anota como «pago a proveedor» en esa cuenta (Gerencia → Cuentas y gastos). Si sale del efectivo, la caja lo descuenta.' :
+          'Tu usuario no anota en las cuentas: queda marcado pagado y nada más.') + '</span></div>' +
+      '<div class="campo"><label for="pgpMonto">Monto pagado *</label><input id="pgpMonto" type="text" inputmode="decimal" autocomplete="off"></div>' +
+      '<div class="campo"><label for="pgpDia">Fecha del pago</label><input id="pgpDia" type="date" max="' + hoy + '"></div>' +
+      '<div class="campo ancho"><label for="pgpDet">Detalle</label><input id="pgpDet" type="text" maxlength="200" autocomplete="off" placeholder="N° de transferencia o de cheque (opcional)"></div>' +
+    '</div>' +
+    '<div class="pg-cuotas" id="pgpResto"></div>' +
+    '<div class="envio-acc"><button class="b3" type="button" data-pgp-no>Cancelar</button><button class="b1" type="button" id="pgpOk">Marcar pagado</button></div></div>';
+  document.body.appendChild(fondo);
+  const $ = id => fondo.querySelector("#" + id);
+  $("pgpMonto").value = plata2(p.monto); $("pgpDia").value = hoy;
+  const resto = () => {
+    const m = aNum($("pgpMonto").value) || 0, r = Math.round(p.monto * 100) - Math.round(m * 100);
+    $("pgpResto").innerHTML = m > 0 && r > 0 ? "Pagás menos de lo agendado: quedan <b>" + fmt2(r / 100) + "</b> pendientes, con el mismo vencimiento." :
+      m > 0 && r < 0 ? "Pagás " + fmt2(-r / 100) + " más de lo agendado (un recargo o intereses)." : "";
+  };
+  const fin = () => fondo.remove();
+  fondo.addEventListener("input", resto);
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fin(); } });
+  fondo.addEventListener("click", async ev => {
+    if(ev.target.closest("[data-pgp-no]")){ fin(); return; }
+    if(!ev.target.closest("#pgpOk")) return;
+    const monto = aNum($("pgpMonto").value) || 0;
+    if(!(monto > 0)){ toast("Poné cuánto se pagó."); $("pgpMonto").focus(); return; }
+    const dia = $("pgpDia").value || hoy;
+    if(dia > hoy){ toast("La fecha del pago no puede ser de más adelante."); return; }
+    const ok = $("pgpOk"); ok.disabled = true; ok.textContent = "Guardando…";
+    const r = await pedirJson("POST", PG_URL, { accion:"pagar", yo: soyYo(), id: p.id, version: p.version, idLocal,
+      cuentaId: $("pgpCuenta").value || null, monto, dia, detalle: $("pgpDet").value });
+    if(r.error){ ok.disabled = false; ok.textContent = "Marcar pagado"; toast("No se guardó: " + r.error); return; }
+    fin();
+    // La caja de efectivo se vuelve a leer la próxima vez (pudo salir de ahí).
+    try{ EFE.en = 0; }catch(e){}
+    toast("Pago marcado: " + fmt2(monto) + " a " + p.proveedor + (r.resto ? ". Quedan " + fmt2(r.resto.monto) + " pendientes." : "."));
+    pintarPagos();
+  });
+  resto();
+  setTimeout(() => $("pgpMonto").focus(), 30);
+}
+
+async function anularPg(p){
+  const motivo = (prompt("¿Por qué se anula este pago? (queda en la agenda como anulado, no se paga)\\n\\n" + p.proveedor + " · " + fmt2(p.monto)) || "").trim();
+  if(!motivo) return;
+  const r = await pedirJson("POST", PG_URL, { accion:"anular", yo: soyYo(), id: p.id, version: p.version, motivo });
+  if(r.error){ toast("No se anuló: " + r.error); return; }
+  toast("Pago anulado.");
+  pintarPagos();
+}
+async function deshacerPg(p){
+  const motivo = (prompt("¿Por qué se deshace el pago? Vuelve a pendiente y, si se anotó en una cuenta, ese movimiento se anula.\\n\\n" +
+    p.proveedor + " · " + fmt2(p.montoPagado != null ? p.montoPagado : p.monto)) || "").trim();
+  if(!motivo) return;
+  const r = await pedirJson("POST", PG_URL, { accion:"deshacer", yo: soyYo(), id: p.id, version: p.version, motivo });
+  if(r.error){ toast("No se deshizo: " + r.error); return; }
+  try{ EFE.en = 0; }catch(e){}
+  toast("Listo: el pago volvió a pendiente.");
+  pintarPagos();
+}
+
+/* El aviso de arriba: lo vencido, lo de hoy y lo que entró en los días de
+   aviso. Se puede ocultar con la X: vuelve si cambia algo o al otro día. */
+const PG_AVISO_KEY = "punto.pagos.avisoCerrado";
+function marcarNavPg(n){
+  const a = document.querySelector('#nav [data-v="proveedores"]'); if(!a) return;
+  let s = a.querySelector(".pg-nav");
+  if(!n){ if(s) s.remove(); return; }
+  if(!s){ s = document.createElement("span"); s.className = "pg-nav"; a.appendChild(s); }
+  s.textContent = n > 99 ? "99+" : String(n);
+  s.title = n + (n === 1 ? " pago vencido o que vence hoy" : " pagos vencidos o que vencen hoy");
+}
+function pintarAvisoPagos(res, hoy){
+  const b = document.getElementById("pgAviso"); if(!b) return;
+  if(!res || !pgPuede()){ b.hidden = true; marcarNavPg(0); return; }
+  const cero = { n:0, total:0 };
+  const v = res.vencido || cero, h = res.hoy || cero, pr = res.pronto || cero;
+  marcarNavPg(v.n + h.n);
+  const clave = (hoy || pgHoy()) + ":" + v.n + ":" + h.n + ":" + pr.n;
+  let cerrado = ""; try{ cerrado = sessionStorage.getItem(PG_AVISO_KEY) || ""; }catch(e){}
+  if(!(v.n + h.n + pr.n) || cerrado === clave){ b.hidden = true; return; }
+  const partes = [];
+  if(v.n) partes.push("<b>" + v.n + (v.n === 1 ? " vencido" : " vencidos") + "</b> (" + fmt2(v.total) + ")");
+  if(h.n) partes.push("<b>" + h.n + (h.n === 1 ? " vence hoy" : " vencen hoy") + "</b> (" + fmt2(h.total) + ")");
+  if(pr.n) partes.push(pr.n + (pr.n === 1 ? " vence en los próximos días" : " vencen en los próximos días") + " (" + fmt2(pr.total) + ")");
+  b.className = "pg-aviso" + (v.n ? " mal" : "");
+  b.dataset.clave = clave;
+  b.innerHTML = '<span><b>Pagos a proveedores:</b> ' + partes.join(" · ") + '</span>' +
+    '<button class="b1 pg-ir" type="button" data-pg-ir>Ver la agenda</button>' +
+    '<button class="pg-x" type="button" data-pg-cerrar aria-label="Ocultar el aviso" title="Ocultar hasta que cambie algo">×</button>';
+  b.hidden = false;
+}
+async function traerAvisoPagos(){
+  if(!pgPuede()) return;
+  const d = await pedirJson("GET", PG_URL + "?aviso=1");
+  if(d.error || !d.aviso) return;
+  pintarAvisoPagos(d.aviso, d.hoy);
+}
+document.getElementById("pgAviso").addEventListener("click", e => {
+  const b = document.getElementById("pgAviso");
+  if(e.target.closest("[data-pg-cerrar]")){
+    try{ sessionStorage.setItem(PG_AVISO_KEY, b.dataset.clave || ""); }catch(e2){}
+    b.hidden = true; return;
+  }
+  if(!e.target.closest("[data-pg-ir]")) return;
+  PG.ver = "pend"; PG.sit = ""; document.getElementById("pgVer").value = "pend";
+  abrirVista("proveedores");
+  setTimeout(() => { const c = document.getElementById("pgCard"); if(c && !c.hidden) c.scrollIntoView({ behavior:"smooth", block:"start" }); }, 80);
+});
+document.getElementById("pgNuevo").addEventListener("click", () => abrirFormPg(null));
+document.getElementById("pgVer").addEventListener("change", e => { PG.ver = e.target.value; if(PG.ver !== "pend") PG.sit = ""; pintarListaPg(); });
+document.getElementById("pgSuc").addEventListener("change", e => { PG.suc = e.target.value; pintarListaPg(); });
+document.getElementById("pgBusca").addEventListener("input", e => { PG.busca = e.target.value; pintarListaPg(); });
+function elegirSitPg(t){
+  const k = t.dataset.pgSit;
+  PG.sit = PG.ver === "pend" && PG.sit === k ? "" : k;
+  PG.ver = "pend"; document.getElementById("pgVer").value = "pend";
+  pintarListaPg();
+}
+document.getElementById("pgTiles").addEventListener("click", e => { const t = e.target.closest("[data-pg-sit]"); if(t) elegirSitPg(t); });
+document.getElementById("pgTiles").addEventListener("keydown", e => {
+  const t = e.target.closest("[data-pg-sit]"); if(t && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); elegirSitPg(t); }
+});
+document.getElementById("tbPg").addEventListener("click", e => {
+  const b = e.target.closest("[data-pg-pagar],[data-pg-ed],[data-pg-anu],[data-pg-desh]"); if(!b || !PG.d) return;
+  const id = b.dataset.pgPagar || b.dataset.pgEd || b.dataset.pgAnu || b.dataset.pgDesh;
+  const p = (PG.d.pagos || []).find(x => x.id === id); if(!p) return;
+  if(b.dataset.pgPagar) abrirPagarPg(p);
+  else if(b.dataset.pgEd) abrirFormPg(p);
+  else if(b.dataset.pgAnu) anularPg(p);
+  else deshacerPg(p);
+});
+// Al entrar (cuando ya arrancó la página) y cada 15 minutos.
+setTimeout(() => { traerAvisoPagos().catch(() => {}); }, 2500);
+setInterval(() => { traerAvisoPagos().catch(() => {}); }, 15 * 60e3);
+
 async function arrancar(){
   const pGbp = traerDeGbp();
   await Promise.race([pGbp, esperar(8000)]);

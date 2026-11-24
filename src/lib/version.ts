@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.256";
+export const APP_VERSION = "V.0.11.257";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.257",
+    date: "2026-11-24",
+    changes: [
+      "Punto, Proveedores → AGENDA DE PAGOS (\"necesito en proveedores agendas de pago y setearlas con fechas y que me avise el sistema que tengo que realizar pagos\"). Se cargan a mano: proveedor, razón social que paga, concepto, monto, vencimiento, cómo se paga y cuántos días antes avisa; en cuotas (por ejemplo cheques a 30/60/90) se reparte el total. Cuadros de vencidos, vencen hoy, por vencer y más adelante. Pagar: de qué cuenta sale (se anota como pago a proveedor en Cuentas y gastos; si sale del efectivo, la caja lo descuenta), monto y fecha; si se paga menos, el resto queda pendiente. Editar, anular con motivo y deshacer un pago. Todo queda en Actividad.",
+      "Punto: arriba de todo, una franja avisa los pagos vencidos, los que vencen hoy y los que entraron en sus días de aviso, con un botón a la agenda; y un número rojo en la solapa Proveedores. Se puede ocultar con la X hasta que cambie algo o al otro día. Permiso nuevo en Usuarios: Agenda de pagos (Gerencia lo tiene; a los demás hay que tildárselo).",
+      "Simulador de costo: al tocar un valor o un descuento ya cargado, queda todo seleccionado y lo que se escribe lo reemplaza (\"cuando hago click me lo deje ya para cambiar\"). Un segundo clic pone el cursor para corregir una cifra.",
+    ],
+  },
   {
     version: "V.0.11.256",
     date: "2026-11-24",
