@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.234";
+export const APP_VERSION = "V.0.11.235";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.235",
+    date: "2026-11-24",
+    changes: [
+      "Punto, todo se actualiza solo para todos (\"cuando uno borra o anula, debería actualizar a todos los usuarios que están viendo\"; \"cada acción\"): cada 15 segundos, con la pestaña a la vista, y al volver a la pestaña, se vuelve a leer lo de hoy (Caja, Gerencia, Rentabilidad, Contable), la lista de Comprobantes, Presupuestos de hoy, Pedidos por cobrar y las cuentas. Lo que otro eliminó sale, lo que otro cambió se actualiza y lo nuevo aparece. No se repinta si no cambió nada ni con una ventanita abierta.",
+    ],
+  },
   {
     version: "V.0.11.234",
     date: "2026-11-24",

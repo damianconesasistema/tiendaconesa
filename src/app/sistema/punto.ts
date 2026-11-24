@@ -10335,11 +10335,22 @@ async function traerDocumentosDeHoy(){
     const d = await r.json();
     if(d.error) return;
     if(d.contadores) sincronizarNumeros(d.contadores);
-    const ya = new Set(S.ventas.filter(v => v.docId).map(v => v.docId));
+    const docs = (d.documentos || []).filter(g => g && !g.eliminado);
     let n = 0;
-    for(const g of (d.documentos || []).slice().reverse()){
+    // V.0.11.235: lo que otro eliminó sale, y lo que otro cambió se actualiza
+    // ("cuando uno borra o anula, debería actualizar a todos").
+    const vivos = new Map(docs.filter(g => g.tipo !== "presupuesto").map(g => [g.id, g]));
+    for(let i = S.ventas.length - 1; i >= 0; i--){
+      const v = S.ventas[i]; if(!v.docId) continue;
+      const g = vivos.get(v.docId);
+      if(!g){ S.ventas.splice(i, 1); n++; continue; }
+      if(Math.abs((+g.total || 0) - (+v.total || 0)) > 0.004 && g.tipo !== "nota-credito"){ S.ventas[i] = ventaDeDocumento(g); n++; }
+    }
+    for(const id of NOTAS_CREDITO.filter(x => x.docId && !vivos.has(x.docId)).map(x => x.docId)){ sacarNota(id); n++; }
+    const ya = new Set(S.ventas.filter(v => v.docId).map(v => v.docId));
+    for(const g of docs.slice().reverse()){
       if(g.tipo === "presupuesto" || ya.has(g.id)) continue;
-      if(g.tipo === "nota-credito"){ sumarNota(g); continue; }
+      if(g.tipo === "nota-credito"){ if(!NOTAS_CREDITO.some(x => x.docId === g.id)){ sumarNota(g); n++; } continue; }
       S.ventas.push(ventaDeDocumento(g));
       n++;
     }
@@ -10363,13 +10374,14 @@ const NOMBRE_TIPO = { "presupuesto":"Presupuesto", "factura":"Factura", "remito"
 document.getElementById("cpSuc").innerHTML = '<option value="">Las tres sucursales</option>' +
   SUCURSALES.map(x => '<option value="' + x.id + '">' + x.n + '</option>').join("");
 
-async function pintarComprobantes(){
+async function pintarComprobantes(silencioso){
   const dias = +document.getElementById("cpDias").value || 30;
   const tipo = document.getElementById("cpTipo").value;
   const suc = document.getElementById("cpSuc").value;
   // Si se cambia un filtro mientras viaja el anterior, gana el último.
   const este = ++CP.pedido;
-  CP.cargando = true; pintarListaCp();
+  if(!silencioso){ CP.cargando = true; pintarListaCp(); }
+  const antes = CP.firma || "";
   try{
     const q = new URLSearchParams({ dias:String(dias) });
     if(tipo && tipo !== "preparacion") q.set("tipo", tipo);
@@ -10384,9 +10396,12 @@ async function pintarComprobantes(){
     if(d.contadores) sincronizarNumeros(d.contadores);
   }catch(e){
     if(este !== CP.pedido) return;
+    if(silencioso) return;            // un corte en el refresco no borra la lista
     CP.docs = []; CP.error = e.message || "No se pudo leer.";
   }
   CP.cargando = false;
+  CP.firma = JSON.stringify(CP.docs.map(x => [x.id, x.total, !!x.eliminado, x.vendidoEn ? 1 : 0, (x.datos || {}).despacho ? 1 : 0, (x.datos || {}).ed || 0]));
+  if(silencioso && CP.firma === antes) return;
   pintarListaCp();
 }
 
@@ -14001,13 +14016,28 @@ async function cobrarTicket(id){
     if(teniaAlgo) traerMias();
   } finally { VSRV.cambiando = false; EMITIENDO = false; botonesEmitir(false); }
 }
-// La caja se mira sola cada 20 segundos (solo el que cobra, con la pestaña a la vista).
-setInterval(() => {
-  if(GBP.listo && puedeCobrar() && document.visibilityState === "visible"){
-    traerPorCobrar();
-    if(vistaActual() === "comprobantes") traerPresuHoy();
-  }
-}, 20000);
+// V.0.11.235: todo se mira solo cada 15 segundos, para todos, con la pestaña a
+// la vista ("cuando uno borra o anula, debería actualizar a todos los usuarios
+// que están viendo"; "cada acción"). Y al volver a la pestaña. Con una
+// ventanita abierta no se repinta nada.
+function ventanitaAbierta(){
+  return !!document.querySelector("#notaFondo, #claveFondo, #movFondo, #ctaFondo, .envio:not([hidden])");
+}
+let REFRESCANDO = false;
+async function refrescarTodo(){
+  if(REFRESCANDO || !GBP.listo || document.visibilityState !== "visible" || EMITIENDO || ventanitaAbierta()) return;
+  REFRESCANDO = true;
+  try{
+    const v = vistaActual();
+    await traerDocumentosDeHoy();
+    if(puedeCobrar()) traerPorCobrar();
+    if(v === "comprobantes"){ traerPresuHoy(); pintarComprobantes(true); }
+    if(v === "caja" && typeof pintarPlataCaja === "function") pintarPlataCaja(true);
+    if(v === "cuentas" && typeof pintarCuentas === "function") pintarCuentas();
+  } finally { REFRESCANDO = false; }
+}
+setInterval(refrescarTodo, 15000);
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") refrescarTodo(); });
 
 /* ---------------------------------------------- presupuestos de hoy
    V.0.11.198 (Damián: "cuando se emiten los presupuestos deberían quedar
