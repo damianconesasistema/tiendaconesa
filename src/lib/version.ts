@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.216";
+export const APP_VERSION = "V.0.11.217";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.217",
+    date: "2026-11-23",
+    changes: [
+      "CÓMO SE VENDE (\"que el artículo se le pueda setear vender en combo o vender suelto; si pongo solo combo no me deja venderlo individual, y con los 2 de los 2 modos\"): en Crear uno, \"Se vende: Suelto / En combo\" (los dos tildados, como siempre; no deja destildar los dos). Solo en combo: la venta no lo deja sumar suelto y lo marca en la búsqueda. Sin \"En combo\": no se puede usar como pieza de un combo. En Artículos se marca \"solo en combo\" o \"solo suelto\". Se guarda en el servidor (dato de Punto: el import de GBP no lo toca).",
+    ],
+  },
   {
     version: "V.0.11.216",
     date: "2026-11-23",

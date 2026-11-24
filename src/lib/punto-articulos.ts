@@ -106,6 +106,11 @@ export type ArticuloPunto = {
    *  primera vez que guarda ese código; no viene de la página ni de GBP. Los
    *  que ya estaban antes de esta versión no lo tienen. */
   creado?: string;
+  /** V.0.11.217: cómo se vende (Damián: "vender en combo o vender suelto;
+   *  si pongo solo combo no me deja venderlo individual, y si tengo los 2
+   *  me deja de los 2 modos"). Sin esto: de las dos formas. De Punto: el
+   *  import no lo toca; null vuelve a las dos formas. */
+  vende?: { suelto: boolean; combo: boolean } | null;
   // V.0.99.85: lo que GBP exporta en OTROS dos Excel, que no son el de
   // listas. Damian, 23/11/2026: "estos son los descuentos que tienen los
   // articulos, uno por uno ... entrando en cada articulo deberia ver los
@@ -228,6 +233,16 @@ function limpiarMinimo(v: unknown): { BA: number; TS: number } | null | undefine
   return BA || TS ? { BA, TS } : null;
 }
 
+/** Cómo se vende: undefined si no vino; null (o las dos formas) para sacarlo. */
+function limpiarVende(v: unknown): { suelto: boolean; combo: boolean } | null | undefined {
+  if (v === undefined) return undefined;
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const suelto = o.suelto !== false, combo = o.combo !== false;
+  // Las dos formas es lo de siempre; ninguna no tiene sentido (no se vendería).
+  return (suelto && combo) || (!suelto && !combo) ? null : { suelto, combo };
+}
+
 /** El por mayor que llega: undefined si no vino, null para sacarlo. */
 function limpiarMayor(v: unknown): { pct: number; desde: number } | null | undefined {
   if (v === undefined) return undefined;
@@ -265,6 +280,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
   const subrubro = limpiarSubrubro(o.subrubro);
   const contado = limpiarContado(o.contado);
   const minimo = limpiarMinimo(o.minimo);
+  const vende = limpiarVende(o.vende);
   return {
     cod,
     tit,
@@ -292,6 +308,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     ...(subrubro !== undefined ? { subrubro } : {}),
     ...(contado !== undefined ? { contado } : {}),
     ...(minimo !== undefined ? { minimo } : {}),
+    ...(vende !== undefined ? { vende } : {}),
     ...deOtroExcel(o),
   };
 }
@@ -465,6 +482,9 @@ export async function guardarArticulos(
       // El stock mínimo (V.0.11.210), igual: de Punto.
       if (a.minimo === undefined && ya?.minimo) nuevo.minimo = ya.minimo;
       if (nuevo.minimo === null) delete nuevo.minimo;
+      // Cómo se vende (V.0.11.217), igual: de Punto.
+      if (a.vende === undefined && ya?.vende) nuevo.vende = ya.vende;
+      if (nuevo.vende === null) delete nuevo.vende;
       // Cuándo se creó (V.0.11.213): el que ya estaba conserva el suyo (o
       // ninguno); el código nuevo, ahora.
       delete nuevo.creado;
