@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.233";
+export const APP_VERSION = "V.0.11.234";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.234",
+    date: "2026-11-24",
+    changes: [
+      "Punto, la Venta: botón \"Cerrar sin guardar\" (\"agregame un cerrar sin guardar los comprobantes de presupuesto\"), cuando hay algo cargado o se está cambiando un presupuesto: pregunta y deja la venta en blanco; el presupuesto original queda como estaba.",
+    ],
+  },
   {
     version: "V.0.11.233",
     date: "2026-11-24",

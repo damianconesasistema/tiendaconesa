@@ -1556,6 +1556,7 @@ footer{
         </div>
         <button class="b2" id="btnBorrador">Guardar como borrador</button>
         <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
+        <button class="b3" id="btnCerrarSG" type="button" hidden title="Deja la venta en blanco sin guardar nada; el presupuesto original queda como estaba">Cerrar sin guardar</button>
         <button class="b3" id="btnMasAcc" aria-expanded="false" hidden>Otras opciones</button>
         <div id="masAcc" hidden>
           <button class="b2" id="btnSinFactura">Emitir Recibo X</button>
@@ -4926,6 +4927,8 @@ function pintarTicket(){
   const vacio = S.linea.length===0;
   for(const b of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnWhatsVta","btnCaja","btnOtraSuc"])
     document.getElementById(b).disabled = vacio || EMITIENDO;
+  // V.0.11.234: "Cerrar sin guardar", con algo cargado o cambiando un presupuesto.
+  { const cs = document.getElementById("btnCerrarSG"); if(cs) cs.hidden = (vacio && !S.editando) || !!VSRV.caja; }
   if(vacio){ const ce = document.getElementById("cajaElige"); if(ce) ce.hidden = true; }
   if(S.origenPresu) pintarAcciones();
   pintarBorradores();
@@ -5147,6 +5150,15 @@ document.getElementById("btnBorrarDatosVta").addEventListener("click", () => {
 /* "+ Crear" (antes "Vaciar", abajo en Otras opciones): un comprobante nuevo,
    en blanco: sin artículos, consumidor final, sin descuento y el documento de
    siempre. Como está a mano arriba, si había algo cargado pregunta antes. */
+document.getElementById("btnCerrarSG").addEventListener("click", () => {
+  if(EMITIENDO || trabadaPorDuda()) return;
+  if(VSRV.caja){ toast("Es un ticket de caja: si no se cobra, devolvelo a la caja."); return; }
+  const ed = S.editando ? " El " + S.editando.nro + " queda como estaba." : "";
+  if((S.linea.length || S.editando) && !confirm("¿Cerrás sin guardar? Lo cargado se pierde." + ed)) return;
+  S.cliente = ""; S.cond = null;
+  limpiarVentaEmitida();
+  toast("Cerrado sin guardar." + ed);
+});
 document.getElementById("btnCrearVta").addEventListener("click",()=>{
   if(EMITIENDO || trabadaPorDuda()) return;
   if(VSRV.caja){ toast("Es un ticket de caja: si no se cobra, devolvelo a la caja."); return; }
