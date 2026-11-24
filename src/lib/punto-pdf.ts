@@ -373,7 +373,8 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
     }
     if (porItem) {
       const pctTxt = String(pctDto).replace(".", ",") + "%";
-      doc.text(sinIva ? "LISTA S/IVA" : "P. LISTA", col.unit, y + 7, { width: anchoUnit, align: "right" });
+      // "P. LISTA UNIT." (Damian, 24/11/2026: "P. LISTA UNIT. que diga el PDF").
+      doc.text(sinIva ? "LISTA UNIT. S/IVA" : "P. LISTA UNIT.", col.unit, y + 7, { width: anchoUnit, align: "right" });
       doc.text(sinIva ? `CON ${pctTxt} S/IVA` : `CON ${pctTxt}`, col.dto, y + 7, { width: anchoDto, align: "right" });
     } else doc.text(sinIva ? "P. UNIT. S/IVA" : "P. UNIT.", col.unit, y + 7, { width: anchoUnit, align: "right" });
     doc.text(sinIva ? "IMPORTE S/IVA" : "IMPORTE", col.tot, y + 7, { width: anchoTot, align: "right" });
