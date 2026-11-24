@@ -296,6 +296,7 @@ section[hidden]{display:none}
     width:340px; display:flex; flex-direction:column; gap:7px; padding:12px !important;
     background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r); box-shadow:0 12px 32px rgba(0,0,0,.16)}
   #v-mostrador #masAcc[hidden], #v-mostrador #cajaElige[hidden]{display:none}
+  #v-mostrador #cajaElige{padding-top:14px !important}
 }
 @media (max-width:900px){.dos, #v-mostrador > .dos{grid-template-columns:1fr}}
 #v-mostrador .acc-arriba{flex-direction:row; flex-wrap:wrap; justify-content:flex-end; padding:0; margin:0 0 10px}
@@ -1070,6 +1071,10 @@ th[data-ord].ord.asc::after{content:" ↑"}
 
 /* Lo que no se usa todos los días, atrás de un botón. */
 #masAcc{display:flex; flex-direction:column; gap:8px; margin-top:2px}
+#cajaElige{position:relative}
+.cerrar-pop{position:absolute; top:6px; right:6px; width:30px; height:30px; border:1px solid var(--line-2); border-radius:8px;
+  background:var(--surface); color:var(--ink-2); font-size:20px; line-height:1; cursor:pointer; padding:0}
+.cerrar-pop:hover{border-color:var(--accent); color:var(--accent)}
 
 .lapiz{
   border:1px solid var(--line-2); background:var(--surface); color:var(--ink-3);
@@ -1516,9 +1521,11 @@ footer{
         <button class="b2" id="btnSinFacturaC" type="button" hidden>Entregar sin comprobante</button>
         <button class="b2" id="btnPedInt" type="button" hidden title="Sin factura: queda anotado como pedido interno y pasa a preparación">Cerrar como pedido interno</button>
         <button class="b1 suave" id="btnPresu">Emitir presupuesto</button>
-        <button class="b1" id="btnCaja" title="Pasa a Comprobantes → Pedidos por cobrar: lo cobra el cajero. Elegís la caja (otra sucursal también).">Confirmar pedido</button>
+        <button class="b1" id="btnCaja" title="Va a la caja de la sucursal donde estás (Caja → Por cobrar): lo cobra el cajero.">Confirmar pedido</button>
+        <button class="b2" id="btnOtraSuc" type="button" title="Mandar el pedido a la caja de otra sucursal: se cobra con su CUIT.">Pasar a otra sucursal</button>
         <div id="cajaElige" hidden style="padding:4px 0 6px">
-          <span class="et" style="display:block;margin-bottom:6px">¿A qué caja la mandás? Otra sucursal también: se cobra con su CUIT.</span>
+          <button type="button" class="cerrar-pop" id="cajaEligeCerrar" aria-label="Cerrar" title="Cerrar">&times;</button>
+          <span class="et" style="display:block;margin-bottom:6px;padding-right:28px">¿A qué sucursal lo pasás? Se cobra en su caja, con su CUIT.</span>
           <div id="cajaEligeBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
         </div>
         <button class="b2" id="btnBorrador">Guardar como borrador</button>
@@ -3634,6 +3641,7 @@ const ICO_EN = [
   ["clipboard", '#btnPedInt'],
   ["fileText", '#btnPresu, #subPrv [data-g="listas"]'],
   ["send", '#btnCaja'],
+  ["truck", '#btnOtraSuc'],
   ["more", '#btnMasAcc'],
   ["message", '#btnWhatsVta, [data-acc="whats"]'],
   ["download", '[data-acc="pdf"]'],
@@ -4795,7 +4803,7 @@ function pintarTicket(){
     '<div class="tr big"><span>Total</span><b>'+fmt(total)+'</b></div>';
 
   const vacio = S.linea.length===0;
-  for(const b of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnWhatsVta","btnCaja"])
+  for(const b of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnWhatsVta","btnCaja","btnOtraSuc"])
     document.getElementById(b).disabled = vacio || EMITIENDO;
   if(vacio){ const ce = document.getElementById("cajaElige"); if(ce) ce.hidden = true; }
   pintarBorradores();
@@ -9516,7 +9524,7 @@ function marcaDe(doc){
 }
 
 function botonesEmitir(trabados){
-  for(const id of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnCaja"]){
+  for(const id of ["btnFactura","btnPresu","btnBorrador","btnSinFactura","btnCaja","btnOtraSuc"]){
     const b = document.getElementById(id);
     if(b) b.disabled = trabados || !S.linea.length;
   }
@@ -13225,17 +13233,31 @@ async function traerMiasYa(){
 }
 
 /* ---------------------------------------------- mandar a caja */
+// V.0.11.225: Confirmar pedido va a la caja de la sucursal donde se está;
+// para otra, "Pasar a otra sucursal".
 document.getElementById("btnCaja").addEventListener("click", () => {
+  if(EMITIENDO || trabadaPorDuda()) return;
+  if(!S.linea.length){ toast("No hay artículos en la venta."); return; }
+  document.getElementById("cajaElige").hidden = true;
+  mandarACaja(S.suc);
+});
+document.getElementById("btnOtraSuc").addEventListener("click", () => {
   if(EMITIENDO || trabadaPorDuda()) return;
   if(!S.linea.length){ toast("No hay artículos en la venta."); return; }
   const box = document.getElementById("cajaElige");
   box.hidden = !box.hidden;
   if(box.hidden) return;
-  const orden = [sucAct()].concat(SUCURSALES.filter(x => x.id !== S.suc));
-  document.getElementById("cajaEligeBtns").innerHTML = orden.map((x, i) =>
-    '<button type="button" class="' + (i ? "b3" : "b1") + '" data-caja="' + atrib(x.id) + '" style="padding:6px 14px">' +
-    txt(x.n) + (i ? "" : " (esta)") + '</button>').join("");
+  const otras = SUCURSALES.filter(x => x.id !== S.suc);
+  if(!otras.length){ box.hidden = true; toast("No hay otra sucursal."); return; }
+  document.getElementById("cajaEligeBtns").innerHTML = otras.map(x =>
+    '<button type="button" class="b3" data-caja="' + atrib(x.id) + '" style="padding:6px 14px">' + txt(x.n) + '</button>').join("");
 });
+document.getElementById("cajaEligeCerrar").addEventListener("click", () => { document.getElementById("cajaElige").hidden = true; });
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  const box = document.getElementById("cajaElige");
+  if(box && !box.hidden){ box.hidden = true; e.stopPropagation(); }
+}, true);
 document.getElementById("cajaEligeBtns").addEventListener("click", e => {
   const b = e.target.closest("[data-caja]"); if(b) mandarACaja(b.dataset.caja);
 });
@@ -13329,7 +13351,7 @@ function aplicarCobrar(){
   const bg = document.getElementById("btnGuardarEd");
   if(bg){ bg.hidden = !ed; if(ed) bg.textContent = "Guardar cambios · " + (S.editando.comp || "").replace(/^\\d+\\./, "") + " " + S.editando.nro; }
   if(ed){
-    for(const id of ["btnFactura","btnSinFacturaC","btnPedInt","btnPresu","btnCaja","btnBorrador","btnMasAcc","masAcc","btnWhatsVta"]){ const b = document.getElementById(id); if(b) b.hidden = true; }
+    for(const id of ["btnFactura","btnSinFacturaC","btnPedInt","btnPresu","btnCaja","btnBorrador","btnMasAcc","masAcc","btnWhatsVta","btnOtraSuc","cajaElige"]){ const b = document.getElementById(id); if(b) b.hidden = true; }
     return;
   }
   // V.0.11.223: sin "Otras opciones"; WhatsApp, a la vista.
@@ -13337,6 +13359,7 @@ function aplicarCobrar(){
   for(const id of ["btnFactura", "btnSinFacturaC", "btnPedInt"]){ const b = document.getElementById(id); if(b) b.hidden = !(c && cobrando); }
   const bs = document.getElementById("btnSinFactura"); if(bs) bs.hidden = true;
   const bc = document.getElementById("btnCaja"); if(bc){ bc.hidden = cobrando; bc.className = "b1"; }
+  const bo = document.getElementById("btnOtraSuc"); if(bo) bo.hidden = cobrando || SUCURSALES.length < 2;
 }
 
 /* ---------------------------------------------- la caja: por cobrar */

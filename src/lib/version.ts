@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.224";
+export const APP_VERSION = "V.0.11.225";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.225",
+    date: "2026-11-24",
+    changes: [
+      "Punto, la Venta: \"Confirmar pedido\" va directo a la caja de la sucursal donde estás, sin preguntar (\"por default en la que estoy parado\"). Para otra, el botón nuevo \"Pasar a otra sucursal\", en la misma fila, que ofrece las otras cajas (se cobra con su CUIT) y tiene una cruz para cerrarlo (\"ponele un cerrar\"), que también se cierra con Esc.",
+    ],
+  },
   {
     version: "V.0.11.224",
     date: "2026-11-24",
