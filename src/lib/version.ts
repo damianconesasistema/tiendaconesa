@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.220";
+export const APP_VERSION = "V.0.11.221";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.221",
+    date: "2026-11-23",
+    changes: [
+      "El IVA del combo, claro (\"¿le estás sumando el IVA de vuelta? ... poné el costo sin IVA, de la suma de los productos\"): no se sumaba dos veces, pero se leía como si sí. En un combo la casilla dice \"Suma de los productos, sin IVA\" (con la aclaración), el cálculo muestra la suma sin IVA y \"Más el IVA de los productos, una sola vez\" (sin la fila de descuentos, que ya están en cada producto), y el aviso de las piezas da el total sin IVA y con IVA.",
+    ],
+  },
   {
     version: "V.0.11.220",
     date: "2026-11-23",
