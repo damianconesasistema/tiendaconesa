@@ -550,6 +550,12 @@ tr.mov-anulado td:last-child{text-decoration:none}
 .mov-reparto{display:flex; gap:10px; flex-wrap:wrap}
 .mov-reparto span{display:flex; align-items:center; gap:4px; font-size:13px; text-transform:none; letter-spacing:0; font-weight:600}
 .mov-reparto input{width:64px}
+.cta-fila{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); font-size:13.5px}
+.cta-fila:first-child{border-top:0}
+.cta-fila small{display:block; color:var(--ink-3); font-size:12px}
+.cta-fila .saldo{font-family:var(--font-m); font-weight:700; font-variant-numeric:tabular-nums}
+#ctaFechas[hidden]{display:none !important}
+.cta-grupo{padding:8px 14px 2px; font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
 @media (max-width:560px){ .mov-form{grid-template-columns:1fr} }
 .tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:13px 15px}
 .tile .k{font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--ink-3); font-weight:600}
@@ -1486,6 +1492,7 @@ footer{
   <button type="button" data-g="gerencia">Resumen</button>
   <button type="button" data-g="renta">Rentabilidad</button>
   <button type="button" data-g="contable">Contable</button>
+  <button type="button" data-g="cuentas">Cuentas y gastos</button>
 </div>
 <!-- Las listas de los proveedores viven adentro de Proveedores (23/11/2026:
      "el Listas debería ir adentro de Proveedores"). -->
@@ -2607,6 +2614,56 @@ footer{
   </div>
 </section>
 
+<!-- ============================================ CUENTAS Y GASTOS -->
+<!-- V.0.11.226: Gerencia, parte 1. Vive adentro de Gerencia, al lado de Contable. -->
+<section id="v-cuentas" hidden>
+  <div class="head">
+    <h2>Cuentas y gastos</h2>
+    <p>Las cuentas de cada razón social (efectivo, Mercado Pago, bancos) con su saldo, y los gastos del día y del mes. Esta pantalla no la ve el mostrador.</p>
+  </div>
+  <div class="filtros" style="margin:0 0 10px">
+    <div class="solapas" id="ctaPeriodo" style="margin:0"></div>
+    <span id="ctaFechas" hidden style="display:inline-flex;gap:6px;align-items:center">
+      <input type="date" id="ctaDesde"> a <input type="date" id="ctaHasta"></span>
+    <button class="b1" type="button" id="btnAnotarMovG" style="margin-left:auto;padding:7px 14px">Anotar movimiento</button>
+  </div>
+  <div class="solapas" id="ctaSucs"></div>
+  <p class="nota" id="ctaError" hidden></p>
+  <div class="tiles" id="ctaTiles"></div>
+  <div class="dos">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Gastos por día</h3><span class="sub" id="ctaDiasSub"></span></div>
+        <div class="tabla-wrap"><table>
+          <thead><tr><th>Día</th><th class="r">CONESA SRL</th><th class="r">SANITARIOS CNC</th><th class="r">TRASLASIERRA</th><th class="r">Total</th></tr></thead>
+          <tbody id="tbCtaDias"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Movimientos</h3><span class="sub" id="ctaMovSub"></span></div>
+        <div class="tabla-wrap" style="max-height:60vh;overflow-y:auto"><table>
+          <thead><tr><th>Día y hora</th><th>Qué</th><th>Rubro y detalle</th><th>Cuenta</th><th>Quién</th><th class="r">Monto</th><th></th></tr></thead>
+          <tbody id="tbCtaMov"></tbody></table></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Gastos por rubro</h3><span class="sub" id="ctaRubSub"></span></div>
+        <div class="barras" id="ctaRubros"></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><h3>Cuentas</h3><span class="sub">el saldo de hoy</span>
+          <button class="b2" type="button" id="btnNuevaCuenta" style="margin-left:auto;padding:5px 12px">Nueva cuenta</button></div>
+        <div id="ctaCuentas"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Rubros de gasto</h3>
+          <button class="b3" type="button" id="btnRubros" style="margin-left:auto;padding:5px 12px">Cambiar</button></div>
+        <p class="nota" id="ctaRubrosLista" style="padding:12px 14px;margin:0"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ======================================================= GERENCIA -->
 <section id="v-gerencia" hidden>
   <div class="head">
@@ -2840,7 +2897,7 @@ const esAdminUsuarios = () => !!(typeof PUNTO_YO === "object" && PUNTO_YO && PUN
 /** El área de cada solapa ("Todo el sistema" la ven todos). */
 const AREA_DE_VISTA = { mostrador:"venta", comprobantes:"comprobantes", pedidos:"pedidos", web:"web",
   productos:"productos", listas:"listas", proveedores:"proveedores", simulador:"simulador", caja:"caja",
-  renta:"renta", contable:"contable", gerencia:"gerencia", asistente:"asistente" };
+  renta:"renta", contable:"contable", cuentas:"cuentas", gerencia:"gerencia", asistente:"asistente" };
 function vistaPermitida(v){
   if(v === "inicio") return true;
   if(v === "usuarios") return esAdminUsuarios();
@@ -3403,7 +3460,7 @@ function ventaMargen(v){
 // Pedidos salió de la barra el 23/11/2026 ("pedido hay que sacarlo porque es
 // redundante"): los pedidos internos se hacen en Venta y se ven en
 // Comprobantes. Su pantalla queda en la página, escondida.
-const vistas = ["mostrador","comprobantes","inicio","web","productos","listas","proveedores","simulador","usuarios","caja","renta","contable","gerencia","asistente"];
+const vistas = ["mostrador","comprobantes","inicio","web","productos","listas","proveedores","simulador","usuarios","caja","renta","contable","cuentas","gerencia","asistente"];
 // Un <a> se activa con Enter pero no con la barra espaciadora; un <button>
 // con las dos. Al pasar a links se perdio el espacio: se lo devolvemos, que
 // hay gente que se mueve por el sistema sin tocar el mouse.
@@ -3430,7 +3487,7 @@ document.querySelector("header .bar").addEventListener("click",e=>{
   abrirVista(b.dataset.v);
 });
 /** Las tres pantallas que se abren desde la solapa Gerencia. */
-const GERENCIA_ADENTRO = ["gerencia","renta","contable"];
+const GERENCIA_ADENTRO = ["gerencia","renta","contable","cuentas"];
 /** Y las dos de Proveedores. */
 const PROVEEDORES_ADENTRO = ["proveedores","listas"];
 const GRUPOS_SOLAPA = { gerencia: GERENCIA_ADENTRO, proveedores: PROVEEDORES_ADENTRO };
@@ -3490,6 +3547,7 @@ function avisarVista(v){
   if(v==="gerencia") pintarGerencia();
   if(v==="renta") pintarRenta();
   if(v==="contable") pintarContable();
+  if(v==="cuentas") pintarCuentas();
   if(v==="web"){
     pintarWeb();
     const f = document.getElementById("webFrame");
@@ -3580,7 +3638,7 @@ const ACCESOS = [
   { v:"caja", t:"Caja", f:"Lo que entró hoy, por forma de pago." },
   { v:"web", t:"Web", f:"El panel de la tienda online." },
   { v:"simulador", t:"Simulador", f:"Cuánto cuesta y a cuánto vender." },
-  { v:"gerencia", t:"Gerencia", f:"Resumen, rentabilidad y contable." },
+  { v:"gerencia", t:"Gerencia", f:"Resumen, rentabilidad, contable, cuentas y gastos." },
   { v:"usuarios", t:"Usuarios", f:"Quién entra y qué puede hacer." },
   { v:"asistente", t:"Asistente", f:"Preguntale al sistema." }
 ];
@@ -3687,6 +3745,7 @@ const ICO_EN = [
   ["barChart", '#subGer [data-g="gerencia"]'],
   ["trendingUp", '#subGer [data-g="renta"]'],
   ["book", '#subGer [data-g="contable"]'],
+  ["banknote", '#subGer [data-g="cuentas"]'],
   ["truck", '#subPrv [data-g="proveedores"]']
 ];
 (function(){
@@ -8210,6 +8269,8 @@ const TIPO_MOV = { gasto:"Gasto", "pago-proveedor":"Pago a proveedor", retiro:"R
   sena:"Seña", transferencia:"Pasar a otra cuenta", ajuste:"Ajuste" };
 const TIPO_CTA = { efectivo:"Efectivo", mercadopago:"Mercado Pago", banco:"Banco" };
 const nomSuc = id => (SUCURSALES.find(x => x.id === id) || {}).n || id;
+/** Plata con el signo adelante: −$1.500,00 (fmt2 pondría $-1.500,00). */
+const plataTxt = n => (n < 0 ? "−" : "") + fmt2(Math.abs(n));
 const cuentaPlata = id => ((PLATA.d && PLATA.d.cuentas) || []).concat((PLATA.d && PLATA.d.destinos) || []).find(c => c.id === id);
 const nombreCuenta = c => c ? (c.nombre + (c.tipo === "banco" && c.banco ? " · " + c.banco + (c.clase === "cc" ? " CC" : c.clase === "ca" ? " CA" : "") : "")) : "—";
 const idNuevo = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
@@ -8356,7 +8417,7 @@ async function pintarPlataCaja(forzar){
   const salio = movs.filter(m => !m.anulado && m.monto < 0).reduce((a, m) => a - m.monto, 0);
   document.getElementById("cajaPlataSub").textContent = suc ? "efectivo de " + nomSuc(suc) : "el efectivo de las tres";
   document.getElementById("cajaPlataTiles").innerHTML = cajas.length
-    ? tile("Efectivo en caja", fmt2(cajas.reduce((a, c) => a + c.saldo, 0)), "lo que tiene que haber ahora") +
+    ? tile("Efectivo en caja", plataTxt(cajas.reduce((a, c) => a + c.saldo, 0)), "lo que tiene que haber ahora") +
       tile("Gastos de hoy", fmt2(gastos), movs.filter(m => m.tipo === "gasto" && !m.anulado).length + " anotados") +
       tile("Salió de la caja hoy", fmt2(salio), "gastos, pagos, retiros y depósitos")
     : tile("Sin caja cargada", "—", PLATA.d.puedeTodo ? "Cargala en Gerencia → Cuentas y gastos" : "Pedile a gerencia que la cargue");
@@ -8370,6 +8431,167 @@ document.getElementById("btnAnotarMov").addEventListener("click", async () => {
 });
 document.getElementById("tbPlataCaja").addEventListener("click", e => {
   const b = e.target.closest("[data-anular]"); if(b) anularMov(b.dataset.anular, () => pintarPlataCaja(true));
+});
+
+/* Gerencia → Cuentas y gastos (V.0.11.226). */
+const CTA = { per:"mes", suc:"" };
+const hoyLocal = () => new Date(Date.now() - 3*3600e3).toISOString().slice(0, 10);
+function periodoCta(){
+  const hoy = hoyLocal(), [a, m] = hoy.split("-").map(Number);
+  if(CTA.per === "hoy") return [hoy, hoy, "hoy"];
+  if(CTA.per === "ant"){
+    const pa = m === 1 ? a - 1 : a, pm = m === 1 ? 12 : m - 1;
+    const ult = new Date(Date.UTC(pa, pm, 0)).getUTCDate();
+    const mm = String(pm).padStart(2, "0");
+    return [pa + "-" + mm + "-01", pa + "-" + mm + "-" + String(ult).padStart(2, "0"), "el mes anterior"];
+  }
+  if(CTA.per === "entre"){
+    const d = document.getElementById("ctaDesde").value || hoy, h = document.getElementById("ctaHasta").value || hoy;
+    return d <= h ? [d, h, "del " + fechaCorta(d) + " al " + fechaCorta(h)] : [h, d, "del " + fechaCorta(h) + " al " + fechaCorta(d)];
+  }
+  return [hoy.slice(0, 8) + "01", hoy, "este mes"];
+}
+const fechaCorta = d => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4);
+const sumaPor = (obj, suc) => suc ? ((obj[suc] || {}).total || 0) : Object.values(obj).reduce((a, x) => a + (x.total || 0), 0);
+async function pintarCuentas(){
+  const [desde, hasta, nombre] = periodoCta();
+  document.getElementById("ctaPeriodo").innerHTML = [["hoy","Hoy"],["mes","Este mes"],["ant","Mes anterior"],["entre","Entre fechas"]]
+    .map(([k, t]) => '<button type="button" data-per="' + k + '" aria-pressed="' + (CTA.per === k) + '">' + t + '</button>').join("");
+  document.getElementById("ctaFechas").hidden = CTA.per !== "entre";
+  document.getElementById("ctaSucs").innerHTML = [["","Todas"]].concat(SUCURSALES.map(x => [x.id, x.n]))
+    .map(([id, n]) => '<button type="button" data-cs="' + id + '" aria-pressed="' + (id === CTA.suc) + '">' + txt(n) + '</button>').join("");
+  await traerPlata(desde, hasta);
+  const err = document.getElementById("ctaError");
+  if(PLATA.error || !PLATA.d){ err.hidden = false; err.textContent = PLATA.error || "No pude leer las cuentas."; return; }
+  err.hidden = true;
+  const d = PLATA.d, suc = CTA.suc, ps = d.resumen.porSucursal || {};
+  const deSuc = m => !suc || m.sucursal === suc || (m.reparto && m.reparto[suc]);
+  const movs = d.movimientos.filter(deSuc);
+  const vivos = movs.filter(m => !m.anulado);
+  const hoyGasto = Object.entries(ps).filter(([k]) => !suc || k === suc).reduce((a, [, x]) => a + ((x.porDia || {})[d.hoy] || 0), 0);
+  const cuentas = d.cuentas.filter(c => !suc || c.sucursal === suc);
+  const sale = t => vivos.filter(m => m.tipo === t).reduce((a, m) => a - m.monto, 0);
+  document.getElementById("ctaTiles").innerHTML =
+    tile("Gastos de hoy", desde <= d.hoy && d.hoy <= hasta ? fmt2(hoyGasto) : "—", suc ? nomSuc(suc) : "las tres razones sociales") +
+    tile(CTA.per === "mes" ? "Gastos del mes" : "Gastos del período", fmt2(sumaPor(ps, suc)), nombre) +
+    tile("Plata en las cuentas", plataTxt(cuentas.filter(c => c.activa).reduce((a, c) => a + c.saldo, 0)), cuentas.filter(c => c.activa).length + " cuentas activas") +
+    tile("Pagos a proveedores", fmt2(sale("pago-proveedor")), nombre + "; no son gasto: la mercadería ya está en el costo") +
+    tile("Retiros", fmt2(sale("retiro")), nombre);
+  // Por día: las tres columnas siempre, para compararlas.
+  const dias = [...new Set(Object.values(ps).flatMap(x => Object.keys(x.porDia || {})))].sort().reverse();
+  const col = (k, dia) => ((ps[k] || {}).porDia || {})[dia] || 0;
+  document.getElementById("ctaDiasSub").textContent = nombre;
+  document.getElementById("tbCtaDias").innerHTML = dias.length ? dias.map(dia => {
+    const t = SUCURSALES.reduce((a, x) => a + col(x.id, dia), 0);
+    return '<tr' + (dia === d.hoy ? ' style="font-weight:700"' : '') + '><td>' + fechaCorta(dia) + (dia === d.hoy ? ' <span class="pill p-ok">hoy</span>' : '') + '</td>' +
+      SUCURSALES.map(x => '<td class="r num">' + (col(x.id, dia) ? fmt2(col(x.id, dia)) : '—') + '</td>').join("") +
+      '<td class="r num" style="font-weight:700">' + fmt2(t) + '</td></tr>';
+  }).join("") + '<tr style="font-weight:700;border-top:2px solid var(--line-2)"><td>Total</td>' +
+      SUCURSALES.map(x => '<td class="r num">' + fmt2((ps[x.id] || {}).total || 0) + '</td>').join("") +
+      '<td class="r num">' + fmt2(sumaPor(ps, "")) + '</td></tr>'
+    : '<tr><td colspan="5" style="text-align:center;color:var(--ink-3);padding:18px">No hay gastos anotados ' + nombre + '.</td></tr>';
+  // Por rubro.
+  const rub = {};
+  for(const [k, x] of Object.entries(ps)) if(!suc || k === suc) for(const [r, v] of Object.entries(x.porRubro || {})) rub[r] = (rub[r] || 0) + v;
+  const rs = Object.entries(rub).sort((a, b) => b[1] - a[1]), max = rs.length ? rs[0][1] : 0;
+  document.getElementById("ctaRubSub").textContent = (suc ? nomSuc(suc) + ", " : "") + nombre;
+  document.getElementById("ctaRubros").innerHTML = rs.length ? rs.map(([r, v]) => barra(txt(r), v, max)).join("")
+    : '<p class="nota" style="margin:0">Sin gastos ' + nombre + '.</p>';
+  // Las cuentas, por razón social.
+  document.getElementById("ctaCuentas").innerHTML = SUCURSALES.filter(x => !suc || x.id === suc).map(x => {
+    const cs = d.cuentas.filter(c => c.sucursal === x.id);
+    return '<div class="cta-grupo">' + txt(x.n) + '</div>' + (cs.length ? cs.map(c =>
+      '<div class="cta-fila"><div><b>' + txt(c.nombre) + '</b>' + (c.activa ? '' : ' <span class="pill p-n">dada de baja</span>') +
+        '<small>' + txt(TIPO_CTA[c.tipo] || c.tipo) + (c.tipo === "banco" ? ' · ' + txt(c.banco) + (c.clase === "cc" ? ' · cuenta corriente' : ' · caja de ahorro') : '') +
+        ' · desde el ' + fechaCorta(c.desde) + '</small></div>' +
+        '<span class="saldo" style="color:' + (c.saldo < 0 ? 'var(--bad)' : 'var(--ink)') + '">' + plataTxt(c.saldo) + '</span>' +
+        '<button class="b3" type="button" data-cta="' + atrib(c.id) + '" style="padding:3px 10px;font-size:12px">Editar</button></div>').join("")
+      : '<p class="nota" style="padding:4px 14px 10px;margin:0">Sin cuentas cargadas.</p>');
+  }).join("");
+  // Los movimientos del período.
+  document.getElementById("ctaMovSub").textContent = vivos.length + " " + nombre + (movs.length > vivos.length ? " (y " + (movs.length - vivos.length) + " anulados)" : "");
+  document.getElementById("tbCtaMov").innerHTML = movs.length ? movs.map(filaMov).join("")
+    : '<tr><td colspan="7" style="text-align:center;color:var(--ink-3);padding:18px">No hay movimientos ' + nombre + '.</td></tr>';
+  document.getElementById("ctaRubrosLista").textContent = d.rubros.join(" · ");
+  document.getElementById("btnNuevaCuenta").hidden = document.getElementById("btnRubros").hidden = !d.puedeTodo;
+}
+document.getElementById("ctaPeriodo").addEventListener("click", e => {
+  const b = e.target.closest("[data-per]"); if(!b) return;
+  CTA.per = b.dataset.per;
+  if(CTA.per === "entre"){
+    const h = hoyLocal();
+    if(!document.getElementById("ctaDesde").value) document.getElementById("ctaDesde").value = h.slice(0, 8) + "01";
+    if(!document.getElementById("ctaHasta").value) document.getElementById("ctaHasta").value = h;
+  }
+  pintarCuentas();
+});
+for(const id of ["ctaDesde", "ctaHasta"]) document.getElementById(id).addEventListener("change", () => pintarCuentas());
+document.getElementById("ctaSucs").addEventListener("click", e => {
+  const b = e.target.closest("[data-cs]"); if(!b) return;
+  CTA.suc = b.dataset.cs; pintarCuentas();
+});
+document.getElementById("btnAnotarMovG").addEventListener("click", () => {
+  if(!PLATA.d){ toast(PLATA.error || "Esperá un segundo: estoy leyendo las cuentas."); return; }
+  abrirMovimiento({ sucursal: CTA.suc || S.suc, soloEfectivo: false, luego: pintarCuentas });
+});
+document.getElementById("tbCtaMov").addEventListener("click", e => {
+  const b = e.target.closest("[data-anular]"); if(b) anularMov(b.dataset.anular, pintarCuentas);
+});
+document.getElementById("ctaCuentas").addEventListener("click", e => {
+  const b = e.target.closest("[data-cta]"); if(b) abrirCuenta(cuentaPlata(b.dataset.cta));
+});
+document.getElementById("btnNuevaCuenta").addEventListener("click", () => abrirCuenta(null));
+/** Cargar o cambiar una cuenta. */
+function abrirCuenta(c){
+  if(document.getElementById("ctaFondo") || !PLATA.d) return;
+  const hoy = PLATA.d.hoy, suc = c ? c.sucursal : (CTA.suc || S.suc || "tsl");
+  document.body.insertAdjacentHTML("beforeend",
+    '<div id="ctaFondo" style="position:fixed;inset:0;background:rgba(20,20,20,.38);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px">' +
+    '<div class="card" role="dialog" aria-modal="true" aria-labelledby="ctaTit" style="position:relative;max-width:520px;width:100%;padding:18px">' +
+    '<button type="button" id="ctaX" class="cerrar-pop" aria-label="Cerrar" title="Cerrar" style="top:10px;right:10px">&times;</button>' +
+    '<h3 id="ctaTit" style="margin:0 40px 12px 0">' + (c ? 'Cambiar la cuenta' : 'Nueva cuenta') + '</h3>' +
+    '<div class="mov-form">' +
+      '<label>Razón social<select id="ctaSuc"' + (c ? ' disabled' : '') + '>' + SUCURSALES.map(x => '<option value="' + x.id + '"' + (x.id === suc ? ' selected' : '') + '>' + txt(x.n) + '</option>').join("") + '</select></label>' +
+      '<label>Qué es<select id="ctaTipo">' + Object.keys(TIPO_CTA).map(t => '<option value="' + t + '"' + (c && c.tipo === t ? ' selected' : '') + '>' + TIPO_CTA[t] + '</option>').join("") + '</select></label>' +
+      '<label class="ancho">Nombre<input id="ctaNombre" type="text" maxlength="60" autocomplete="off" placeholder="Ej.: Caja del mostrador, Mercado Pago, Galicia CA" value="' + atrib(c ? c.nombre : "") + '"></label>' +
+      '<label id="ctaBancoEt">Banco<input id="ctaBanco" type="text" maxlength="60" autocomplete="off" value="' + atrib(c ? c.banco : "") + '"></label>' +
+      '<label id="ctaClaseEt">Tipo de cuenta<select id="ctaClase"><option value="ca"' + (c && c.clase === "ca" ? " selected" : "") + '>Caja de ahorro</option><option value="cc"' + (c && c.clase === "cc" ? " selected" : "") + '>Cuenta corriente</option></select></label>' +
+      '<label>Saldo con el que arranca<input id="ctaSaldo" type="text" inputmode="decimal" autocomplete="off" value="' + (c ? NF_DOS.format(c.saldoInicial) : "0,00") + '"></label>' +
+      '<label>Desde qué día<input id="ctaDesdeDia" type="date" max="' + hoy + '" value="' + (c ? c.desde : hoy) + '"></label>' +
+      (c ? '<label class="ancho"><span style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13.5px"><input type="checkbox" id="ctaActiva" style="width:auto"' + (c.activa ? ' checked' : '') + '> Activa (destildala para darla de baja; sus movimientos quedan)</span></label>' : '') +
+    '</div>' +
+    '<p class="nota" style="margin:10px 0 0">El saldo de cada día se calcula solo: lo que tenía al arrancar más lo que entró y menos lo que salió.</p>' +
+    '<p class="nota" id="ctaMsg" style="margin:8px 0 0;min-height:1.2em"></p>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px">' +
+      '<button class="b3" type="button" id="ctaNo">Cancelar</button><button class="b1" type="button" id="ctaOk">Guardar</button></div>' +
+    '</div></div>');
+  const g = id => document.getElementById(id);
+  const pintar = () => { const b = g("ctaTipo").value === "banco"; g("ctaBancoEt").hidden = !b; g("ctaClaseEt").hidden = !b; };
+  pintar(); g("ctaTipo").addEventListener("change", pintar);
+  setTimeout(() => g("ctaNombre").focus(), 30);
+  const cerrar = () => { g("ctaFondo").remove(); document.removeEventListener("keydown", tecla, true); };
+  const tecla = e => { if(e.key === "Escape"){ e.stopPropagation(); cerrar(); } };
+  document.addEventListener("keydown", tecla, true);
+  g("ctaNo").addEventListener("click", cerrar); g("ctaX").addEventListener("click", cerrar);
+  g("ctaOk").addEventListener("click", async () => {
+    const p = { accion:"cuenta", sucursal:g("ctaSuc").value, tipo:g("ctaTipo").value, nombre:g("ctaNombre").value,
+      banco:g("ctaBanco").value, clase:g("ctaClase").value, saldoInicial:aNum(g("ctaSaldo").value) || 0, desde:g("ctaDesdeDia").value };
+    if(c){ p.id = c.id; p.activa = g("ctaActiva").checked; }
+    g("ctaOk").disabled = true; g("ctaMsg").textContent = "Guardando…";
+    const { d } = await pedirSrv(CTA_URL, p);
+    g("ctaOk").disabled = false;
+    if(!d || d.error){ g("ctaMsg").textContent = "No se guardó: " + ((d && d.error) || "probá de nuevo."); return; }
+    cerrar(); toast("Cuenta " + (c ? "cambiada" : "cargada") + ": " + d.cuenta.nombre + ".");
+    pintarCuentas();
+  });
+}
+document.getElementById("btnRubros").addEventListener("click", async () => {
+  if(!PLATA.d) return;
+  const t = prompt("Los rubros de gasto, separados por coma (los que se saquen siguen leyéndose en los gastos viejos):", PLATA.d.rubros.join(", "));
+  if(t == null) return;
+  const { d } = await pedirSrv(CTA_URL, { accion:"rubros", rubros: t.split(",").map(x => x.trim()).filter(Boolean) });
+  if(!d || d.error){ toast("No se guardó: " + ((d && d.error) || "probá de nuevo.")); return; }
+  toast("Rubros guardados."); pintarCuentas();
 });
 
 /* =================================================== GERENCIA */
