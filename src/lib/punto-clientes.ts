@@ -190,6 +190,79 @@ export async function buscarClientes(q: string): Promise<ClienteGuardado[]> {
   return clientesPorIds(filas.map((f) => f.id));
 }
 
+/** Todos, para la solapa Clientes (V.0.11.241): tambien los dados de baja.
+ *  Damian, 24/11/2026: "tendrias que hacerme una seccion clientes donde estan
+ *  todos los datos de ellos". La pagina los filtra (3.800 son ~1 MB). */
+export async function listarClientes(): Promise<ClienteGuardado[]> {
+  const filas = await prisma.puntoCliente.findMany({ orderBy: [{ nombre: "asc" }, { id: "asc" }] });
+  return filas.map(aGuardado);
+}
+
+/** Lo que se puede cambiar desde la ficha. El ID de GBP no. */
+const CAMBIABLES = [
+  "cuit",
+  "dni",
+  "nombre",
+  "condicionIva",
+  "domicilio",
+  "localidad",
+  "provincia",
+  "telefono",
+  "email",
+  "lista",
+  "limite",
+  "inactivo",
+] as const;
+
+/** Cambia solo lo que vino, con las mismas reglas del alta. El CUIT no se
+ *  repite: si ya lo tiene otro, no guarda y devuelve el id de ese. */
+export async function cambiarCliente(
+  id: string,
+  cambios: unknown,
+): Promise<{ cliente: ClienteGuardado; antes: ClienteGuardado } | { error: string; id?: string }> {
+  if (!ID_VALIDO.test(id)) return { error: "No sé qué cliente es." };
+  if (!cambios || typeof cambios !== "object" || Array.isArray(cambios)) return { error: "No llegaron los cambios." };
+  const c = cambios as Record<string, unknown>;
+  if (!CAMBIABLES.some((k) => k in c)) return { error: "No llegaron los cambios." };
+  return prisma.$transaction(
+    async (tx) => {
+      const actual = await tx.puntoCliente.findUnique({ where: { id } });
+      if (!actual) return { error: "Ese cliente ya no está." };
+      const antes = aGuardado(actual);
+      const mezcla: Record<string, unknown> = { ...antes };
+      for (const k of CAMBIABLES) if (k in c) mezcla[k] = c[k];
+      const limpio = limpiarCliente(mezcla);
+      if ("error" in limpio) return { error: limpio.error };
+      const n = limpio.cliente;
+      if (n.cuit && n.cuit !== actual.cuit) {
+        // Como el alta: dos puestos que ponen el mismo CUIT esperan uno al otro.
+        await tx.$queryRaw`SELECT 1 AS "ok" FROM pg_advisory_xact_lock(hashtext(${"punto-cliente:cuit:" + n.cuit}))`;
+        const otro = await tx.puntoCliente.findFirst({ where: { cuit: n.cuit, id: { not: id } } });
+        if (otro) return { error: `Ese CUIT ya lo tiene ${otro.nombre}.`, id: otro.id };
+      }
+      const nuevo = await tx.puntoCliente.update({
+        where: { id },
+        data: {
+          cuit: n.cuit,
+          dni: n.dni,
+          nombre: n.nombre,
+          condicionIva: n.condicionIva,
+          domicilio: n.domicilio,
+          localidad: n.localidad,
+          provincia: n.provincia,
+          telefono: n.telefono,
+          email: n.email,
+          lista: n.lista,
+          limite: n.limite,
+          inactivo: n.inactivo,
+        },
+      });
+      return { cliente: aGuardado(nuevo), antes };
+    },
+    { maxWait: 10_000, timeout: 15_000 },
+  );
+}
+
 /** Los clientes con esos ids, en el mismo orden. Los que no estan, no. */
 export async function clientesPorIds(ids: string[]): Promise<ClienteGuardado[]> {
   const validos = [...new Set(ids.filter((id) => ID_VALIDO.test(id)))].slice(0, MAX_IDS);

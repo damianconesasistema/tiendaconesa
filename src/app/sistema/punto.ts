@@ -510,6 +510,8 @@ td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500;
 #tbCp .cp-mas{font-size:12px; color:var(--ink-2); margin-top:8px; line-height:1.5}
 #tbCp .cp-acc{white-space:nowrap}
 #tbPrv td small{display:block; color:var(--ink-3); font-size:11.5px; font-weight:500}
+#tbCls td small{display:block; color:var(--ink-3); font-size:11.5px; font-weight:500}
+#tbCls td:first-child{min-width:220px}
 .us-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; margin-bottom:12px}
 .us-card.inactivo{opacity:.6}
 .us-card.sucio{border-color:var(--accent); box-shadow:inset 3px 0 0 var(--accent)}
@@ -787,6 +789,11 @@ table.densa th{padding:8px 10px; font-size:11.5px}
    listas los alinea a la derecha, que es para números. */
 #prvForm .campo input, #prvForm .campo textarea{text-align:left}
 #prvForm .campos{padding:12px 16px 0}
+#clsForm .campo input, #clsForm .campo textarea{text-align:left}
+#clsForm .campos{padding:12px 16px 0}
+.cls-fila{cursor:pointer}
+#clsForm .campo label.cs-tilde{display:flex;align-items:center;justify-content:flex-start;gap:8px;font-size:13.5px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);margin:6px 0 0}
+#clsForm .campo label.cs-tilde input{width:auto;flex:0 0 auto;margin:0}
 #tbOc tr[data-oc]{cursor:pointer}
 #tbOc tr.oc-abierta td{background:var(--accent-soft)}
 .oc-ed, .oc-falt{border-top:1px solid var(--line); padding:12px 14px 14px}
@@ -1461,7 +1468,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.72.4</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.241</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1483,6 +1490,7 @@ footer{
     <a href="#web" data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Web</a>
     <a href="#productos" data-v="productos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Artículos</a>
     <a href="#proveedores" data-v="proveedores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62L18.3 9.38a1 1 0 0 0-.78-.38H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>Proveedores</a>
+    <a href="#clientes" data-v="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</a>
     <a href="#simulador" data-v="simulador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M8 6h8"/><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01M16 19h.01"/></svg>Simulador</a>
     <a href="#caja" data-v="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Caja</a>
     <a href="#gerencia" data-v="gerencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>Gerencia</a>
@@ -2507,6 +2515,77 @@ footer{
   </div>
 </section>
 
+<!-- ======================================================== CLIENTES -->
+<!-- V.0.11.241. Damián, 24/11/2026: "tendrías que hacerme una sección
+     clientes donde están todos los datos de ellos". Hecha como Proveedores:
+     la lista entera, el buscador, los filtros, Excel/PDF y una ficha. -->
+<section id="v-clientes" hidden>
+  <div class="head">
+    <h2>Clientes</h2>
+    <p>Todos los clientes, guardados en el servidor: los que vinieron de GBP y los que se dan de alta en la venta. Tocá uno para ver su ficha y cambiar lo que haga falta. No se borran: se dan de baja.</p>
+  </div>
+  <div class="filtros" style="margin:0 0 14px">
+    <input id="clsBusca" type="search" placeholder="Buscar: nombre, CUIT, DNI, domicilio, localidad, teléfono o mail" autocomplete="off" style="min-width:320px">
+    <select id="clsIva" aria-label="condición de IVA"><option value="">Toda condición de IVA</option><option>Consumidor Final</option><option>Responsable Inscripto</option><option>Monotributo</option><option>IVA Exento</option></select>
+    <select id="clsProv" aria-label="provincia"><option value="">Todas las provincias</option></select>
+    <label><input type="checkbox" id="clsBajas"> ver los dados de baja</label>
+    <span class="por" style="margin-left:auto">Exportar lo que ves:</span>
+    <button class="b3" id="clsXlsx" type="button" style="padding:5px 14px">Excel</button>
+    <button class="b3" id="clsPdf" type="button" style="padding:5px 14px">PDF</button>
+    <button class="b1" id="clsNuevo" type="button" style="padding:6px 16px">Nuevo cliente</button>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Lista</h3><span class="sub" id="clsCount"></span></div>
+    <div class="tabla-wrap" style="max-height:66vh; overflow-y:auto"><table class="densa"><thead><tr>
+      <th>Nombre</th><th>CUIT o DNI</th><th>Condición IVA</th><th>Localidad</th><th>Teléfono</th><th>Mail</th><th>Lista</th><th class="r">Límite cta. cte.</th><th class="r">ID GBP</th><th></th>
+    </tr></thead><tbody id="tbCls"></tbody></table></div>
+  </div>
+  <!-- La ficha: una sola para el nuevo y para cambiar. Se cierra con la X,
+       con Cancelar o con Escape, nunca tocando afuera. -->
+  <div class="envio" id="clsForm" hidden>
+    <div class="envio-caja" style="width:min(760px,100%)">
+      <div class="envio-h">
+        <h3 id="csTit">Ficha del cliente</h3>
+        <button class="x" id="csX" type="button" aria-label="cerrar">×</button>
+      </div>
+      <p class="envio-n" id="csAyuda"></p>
+      <div class="campos">
+        <div class="campo ancho"><label for="csCuit">CUIT</label>
+          <div class="con-mas">
+            <input id="csCuit" type="text" inputmode="numeric" maxlength="20" placeholder="20-12345678-3" autocomplete="off">
+            <button class="b2 mas" id="csTraer" type="button">Traer de ARCA</button>
+          </div></div>
+        <div class="campo"><label for="csDni">DNI</label>
+          <input id="csDni" type="text" inputmode="numeric" maxlength="12" placeholder="sin puntos" autocomplete="off"></div>
+        <div class="campo ancho"><span class="por" id="csAviso"></span></div>
+        <div class="campo ancho"><label for="csNom">Nombre o razón social *</label>
+          <input id="csNom" type="text" maxlength="120" autocomplete="off"></div>
+        <div class="campo"><label for="csIva">Condición IVA</label><select id="csIva"></select></div>
+        <div class="campo"><label for="csLista">Lista de precios</label><select id="csLista"></select></div>
+        <div class="campo ancho"><label for="csDom">Domicilio</label>
+          <input id="csDom" type="text" maxlength="160" placeholder="Calle y número" autocomplete="off"></div>
+        <div class="campo"><label for="csLoc">Localidad</label>
+          <input id="csLoc" type="text" maxlength="80" autocomplete="off"></div>
+        <div class="campo"><label for="csProv">Provincia</label>
+          <input id="csProv" type="text" maxlength="80" autocomplete="off"></div>
+        <div class="campo"><label for="csTel">Teléfono</label>
+          <input id="csTel" type="tel" maxlength="60" autocomplete="off"></div>
+        <div class="campo"><label for="csMail">Mail</label>
+          <input id="csMail" type="email" maxlength="120" autocomplete="off"></div>
+        <div class="campo"><label for="csLim">Límite de cuenta corriente</label>
+          <input id="csLim" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+          <span class="por">0 = sin cuenta corriente</span></div>
+        <div class="campo" id="csBajaCampo"><label for="csBaja">Baja</label>
+          <label class="cs-tilde"><input type="checkbox" id="csBaja"> dado de baja (no se borra)</label></div>
+      </div>
+      <div class="envio-acc">
+        <button class="b3" id="csCancelar" type="button">Cancelar</button>
+        <button class="b1" id="csGuardar" type="button">Guardar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ======================================================== USUARIOS -->
 <section id="v-usuarios" hidden>
   <div class="head">
@@ -2914,7 +2993,7 @@ const sucPermitida = () => { const l = misSucursales(); return l && l.length && 
 const esAdminUsuarios = () => !!(typeof PUNTO_YO === "object" && PUNTO_YO && PUNTO_YO.adminUsuarios);
 /** El área de cada solapa ("Todo el sistema" la ven todos). */
 const AREA_DE_VISTA = { mostrador:"venta", comprobantes:"comprobantes", pedidos:"pedidos", web:"web",
-  productos:"productos", listas:"listas", proveedores:"proveedores", simulador:"simulador", caja:"caja",
+  productos:"productos", listas:"listas", proveedores:"proveedores", clientes:"clientes", simulador:"simulador", caja:"caja",
   renta:"renta", contable:"contable", cuentas:"cuentas", gerencia:"gerencia", asistente:"asistente" };
 function vistaPermitida(v){
   if(v === "inicio") return true;
@@ -3480,7 +3559,7 @@ function ventaMargen(v){
 // Pedidos salió de la barra el 23/11/2026 ("pedido hay que sacarlo porque es
 // redundante"): los pedidos internos se hacen en Venta y se ven en
 // Comprobantes. Su pantalla queda en la página, escondida.
-const vistas = ["mostrador","comprobantes","inicio","web","productos","listas","proveedores","simulador","usuarios","caja","renta","contable","cuentas","gerencia","asistente"];
+const vistas = ["mostrador","comprobantes","inicio","web","productos","listas","proveedores","clientes","simulador","usuarios","caja","renta","contable","cuentas","gerencia","asistente"];
 // Un <a> se activa con Enter pero no con la barra espaciadora; un <button>
 // con las dos. Al pasar a links se perdio el espacio: se lo devolvemos, que
 // hay gente que se mueve por el sistema sin tocar el mouse.
@@ -3574,6 +3653,7 @@ function avisarVista(v){
     if(f && !f.getAttribute("src")) f.setAttribute("src", "/admin");
   }
   if(v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); }
+  if(v==="clientes") pintarClientesV();
   if(v==="usuarios") pintarUsuariosPunto();
   if(v==="simulador"){
     const f = document.getElementById("simFrame");
@@ -3655,6 +3735,7 @@ const ACCESOS = [
   { v:"comprobantes", t:"Comprobantes", f:"Pedidos por cobrar, facturas, notas y presupuestos." },
   { v:"productos", t:"Artículos", f:"Buscar, precios, combos, importar de GBP." },
   { v:"proveedores", t:"Proveedores", f:"Datos, listas y pedidos a proveedor." },
+  { v:"clientes", t:"Clientes", f:"Todos los clientes con sus datos." },
   { v:"caja", t:"Caja", f:"Lo que entró hoy, por forma de pago." },
   { v:"web", t:"Web", f:"El panel de la tienda online." },
   { v:"simulador", t:"Simulador", f:"Cuánto cuesta y a cuánto vender." },
@@ -3760,6 +3841,7 @@ const ICO_EN = [
   ["packagePlus", '#ocNuevo'],
   ["listChecks", '#ocSacar'],
   ["plus", '#prvNuevo'],
+  ["plus", '#clsNuevo'],
   ["upload", '#prvImportar'],
   ["userPlus", '#unCrear'],
   ["barChart", '#subGer [data-g="gerencia"]'],
@@ -5261,7 +5343,7 @@ const escribiendo = e => {
 document.addEventListener("keydown",e=>{
   // Escape cierra lo que esté abierto, en orden de encima hacia abajo.
   if(e.key === "Escape"){
-    for(const id of ["aMano","cliNuevo","prvForm","envio"]){
+    for(const id of ["aMano","cliNuevo","prvForm","clsForm","envio"]){
       const m = document.getElementById(id);
       if(m && !m.hidden){ m.hidden = true; e.preventDefault(); return; }
     }
@@ -11762,6 +11844,264 @@ prvG("pfX").addEventListener("click", cerrarFormPrv);
 prvG("pfCancelar").addEventListener("click", cerrarFormPrv);
 prvG("pfGuardar").addEventListener("click", guardarFormPrv);
 prvG("pfTraer").addEventListener("click", traerPadronPrv);
+
+/* ===================================================== CLIENTES (V.0.11.241)
+   Damián, 24/11/2026: "tendrías que hacerme una sección clientes donde están
+   todos los datos de ellos". Los de GBP (3.800) y los que se dan de alta en
+   la venta viven en el servidor (/sistema/clientes, src/lib/punto-clientes.ts).
+   La lista entera se trae al abrir la solapa y se filtra acá; la ficha manda
+   solo lo que se tocó (PUT). CLI_URL es el de la venta (var, más abajo). */
+const CLSX = { lista:[], error:"", cargado:false, trayendo:false, en:0, vista:[] };
+const clsG = id => document.getElementById(id);
+const IVA_CLS = ["Consumidor Final", "Responsable Inscripto", "Monotributo", "IVA Exento"];
+/** Las filas que se dibujan: con 3.800 la tabla se arrastra. Se busca. */
+const MAX_FILAS_CLS = 300;
+const vacioCls = t => '<tr><td colspan="10" class="vacio">' + txt(t) + '</td></tr>';
+/** "20-12345678-3", "DNI 12345678" o "" si no tiene. */
+const docCls = c => c.cuit ? cuitTxt(c.cuit) : c.dni ? "DNI " + c.dni : "";
+/** "02.Lista 2" -> "Lista 2". */
+const listaCorta = l => String(l || "").replace(/^\\d+\\./, "");
+
+async function pintarClientesV(){
+  clsG("clsNuevo").hidden = !puede("clientes");
+  // Se vuelve a pedir si pasó más de un minuto: otro puesto pudo cambiar algo.
+  if(!CLSX.trayendo && (!CLSX.cargado || Date.now() - CLSX.en > 60000)){
+    CLSX.trayendo = true;
+    if(!CLSX.cargado) clsG("tbCls").innerHTML = vacioCls("Trayendo los clientes…");
+    const d = await pedirJson("GET", CLI_URL + "?todos=1");
+    CLSX.trayendo = false;
+    if(d.error){ if(!CLSX.cargado) CLSX.error = d.error; else toast("No pude actualizar los clientes: " + d.error); }
+    else { CLSX.lista = d.clientes || []; CLSX.error = ""; CLSX.cargado = true; CLSX.en = Date.now(); }
+    pintarFiltrosCls();
+  }
+  pintarListaCls();
+}
+/** Las provincias que tienen los clientes, para el filtro. */
+function pintarFiltrosCls(){
+  const sel = clsG("clsProv"), antes = sel.value;
+  const provs = [...new Set(CLSX.lista.map(c => String(c.provincia || "").trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "es"));
+  sel.innerHTML = '<option value="">Todas las provincias</option>' +
+    provs.map(p => '<option value="' + atrib(p) + '">' + txt(p) + '</option>').join("");
+  if(provs.indexOf(antes) >= 0) sel.value = antes;
+}
+function filtrarCls(){
+  // "20-12345678-3" o "12.345.678": el CUIT y el DNI están sin guiones.
+  const toks = plano(clsG("clsBusca").value).split(/\\s+/).filter(Boolean)
+    .map(t => /^[\\d.\\-\\/]+$/.test(t) ? t.replace(/\\D/g, "") : t).filter(Boolean);
+  const iva = clsG("clsIva").value, prov = clsG("clsProv").value, bajas = clsG("clsBajas").checked;
+  return CLSX.lista.filter(c => {
+    if(c.inactivo && !bajas) return false;
+    if(iva && (c.condicionIva || "Consumidor Final") !== iva) return false;
+    if(prov && c.provincia !== prov) return false;
+    if(!toks.length) return true;
+    const t = plano([c.nombre, c.cuit, c.dni, c.domicilio, c.localidad, c.provincia, c.telefono, c.email,
+      c.gbpId == null ? "" : c.gbpId].join(" "));
+    return toks.every(x => t.indexOf(x) >= 0);
+  });
+}
+function pintarListaCls(){
+  const tb = clsG("tbCls"), cuenta = clsG("clsCount");
+  if(CLSX.error){ tb.innerHTML = vacioCls(CLSX.error); cuenta.textContent = ""; return; }
+  if(!CLSX.cargado) return;
+  const lista = filtrarCls();
+  CLSX.vista = lista;                     // lo que se exporta: todo, no solo lo dibujado
+  const n = x => x.toLocaleString("es-AR");
+  cuenta.textContent = n(lista.length) + (lista.length === 1 ? " cliente" : " clientes") +
+    (lista.length !== CLSX.lista.length ? " de " + n(CLSX.lista.length) : "") +
+    (lista.length > MAX_FILAS_CLS ? " · se ven los primeros " + MAX_FILAS_CLS + ": buscá para llegar al resto" : "");
+  if(!CLSX.lista.length){ tb.innerHTML = vacioCls("Todavía no hay clientes cargados."); return; }
+  if(!lista.length){ tb.innerHTML = vacioCls("Nada coincide con lo que buscás."); return; }
+  const ed = puede("clientes");
+  tb.innerHTML = lista.slice(0, MAX_FILAS_CLS).map(c => {
+    const doc = docCls(c);
+    return '<tr class="cls-fila" data-cls="' + atrib(c.id) + '"' + (c.inactivo ? ' style="opacity:.55"' : '') + '>' +
+      '<td><b>' + txt(c.nombre) + '</b>' + (c.inactivo ? ' <span class="pill p-n">de baja</span>' : '') +
+        (c.domicilio ? '<small>' + txt(c.domicilio) + '</small>' : '') + '</td>' +
+      '<td class="num" style="white-space:nowrap">' + (doc ? txt(doc) : '<span class="pill p-warn">sin documento</span>') + '</td>' +
+      '<td style="font-size:12.5px">' + txt(c.condicionIva || "Consumidor Final") + '</td>' +
+      '<td>' + txt(c.localidad || "—") + (c.provincia ? '<small>' + txt(c.provincia) + '</small>' : '') + '</td>' +
+      '<td style="font-size:12.5px;white-space:nowrap">' + txt(c.telefono || "—") + '</td>' +
+      '<td style="font-size:12.5px">' + txt(c.email || "—") + '</td>' +
+      '<td style="font-size:12.5px;white-space:nowrap">' + txt(listaCorta(c.lista) || "—") + '</td>' +
+      '<td class="r num">' + (+c.limite > 0 ? fmt2(+c.limite) : "—") + '</td>' +
+      '<td class="r num">' + (c.gbpId == null ? '<span class="pill p-n" title="Lo cargaron en Punto: no viene de GBP.">cargado acá</span>' : txt(c.gbpId)) + '</td>' +
+      '<td>' + (ed ? '<button class="b3" type="button" data-cls-ed="' + atrib(c.id) + '" style="padding:4px 10px">Ficha</button>' : '') + '</td></tr>';
+  }).join("");
+}
+
+/* ---- la ficha: una sola para el nuevo y para cambiar */
+const CS_CAMPOS = ["cuit", "dni", "nombre", "condicionIva", "domicilio", "localidad", "provincia", "telefono",
+  "email", "lista", "limite", "inactivo"];
+const CSFORM = { id:null, orig:null };
+let CS_PIDIENDO = 0;
+/** Los datos como se comparan: así "Guardar" manda solo lo que cambió. */
+function valoresCls(c){
+  const t = v => String(v == null ? "" : v).replace(/[<>]/g, "").trim();
+  return { cuit:soloNum(c.cuit), dni:soloNum(c.dni), nombre:t(c.nombre), condicionIva:t(c.condicionIva) || "Consumidor Final",
+    domicilio:t(c.domicilio), localidad:t(c.localidad), provincia:t(c.provincia), telefono:t(c.telefono),
+    email:t(c.email).toLowerCase(), lista:t(c.lista), limite:+c.limite > 0 ? Math.round(+c.limite * 100) / 100 : 0,
+    inactivo:!!c.inactivo };
+}
+function leerFormCls(){
+  const v = id => clsG(id).value;
+  return valoresCls({ cuit:v("csCuit"), dni:v("csDni"), nombre:v("csNom"), condicionIva:v("csIva"), domicilio:v("csDom"),
+    localidad:v("csLoc"), provincia:v("csProv"), telefono:v("csTel"), email:v("csMail"), lista:v("csLista"),
+    limite:aNum(v("csLim")) || 0, inactivo:clsG("csBaja").checked });
+}
+function abrirFormCls(c){
+  if(!puede("clientes")){ toast("Tu usuario no tiene Clientes."); return; }
+  CS_PIDIENDO++;                          // lo que estaba consultando ARCA ya no vale
+  CSFORM.id = c ? c.id : null;
+  CSFORM.orig = c ? valoresCls(c) : null;
+  const v = CSFORM.orig || valoresCls({ condicionIva:"Consumidor Final", lista:"02.Lista 2" });
+  const opc = (lista, val) => lista.concat(val && lista.indexOf(val) < 0 ? [val] : [])
+    .map(x => '<option value="' + atrib(x) + '">' + txt(x || "—") + '</option>').join("");
+  clsG("csIva").innerHTML = opc(IVA_CLS, v.condicionIva);
+  clsG("csLista").innerHTML = opc([""].concat(LISTAS), v.lista);
+  clsG("csCuit").value = v.cuit ? conGuiones(v.cuit) : "";
+  clsG("csDni").value = v.dni;
+  clsG("csNom").value = v.nombre;
+  clsG("csIva").value = v.condicionIva;
+  clsG("csLista").value = v.lista;
+  clsG("csDom").value = v.domicilio;
+  clsG("csLoc").value = v.localidad;
+  clsG("csProv").value = v.provincia;
+  clsG("csTel").value = v.telefono;
+  clsG("csMail").value = v.email;
+  clsG("csLim").value = v.limite > 0 ? String(v.limite).replace(".", ",") : "";
+  clsG("csBaja").checked = v.inactivo;
+  // Uno nuevo no se da de baja. Ojo: .campo es flex y le gana al hidden.
+  clsG("csBajaCampo").style.display = c ? "" : "none";
+  clsG("csTit").textContent = c ? "Ficha del cliente" : "Cliente nuevo";
+  clsG("csGuardar").textContent = c ? "Guardar los cambios" : "Guardar el cliente";
+  clsG("csAyuda").textContent = !c
+    ? "Poné el CUIT o el DNI y tocá Traer de ARCA: el nombre, la condición de IVA y el domicilio vienen solos."
+    : (c.gbpId != null
+      ? "Vino de GBP (ID " + c.gbpId + "). Cambiá lo que haga falta: se guarda solo lo que toques."
+      : "Lo cargaron en Punto. Cambiá lo que haga falta: se guarda solo lo que toques.");
+  clsG("csAviso").textContent = "";
+  clsG("clsForm").hidden = false;
+  clsG(c ? "csNom" : "csCuit").focus();
+}
+function cerrarFormCls(){ CS_PIDIENDO++; clsG("clsForm").hidden = true; }
+/** "Ya lo tiene otro": con el botón para abrir ese. */
+function avisoYaEstaCls(texto, id){
+  clsG("csAviso").innerHTML = '<b style="color:var(--bad)">' + txt(texto) + '</b>' +
+    (id ? ' <button class="link-chico" type="button" data-cs-abrir="' + atrib(id) + '">Abrir ese</button>' : '');
+}
+/** Con el CUIT (o el DNI), los datos de ARCA, como el cliente nuevo de la venta. */
+async function traerPadronCls(){
+  const cu = soloNum(clsG("csCuit").value), dn = soloNum(clsG("csDni").value);
+  const av = clsG("csAviso");
+  if(cu && cu.length !== 11){ av.innerHTML = '<b style="color:var(--bad)">Un CUIT tiene 11 números.</b> Van ' + cu.length + '.'; return; }
+  if(cu && !cuitValido(cu)){ av.innerHTML = '<b style="color:var(--bad)">Ese CUIT no cierra.</b> Está mal copiado: fijate algún número.'; return; }
+  if(!cu && (dn.length < 7 || dn.length > 8)){ av.innerHTML = '<b style="color:var(--bad)">Poné el CUIT (11 números) o el DNI (7 u 8).</b>'; return; }
+  if(cu){
+    const ya = CLSX.lista.find(x => x.id !== CSFORM.id && x.cuit === cu);
+    if(ya){ avisoYaEstaCls("Ese CUIT ya lo tiene " + ya.nombre + ".", ya.id); return; }
+  }
+  const este = ++CS_PIDIENDO;
+  av.textContent = "Consultando en ARCA…";
+  const r = await pedirJson("GET", "/sistema/padron?doc=" + (cu || dn));
+  if(este !== CS_PIDIENDO || clsG("clsForm").hidden) return;      // se pidió otro, o se cerró
+  if(!r || !r.encontrado){
+    av.innerHTML = '<b>' + txt((r && r.error) || "No pude consultar ARCA ahora.") + '</b> Cargá los datos a mano.';
+    return;
+  }
+  // Cambiando uno que ya estaba, lo que ARCA no trae no borra lo que había.
+  const pon = (id, val) => { if(val || !CSFORM.id) clsG(id).value = val || ""; };
+  pon("csNom", r.razonSocial);
+  if(IVA_CLS.indexOf(r.condicionIva) >= 0) clsG("csIva").value = r.condicionIva;
+  pon("csDom", r.domicilio); pon("csLoc", r.localidad); pon("csProv", r.provincia);
+  const rc = soloNum(r.cuit || "");
+  // Por DNI, el CUIT queda solo si no es consumidor final (la Factura A del
+  // monotributista va con él), igual que en el cliente nuevo de la venta.
+  if(cuitValido(rc) && (cu || r.condicionIva !== "Consumidor Final")) clsG("csCuit").value = conGuiones(rc);
+  av.innerHTML = '<b style="color:var(--ok)">Listo, vino de ARCA:</b> ' + txt(r.razonSocial) + ' · ' + txt(r.condicionIva) + '.' +
+    (r.aviso ? ' <b style="color:var(--warn)">Ojo:</b> ' + txt(r.aviso) : '');
+}
+async function guardarFormCls(){
+  const o = leerFormCls(), av = clsG("csAviso"), editando = CSFORM.id;
+  if(!o.nombre){ toast("Falta el nombre."); clsG("csNom").focus(); return; }
+  if(o.cuit && (!editando || o.cuit !== CSFORM.orig.cuit)){
+    if(o.cuit.length !== 11){ av.innerHTML = '<b style="color:var(--bad)">Un CUIT tiene 11 números.</b> Van ' + o.cuit.length + '.'; clsG("csCuit").focus(); return; }
+    if(!cuitValido(o.cuit)){ av.innerHTML = '<b style="color:var(--bad)">Ese CUIT no es válido: revisá los números.</b>'; clsG("csCuit").focus(); return; }
+  }
+  if(o.dni.length > 11){ toast("El DNI tiene demasiados números."); clsG("csDni").focus(); return; }
+  if(o.email && !mailOk(o.email)){ toast("Ese mail no parece bien escrito."); clsG("csMail").focus(); return; }
+  let d;
+  const b = clsG("csGuardar");
+  if(editando){
+    const cambios = {};
+    for(const k of CS_CAMPOS) if(String(o[k]) !== String(CSFORM.orig[k])) cambios[k] = o[k];
+    if(!Object.keys(cambios).length){ cerrarFormCls(); toast("No cambiaste nada."); return; }
+    b.disabled = true;
+    d = await pedirJson("PUT", CLI_URL, { id:editando, cambios, yo:soyYo() });
+  } else {
+    b.disabled = true;
+    d = await pedirJson("POST", CLI_URL, { cliente:o, yo:soyYo() });
+  }
+  b.disabled = false;
+  if(d.error){
+    if(d.id) avisoYaEstaCls(d.error, d.id);
+    else av.innerHTML = '<b style="color:var(--bad)">No se guardó: ' + txt(d.error) + '</b>';
+    toast("No se guardó: " + d.error);
+    return;
+  }
+  const c = d.cliente;
+  if(!c || !c.id){ toast("No se guardó: el servidor no devolvió el cliente."); return; }
+  const i = CLSX.lista.findIndex(x => x.id === c.id);
+  if(i >= 0) CLSX.lista[i] = c; else CLSX.lista.push(c);
+  CLSX.lista.sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es"));
+  // El alta con un CUIT que ya estaba devuelve el que estaba: se avisa y se ofrece abrirlo.
+  if(!editando && d.yaEstaba){ avisoYaEstaCls("Ese CUIT ya estaba cargado: " + c.nombre + ".", c.id); pintarListaCls(); return; }
+  cerrarFormCls();
+  pintarFiltrosCls();
+  pintarListaCls();
+  toast(editando ? "Cambios guardados." : "Cliente cargado: " + c.nombre + ".");
+}
+
+/* ---- Excel y PDF de lo filtrado */
+const COLS_CLS = [{ t:"Nombre", w:40 }, { t:"CUIT", w:15 }, { t:"DNI", w:11 }, { t:"Condición IVA", w:20 },
+  { t:"Domicilio", w:34 }, { t:"Localidad", w:22 }, { t:"Provincia", w:24 }, { t:"Teléfono", w:16 }, { t:"Mail", w:28 },
+  { t:"Lista", w:12 }, { t:"Límite cta. cte.", w:15, plata:true }, { t:"ID de GBP", w:9, num:true }, { t:"De baja", w:8 }];
+function filasClsExport(){
+  return (CLSX.vista || []).map(c => [c.nombre || "", c.cuit ? cuitTxt(c.cuit) : "", c.dni || "",
+    c.condicionIva || "Consumidor Final", c.domicilio || "", c.localidad || "", c.provincia || "", c.telefono || "",
+    c.email || "", listaCorta(c.lista), +c.limite > 0 ? +c.limite : "", c.gbpId == null ? "" : +c.gbpId, c.inactivo ? "sí" : ""]);
+}
+clsG("clsXlsx").addEventListener("click", () => {
+  const f = filasClsExport(); if(!f.length){ toast("No hay clientes para exportar."); return; }
+  bajarXlsx("Clientes-Conesa-" + hoyArchivo() + ".xlsx", "Clientes", COLS_CLS, f);
+});
+clsG("clsPdf").addEventListener("click", () => {
+  const f = filasClsExport(); if(!f.length){ toast("No hay clientes para exportar."); return; }
+  const cols = [0, 1, 2, 3, 4, 5, 7];
+  imprimirLista("Clientes", "Sanitarios Conesa · " + f.length.toLocaleString("es-AR") + " clientes · " + new Date().toLocaleDateString("es-AR"),
+    cols.map(i => COLS_CLS[i]), f.map(r => cols.map(i => r[i])));
+});
+
+let CLS_ESPERA = 0;
+clsG("clsBusca").addEventListener("input", () => { clearTimeout(CLS_ESPERA); CLS_ESPERA = setTimeout(pintarListaCls, 120); });
+for(const id of ["clsIva", "clsProv", "clsBajas"]) clsG(id).addEventListener("change", pintarListaCls);
+clsG("tbCls").addEventListener("click", e => {
+  const f = e.target.closest("[data-cls]"); if(!f) return;
+  const c = CLSX.lista.find(x => x.id === f.dataset.cls);
+  if(c && puede("clientes")) abrirFormCls(c);
+});
+clsG("csAviso").addEventListener("click", e => {
+  const b = e.target.closest("[data-cs-abrir]"); if(!b) return;
+  const c = CLSX.lista.find(x => x.id === b.dataset.csAbrir);
+  if(c) abrirFormCls(c); else toast("Ese cliente no está en la lista: recargá la página.");
+});
+clsG("clsNuevo").addEventListener("click", () => abrirFormCls(null));
+clsG("csX").addEventListener("click", cerrarFormCls);
+clsG("csCancelar").addEventListener("click", cerrarFormCls);
+clsG("csGuardar").addEventListener("click", guardarFormCls);
+clsG("csTraer").addEventListener("click", traerPadronCls);
+for(const id of ["csCuit", "csDni"]) clsG(id).addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); traerPadronCls(); } });
+
 prvG("pfCuit").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); traerPadronPrv(); } });
 // Con los 11 números puestos lo busca solo, como el cliente nuevo.
 prvG("pfCuit").addEventListener("input", e => { if(soloNum(e.target.value).length === 11) traerPadronPrv(); });

@@ -1,5 +1,12 @@
 import { registrar } from "@/lib/actividad";
-import { buscarClientes, clientesPorIds, crearCliente, limpiarCliente } from "@/lib/punto-clientes";
+import {
+  buscarClientes,
+  cambiarCliente,
+  clientesPorIds,
+  crearCliente,
+  limpiarCliente,
+  listarClientes,
+} from "@/lib/punto-clientes";
 import { puedePunto } from "@/lib/punto-permisos";
 import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
@@ -14,6 +21,11 @@ import { quienEntra } from "../clave";
 //                           hay uno con ese CUIT, devuelve ese
 //   POST {clientes, yo?} -> { ok, nuevos, yaEstaban, errores } la lista de
 //                           GBP, hasta 200 por tanda (permiso "importar")
+//   GET  ?todos=1        -> { clientes } todos, tambien los dados de baja
+//                           (area "clientes"), para la solapa Clientes
+//   PUT  {id, cambios, yo?} -> { ok, cliente } cambia solo eso (area
+//                           "clientes"); CUIT repetido: { error, id } con el
+//                           id del que ya lo tiene
 // Todo solo con usuario y permiso de "Sistema Punto" (../clave.ts); dar de
 // alta ademas con "venta" o "pedidos" de Punto (src/lib/punto-permisos.ts).
 // Los errores del servidor van con 200 y {error}: Cloudflare tapa los 5xx.
@@ -43,6 +55,18 @@ function deOtroUsuario(yo: unknown, quien: string): string | null {
 export async function GET(req: Request): Promise<Response> {
   if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
   const u = new URL(req.url);
+  // V.0.11.241: la solapa Clientes pide todos (con el area "clientes").
+  if (u.searchParams.get("todos") === "1") {
+    try {
+      const yo = await yoPunto();
+      if (!yo) return json({ error: "Se cerró tu sesión: entrá de nuevo con tu usuario." }, 401);
+      if (!puedePunto(yo.permisos, "clientes"))
+        return json({ error: "Tu usuario no tiene Clientes. Pedíselo a quien administra los usuarios." }, 403);
+      return json({ clientes: await listarClientes() });
+    } catch {
+      return json({ error: "No pude traer los clientes: probá de nuevo en un momento." });
+    }
+  }
   try {
     const ids = u.searchParams.get("ids");
     if (ids != null) return json({ clientes: await clientesPorIds(ids.split(",").map((s) => s.trim())) });
@@ -72,7 +96,7 @@ export async function POST(req: Request): Promise<Response> {
   const quien = yo.usuario;
   const otro = deOtroUsuario(cuerpo.yo, quien);
   if (otro) return json({ error: otro });
-  if (!puedePunto(yo.permisos, "venta") && !puedePunto(yo.permisos, "pedidos"))
+  if (!puedePunto(yo.permisos, "venta") && !puedePunto(yo.permisos, "pedidos") && !puedePunto(yo.permisos, "clientes"))
     return json(
       { error: "Tu usuario no tiene permiso para cargar clientes. Pedíselo a quien administra los usuarios." },
       403,
@@ -123,6 +147,60 @@ export async function POST(req: Request): Promise<Response> {
         quien,
       );
     return json({ ok: true, cliente, yaEstaba });
+  } catch {
+    return json({ error: "No pude guardar el cliente: probá de nuevo en un momento." });
+  }
+}
+
+/** Los nombres de los campos, para Actividad. */
+const NOMBRE_CAMPO: Record<string, string> = {
+  cuit: "CUIT",
+  dni: "DNI",
+  nombre: "nombre",
+  condicionIva: "condición de IVA",
+  domicilio: "domicilio",
+  localidad: "localidad",
+  provincia: "provincia",
+  telefono: "teléfono",
+  email: "mail",
+  lista: "lista",
+  limite: "límite",
+  inactivo: "baja",
+};
+
+/** V.0.11.241: la ficha de la solapa Clientes. Cambia solo lo que vino. */
+export async function PUT(req: Request): Promise<Response> {
+  if ((await quienEntra()) !== "ok") return json({ error: "Se cerró tu sesión: entrá de nuevo con tu usuario." }, 401);
+  let cuerpo: { id?: unknown; cambios?: unknown; yo?: unknown };
+  try {
+    cuerpo = (await req.json()) as typeof cuerpo;
+  } catch {
+    return json({ error: "No entendí lo que me mandaste." }, 400);
+  }
+  if (!cuerpo || typeof cuerpo !== "object") return json({ error: "No entendí lo que me mandaste." }, 400);
+  let yo: Awaited<ReturnType<typeof yoPunto>>;
+  try {
+    yo = await yoPunto();
+  } catch {
+    return json({ error: "No pude leer los permisos de tu usuario: probá de nuevo en un momento." });
+  }
+  if (!yo) return json({ error: "Se cerró tu sesión: entrá de nuevo con tu usuario." }, 401);
+  const quien = yo.usuario;
+  const otro = deOtroUsuario(cuerpo.yo, quien);
+  if (otro) return json({ error: otro });
+  if (!puedePunto(yo.permisos, "clientes"))
+    return json({ error: "Tu usuario no tiene Clientes. Pedíselo a quien administra los usuarios." }, 403);
+  const id = typeof cuerpo.id === "string" ? cuerpo.id.trim() : "";
+  try {
+    const r = await cambiarCliente(id, cuerpo.cambios);
+    if ("error" in r) return json(r.id ? { error: r.error, id: r.id } : { error: r.error });
+    const { cliente, antes } = r;
+    const cambiados = (Object.keys(NOMBRE_CAMPO) as (keyof typeof antes)[])
+      .filter((k) => antes[k] !== cliente[k])
+      .map((k) => NOMBRE_CAMPO[k]);
+    if (cambiados.length)
+      await registrar(`Punto: cambió el cliente ${cliente.nombre}`, cambiados.join(", "), quien);
+    return json({ ok: true, cliente });
   } catch {
     return json({ error: "No pude guardar el cliente: probá de nuevo en un momento." });
   }

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.240";
+export const APP_VERSION = "V.0.11.241";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.241",
+    date: "2026-11-24",
+    changes: [
+      "Punto, solapa CLIENTES (\"tendrías que hacerme una sección clientes donde están todos los datos de ellos\"), al lado de Proveedores: la lista de todos (nombre, CUIT o DNI, condición de IVA, domicilio, localidad, provincia, teléfono, mail, lista, límite de cuenta corriente e ID de GBP), buscador, filtros por condición de IVA y provincia, ver los dados de baja, Excel y PDF de lo filtrado. Tocando uno se abre su ficha: se cambia cualquier dato (se guarda solo lo que se tocó), Traer de ARCA con el CUIT o el DNI, y dar de baja (no se borra). El CUIT no se repite: si ya lo tiene otro, ofrece abrir ese. También Nuevo cliente. Área nueva en Usuarios: \"Clientes\" (el que tiene todo la ve sola; a los demás hay que tildársela).",
+    ],
+  },
   {
     version: "V.0.11.240",
     date: "2026-11-24",

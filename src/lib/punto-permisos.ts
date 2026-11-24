@@ -28,6 +28,10 @@ export const AREAS_PUNTO: readonly DatosPermisoPunto[] = [
   { id: "productos", nombre: "Artículos", ayuda: "La lista de artículos con su costo, Lista 1 y Lista 2; crearlos o traerlos de GBP." },
   { id: "listas", nombre: "Listas", ayuda: "Las listas de precios de los proveedores (PDF, Excel, fotos)." },
   { id: "proveedores", nombre: "Proveedores", ayuda: "Los proveedores de GBP y sus datos." },
+  // V.0.11.241. Damian, 24/11/2026: "tendrias que hacerme una seccion clientes
+  // donde estan todos los datos de ellos". Desde la venta se siguen buscando
+  // y dando de alta con "venta"; esta es la lista entera y la ficha.
+  { id: "clientes", nombre: "Clientes", ayuda: "Todos los clientes con sus datos: buscar, editar, dar de baja, Excel y PDF." },
   { id: "simulador", nombre: "Simulador", ayuda: "El simulador de costo: del costo con descuentos al precio de venta." },
   { id: "caja", nombre: "Caja", ayuda: "La caja del día de cada razón social." },
   { id: "renta", nombre: "Rentabilidad", ayuda: "Qué deja de verdad lo que se vendió. Está adentro de Gerencia." },
