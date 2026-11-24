@@ -4449,7 +4449,7 @@ function abrirEnvio(d){
   if(!d.lineas.length){ toast("No hay nada para mandar."); return; }
   const url = d.url || "";
   const txt =
-    (d.quien && d.quien !== "el cliente" ? "Hola "+d.quien+"!" : "Hola!")+" Te paso de "+(d.suc ? sucDe(d.suc).n : sucAct().n)+" el detalle de tu "+
+    (d.quien && d.quien !== "el cliente" ? "Hola "+d.quien+"!" : "Hola!")+" Te paso de Sanitarios Conesa el detalle de tu "+
       (esPresu(d.tit) ? "presupuesto" : "compra")+":\\n\\n"+
     d.tit+" N° "+d.nro.slice(2)+"\\n\\n"+
     d.lineas.map(x=>"• "+x.cant+" × "+x.p.tit+" — "+fmt(x.p.contado*x.cant)).join("\\n")+
@@ -4457,7 +4457,8 @@ function abrirEnvio(d){
     "\\n\\nTotal: "+fmt(d.total)+"\\n"+
     (url ? "Lo podés ver y bajar acá: "+url+"\\n" : "")+"\\n"+
     "Cualquier cosa me escribís. Gracias!";
-  document.getElementById("envioTit").textContent = d.tit+" "+d.nro;
+  // Sin la letra de adelante: el título ya la dice ("Factura B" + "0006-…").
+  document.getElementById("envioTit").textContent = d.tit+" "+d.nro.slice(2);
   document.getElementById("envioTxt").value = txt;
   document.getElementById("envioUrl").value = url;
   document.querySelector("#envio .envio-link").hidden = !url;
