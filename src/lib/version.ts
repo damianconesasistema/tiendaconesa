@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.230";
+export const APP_VERSION = "V.0.11.231";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.231",
+    date: "2026-11-24",
+    changes: [
+      "Punto, centavos en todo el sistema (\"que los precios tengan centavos en los presupuestos y todo el sistema\"): toda la plata se ve con centavos ($5.454,32); el descuento de la venta y de los pedidos se calcula al centavo (antes se redondeaba a pesos, y de ahí salía el \"Redondeo $ 0,18\" del PDF), y el IVA contenido también; los precios que se arman desde un costo (simulador, aplicar costos nuevos) ya no se suben a los $100.",
+    ],
+  },
   {
     version: "V.0.11.230",
     date: "2026-11-24",

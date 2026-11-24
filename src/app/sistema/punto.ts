@@ -3104,12 +3104,14 @@ function precioLinea(p, cant){
   const un = conL1 ? lista1De(p) : cent(+p.unPago || 0);
   return { contado: un, unPago: un, may: false };
 }
-/** Los precios de venta se redondean para arriba a los $100. */
-function redondear(n){ return Math.ceil(n/100)*100; }
+/** V.0.11.231: los precios quedan al centavo ("que los precios tengan
+    centavos en todo el sistema"); antes se subían a los $100. */
+function redondear(n){ return cent(n); }
 // Un formateador armado una vez: toLocaleString arma uno nuevo en cada
 // llamada, y la tabla de artículos hace miles (mismo resultado).
 const NF_ENTERO = new Intl.NumberFormat("es-AR");
-const fmt = n => "$" + NF_ENTERO.format(Math.round(n));
+// V.0.11.231: con centavos en todo el sistema ($5.454,32). Era "$" + entero.
+const fmt = n => fmt2(Math.round((+n || 0) * 100) / 100);
 /* Para costear hace falta el centavo: la lista del proveedor lo trae y
    redondear cada renglón termina en un costo que no cierra con la factura. */
 const dosDec = { minimumFractionDigits:2, maximumFractionDigits:2 };
@@ -4878,7 +4880,7 @@ function pintarTicket(){
     S.linea.length ? unid+" unidades en "+S.linea.length+" renglones" : "";
 
   const bruto = S.linea.reduce((a,l)=>a+precioLinea(prod(l.cod), l.cant).contado*l.cant,0);
-  const dto = Math.round(bruto * S.desc / 100);
+  const dto = cent(bruto * S.desc / 100);
   const base = bruto - dto;
   const total = base * MULT[S.forma];
   // El IVA incluido se arma renglón por renglón: si hay algo al 10,5%,
@@ -4887,7 +4889,7 @@ function pintarTicket(){
     const p = prod(l.cod), t = precioLinea(p, l.cant).contado * l.cant;
     return a + (t - t/facIva(ivaDe(p)));
   }, 0);
-  const iva = Math.round(ivaLin * (bruto>0 ? total/bruto : 1));
+  const iva = cent(ivaLin * (bruto>0 ? total/bruto : 1));
   const alics = [...new Set(S.linea.map(l=>ivaDe(prod(l.cod))))];
   const etIva = alics.length > 1
     ? "IVA ya incluido ("+alics.sort((a,b)=>b-a).map(ivaTxt).join(" y ")+")"
@@ -5095,7 +5097,7 @@ document.getElementById("btnSinFactura").addEventListener("click",()=>{
 document.getElementById("btnWhatsVta").addEventListener("click",()=>{
   const c = clienteVta(), comp = compAct();
   const bruto = S.linea.reduce((a,l)=>a+precioLinea(prod(l.cod), l.cant).contado*l.cant,0);
-  const total = (bruto - Math.round(bruto*S.desc/100)) * MULT[S.forma];
+  const total = (bruto - cent(bruto*S.desc/100)) * MULT[S.forma];
   abrirEnvio({
     quien: c ? c.n : "el cliente",
     tit: comp.replace(/^\\d+\\./,""), nro: nroDe(comp),
@@ -8827,9 +8829,9 @@ function pintarPedido(){
   // que son. El IVA va incluido en el precio, no se suma aparte: en el
   // mostrador el precio que se dice es el precio final.
   const bruto = filas.reduce((a,f)=>a+f.sub,0);
-  const dto = Math.round(bruto * PEDCFG.desc / 100);
+  const dto = cent(bruto * PEDCFG.desc / 100);
   const total = bruto - dto;
-  const iva = Math.round(total - total / 1.21);
+  const iva = cent(total - total / 1.21);
   const senia = Math.max(0, Math.min(PED.senia, total));
   document.getElementById("pedTot").innerHTML =
     '<div class="tr"><span>Mercadería</span><b>'+fmt(bruto)+'</b></div>'+
@@ -9943,7 +9945,7 @@ function armarDocumento(comp, letra){
              costo:p.costo, iva:ivaDe(p) };
   });
   const bruto = renglones.reduce((a, r) => a + r.contado * r.cant, 0);
-  const descuento = Math.round(bruto * S.desc / 100);
+  const descuento = cent(bruto * S.desc / 100);
   const total = (bruto - descuento) * MULT[S.forma];
   return {
     v:2, comp, letra, sucursal:su.id, pv:su.pv,
@@ -13219,7 +13221,7 @@ function datosDeVenta(){
 }
 function totalDeVenta(){
   const bruto = S.linea.reduce((a, l) => { const p = prod(l.cod); return a + (p ? precioLinea(p, l.cant).contado * l.cant : 0); }, 0);
-  return Math.max(0, cent((bruto - Math.round(bruto * S.desc / 100)) * (MULT[S.forma] || 1)));
+  return Math.max(0, cent((bruto - cent(bruto * S.desc / 100)) * (MULT[S.forma] || 1)));
 }
 function marcarNube(estado, msg){
   VSRV.nube = estado;
