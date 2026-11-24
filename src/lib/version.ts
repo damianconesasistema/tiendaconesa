@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.225";
+export const APP_VERSION = "V.0.11.226";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.226",
+    date: "2026-11-24",
+    changes: [
+      "Punto, Gerencia → Cuentas y gastos (parte 1; Damián: \"en gerencia necesito que tenga un lugar donde sea los gastos diarios y los gastos mensuales de cada sucursal\"): cada razón social (SRL, CNC, Traslasierra) carga sus cuentas (efectivo, Mercado Pago, bancos con caja de ahorro o cuenta corriente) con el saldo con el que arrancan; se anotan gastos, pagos a proveedor, retiros, cobranzas, señas, pases entre cuentas y ajustes; un gasto compartido se reparte por %; nada se borra, se anula. Gerencia ve los gastos de hoy y del período por razón social, por día y por rubro, las cuentas con su saldo y los movimientos. En Caja, \"Anotar movimiento\": el cajero anota lo que sale o entra del efectivo de su sucursal (y deposita en el banco). Las ventas todavía no entran solas a las cuentas: es la parte 3.",
+      "Punto, la Venta: después de sumar un artículo el cursor vuelve a Cant. (\"que vuelva el foco a cantidad siempre\"); CONFIRMAR PEDIDO en mayúsculas.",
+    ],
+  },
   {
     version: "V.0.11.225",
     date: "2026-11-24",
