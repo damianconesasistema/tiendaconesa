@@ -1,6 +1,6 @@
 import { registrar } from "@/lib/actividad";
 import { ID_VALIDO } from "@/lib/punto-documentos";
-import { esSucursalPunto, nombreSucursalPunto, puedePunto } from "@/lib/punto-permisos";
+import { esSucursalPunto, fueraDeSucursal, nombreSucursalPunto, nombresSucursales, puedePunto } from "@/lib/punto-permisos";
 import {
   anular,
   aBorrador,
@@ -94,9 +94,9 @@ export async function GET(req: Request): Promise<Response> {
       if (!puedePunto(yo.permisos, "cobrar")) return json({ error: NO_COBRA }, 403);
       const suc = u.searchParams.get("suc") ?? "";
       if (!esSucursalPunto(suc)) return json({ error: "Falta la sucursal de la caja." }, 400);
-      if (yo.sucursal && suc !== yo.sucursal)
+      if (yo.sucursales && fueraDeSucursal(yo.sucursales, suc))
         return json(
-          { error: `Tu usuario es de ${nombreSucursalPunto(yo.sucursal)}: no ve la caja de otra sucursal.` },
+          { error: `Tu usuario es de ${nombresSucursales(yo.sucursales)}: no ve la caja de otra sucursal.` },
           403,
         );
       return json({ ventas: await listarCaja(suc) });
@@ -172,7 +172,7 @@ export async function POST(req: Request): Promise<Response> {
   const quien: Quien = {
     usuario: yo.usuario,
     nombre: yo.nombre,
-    sucursal: yo.sucursal,
+    sucursales: yo.sucursales,
     puedeCobrar: puede("cobrar"),
     puedePedidos: puede("pedidos"),
   };

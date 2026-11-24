@@ -125,3 +125,38 @@ export const esSucursalPunto = (x: unknown): x is string =>
 export function nombreSucursalPunto(id: string): string {
   return SUCURSALES_PUNTO.find((s) => s.id === id)?.nombre ?? id;
 }
+
+// Varias sucursales por usuario (V.0.11.233). Damian, 24/11/2026: "aca me
+// tendria que dejar elegir sucursales, mas de una". AdminUser.sucursal guarda
+// los ids separados por coma ("srl,cnc"), en el orden de SUCURSALES_PUNTO;
+// null (o vacio) = cualquiera. Un solo id sigue siendo lo de antes.
+
+/** Lo guardado como lista. null = cualquiera. Lo que no existe se ignora,
+ *  pero nunca abre a todas: si no queda ninguna valida, es ninguna. */
+export function leerSucursales(guardado: string | null | undefined): string[] | null {
+  if (guardado == null || !String(guardado).trim()) return null;
+  const ids = new Set(String(guardado).split(",").map((x) => x.trim()));
+  return SUCURSALES_PUNTO.map((s) => s.id).filter((id) => ids.has(id));
+}
+
+/** Lo que llega de la pantalla (lista, texto o null), para guardar. Las
+ *  tres o ninguna = null (cualquiera). "mal" si trae algo que no existe. */
+export function guardarSucursales(x: unknown): string | null | "mal" {
+  if (x == null || x === "") return null;
+  const lista = Array.isArray(x) ? x : typeof x === "string" ? x.split(",") : null;
+  if (!lista || !lista.every((v) => typeof v === "string")) return "mal";
+  const ids = new Set((lista as string[]).map((v) => v.trim()).filter(Boolean));
+  if ([...ids].some((id) => !esSucursalPunto(id))) return "mal";
+  const orden = SUCURSALES_PUNTO.map((s) => s.id).filter((id) => ids.has(id));
+  return orden.length === 0 || orden.length === SUCURSALES_PUNTO.length ? null : orden.join(",");
+}
+
+/** Si esa sucursal no es de las del usuario (null = todas lo son). */
+export const fueraDeSucursal = (sucursales: readonly string[] | null, suc: string): boolean =>
+  !!sucursales && !sucursales.includes(suc);
+
+/** "CONESA SRL y SANITARIOS CNC", para los avisos. */
+export const nombresSucursales = (ids: readonly string[]): string => {
+  const n = ids.map(nombreSucursalPunto);
+  return n.length > 1 ? n.slice(0, -1).join(", ") + " y " + n[n.length - 1] : n.join("");
+};

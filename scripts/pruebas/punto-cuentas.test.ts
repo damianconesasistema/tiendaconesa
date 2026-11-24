@@ -119,10 +119,12 @@ test("puedeMover", () => {
   const bcoTsl = cuenta("bcoTsl", "tsl", "banco");
   const bcoSrl = cuenta("bcoSrl", "srl", "banco");
   const inactiva = cuenta("vieja", "tsl", "efectivo", { activa: false });
-  const cajeroTsl = { permisos: ["caja"], sucursal: "tsl" };
-  const cajeroLibre = { permisos: ["caja"], sucursal: null };
-  const gerente = { permisos: ["caja", "cuentas"], sucursal: null };
-  const vendedor = { permisos: ["venta"], sucursal: "tsl" };
+  const cajeroTsl = { permisos: ["caja"], sucursales: ["tsl"] };
+  const cajeroLibre = { permisos: ["caja"], sucursales: null };
+  const gerente = { permisos: ["caja", "cuentas"], sucursales: null };
+  const vendedor = { permisos: ["venta"], sucursales: ["tsl"] };
+  // V.0.11.233: un cajero de dos sucursales (SRL y CNC, el mismo local).
+  const cajeroBA = { permisos: ["caja"], sucursales: ["srl", "cnc"] };
 
   assert.equal(puedeMover(cajeroTsl, pedido(), efTsl, null), null);
   assert.equal(typeof puedeMover(cajeroTsl, pedido(), efSrl, null), "string");
@@ -131,6 +133,8 @@ test("puedeMover", () => {
   assert.equal(puedeMover(cajeroTsl, pedido({ tipo: "transferencia", cuentaDestinoId: "bcoTsl" }), efTsl, bcoTsl), null);
   assert.equal(typeof puedeMover(cajeroTsl, pedido({ tipo: "transferencia", cuentaDestinoId: "bcoSrl" }), efTsl, bcoSrl), "string");
   assert.equal(puedeMover(cajeroLibre, pedido(), efSrl, null), null);
+  assert.equal(puedeMover(cajeroBA, pedido(), efSrl, null), null);
+  assert.equal(typeof puedeMover(cajeroBA, pedido(), efTsl, null), "string");
   assert.equal(puedeMover(gerente, pedido({ reparto: { srl: 50, cnc: 50 } }), bcoSrl, null), null);
   assert.equal(puedeMover(gerente, pedido({ tipo: "transferencia", cuentaId: "bcoSrl", cuentaDestinoId: "efTsl" }), bcoSrl, efTsl), null);
   assert.equal(typeof puedeMover(vendedor, pedido(), efTsl, null), "string");

@@ -282,7 +282,8 @@ export function mismoPedido(guardados: readonly Movimiento[], p: PedidoMovimient
 
 /** Si ese usuario puede hacer ese movimiento. null = puede; si no, el motivo. */
 export function puedeMover(
-  yo: { permisos: readonly string[]; sucursal: string | null },
+  // V.0.11.233: las sucursales del usuario (null = cualquiera).
+  yo: { permisos: readonly string[]; sucursales: readonly string[] | null },
   pedido: PedidoMovimiento,
   origen: Cuenta,
   destino: Cuenta | null,
@@ -291,7 +292,7 @@ export function puedeMover(
   if (yo.permisos.includes("cuentas")) return null;
   if (!yo.permisos.includes("caja")) return "Tu usuario no puede anotar movimientos de plata.";
   if (origen.tipo !== "efectivo") return "Desde la caja solo se anota lo que sale o entra del efectivo.";
-  if (yo.sucursal && origen.sucursal !== yo.sucursal) return "Esa caja es de otra sucursal.";
+  if (yo.sucursales && !yo.sucursales.includes(origen.sucursal)) return "Esa caja es de otra sucursal.";
   if (pedido.reparto) return "Repartir un gasto entre razones sociales se hace desde Gerencia.";
   // Lo que el formulario de Caja no ofrece tampoco se acepta a mano: otro dia
   // cambiaria un mes ya cerrado y el cajero no lo veria ni podria anularlo.

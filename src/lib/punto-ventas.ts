@@ -1,7 +1,7 @@
 import { Prisma, type PuntoVenta } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ID_VALIDO, siguientePedido } from "@/lib/punto-documentos";
-import { nombreSucursalPunto } from "@/lib/punto-permisos";
+import { fueraDeSucursal, nombreSucursalPunto } from "@/lib/punto-permisos";
 
 // La venta de Punto, en el servidor (migracion 55, V.0.99.82).
 //
@@ -218,8 +218,8 @@ export type Quien = {
   usuario: string;
   /** Para el vendedor de una venta nueva cuando la pagina no lo manda. */
   nombre: string;
-  /** "srl" | "cnc" | "tsl" si el usuario es de una sola sucursal. */
-  sucursal: string | null;
+  /** V.0.11.233: sus sucursales ("srl", "cnc", "tsl"); null = cualquiera. */
+  sucursales: string[] | null;
   puedeCobrar: boolean;
   puedePedidos: boolean;
 };
@@ -375,9 +375,9 @@ async function podarBorradores(tx: Prisma.TransactionClient, usuario: string): P
 }
 
 const versionMovida = (v: PuntoVenta, version: number | null) => version != null && v.version !== version;
-/** Cobra en la caja de esa venta: tiene "cobrar" y, si es de una sola
- *  sucursal, es esa. */
-const cajeroDe = (yo: Quien, v: PuntoVenta) => yo.puedeCobrar && (!yo.sucursal || yo.sucursal === v.sucursal);
+/** Cobra en la caja de esa venta: tiene "cobrar" y la sucursal es de las
+ *  suyas (o puede cualquiera). */
+const cajeroDe = (yo: Quien, v: PuntoVenta) => yo.puedeCobrar && !fueraDeSucursal(yo.sucursales, v.sucursal);
 const MOVIDA = "Esta venta se cambió en otra pestaña o en otra compu: te traigo cómo quedó.";
 
 // ------------------------------------------------------------ GUARDAR
@@ -594,7 +594,7 @@ export async function tomar(yo: Quien, id: string, lugar: string): Promise<Resul
   return enTransaccion(async (tx): Promise<Resultado> => {
     const { venta: v, ocupa } = await bloquear(tx, id, yo.usuario, lugar);
     if (!v) return { error: "Ese ticket ya no está en la caja." };
-    if (yo.sucursal && v.sucursal !== yo.sucursal)
+    if (fueraDeSucursal(yo.sucursales, v.sucursal))
       return { error: `Ese ticket es de la caja de ${nombreSucursalPunto(v.sucursal)}.` };
     switch (v.estado) {
       case "en-caja":

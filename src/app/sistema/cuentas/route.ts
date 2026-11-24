@@ -73,7 +73,7 @@ const puedeTodo = (yo: YoPunto) => puedePunto(yo.permisos, "cuentas");
 const esCajero = (yo: YoPunto) => puedePunto(yo.permisos, "caja");
 /** Las cuentas que ve ese usuario. */
 const visibles = (yo: YoPunto, cuentas: Cuenta[]) =>
-  puedeTodo(yo) ? cuentas : cuentas.filter((c) => c.tipo === "efectivo" && (!yo.sucursal || c.sucursal === yo.sucursal));
+  puedeTodo(yo) ? cuentas : cuentas.filter((c) => c.tipo === "efectivo" && (!yo.sucursales || yo.sucursales.includes(c.sucursal)));
 
 async function quienSoy(): Promise<YoPunto | Response> {
   if ((await quienEntra()) !== "ok") return json({ error: "Se cerró tu sesión: entrá de nuevo con tu usuario." }, 401);
@@ -117,7 +117,7 @@ export async function GET(req: Request): Promise<Response> {
       destinos: puedeTodo(yo)
         ? []
         : todas
-            .filter((c) => c.activa && c.tipo !== "efectivo" && (!yo.sucursal || c.sucursal === yo.sucursal))
+            .filter((c) => c.activa && c.tipo !== "efectivo" && (!yo.sucursales || yo.sucursales.includes(c.sucursal)))
             .map(({ id, sucursal, tipo, nombre, banco, clase, activa }) => ({ id, sucursal, tipo, nombre, banco, clase, activa })),
       movimientos,
       truncado,

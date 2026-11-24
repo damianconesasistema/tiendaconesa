@@ -12,7 +12,7 @@ import {
   listarDocumentos,
 } from "@/lib/punto-documentos";
 import { motivoParaLaPantalla } from "@/lib/punto-error";
-import { nombreSucursalPunto, puedePunto } from "@/lib/punto-permisos";
+import { fueraDeSucursal, nombresSucursales, puedePunto } from "@/lib/punto-permisos";
 import { yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
 
@@ -129,8 +129,8 @@ export async function POST(req: Request): Promise<Response> {
   // La pagina ya fija la sucursal del que la tiene; esto es por si igual
   // llega otra (una pestaña vieja, alguien que la cambia a mano).
   const otraSucursal = (suc: string) =>
-    yo.sucursal && suc !== yo.sucursal
-      ? `Tu usuario es de ${nombreSucursalPunto(yo.sucursal)}: no puede emitir como otra sucursal.`
+    yo.sucursales && fueraDeSucursal(yo.sucursales, suc)
+      ? `Tu usuario es de ${nombresSucursales(yo.sucursales)}: no puede emitir como otra sucursal.`
       : null;
   const malSucursal = otraSucursal(limpio.doc.sucursal);
   if (malSucursal) return json({ error: malSucursal }, 400);
@@ -140,7 +140,7 @@ export async function POST(req: Request): Promise<Response> {
     try {
       // Al editar, el presupuesto conserva la sucursal con la que se emitio
       // (editarPresupuesto no la cambia): esa tambien tiene que ser la suya.
-      if (yo.sucursal) {
+      if (yo.sucursales) {
         const original = await documentoPorId(ed.id);
         const mal = original && otraSucursal(original.sucursal);
         if (mal) return json({ error: mal }, 400);

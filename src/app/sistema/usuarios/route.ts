@@ -4,10 +4,11 @@ import { prisma } from "@/lib/db";
 import {
   ACCIONES_PUNTO,
   AREAS_PUNTO,
-  esSucursalPunto,
+  guardarSucursales,
   guardarPunto,
   leerPunto,
-  nombreSucursalPunto,
+  leerSucursales,
+  nombresSucursales,
 } from "@/lib/punto-permisos";
 import { reseteaATodos, yoPunto, type YoPunto } from "@/lib/punto-yo";
 import {
@@ -150,10 +151,11 @@ function leerListaPunto(x: unknown): { punto: string | null } | { error: string 
 }
 
 /** sucursal: null o vacia = la que quiera (como hasta hoy). */
+/** Una sucursal, varias (V.0.11.233: "srl,cnc") o ninguna (cualquiera). */
 function leerSucursal(x: unknown): { sucursal: string | null } | { error: string } {
-  if (x == null || x === "") return { sucursal: null };
-  if (esSucursalPunto(x)) return { sucursal: x };
-  return { error: "Esa sucursal no existe." };
+  const g = guardarSucursales(x);
+  if (g === "mal") return { error: "Esa sucursal no existe." };
+  return { sucursal: g };
 }
 
 /** Lo que queda anotado en el Registro del panel (src/lib/actividad.ts). */
@@ -166,7 +168,8 @@ function resumen(punto: string | null, sucursal: string | null, adminPunto: bool
           .filter((p) => lista.includes(p.id))
           .map((p) => p.nombre)
           .join(", ") || "nada";
-  const suc = sucursal ? nombreSucursalPunto(sucursal) : "cualquiera";
+  const sucs = leerSucursales(sucursal);
+  const suc = sucs ? nombresSucursales(sucs) : "cualquiera";
   return `Puede usar: ${que} · sucursal: ${suc}${adminPunto ? " · administra los usuarios de Punto" : ""}`;
 }
 

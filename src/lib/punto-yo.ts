@@ -1,6 +1,6 @@
 import { getAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
-import { leerPunto, permisosEfectivos } from "@/lib/punto-permisos";
+import { leerPunto, leerSucursales, permisosEfectivos } from "@/lib/punto-permisos";
 import { PRINCIPAL } from "@/lib/usuarios";
 
 // Quien esta usando Punto y que puede hacer adentro (src/lib/punto-permisos.ts).
@@ -25,8 +25,12 @@ export type YoPunto = {
   nombre: string;
   /** Los ids que puede usar, ya expandidos (null de la base = todos). */
   permisos: string[];
-  /** "srl" | "cnc" | "tsl" si solo vende como esa; null = cualquiera. */
+  /** La primera de sus sucursales (para elegir por defecto y los avisos);
+   *  null = cualquiera. */
   sucursal: string | null;
+  /** V.0.11.233: todas las suyas ("srl", "cnc", "tsl"); null = cualquiera.
+   *  Los controles de emitir, cobrar y mover caja miran esta. */
+  sucursales: string[] | null;
   adminUsuarios: boolean;
 };
 
@@ -35,7 +39,7 @@ export async function yoPunto(): Promise<YoPunto | null> {
   if (!s) return null;
   // "admin" no esta en la tabla (src/lib/usuarios.ts): puede todo.
   if (s.username === PRINCIPAL)
-    return { usuario: s.username, nombre: s.username, permisos: permisosEfectivos(null), sucursal: null, adminUsuarios: true };
+    return { usuario: s.username, nombre: s.username, permisos: permisosEfectivos(null), sucursal: null, sucursales: null, adminUsuarios: true };
   const fila = await prisma.adminUser
     .findUnique({
       where: { username: s.username },
@@ -49,7 +53,8 @@ export async function yoPunto(): Promise<YoPunto | null> {
     usuario: s.username,
     nombre: fila.nombre || s.username,
     permisos: permisosEfectivos(leerPunto(fila.punto)),
-    sucursal: fila.sucursal || null,
+    sucursal: leerSucursales(fila.sucursal)?.[0] ?? null,
+    sucursales: leerSucursales(fila.sucursal),
     adminUsuarios: fila.adminPunto || RESETEAN_A_TODOS.includes(s.username),
   };
 }

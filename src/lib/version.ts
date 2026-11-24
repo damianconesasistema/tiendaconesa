@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.232";
+export const APP_VERSION = "V.0.11.233";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.233",
+    date: "2026-11-24",
+    changes: [
+      "Punto, Usuarios: cada usuario puede tener varias sucursales (\"me tendría que dejar elegir sucursales, más de una\"): casillas CONESA SRL, SANITARIOS CNC y TRASLASIERRA al crearlo y en cada usuario; ninguna tildada = cualquiera. El que tiene varias elige entre las suyas en la venta (los desplegables muestran solo esas); el que tiene una sigue fijo en la suya. El servidor controla lo mismo al emitir, cobrar, ver la caja y mover plata.",
+    ],
+  },
   {
     version: "V.0.11.232",
     date: "2026-11-24",

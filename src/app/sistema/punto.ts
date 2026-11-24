@@ -550,6 +550,11 @@ tr.mov-anulado td:last-child{text-decoration:none}
 .mov-reparto{display:flex; gap:10px; flex-wrap:wrap}
 .mov-reparto span{display:flex; align-items:center; gap:4px; font-size:13px; text-transform:none; letter-spacing:0; font-weight:600}
 .mov-reparto input{width:64px}
+.us-sucs{display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 0}
+.us-suc{display:inline-flex; align-items:center; gap:5px; margin-right:12px; font-weight:600; text-transform:none; letter-spacing:0; font-size:13px}
+#unSuc{display:flex; flex-wrap:wrap; gap:6px 14px; padding:6px 0}
+#unSuc .us-suc{display:inline-flex; white-space:nowrap; margin:0; color:var(--ink)}
+#unSuc .us-suc input, .us-sucs input[type=checkbox]{width:auto; min-width:0; padding:0; margin:0; border:0; box-shadow:none}
 .cta-fila{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); font-size:13.5px}
 .cta-fila:first-child{border-top:0}
 .cta-fila small{display:block; color:var(--ink-3); font-size:12px}
@@ -2513,7 +2518,7 @@ footer{
       <div class="campo"><label for="unNom">Nombre</label><input id="unNom" type="text" maxlength="60" placeholder="Mariano Pérez" autocomplete="off"></div>
       <div class="campo"><label for="unUsu">Usuario</label><input id="unUsu" type="text" maxlength="30" placeholder="mariano" autocomplete="off" autocapitalize="none"></div>
       <div class="campo"><label for="unClave">Contraseña provisoria</label><input id="unClave" type="text" maxlength="60" placeholder="mínimo 8 letras o números" autocomplete="new-password"></div>
-      <div class="campo"><label for="unSuc">Sucursal</label><select id="unSuc"></select></div>
+      <div class="campo"><label>Sucursales</label><div id="unSuc" class="us-sucs"></div><span class="por">Ninguna tildada = cualquiera</span></div>
       <div class="campo"><label>&nbsp;</label><button class="b1" id="unCrear" type="button">Crear usuario</button></div>
     </div>
     <p class="nota" style="padding:0 16px 14px">Arranca con todo tildado salvo administrar usuarios: después le sacás lo que no tiene que ver.</p>
@@ -2888,11 +2893,23 @@ function puede(id){
   if(!yo || !Array.isArray(yo.permisos)) return true;
   return yo.permisos.indexOf(id) >= 0;
 }
-/** La sucursal fija del usuario, o null si puede elegir. */
-function sucursalFija(){
+/** V.0.11.233: las sucursales del usuario (puede tener varias), o null si
+    puede cualquiera. Las manda el servidor (PUNTO_YO.sucursales). */
+function misSucursales(){
   const yo = (typeof PUNTO_YO === "object" && PUNTO_YO) ? PUNTO_YO : null;
-  return yo && typeof yo.sucursal === "string" && yo.sucursal ? yo.sucursal : null;
+  if(!yo) return null;
+  if(Array.isArray(yo.sucursales)) return yo.sucursales.slice();
+  return typeof yo.sucursal === "string" && yo.sucursal ? [yo.sucursal] : null;
 }
+/** La sucursal fija del usuario (si tiene una sola), o null si puede elegir. */
+function sucursalFija(){
+  const l = misSucursales();
+  return l && l.length === 1 ? l[0] : null;
+}
+/** ¿Puede vender, cobrar y ver como esa sucursal? */
+const puedeSuc = id => { const l = misSucursales(); return !l || l.indexOf(id) >= 0; };
+/** La sucursal de la venta si es de las suyas; si no, la primera de las suyas. */
+const sucPermitida = () => { const l = misSucursales(); return l && l.length && l.indexOf(S.suc) < 0 ? l[0] : S.suc; };
 const esAdminUsuarios = () => !!(typeof PUNTO_YO === "object" && PUNTO_YO && PUNTO_YO.adminUsuarios);
 /** El área de cada solapa ("Todo el sistema" la ven todos). */
 const AREA_DE_VISTA = { mostrador:"venta", comprobantes:"comprobantes", pedidos:"pedidos", web:"web",
@@ -3844,7 +3861,7 @@ function ponerPuesto(){
    la mercaderia. */
 function pintarSucs(){
   document.getElementById("selSuc").innerHTML =
-    SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("");
+    SUCURSALES.filter(x => puedeSuc(x.id)).map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("");
 }
 document.getElementById("selSuc").addEventListener("change",e=>{
   if(window.VSRV && VSRV.caja){
@@ -4072,7 +4089,7 @@ function pintarCamposVenta(){
     '<label for="vtaSuc">Sucursal</label>'+
     '<select id="vtaSuc"'+(sucursalFija() ? ' disabled title="Tu usuario es de esta sucursal"'
       : (window.VSRV && VSRV.caja ? ' disabled title="Estás cobrando un ticket de esta caja: se cobra con esta sucursal"' : ''))+'>'+
-      SUCURSALES.map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
+      SUCURSALES.filter(x => puedeSuc(x.id)).map(x=>'<option value="'+x.id+'"'+(x.id===S.suc?" selected":"")+'>'+x.n+'</option>').join("")+
     '</select>'+
     '<span class="por">punto de venta '+su.pv+' · depósito <b>'+DEPOSITOS[depAct()]+'</b></span>';
   document.getElementById("camposVta").innerHTML =
@@ -4952,8 +4969,8 @@ document.getElementById("borradores").addEventListener("click",e=>{
   if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por el borrador?")) return;
   S.linea = b.linea.map(l=>({...l}));
   S.cliente = b.cliente; S.desc = b.desc; S.forma = b.forma; S.cond = b.forma; S.comp = null; S.suc = b.suc;
-  if(sucursalFija() && S.suc !== sucursalFija()){
-    S.suc = sucursalFija();
+  if(!puedeSuc(S.suc)){
+    S.suc = sucPermitida();
     toast("Ese borrador era de " + sucDe(b.suc).n + ": queda en " + sucDe(S.suc).n + ", que es la tuya.");
   }
   // Vuelve el deposito con el que se guardo. Si era una venta de Buenos
@@ -10768,8 +10785,8 @@ function terminarEdicion(){
   const e = S.editando;
   S.editando = null;
   setTimeout(() => { try{ aplicarCobrar(); }catch(x){} }, 0);
-  if(sucursalFija()){
-    if(S.suc !== sucursalFija()){ S.suc = sucursalFija(); S.comp = null; S.dep = null; }
+  if(misSucursales()){
+    if(!puedeSuc(S.suc)){ S.suc = sucPermitida(); S.comp = null; S.dep = null; }
     const sel = document.getElementById("selSuc"); if(sel) sel.value = S.suc;
     return;
   }
@@ -10815,7 +10832,7 @@ function editarPresu(d){
   if(trabadaPorDuda()) return;
   if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
   if(d.vendidoEn){ toast("Ese presupuesto ya se vendió: no se puede cambiar."); return; }
-  if(sucursalFija() && sucursalFija() !== d.sucursal){ toast("Ese presupuesto es de " + sucDe(d.sucursal).n + ": tu usuario no puede cambiarlo."); return; }
+  if(!puedeSuc(d.sucursal)){ toast("Ese presupuesto es de " + sucDe(d.sucursal).n + ": tu usuario no puede cambiarlo."); return; }
   const ren = (d.datos && d.datos.renglones) || [];
   recuperarManuales(ren);
   const hay = ren.filter(r => prod(r.cod)), faltan = ren.length - hay.length;
@@ -10860,7 +10877,7 @@ function editarVenta(d){
   if(trabadaPorDuda()) return;
   if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
   if(!esVentaEditable(d)){ toast("Ese comprobante no se puede cambiar."); return; }
-  if(sucursalFija() && sucursalFija() !== d.sucursal){ toast("Ese comprobante es de " + sucDe(d.sucursal).n + ": tu usuario no puede cambiarlo."); return; }
+  if(!puedeSuc(d.sucursal)){ toast("Ese comprobante es de " + sucDe(d.sucursal).n + ": tu usuario no puede cambiarlo."); return; }
   if(VSRV.caja){ toast("Estás cobrando un pedido: terminalo o devolvelo a la caja antes de cambiar otro comprobante."); return; }
   const dt = d.datos || {}, ren = dt.renglones || [];
   recuperarManuales(ren);
@@ -10990,6 +11007,7 @@ function aplicarPermisos(){
   const fija = sucursalFija();
   const sel = document.getElementById("selSuc");
   if(sel && fija){ sel.value = fija; sel.disabled = true; sel.title = "Tu usuario es de " + sucDe(fija).n; }
+  { const mis = misSucursales(); if(sel && mis && mis.length > 1) sel.title = "Tu usuario es de " + mis.map(id => sucDe(id).n).join(" y "); }
   // Si la solapa de entrada no está permitida, a la primera que sí.
   const h = (location.hash || "").replace("#", "");
   if(h && vistas.indexOf(h) >= 0 && vistaPermitida(h)) abrirVista(h);
@@ -11008,8 +11026,8 @@ async function usPedir(cuerpo){
 }
 async function pintarUsuariosPunto(){
   const sel = document.getElementById("unSuc");
-  if(sel && !sel.options.length)
-    sel.innerHTML = '<option value="">Cualquiera (elige)</option>' + SUCURSALES.map(x => '<option value="'+x.id+'">'+x.n+'</option>').join("");
+  if(sel && !sel.children.length)
+    sel.innerHTML = SUCURSALES.map(x => '<label class="us-suc"><input type="checkbox" data-nsuc="'+x.id+'"> '+txt(x.n)+'</label>').join("");
   const d = await usPedir(null);
   if(d.error){ US.error = d.error; }
   else { US.error = ""; US.lista = d.usuarios || []; US.areas = d.areas || []; US.acciones = d.acciones || [];
@@ -11074,15 +11092,15 @@ function pintarListaUs(){
     // Resetear: además, los dueños (Carlos, Daniel y Damián) a cualquiera.
     const puedeResetear = !esYo && (puedeTocar || !!US.reseteaATodos);
     const soloAdmin = !esYo && !puedeResetear;
-    const suc = t ? t.sucursal : u.sucursal, adm = t ? t.adminPunto : u.adminPunto;
+    const sucs = listaSucs(t ? t.sucursal : u.sucursal), adm = t ? t.adminPunto : u.adminPunto;
     return '<div class="us-card'+(u.activo ? "" : " inactivo")+(t ? " sucio" : "")+'">'+
       '<div class="us-cab"><b><span class="punto-linea'+(u.conectado ? " si" : "")+'"></span>'+txt(u.nombre)+'</b><small>'+txt(u.username)+
         (u.conectado ? ' · <span style="color:var(--ok);font-weight:600">en línea</span>'
           : (u.ultimaActividad ? ' · anduvo '+txt(haceCuanto(u.ultimaActividad)) : ' · todavía no entró'))+
         (u.activo ? '' : ' · desactivado')+(u.debeCambiarClave ? ' · todavía no eligió su contraseña' : '')+'</small>'+
-        '<label style="font-size:13px">Sucursal <select data-suc="'+txt(u.id)+'"'+'>'+
-          '<option value="">Cualquiera</option>'+SUCURSALES.map(x => '<option value="'+x.id+'"'+(suc === x.id ? " selected" : "")+'>'+x.n+'</option>').join("")+
-        '</select></label>'+
+        '<span class="us-sucs" style="font-size:13px">Sucursales: '+SUCURSALES.map(x => '<label class="us-suc"><input type="checkbox" data-suc="'+txt(u.id)+'" data-sv="'+x.id+'"'+
+          (sucs.indexOf(x.id) >= 0 ? " checked" : "")+'> '+txt(x.n)+'</label>').join("")+
+          (sucs.length ? '' : '<small style="color:var(--ink-3)">(ninguna = cualquiera)</small>')+'</span>'+
         '<label style="font-size:13px" title="Puede crear usuarios y cambiar lo que ve cada uno"><input type="checkbox" data-adm="'+txt(u.id)+'"'+
           (adm ? " checked" : "")+(esYo || !(yo === "admin" || (u.soloPunto && !u.adminPunto)) ? " disabled" : "")+'> administra usuarios</label>'+
         '<span class="us-acc">'+
@@ -11102,6 +11120,9 @@ function pintarListaUs(){
 /** Los tildes que no se muestran (su solapa salió de la barra). El que los
     tenía los sigue teniendo al guardar. */
 const US_OCULTAS = ["pedidos"];
+/** Las sucursales de un usuario como lista: del servidor viene "srl,cnc" (o
+    null); lo tocado y sin guardar, una lista. */
+const listaSucs = v => Array.isArray(v) ? v : (v ? String(v).split(",").map(x => x.trim()).filter(Boolean) : []);
 /** Lo que se tocó de cada usuario y todavía no se guardó. Nada va al
     servidor hasta que se toca Guardar (antes se guardaba solo al tildar). */
 const US_SUCIO = {};
@@ -11110,9 +11131,9 @@ function leerUsTocado(id){
   const ids = [...document.querySelectorAll('#usLista input[data-us="'+id+'"]')].filter(i => i.checked).map(i => i.dataset.p);
   for(const o of US_OCULTAS)
     if(u && (!Array.isArray(u.punto) || u.punto.indexOf(o) >= 0) && ids.indexOf(o) < 0) ids.push(o);
-  const suc = document.querySelector('#usLista select[data-suc="'+id+'"]');
+  const sucs = [...document.querySelectorAll('#usLista input[data-suc="'+id+'"]')].filter(i => i.checked).map(i => i.dataset.sv);
   const adm = document.querySelector('#usLista input[data-adm="'+id+'"]');
-  return { punto: ids, sucursal: suc && suc.value ? suc.value : null, adminPunto: !!(adm && adm.checked) };
+  return { punto: ids, sucursal: sucs.length ? sucs : null, adminPunto: !!(adm && adm.checked) };
 }
 let US_GUARDANDO = false;
 async function guardarUsYa(id){
@@ -11245,10 +11266,11 @@ document.getElementById("unCrear").addEventListener("click", async () => {
   const nombre = document.getElementById("unNom").value.trim(), usuario = document.getElementById("unUsu").value.trim();
   const clave = document.getElementById("unClave").value;
   if(!nombre || !usuario || !clave){ toast("Completá nombre, usuario y contraseña provisoria."); return; }
-  const suc = document.getElementById("unSuc").value || null;
-  const d = await usPedir({ accion:"crear", nombre, usuario, clave, punto:null, sucursal:suc });
+  const sucs = [...document.querySelectorAll('#unSuc input[data-nsuc]')].filter(i => i.checked).map(i => i.dataset.nsuc);
+  const d = await usPedir({ accion:"crear", nombre, usuario, clave, punto:null, sucursal: sucs.length ? sucs : null });
   if(d.error){ toast("No se creó: " + d.error); return; }
   for(const id of ["unNom","unUsu","unClave"]) document.getElementById(id).value = "";
+  for(const i of document.querySelectorAll('#unSuc input[data-nsuc]')) i.checked = false;
   toast("Usuario creado: " + usuario + ". Entra en conesa.com.ar/sistema con esa contraseña y elige la suya.");
   await pintarUsuariosPunto();
 });
@@ -12879,7 +12901,7 @@ function restaurarLocalAntes(){
   if(u.usuario && VENDEDORES.indexOf(u.usuario) >= 0){ S.usuario = u.usuario; S.puesto = puestoDe(S.usuario); }
   // El que entró con su usuario manda sobre lo que había quedado guardado.
   if(VENDEDOR_LOGIN){ S.usuario = VENDEDOR_LOGIN; S.puesto = puestoDe(S.usuario); }
-  if(sucursalFija() && SUCURSALES.some(x => x.id === sucursalFija())) S.suc = sucursalFija();
+  if(!puedeSuc(S.suc)) S.suc = sucPermitida();
   for(const c of (d.clientes || []))
     if(c && c.id && c.n && !yaSubido("c", c.id) && !CLIENTES.some(x => x.id === c.id))
       CLIENTES.push(Object.assign({ saldo:0, lim:0, siempre:[] }, c, { nuevo:true }));
@@ -13413,7 +13435,7 @@ function aplicarVentaDelServidor(v){
   VSRV.id = v.id; VSRV.version = v.version;
   VSRV.caja = v.estado === "cobrando" ? cajaDe(v) : null;
   // El de una sola sucursal se queda en la suya (un ticket de caja ya viene de la suya).
-  if(!VSRV.caja && sucursalFija() && S.suc !== sucursalFija()) S.suc = sucursalFija();
+  if(!VSRV.caja && !puedeSuc(S.suc)) S.suc = sucPermitida();
   VSRV.ultimo = JSON.stringify(datosDeVenta()) + "|" + S.suc;
   const ss = document.getElementById("selSuc"); if(ss) ss.value = S.suc;
   pintarCamposVenta(); pintarDtos(); pintarTicket(); pintarCajaTicket();
