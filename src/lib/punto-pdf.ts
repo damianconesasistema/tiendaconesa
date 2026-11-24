@@ -161,7 +161,15 @@ const num = (v: unknown) => {
 /** remito (V.0.11.229): el remito de esa venta, para que firme el que recibe:
  *  los mismos articulos y cantidades, sin precios. No es otro comprobante (no
  *  tiene numero propio ni mueve stock: eso ya lo hizo la venta). */
-export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opciones: { remito?: boolean } = {}): Promise<Buffer> {
+export async function generarPdfPunto(
+  d: DocumentoGuardado,
+  emisor: Emisor,
+  opciones: {
+    remito?: boolean;
+    /** V.0.11.239: el domicilio del cliente (de su ficha), para el remito. */
+    entrega?: { domicilio?: string; localidad?: string; provincia?: string; cuit?: string } | null;
+  } = {},
+): Promise<Buffer> {
   const dt = (d.datos && typeof d.datos === "object" ? d.datos : {}) as Datos;
   const renglones = Array.isArray(dt.renglones) ? dt.renglones : [];
   const cli = dt.cliente ?? {};
@@ -314,8 +322,12 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
 
   // ---------------------------------------------------------------- CLIENTE
   y += 30;
-  doc.rect(M, y, anchoUtil, 50).strokeColor(BORDE).lineWidth(1).stroke();
-  doc.fillColor(GRIS).font("Helvetica").fontSize(7).text("CLIENTE", M + 12, y + 8);
+  // V.0.11.239 (Damian, con un remito de proveedor de modelo: "ahi tenes un
+  // ejemplo de remito como son"): el destinatario con su documento, su
+  // condicion, la condicion de venta, el domicilio de entrega y el transporte.
+  const altoCliente = remito ? 82 : 50;
+  doc.rect(M, y, anchoUtil, altoCliente).strokeColor(BORDE).lineWidth(1).stroke();
+  doc.fillColor(GRIS).font("Helvetica").fontSize(7).text(remito ? "DESTINATARIO" : "CLIENTE", M + 12, y + 8);
   doc
     .fillColor(NEGRO)
     .font("Helvetica-Bold")
@@ -336,7 +348,17 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
   ]
     .filter(Boolean)
     .join(" · ");
-  doc.font("Helvetica").fontSize(8).fillColor(GRIS).text(sobreCliente, M + 12, y + 34, { width: anchoUtil - 24 });
+  if (!remito) doc.font("Helvetica").fontSize(8).fillColor(GRIS).text(sobreCliente, M + 12, y + 34, { width: anchoUtil - 24 });
+  if (remito) {
+    const ent = opciones.entrega || {};
+    const docRem = ent.cuit ? `CUIT: ${ent.cuit.replace(/^(\d{2})(\d{8})(\d)$/, "$1-$2-$3")}` : cli.doc && cli.doc !== "—" ? `Doc.: ${cli.doc}` : "";
+    const lineaDoc = [docRem, cli.t || "", dt.forma ? `Condición de venta: ${sinPrefijo(dt.forma)}` : ""].filter(Boolean).join(" · ");
+    const dom = [ent.domicilio, ent.localidad, ent.provincia].map((x) => String(x || "").trim()).filter(Boolean).join(", ");
+    doc.font("Helvetica").fontSize(8).fillColor(GRIS).text(lineaDoc, M + 12, y + 34, { width: anchoUtil - 24 });
+    doc.text(`Domicilio de entrega: ${dom || "_______________________________________________"}`, M + 12, y + 48, { width: anchoUtil - 24 });
+    doc.text("Transporte: _______________________________________________", M + 12, y + 62, { width: anchoUtil - 24 });
+    y += altoCliente - 50;
+  }
 
   // ----------------------------------------------------------------- DETALLE
   y += 64;
@@ -350,27 +372,31 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
   const anchoDto = porItem ? 70 : 0;
   const anchoCant = porItem ? 32 : 40;
   const col = {
-    cod: M + 10,
-    desc: M + 92,
-    // El remito: sin precios, la cantidad a la derecha de todo.
-    cant: remito ? der - 70 : der - anchoTot - anchoDto - anchoUnit - anchoCant - (porItem ? 20 : 15),
+    cod: remito ? M + 92 : M + 10,
+    desc: remito ? M + 180 : M + 92,
+    // El remito: sin precios; la cantidad adelante, como en los remitos.
+    cant: remito ? M + 4 : der - anchoTot - anchoDto - anchoUnit - anchoCant - (porItem ? 20 : 15),
     unit: der - anchoTot - anchoDto - anchoUnit - (porItem ? 15 : 10),
     dto: der - anchoTot - anchoDto - 10,
     tot: der - anchoTot - 8,
   };
-  const anchoDesc = col.cant - col.desc - 10;
+  const anchoDesc = remito ? der - col.desc - 10 : col.cant - col.desc - 10;
   const PIE = H - 70; // hasta donde puede llegar un renglon
 
   const cabeceraTabla = () => {
     doc.rect(M, y, anchoUtil, 20).fillColor("#F5F5F5").fill();
     doc.fillColor(GRIS).font("Helvetica-Bold").fontSize(7.5);
-    doc.text("CÓDIGO", col.cod, y + 7, { width: 78 });
-    doc.text("DESCRIPCIÓN", col.desc, y + 7, { width: anchoDesc });
-    doc.text("CANT.", col.cant, y + 7, { width: anchoCant, align: "right" });
     if (remito) {
+      doc.text("CANT.", col.cant, y + 7, { width: anchoCant, align: "right" });
+      doc.text("U.M.", M + 54, y + 7, { width: 34 });
+      doc.text("CÓDIGO", col.cod, y + 7, { width: 84 });
+      doc.text("DETALLE", col.desc, y + 7, { width: anchoDesc });
       y += 20;
       return;
     }
+    doc.text("CÓDIGO", col.cod, y + 7, { width: 78 });
+    doc.text("DESCRIPCIÓN", col.desc, y + 7, { width: anchoDesc });
+    doc.text("CANT.", col.cant, y + 7, { width: anchoCant, align: "right" });
     if (porItem) {
       const pctTxt = String(pctDto).replace(".", ",") + "%";
       // "P. LISTA UNIT." (Damian, 24/11/2026: "P. LISTA UNIT. que diga el PDF").
@@ -430,6 +456,7 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
       .text(String(r.cod ?? ""), col.cod, y + 5, { width: 78, lineBreak: false, ellipsis: true });
     doc.fillColor(NEGRO).fontSize(8).text(tit, col.desc, y + 4, { width: anchoDesc });
     doc.text(String(cant), col.cant, y + 4, { width: anchoCant, align: "right" });
+    if (remito) doc.fillColor(GRIS).fontSize(7.5).text("UNI", M + 54, y + 5, { width: 34 }).fillColor(NEGRO).fontSize(8);
     if (!remito) {
       doc.text(pesos(unit), col.unit, y + 4, { width: anchoUnit, align: "right" });
       if (porItem)
@@ -449,10 +476,8 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
       .font("Helvetica-Bold")
       .fontSize(10)
       .fillColor(NEGRO)
-      .text(`${unidades} ${unidades === 1 ? "unidad" : "unidades"} en ${renglones.length} ${renglones.length === 1 ? "renglón" : "renglones"}`, M, y, {
-        width: anchoUtil,
-        align: "right",
-      });
+      .text("CANTIDAD DE UNIDADES", M, y, { width: anchoUtil - 110, align: "right" })
+      .text(String(unidades), der - 105, y, { width: 105, align: "right" });
     // V.0.11.238 (Damian: "los remitos salen sin precio siempre, si con total
     // como valor declarado sin impuesto"): el total de la venta sin IVA. En
     // la factura con CAE, el neto que tiene ARCA; si no, renglon por
@@ -468,7 +493,7 @@ export async function generarPdfPunto(d: DocumentoGuardado, emisor: Emisor, opci
       .font("Helvetica")
       .fontSize(9)
       .fillColor(GRIS)
-      .text("Valor declarado (sin impuestos)", M, y, { width: anchoUtil - 110, align: "right" })
+      .text("IMPORTE DECLARADO (sin impuestos)", M, y, { width: anchoUtil - 110, align: "right" })
       .font("Helvetica-Bold")
       .fillColor(NEGRO)
       .text(pesos(declarado), der - 105, y, { width: 105, align: "right" });

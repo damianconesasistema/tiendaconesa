@@ -1,3 +1,4 @@
+import { clientesPorIds } from "@/lib/punto-clientes";
 import { documentoPorId } from "@/lib/punto-documentos";
 import { puedePunto } from "@/lib/punto-permisos";
 import { yoPunto } from "@/lib/punto-yo";
@@ -36,7 +37,14 @@ export async function GET(req: Request): Promise<Response> {
     }
     if (remito && !["factura", "sin-comprobante", "pedido-interno", "remito"].includes(d.tipo))
       return json({ error: "El remito sale de una venta: una factura, un recibo X o un pedido interno." });
-    const pdf = await generarPdfPunto(d, await emisorDe(d.sucursal), { remito });
+    // V.0.11.239: en el remito, el domicilio de entrega sale de la ficha del cliente.
+    let entrega: { domicilio: string; localidad: string; provincia: string; cuit: string } | null = null;
+    const cid = (d.datos as { cliente?: { id?: string } } | null)?.cliente?.id;
+    if (remito && cid) {
+      const [c] = await clientesPorIds([cid]).catch(() => []);
+      if (c) entrega = { domicilio: c.domicilio, localidad: c.localidad, provincia: c.provincia, cuit: c.cuit };
+    }
+    const pdf = await generarPdfPunto(d, await emisorDe(d.sucursal), { remito, entrega });
     return new Response(new Uint8Array(pdf), {
       status: 200,
       headers: {
