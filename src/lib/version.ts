@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.239";
+export const APP_VERSION = "V.0.11.240";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.240",
+    date: "2026-11-24",
+    changes: [
+      "Punto, clientes de GBP (\"ahí tenés la lista de clientes\"): el servidor recibe la lista de a tandas de 200 (permiso \"Importar de GBP\") y anota un solo renglón por tanda en Actividad, en vez de uno por cliente. Mismas reglas que el alta de a uno: el CUIT y el ID de GBP no se repiten, y el que ya estaba queda como está.",
+    ],
+  },
   {
     version: "V.0.11.239",
     date: "2026-11-24",

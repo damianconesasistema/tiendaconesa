@@ -12,11 +12,16 @@ import { quienEntra } from "../clave";
 //   GET  ?ids=a,b        -> { clientes } esos, por id
 //   POST {cliente, yo?}  -> { ok, cliente, yaEstaba } lo da de alta; si ya
 //                           hay uno con ese CUIT, devuelve ese
+//   POST {clientes, yo?} -> { ok, nuevos, yaEstaban, errores } la lista de
+//                           GBP, hasta 200 por tanda (permiso "importar")
 // Todo solo con usuario y permiso de "Sistema Punto" (../clave.ts); dar de
 // alta ademas con "venta" o "pedidos" de Punto (src/lib/punto-permisos.ts).
 // Los errores del servidor van con 200 y {error}: Cloudflare tapa los 5xx.
 
 export const dynamic = "force-dynamic";
+
+/** Cuantos clientes entran en una tanda de la importacion de GBP. */
+const MAX_TANDA = 200;
 
 function json(cuerpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(cuerpo), {
@@ -72,6 +77,40 @@ export async function POST(req: Request): Promise<Response> {
       { error: "Tu usuario no tiene permiso para cargar clientes. Pedíselo a quien administra los usuarios." },
       403,
     );
+
+  // V.0.11.240: la lista de clientes de GBP, de a tandas. Damian, 24/11/2026:
+  // "ahi tenes la lista de clientes". Uno por uno dejaba 3.800 renglones en
+  // Actividad; asi queda uno por tanda. Mismas reglas que el alta de a uno
+  // (el CUIT y el ID de GBP no se repiten: el que ya estaba queda como esta).
+  if (Array.isArray((cuerpo as { clientes?: unknown }).clientes)) {
+    if (!puedePunto(yo.permisos, "importar"))
+      return json({ error: "Tu usuario no tiene permiso para importar de GBP." }, 403);
+    const lista = (cuerpo as { clientes: unknown[] }).clientes;
+    if (lista.length > MAX_TANDA) return json({ error: `Son más de ${MAX_TANDA} clientes: mandalos de a tandas.` }, 400);
+    let nuevos = 0;
+    let yaEstaban = 0;
+    const errores: { i: number; error: string }[] = [];
+    for (let i = 0; i < lista.length; i++) {
+      const l = limpiarCliente(lista[i]);
+      if ("error" in l) {
+        errores.push({ i, error: l.error });
+        continue;
+      }
+      try {
+        const r = await crearCliente(l.cliente, quien);
+        if (r.yaEstaba) yaEstaban++;
+        else nuevos++;
+      } catch {
+        errores.push({ i, error: "No se pudo guardar." });
+      }
+    }
+    await registrar(
+      `Punto: importó ${nuevos} clientes de GBP`,
+      `${yaEstaban} ya estaban · ${errores.length} con error`,
+      quien,
+    );
+    return json({ ok: true, nuevos, yaEstaban, errores });
+  }
 
   const limpio = limpiarCliente(cuerpo.cliente);
   if ("error" in limpio) return json({ error: limpio.error }, 400);
