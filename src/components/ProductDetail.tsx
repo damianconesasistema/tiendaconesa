@@ -31,6 +31,7 @@ import { formatPrice } from "@/lib/order";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { parseShipping } from "@/lib/shipping";
 import { ShareButton } from "@/components/ShareButton";
+import { CopiarCodigo } from "@/components/CopiarCodigo";
 import { CompartirProducto } from "@/components/CompartirProducto";
 import { UltimoEnStock } from "@/components/UltimoEnStock";
 import { precioVitrina, precioCuotas, descuentoContadoPct } from "@/lib/precios";
@@ -313,8 +314,11 @@ export function ProductDetail({
           {/* INFO */}
           <div className="flex flex-col">
             <div className="flex items-start justify-between gap-3">
-              <span className="text-xs text-[var(--muted)]">
-                {product.condition || "Nuevo"} · ID {product.itemId}
+              {/* V.0.11.263: el boton copia solo el codigo, y con un clic el
+                  codigo queda seleccionado entero. */}
+              <span className="flex flex-wrap items-center text-xs text-[var(--muted)]">
+                {product.condition || "Nuevo"} · ID&nbsp;<span className="select-all">{product.itemId}</span>
+                <CopiarCodigo codigo={product.itemId} />
               </span>
               {/* Compartir tambien arriba: en mobile el de abajo queda lejos */}
               <ShareButton
