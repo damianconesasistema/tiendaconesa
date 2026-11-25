@@ -732,6 +732,10 @@ model PuntoMovimiento {
   anuladoEn  DateTime?
   anuladoPor String?
   motivo     String?
+  /// Eliminado (migracion 62, V.0.11.262): no se ve en la lista salvo que se
+  /// pida "ver los eliminados". Siempre esta anulado tambien (no cuenta).
+  eliminadoEn  DateTime?
+  eliminadoPor String?
 
   @@unique([idLocal, cuentaId])
   @@index([cuentaId, fecha])

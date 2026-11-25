@@ -59,6 +59,7 @@ const movimientoDe = (m: PuntoMovimiento): Movimiento => ({
   reparto: repartoDe(m.reparto),
   usuario: m.usuario,
   anulado: m.anuladoEn != null,
+  eliminado: m.eliminadoEn != null,
 });
 
 export async function listarCuentas(): Promise<Cuenta[]> {
@@ -207,6 +208,35 @@ export async function anularMovimiento(id: string, quien: string, motivo: string
   });
   const filas = await prisma.puntoMovimiento.findMany({ where: { grupo: m.grupo } });
   return filas.map(movimientoDe);
+}
+
+/** V.0.11.262. Damian: "ademas de anular dame la posibilidad de eliminar para
+ *  que no aparezca pero tambien deja la posibilidad de ver los eliminados".
+ *  Saca el movimiento (y su otra pata) de la lista. Si no estaba anulado, lo
+ *  anula tambien: lo que no se ve no puede seguir contando en los saldos. */
+export async function eliminarMovimiento(id: string, quien: string, motivo: string): Promise<Movimiento[] | string> {
+  const m = await prisma.puntoMovimiento.findUnique({ where: { id } });
+  if (!m) return "Ese movimiento ya no está.";
+  const ahora = new Date();
+  await prisma.$transaction([
+    prisma.puntoMovimiento.updateMany({
+      where: { grupo: m.grupo, anuladoEn: null },
+      data: { anuladoEn: ahora, anuladoPor: quien, motivo: motivo || "Eliminado" },
+    }),
+    prisma.puntoMovimiento.updateMany({
+      where: { grupo: m.grupo, eliminadoEn: null },
+      data: { eliminadoEn: ahora, eliminadoPor: quien },
+    }),
+  ]);
+  return (await prisma.puntoMovimiento.findMany({ where: { grupo: m.grupo } })).map(movimientoDe);
+}
+
+/** Lo vuelve a mostrar en la lista (sigue anulado). */
+export async function mostrarMovimiento(id: string): Promise<Movimiento[] | string> {
+  const m = await prisma.puntoMovimiento.findUnique({ where: { id } });
+  if (!m) return "Ese movimiento ya no está.";
+  await prisma.puntoMovimiento.updateMany({ where: { grupo: m.grupo }, data: { eliminadoEn: null, eliminadoPor: null } });
+  return (await prisma.puntoMovimiento.findMany({ where: { grupo: m.grupo } })).map(movimientoDe);
 }
 
 /** Los rubros de gasto: los guardados, o los de arranque. */

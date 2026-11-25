@@ -69,6 +69,8 @@ export type Movimiento = {
   reparto: Record<string, number> | null;
   usuario: string;
   anulado: boolean;
+  /** V.0.11.262: sacado de la lista (siempre anulado tambien). */
+  eliminado: boolean;
 };
 
 export type PedidoMovimiento = {

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.261";
+export const APP_VERSION = "V.0.11.262";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.262",
+    date: "2026-11-25",
+    changes: [
+      "Punto, movimientos de plata (Gerencia → Cuentas y gastos y Caja → Plata de la caja): además de Anular, ELIMINAR (\"para que no aparezca pero también deja la posibilidad de ver los eliminados\"). Eliminar lo saca de la lista; si no estaba anulado, se anula también (deja de contar en los saldos) y pide el motivo. Con «ver los eliminados» se ven, y Gerencia los puede volver a mostrar (siguen anulados). Las mismas reglas que anular: Gerencia todo, el cajero lo suyo de hoy. En Actividad.",
+      "Punto, Proveedores: \"Lo que piden los clientes\" también como botón arriba, con Agendar un pago y Lista de precios, con cuántas notas hay sin resolver.",
+    ],
+  },
   {
     version: "V.0.11.261",
     date: "2026-11-25",

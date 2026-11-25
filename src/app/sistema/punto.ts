@@ -542,6 +542,11 @@ td.nom small{display:block; color:var(--ink-2); font-size:12px; font-weight:500;
 /* V.0.11.226: lo anulado se ve, tachado. */
 tr.mov-anulado td{color:var(--ink-3); text-decoration:line-through}
 tr.mov-anulado td:last-child{text-decoration:none}
+/* V.0.11.262: lo eliminado, más apagado (solo con «ver los eliminados»). */
+tr.mov-eliminado td{opacity:.55}
+tr.mov-eliminado td:last-child{opacity:1}
+.mov-acc{display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end}
+.ver-elim{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-2); font-weight:500; cursor:pointer}
 .mov-form{display:grid; grid-template-columns:1fr 1fr; gap:10px 12px}
 .mov-form label{display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-2)}
 .mov-form label.ancho{grid-column:1/-1}
@@ -1584,7 +1589,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.261</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.262</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -2578,6 +2583,7 @@ footer{
     <div class="card-h">
       <h3>Lo que piden los clientes</h3>
       <span class="sub" id="ncCount"></span>
+      <button class="b3" id="ncAct" type="button" style="padding:5px 12px" hidden>Actualizar</button>
       <select id="ncVer" aria-label="qué notas ver" style="margin-left:auto">
         <option value="pend">Sin resolver</option>
         <option value="res">Resueltas (60 días)</option>
@@ -2891,7 +2897,8 @@ footer{
   <!-- V.0.11.226: la plata de la caja (Gerencia, parte 1: cuentas y gastos). -->
   <div class="card" id="cajaPlata" style="margin-top:16px" hidden>
     <div class="card-h"><h3>Plata de la caja</h3><span class="sub" id="cajaPlataSub"></span>
-      <button class="b1" type="button" id="btnAnotarMov" style="margin-left:auto;padding:7px 14px">Anotar movimiento</button></div>
+      <label class="ver-elim" style="margin-left:auto"><input type="checkbox" data-ver-elim> ver los eliminados</label>
+      <button class="b1" type="button" id="btnAnotarMov" style="padding:7px 14px">Anotar movimiento</button></div>
     <div class="tiles" id="cajaPlataTiles" style="padding:14px 14px 0"></div>
     <div class="tabla-wrap"><table>
       <thead><tr><th>Hora</th><th>Qué</th><th>Rubro y detalle</th><th>Cuenta</th><th>Quién</th><th class="r">Monto</th><th></th></tr></thead>
@@ -2924,7 +2931,8 @@ footer{
           <tbody id="tbCtaDias"></tbody></table></div>
       </div>
       <div class="card">
-        <div class="card-h"><h3>Movimientos</h3><span class="sub" id="ctaMovSub"></span></div>
+        <div class="card-h"><h3>Movimientos</h3><span class="sub" id="ctaMovSub"></span>
+          <label class="ver-elim" style="margin-left:auto"><input type="checkbox" data-ver-elim> ver los eliminados</label></div>
         <div class="tabla-wrap" style="max-height:60vh;overflow-y:auto"><table>
           <thead><tr><th>Día y hora</th><th>Qué</th><th>Rubro y detalle</th><th>Cuenta</th><th>Quién</th><th class="r">Monto</th><th></th></tr></thead>
           <tbody id="tbCtaMov"></tbody></table></div>
@@ -4141,7 +4149,8 @@ const PRV_ACC = [
   ["prvNuevo", "Nuevo proveedor", "plus"],
   ["prvImportar", "Importar de GBP", "upload"],
   ["pgNuevo", "Agendar un pago", "banknote"],
-  ["cxSubirPrv", "Lista de precios", "upload"]
+  ["cxSubirPrv", "Lista de precios", "upload"],
+  ["ncAct", "Lo que piden los clientes", "message"]
 ];
 document.getElementById("accPrv").innerHTML = PRV_ACC.map(([id, t, k]) =>
   '<button type="button" data-prv="' + id + '"><span class="ic">' + icoSvg(k) + '</span>' + t + '</button>').join("");
@@ -9108,8 +9117,57 @@ function filaMov(m){
     '<td>' + txt(nombreCuenta(c)) + (c ? ' <small style="color:var(--ink-3)">' + txt(nomSuc(c.sucursal)) + '</small>' : '') + '</td>' +
     '<td>' + txt(m.usuario) + '</td>' +
     '<td class="r" style="font-weight:600;color:' + (m.monto < 0 ? 'var(--bad)' : 'var(--ok)') + '">' + (m.monto < 0 ? "−" : "+") + fmt2(Math.abs(m.monto)) + '</td>' +
-    '<td>' + (m.anulado ? '<span class="pill p-n">anulado</span>' : puedeAnularMov(m) ? '<button class="b3" type="button" data-anular="' + atrib(m.id) + '" style="padding:3px 10px;font-size:12px">Anular</button>' : '') + '</td></tr>';
+    '<td><div class="mov-acc">' + (m.eliminado
+      ? '<span class="pill p-n" title="' + atrib("Eliminado por " + (m.eliminadoPor || "")) + '">eliminado</span>' +
+        (PLATA.d && PLATA.d.puedeTodo ? '<button class="b3" type="button" data-mostrar-mov="' + atrib(m.id) + '" style="padding:3px 10px;font-size:12px">Volver a mostrar</button>' : '')
+      : (m.anulado ? '<span class="pill p-n">anulado</span>' : puedeAnularMov(m) ? '<button class="b3" type="button" data-anular="' + atrib(m.id) + '" style="padding:3px 10px;font-size:12px">Anular</button>' : '') +
+        (puedeEliminarMov(m) ? '<button class="b3" type="button" data-eliminar-mov="' + atrib(m.id) + '" style="padding:3px 10px;font-size:12px" title="Sacarlo de la lista' + (m.anulado ? '' : ' (también se anula)') + '">Eliminar</button>' : '')) +
+    '</div></td></tr>';
 }
+/* V.0.11.262. Damián: "además de anular dame la posibilidad de eliminar para
+   que no aparezca pero también deja la posibilidad de ver los eliminados".
+   Eliminar lo saca de la lista; si no estaba anulado, se anula también (lo
+   que no se ve no puede seguir contando). Con «ver los eliminados» se ven, y
+   gerencia los puede volver a mostrar. Las mismas reglas que anular. */
+PLATA.verElim = false;
+function puedeEliminarMov(m){
+  if(!PLATA.d || m.eliminado) return false;
+  if(PLATA.d.puedeTodo) return true;
+  const dia = new Date(Date.parse(m.fecha) - 3*3600e3).toISOString().slice(0, 10);
+  return m.usuario === soyYo() && dia === PLATA.d.hoy;
+}
+const movVisible = m => PLATA.verElim || !m.eliminado;
+async function eliminarMov(id, luego){
+  const m = PLATA.d && PLATA.d.movimientos.find(x => x.id === id); if(!m) return;
+  let motivo = "";
+  if(!m.anulado){
+    motivo = (prompt("¿Por qué se elimina? Además de sacarlo de la lista se anula: deja de contar en los saldos.") || "").trim();
+    if(!motivo) return;
+  } else if(!confirm("Se saca de la lista. Lo ves tildando «ver los eliminados». ¿Lo elimino?")) return;
+  const { d } = await pedirSrv(CTA_URL, { accion:"eliminar", id, motivo });
+  if(!d || d.error){ toast("No se eliminó: " + ((d && d.error) || "probá de nuevo.")); return; }
+  toast("Eliminado. Lo ves tildando «ver los eliminados».");
+  if(luego) luego();
+}
+async function mostrarMov(id, luego){
+  const { d } = await pedirSrv(CTA_URL, { accion:"mostrar", id });
+  if(!d || d.error){ toast("No se pudo: " + ((d && d.error) || "probá de nuevo.")); return; }
+  toast("Vuelve a verse en la lista (sigue anulado).");
+  if(luego) luego();
+}
+function clicMov(e, luego){
+  const a = e.target.closest("[data-anular]"); if(a){ anularMov(a.dataset.anular, luego); return; }
+  const el = e.target.closest("[data-eliminar-mov]"); if(el){ eliminarMov(el.dataset.eliminarMov, luego); return; }
+  const mo = e.target.closest("[data-mostrar-mov]"); if(mo) mostrarMov(mo.dataset.mostrarMov, luego);
+}
+document.addEventListener("change", e => {
+  const c = e.target.closest && e.target.closest("[data-ver-elim]"); if(!c) return;
+  PLATA.verElim = c.checked;
+  for(const x of document.querySelectorAll("[data-ver-elim]")) x.checked = c.checked;
+  // Se vuelve a dibujar lo que está en pantalla (mira PLATA.verElim al dibujar).
+  try{ if(!document.getElementById("v-cuentas").hidden) pintarCuentas(); }catch(e2){}
+  try{ if(!document.getElementById("cajaPlata").hidden) pintarPlataCaja(false); }catch(e2){}
+});
 /** Anula (con el motivo) y vuelve a pintar. */
 async function anularMov(id, luego){
   const motivo = (prompt("¿Por qué se anula este movimiento?") || "").trim();
@@ -9222,7 +9280,7 @@ async function pintarPlataCaja(forzar){
   const ids = new Set(cajas.map(c => c.id));
   const hoy = PLATA.d.hoy;
   const diaDe = m => new Date(Date.parse(m.fecha) - 3*3600e3).toISOString().slice(0, 10);
-  const movs = PLATA.d.movimientos.filter(m => ids.has(m.cuentaId) && diaDe(m) === hoy);
+  const movs = PLATA.d.movimientos.filter(m => ids.has(m.cuentaId) && diaDe(m) === hoy && movVisible(m));
   const gastos = movs.filter(m => m.tipo === "gasto" && !m.anulado).reduce((a, m) => a - m.monto, 0);
   const salio = movs.filter(m => !m.anulado && m.monto < 0).reduce((a, m) => a - m.monto, 0);
   document.getElementById("cajaPlataSub").textContent = suc ? "efectivo de " + nomSuc(suc) : "el efectivo de las tres";
@@ -9239,9 +9297,7 @@ document.getElementById("btnAnotarMov").addEventListener("click", async () => {
   if(PLATA.error){ toast(PLATA.error); return; }
   abrirMovimiento({ sucursal: S.cajaSuc || PLATA.d.sucursal || S.suc, soloEfectivo: true, luego: () => pintarPlataCaja(true) });
 });
-document.getElementById("tbPlataCaja").addEventListener("click", e => {
-  const b = e.target.closest("[data-anular]"); if(b) anularMov(b.dataset.anular, () => pintarPlataCaja(true));
-});
+document.getElementById("tbPlataCaja").addEventListener("click", e => clicMov(e, () => pintarPlataCaja(true)));
 
 /* Gerencia → Cuentas y gastos (V.0.11.226). */
 const CTA = { per:"mes", suc:"" };
@@ -9276,8 +9332,10 @@ async function pintarCuentas(){
   err.hidden = true;
   const d = PLATA.d, suc = CTA.suc, ps = d.resumen.porSucursal || {};
   const deSuc = m => !suc || m.sucursal === suc || (m.reparto && m.reparto[suc]);
-  const movs = d.movimientos.filter(deSuc);
-  const vivos = movs.filter(m => !m.anulado);
+  const todosMovs = d.movimientos.filter(deSuc);
+  const nElim = todosMovs.filter(m => m.eliminado).length;
+  const movs = todosMovs.filter(movVisible);
+  const vivos = todosMovs.filter(m => !m.anulado);
   const hoyGasto = Object.entries(ps).filter(([k]) => !suc || k === suc).reduce((a, [, x]) => a + ((x.porDia || {})[d.hoy] || 0), 0);
   const cuentas = d.cuentas.filter(c => !suc || c.sucursal === suc);
   const sale = t => vivos.filter(m => m.tipo === t).reduce((a, m) => a - m.monto, 0);
@@ -9319,7 +9377,9 @@ async function pintarCuentas(){
       : '<p class="nota" style="padding:4px 14px 10px;margin:0">Sin cuentas cargadas.</p>');
   }).join("");
   // Los movimientos del período.
-  document.getElementById("ctaMovSub").textContent = vivos.length + " " + nombre + (movs.length > vivos.length ? " (y " + (movs.length - vivos.length) + " anulados)" : "") +
+  const nAnul = todosMovs.filter(m => m.anulado && !m.eliminado).length;
+  document.getElementById("ctaMovSub").textContent = vivos.length + " " + nombre + (nAnul ? " (y " + nAnul + " anulados)" : "") +
+    (nElim ? " · " + nElim + (nElim === 1 ? " eliminado" : " eliminados") + (PLATA.verElim ? "" : " (no se ven)") : "") +
     (d.truncado ? " · se ven los últimos 5.000 (los totales de arriba son de todos)" : "");
   document.getElementById("tbCtaMov").innerHTML = movs.length ? movs.map(filaMov).join("")
     : '<tr><td colspan="7" style="text-align:center;color:var(--ink-3);padding:18px">No hay movimientos ' + nombre + '.</td></tr>';
@@ -9345,9 +9405,7 @@ document.getElementById("btnAnotarMovG").addEventListener("click", () => {
   if(!PLATA.d){ toast(PLATA.error || "Esperá un segundo: estoy leyendo las cuentas."); return; }
   abrirMovimiento({ sucursal: CTA.suc || S.suc, soloEfectivo: false, luego: pintarCuentas });
 });
-document.getElementById("tbCtaMov").addEventListener("click", e => {
-  const b = e.target.closest("[data-anular]"); if(b) anularMov(b.dataset.anular, pintarCuentas);
-});
+document.getElementById("tbCtaMov").addEventListener("click", e => clicMov(e, pintarCuentas));
 document.getElementById("ctaCuentas").addEventListener("click", e => {
   const b = e.target.closest("[data-cta]"); if(b) abrirCuenta(cuentaPlata(b.dataset.cta));
 });
@@ -16181,7 +16239,14 @@ async function pintarNotasCli(){
   if(d.error){ NC.error = d.error; } else { NC.d = d; NC.error = ""; }
   pintarListaNc();
   traerAvisoNotas().catch(() => {});
+  // V.0.11.262: el botón de arriba (con los demás de Proveedores), con cuántas hay.
+  document.getElementById("ncAct").hidden = false;
+  const n = NC.d ? (NC.d.grupos || []).reduce((s, g) => s + g.veces, 0) : 0;
+  const acc = document.querySelector('#accPrv [data-prv="ncAct"]');
+  if(acc) acc.innerHTML = '<span class="ic">' + icoSvg("message") + '</span>Lo que piden los clientes' + (n ? ' (' + n + ')' : '');
+  try{ pintarAccPrv(); }catch(e){}
 }
+document.getElementById("ncAct").addEventListener("click", () => pintarNotasCli());
 function pintarListaNc(){
   const box = document.getElementById("ncLista"), cnt = document.getElementById("ncCount"); if(!box) return;
   if(NC.error && !NC.d){ box.innerHTML = '<p class="cx-av mal">' + txt(NC.error) + '</p>'; cnt.textContent = ""; return; }

@@ -3,6 +3,8 @@ import {
   anotarMovimiento,
   anularMovimiento,
   cuentaPorId,
+  eliminarMovimiento,
+  mostrarMovimiento,
   guardarCuenta,
   guardarRubros,
   hoyAR,
@@ -185,6 +187,37 @@ export async function POST(req: Request): Promise<Response> {
       const r = await anularMovimiento(id, quien, motivo);
       if (typeof r === "string") return json({ error: r });
       await registrar("Punto: anuló un movimiento de plata", `${NOMBRE_TIPO[m.tipo] ?? m.tipo} · ${pesos(Math.abs(m.monto))} · ${motivo}`, quien);
+      return json({ ok: true, movimientos: r });
+    }
+
+    // V.0.11.262: eliminar (sacarlo de la lista; si no estaba anulado, se anula
+    // tambien) y volver a mostrarlo. Con las mismas reglas que anular.
+    if (cuerpo.accion === "eliminar" || cuerpo.accion === "mostrar") {
+      const id = typeof cuerpo.id === "string" ? cuerpo.id.trim().slice(0, 40) : "";
+      const motivo = typeof cuerpo.motivo === "string" ? cuerpo.motivo.replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 200) : "";
+      if (!id) return json({ error: "Falta qué movimiento." });
+      const m = await movimientoPorId(id);
+      if (!m) return json({ error: "Ese movimiento ya no está." });
+      if (cuerpo.accion === "mostrar") {
+        if (!puedeTodo(yo)) return json({ error: "Volver a mostrar un eliminado se hace desde Gerencia." });
+        const r = await mostrarMovimiento(id);
+        if (typeof r === "string") return json({ error: r });
+        await registrar("Punto: volvió a mostrar un movimiento eliminado", `${NOMBRE_TIPO[m.tipo] ?? m.tipo} · ${pesos(Math.abs(m.monto))}`, quien);
+        return json({ ok: true, movimientos: r });
+      }
+      if (!m.anulado && !motivo) return json({ error: "Decí por qué se elimina (también se anula)." });
+      if (!puedeTodo(yo)) {
+        const c = await cuentaPorId(m.cuentaId);
+        if (!c || !visibles(yo, [c]).length || m.usuario !== quien || diaAR(m.fecha) !== hoyAR())
+          return json({ error: "Desde la caja solo se elimina lo que anotaste vos hoy. Lo demás, desde Gerencia." });
+      }
+      const r = await eliminarMovimiento(id, quien, motivo);
+      if (typeof r === "string") return json({ error: r });
+      await registrar(
+        "Punto: eliminó un movimiento de plata",
+        `${NOMBRE_TIPO[m.tipo] ?? m.tipo} · ${pesos(Math.abs(m.monto))}${m.anulado ? " (ya estaba anulado)" : " · también quedó anulado"}${motivo ? ` · ${motivo}` : ""}`,
+        quien,
+      );
       return json({ ok: true, movimientos: r });
     }
 
