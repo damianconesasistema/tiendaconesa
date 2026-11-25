@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.259";
+export const APP_VERSION = "V.0.11.260";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.260",
+    date: "2026-11-25",
+    changes: [
+      "Punto, Venta y Pedidos → botón NOTAS (Daniel: \"un botón que diga notas donde yo pueda ingresar una nota de texto o voz donde sugiera algún producto que me piden los clientes\"). Se escribe o se dicta con el micrófono (Chrome/Edge) lo que el cliente pidió y no tenemos, con la cantidad y el cliente (opcional; el de la venta sale solo).",
+      "Punto, Proveedores → LO QUE PIDEN LOS CLIENTES (\"agruparlos a todos que aparezcan en algún lado donde la gerencia hace los pedidos\"): agrupado por lo que piden (lo mismo dicho distinto va junto), lo más pedido arriba, con cuántas veces, unidades, sucursales y quién lo anotó. \"Ya lo pedí\" (a quién o en qué pedido) o \"Descartar\" (por qué); lo resuelto queda 60 días y puede volver a pendiente. Arriba de todo, para Proveedores/Gerencia, el aviso de cuántas hay sin resolver.",
+    ],
+  },
   {
     version: "V.0.11.259",
     date: "2026-11-24",

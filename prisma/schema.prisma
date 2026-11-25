@@ -832,3 +832,33 @@ model PuntoPago {
   @@unique([grupo, cuota])
   @@index([estado, vence])
 }
+
+/// Lo que piden los clientes y no tenemos (migracion 61, V.0.11.260). Daniel,
+/// 25/11/2026: "en la parte de vender o presupuestar ... un boton que diga
+/// notas donde yo pueda ingresar una nota de texto o voz donde sugiera algun
+/// producto que me piden los clientes ... agruparlos a todos que aparezcan en
+/// algun lado donde la gerencia hace los pedidos". Lo anota el vendedor; lo
+/// ve gerencia en Proveedores, agrupado. No se borra: se resuelve.
+model PuntoNotaCliente {
+  id          String    @id @default(cuid())
+  /// La genera la pagina: la misma nota repetida no se guarda dos veces.
+  idLocal     String    @unique
+  texto       String
+  /// Se dicto con el microfono.
+  porVoz      Boolean   @default(false)
+  cantidad    Int?
+  /// El cliente de la venta, si no era consumidor final.
+  cliente     String    @default("")
+  /// srl | cnc | tsl
+  sucursal    String
+  usuario     String
+  creadoEn    DateTime  @default(now())
+  /// nueva | pedida | descartada
+  estado      String    @default("nueva")
+  resueltoEn  DateTime?
+  resueltoPor String?
+  /// Por que se descarto ("lo tenemos", "no se consigue"...) o que se pidio.
+  motivo      String    @default("")
+
+  @@index([estado, creadoEn])
+}

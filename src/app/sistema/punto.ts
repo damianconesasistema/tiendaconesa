@@ -605,6 +605,18 @@ table.cx-t td small{display:block; color:var(--ink-3); font-size:11.5px}
 .ms-opc label{font-size:12px; font-weight:600; color:var(--ink-2); display:block; margin-bottom:4px}
 .ms-opc select, .ms-opc input{width:100%}
 @media (max-width:700px){ .ms-opc{grid-template-columns:1fr} }
+.nc-grupo{display:grid; grid-template-columns:1fr auto; gap:6px 14px; padding:10px 0; border-bottom:1px solid var(--line)}
+.nc-grupo:last-child{border-bottom:0}
+.nc-tx{font-size:14.5px; font-weight:600}
+.nc-tx small{display:block; font-weight:500; font-size:12.5px; color:var(--ink-2); margin-top:2px}
+.nc-veces{display:inline-block; min-width:26px; padding:1px 7px; margin-right:6px; border-radius:999px; background:var(--accent); color:#fff; font-size:12px; font-weight:700; text-align:center}
+.nc-acc{display:flex; gap:6px; align-items:flex-start; flex-wrap:wrap; justify-content:flex-end}
+.nc-acc button{padding:4px 10px}
+.nc-det{grid-column:1/-1; font-size:12.5px; color:var(--ink-2); background:var(--surface-2); border-radius:8px; padding:6px 10px}
+.nc-det div{padding:3px 0}
+.nc-mic.on{background:var(--accent); color:#fff; border-color:var(--accent)}
+#ncForm .envio-caja{overflow-x:hidden}
+#ncForm textarea{width:100%; box-sizing:border-box; resize:vertical}
 .cx-pie{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; border-top:1px solid var(--line)}
 /* V.0.11.257: la agenda de pagos a proveedores y su aviso. */
 .pg-aviso{display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; padding:9px 24px;
@@ -1570,7 +1582,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.259</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.260</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -1602,6 +1614,8 @@ footer{
 <div class="pg-aviso" id="pgAviso" hidden></div>
 <!-- V.0.11.259: el aviso de que se va a cerrar la sesión por inactividad. -->
 <div class="pg-aviso mal" id="inactAviso" role="alert" hidden></div>
+<!-- V.0.11.260: lo que piden los clientes y todavía no se resolvió. -->
+<div class="pg-aviso" id="ncAviso" hidden></div>
 
 <main>
 
@@ -1670,6 +1684,7 @@ footer{
         </div>
         <button class="b2" id="btnBorrador">Guardar como borrador</button>
         <button class="b2" id="btnWhatsVta">Mandárselo por WhatsApp</button>
+        <button class="b2" id="btnNotaVta" type="button" title="Algo que pidió el cliente y no tenemos (escrito o dictado): lo ve Gerencia en Proveedores para pedirlo">Notas</button>
         <button class="b3" id="btnCerrarSG" type="button" hidden title="Deja la venta en blanco sin guardar nada; el presupuesto original queda como estaba">Cerrar sin guardar</button>
         <button class="b3" id="btnMasAcc" aria-expanded="false" hidden>Otras opciones</button>
         <div id="masAcc" hidden>
@@ -1971,6 +1986,7 @@ footer{
         <div class="tk-acc">
           <button class="b1" id="btnGuardarPed">Guardar el pedido</button>
           <button class="b2" id="btnWhatsPed">Mandárselo por WhatsApp</button>
+          <button class="b2" id="btnNotaPed" type="button" title="Algo que pidió el cliente y no tenemos (escrito o dictado): lo ve Gerencia en Proveedores para pedirlo">Notas</button>
           <button class="b3" id="btnVaciarPed">Vaciar</button>
         </div>
         <p class="nota">Guardar el pedido reserva el stock que hay y deja anotado lo que falta. No cobra nada todavía: eso pasa cuando el cliente lo retira.</p>
@@ -2553,6 +2569,20 @@ footer{
     </div>
     <p class="cx-nota" style="padding:8px 16px 0;margin:0">Subís el Excel del proveedor (el de FV, por ejemplo) y te muestro qué cambia antes de tocar nada. Solo se cambian los artículos que ya están cargados: <b>no se crea ninguno</b>. Lo que parezca mal (bolsas con precio por unidad, saltos grandes, códigos que no están) te lo marco aparte.</p>
     <div class="cx-hist" id="cxHist" style="padding:6px 16px 12px"></div>
+  </div>
+  <!-- Lo que piden los clientes (V.0.11.260). Daniel: "agruparlos a todos que
+       aparezcan en algún lado donde la gerencia hace los pedidos". -->
+  <div class="card" id="ncCard" style="margin-bottom:16px" hidden>
+    <div class="card-h">
+      <h3>Lo que piden los clientes</h3>
+      <span class="sub" id="ncCount"></span>
+      <select id="ncVer" aria-label="qué notas ver" style="margin-left:auto">
+        <option value="pend">Sin resolver</option>
+        <option value="res">Resueltas (60 días)</option>
+      </select>
+    </div>
+    <p class="cx-nota" style="padding:8px 16px 0;margin:0">Lo anotan los vendedores con el botón <b>Notas</b> de la venta, escrito o dictado. Lo que piden igual va junto: lo más pedido arriba.</p>
+    <div id="ncLista" style="padding:6px 16px 14px"></div>
   </div>
   <!-- Pedidos a proveedores (órdenes de compra, OC-0001). Damián, 22/11/2026:
        "el pedido que voy a pedirle al proveedor me lo pongas con los costos y
@@ -3852,7 +3882,7 @@ function avisarVista(v){
     const f = document.getElementById("webFrame");
     if(f && !f.getAttribute("src")) f.setAttribute("src", "/admin");
   }
-  if(v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); pintarPagos(); pintarCxCard(); }
+  if(v==="proveedores"){ pintarProveedores(); if(ocPuede()) pintarCompras(); pintarPagos(); pintarCxCard(); pintarNotasCli(); }
   if(v==="clientes") pintarClientesV();
   if(v==="usuarios") pintarUsuariosPunto();
   if(v==="simulador"){
@@ -16065,6 +16095,179 @@ document.getElementById("fSubir").addEventListener("click", () => abrirCambiosEx
 document.getElementById("cxSubirPrv").addEventListener("click", () => abrirCambiosExcel("proveedor"));
 document.getElementById("cxHist").addEventListener("click", e => { const b = e.target.closest("[data-cx-desh]"); if(b) cxDeshacer(b.dataset.cxDesh); });
 setTimeout(() => { for(const id of ["fSubir", "cxSubirPrv"]){ const b = document.getElementById(id); if(b) b.hidden = !puede("importar"); } }, 0);
+
+/* ============================== LO QUE PIDEN LOS CLIENTES (V.0.11.260)
+   Daniel, 25/11/2026: "en la parte de vender o presupuestar ... un botón que
+   diga notas donde yo pueda ingresar una nota de texto o voz donde sugiera
+   algún producto que me piden los clientes, eso debería después mandarse al
+   panel artículos como una notificación arriba o gerencia ... o agruparlos a
+   todos que aparezcan en algún lado donde la gerencia hace los pedidos".
+   - "Notas" en Venta y en Pedidos: se escribe o se dicta (como el Asistente).
+   - En Proveedores (donde se arman los pedidos), agrupado: lo que piden igual
+     va junto (src/lib/punto-notas-reglas.ts), lo más pedido arriba. Se marca
+     "Ya lo pedí" o "Descartar"; nada se borra.
+   - Arriba de todo, para el que arma los pedidos, el aviso de cuántas hay sin
+     resolver. Servidor: /sistema/notas. */
+const NC_URL = "/sistema/notas";
+const NC = { d:null, error:"", ver:"pend", abiertos:{} };
+const ncVe = () => (puede("proveedores") || puede("gerencia")) && vistaPermitida("proveedores");
+function abrirNotaCliente(desde){
+  const viejo = document.getElementById("ncForm"); if(viejo) viejo.remove();
+  const idLocal = "nc" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  let cli = "";
+  if(desde === "venta"){ try{ const c = clienteVta(); if(c && c.n && !/consumidor\\s*final/i.test(c.n)) cli = c.n; }catch(e){} }
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "ncForm";
+  fondo.innerHTML = '<div class="envio-caja" style="width:min(560px,100%)" role="dialog" aria-label="Lo que pidió el cliente">' +
+    '<div class="envio-h"><h3>Lo que pidió el cliente</h3><button class="x" type="button" data-nc-no aria-label="cerrar">×</button></div>' +
+    '<p class="envio-n">Algo que el cliente buscaba y no tenemos (o no alcanzó). Lo ve Gerencia en Proveedores, junto con lo que piden los demás, para pedirlo.</p>' +
+    '<div class="campos">' +
+      '<div class="campo ancho"><label for="ncTexto">¿Qué pidió? *</label>' +
+        '<textarea id="ncTexto" rows="3" maxlength="500" placeholder="Ej.: grifería FV Allegro de cocina; tanque de 1000 litros negro; flexible de 60 cm"></textarea></div>' +
+      (Rec ? '<div class="campo ancho"><button class="b2 nc-mic" type="button" id="ncMic">Dictar con el micrófono</button></div>' : '') +
+      '<div class="campo"><label for="ncCant">¿Cuántos? (opcional)</label><input id="ncCant" type="number" min="1" step="1" inputmode="numeric"></div>' +
+      '<div class="campo"><label for="ncCli">Cliente (opcional)</label><input id="ncCli" type="text" maxlength="120" autocomplete="off" value="' + atrib(cli) + '"></div>' +
+    '</div>' +
+    '<div class="envio-acc"><button class="b3" type="button" data-nc-no>Cancelar</button><button class="b1" type="button" id="ncOk">Guardar la nota</button></div></div>';
+  document.body.appendChild(fondo);
+  const $ = id => fondo.querySelector("#" + id);
+  let porVoz = false, rec = null, escuchando = false;
+  const fin = () => { try{ if(rec && escuchando) rec.stop(); }catch(e){} fondo.remove(); };
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fin(); } });
+  if(Rec) $("ncMic").addEventListener("click", () => {
+    const b = $("ncMic"), caja = $("ncTexto");
+    if(escuchando){ rec.stop(); return; }
+    rec = new Rec(); rec.lang = "es-AR"; rec.interimResults = true; rec.continuous = false;
+    const antes = caja.value.trim();
+    rec.onstart = () => { escuchando = true; b.classList.add("on"); b.textContent = "Te escucho… (tocá para cortar)"; };
+    rec.onresult = e => {
+      let t = ""; for(const r of e.results) t += r[0].transcript;
+      caja.value = (antes ? antes + " " : "") + t.trim(); porVoz = true;
+    };
+    rec.onerror = ev => toast(ev.error === "not-allowed" || ev.error === "service-not-allowed"
+      ? "Hay que darle permiso al micrófono: está en el candado de la barra de direcciones."
+      : ev.error === "no-speech" ? "No se escuchó nada. Probá de nuevo." : "No se entendió. Probá de nuevo.");
+    rec.onend = () => { escuchando = false; b.classList.remove("on"); b.textContent = "Dictar con el micrófono"; };
+    rec.start();
+  });
+  fondo.addEventListener("click", async ev => {
+    if(ev.target.closest("[data-nc-no]")){ fin(); return; }
+    if(!ev.target.closest("#ncOk")) return;
+    const texto = $("ncTexto").value.trim();
+    if(texto.length < 3){ toast("Escribí (o dictá) qué pidió el cliente."); $("ncTexto").focus(); return; }
+    const cant = $("ncCant").value.trim();
+    const ok = $("ncOk"); ok.disabled = true; ok.textContent = "Guardando…";
+    const r = await pedirJson("POST", NC_URL, { accion:"anotar", yo: soyYo(), idLocal, texto, porVoz, cantidad: cant ? +cant : null,
+      cliente: $("ncCli").value.trim(), sucursal: sucDeTrabajo() || S.suc });
+    if(r.error){ ok.disabled = false; ok.textContent = "Guardar la nota"; toast("No se guardó: " + r.error); return; }
+    fin();
+    toast("Nota guardada: la ve Gerencia en Proveedores.");
+    traerAvisoNotas().catch(() => {});
+  });
+  setTimeout(() => $("ncTexto").focus(), 30);
+}
+document.getElementById("btnNotaVta").addEventListener("click", () => abrirNotaCliente("venta"));
+document.getElementById("btnNotaPed").addEventListener("click", () => abrirNotaCliente("pedido"));
+
+async function pintarNotasCli(){
+  const card = document.getElementById("ncCard"); if(!card) return;
+  card.hidden = !(puede("proveedores") || puede("gerencia"));
+  if(card.hidden) return;
+  if(!NC.d) document.getElementById("ncLista").innerHTML = '<p class="cx-nota">Cargando…</p>';
+  const d = await pedirJson("GET", NC_URL + "?dias=60");
+  if(d.error){ NC.error = d.error; } else { NC.d = d; NC.error = ""; }
+  pintarListaNc();
+  traerAvisoNotas().catch(() => {});
+}
+function pintarListaNc(){
+  const box = document.getElementById("ncLista"), cnt = document.getElementById("ncCount"); if(!box) return;
+  if(NC.error && !NC.d){ box.innerHTML = '<p class="cx-av mal">' + txt(NC.error) + '</p>'; cnt.textContent = ""; return; }
+  if(!NC.d) return;
+  const gs = NC.d.grupos || [], res = NC.d.resueltos || [];
+  const sinRes = gs.reduce((s, g) => s + g.veces, 0);
+  cnt.textContent = sinRes ? sinRes + (sinRes === 1 ? " nota sin resolver" : " notas sin resolver") + " · " + gs.length + (gs.length === 1 ? " cosa distinta" : " cosas distintas") : "nada sin resolver";
+  const quien = n => txt(n.usuario) + " · " + txt(sucDe(n.sucursal).n) + " · " + fechaHoraAR(n.creadoEn) +
+    (n.cantidad ? " · " + n.cantidad + " u." : "") + (n.cliente ? " · " + txt(n.cliente) : "") + (n.porVoz ? " · dictado" : "");
+  if(NC.ver === "res"){
+    box.innerHTML = res.length ? res.map(n => '<div class="nc-grupo"><div class="nc-tx">' + txt(n.texto) +
+        '<small>' + (n.estado === "pedida" ? "Pedido" : "Descartado") + ' por ' + txt(n.resueltoPor || "") + ' el ' + fechaHoraAR(n.resueltoEn) +
+        (n.motivo ? ' · ' + txt(n.motivo) : '') + '<br>Lo anotó ' + quien(n) + '</small></div>' +
+        '<div class="nc-acc"><button class="b3" type="button" data-nc-volver="' + atrib(n.id) + '">Volver a pendiente</button></div></div>').join("")
+      : '<p class="cx-nota">Nada resuelto en los últimos 60 días.</p>';
+    return;
+  }
+  if(!gs.length){ box.innerHTML = '<p class="cx-nota">No hay nada sin resolver. Cuando un vendedor anote lo que pidió un cliente, aparece acá.</p>'; return; }
+  box.innerHTML = gs.map((g, i) => {
+    const abierto = !!NC.abiertos[g.clave];
+    return '<div class="nc-grupo"><div class="nc-tx"><span class="nc-veces" title="veces que lo pidieron">' + g.veces + '</span>' + txt(g.texto) +
+        '<small>' + (g.veces === 1 ? "Lo pidieron 1 vez" : "Lo pidieron " + g.veces + " veces") + (g.unidades ? " · " + g.unidades + " u." : "") +
+        ' · ' + g.sucursales.map(s => txt(sucDe(s).n)).join(", ") + ' · lo anotó ' + g.usuarios.map(txt).join(", ") + ' · último ' + fechaHoraAR(g.ultima) + '</small></div>' +
+      '<div class="nc-acc"><button class="b1" type="button" data-nc-g="' + i + '" data-nc-acc="pedida">Ya lo pedí</button>' +
+        '<button class="b3" type="button" data-nc-g="' + i + '" data-nc-acc="descartada">Descartar</button>' +
+        '<button class="b3" type="button" data-nc-g="' + i + '" data-nc-acc="ver">' + (abierto ? "Ocultar" : "Ver " + (g.veces === 1 ? "la nota" : "las " + g.veces)) + '</button></div>' +
+      (abierto ? '<div class="nc-det">' + g.notas.map(n => '<div>«' + txt(n.texto) + '» · ' + quien(n) + '</div>').join("") + '</div>' : '') +
+    '</div>';
+  }).join("");
+}
+async function resolverNc(ids, estado, motivo){
+  const r = await pedirJson("POST", NC_URL, { accion:"resolver", yo: soyYo(), ids, estado, motivo: motivo || "" });
+  if(r.error){ toast("No se guardó: " + r.error); return; }
+  toast(estado === "pedida" ? "Anotado como pedido." : estado === "descartada" ? "Descartado." : "Volvió a pendiente.");
+  pintarNotasCli();
+}
+document.getElementById("ncLista").addEventListener("click", e => {
+  const v = e.target.closest("[data-nc-volver]");
+  if(v){ resolverNc([v.dataset.ncVolver], "nueva", ""); return; }
+  const b = e.target.closest("[data-nc-g]"); if(!b || !NC.d) return;
+  const g = (NC.d.grupos || [])[+b.dataset.ncG]; if(!g) return;
+  const acc = b.dataset.ncAcc;
+  if(acc === "ver"){ NC.abiertos[g.clave] = !NC.abiertos[g.clave]; pintarListaNc(); return; }
+  const ids = g.notas.map(n => n.id);
+  if(acc === "pedida"){
+    const m = prompt("¿A quién se lo pediste o en qué pedido? (opcional)\\n\\n" + g.texto);
+    if(m === null) return;
+    resolverNc(ids, "pedida", m.trim());
+  } else {
+    const m = prompt("¿Por qué se descarta? (por ejemplo: lo tenemos, no se consigue, no lo vamos a trabajar)\\n\\n" + g.texto);
+    if(m === null) return;
+    resolverNc(ids, "descartada", m.trim());
+  }
+});
+document.getElementById("ncVer").addEventListener("change", e => { NC.ver = e.target.value; pintarListaNc(); });
+
+/* El aviso de arriba, para el que arma los pedidos. Se oculta con la X hasta
+   que llegue una nota nueva. */
+const NC_AVISO_KEY = "punto.notas.avisoCerrado";
+function pintarAvisoNotas(a){
+  const b = document.getElementById("ncAviso"); if(!b) return;
+  if(!a || !a.nuevas || !ncVe()){ b.hidden = true; return; }
+  const clave = a.nuevas + ":" + (a.ultima || "");
+  let cerrado = ""; try{ cerrado = sessionStorage.getItem(NC_AVISO_KEY) || ""; }catch(e){}
+  if(cerrado === clave){ b.hidden = true; return; }
+  b.dataset.clave = clave;
+  b.innerHTML = '<span><b>Lo que piden los clientes:</b> hay ' + a.nuevas + (a.nuevas === 1 ? ' nota sin resolver' : ' notas sin resolver') +
+    (a.ultima ? ' (la última, ' + fechaHoraAR(a.ultima) + ')' : '') + '.</span>' +
+    '<button class="b1 pg-ir" type="button" data-nc-ir>Ver</button>' +
+    '<button class="pg-x" type="button" data-nc-cerrar aria-label="Ocultar el aviso" title="Ocultar hasta que llegue otra">×</button>';
+  b.hidden = false;
+}
+async function traerAvisoNotas(){
+  if(!ncVe()) return;
+  const d = await pedirJson("GET", NC_URL + "?aviso=1");
+  if(d.error) return;
+  pintarAvisoNotas(d.aviso);
+}
+document.getElementById("ncAviso").addEventListener("click", e => {
+  const b = document.getElementById("ncAviso");
+  if(e.target.closest("[data-nc-cerrar]")){ try{ sessionStorage.setItem(NC_AVISO_KEY, b.dataset.clave || ""); }catch(e2){} b.hidden = true; return; }
+  if(!e.target.closest("[data-nc-ir]")) return;
+  NC.ver = "pend"; document.getElementById("ncVer").value = "pend";
+  abrirVista("proveedores");
+  setTimeout(() => { const c = document.getElementById("ncCard"); if(c && !c.hidden) c.scrollIntoView({ behavior:"smooth", block:"start" }); }, 80);
+});
+setTimeout(() => { traerAvisoNotas().catch(() => {}); }, 3000);
+setInterval(() => { traerAvisoNotas().catch(() => {}); }, 10 * 60e3);
 
 /* ============================== CIERRE POR INACTIVIDAD (V.0.11.259)
    Damián, 24/11/2026: "si pasa más de 2 horas sin actividad un usuario, se
