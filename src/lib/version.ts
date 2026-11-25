@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.263";
+export const APP_VERSION = "V.0.11.264";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.264",
+    date: "2026-11-25",
+    changes: [
+      "Punto, Caja de efectivo: ELIMINAR la última apertura o cierre de una caja, solo gerencia (Damián: lo de la caja de ayer fue de prueba, que solo gerencia pueda eliminarla). Aparece en la de más arriba de cada caja (en Caja y en Gerencia → Cierres de caja). No se borra: deja de contar y queda en Actividad; la caja vuelve a como estaba antes (si era la única apertura, queda sin abrir y se abre con el conteo real).",
+    ],
+  },
   {
     version: "V.0.11.263",
     date: "2026-11-25",

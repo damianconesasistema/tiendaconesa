@@ -162,6 +162,27 @@ export async function listarCierres(sucursales: string[] | null): Promise<Cierre
   return filas.map(aGuardado);
 }
 
+/** V.0.11.264. Damian, 25/11/2026: "lo de la caja de ayer fue de prueba ...
+ *  poneme que solo gerencia pueda eliminarla". Elimina la ULTIMA apertura o
+ *  cierre de esa caja: sacar una del medio dejaria a la siguiente sin la base
+ *  con la que se conto. No se borra: queda marcada como en el reset (cuando y
+ *  quien) y deja de contar; la caja vuelve a como estaba antes de esa. */
+export async function eliminarCierre(id: string, usuario: string): Promise<CierreGuardado | string> {
+  const c = await prisma.puntoCierre.findUnique({ where: { id } });
+  if (!c || c.reseteadoEn) return "Esa apertura o cierre ya no está: recargá la página.";
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT 1 AS "ok" FROM pg_advisory_xact_lock(hashtext(${"punto-cierre:" + c.sucursal}))`;
+    const ult = await tx.puntoCierre.findFirst({
+      where: { sucursal: c.sucursal, reseteadoEn: null },
+      orderBy: [{ hasta: "desc" }, { creadoEn: "desc" }],
+    });
+    if (!ult || ult.id !== c.id)
+      return "Solo se puede eliminar la última de esa caja (la de más arriba): eliminá primero las más nuevas.";
+    await tx.puntoCierre.update({ where: { id }, data: { reseteadoEn: new Date(), reseteadoPor: usuario } });
+    return aGuardado(c);
+  });
+}
+
 /** Reset desde Gerencia (V.0.11.256): los cierres de esa caja dejan de
  *  contar (no se borran: quedan marcados con cuando y quien) y la caja
  *  vuelve a "todavia no se abrio". Devuelve cuantos se resetearon. */

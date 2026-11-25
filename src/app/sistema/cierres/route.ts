@@ -1,5 +1,5 @@
 import { registrar } from "@/lib/actividad";
-import { cerrarCaja, estadoCaja, listarCierres, resetearCaja } from "@/lib/punto-cierres";
+import { cerrarCaja, eliminarCierre, estadoCaja, listarCierres, resetearCaja } from "@/lib/punto-cierres";
 import { esSucursalPunto, fueraDeSucursal, nombreSucursalPunto, puedePunto } from "@/lib/punto-permisos";
 import { type YoPunto, yoPunto } from "@/lib/punto-yo";
 import { quienEntra } from "../clave";
@@ -94,6 +94,24 @@ export async function POST(req: Request): Promise<Response> {
       return json({ ok: true, reseteados: n });
     } catch {
       return json({ error: "No pude resetear la caja: probá de nuevo en un momento. No se cambió nada." });
+    }
+  }
+  // V.0.11.264: eliminar la ultima apertura o cierre (una de prueba), solo gerencia.
+  if (c.accion === "eliminar") {
+    if (!esGerencia(yo)) return json({ error: "Eliminar una apertura o un cierre de caja lo hace solo gerencia." }, 403);
+    const id = typeof c.id === "string" ? c.id.trim().slice(0, 40) : "";
+    if (!id) return json({ error: "Falta cuál eliminar." }, 400);
+    try {
+      const r = await eliminarCierre(id, yo.usuario);
+      if (typeof r === "string") return json({ error: r });
+      await registrar(
+        `Punto: eliminó ${r.tipo === "apertura" ? "una apertura" : "un cierre"} de la caja de ${nombreSucursalPunto(r.sucursal)}`,
+        `del ${new Date(r.hasta).toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })} · contado $ ${r.contado.toLocaleString("es-AR", { minimumFractionDigits: 2 })} · hecho por ${r.usuario} (no se borra: deja de contar)`,
+        yo.usuario,
+      );
+      return json({ ok: true, eliminado: r });
+    } catch {
+      return json({ error: "No pude eliminarlo: probá de nuevo en un momento. No se cambió nada." });
     }
   }
   const accion = c.accion === "abrir" ? "abrir" : c.accion === "cerrar" ? "cerrar" : null;
