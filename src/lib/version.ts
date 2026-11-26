@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.273";
+export const APP_VERSION = "V.0.11.274";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.274",
+    date: "2026-11-26",
+    changes: [
+      "Punto: al emitir una factura A o B se abre sola la ventana de imprimir (Damián: \"cuando emitís una factura a o b ... debería abrir para guardar o imprimir la factura\"), como ya pasaba con el presupuesto. En esa ventana se elige la impresora o \"Guardar como PDF\".",
+      "Servidor: el disco quedó en 50 GB (la publicación instaló growpart y agrandó la partición con la máquina andando): 25 % usado, 36 GB libres.",
+    ],
+  },
   {
     version: "V.0.11.273",
     date: "2026-11-26",
