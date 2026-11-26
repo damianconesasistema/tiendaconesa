@@ -32,12 +32,36 @@ decir "disco antes: $(df -h / | awk 'NR==2 {print $3" usados de "$2" ("$5")"}')"
 #    tamano del disco (si se agrando en Google con la maquina prendida).
 echo 1 > /sys/class/block/sda/device/rescan 2>/dev/null || true
 decir "disco segun Google: $(lsblk -dn -o SIZE /dev/sda 2>/dev/null | tr -d ' ') · particion: $(lsblk -n -o SIZE /dev/sda1 2>/dev/null | tr -d ' ')"
-if command -v growpart >/dev/null 2>&1; then
-  if growpart /dev/sda 1 >/dev/null 2>&1; then decir "la particion crecio al tamano nuevo del disco"; fi
-else
-  decir "no esta growpart (cloud-guest-utils): la particion no se puede agrandar con la maquina andando"
+# 26/11/2026: el disco se agrando a 50 GB en Google pero la particion seguia
+# en 30: faltaba growpart. Damian: "Si, agrandala". Si falta, se instala
+# (cloud-guest-utils, chico) y se agranda con la maquina andando, que es lo
+# que indica Google. growpart solo crece si hay lugar despues de la particion;
+# si no, no toca nada.
+if ! command -v growpart >/dev/null 2>&1; then
+  export DEBIAN_FRONTEND=noninteractive
+  if timeout 180 apt-get install -y -q cloud-guest-utils >/dev/null 2>&1 \
+     || { timeout 180 apt-get update -q >/dev/null 2>&1 && timeout 180 apt-get install -y -q cloud-guest-utils >/dev/null 2>&1; }; then
+    decir "instale growpart (cloud-guest-utils)"
+  else
+    decir "no pude instalar growpart: la particion queda como esta"
+  fi
 fi
-resize2fs /dev/sda1 >/dev/null 2>&1 || true
+if command -v growpart >/dev/null 2>&1; then
+  if growpart /dev/sda 1 >/tmp/growpart.txt 2>&1; then
+    decir "la particion crecio al tamano nuevo del disco"
+  elif grep -q NOCHANGE /tmp/growpart.txt; then
+    decir "la particion ya ocupa todo el disco"
+  else
+    decir "growpart no pudo: $(tail -1 /tmp/growpart.txt)"
+  fi
+  rm -f /tmp/growpart.txt
+fi
+if resize2fs /dev/sda1 >/tmp/resize2fs.txt 2>&1; then
+  grep -qi "nothing to do" /tmp/resize2fs.txt || decir "el sistema de archivos crecio"
+else
+  decir "resize2fs no pudo: $(tail -1 /tmp/resize2fs.txt)"
+fi
+rm -f /tmp/resize2fs.txt
 
 # 2. Las copias que ya estan en Google.
 DESTINO=/var/backups/conesa
