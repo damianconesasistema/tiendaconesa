@@ -31,7 +31,26 @@ export type DespuesExcel = {
   iva?: number;
   tit?: string;
   fab?: string;
+  // V.0.11.282: lo que se cambia en masa desde Artículos (Damián: "cambios
+  // masivos, seleccionando artículos y elegir qué le quiero modificar").
+  // null lo saca (vuelve a lo de siempre).
+  /** El subrubro de Punto (LAVATORIO, DUCHA...). */
+  subrubro?: string | null;
+  /** El flete fijo por unidad, en pesos con IVA. */
+  flete?: number | null;
+  /** El descuento por pago contado del proveedor y a cuántos días. */
+  contado?: ContadoArticulo | null;
+  /** Se compra solo de a N unidades. */
+  bulto?: number | null;
+  /** Cómo se vende: suelto, en combo o de las dos formas (null). */
+  vende?: VendeArticulo | null;
 };
+export type ContadoArticulo = { pct: number; dias: number; cheques?: number[] };
+export type VendeArticulo = { suelto: boolean; combo: boolean };
+/** Los campos de los cambios masivos (V.0.11.282), en el orden de la foto. */
+export const CAMPOS_MASIVOS = ["subrubro", "flete", "contado", "bulto", "vende"] as const;
+/** Los de siempre (los del Excel). */
+export const CAMPOS_FOTO = ["lista", "dtos", "recs", "lista1", "lista2", "iva", "tit", "fab"] as const;
 
 export type CambioExcel = {
   cod: string;
@@ -51,6 +70,14 @@ export type FotoArticulo = {
   iva?: number;
   tit?: string;
   fab?: string;
+  /** V.0.11.282: 1 = la foto trae tambien los campos masivos. Las de antes
+   *  no los traen: para esas no se miran (si no, ninguna se podria deshacer). */
+  x?: 1;
+  subrubro?: string;
+  flete?: number;
+  contado?: ContadoArticulo;
+  bulto?: number;
+  vende?: VendeArticulo;
 };
 
 export const IVAS = [0, 10.5, 21, 27] as const;
@@ -152,8 +179,60 @@ export function limpiarCambioExcel(x: unknown): CambioExcel | string {
     despues.tit = v;
   }
   if (d.fab !== undefined) despues.fab = texto(d.fab, 40);
+  // V.0.11.282: los de los cambios masivos.
+  if (d.subrubro !== undefined) despues.subrubro = d.subrubro === null ? null : texto(d.subrubro, 40).toUpperCase() || null;
+  if (d.flete !== undefined) {
+    if (d.flete === null || d.flete === 0) despues.flete = null;
+    else {
+      const v = plata(d.flete);
+      if (v == null) return `${cod}: el flete tiene que ser un monto mayor que cero (o nada).`;
+      despues.flete = v;
+    }
+  }
+  if (d.contado !== undefined) {
+    if (d.contado === null) despues.contado = null;
+    else {
+      const v = limpiarContado(d.contado);
+      if (!v) return `${cod}: el descuento por pago contado va de 0 a 99,99 %, a 0 a 365 días.`;
+      despues.contado = v;
+    }
+  }
+  if (d.bulto !== undefined) {
+    if (d.bulto === null || d.bulto === 1) despues.bulto = null;
+    else {
+      const n = typeof d.bulto === "number" ? d.bulto : Number.NaN;
+      if (!Number.isInteger(n) || n < 2 || n > 10000) return `${cod}: "se compra de a" va de 1 a 10.000 unidades.`;
+      despues.bulto = n;
+    }
+  }
+  if (d.vende !== undefined) {
+    if (d.vende === null) despues.vende = null;
+    else {
+      const o = d.vende as Record<string, unknown>;
+      if (!o || typeof o !== "object" || typeof o.suelto !== "boolean" || typeof o.combo !== "boolean" || (!o.suelto && !o.combo))
+        return `${cod}: se tiene que poder vender suelto, en combo o de las dos formas.`;
+      despues.vende = o.suelto && o.combo ? null : { suelto: o.suelto, combo: o.combo };
+    }
+  }
   if (!Object.keys(despues).length) return `${cod}: no dice qué cambiar.`;
   return { cod, antes, despues };
+}
+
+/** El pago contado: 0 a 99,99 %, a 0 a 365 días; los cheques (30-60-90),
+ *  de 2 a 6. null = mal. */
+function limpiarContado(x: unknown): ContadoArticulo | null {
+  if (!x || typeof x !== "object") return null;
+  const o = x as Record<string, unknown>;
+  const pct = typeof o.pct === "number" ? Math.round(o.pct * 100) / 100 : Number.NaN;
+  const dias = typeof o.dias === "number" ? o.dias : Number.NaN;
+  if (!(pct > 0 && pct < 100) || !Number.isInteger(dias) || dias < 0 || dias > 365) return null;
+  const c: ContadoArticulo = { pct, dias };
+  if (o.cheques !== undefined) {
+    const ch = o.cheques;
+    if (!Array.isArray(ch) || ch.length < 2 || ch.length > 6 || !ch.every((n) => Number.isInteger(n) && n >= 0 && n <= 365)) return null;
+    c.cheques = (ch as number[]).slice();
+  }
+  return c;
 }
 
 /** Dos montos iguales al centavo. */
@@ -172,7 +251,34 @@ export function fotoDe(a: Record<string, unknown>): FotoArticulo {
   for (const k of ["lista", "lista1", "lista2", "iva"] as const) if (typeof a[k] === "number") f[k] = a[k] as number;
   for (const k of ["dtos", "recs"] as const) if (Array.isArray(a[k])) f[k] = (a[k] as number[]).slice();
   for (const k of ["tit", "fab"] as const) if (typeof a[k] === "string") f[k] = a[k] as string;
+  // V.0.11.282: los campos masivos.
+  f.x = 1;
+  if (typeof a.subrubro === "string" && a.subrubro) f.subrubro = a.subrubro;
+  if (typeof a.flete === "number" && a.flete > 0) f.flete = a.flete;
+  const c = a.contado as ContadoArticulo | null | undefined;
+  if (c && typeof c === "object" && typeof c.pct === "number")
+    f.contado = { pct: c.pct, dias: c.dias, ...(Array.isArray(c.cheques) ? { cheques: c.cheques.slice() } : {}) };
+  if (typeof a.bulto === "number" && a.bulto > 1) f.bulto = a.bulto;
+  const v = a.vende as VendeArticulo | null | undefined;
+  if (v && typeof v === "object") f.vende = { suelto: v.suelto !== false, combo: v.combo !== false };
   return f;
+}
+
+const igualContado = (a?: ContadoArticulo, b?: ContadoArticulo): boolean =>
+  (!a && !b) || (!!a && !!b && igualPlata(a.pct, b.pct) && a.dias === b.dias && igualLista(a.cheques, b.cheques));
+const vendeTxt = (v?: VendeArticulo): string => (v ? `${v.suelto !== false}|${v.combo !== false}` : "true|true");
+
+/** Un articulo vuelto a como estaba en la foto (para deshacer). Con una foto
+ *  de antes de V.0.11.282 (sin x), solo los campos del Excel. */
+export function volverAFoto<T extends Record<string, unknown>>(a: T, antes: FotoArticulo): T {
+  const n: Record<string, unknown> = { ...a };
+  const ks: readonly string[] = antes.x ? [...CAMPOS_FOTO, ...CAMPOS_MASIVOS] : CAMPOS_FOTO;
+  for (const k of ks) {
+    const v = (antes as Record<string, unknown>)[k];
+    if (v === undefined) delete n[k];
+    else n[k] = Array.isArray(v) ? v.slice() : v && typeof v === "object" ? { ...(v as object) } : v;
+  }
+  return n as T;
 }
 
 /** Si el articulo sigue como quedo despues del cambio (para deshacer sin
@@ -186,7 +292,14 @@ export function mismaFoto(a: FotoArticulo, b: FotoArticulo): boolean {
     igualLista(a.dtos, b.dtos) &&
     igualLista(a.recs, b.recs) &&
     (a.tit ?? "") === (b.tit ?? "") &&
-    (a.fab ?? "") === (b.fab ?? "")
+    (a.fab ?? "") === (b.fab ?? "") &&
+    // V.0.11.282: los masivos, solo si las dos fotos los traen.
+    (!(a.x && b.x) ||
+      ((a.subrubro ?? "") === (b.subrubro ?? "") &&
+        igualPlata(a.flete, b.flete) &&
+        igualContado(a.contado, b.contado) &&
+        (a.bulto ?? 0) === (b.bulto ?? 0) &&
+        vendeTxt(a.vende) === vendeTxt(b.vende)))
   );
 }
 
@@ -208,6 +321,13 @@ export function aplicarAlArticulo<T extends Record<string, unknown>>(a: T, d: De
   if (d.fab !== undefined) {
     if (d.fab) n.fab = d.fab;
     else delete n.fab;
+  }
+  // V.0.11.282: null lo saca.
+  for (const k of CAMPOS_MASIVOS) {
+    const v = d[k];
+    if (v === undefined) continue;
+    if (v === null) delete n[k];
+    else n[k] = typeof v === "object" ? { ...v } : v;
   }
   return n as T;
 }

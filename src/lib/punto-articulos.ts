@@ -8,6 +8,7 @@ import {
   fotoDe,
   igualPlata,
   mismaFoto,
+  volverAFoto,
 } from "@/lib/punto-cambios-excel";
 
 // Los articulos de verdad del sistema Punto: los que se traen del Excel que
@@ -898,12 +899,13 @@ export async function aplicarCambiosExcel(
         continue;
       }
       const a = articulos[i];
-      const tocaPrecio = ["lista", "cadena", "recargos", "lista1", "lista2", "iva"].some((k) => k in cb.despues);
+      // V.0.11.282: el pago contado tambien va en el costo.
+      const tocaPrecio = ["lista", "cadena", "recargos", "lista1", "lista2", "iva", "contado"].some((k) => k in cb.despues);
       if (tocaPrecio && a.mon === "USD") {
         r.malos.push({ cod: cb.cod, motivo: "tiene el costo en dólares: cambialo en la ficha" });
         continue;
       }
-      if (tocaPrecio && a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length) {
+      if ((tocaPrecio || "flete" in cb.despues) && a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length) {
         r.malos.push({ cod: cb.cod, motivo: "es un combo: el costo sale de sus piezas" });
         continue;
       }
@@ -970,13 +972,8 @@ export async function deshacerCambiosExcel(
         tocadosDespues.push(rg.cod);
         continue;
       }
-      const n: Record<string, unknown> = { ...a };
-      for (const k of ["lista", "dtos", "recs", "lista1", "lista2", "iva", "tit", "fab"] as const) {
-        const v = rg.antes[k];
-        if (v === undefined) delete n[k];
-        else n[k] = Array.isArray(v) ? v.slice() : v;
-      }
-      articulos[i] = n as unknown as ArticuloPunto;
+      // V.0.11.282: con los campos masivos, si la foto los trae.
+      articulos[i] = volverAFoto(a, rg.antes) as unknown as ArticuloPunto;
       deshechos++;
     }
     if (deshechos) {

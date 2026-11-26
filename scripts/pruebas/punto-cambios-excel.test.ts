@@ -13,6 +13,7 @@ import {
   limpiarColumnas,
   mismaFoto,
   pareceBolsa,
+  volverAFoto,
 } from "../../src/lib/punto-cambios-excel.ts";
 
 test("la cadena de FV (5 descuentos) se guarda como GBP: 4 y el quinto como recargo negativo", () => {
@@ -89,4 +90,52 @@ test("las columnas de la lista del proveedor", () => {
   assert.deepEqual(c, { fila: 5, cod: 0, precio: 2, descuentos: [4, 5, 6, 7, 8], conIva: false, titulos: ["Cod Art"] });
   assert.equal(limpiarColumnas({ fila: 0, cod: 0, precio: 2 }), null);
   assert.equal(limpiarColumnas({ fila: 1, cod: 2, precio: 2 }), null);
+});
+
+// V.0.11.282: cambios masivos desde Artículos (subrubro, flete, contado,
+// "se compra de a" y cómo se vende), con deshacer.
+test("los campos masivos se limpian: null o vacío lo saca", () => {
+  const c = limpiarCambioExcel({ cod: "A1", antes: {}, despues: { subrubro: " ducha ", flete: 1500.555, contado: { pct: 5, dias: 60 }, bulto: 6, vende: { suelto: true, combo: false } } });
+  assert.equal(typeof c, "object");
+  if (typeof c === "string") return;
+  assert.deepEqual(c.despues, { subrubro: "DUCHA", flete: 1500.56, contado: { pct: 5, dias: 60 }, bulto: 6, vende: { suelto: true, combo: false } });
+  const s = limpiarCambioExcel({ cod: "A1", antes: {}, despues: { subrubro: "", flete: 0, contado: null, bulto: 1, vende: { suelto: true, combo: true } } });
+  if (typeof s === "string") throw new Error(s);
+  assert.deepEqual(s.despues, { subrubro: null, flete: null, contado: null, bulto: null, vende: null });
+  assert.equal(typeof limpiarCambioExcel({ cod: "A1", antes: {}, despues: { contado: { pct: 100, dias: 60 } } }), "string");
+  assert.equal(typeof limpiarCambioExcel({ cod: "A1", antes: {}, despues: { contado: { pct: 5, dias: 400 } } }), "string");
+  assert.equal(typeof limpiarCambioExcel({ cod: "A1", antes: {}, despues: { bulto: 2.5 } }), "string");
+  assert.equal(typeof limpiarCambioExcel({ cod: "A1", antes: {}, despues: { vende: { suelto: false, combo: false } } }), "string");
+  const ch = limpiarCambioExcel({ cod: "A1", antes: {}, despues: { contado: { pct: 3, dias: 90, cheques: [30, 60, 90] } } });
+  if (typeof ch === "string") throw new Error(ch);
+  assert.deepEqual(ch.despues.contado, { pct: 3, dias: 90, cheques: [30, 60, 90] });
+});
+
+test("aplicar y deshacer los masivos: vuelve a como estaba", () => {
+  const a = { cod: "A1", lista: 100, lista1: 125, lista2: 156.25, iva: 21, tit: "X", subrubro: "LAVATORIO", contado: { pct: 5, dias: 60 } };
+  const n = aplicarAlArticulo(a, { subrubro: "DUCHA", flete: 900, contado: null, bulto: 6 });
+  if (typeof n === "string") throw new Error(n);
+  assert.equal(n.subrubro, "DUCHA");
+  assert.equal((n as Record<string, unknown>).flete, 900);
+  assert.equal("contado" in n, false);
+  assert.equal((n as Record<string, unknown>).bulto, 6);
+  const antes = fotoDe(a), despues = fotoDe(n);
+  assert.equal(mismaFoto(antes, despues), false);
+  // Solo cambia el subrubro: igual es un cambio.
+  const m = aplicarAlArticulo(a, { subrubro: "DUCHA" });
+  if (typeof m === "string") throw new Error(m);
+  assert.equal(mismaFoto(fotoDe(a), fotoDe(m)), false);
+  const v = volverAFoto(n, antes);
+  assert.deepEqual(v, a);
+});
+
+test("una foto de antes (sin los masivos) igual se puede deshacer", () => {
+  const vieja = { lista: 100, lista1: 125, lista2: 150, iva: 21, tit: "X" };
+  const a = { cod: "A1", lista: 100, lista1: 125, lista2: 150, iva: 21, tit: "X", subrubro: "DUCHA", flete: 500 };
+  assert.equal(mismaFoto(fotoDe(a), vieja), true);
+  const v = volverAFoto(a, { lista: 90, lista1: 110, lista2: 140, iva: 21, tit: "X" });
+  // Lo masivo queda como está: la foto vieja no lo traía.
+  assert.equal(v.subrubro, "DUCHA");
+  assert.equal(v.flete, 500);
+  assert.equal(v.lista, 90);
 });

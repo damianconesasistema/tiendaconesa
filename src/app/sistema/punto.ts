@@ -628,6 +628,40 @@ table.cx-t td small{display:block; color:var(--ink-3); font-size:11.5px}
 .ms-opc label{font-size:12px; font-weight:600; color:var(--ink-2); display:block; margin-bottom:4px}
 .ms-opc select, .ms-opc input{width:100%}
 @media (max-width:700px){ .ms-opc{grid-template-columns:1fr} }
+/* V.0.11.282: el markup en la lista del proveedor (editable) y los cambios
+   masivos. Cada tabla con sus columnas, siempre en el ancho de la pantalla. */
+table.cx-t.mk th:nth-child(2){width:19%}
+table.cx-t.mk th:nth-child(3){width:11%}
+table.cx-t.mk th:nth-child(4){width:12%}
+table.cx-t.mk th:nth-child(5){width:11%}
+table.cx-t.mk th:nth-child(6){width:16%}
+table.cx-t.mk th:nth-child(7){width:11%}
+table.cx-t.ms8 th:nth-child(2){width:22%}
+table.cx-t.ms8 th:nth-child(3){width:11%}
+table.cx-t.ms8 th:nth-child(4){width:12%}
+table.cx-t.ms8 th:nth-child(5){width:11%}
+table.cx-t.ms8 th:nth-child(6){width:11%}
+table.cx-t.ms8 th:nth-child(7){width:9%}
+table.cx-t.ms5 th:nth-child(2){width:38%}
+table.cx-t.ms5 th:nth-child(3){width:20%}
+table.cx-t.ms5 th:nth-child(4){width:20%}
+.cx-mks{display:flex; flex-wrap:wrap; gap:4px 8px}
+.cx-mks label{display:inline-flex; align-items:center; gap:3px; font-size:11.5px; font-weight:700; color:var(--ink-2); margin:0}
+input.cx-mk{width:62px; padding:4px 6px; font-size:13px; text-align:right; border:1.5px solid var(--line-2); border-radius:6px}
+input.cx-mk:focus{border-color:var(--accent); outline:none}
+input.cx-mk:disabled{background:var(--surface-3); color:var(--ink-3)}
+.ms-dos{display:flex; align-items:center; gap:6px}
+.ms-dos input{flex:1; min-width:0}
+.ms-dos span{font-size:13px; color:var(--ink-2); white-space:nowrap}
+input.sel-art{width:16px; height:16px; margin:0 8px 0 0; vertical-align:-3px; accent-color:var(--accent); cursor:pointer}
+#tbProd tr.sel > td{background:var(--accent-soft)}
+.sel-barra{display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:10px 0 6px; padding:10px 14px;
+  border:1.5px solid var(--accent); border-radius:10px; background:var(--accent-soft); font-size:14px}
+.sel-barra[hidden]{display:none}
+.sel-barra .por{font-size:12.5px}
+/* V.0.11.282: el aviso del combo tenía display:block a mano y se veía
+   siempre, también en los que no son combo. */
+#aListaCombo[hidden]{display:none !important}
 .nc-grupo{display:grid; grid-template-columns:1fr auto; gap:6px 14px; padding:10px 0; border-bottom:1px solid var(--line)}
 .nc-grupo:last-child{border-bottom:0}
 .nc-tx{font-size:14.5px; font-weight:600}
@@ -1625,7 +1659,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.281</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.72.4</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -2429,10 +2463,12 @@ footer{
     <div class="card-h">
       <h3>Buscar artículos</h3><span class="sub" id="fCuenta"></span>
       <span class="por" style="margin-left:auto">Exportar lo que ves:</span>
-      <button class="b3" id="fXlsx" type="button" style="padding:5px 14px">Excel</button>
-      <button class="b3" id="fPdf" type="button" style="padding:5px 14px">PDF</button>
-      <button class="b2" id="fSubir" type="button" style="padding:5px 14px" title="El Excel de acá, editado, o la lista de un proveedor: te muestro qué cambia antes de aplicar" hidden>Subir Excel</button>
-      <button class="b2" id="fMasivo" type="button" style="padding:5px 14px" title="Cambiar el margen o los precios de todos los artículos que ves con estos filtros" hidden>Cambiar precios</button>
+      <!-- V.0.11.282: en rojo (Damián: "ponelo en rojo eso así se lee"). -->
+      <button class="b1" id="fXlsx" type="button" style="padding:5px 14px">Excel</button>
+      <button class="b1" id="fPdf" type="button" style="padding:5px 14px">PDF</button>
+      <button class="b1" id="fSubir" type="button" style="padding:5px 14px" title="El Excel de acá, editado, o la lista de un proveedor: te muestro qué cambia antes de aplicar" hidden>Subir Excel</button>
+      <!-- V.0.11.282: cambios masivos (Damián: "seleccionando artículos y elegir qué le quiero modificar"). -->
+      <button class="b1" id="fMasivo" type="button" style="padding:5px 14px" title="Cambiar en masa lo que elijas (markup, margen, descuentos, IVA, flete, subrubro…) a los artículos tildados o, si no tildaste ninguno, a todos los que ves con estos filtros" hidden>Cambios masivos</button>
       <button class="b3" id="fLimpiar" type="button" style="margin-left:8px;padding:5px 14px" hidden>Limpiar filtros</button>
     </div>
     <div id="revFiltro" hidden></div>
@@ -2451,10 +2487,16 @@ footer{
       </div>
       <div class="art-chips" id="fChips"></div>
     </div>
+    <div class="sel-barra" id="selArtBarra" hidden>
+      <b data-sel-n></b>
+      <button class="b1" type="button" data-sel-masivo style="padding:6px 16px">Cambios masivos a los tildados</button>
+      <button class="b3" type="button" data-sel-nada style="padding:6px 14px">Destildar todos</button>
+      <span class="por">Siguen tildados aunque cambies el filtro.</span>
+    </div>
     <div class="tabla-wrap">
       <table>
         <thead><tr>
-          <th data-ord="cod">Código</th><th data-ord="tit">Artículo</th><th data-ord="prov">Marca</th>
+          <th data-ord="cod"><input type="checkbox" id="fSelTodos" class="sel-art" hidden aria-label="tildar todos los que ves">Código</th><th data-ord="tit">Artículo</th><th data-ord="prov">Marca</th>
           <th class="r" data-ord="neto">Costo sin IVA</th><th class="r" data-ord="costo">IVA y costo final</th><th class="r" data-ord="flete" title="Lo que te cobran por traerlo, en pesos por unidad con IVA. Vacío: va el flete % del proveedor, si tiene">Flete $</th>
           <th class="r" data-ord="lista1">Lista 1</th><th class="r" data-ord="unPago">Lista 2</th>
           <th class="r" data-ord="margen">Margen</th><th>Estado</th><th class="r" data-ord="stock">Stock</th><th></th>
@@ -6585,8 +6627,12 @@ function cerrarAlta(){
   ALTA.editando = null;
   setTimeout(() => { try{ revisarBorradorAlta(); }catch(e){} }, 400);
 }
+// V.0.11.282: con la ficha abierta el botón dice "Cerrar" y cierra, también
+// editando. Antes, editando un artículo, abría un "Uno por uno" en blanco y
+// había que apretarlo dos veces (Damián: "no me cierra sino que vuelve a la
+// edición del artículo y después de una segunda vez sí me deja").
 document.getElementById("btnAbrirAlta").addEventListener("click",()=>{
-  if(document.getElementById("altaCuerpo").hidden || ALTA.editando) abrirAlta(null); else cerrarAlta();
+  if(document.getElementById("altaCuerpo").hidden) abrirAlta(null); else cerrarAlta();
 });
 document.getElementById("aCancelar").addEventListener("click", cerrarAlta);
 
@@ -8979,9 +9025,13 @@ function pintarProd(){
     th.classList.toggle("asc", th.dataset.ord === S.ordProd.col && S.ordProd.asc);
   }
 
+  // V.0.11.282: la casilla para los cambios masivos.
+  const conSel = puede("importar"), selArt = (typeof SEL_ART === "object" && SEL_ART) || null;
   document.getElementById("tbProd").innerHTML = lista.map(p=>{
-    const m = margen(p);
-    return '<tr><td class="num" style="font-size:12.5px">'+p.cod.split("+")[0]+
+    const m = margen(p), tild = !!(selArt && selArt.has(p.cod));
+    return '<tr'+(tild?' class="sel"':'')+'><td class="num" style="font-size:12.5px">'+
+      (conSel?'<input type="checkbox" class="sel-art" data-sel-art="'+atrib(p.cod)+'"'+(tild?' checked':'')+' aria-label="tildar '+atrib(p.cod)+'" title="Tildalo para los cambios masivos">':'')+
+      p.cod.split("+")[0]+
       (p.codProv?'<small style="display:block;color:var(--ink-3);font-weight:500">'+p.codProv+'</small>':'')+'</td>'+
       '<td class="nom">'+p.tit+
         (p.promo?' <span class="pill p-ok">promo</span>':'')+
@@ -9030,6 +9080,7 @@ function pintarProd(){
     "En todo el catálogo: <b>"+bajo.length+
     "</b> se venden por debajo del costo y <b>"+flojos.length+"</b> no llegan al "+S.objetivo+
     "%. El costo se puede corregir acá mismo y se guarda en el sistema.";
+  try{ pintarSelArt(); }catch(e){}
 }
 for(const id of ["fProv","fRub"]) document.getElementById(id).addEventListener("input",pintarProd);
 // El objetivo ahora vive en Rentabilidad, que es la pantalla que lo usa.
@@ -11396,7 +11447,9 @@ document.getElementById("prvPdf").addEventListener("click", () => {
 const COLS_ART = [{ t:"Código", w:12 }, { t:"Cód. fabricante", w:16 }, { t:"Artículo", w:46 }, { t:"Marca", w:16 },
   { t:"Proveedor", w:26 }, { t:"Rubro", w:14 }, { t:"Lista prov. s/IVA", w:15, plata:true }, { t:"Descuentos", w:20 },
   { t:"Recargos", w:12 }, { t:"Costo s/IVA", w:13, plata:true }, { t:"IVA %", w:7, num:true }, { t:"Costo c/IVA", w:13, plata:true },
-  { t:"Lista 1", w:13, plata:true }, { t:"Lista 2", w:13, plata:true }, { t:"Contado", w:13, plata:true },
+  { t:"Lista 1", w:13, plata:true }, { t:"Lista 2", w:13, plata:true },
+  // V.0.11.282: el markup (Damián: "necesito que me muestres el markup de lista 1 y lista 2"). Se cambia y se sube con "Subir Excel".
+  { t:"Markup L1 %", w:11, num:true }, { t:"Markup L2 %", w:11, num:true }, { t:"Contado", w:13, plata:true },
   { t:"Margen %", w:9, num:true }, { t:"Stock Bs. As.", w:10, num:true }, { t:"Stock Traslasierra", w:12, num:true }];
 function filasArtExport(lista){
   return (lista || PROD_VER.todos || []).map(p => {
@@ -11405,7 +11458,8 @@ function filasArtExport(lista){
     const l1 = lista1De(p);
     return [p.cod.split("+")[0], p.codProv || "", p.tit || "", p.prov || "", String(p.cat || "").trim(), p.rub || "",
       +p.lista > 0 ? cent(+p.lista) : "", ds.length ? cadenaTxt(ds) : "", p.recs && p.recs.length ? recsTxt(p.recs) : "",
-      cent(netoProdDe(p)), ivaDe(p), cent(+p.costo || 0), l1, cent(+p.unPago || 0), cent(+p.contado || 0),
+      cent(netoProdDe(p)), ivaDe(p), cent(+p.costo || 0), l1, cent(+p.unPago || 0),
+      p.dtoGbp ? Math.round(p.l1 * 100) / 100 : "", Math.round(p.l2 * 100) / 100, cent(+p.contado || 0),
       Math.round(margen(p) * 10) / 10, +p.dep.BA || 0, +p.dep.TS || 0];
   });
 }
@@ -11442,7 +11496,7 @@ document.getElementById("fPdf").addEventListener("click", () => {
   const f = filasArtExport(); if(!f.length){ toast("No hay artículos con esos filtros."); return; }
   if(f.length > 1500 && !confirm("Son " + f.length.toLocaleString("es-AR") + " artículos: el PDF va a tener unas " +
       Math.ceil(f.length / 38) + " hojas. ¿Lo armo igual?\\n\\nPara achicarlo, elegí una marca o un proveedor antes.")) return;
-  const cols = [0, 2, 3, 7, 11, 12, 13, 14, 15, 16, 17];
+  const cols = [0, 2, 3, 7, 11, 12, 13, 16, 17, 18, 19];
   const fp = document.getElementById("fProv").value, fc = document.getElementById("fCat").value;
   imprimirLista("Artículos" + (fp ? " · " + fp : "") + (fc ? " · " + fc : ""),
     "Sanitarios Conesa · " + f.length + " artículos · " + new Date().toLocaleDateString("es-AR"),
@@ -16476,6 +16530,8 @@ function cxAplicar(a, d){
     n.dtos = cad.slice(0, 4); n.recs = recs;
   }
   for(const k of ["lista1", "lista2", "iva", "tit"]) if(d[k] !== undefined) n[k] = d[k];
+  // V.0.11.282: los de los cambios masivos; null lo saca.
+  for(const k of ["subrubro", "flete", "contado", "bulto", "vende"]) if(d[k] !== undefined){ if(d[k] === null) delete n[k]; else n[k] = d[k]; }
   if(d.fab !== undefined){ if(d.fab) n.fab = d.fab; else delete n.fab; }
   return n;
 }
@@ -16492,7 +16548,7 @@ function cxArmar(a, d, acompanar){
   let a2 = cxAplicar(a, d);
   if(!a2) return { error:"tiene demasiados descuentos y recargos juntos (entran 8)" };
   let p2 = productoDeGbp(a2);
-  const tocaCosto = ["lista", "cadena", "recargos", "iva"].some(k => d[k] !== undefined);
+  const tocaCosto = ["lista", "cadena", "recargos", "iva", "contado"].some(k => d[k] !== undefined);
   if(acompanar && tocaCosto && d.lista1 === undefined && d.lista2 === undefined && p.costoProducto > 0 && p2.costoProducto > 0){
     const r = p2.costoProducto / p.costoProducto;
     if(Math.abs(r - 1) > 1e-9){
@@ -16527,7 +16583,7 @@ function cxColsPunto(cab){
   const col = { cod: ix("codigo"), fab: ix("cod. fabricante"), tit: ix("articulo"), lista: ix("lista prov. s/iva"),
     descTxt: ix("descuentos"), recTxt: ix("recargos"), iva: ix("iva %"), l1: ix("lista 1"),
     l2: ix("lista 2") >= 0 ? ix("lista 2") : ix("lista 2 (1 pago)"), csin: ix("costo s/iva"), ccon: ix("costo c/iva"),
-    cont: ix("contado"), marg: ix("margen %"), sba: ix("stock bs. as."), sts: ix("stock traslasierra"), desc: [], rec: [] };
+    cont: ix("contado"), marg: ix("margen %"), mk1: ix("markup l1 %"), mk2: ix("markup l2 %"), sba: ix("stock bs. as."), sts: ix("stock traslasierra"), desc: [], rec: [] };
   h.forEach((x, i) => {
     let m = /^desc\\.? ?(\\d+)$/.exec(x); if(m) col.desc[+m[1] - 1] = i;
     m = /^rec\\.? ?(\\d+)$/.exec(x); if(m) col.rec[+m[1] - 1] = i;
@@ -16580,6 +16636,22 @@ function cxRevisarPunto(m){
     const fac = cxFacFlete(p);
     if(col.l1 >= 0){ const v = cxN(f[col.l1]); if(v != null && !cxIgual(v, lista1De(p))){ if(!(v > 0)) mal("la Lista 1 quedó en cero"); else d.lista1 = cent(v / fac); } }
     if(col.l2 >= 0){ const v = cxN(f[col.l2]); if(v != null && !cxIgual(v, cent(+p.unPago || 0))){ if(!(v > 0)) mal("la Lista 2 quedó en cero"); else d.lista2 = cent(v / fac); } }
+    // V.0.11.282: el markup de la Lista 1 (sobre el costo sin flete) y el de
+    // la 2 (sobre la 1). Las listas se arman en cxCompletar, sobre el costo
+    // nuevo si también cambió la lista del proveedor.
+    if(col.mk1 >= 0 || col.mk2 >= 0){
+      const v1 = col.mk1 >= 0 ? cxN(f[col.mk1]) : null, v2 = col.mk2 >= 0 ? cxN(f[col.mk2]) : null, k = {};
+      if(v1 != null && Math.abs(v1 - p.l1) > 0.005){
+        if(!p.dtoGbp) r.avisos.push("cambiaste el «Markup L1 %», pero no tiene la lista y los descuentos del proveedor: no se usa");
+        else if(v1 < 0 || v1 > 1000) mal("el markup de la Lista 1 va de 0 a 1000 %"); else k.l1 = v1;
+      }
+      if(v2 != null && Math.abs(v2 - p.l2) > 0.005){ if(v2 < 0 || v2 > 1000) mal("el markup de la Lista 2 va de 0 a 1000 %"); else k.l2 = v2; }
+      if(Object.keys(k).length){
+        if(usd) mal("tiene el costo en dólares: cambialo en la ficha");
+        else if(d.lista1 !== undefined || d.lista2 !== undefined) r.avisos.push("cambiaste la Lista 1 o la 2 y también el markup: manda la lista que pusiste");
+        else r.mkX = k;
+      }
+    }
     // Lo que se calcula solo: si lo cambiaron, se avisa y no se usa.
     const calc = [[col.csin, cent(netoProdDe(p)), "Costo s/IVA"], [col.ccon, cent(+p.costo || 0), "Costo c/IVA"],
       [col.cont, cent(+p.contado || 0), "Contado"], [col.marg, Math.round(margen(p) * 10) / 10, "Margen %", 0.15]];
@@ -16682,11 +16754,31 @@ function cxRevisarProveedor(m){
 }
 
 /** Con lo que cambia ya armado: las cuentas, los saltos y si va tildado. */
+/** El markup puesto a mano: el de la ventana (lo que escribiste en la
+    tabla) gana al del Excel. V.0.11.282. */
+const cxMkDe = (r, m) => Object.assign({}, r.mkX || {}, (m.mk || {})[r.a.cod] || {});
 function cxCompletar(r, m){
-  if(!Object.keys(r.d).length){ r.estado = r.avisos.length ? "nota" : "igual"; return; }
+  const k = cxMkDe(r, m), conMk = k.l1 != null || k.l2 != null, sinD = !Object.keys(r.d).length;
+  if(sinD && !conMk){ r.estado = r.avisos.length ? "nota" : "igual"; if(r.estado === "igual") r.p = r.p2 = productoDeGbp(r.a); return; }
   const x = cxArmar(r.a, r.d, m.acompanar);
   if(x.error){ r.estado = "error"; r.avisos.push(x.error); return; }
   r.p = x.p; r.p2 = x.p2;
+  // V.0.11.282: con el markup, la Lista 1 = costo (sin flete) × (1 + L1 %) y
+  // la 2 = Lista 1 × (1 + L2 %). Sin uno de los dos, queda el que había (la
+  // 2 con su mismo % sobre la 1, como en Cambios masivos).
+  if(conMk && r.a.mon !== "USD"){
+    const cp = r.p2.costoProducto;
+    const b1 = r.d.lista1 !== undefined ? r.d.lista1 : +r.a.lista1, b2 = r.d.lista2 !== undefined ? r.d.lista2 : +r.a.lista2;
+    const n1 = k.l1 != null && r.p2.dtoGbp && cp > 0 ? cent(cp * (1 + k.l1 / 100)) : b1;
+    const n2 = k.l2 != null ? cent(n1 * (1 + k.l2 / 100)) : (b1 > 0 && !cxIgual(n1, b1, 0.005) ? cent(b2 * n1 / b1) : b2);
+    if(n1 > 0 && n2 > 0){
+      if(!cxIgual(n1, +r.a.lista1, 0.005)) r.d.lista1 = n1; else delete r.d.lista1;
+      if(!cxIgual(n2, +r.a.lista2, 0.005)) r.d.lista2 = n2; else delete r.d.lista2;
+      const a2 = cxAplicar(r.a, r.d); if(a2) r.p2 = productoDeGbp(a2);
+    }
+  }
+  if(!Object.keys(r.d).length){ r.estado = r.avisos.length ? "nota" : "igual"; r.p2 = r.p; return; }
+  if(sinD) r.deIgual = true;
   r.varCosto = r.p.costo > 0 ? (r.p2.costo / r.p.costo - 1) * 100 : 0;
   r.estado = "cambia";
   if(r.bolsa) r.avisos.push(m.bolsaNo[r.a.cod] ? "la lista parece por unidad y acá está por bolsa de " + r.bolsa + ": la dejaste tal cual"
@@ -16705,7 +16797,7 @@ async function abrirCambiosExcel(desde){
   if(!puede("importar")){ toast("Tu usuario no puede cambiar precios por Excel (hace falta el permiso Importar)."); return; }
   if(!Object.keys(GBP_CRUDO).length){ toast("Todavía no llegaron los artículos: esperá un momento y probá de nuevo."); return; }
   const viejo = document.getElementById("cxModal"); if(viejo) viejo.remove();
-  CX.m = { desde, filas:null, archivo:"", modo:"", marca:"", col:null, colP:null, acompanar:true, tilde:{}, bolsaNo:{},
+  CX.m = { desde, filas:null, archivo:"", modo:"", marca:"", col:null, colP:null, acompanar:true, tilde:{}, mk:{}, bolsaNo:{},
     renglones:[], noEnLista:[], filtro:"cambia", resultado:null, aplicando:false };
   const fondo = document.createElement("div");
   fondo.className = "envio"; fondo.id = "cxModal";
@@ -16776,7 +16868,7 @@ async function cxLeer(file){
   let filas;
   try{ filas = await filasXlsx(await file.arrayBuffer(), true); }
   catch(e){ toast("No pude leer " + file.name + ": " + (e && e.message ? e.message : "¿es un Excel?")); return; }
-  m.filas = filas; m.archivo = file.name; m.tilde = {}; m.bolsaNo = {}; m.resultado = null; m.hecho = false;
+  m.filas = filas; m.archivo = file.name; m.tilde = {}; m.mk = {}; m.bolsaNo = {}; m.resultado = null; m.hecho = false;
   m.colP = cxColsPunto(filas[0] || []);
   if(m.colP){ m.modo = "excel"; m.filtro = "cambia"; }
   else {
@@ -16800,7 +16892,7 @@ function cxCuenta(){
   for(const r of m.renglones){
     if(r.estado === "cambia"){ n.cambia++; if(m.tilde[r.a.cod]) n.tildados++; }
     if(r.estado === "error") n.error++;
-    if(r.estado === "igual") n.igual++;
+    if(r.estado === "igual" || r.deIgual) n.igual++;
     if(r.estado === "nocargado") n.nocargado++;
     if(r.estado === "nota" || (r.estado === "cambia" && (r.avisos.length || r.cambiaDesc))) n.revisar++;
   }
@@ -16881,7 +16973,10 @@ function cxTablaHtml(){
       '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa"><thead><tr><th>Código</th><th>Artículo</th></tr></thead><tbody>' +
       m.noEnLista.slice(0, 1000).map(x => '<tr><td>' + txt(x.cod) + '</td><td>' + txt(x.tit) + '</td></tr>').join("") + '</tbody></table></div>';
   }
-  const lista = m.renglones.filter(r => f === "revisar" ? (r.estado === "nota" || (r.estado === "cambia" && (r.avisos.length || r.cambiaDesc))) : r.estado === f);
+  // V.0.11.282: en "Sin cambios" quedan también los que cambian solo porque
+  // les tocaste el markup acá (si no, desaparecían al escribirlo).
+  const lista = m.renglones.filter(r => f === "revisar" ? (r.estado === "nota" || (r.estado === "cambia" && (r.avisos.length || r.cambiaDesc)))
+    : f === "igual" ? (r.estado === "igual" || r.deIgual) : r.estado === f);
   if(f === "nocargado"){
     if(!lista.length) return '<p class="cx-nota">Todos los códigos del Excel están cargados.</p>';
     return '<p class="cx-nota">Estos códigos están en el Excel pero <b>no están cargados</b>: no se crean.</p>' +
@@ -16894,37 +16989,89 @@ function cxTablaHtml(){
   const tope = 600, flecha = (h, n, fmt) => h === n ? fmt(h) : '<span style="color:var(--ink-3)">' + fmt(h) + '</span> → <b>' + fmt(n) + '</b>';
   const filas = lista.slice(0, tope).map(r => {
     const a = r.a;
-    if(r.estado === "error" || r.estado === "nota" || r.estado === "igual"){
-      return '<tr><td></td><td class="nom">' + txt(r.cod) + '<small>' + txt(r.tit || "") + '</small></td><td colspan="4"></td><td>' +
+    if(r.estado === "error" || r.estado === "nota" || !r.p){
+      return '<tr><td></td><td class="nom">' + txt(r.cod) + '<small>' + txt(r.tit || "") + '</small></td><td colspan="5"></td><td>' +
         r.avisos.map(t => '<span class="cx-av' + (r.estado === "error" ? ' mal' : '') + '">' + txt(t) + '</span>').join("") + '</td></tr>';
     }
-    const p = r.p, p2 = r.p2;
+    const p = r.p, p2 = r.p2 || r.p, cambia = r.estado === "cambia";
     const cadH = cxCadTxt(cxCad(p.seis)), cadN = cxCadTxt(cxCad(p2.seis));
-    const v = r.varCosto, vt = Math.abs(v) < 0.05 ? "igual" : (v > 0 ? "+" : "−") + pTxt(Math.round(Math.abs(v) * 10) / 10) + " %";
+    const v = r.varCosto || 0, vt = Math.abs(v) < 0.05 ? "igual" : (v > 0 ? "+" : "−") + pTxt(Math.round(Math.abs(v) * 10) / 10) + " %";
     const bolsa = r.bolsa ? '<label class="cx-av" style="display:flex;gap:5px;align-items:center"><input type="checkbox" data-cx-bolsa="' + atrib(a.cod) + '"' +
       (m.bolsaNo[a.cod] ? '' : ' checked') + '> multiplicar por ' + r.bolsa + ' (bolsa)</label>' : '';
-    return '<tr><td><input type="checkbox" data-cx-t="' + atrib(a.cod) + '"' + (m.tilde[a.cod] ? ' checked' : '') + ' aria-label="aplicar ' + atrib(a.cod) + '"></td>' +
-      '<td class="nom">' + txt(a.cod) + '<small>' + txt(r.d.tit ? r.d.tit : a.tit) + '</small></td>' +
+    return '<tr><td>' + (cambia ? '<input type="checkbox" data-cx-t="' + atrib(a.cod) + '"' + (m.tilde[a.cod] ? ' checked' : '') + ' aria-label="aplicar ' + atrib(a.cod) + '">' : '') + '</td>' +
+      '<td class="nom">' + txt(a.cod) + '<small>' + txt(r.d && r.d.tit ? r.d.tit : a.tit) + '</small></td>' +
       '<td class="r">' + flecha(cent(+p.lista), cent(+p2.lista), fmt2) + '</td>' +
       '<td>' + flecha(cadH, cadN, x => txt(x)) + '</td>' +
-      '<td class="r">' + flecha(cent(p.costo), cent(p2.costo), fmt2) + '<small class="' + (v > 0.05 ? 'cx-sube' : v < -0.05 ? 'cx-baja' : '') + '">' + vt + '</small></td>' +
+      '<td class="r">' + flecha(cent(p.costo), cent(p2.costo), fmt2) + (cambia ? '<small class="' + (v > 0.05 ? 'cx-sube' : v < -0.05 ? 'cx-baja' : '') + '">' + vt + '</small>' : '') + '</td>' +
+      '<td>' + cxMkHtml(r) + '</td>' +
       '<td class="r">' + flecha(cent(p.unPago), cent(p2.unPago), fmt2) + '</td>' +
       '<td>' + r.avisos.map(t => '<span class="cx-av' + (r.salto ? ' mal' : '') + '">' + txt(t) + '</span>').join("") +
         (r.cambiaDesc && !r.avisos.length ? '<span class="cx-av">cambian los descuentos</span>' : '') + bolsa + '</td></tr>';
   }).join("");
   const conTilde = f === "cambia" || f === "revisar";
   return (conTilde ? '<div class="cx-opc"><button class="b3" type="button" data-cx-todos="1" style="padding:3px 10px">Tildar todos</button>' +
-      '<button class="b3" type="button" data-cx-todos="0" style="padding:3px 10px">Destildar todos</button></div>' : '') +
-    '<div class="tabla-wrap" style="max-height:48vh;overflow:auto"><table class="densa cx-t"><thead><tr><th></th><th>Código / artículo</th>' +
-    '<th class="r">Lista prov. s/IVA</th><th>Descuentos</th><th class="r">Costo c/IVA</th><th class="r">Lista 2</th><th>Aviso</th></tr></thead><tbody>' +
-    filas + (lista.length > tope ? '<tr><td colspan="7" class="vacio">Se ven los primeros ' + tope + ' de ' + lista.length.toLocaleString("es-AR") + ' (se aplican todos los tildados)</td></tr>' : '') +
+      '<button class="b3" type="button" data-cx-todos="0" style="padding:3px 10px">Destildar todos</button>' +
+      '<span class="cx-nota" style="margin:0">El markup se cambia acá mismo: escribilo y la Lista 1 y la 2 se arman con ese %.</span></div>' :
+      f === "igual" ? '<p class="cx-nota">Estos no cambian con la lista. El markup se puede cambiar igual: escribilo y pasa a «Cambian».</p>' : '') +
+    '<div class="tabla-wrap" style="max-height:48vh;overflow:auto"><table class="densa cx-t mk"><thead><tr><th></th><th>Código / artículo</th>' +
+    '<th class="r">Lista prov. s/IVA</th><th>Descuentos</th><th class="r">Costo c/IVA</th><th>Markup L1 · L2</th><th class="r">Lista 2</th><th>Aviso</th></tr></thead><tbody>' +
+    filas + (lista.length > tope ? '<tr><td colspan="8" class="vacio">Se ven los primeros ' + tope + ' de ' + lista.length.toLocaleString("es-AR") + ' (se aplican todos los tildados)</td></tr>' : '') +
     '</tbody></table></div>';
+}
+/** V.0.11.282. Damián: "necesito que me muestres el markup de lista 1 y
+    lista 2" / "y que se puedan editar en el listado". La Lista 1 sobre el
+    costo (sin flete) y la 2 sobre la 1, como quedan; se escriben acá. */
+function cxMkHtml(r){
+  const a = r.a, p = r.p, p2 = r.p2 || r.p, usd = a.mon === "USD", k = (CX.m.mk || {})[a.cod] || {};
+  const r2 = n => Math.round(n * 100) / 100;
+  const no1 = usd || !p2.dtoGbp, no2 = usd;
+  const inp = (n, val, dis, tit) => '<input class="cx-mk" type="text" inputmode="decimal" autocomplete="off" data-cx-mk="' + n + '" data-cod="' + atrib(a.cod) + '"' +
+    ' value="' + (dis && n === 1 ? '—' : pTxt(r2(val))) + '"' + (dis ? ' disabled' : '') + ' title="' + atrib(tit) + '" aria-label="markup de la Lista ' + n + ' de ' + atrib(a.cod) + '">';
+  let h = '<div class="cx-mks"><label>L1' + inp(1, p2.l1, no1, usd ? "Tiene el costo en dólares: cambialo en la ficha"
+      : no1 ? "No tiene la lista y los descuentos del proveedor: el costo sale de la Lista 1" : "Lista 1 = costo sin flete × (1 + este %)") + '%</label>' +
+    '<label>L2' + inp(2, p2.l2, no2, usd ? "Tiene el costo en dólares: cambialo en la ficha" : "Lista 2 = Lista 1 × (1 + este %)") + '%</label></div>';
+  if(Math.abs(p.l1 - p2.l1) > 0.05 || Math.abs(p.l2 - p2.l2) > 0.05) h += '<small>antes ' + msMkTxt(p) + '</small>';
+  const L1a = lista1De(p), L1b = lista1De(p2);
+  h += '<small>Lista 1 ' + (cxIgual(L1a, L1b, 0.005) ? fmt2(L1a) : '<span style="color:var(--ink-3)">' + fmt2(L1a) + '</span> → <b>' + fmt2(L1b) + '</b>') + '</small>';
+  if(k.l1 != null || k.l2 != null) h += '<small style="color:var(--accent);font-weight:600">puesto a mano</small>';
+  return h;
+}
+/** Repinta la ventana sin perder dónde estabas: el scroll de la tabla y la
+    casilla del markup en la que estás escribiendo. */
+function cxRepintarQuieto(){
+  setTimeout(() => {
+    const tw = document.querySelector("#cxModal .tabla-wrap"), cu = document.getElementById("cxCuerpo");
+    const y = tw ? tw.scrollTop : 0, yc = cu ? cu.scrollTop : 0;
+    const ae = document.activeElement;
+    const foco = ae && ae.dataset && ae.dataset.cxMk ? { n: ae.dataset.cxMk, cod: ae.dataset.cod } : null;
+    cxPintar();
+    const tw2 = document.querySelector("#cxModal .tabla-wrap"); if(tw2) tw2.scrollTop = y;
+    const cu2 = document.getElementById("cxCuerpo"); if(cu2) cu2.scrollTop = yc;
+    if(foco){
+      const e = [...document.querySelectorAll("#cxModal input[data-cx-mk]")].find(x => x.dataset.cxMk === foco.n && x.dataset.cod === foco.cod);
+      if(e && !e.disabled){ e.focus({ preventScroll:true }); e.select(); }
+    }
+  }, 0);
 }
 function cxCambio(e){
   const m = CX.m, t = e.target; if(!m) return;
   if(t.id === "cxFile"){ const f = t.files && t.files[0]; t.value = ""; if(f) cxLeer(f); return; }
   if(t.dataset.cxT){ m.tilde[t.dataset.cxT] = t.checked; cxPintarPie(); return; }
   if(t.dataset.cxBolsa){ m.bolsaNo[t.dataset.cxBolsa] = !t.checked; delete m.tilde[t.dataset.cxBolsa]; cxRevisar(); cxPintar(); return; }
+  // V.0.11.282: el markup escrito en la tabla.
+  if(t.dataset.cxMk){
+    const cod = t.dataset.cod, r = m.renglones.find(x => x.a && x.a.cod === cod);
+    if(!r || !r.p) return;
+    const v = cxN(t.value), cual = t.dataset.cxMk === "1" ? "l1" : "l2";
+    if(v == null || v < 0 || v > 1000){ toast("El markup va de 0 a 1000 %."); cxRepintarQuieto(); return; }
+    m.mk = m.mk || {};
+    const k = Object.assign({}, m.mk[cod] || {});
+    // El mismo que ya tiene: no es un cambio (así no se mueve la lista por redondeo).
+    if(k[cual] == null && Math.abs(v - (r.p2 || r.p)[cual]) < 0.005){ cxRepintarQuieto(); return; }
+    k[cual] = v; m.mk[cod] = k; m.tilde[cod] = true; m.resultado = null;
+    cxRevisar(); cxRepintarQuieto();
+    return;
+  }
   if(t.id === "cxAcomp"){ m.acompanar = t.checked; cxRevisar(); cxPintar(); return; }
   if(m.modo !== "proveedor") return;
   const c = m.col;
@@ -17004,7 +17151,7 @@ async function cxAplicarYa(){
   // Con el Excel de Artículos no se vuelve a comparar: ese archivo tiene las
   // Listas 1 y 2 de antes y propondría volverlas atrás. Para seguir, se baja
   // uno nuevo. La lista del proveedor sí (muestra lo que quedó sin tildar).
-  m.tilde = {};
+  m.tilde = {}; m.mk = {};
   if(m.modo === "excel"){ m.renglones = []; m.hecho = true; } else cxRevisar();
   m.resultado = '<p class="cx-res' + (r.cambiados.length || r.malos.length ? ' mal' : '') + '">' + partes.join("<br>") + '</p>';
   cxPintar();
@@ -17275,54 +17422,173 @@ function inactEnMarco(f){
    - Lista 1: % sobre el costo; la 2 guarda su % sobre la 1.
    - Lista 2: % sobre la Lista 1 (la 1 no se toca).
    - Subir o bajar: las dos listas un % (negativo = bajar). */
+/* V.0.11.282. Damián: "también estaría bueno tener cambios masivos,
+   seleccionando artículos y elegir qué le quiero modificar". Se tildan en la
+   lista (o, sin tildar ninguno, van todos los que se ven con los filtros) y
+   se elige qué cambiarles: el markup de la Lista 1 o de la 2, el margen, los
+   precios, la lista o los descuentos del proveedor, el contado, el IVA, el
+   flete, el subrubro, de a cuántos se compra y cómo se vende. Mismo camino
+   que antes: revisión, solo los tildados de la tabla, Actividad y deshacer. */
 const MS_MODOS = [
-  { k:"margen", t:"Margen: lo que deja la venta de contado sobre el costo", costo:true,
-    ayuda:"La columna Margen de la lista. La Lista 2 se arma para que el contado deje ese % sobre el costo (con flete); la Lista 1 queda a la misma distancia de la 2 que tenía." },
-  { k:"l1", t:"Lista 1: % sobre el costo", costo:true,
-    ayuda:"La Lista 1 = costo × (1 + %). La Lista 2 queda con el mismo % sobre la Lista 1 que tenía cada artículo." },
-  { k:"l2", t:"Lista 2: % sobre la Lista 1", costo:false,
+  { k:"l1", g:"Precio", t:"Markup Lista 1: % sobre el costo", costo:true, en:"pct", ph:"25",
+    ayuda:"La Lista 1 = costo (sin flete) × (1 + %). La Lista 2 queda con el mismo % sobre la Lista 1 que tenía cada artículo." },
+  { k:"l2", g:"Precio", t:"Markup Lista 2: % sobre la Lista 1", en:"pct", ph:"25",
     ayuda:"La Lista 2 = Lista 1 × (1 + %). La Lista 1 no se toca." },
-  { k:"subir", t:"Subir o bajar los precios (Lista 1 y Lista 2)", costo:false,
-    ayuda:"Las dos listas suben ese %. Con un número negativo (−5) bajan." }
+  { k:"margen", g:"Precio", t:"Margen: lo que deja el contado sobre el costo", costo:true, en:"pct", ph:"objetivo",
+    ayuda:"La columna Margen de la lista. La Lista 2 se arma para que el contado deje ese % sobre el costo (con flete); la Lista 1 queda a la misma distancia de la 2 que tenía." },
+  { k:"subir", g:"Precio", t:"Subir o bajar los precios (Lista 1 y Lista 2)", en:"pct", ph:"5 o −5",
+    ayuda:"Las dos listas suben ese %. Con un número negativo (−5) bajan." },
+  { k:"lista", g:"Costo", t:"Lista del proveedor: subir o bajar", en:"pct", ph:"5 o −5", acomp:true, lista:true,
+    ayuda:"La lista del proveedor (sin IVA) sube ese %; con un número negativo (−5) baja. El costo sale de nuevo con los descuentos de cada artículo." },
+  { k:"desc", g:"Costo", t:"Descuentos del proveedor", en:"cadena", ph:"25 + 10 + 5", acomp:true, lista:true,
+    ayuda:"Los descuentos que te hace el proveedor, uno sobre otro y en ese orden (hasta 8). Reemplazan a los que tiene cada artículo; los recargos quedan. 0 = sin descuentos." },
+  { k:"contado", g:"Costo", t:"Descuento por pago contado", en:"contado", acomp:true, cont:true,
+    ayuda:"Se aplica sobre lo que queda después de los descuentos, si se le paga en esos días. 0 % lo saca." },
+  { k:"iva", g:"Costo", t:"IVA del artículo", en:"iva", acomp:true,
+    ayuda:"El IVA de la compra: cambia el costo con IVA." },
+  { k:"flete", g:"Costo", t:"Flete por unidad ($ con IVA)", en:"plata", ph:"0 = sin flete",
+    ayuda:"Lo que te cobran por traerlo, por unidad y con IVA. Se suma al costo y las dos listas suben en la misma proporción (el margen queda). 0 lo saca: vuelve el flete % del proveedor, si tiene." },
+  { k:"subrubro", g:"Otros", t:"Subrubro", en:"subrubro",
+    ayuda:"El subrubro de Punto (LAVATORIO, DUCHA, BIDET…). Sin subrubro lo saca." },
+  { k:"bulto", g:"Otros", t:"Se compra de a (unidades)", en:"entero", ph:"1 = suelto",
+    ayuda:"Si el proveedor lo vende solo en caja cerrada (por ejemplo de a 6): el pedido al proveedor se redondea para arriba. 1 = suelto." },
+  { k:"vende", g:"Otros", t:"Cómo se vende (suelto o en combo)", en:"vende",
+    ayuda:"Solo en combo: en la venta no se puede sumar suelto. Solo suelto: no se puede usar como pieza de un combo." }
 ];
+/** Los que tocan el costo o los precios (no van con combos ni en dólares). */
+const MS_PRECIO = ["l1", "l2", "margen", "subir", "lista", "desc", "contado", "iva", "flete"];
 let MS = null;
 const msPctTxt = n => (n > 0 ? "" : n < 0 ? "−" : "") + pTxt(Math.round(Math.abs(n) * 10) / 10) + " %";
+const msMkTxt = p => (p.dtoGbp ? pTxt(Math.round(p.l1 * 10) / 10) : "—") + " · " + pTxt(Math.round(p.l2 * 10) / 10);
 function msFiltroTxt(){
   const sel = id => { const s = document.getElementById(id); if(!s || !s.value) return ""; const o = s.options[s.selectedIndex]; return o ? cxT(o.text).replace(/\\s*·\\s*[\\d.]+$/, "") : s.value; };
   const b = cxT((document.getElementById("fBusca") || {}).value || "");
   return [sel("fCat"), sel("fProv"), sel("fRub"), b ? "«" + b + "»" : ""].filter(Boolean).join(" · ") || "todos los artículos";
 }
+/** Lo que escribiste, leído según lo que se cambia. */
+function msLeer(){
+  const md = MS_MODOS.find(x => x.k === MS.modo), s = cxT(MS.val);
+  if(md.en === "pct"){ const v = cxN(s); return v == null ? { falta:true } : { v }; }
+  if(md.en === "plata"){ const v = cxN(s); if(v == null) return { falta:true }; if(v < 0) return { error:"El flete no puede ser negativo." }; return { v: cent(v) }; }
+  if(md.en === "cadena"){
+    if(!s) return { falta:true };
+    const ps = cxPartes(s);
+    if(ps.some(v => v == null || v < 0 || v >= 100)) return { error:"Cada descuento va de 0 a 99,99 %, separados con +." };
+    const c = cxCad(ps); if(c.length > 8) return { error:"Entran hasta 8 descuentos." };
+    return { v: c };
+  }
+  if(md.en === "contado"){
+    const v = cxN(s); if(v == null) return { falta:true };
+    if(v < 0 || v >= 100) return { error:"El descuento va de 0 a 99,99 %." };
+    const dn = cxN(MS.dias), d = dn == null ? 60 : dn;
+    if(!(d >= 0 && d <= 365) || Math.floor(d) !== d) return { error:"Los días van de 0 a 365." };
+    return { v: v > 0 ? { pct: Math.round(v * 100) / 100, dias: d } : null };
+  }
+  if(md.en === "iva") return MS.sel === "__" ? { falta:true } : { v: +MS.sel };
+  if(md.en === "entero"){
+    const v = cxN(s); if(v == null) return { falta:true };
+    if(Math.floor(v) !== v || v < 1 || v > 10000) return { error:"Va de 1 a 10.000 unidades." };
+    return { v: v > 1 ? v : null };
+  }
+  if(md.en === "subrubro"){
+    if(MS.sel === "__") return { falta:true };
+    if(MS.sel === "__nuevo"){ const n = s.toUpperCase().replace(/[<>]/g, "").slice(0, 40); return n ? { v: n } : { falta:true }; }
+    return { v: MS.sel || null };
+  }
+  if(md.en === "vende"){
+    if(MS.sel === "__") return { falta:true };
+    return { v: MS.sel === "ambos" ? null : { suelto: MS.sel === "suelto", combo: MS.sel === "combo" } };
+  }
+  return { falta:true };
+}
+/** Cómo está (o queda) un artículo en lo que no es precio. */
+function msTxtDe(k, a){
+  if(k === "subrubro") return cxT(a.subrubro || "") || "sin subrubro";
+  if(k === "bulto") return +a.bulto > 1 ? "de a " + Math.floor(+a.bulto) : "suelto (de a 1)";
+  if(k === "vende"){
+    const s = !(a.vende && a.vende.suelto === false), c = !(a.vende && a.vende.combo === false);
+    return s && c ? "suelto y en combo" : s ? "solo suelto" : "solo en combo";
+  }
+  return "";
+}
 function msCalcular(){
-  const pct = cxN(MS.pct), modo = MS_MODOS.find(x => x.k === MS.modo);
+  const md = MS_MODOS.find(x => x.k === MS.modo), k = MS.modo, lee = msLeer(), precio = MS_PRECIO.indexOf(k) >= 0;
+  MS.leido = lee;
   MS.renglones = [];
-  for(const p0 of (PROD_VER.todos || [])){
+  const porCod = new Map(PRODUCTOS.map(p => [p.cod, p]));
+  for(const cod of MS.cods){
+    const p0 = porCod.get(cod); if(!p0) continue;
     const a = GBP_CRUDO[p0.cod];
     const r = { cod: p0.cod, tit: p0.tit, estado:"igual", avisos:[] };
     MS.renglones.push(r);
-    if(!a || !p0.gbp){ r.estado = "no"; r.avisos.push("no es un artículo guardado en el servidor"); continue; }
+    const no = t => { r.estado = "no"; r.avisos.push(t); };
+    if(!a || !p0.gbp){ no("no es un artículo guardado en el servidor"); continue; }
     r.a = a;
-    if(a.mon === "USD"){ r.estado = "no"; r.avisos.push("tiene el costo en dólares: cambialo en la ficha"); continue; }
-    if(a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length){ r.estado = "no"; r.avisos.push("es un combo: el precio sale de sus piezas"); continue; }
-    const p = productoDeGbp(a); r.p = p;
-    if(modo.costo && !p.dtoGbp){ r.estado = "no"; r.avisos.push("no tiene la lista y los descuentos del proveedor (el costo sale de la Lista 1): no se puede calcular sobre el costo"); continue; }
-    if(pct == null) continue;
-    const L1 = +a.lista1, L2 = +a.lista2, rel = L1 > 0 && L2 > 0 ? L2 / L1 : 1.25;
-    let n1, n2;
-    if(MS.modo === "margen"){ n2 = cent(p.costoProducto * (1 + pct / 100) * RECARGO_1PAGO); n1 = cent(n2 / rel); }
-    else if(MS.modo === "l1"){ n1 = cent(p.costoProducto * (1 + pct / 100)); n2 = cent(n1 * rel); }
-    else if(MS.modo === "l2"){ n1 = L1; n2 = cent(L1 * (1 + pct / 100)); }
-    else { n1 = cent(L1 * (1 + pct / 100)); n2 = cent(L2 * (1 + pct / 100)); }
-    if(!(n1 > 0) || !(n2 > 0)){ r.estado = "no"; r.avisos.push("el precio quedaría en cero o negativo"); continue; }
-    r.d = {};
-    if(!cxIgual(n1, L1, 0.005)) r.d.lista1 = n1;
-    if(!cxIgual(n2, L2, 0.005)) r.d.lista2 = n2;
-    if(!Object.keys(r.d).length) continue;
-    r.p2 = productoDeGbp(cxAplicar(a, r.d));
-    r.estado = "cambia";
-    if(margen(r.p2) < 0) r.avisos.push("pierde plata: el contado queda debajo del costo");
-    if(r.d.lista2 !== undefined && (r.d.lista1 !== undefined ? r.d.lista1 : L1) > (r.d.lista2 !== undefined ? r.d.lista2 : L2))
-      r.avisos.push("la Lista 2 queda más barata que la Lista 1");
-    if(!(r.cod in MS.tilde)) MS.tilde[r.cod] = !(margen(r.p2) < 0);
+    const combo = a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length;
+    if(precio && a.mon === "USD"){ no("tiene el costo en dólares: cambialo en la ficha"); continue; }
+    if(precio && combo){ no("es un combo: el precio sale de sus piezas"); continue; }
+    const p = productoDeGbp(a); r.p = p; r.p2 = p;
+    if(md.costo && !p.dtoGbp){ no("no tiene la lista y los descuentos del proveedor (el costo sale de la Lista 1): no se puede calcular sobre el costo"); continue; }
+    if(md.lista && !(+a.lista > 0)){ no("no tiene la lista del proveedor (el costo sale de la Lista 1)"); continue; }
+    if(md.cont && !p.dtoGbp){ no("no tiene la lista y los descuentos del proveedor: el descuento por pago contado no se aplica"); continue; }
+    if(!lee || lee.falta || lee.error) continue;
+    const v = lee.v, L1 = +a.lista1, L2 = +a.lista2, d = {};
+    if(k === "l1" || k === "l2" || k === "margen" || k === "subir"){
+      const rel = L1 > 0 && L2 > 0 ? L2 / L1 : 1.25;
+      let n1, n2;
+      if(k === "margen"){ n2 = cent(p.costoProducto * (1 + v / 100) * RECARGO_1PAGO); n1 = cent(n2 / rel); }
+      else if(k === "l1"){ n1 = cent(p.costoProducto * (1 + v / 100)); n2 = cent(n1 * rel); }
+      else if(k === "l2"){ n1 = L1; n2 = cent(L1 * (1 + v / 100)); }
+      else { n1 = cent(L1 * (1 + v / 100)); n2 = cent(L2 * (1 + v / 100)); }
+      if(!(n1 > 0) || !(n2 > 0)){ no("el precio quedaría en cero o negativo"); continue; }
+      if(!cxIgual(n1, L1, 0.005)) d.lista1 = n1;
+      if(!cxIgual(n2, L2, 0.005)) d.lista2 = n2;
+    } else if(k === "lista"){
+      const nl = cent(+a.lista * (1 + v / 100));
+      if(!(nl > 0)){ no("la lista quedaría en cero o negativa"); continue; }
+      if(!cxIgual(nl, +a.lista, 0.005)) d.lista = nl;
+    } else if(k === "desc"){
+      const hoy = Array.isArray(a.dtos) ? cxCad(cxCadenaDe(a).cadena) : cxCad(p.seis);
+      if(!cxMismaCad(v, hoy)) d.cadena = v.slice();
+    } else if(k === "contado"){
+      const h = a.contado && +a.contado.pct > 0 ? a.contado : null;
+      const conCheques = !!(h && Array.isArray(h.cheques) && h.cheques.length > 1);
+      const igual = (!h && !v) || (h && v && !conCheques && cxIgual(+h.pct, v.pct, 0.001) && Math.floor(+h.dias) === v.dias);
+      if(!igual) d.contado = v ? Object.assign({}, v) : null;
+    } else if(k === "iva"){
+      if(!cxIgual(v, ivaDe(p), 0.001)) d.iva = v;
+    } else if(k === "flete"){
+      const h = +a.flete > 0 ? cent(+a.flete) : 0;
+      if(!cxIgual(h, v, 0.005)) d.flete = v > 0 ? v : null;
+    } else if(k === "subrubro"){
+      if(cxT(a.subrubro || "").toUpperCase() !== (v || "")) d.subrubro = v;
+    } else if(k === "bulto"){
+      if((+a.bulto > 1 ? Math.floor(+a.bulto) : 0) !== (v || 0)) d.bulto = v;
+    } else if(k === "vende"){
+      const hs = !(a.vende && a.vende.suelto === false), hc = !(a.vende && a.vende.combo === false);
+      if(hs !== (v ? v.suelto : true) || hc !== (v ? v.combo : true)) d.vende = v ? Object.assign({}, v) : null;
+    }
+    if(!Object.keys(d).length) continue;
+    if(md.acomp){
+      const x = cxArmar(a, d, MS.acomp);
+      if(x.error){ no(x.error); continue; }
+      r.p2 = x.p2;
+    } else {
+      const a2 = cxAplicar(a, d);
+      if(!a2){ no("tiene demasiados descuentos y recargos juntos (entran 8)"); continue; }
+      r.p2 = productoDeGbp(a2);
+    }
+    r.d = d; r.estado = "cambia";
+    if(precio){
+      if(margen(r.p2) < 0) r.avisos.push("pierde plata: el contado queda debajo del costo");
+      const n1 = d.lista1 !== undefined ? d.lista1 : L1, n2 = d.lista2 !== undefined ? d.lista2 : L2;
+      if(n1 > n2) r.avisos.push("la Lista 2 queda más barata que la Lista 1");
+      if(md.acomp){
+        const vc = p.costo > 0 ? (r.p2.costo / p.costo - 1) * 100 : 0;
+        if(Math.abs(vc) > CX_SALTO) r.avisos.push("el costo " + (vc > 0 ? "sube" : "baja") + " " + pTxt(Math.round(Math.abs(vc) * 10) / 10) + " %: fijate antes de aplicar");
+      }
+    }
+    if(!(r.cod in MS.tilde)) MS.tilde[r.cod] = !(precio && margen(r.p2) < 0);
   }
 }
 function msCuenta(){
@@ -17331,36 +17597,73 @@ function msCuenta(){
   return n;
 }
 function abrirMasivo(){
-  if(!puede("importar")){ toast("Tu usuario no puede cambiar precios en masa (hace falta el permiso Importar)."); return; }
-  const total = (PROD_VER.todos || []).length;
+  if(!puede("importar")){ toast("Tu usuario no puede hacer cambios masivos (hace falta el permiso Importar)."); return; }
+  const hay = new Set(PRODUCTOS.map(p => p.cod));
+  for(const c of [...SEL_ART]) if(!hay.has(c)) SEL_ART.delete(c);
+  const deTilde = SEL_ART.size > 0;
+  const cods = deTilde ? PRODUCTOS.filter(p => SEL_ART.has(p.cod)).map(p => p.cod) : (PROD_VER.todos || []).map(p => p.cod);
+  const total = cods.length;
   if(!total){ toast("No hay artículos con esos filtros."); return; }
   const viejo = document.getElementById("msModal"); if(viejo) viejo.remove();
-  MS = { modo:"margen", pct:"", tilde:{}, renglones:[], filtro:"cambia", aplicando:false, resultado:"", filtros: msFiltroTxt(), total };
+  MS = { modo:"l1", val:"", dias:"60", sel:"__", acomp:true, tilde:{}, renglones:[], filtro:"cambia", aplicando:false, resultado:"",
+    filtros: deTilde ? "tildados a mano" : msFiltroTxt(), total, cods, deTilde };
   const fondo = document.createElement("div");
   fondo.className = "envio"; fondo.id = "msModal";
-  fondo.innerHTML = '<div class="envio-caja cx-caja" role="dialog" aria-label="Cambiar precios de los artículos filtrados">' +
-    '<div class="envio-h"><h3>Cambiar precios · ' + total.toLocaleString("es-AR") + (total === 1 ? ' artículo' : ' artículos') + '</h3>' +
+  fondo.innerHTML = '<div class="envio-caja cx-caja" role="dialog" aria-label="Cambios masivos">' +
+    '<div class="envio-h"><h3>Cambios masivos · ' + total.toLocaleString("es-AR") + (total === 1 ? ' artículo' : ' artículos') + '</h3>' +
       '<button class="x" type="button" data-ms-no aria-label="cerrar">×</button></div>' +
     '<div class="cx-cuerpo" id="msCuerpo"></div><div class="cx-pie" id="msPie"></div></div>';
   document.body.appendChild(fondo);
   fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fondo.remove(); } });
   fondo.addEventListener("click", msClic);
   fondo.addEventListener("change", msCambio);
-  fondo.addEventListener("input", e => { if(e.target.id === "msPct"){ MS.pct = e.target.value; msCalcular(); msPintarTabla(); } });
+  fondo.addEventListener("input", e => {
+    if(e.target.id === "msVal"){ MS.val = e.target.value; msCalcular(); msPintarTabla(); }
+    if(e.target.id === "msDias"){ MS.dias = e.target.value; msCalcular(); msPintarTabla(); }
+  });
   msCalcular(); msPintar();
   cxTraerHist().then(() => { const h = document.getElementById("msHist"); if(h) h.innerHTML = cxHistHtml(); });
-  setTimeout(() => { const i = document.getElementById("msPct"); if(i) i.focus(); }, 30);
+}
+/** Lo que se escribe o se elige, según lo que se cambia. */
+function msEntradaHtml(md){
+  const ph = md.ph === "objetivo" ? "objetivo: " + (S.objetivo || 35) : (md.ph || "");
+  const caja = (id, val, p) => '<input id="' + id + '" type="text" inputmode="decimal" autocomplete="off" placeholder="' + atrib(p) + '" value="' + atrib(val) + '">';
+  const opc = (v, t) => '<option value="' + atrib(v) + '"' + (MS.sel === v ? ' selected' : '') + '>' + txt(t) + '</option>';
+  if(md.en === "pct") return '<label for="msVal">' + (md.k === "subir" || md.k === "lista" ? "Cuánto (%)" : "Porcentaje") + '</label>' + caja("msVal", MS.val, ph);
+  if(md.en === "plata") return '<label for="msVal">Monto por unidad ($)</label>' + caja("msVal", MS.val, ph);
+  if(md.en === "entero") return '<label for="msVal">Unidades</label>' + caja("msVal", MS.val, ph);
+  if(md.en === "cadena") return '<label for="msVal">Descuentos (%)</label>' + '<input id="msVal" type="text" autocomplete="off" placeholder="' + atrib(ph) + '" value="' + atrib(MS.val) + '">';
+  if(md.en === "contado") return '<label for="msVal">Descuento y días</label><div class="ms-dos">' + caja("msVal", MS.val, "5") + '<span>% a</span>' +
+    '<input id="msDias" type="text" inputmode="numeric" autocomplete="off" placeholder="60" value="' + atrib(MS.dias) + '"><span>días</span></div>';
+  if(md.en === "iva") return '<label for="msSel">IVA</label><select id="msSel">' + opc("__", "Elegí…") +
+    [0, 10.5, 21, 27].map(i => opc(String(i), ivaTxt(i))).join("") + '</select>';
+  if(md.en === "vende") return '<label for="msSel">Se vende</label><select id="msSel">' + opc("__", "Elegí…") +
+    opc("ambos", "Suelto y en combo") + opc("suelto", "Solo suelto") + opc("combo", "Solo en combo") + '</select>';
+  if(md.en === "subrubro"){
+    const nom = new Map(), poner = n => { n = cxT(n).toUpperCase(); if(n && !nom.has(plano(n))) nom.set(plano(n), n); };
+    SUBRUBROS_BASE.forEach(poner); PRODUCTOS.forEach(p => poner(p.subrubro));
+    const ls = [...nom.values()].sort((a, b) => COLL_ES.compare(a, b));
+    return '<label for="msSel">Subrubro</label><select id="msSel">' + opc("__", "Elegí…") + opc("", "Sin subrubro") +
+      ls.map(n => opc(n, n)).join("") + opc("__nuevo", "+ Uno nuevo…") + '</select>' +
+      '<input id="msVal" type="text" maxlength="40" autocomplete="off" placeholder="Escribí el subrubro nuevo" value="' + atrib(MS.val) + '"' +
+      (MS.sel === "__nuevo" ? '' : ' hidden') + ' style="margin-top:6px">';
+  }
+  return "";
 }
 function msPintar(){
   const c = document.getElementById("msCuerpo"); if(!c || !MS) return;
-  const modo = MS_MODOS.find(x => x.k === MS.modo);
-  c.innerHTML = '<p class="cx-nota" style="margin-top:12px">Los <b>' + MS.total.toLocaleString("es-AR") + '</b> artículos que ves con estos filtros: <b>' + txt(MS.filtros) + '</b>.' +
-      ' Solo cambian la Lista 1 y la Lista 2; el costo no se toca.</p>' +
+  const md = MS_MODOS.find(x => x.k === MS.modo);
+  const grupos = [...new Set(MS_MODOS.map(m => m.g))];
+  c.innerHTML = '<p class="cx-nota" style="margin-top:12px">' + (MS.deTilde
+      ? 'Los <b>' + MS.total.toLocaleString("es-AR") + '</b> artículos que tildaste en la lista.'
+      : 'Los <b>' + MS.total.toLocaleString("es-AR") + '</b> artículos que ves con estos filtros: <b>' + txt(MS.filtros) + '</b>. Para elegir algunos, tildalos en la lista.') +
+      ' Elegí qué cambiarles: antes de aplicar te muestro cómo queda cada uno.</p>' +
     '<div class="ms-opc"><div><label for="msModo">Qué cambiar</label><select id="msModo">' +
-      MS_MODOS.map(m => '<option value="' + m.k + '"' + (m.k === MS.modo ? ' selected' : '') + '>' + txt(m.t) + '</option>').join("") + '</select></div>' +
-    '<div><label for="msPct">' + (MS.modo === "subir" ? "Cuánto (%)" : "Porcentaje") + '</label><input id="msPct" type="text" inputmode="decimal" autocomplete="off" placeholder="' +
-      (MS.modo === "margen" ? "objetivo: " + (S.objetivo || 35) : MS.modo === "subir" ? "5 o −5" : "25") + '" value="' + atrib(MS.pct) + '"></div></div>' +
-    '<p class="cx-nota" id="msAyuda">' + txt(modo.ayuda) + '</p>' +
+      grupos.map(g => '<optgroup label="' + atrib(g) + '">' + MS_MODOS.filter(m => m.g === g).map(m =>
+        '<option value="' + m.k + '"' + (m.k === MS.modo ? ' selected' : '') + '>' + txt(m.t) + '</option>').join("") + '</optgroup>').join("") +
+      '</select></div><div>' + msEntradaHtml(md) + '</div></div>' +
+    '<p class="cx-nota" id="msAyuda">' + txt(md.ayuda) + '</p>' +
+    (md.acomp ? '<div class="cx-opc"><label><input type="checkbox" id="msAcomp"' + (MS.acomp ? ' checked' : '') + '> La Lista 1 y la 2 acompañan al costo (queda el mismo margen)</label></div>' : '') +
     '<div id="msRes">' + (MS.resultado || '') + '</div>' +
     '<div id="msTabla"></div>' +
     '<div class="cx-hist" id="msHist" style="margin:12px 0 10px">' + cxHistHtml() + '</div>';
@@ -17368,34 +17671,42 @@ function msPintar(){
 }
 function msPintarTabla(){
   const t = document.getElementById("msTabla"); if(!t || !MS) return;
-  const n = msCuenta(), f = MS.filtro;
-  const pct = cxN(MS.pct);
+  const n = msCuenta(), f = MS.filtro, k = MS.modo, precio = MS_PRECIO.indexOf(k) >= 0, lee = MS.leido || {};
   let html = '<div class="cx-tabs">' + [["cambia", "Cambian", n.cambia], ["no", "No se pueden", n.no, true], ["igual", "Sin cambios", n.igual]]
-    .map(([k, tt, c, mal]) => '<button type="button" data-ms-f="' + k + '" aria-pressed="' + (f === k) + '"' + (mal && c ? ' class="mal"' : '') + '>' + tt + ' (' + c.toLocaleString("es-AR") + ')</button>').join("") + '</div>';
+    .map(([kk, tt, c, mal]) => '<button type="button" data-ms-f="' + kk + '" aria-pressed="' + (f === kk) + '"' + (mal && c ? ' class="mal"' : '') + '>' + tt + ' (' + c.toLocaleString("es-AR") + ')</button>').join("") + '</div>';
   const lista = MS.renglones.filter(r => r.estado === f);
-  if(pct == null && f === "cambia") html += '<p class="cx-nota">Escribí el porcentaje y te muestro cómo quedan los precios antes de aplicar.</p>';
-  else if(!lista.length) html += '<p class="cx-nota">' + (f === "cambia" ? "Con ese porcentaje no cambia ninguno." : "Ninguno.") + '</p>';
+  if(lee.error) html += '<p class="cx-res mal">' + txt(lee.error) + '</p>';
+  else if(lee.falta && f === "cambia") html += '<p class="cx-nota">' + (MS_MODOS.find(x => x.k === k).en === "pct" ? "Escribí el porcentaje" : "Completá arriba lo nuevo") + ' y te muestro cómo queda cada uno antes de aplicar.</p>';
+  else if(!lista.length) html += '<p class="cx-nota">' + (f === "cambia" ? "Con eso no cambia ninguno: ya lo tienen así." : "Ninguno.") + '</p>';
   else {
-    const tope = 600, flecha = (h, x, fmt) => cxIgual(h, x, 0.005) ? fmt(h) : '<span style="color:var(--ink-3)">' + fmt(h) + '</span> → <b>' + fmt(x) + '</b>';
+    const tope = 600;
+    const fl = (h, x, fmt) => cxIgual(h, x, 0.005) ? fmt(h) : '<span style="color:var(--ink-3)">' + fmt(h) + '</span> → <b>' + fmt(x) + '</b>';
+    const flT = (h, x) => h === x ? txt(h) : '<span style="color:var(--ink-3)">' + txt(h) + '</span> → <b>' + txt(x) + '</b>';
+    const chk = r => r.estado === "cambia" ? '<input type="checkbox" data-ms-t="' + atrib(r.cod) + '"' + (MS.tilde[r.cod] ? ' checked' : '') + ' aria-label="aplicar ' + atrib(r.cod) + '">' : '';
+    const aviso = r => r.avisos.map(x => '<span class="cx-av' + (r.estado === "cambia" ? ' mal' : '') + '">' + txt(x) + '</span>').join("");
+    const cuerpo = lista.slice(0, tope).map(r => {
+      const nom = '<td class="nom">' + txt(r.cod) + '<small>' + txt(r.tit || "") + '</small></td>';
+      if(!precio){
+        const hoy = r.a ? msTxtDe(k, r.a) : "", queda = r.d ? msTxtDe(k, cxAplicar(r.a, r.d) || r.a) : hoy;
+        return '<tr><td>' + chk(r) + '</td>' + nom + '<td>' + txt(hoy) + '</td><td>' + (r.d ? '<b>' + txt(queda) + '</b>' : '') + '</td><td>' + aviso(r) + '</td></tr>';
+      }
+      const p = r.p, p2 = r.p2 || r.p;
+      if(!p) return '<tr><td></td>' + nom + '<td colspan="5"></td><td>' + aviso(r) + '</td></tr>';
+      return '<tr><td>' + chk(r) + '</td>' + nom +
+        '<td class="r">' + fl(cent(p.costo), cent(p2.costo), fmt2) + '</td>' +
+        '<td class="r">' + flT(msMkTxt(p), msMkTxt(p2)) + '</td>' +
+        '<td class="r">' + fl(lista1De(p), lista1De(p2), fmt2) + '</td>' +
+        '<td class="r">' + fl(cent(p.unPago), cent(p2.unPago), fmt2) + '</td>' +
+        '<td class="r">' + fl(margen(p), margen(p2), msPctTxt) + '</td>' +
+        '<td>' + aviso(r) + '</td></tr>';
+    }).join("");
+    const nCol = precio ? 8 : 5;
     html += (f === "cambia" ? '<div class="cx-opc"><button class="b3" type="button" data-ms-todos="1" style="padding:3px 10px">Tildar todos</button>' +
         '<button class="b3" type="button" data-ms-todos="0" style="padding:3px 10px">Destildar todos</button></div>' : '') +
-      '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa cx-t"><thead><tr><th></th><th>Código / artículo</th>' +
-      '<th class="r">Costo c/IVA</th><th class="r">Lista 1</th><th class="r">Lista 2</th><th class="r">Margen</th><th>Aviso</th></tr></thead><tbody>' +
-      lista.slice(0, tope).map(r => {
-        if(r.estado !== "cambia")
-          return '<tr><td></td><td class="nom">' + txt(r.cod) + '<small>' + txt(r.tit || "") + '</small></td><td class="r">' + (r.p ? fmt2(cent(r.p.costo)) : '') +
-            '</td><td class="r">' + (r.p ? fmt2(lista1De(r.p)) : '') + '</td><td class="r">' + (r.p ? fmt2(cent(r.p.unPago)) : '') + '</td><td class="r">' +
-            (r.p ? msPctTxt(margen(r.p)) : '') + '</td><td>' + r.avisos.map(x => '<span class="cx-av">' + txt(x) + '</span>').join("") + '</td></tr>';
-        const p = r.p, p2 = r.p2, m1 = margen(p), m2 = margen(p2);
-        return '<tr><td><input type="checkbox" data-ms-t="' + atrib(r.cod) + '"' + (MS.tilde[r.cod] ? ' checked' : '') + ' aria-label="aplicar ' + atrib(r.cod) + '"></td>' +
-          '<td class="nom">' + txt(r.cod) + '<small>' + txt(r.tit || "") + '</small></td>' +
-          '<td class="r">' + fmt2(cent(p.costo)) + '</td>' +
-          '<td class="r">' + flecha(lista1De(p), lista1De(p2), fmt2) + '</td>' +
-          '<td class="r">' + flecha(cent(p.unPago), cent(p2.unPago), fmt2) + '</td>' +
-          '<td class="r">' + flecha(m1, m2, msPctTxt) + '</td>' +
-          '<td>' + r.avisos.map(x => '<span class="cx-av mal">' + txt(x) + '</span>').join("") + '</td></tr>';
-      }).join("") +
-      (lista.length > tope ? '<tr><td colspan="7" class="vacio">Se ven los primeros ' + tope + ' de ' + lista.length.toLocaleString("es-AR") + ' (se aplican todos los tildados)</td></tr>' : '') +
+      '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa cx-t ' + (precio ? 'ms8' : 'ms5') + '"><thead><tr><th></th><th>Código / artículo</th>' +
+      (precio ? '<th class="r">Costo c/IVA</th><th class="r">Markup L1 · L2 (%)</th><th class="r">Lista 1</th><th class="r">Lista 2</th><th class="r">Margen</th>'
+              : '<th>Hoy</th><th>Queda</th>') + '<th>Aviso</th></tr></thead><tbody>' + cuerpo +
+      (lista.length > tope ? '<tr><td colspan="' + nCol + '" class="vacio">Se ven los primeros ' + tope + ' de ' + lista.length.toLocaleString("es-AR") + ' (se aplican todos los tildados)</td></tr>' : '') +
       '</tbody></table></div>';
   }
   t.innerHTML = html;
@@ -17407,7 +17718,18 @@ function msPintarTabla(){
 }
 function msCambio(e){
   const t = e.target; if(!MS) return;
-  if(t.id === "msModo"){ MS.modo = t.value; MS.tilde = {}; MS.resultado = ""; msCalcular(); msPintar(); return; }
+  if(t.id === "msModo"){
+    MS.modo = t.value; MS.val = ""; MS.sel = "__"; MS.tilde = {}; MS.resultado = ""; MS.filtro = "cambia";
+    msCalcular(); msPintar();
+    setTimeout(() => { const i = document.getElementById("msVal"), s = document.getElementById("msSel"); const x = i && !i.hidden ? i : s; if(x) x.focus(); }, 30);
+    return;
+  }
+  if(t.id === "msSel"){
+    MS.sel = t.value; MS.tilde = {};
+    const i = document.getElementById("msVal"); if(i && MS.modo === "subrubro"){ i.hidden = MS.sel !== "__nuevo"; if(!i.hidden) i.focus(); }
+    msCalcular(); msPintarTabla(); return;
+  }
+  if(t.id === "msAcomp"){ MS.acomp = t.checked; MS.tilde = {}; msCalcular(); msPintarTabla(); return; }
   if(t.dataset.msT){ MS.tilde[t.dataset.msT] = t.checked; msPintarTabla(); }
 }
 async function msClic(e){
@@ -17420,15 +17742,31 @@ async function msClic(e){
   if(dh){ await cxDeshacer(dh.dataset.cxDesh); if(MS && document.getElementById("msModal")){ MS.tilde = {}; MS.resultado = ""; msCalcular(); msPintar(); } return; }
   if(t.closest("[data-ms-aplicar]")) msAplicar();
 }
+/** Lo que se hizo, en palabras (para el aviso, Actividad y Últimas subidas). */
+function msQueTxt(){
+  const k = MS.modo, v = MS.leido && MS.leido.v;
+  if(k === "l1") return "Markup Lista 1 al " + pTxt(v) + " % sobre el costo";
+  if(k === "l2") return "Markup Lista 2 al " + pTxt(v) + " % sobre la Lista 1";
+  if(k === "margen") return "Margen al " + pTxt(v) + " % sobre el costo";
+  if(k === "subir") return (v >= 0 ? "Subir " : "Bajar ") + pTxt(Math.abs(v)) + " % las dos listas";
+  if(k === "lista") return "Lista del proveedor " + (v >= 0 ? "+" : "−") + pTxt(Math.abs(v)) + " %";
+  if(k === "desc") return "Descuentos del proveedor: " + (v && v.length ? v.map(pTxt).join(" + ") + " %" : "sin descuentos");
+  if(k === "contado") return v ? "Contado " + pTxt(v.pct) + " % a " + v.dias + " días" : "Sin descuento por pago contado";
+  if(k === "iva") return "IVA " + pTxt(v) + " %";
+  if(k === "flete") return v > 0 ? "Flete " + fmt2(v) + " por unidad" : "Sin flete fijo";
+  if(k === "subrubro") return "Subrubro: " + (v || "sin subrubro");
+  if(k === "bulto") return v ? "Se compra de a " + v : "Se compra suelto";
+  if(k === "vende") return "Se vende " + (!v ? "suelto y en combo" : v.suelto ? "solo suelto" : "solo en combo");
+  return "Cambio masivo";
+}
 async function msAplicar(){
   if(!MS || MS.aplicando) return;
   const van = MS.renglones.filter(r => r.estado === "cambia" && MS.tilde[r.cod]);
   if(!van.length) return;
-  const modo = MS_MODOS.find(x => x.k === MS.modo), pct = cxN(MS.pct);
-  const que = (MS.modo === "margen" ? "Margen al " : MS.modo === "l1" ? "Lista 1 al " : MS.modo === "l2" ? "Lista 2 al " : (pct >= 0 ? "Subir " : "Bajar ")) +
-    pTxt(Math.abs(pct)) + " %" + (MS.modo === "l1" ? " sobre el costo" : MS.modo === "l2" ? " sobre la Lista 1" : MS.modo === "margen" ? " sobre el costo" : " las dos listas");
-  const pierden = van.filter(r => margen(r.p2) < 0).length;
-  if(!confirm(que + ": se cambian la Lista 1 y la 2 de " + van.length + " artículos (" + MS.filtros + ")." +
+  const md = MS_MODOS.find(x => x.k === MS.modo), que = msQueTxt();
+  const pierden = MS_PRECIO.indexOf(MS.modo) >= 0 ? van.filter(r => margen(r.p2) < 0).length : 0;
+  if(!confirm(que + ": se cambian " + van.length + (van.length === 1 ? " artículo" : " artículos") + " (" + MS.filtros + ")." +
+      (md.acomp ? (MS.acomp ? "\\n\\nLa Lista 1 y la 2 acompañan al costo (mismo margen)." : "\\n\\nLa Lista 1 y la 2 quedan como están (cambia el margen).") : "") +
       (pierden ? "\\n\\nOJO: " + pierden + " quedan perdiendo plata." : "") + "\\n\\nSe puede deshacer después. ¿Aplico?")) return;
   MS.aplicando = true; msPintarTabla();
   const cambios = van.map(r => ({ cod: r.a.cod, antes: { lista: +r.a.lista || 0, lista1: +r.a.lista1 || 0, lista2: +r.a.lista2 || 0 }, despues: r.d }));
@@ -17439,7 +17777,7 @@ async function msAplicar(){
   if(r.cambiados.length) partes.push(r.cambiados.length + " no se pisaron porque alguien los cambió mientras tanto.");
   if(r.malos.length) partes.push("No se pudieron: " + txt(r.malos.slice(0, 8).map(x => x.cod + " (" + x.motivo + ")").join(", ")) + ".");
   partes.push("Abajo, en Últimas subidas, lo podés deshacer.");
-  toast("Listo: " + r.actualizados + " artículos con precio nuevo.");
+  toast("Listo: " + r.actualizados + " artículos cambiados.");
   await traerDeGbp();
   try{ pintarProd(); }catch(e){}
   await cxTraerHist();
@@ -17447,8 +17785,50 @@ async function msAplicar(){
   MS.resultado = '<p class="cx-res' + (r.cambiados.length || r.malos.length ? ' mal' : '') + '">' + partes.join("<br>") + '</p>';
   msPintar();
 }
+
+/* V.0.11.282: tildar artículos en la lista para los cambios masivos. Quedan
+   tildados aunque cambies el filtro, hasta que los destildes. */
+var SEL_ART = new Set();   // var: pintarProd puede correr antes de esta línea al abrir.
+function pintarSelArt(){
+  if(!SEL_ART) return;
+  const n = SEL_ART.size, bar = document.getElementById("selArtBarra");
+  if(bar){
+    bar.hidden = !n;
+    const s = bar.querySelector("[data-sel-n]");
+    if(s) s.textContent = n.toLocaleString("es-AR") + (n === 1 ? " artículo tildado" : " artículos tildados");
+  }
+  const b = document.getElementById("fMasivo");
+  if(b) b.textContent = n ? "Cambios masivos (" + n.toLocaleString("es-AR") + ")" : "Cambios masivos";
+  const t = document.getElementById("fSelTodos");
+  if(t){
+    const ts = PROD_VER.todos || [], k = ts.filter(p => SEL_ART.has(p.cod)).length;
+    t.checked = ts.length > 0 && k === ts.length; t.indeterminate = k > 0 && k < ts.length;
+    t.title = t.checked ? "Destildar los " + ts.length.toLocaleString("es-AR") + " que ves" : "Tildar los " + ts.length.toLocaleString("es-AR") + " que ves con estos filtros";
+  }
+}
+document.getElementById("tbProd").addEventListener("change", e => {
+  const c = e.target.closest("input[data-sel-art]"); if(!c) return;
+  if(c.checked) SEL_ART.add(c.dataset.selArt); else SEL_ART.delete(c.dataset.selArt);
+  const tr = c.closest("tr"); if(tr) tr.classList.toggle("sel", c.checked);
+  pintarSelArt();
+});
+(function(){
+  const t = document.getElementById("fSelTodos"); if(!t) return;
+  // Sin que la columna se ordene al tildar.
+  t.addEventListener("click", e => e.stopPropagation());
+  t.addEventListener("change", () => {
+    const ts = PROD_VER.todos || [];
+    for(const p of ts){ if(t.checked) SEL_ART.add(p.cod); else SEL_ART.delete(p.cod); }
+    pintarProd();
+    if(t.checked && ts.length > PROD_DE_A) toast("Tildados los " + ts.length.toLocaleString("es-AR") + " que coinciden (en la pantalla se ven de a " + PROD_DE_A + ").");
+  });
+})();
+document.getElementById("selArtBarra").addEventListener("click", e => {
+  if(e.target.closest("[data-sel-masivo]")){ abrirMasivo(); return; }
+  if(e.target.closest("[data-sel-nada]")){ SEL_ART.clear(); pintarProd(); }
+});
 document.getElementById("fMasivo").addEventListener("click", abrirMasivo);
-setTimeout(() => { const b = document.getElementById("fMasivo"); if(b) b.hidden = !puede("importar"); }, 0);
+setTimeout(() => { for(const id of ["fMasivo", "fSelTodos"]){ const b = document.getElementById(id); if(b) b.hidden = !puede("importar"); } }, 0);
 
 /* ============================== AGENDA DE PAGOS (V.0.11.257)
    Damián, 24/11/2026: "NECESITO EN PROVEEDORES AGENDAS DE PAGO Y SETEARLAS

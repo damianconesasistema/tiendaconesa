@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.281";
+export const APP_VERSION = "V.0.11.282";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,16 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.282",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Artículos: cambios masivos. Se tildan los artículos en la lista (o todos los que se ven con la casilla de arriba de Código) y en \"Cambios masivos\" se elige qué cambiarles: markup de la Lista 1 o de la 2, margen, subir o bajar precios, lista del proveedor, descuentos del proveedor, descuento por pago contado, IVA, flete, subrubro, de a cuántos se compra y cómo se vende. Antes de aplicar muestra cómo queda cada uno; se puede deshacer. Sin tildar ninguno, va sobre todos los filtrados (como antes). Damián: \"también estaría bueno tener cambios masivos, seleccionando artículos y elegir qué le quiero modificar\".",
+      "Lista de precios del proveedor (y Subir Excel): muestra el markup de la Lista 1 (sobre el costo) y de la 2 (sobre la 1) de cada artículo y se puede escribir ahí mismo: la Lista 1 y la 2 se arman con ese %. El Excel de Artículos trae las columnas \"Markup L1 %\" y \"Markup L2 %\", y si se cambian y se sube, se usan. Damián: \"necesito que me muestres el markup de lista 1 y lista 2\" / \"y que se puedan editar en el listado\".",
+      "Editar un artículo: \"Cerrar\" cierra de una vez. Antes abría un artículo nuevo en blanco y había que apretarlo dos veces. Y el aviso \"Es la suma de los productos del combo\" ya no aparece en los que no son combo.",
+      "Los botones Excel, PDF, Subir Excel y Cambios masivos de Artículos, en rojo. Damián: \"ponelo en rojo eso así se lee\".",
+    ],
+  },
   {
     version: "V.0.11.281",
     date: "2026-11-26",
