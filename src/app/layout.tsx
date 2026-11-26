@@ -1,6 +1,6 @@
 import { TIENDA_URL } from "@/lib/dominio";
 import type { Metadata, Viewport } from "next";
-import { Inter, Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import { Header } from "@/components/Header";
 import { Analytics } from "@/components/Analytics";
 import { esDeLosNuestros } from "@/lib/miradas";
@@ -25,17 +25,25 @@ import {
 import { datosEstructurados } from "@/lib/datos-estructurados";
 import "./globals.css";
 
-const inter = Inter({
+// Las letras van con el proyecto (src/app/fuentes, licencia SIL OFL 1.1 en los
+// OFL-*.txt). Antes las bajaba next/font/google en cada compilacion y Google
+// a veces le cortaba a GitHub ("queries have exactly one entry", Montserrat):
+// la publicacion fallaba sola, unas diez veces. Damian, 26/11/2026: "eso ya
+// paso como 10 veces porque pasa?" -> "Si, pasala". Son los mismos archivos
+// que servia Google (woff2, juego "latin": con ñ y tildes; variables, todos
+// los pesos), bajados de fonts.gstatic.com.
+const inter = localFont({
+  src: "./fuentes/inter-latin.woff2",
   variable: "--font-body",
-  subsets: ["latin"],
   display: "swap",
+  weight: "100 900",
 });
 
-const montserrat = Montserrat({
+const montserrat = localFont({
+  src: "./fuentes/montserrat-latin.woff2",
   variable: "--font-display",
-  subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: "400 900",
 });
 
 // La direccion oficial: la que va en Google y en los links que se

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.276";
+export const APP_VERSION = "V.0.11.277";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.277",
+    date: "2026-11-26",
+    changes: [
+      "Tienda y panel: las letras (Inter y Montserrat) van con el proyecto en src/app/fuentes (next/font/local, licencia OFL) y no se bajan más de Google en cada publicación. Esa descarga fallaba sola (\"queries have exactly one entry\") y frenaba la publicación (Damián: \"eso ya paso como 10 veces porque pasa?\"). Son los mismos archivos que servía Google, woff2 \"latin\" (con ñ y tildes).",
+    ],
+  },
   {
     version: "V.0.11.276",
     date: "2026-11-26",
