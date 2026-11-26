@@ -687,6 +687,14 @@ input.sel-art{width:16px; height:16px; margin:0 8px 0 0; vertical-align:-3px; ac
 .cx-resumen ul{margin:4px 0 0; padding-left:18px}
 .cx-resumen li{margin:1px 0}
 .cx-resumen .mal{color:var(--bad); font-weight:700}
+/* V.0.11.288: asociar los artículos con los proveedores de la lista. */
+.as-sec{margin:14px 0 6px; font-family:var(--font-d); font-size:13px; letter-spacing:.06em; text-transform:uppercase}
+table.as-t{table-layout:fixed; width:100%}
+table.as-t th:nth-child(1){width:34%} table.as-t th:nth-child(2){width:16%} table.as-t th:nth-child(4){width:12%}
+table.as-t td{vertical-align:middle; padding-top:7px !important; padding-bottom:7px !important}
+table.as-t input{width:100%}
+table.as-t .pill{white-space:nowrap}
+#asModal .tabla-wrap{overflow:visible}
 @media (max-width:700px){ .pf-fnueva{grid-template-columns:1fr 1fr} .pf-fnueva label.d2{grid-column:span 2} }
 .nc-grupo{display:grid; grid-template-columns:1fr auto; gap:6px 14px; padding:10px 0; border-bottom:1px solid var(--line)}
 .nc-grupo:last-child{border-bottom:0}
@@ -2736,6 +2744,8 @@ footer{
       <span class="sub">el Excel de proveedores</span>
       <button class="b2" id="prvImportar" style="margin-left:12px;padding:6px 16px">Importar</button>
       <button class="b1" id="prvNuevo" type="button" style="margin-left:8px;padding:6px 16px">Nuevo proveedor</button>
+      <!-- V.0.11.288: asociar los artículos con los proveedores de la lista. -->
+      <button class="b3" id="prvAsociar" type="button" style="margin-left:8px;padding:6px 16px" hidden>Asociar artículos</button>
     </div>
     <div id="prvCuerpo" hidden style="padding:0 16px 16px">
       <div class="soltar" id="prvZona">
@@ -4159,6 +4169,7 @@ document.getElementById("accesos").addEventListener("click", e => {
    se pintan después. */
 const ICO = {
   plus:'<path d="M12 5v14M5 12h14"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   filePlus:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/>',
   fileText:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
   eraser:'<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7M5 11l9 9"/>',
@@ -4296,6 +4307,8 @@ const PRV_ACC = [
   // V.0.11.281: tercero y con su nombre entero (Damián: "ponelo 3").
   ["cxSubirPrv", "Lista de precios del proveedor", "fileText"],
   ["prvNuevo", "Nuevo proveedor", "plus"],
+  // V.0.11.288: que cada artículo tenga su proveedor de la lista.
+  ["prvAsociar", "Asociar artículos con proveedores", "link"],
   ["prvImportar", "Importar de GBP", "upload"],
   ["pgNuevo", "Agendar un pago", "banknote"],
   ["ncAct", "Lo que piden los clientes", "message"]
@@ -13597,6 +13610,7 @@ async function guardarFormPrv(){
 }
 
 prvG("prvNuevo").hidden = !puede("proveedores");
+prvG("prvAsociar").hidden = !puede("proveedores");
 // Ojo: .filtros label es flex y le gana al hidden.
 prvG("prvElimEt").style.display = puede("eliminar") ? "" : "none";
 prvG("prvNuevo").addEventListener("click", () => abrirFormPrv(null));
@@ -13604,6 +13618,152 @@ prvG("pfX").addEventListener("click", cerrarFormPrv);
 prvG("pfCancelar").addEventListener("click", cerrarFormPrv);
 prvG("pfGuardar").addEventListener("click", guardarFormPrv);
 prvG("pfTraer").addEventListener("click", traerPadronPrv);
+
+/* V.0.11.288: asociar los artículos con los proveedores de la lista.
+   Cada artículo trae de GBP el nombre de su proveedor como texto (cat): en
+   4.110 de 6.852 no era un proveedor de la lista (un rubro de GBP como
+   "09.SANITARIOS", o el nombre escrito distinto). Acá se asocia cada nombre
+   (y, para los que traen un rubro, cada marca) con un proveedor de la lista.
+   Se guarda en el servidor (/sistema/proveedores/asociar) y se aplica al
+   leer los artículos: un import de GBP nuevo no lo pisa. */
+const ASOC_URL = "/sistema/proveedores/asociar";
+const AS = { filas: [], lista: [], total: 0, enLista: 0 };
+const claveAs = s => String(s || "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+const esRubroAs = c => { const s = String(c || "").trim(); return !s || /^\\d{1,3}\\s*\\./.test(s); };
+const RUIDO_AS = new Set(["SA","SRL","LTDA","DEL","LOS","LAS","DIST","DISTRIBUIDORA","COOP","COOPERATIVA","SAIC","SACI","SAS","IND","INDUSTRIA",
+  "INDUSTRIAS","GROUP","ARGENTINA","CERAMICA","METALURGICA","HIJOS","CIA"]);
+const palabrasAs = s => String(s || "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9 ]/g, " ")
+  .split(/\\s+/).filter(w => w.length > 2 && !RUIDO_AS.has(w));
+/** El proveedor de la lista que más se parece a un nombre ("" si no hay
+    uno claro): las palabras del nombre que están en la razón social. */
+function sugerirPrvAs(nombre, prvs){
+  // Un nombre corto ("FV"): el proveedor cuya primera palabra es esa ("FV S.A."), si hay uno solo.
+  const k = claveAs(nombre);
+  if(k){
+    const prim = prvs.filter(p => claveAs(String(p.razonSocial).trim().split(/[\\s.,-]+/)[0]) === k);
+    if(prim.length === 1) return prim[0].razonSocial;
+  }
+  const ws = palabrasAs(nombre); if(!ws.length) return "";
+  let mejor = "", pts = -1, pts2 = -1, empate = false;
+  for(const p of prvs){
+    const wp = palabrasAs(p.razonSocial); if(!wp.length) continue;
+    const com = ws.filter(w => wp.some(x => x === w || (x.length >= 4 && w.length >= 4 && (x.startsWith(w) || w.startsWith(x))))).length;
+    if(!com) continue;
+    const s1 = com / ws.length, s2 = com / wp.length;
+    if(s1 > pts || (s1 === pts && s2 > pts2)){ mejor = p.razonSocial; pts = s1; pts2 = s2; empate = false; }
+    else if(s1 === pts && s2 === pts2) empate = true;
+  }
+  return pts >= 0.5 && !empate ? mejor : "";
+}
+async function abrirAsociar(){
+  if(!puede("proveedores")){ toast("Asociar artículos lo hace el que tiene Proveedores."); return; }
+  try{ await cargarPrvSiFalta(); }catch(e){}
+  const prvs = (PRV.lista || []).filter(p => p && !p.inactivo && p.razonSocial);
+  if(!prvs.length){ toast("Todavía no llegó la lista de proveedores: probá de nuevo en un momento."); return; }
+  const d = await pedirJson("GET", ASOC_URL);
+  if(d.error){ toast(d.error); return; }
+  const guardadas = d.asociaciones || { porNombre:{}, porMarca:{} };
+  const enLista = new Map(prvs.map(p => [claveAs(p.razonSocial), p.razonSocial]));
+  // Lo de GBP de cada artículo (catGbp si ya está asociado).
+  const nombres = new Map(), marcas = new Map(), deMarca = new Map();
+  let total = 0, ok = 0;
+  for(const a of Object.values(GBP_CRUDO)){
+    if(!a) continue;
+    total++;
+    const raw = String(a.catGbp != null ? a.catGbp : a.cat || "").trim(), marca = String(a.prov || "").trim() || "VARIOS";
+    if(esRubroAs(raw)){
+      const k = claveAs(marca);
+      const g = marcas.get(k) || { nombre: marca, n: 0, rubros: new Set() };
+      g.n++; g.rubros.add(raw || "sin proveedor"); marcas.set(k, g);
+    } else if(enLista.has(claveAs(raw))){
+      ok++;
+      const k = claveAs(marca), m = deMarca.get(k) || new Map(); m.set(enLista.get(claveAs(raw)), (m.get(enLista.get(claveAs(raw))) || 0) + 1); deMarca.set(k, m);
+    } else {
+      const k = claveAs(raw);
+      const g = nombres.get(k) || { nombre: raw, n: 0 };
+      g.n++; nombres.set(k, g);
+    }
+  }
+  const filas = [];
+  for(const [k, g] of [...nombres].sort((a, b) => b[1].n - a[1].n)){
+    const guardado = guardadas.porNombre[k] || "", sug = guardado ? "" : sugerirPrvAs(g.nombre, prvs);
+    filas.push({ tipo:"nombre", clave:k, nombre:g.nombre, n:g.n, valor: guardado || sug, sugerido: !!sug, guardado: !!guardado });
+  }
+  for(const [k, g] of [...marcas].sort((a, b) => b[1].n - a[1].n)){
+    const guardado = guardadas.porMarca[k] || "";
+    let sug = "";
+    if(!guardado){
+      // La marca ya tiene proveedor de la lista en otros artículos: ese.
+      const m = deMarca.get(k);
+      if(m && m.size) sug = [...m].sort((a, b) => b[1] - a[1])[0][0];
+      else sug = sugerirPrvAs(g.nombre, prvs);
+    }
+    filas.push({ tipo:"marca", clave:k, nombre:g.nombre, n:g.n, rubros:[...g.rubros].join(", "), valor: guardado || sug, sugerido: !!sug, guardado: !!guardado });
+  }
+  Object.assign(AS, { filas, prvs, enLista, total, ok });
+  const viejo = document.getElementById("asModal"); if(viejo) viejo.remove();
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "asModal";
+  const nom = filas.filter(f => f.tipo === "nombre"), mar = filas.filter(f => f.tipo === "marca");
+  const fila = (f, i) => '<tr><td><b>' + txt(f.nombre) + '</b>' + (f.tipo === "marca" ? '<small style="display:block;color:var(--ink-3)">' + txt(f.rubros) + '</small>' : '') + '</td>' +
+    '<td class="r">' + f.n.toLocaleString("es-AR") + '</td>' +
+    '<td><input type="text" data-as-i="' + i + '" value="' + atrib(f.valor) + '" autocomplete="off" placeholder="Elegí el proveedor de la lista…"></td>' +
+    '<td data-as-e="' + i + '"></td></tr>';
+  const tabla = (lista, t1) => '<div class="tabla-wrap"><table class="densa as-t"><thead><tr><th>' + t1 + '</th><th class="r">Artículos</th><th>Proveedor de la lista</th><th></th></tr></thead><tbody>' +
+    lista.map(f => fila(f, filas.indexOf(f))).join("") + '</tbody></table></div>';
+  fondo.innerHTML = '<div class="envio-caja cx-caja" role="dialog" aria-label="Asociar artículos con proveedores">' +
+    '<div class="envio-h"><h3>Asociar artículos con proveedores</h3><button class="x" type="button" data-as-no aria-label="cerrar">×</button></div>' +
+    '<div class="cx-cuerpo">' +
+      '<p class="cx-nota" style="margin-top:12px">Cada artículo trae de GBP el nombre de su proveedor como texto. Acá lo asociás con un proveedor de tu lista: queda guardado y se aplica siempre, aunque vuelvan a importar de GBP. Lo que dejes vacío queda como está. Revisá los <b>sugeridos</b> antes de guardar.</p>' +
+      '<div class="cx-resumen" id="asRes"></div>' +
+      (nom.length ? '<h4 class="as-sec">Nombres de GBP que no están en la lista (' + nom.length + ')</h4>' + tabla(nom, "Nombre en GBP") : '') +
+      (mar.length ? '<h4 class="as-sec">Traen un rubro de GBP en vez de proveedor: por marca (' + mar.length + ')</h4>' + tabla(mar, "Marca") : '') +
+    '</div>' +
+    '<div class="cx-pie"><button class="b3" type="button" data-as-no>Cancelar</button>' +
+      '<button class="b1" type="button" id="asOk" style="margin-left:auto">Guardar las asociaciones</button></div></div>';
+  document.body.appendChild(fondo);
+  const nombresLista = prvs.map(p => p.razonSocial);
+  for(const inp of fondo.querySelectorAll("input[data-as-i]")) listaEnVentana(inp, nombresLista);
+  const pintarEstado = () => {
+    let van = AS.ok;
+    AS.filas.forEach((f, i) => {
+      const v = String(f.valor || "").trim(), bien = !v || AS.enLista.has(claveAs(v));
+      if(v && bien) van += f.n;
+      const e = fondo.querySelector('[data-as-e="' + i + '"]');
+      if(e) e.innerHTML = !v ? '' : !bien ? '<span class="pill p-bad" title="No está en la lista de proveedores">no está</span>'
+        : f.guardado && v === f.valorIni ? '<span class="pill p-ok">guardado</span>' : f.sugerido && v === f.valorIni ? '<span class="pill p-warn">sugerido</span>' : '<span class="pill p-n">elegido</span>';
+    });
+    const sin = AS.total - van;
+    fondo.querySelector("#asRes").innerHTML = '<div class="t">' + van.toLocaleString("es-AR") + ' de ' + AS.total.toLocaleString("es-AR") + ' artículos con un proveedor de la lista</div>' +
+      '<div>' + AS.ok.toLocaleString("es-AR") + ' ya cruzaban por nombre' + (sin > 0 ? ' · <b>' + sin.toLocaleString("es-AR") + ' todavía sin proveedor de la lista</b>' : ' · todos tienen proveedor de la lista') + '</div>';
+  };
+  AS.filas.forEach(f => { f.valorIni = f.valor; });
+  pintarEstado();
+  fondo.addEventListener("input", e => { const i = e.target.dataset.asI; if(i == null) return; AS.filas[+i].valor = e.target.value; pintarEstado(); });
+  fondo.addEventListener("change", e => { const i = e.target.dataset.asI; if(i == null) return; AS.filas[+i].valor = e.target.value; pintarEstado(); });
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fondo.remove(); } });
+  fondo.addEventListener("click", async e => {
+    if(e.target.closest("[data-as-no]")){ fondo.remove(); return; }
+    if(!e.target.closest("#asOk")) return;
+    const porNombre = {}, porMarca = {};
+    for(let i = 0; i < AS.filas.length; i++){
+      const f = AS.filas[i], v = String(f.valor || "").trim(); if(!v) continue;
+      const real = AS.enLista.get(claveAs(v));
+      if(!real){ toast("«" + v + "» no está en la lista de proveedores: elegilo de la lista o dejalo vacío."); const x = fondo.querySelector('[data-as-i="' + i + '"]'); if(x) x.focus(); return; }
+      (f.tipo === "nombre" ? porNombre : porMarca)[f.nombre] = real;
+    }
+    const b = fondo.querySelector("#asOk"); b.disabled = true; b.textContent = "Guardando…";
+    const r = await pedirJson("POST", ASOC_URL, { yo: soyYo(), asociaciones: { porNombre, porMarca } });
+    if(r.error){ b.disabled = false; b.textContent = "Guardar las asociaciones"; toast("No se guardó: " + r.error); return; }
+    b.textContent = "Trayendo los artículos…";
+    try{ await traerDeGbp(); }catch(e2){}
+    try{ pintarProd(); }catch(e2){}
+    fondo.remove();
+    const n = Object.values(GBP_CRUDO).filter(a => a && AS.enLista.has(claveAs(a.cat))).length;
+    toast("Listo: " + n.toLocaleString("es-AR") + " de " + Object.keys(GBP_CRUDO).length.toLocaleString("es-AR") + " artículos con un proveedor de la lista.");
+  });
+}
+prvG("prvAsociar").addEventListener("click", abrirAsociar);
 
 /* V.0.11.285: las facturas de cada proveedor (/sistema/proveedores/facturas).
    Se cargan acá o solas al agendar un pago con el número en el concepto; al

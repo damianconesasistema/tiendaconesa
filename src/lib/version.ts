@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.287";
+export const APP_VERSION = "V.0.11.288";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.288",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Proveedores: \"Asociar artículos con proveedores\" (ícono arriba y botón en Desde GBP). Cada artículo traía de GBP el nombre de su proveedor como texto y solo 2.742 de 6.852 cruzaban con la lista de Proveedores. La ventana muestra los nombres de GBP que no están en la lista (\"COOPERATIVA FENIX LTDA\", \"CAÑOS BRAGANZA\"...) y, para los que traen un rubro de GBP en vez de proveedor (\"09.SANITARIOS\"), las marcas; sugiere el proveedor de la lista que corresponde y se elige de una lista. Se guarda y se aplica siempre al traer los artículos (un import de GBP nuevo no lo pisa): el filtro Proveedor, el flete % del proveedor y los pedidos quedan con el proveedor de la lista. Damián: \"¿los artículos ven la lista de proveedores que armé?\" / \"sí, armala\".",
+    ],
+  },
   {
     version: "V.0.11.287",
     date: "2026-11-26",

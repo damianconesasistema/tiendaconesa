@@ -1,4 +1,6 @@
 import { registrar } from "@/lib/actividad";
+import { leerAsociaciones } from "@/lib/punto-asociar";
+import { VACIAS, aplicarAsociaciones } from "@/lib/punto-asociar-reglas";
 import {
   cambiarCostosArticulo,
   type CostosArticulo,
@@ -62,7 +64,11 @@ function json(cuerpo: unknown, status = 200): Response {
 export async function GET(): Promise<Response> {
   if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
   try {
-    return json(await leerArticulos());
+    // V.0.11.288: cada artículo con su proveedor de la lista (las
+    // asociaciones de Proveedores -> Asociar artículos). Si no se pueden
+    // leer, van como vienen de GBP: nunca dejan sin artículos.
+    const [g, asoc] = await Promise.all([leerArticulos(), leerAsociaciones().catch(() => VACIAS)]);
+    return json({ ...g, articulos: aplicarAsociaciones(g.articulos, asoc) });
   } catch {
     // Con 200, como todo lo de /sistema: un 5xx lo tapa Cloudflare con su
     // propia pagina y la pantalla no puede decir que paso.
