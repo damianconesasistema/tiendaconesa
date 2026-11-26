@@ -1084,6 +1084,12 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 .sku-fila input{flex:1}
 .sku-fila .b2{white-space:nowrap; padding:9px 16px}
 .pc-grande{font-size:16px; font-weight:700; color:var(--ink-2)}
+/* V.0.11.269: el plazo del pago contado de un toque (30, 60 o 90 días). */
+.dias-ya{display:flex; gap:6px; flex-wrap:wrap; margin-top:7px}
+.dias-ya button{padding:4px 12px; border:1px solid var(--line); border-radius:999px; background:none;
+  font-weight:600; font-size:12.5px; color:var(--ink-2); cursor:pointer}
+.dias-ya button:hover{border-color:var(--accent); color:var(--accent)}
+.dias-ya button.on{background:var(--accent); border-color:var(--accent); color:#fff}
 .dos-chicos{display:grid; gap:10px; grid-template-columns:1fr 1fr}
 .dos-chicos label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-2); margin-bottom:5px}
 .dos-chicos input{width:100%; border:1px solid var(--line-2); border-radius:10px;
@@ -1596,7 +1602,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.268</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.269</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -2158,7 +2164,8 @@ footer{
                 <div class="sku-fila"><input id="xCont" type="number" min="0" max="99.99" step="0.01" value="0"><span class="pc-grande">%</span>
                   <span class="pc-grande" style="margin-left:8px">a</span>
                   <input id="xContDias" type="number" min="0" max="365" step="1" value="60" style="max-width:80px" aria-label="a cuántos días">
-                  <span class="pc-grande">días</span></div></div>
+                  <span class="pc-grande">días</span></div>
+                <div class="dias-ya" data-para="xContDias" role="group" aria-label="Plazo del pago contado"><button type="button" data-dias="30">30 días</button><button type="button" data-dias="60">60 días</button><button type="button" data-dias="90">90 días</button></div></div>
               <div><label for="xIva">IVA del artículo</label>
                 <select id="xIva"><option value="21">21%</option><option value="10.5">10,5%</option></select></div>
             </div>
@@ -2332,6 +2339,7 @@ footer{
               <input id="aContDias" type="number" min="0" max="365" step="1" value="60" style="max-width:90px" aria-label="a cuántos días">
               <span class="pc-grande">días</span>
             </div>
+            <div class="dias-ya" data-para="aContDias" role="group" aria-label="Plazo del pago contado"><button type="button" data-dias="30">30 días</button><button type="button" data-dias="60">60 días</button><button type="button" data-dias="90">90 días</button></div>
             <span class="por">Se aplica sobre lo que queda después de los descuentos, si se le paga en esos días.</span>
           </div>
           <div class="sub-campo">
@@ -6092,7 +6100,26 @@ function enGbpTxt(){
       : p && !p.dtoGbp ? " Sin los descuentos de GBP todavía: el costo sale de la Lista 1 ÷ 1,25." : "")+'</p>';
 }
 
-const V = (id,v) => { document.getElementById(id).value = v; };
+const V = (id,v) => { document.getElementById(id).value = v; if(id === "aContDias") marcarDias(id); };
+/** V.0.11.269: el botón de 30, 60 o 90 días que coincide con lo escrito. */
+function marcarDias(id){
+  const inp = document.getElementById(id), box = document.querySelector('.dias-ya[data-para="' + id + '"]');
+  if(!inp || !box) return;
+  for(const b of box.querySelectorAll("button[data-dias]")) b.classList.toggle("on", +b.dataset.dias === +inp.value);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".dias-ya button[data-dias]"); if(!b) return;
+  const id = b.closest(".dias-ya").dataset.para, inp = document.getElementById(id); if(!inp) return;
+  inp.value = b.dataset.dias;
+  // Como si lo hubiera escrito: así se guarda el borrador de Crear uno.
+  inp.dispatchEvent(new Event("input", { bubbles: true }));
+  inp.dispatchEvent(new Event("change", { bubbles: true }));
+  marcarDias(id);
+});
+for(const id of ["aContDias", "xContDias"]){
+  const inp = document.getElementById(id);
+  if(inp){ inp.addEventListener("input", () => marcarDias(id)); marcarDias(id); }
+}
 function abrirAlta(p){
   document.getElementById("altaCuerpo").hidden = false;
   document.getElementById("aGuardarArriba").hidden = false;
@@ -7963,6 +7990,7 @@ function volverFormaAdj(f){
   if(!f) return;
   ADJ.seis = f.seis.slice();
   adjG("xCont").value = f.cont; adjG("xContDias").value = f.dias; adjG("xL1").value = f.l1; adjG("xL2").value = f.l2;
+  marcarDias("xContDias");
   adjG("xIva").value = f.iva; adjG("xRub").value = f.rub;
   if(adjG("xMoneda").value !== f.mon){ adjG("xMoneda").value = f.mon; adjG("xMoneda").dispatchEvent(new Event("change")); }
   if(provElegido("xProvSel", "xProvNuevo") !== f.cat) pintarProvSel(f.cat, "xProvSel", "xProvNuevo");
@@ -7980,7 +8008,7 @@ function ofrecerFormaAdj(){
   if(ADJ.seis.every(d => !(limD(d) > 0)) && Array.isArray(p.seis)){
     ADJ.seis = p.seis.slice(0, N_DTOS); while(ADJ.seis.length < N_DTOS) ADJ.seis.push(0);
   }
-  if(!(limD(adjG("xCont").value) > 0) && limD(p.dctoCont) > 0){ adjG("xCont").value = limD(p.dctoCont); adjG("xContDias").value = p.contDias || 60; }
+  if(!(limD(adjG("xCont").value) > 0) && limD(p.dctoCont) > 0){ adjG("xCont").value = limD(p.dctoCont); adjG("xContDias").value = p.contDias || 60; marcarDias("xContDias"); }
   if(+adjG("xL1").value === 25 && +adjG("xL2").value === 25){
     if(+p.l1 > 0) adjG("xL1").value = Math.round(+p.l1 * 100) / 100;
     if(+p.l2 > 0) adjG("xL2").value = Math.round(+p.l2 * 100) / 100;

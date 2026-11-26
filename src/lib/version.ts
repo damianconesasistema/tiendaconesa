@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.268";
+export const APP_VERSION = "V.0.11.269";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.269",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Artículos (Crear uno y Adjuntar): botones 30 / 60 / 90 días debajo de \"Descuento por pago contado ... a N días\" (Damián: \"aca se puede elegir que sea el pago a 30-60-90 dias\"). Se marca el que coincide y se puede seguir escribiendo otro número.",
+    ],
+  },
   {
     version: "V.0.11.268",
     date: "2026-11-26",
