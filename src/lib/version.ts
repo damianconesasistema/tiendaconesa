@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.275";
+export const APP_VERSION = "V.0.11.276";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.276",
+    date: "2026-11-26",
+    changes: [
+      "Punto, WhatsApp: si la venta tiene descuento o recargo por cuotas, el mensaje los muestra antes del total (Subtotal · Descuento 20 %: −$… · Recargo por tarjeta 3 cuotas (8 %): +$…), así el total cierra con los renglones. En la venta, en Pedidos y en Comprobantes.",
+      "Punto: lo que se lleva arriba de la pantalla (por ejemplo al tocar Adjuntar) ya no queda tapado por la barra fija de arriba (Damián: \"cuando apretás adjuntar te baja el scroll y no te deja ver la solapa para adjuntar\").",
+    ],
+  },
   {
     version: "V.0.11.275",
     date: "2026-11-26",
