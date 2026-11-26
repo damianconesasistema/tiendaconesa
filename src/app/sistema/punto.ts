@@ -16676,7 +16676,7 @@ function cxAdivinar(filas){
   let fila = 0;
   for(let i = 0; i < Math.min(40, filas.length); i++){
     const h = (filas[i] || []).map(c => plano(cxT(c)));
-    if(h.filter(Boolean).length >= 3 && h.some(x => /^cod|codigo|sku|^articulo$/.test(x)) && h.some(x => /precio|lista|costo/.test(x))){ fila = i + 1; break; }
+    if(h.filter(Boolean).length >= 3 && h.some(x => /^cod|codigo|sku|^articulo$/.test(x)) && h.some(x => /precio|lista|costo|neto/.test(x))){ fila = i + 1; break; }
   }
   if(!fila) fila = 1;
   return Object.assign({ fila }, cxAdivinarCols(filas, fila));
@@ -16684,11 +16684,14 @@ function cxAdivinar(filas){
 function cxAdivinarCols(filas, fila){
   const h = (filas[fila - 1] || []).map(c => plano(cxT(c)));
   const cod = h.findIndex(x => /^cod|codigo|sku/.test(x));
-  const precio = h.findIndex(x => /precio|lista|costo/.test(x) && !/desc|bonif|dto/.test(x));
+  // V.0.11.283: "NETO S/IVA" (TST) también es el precio de lista.
+  const precio = h.findIndex(x => /precio|lista|costo|neto/.test(x) && !/desc|bonif|dto/.test(x));
   const descuentos = h.map((x, i) => /bonif|dto|descuento|^desc\\b/.test(x) && !/descrip/.test(x) ? i : -1)
     .filter(i => i >= 0 && i !== cod && i !== precio);
+  // La descripción, para ver si el precio es de una caja ("x 12 Unidades").
+  const descr = h.findIndex((x, i) => i !== cod && i !== precio && /descrip|producto|articulo|detalle/.test(x));
   return { cod: cod >= 0 ? cod : 0, precio: precio >= 0 ? precio : (cod === 1 ? 2 : 1), descuentos,
-    conIva: precio >= 0 ? /c\\/ ?iva|con iva/.test(h[precio]) : false };
+    conIva: precio >= 0 ? /c\\/ ?iva|con iva/.test(h[precio]) : false, descr };
 }
 const cxTitulos = (filas, fila) => (filas[fila - 1] || []).map(c => cxT(c).slice(0, 60));
 /** La marca de la lista: la que aparece en el nombre del archivo o en los
@@ -16710,6 +16713,12 @@ function cxRevisarProveedor(m){
   const mk = plano(m.marca).trim();
   const deMarca = new Map();
   for(const cod of Object.keys(GBP_CRUDO)){ const a = GBP_CRUDO[cod]; if(a && plano(a.prov || "").trim() === mk) deMarca.set(cxT(a.cod).toUpperCase(), a); }
+  // V.0.11.283: el código de la lista puede ser el del fabricante (TST: "20-2"
+  // es el 9771 de Punto). Si dos artículos tienen el mismo, no se usa.
+  const nFab = s => cxT(s).toUpperCase().replace(/\\s+/g, "");
+  const porFab = new Map(), fabRep = new Set();
+  for(const a of deMarca.values()){ const k = nFab(a.fab); if(!k) continue; if(porFab.has(k)) fabRep.add(k); else porFab.set(k, a); }
+  const descrIx = col.descr != null ? col.descr : cxAdivinarCols(m.filas, col.fila).descr;
   const filas = m.filas.slice(col.fila), cab = plano(cxT((m.filas[col.fila - 1] || [])[col.cod]));
   const veces = new Map();
   for(const f of filas){ const c = cxT(f[col.cod]).toUpperCase(); if(c) veces.set(c, (veces.get(c) || 0) + 1); }
@@ -16717,11 +16726,12 @@ function cxRevisarProveedor(m){
   for(const f of filas){
     const codX = cxT(f[col.cod]); if(!codX || plano(codX) === cab) continue;
     const key = codX.toUpperCase();
-    const a = deMarca.get(key);
-    if(!a){ out.push({ cod: codX, tit: "", estado:"nocargado" }); continue; }
-    if(vistos.has(key)) continue;
-    vistos.add(key);
-    const r = { cod: a.cod, a, tit: a.tit, estado:"igual", avisos:[], d:{} };
+    let a = deMarca.get(key), porFabDe = "";
+    if(!a){ const k2 = nFab(codX); if(porFab.has(k2) && !fabRep.has(k2)){ a = porFab.get(k2); porFabDe = codX; } }
+    if(!a){ out.push({ cod: codX, tit: descrIx >= 0 ? cxT(f[descrIx]).slice(0, 80) : "", estado:"nocargado" }); continue; }
+    if(vistos.has(a.cod)) continue;
+    vistos.add(a.cod);
+    const r = { cod: a.cod, a, tit: a.tit, estado:"igual", avisos:[], d:{}, porFab: porFabDe };
     out.push(r);
     const mal = t => { r.estado = "error"; r.avisos.push(t); };
     if(veces.get(key) > 1){
@@ -16740,16 +16750,30 @@ function cxRevisarProveedor(m){
     if(bolsa){
       r.bolsa = bolsa;
       if(!m.bolsaNo[a.cod]) lista = lista * bolsa;
+    } else if(descrIx >= 0 && +a.lista > 0){
+      // V.0.11.283: al revés que la bolsa: la lista trae el precio de la caja
+      // ("EXTRACTOR BAÑO (CP4) x 12 Unidades") y acá está por unidad. Solo si
+      // el precio queda más cerca de N veces el de hoy que del de hoy.
+      const mx = /\\bx\\s*(\\d{1,4})\\s*(u\\b|un\\b|unid|unidades)/i.exec(cxT(f[descrIx]));
+      const nC = mx ? +mx[1] : 0, rr = lista / +a.lista;
+      if(nC >= 2 && rr > 0 && Math.abs(Math.log(rr / nC)) < Math.abs(Math.log(rr))){
+        r.caja = nC;
+        if(!m.cajaNo[a.cod]) lista = lista / nC;
+      }
     }
     lista = cent(lista);
     // Un par de centavos de diferencia (redondeos de cada sistema) no es un cambio.
     if(!cxIgual(lista, +a.lista, Math.max(0.05, Math.abs(+a.lista) * 0.0001))) r.d.lista = lista;
-    const c = cxCad(ds), hoy = Array.isArray(a.dtos) ? cxCadenaDe(a).cadena : cxCad(p.seis);
-    if(!cxMismaCad(c, cxCad(hoy))) r.d.cadena = c;
+    // V.0.11.283: sin columnas de descuento (la de TST no trae), cada
+    // artículo se queda con los suyos. Antes se los sacaba.
+    if(col.descuentos.length){
+      const c = cxCad(ds), hoy = Array.isArray(a.dtos) ? cxCadenaDe(a).cadena : cxCad(p.seis);
+      if(!cxMismaCad(c, cxCad(hoy))) r.d.cadena = c;
+    }
     cxCompletar(r, m);
   }
   m.noEnLista = [];
-  for(const [k, a] of deMarca) if(!vistos.has(k)) m.noEnLista.push({ cod: a.cod, tit: a.tit });
+  for(const a of deMarca.values()) if(!vistos.has(a.cod)) m.noEnLista.push({ cod: a.cod, tit: a.tit });
   return out;
 }
 
@@ -16783,6 +16807,8 @@ function cxCompletar(r, m){
   r.estado = "cambia";
   if(r.bolsa) r.avisos.push(m.bolsaNo[r.a.cod] ? "la lista parece por unidad y acá está por bolsa de " + r.bolsa + ": la dejaste tal cual"
     : "la lista viene por unidad y acá está por bolsa de " + r.bolsa + ": se multiplica por " + r.bolsa);
+  if(r.caja) r.avisos.push((m.cajaNo || {})[r.a.cod] ? "la lista trae la caja de " + r.caja + " y acá está por unidad: la dejaste tal cual"
+    : "la lista trae el precio de la caja de " + r.caja + " y acá está por unidad: se divide por " + r.caja);
   r.salto = Math.abs(r.varCosto) > CX_SALTO;
   if(r.salto) r.avisos.push("el costo " + (r.varCosto > 0 ? "sube" : "baja") + " " + pTxt(Math.round(Math.abs(r.varCosto) * 10) / 10) + " %: fijate antes de aplicar");
   if(r.d.cadena && Array.isArray(r.a.dtos)){
@@ -16797,7 +16823,7 @@ async function abrirCambiosExcel(desde){
   if(!puede("importar")){ toast("Tu usuario no puede cambiar precios por Excel (hace falta el permiso Importar)."); return; }
   if(!Object.keys(GBP_CRUDO).length){ toast("Todavía no llegaron los artículos: esperá un momento y probá de nuevo."); return; }
   const viejo = document.getElementById("cxModal"); if(viejo) viejo.remove();
-  CX.m = { desde, filas:null, archivo:"", modo:"", marca:"", col:null, colP:null, acompanar:true, tilde:{}, mk:{}, bolsaNo:{},
+  CX.m = { desde, filas:null, archivo:"", modo:"", marca:"", col:null, colP:null, acompanar:true, tilde:{}, mk:{}, bolsaNo:{}, cajaNo:{},
     renglones:[], noEnLista:[], filtro:"cambia", resultado:null, aplicando:false };
   const fondo = document.createElement("div");
   fondo.className = "envio"; fondo.id = "cxModal";
@@ -16868,7 +16894,7 @@ async function cxLeer(file){
   let filas;
   try{ filas = await filasXlsx(await file.arrayBuffer(), true); }
   catch(e){ toast("No pude leer " + file.name + ": " + (e && e.message ? e.message : "¿es un Excel?")); return; }
-  m.filas = filas; m.archivo = file.name; m.tilde = {}; m.mk = {}; m.bolsaNo = {}; m.resultado = null; m.hecho = false;
+  m.filas = filas; m.archivo = file.name; m.tilde = {}; m.mk = {}; m.bolsaNo = {}; m.cajaNo = {}; m.resultado = null; m.hecho = false;
   m.colP = cxColsPunto(filas[0] || []);
   if(m.colP){ m.modo = "excel"; m.filtro = "cambia"; }
   else {
@@ -16961,6 +16987,7 @@ function cxMapaHtml(){
     '</div><label style="font-size:12px;font-weight:600;color:var(--ink-2)">Descuentos (se aplican uno sobre otro, en este orden)</label>' +
     '<div class="cx-descs">' + Array.from({ length:nCols }, (_, i) => i).filter(i => i !== c.cod && i !== c.precio).map(i =>
       '<label><input type="checkbox" data-cx-d="' + i + '"' + (c.descuentos.indexOf(i) >= 0 ? ' checked' : '') + '>' + txt(nom(i)) + muestra(i) + '</label>').join("") + '</div>' +
+    (c.descuentos.length ? '' : '<p class="cx-nota">Sin columnas de descuento: cada artículo se queda con los descuentos que ya tiene.</p>') +
     (m.recordada ? '<p class="cx-nota">Usé las columnas que quedaron guardadas para ' + txt(m.marca) + '.</p>' : '');
 }
 function cxTablaHtml(){
@@ -16996,10 +17023,13 @@ function cxTablaHtml(){
     const p = r.p, p2 = r.p2 || r.p, cambia = r.estado === "cambia";
     const cadH = cxCadTxt(cxCad(p.seis)), cadN = cxCadTxt(cxCad(p2.seis));
     const v = r.varCosto || 0, vt = Math.abs(v) < 0.05 ? "igual" : (v > 0 ? "+" : "−") + pTxt(Math.round(Math.abs(v) * 10) / 10) + " %";
-    const bolsa = r.bolsa ? '<label class="cx-av" style="display:flex;gap:5px;align-items:center"><input type="checkbox" data-cx-bolsa="' + atrib(a.cod) + '"' +
-      (m.bolsaNo[a.cod] ? '' : ' checked') + '> multiplicar por ' + r.bolsa + ' (bolsa)</label>' : '';
+    const bolsa = (r.bolsa ? '<label class="cx-av" style="display:flex;gap:5px;align-items:center"><input type="checkbox" data-cx-bolsa="' + atrib(a.cod) + '"' +
+      (m.bolsaNo[a.cod] ? '' : ' checked') + '> multiplicar por ' + r.bolsa + ' (bolsa)</label>' : '') +
+      (r.caja ? '<label class="cx-av" style="display:flex;gap:5px;align-items:center"><input type="checkbox" data-cx-caja="' + atrib(a.cod) + '"' +
+      ((m.cajaNo || {})[a.cod] ? '' : ' checked') + '> dividir por ' + r.caja + ' (caja)</label>' : '');
     return '<tr><td>' + (cambia ? '<input type="checkbox" data-cx-t="' + atrib(a.cod) + '"' + (m.tilde[a.cod] ? ' checked' : '') + ' aria-label="aplicar ' + atrib(a.cod) + '">' : '') + '</td>' +
-      '<td class="nom">' + txt(a.cod) + '<small>' + txt(r.d && r.d.tit ? r.d.tit : a.tit) + '</small></td>' +
+      '<td class="nom">' + txt(a.cod) + '<small>' + txt(r.d && r.d.tit ? r.d.tit : a.tit) + '</small>' +
+        (r.porFab ? '<small>en la lista: ' + txt(r.porFab) + ' (cód. de fabricante)</small>' : '') + '</td>' +
       '<td class="r">' + flecha(cent(+p.lista), cent(+p2.lista), fmt2) + '</td>' +
       '<td>' + flecha(cadH, cadN, x => txt(x)) + '</td>' +
       '<td class="r">' + flecha(cent(p.costo), cent(p2.costo), fmt2) + (cambia ? '<small class="' + (v > 0.05 ? 'cx-sube' : v < -0.05 ? 'cx-baja' : '') + '">' + vt + '</small>' : '') + '</td>' +
@@ -17058,6 +17088,7 @@ function cxCambio(e){
   if(t.id === "cxFile"){ const f = t.files && t.files[0]; t.value = ""; if(f) cxLeer(f); return; }
   if(t.dataset.cxT){ m.tilde[t.dataset.cxT] = t.checked; cxPintarPie(); return; }
   if(t.dataset.cxBolsa){ m.bolsaNo[t.dataset.cxBolsa] = !t.checked; delete m.tilde[t.dataset.cxBolsa]; cxRevisar(); cxPintar(); return; }
+  if(t.dataset.cxCaja){ m.cajaNo = m.cajaNo || {}; m.cajaNo[t.dataset.cxCaja] = !t.checked; delete m.tilde[t.dataset.cxCaja]; cxRevisar(); cxRepintarQuieto(); return; }
   // V.0.11.282: el markup escrito en la tabla.
   if(t.dataset.cxMk){
     const cod = t.dataset.cod, r = m.renglones.find(x => x.a && x.a.cod === cod);
@@ -17126,9 +17157,11 @@ async function cxAplicarYa(){
   const van = m.renglones.filter(r => r.estado === "cambia" && m.tilde[r.a.cod]);
   if(!van.length) return;
   const saltos = van.filter(r => r.salto).length, bolsas = van.filter(r => r.bolsa && !m.bolsaNo[r.a.cod]).length;
+  const cajas = van.filter(r => r.caja && !(m.cajaNo || {})[r.a.cod]).length;
   if(!confirm("Se van a cambiar " + van.length + " artículos" + (m.modo === "proveedor" ? " de " + m.marca : "") + "." +
       (saltos ? "\\n\\nOJO: " + saltos + " tienen un salto de costo de más del " + CX_SALTO + " %." : "") +
       (bolsas ? "\\n" + bolsas + " son bolsas: el precio de la lista se multiplica por la cantidad de la bolsa." : "") +
+      (cajas ? "\\n" + cajas + " vienen por caja en la lista: el precio se divide por la cantidad de la caja." : "") +
       (m.acompanar ? "\\n\\nLa Lista 1 y la 2 acompañan al costo (mismo margen)." : "\\n\\nLa Lista 1 y la 2 quedan como están (cambia el margen).") +
       "\\n\\nSe puede deshacer después. ¿Aplico?")) return;
   m.aplicando = true; cxPintarPie();

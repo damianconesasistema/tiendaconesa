@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.282";
+export const APP_VERSION = "V.0.11.283";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.283",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Lista de precios del proveedor: entiende la lista de TST (Diciembre 2026). El código de la lista se busca también como código de fabricante (TST \"20-2\" es el 9771 de Punto); \"NETO S/IVA\" se toma como el precio de lista; si la lista no trae columnas de descuento, cada artículo se queda con los suyos (antes se los sacaba); y si la descripción dice \"x 12 Unidades\" y acá está por unidad, el precio se divide por 12 (con una casilla para no hacerlo). Damián: \"esta es la nueva lista de precios de TST, tenés que entenderla como es así podemos actualizar en el sistema\".",
+    ],
+  },
   {
     version: "V.0.11.282",
     date: "2026-11-26",
