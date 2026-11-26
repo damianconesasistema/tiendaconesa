@@ -150,6 +150,14 @@ jobs:
             echo \"== hora y carga\"; uptime
             echo \"== memoria\"; free -m
             echo \"== disco\"; df -h / | tail -1
+            # 26/11/2026: el disco llego al 100 % y la publicacion fallo al
+            # copiar. Que ocupa lugar (solo nombres de carpetas y tamanos).
+            echo \"== que ocupa el disco\"
+            du -xh --max-depth=2 / 2>/dev/null | sort -h | tail -25
+            echo \"== carpetas conocidas\"
+            du -sh /var/lib/postgresql /var/log /var/cache /opt/conesa /tmp /swapfile /root /home 2>/dev/null
+            echo \"== /opt/conesa\"; du -sh /opt/conesa/* /opt/conesa/.next* 2>/dev/null | sort -h | tail -15
+            echo \"== registros del sistema\"; journalctl --disk-usage 2>/dev/null
             echo \"== la tienda (puerto que atiende: \$(bash /opt/conesa/deploy/cambiar-version.sh --puerto 2>/dev/null))\"
             for u in conesa conesa@3000 conesa@3001; do echo \"\$u:\"; systemctl show \$u -p ActiveState -p SubState -p NRestarts -p Result 2>/dev/null; done
             echo \"== memoria agotada (kernel)\"; journalctl -k --since \"-30min\" --no-pager 2>/dev/null | grep -iE \"out of memory|killed process\" | tail -5
