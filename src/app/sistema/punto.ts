@@ -16929,8 +16929,47 @@ function cxRevisarProveedor(m){
     }
     cxCompletar(r, m);
   }
+  // V.0.11.287: los kits (código de fabricante "542-4 + 702-1B"): la lista
+  // del proveedor es la suma de las piezas, cada una por unidad (si la lista
+  // dice "x 12 Unidades", se divide).
+  const filaDe = new Map(), textoDe = new Map();
+  for(const f of filas){
+    const c = cxT(f[col.cod]); if(!c || plano(c) === cab) continue;
+    const k = nFab(c); if(!textoDe.has(k)) textoDe.set(k, c);
+    filaDe.set(k, filaDe.has(k) ? null : f);    // repetido: no se usa
+  }
+  const unidadesDe = f => { const mx = descrIx >= 0 ? /\\bx\\s*(\\d{1,4})\\s*(u\\b|un\\b|unid|unidades)/i.exec(cxT(f[descrIx])) : null; return mx && +mx[1] >= 2 ? +mx[1] : 1; };
+  for(const a of deMarca.values()){
+    if(vistos.has(a.cod) || !/\\+/.test(String(a.fab || ""))) continue;
+    if(a.combo && Array.isArray(a.combo.piezas) && a.combo.piezas.length) continue;
+    const partes = String(a.fab).split("+").map(nFab).filter(Boolean);
+    if(partes.length < 2) continue;
+    const fs = partes.map(k => filaDe.get(k));
+    if(fs.some(f => !f)) continue;
+    vistos.add(a.cod);
+    const r = { cod: a.cod, a, tit: a.tit, estado:"igual", avisos:[], d:{}, kit: partes.map(k => textoDe.get(k) || k).join(" + ") };
+    out.push(r);
+    const precios = fs.map(f => cxN(f[col.precio]));
+    if(precios.some(v => v == null || !(v > 0))){ r.estado = "error"; r.avisos.push("kit: una de las piezas no tiene precio en la lista"); continue; }
+    if(a.mon === "USD"){ r.estado = "error"; r.avisos.push("tiene el costo en dólares: cambialo en la ficha"); continue; }
+    const p = productoDeGbp(a);
+    let lista = precios.reduce((s, v, i) => s + v / unidadesDe(fs[i]), 0);
+    if(col.conIva) lista = lista / facIva(ivaDe(p));
+    lista = cent(lista);
+    r.avisos.push("kit: suma de " + r.kit + " de la lista, cada una por unidad");
+    if(!cxIgual(lista, +a.lista, Math.max(0.05, Math.abs(+a.lista) * 0.0001))) r.d.lista = lista;
+    cxCompletar(r, m);
+  }
   m.noEnLista = [];
-  for(const a of deMarca.values()) if(!vistos.has(a.cod)) m.noEnLista.push({ cod: a.cod, tit: a.tit });
+  // V.0.11.287: los que no cruzan pero se parecen a un código de la lista
+  // (702-1 en Punto; 702-1B y 702-1T en la lista): se avisa para corregirlo.
+  const codsLista = [...textoDe.keys()];
+  const parecidos = a => {
+    const k = nFab(a.fab) || nFab(a.cod); if(k.length < 3 || /\\+/.test(k)) return [];
+    return codsLista.filter(c => c !== k && ((c.startsWith(k) && c.length - k.length <= 2) || (k.startsWith(c) && k.length - c.length <= 2) ))
+      .slice(0, 4).map(c => textoDe.get(c));
+  };
+  for(const a of deMarca.values()) if(!vistos.has(a.cod)) m.noEnLista.push({ cod: a.cod, tit: a.tit, fab: cxT(a.fab), parecidos: parecidos(a) });
   return out;
 }
 
@@ -17118,6 +17157,13 @@ function cxResumenHtml(m){
   if(s.errores) li.push('<li class="mal">' + n(s.errores, "renglón con errores", "renglones con errores") + ': mirá la pestaña «Con errores».</li>');
   if(s.igual) li.push('<li>' + n(s.igual, "queda igual", "quedan iguales") + '.</li>');
   if(s.noEnLista) li.push('<li>' + n(s.noEnLista, "artículo cargado no está", "artículos cargados no están") + ' en la lista (puede que ' + (s.noEnLista === 1 ? 'esté discontinuado' : 'estén discontinuados') + ').</li>');
+  // V.0.11.287: los que se parecen a un código de la lista.
+  const par = (m.noEnLista || []).filter(x => x.parecidos && x.parecidos.length);
+  if(par.length) li.push('<li class="mal">' + n(par.length, "se parece", "se parecen") + ' a un código de la lista: ' +
+    par.slice(0, 5).map(x => txt(x.fab || x.cod) + ' → ' + txt(x.parecidos.join(" o "))).join(" · ") + (par.length > 5 ? '…' : '') +
+    '. Si es el mismo, corregí el código de fabricante del artículo.</li>');
+  const kits = (m.renglones || []).filter(r => r.kit && r.estado === "cambia").length;
+  if(kits) li.push('<li>' + n(kits, "kit se arma", "kits se arman") + ' sumando sus piezas de la lista.</li>');
   if(s.nocargado) li.push('<li>' + n(s.nocargado, "código de la lista no está cargado", "códigos de la lista no están cargados") + ' en Punto: no se crean.</li>');
   return '<div class="cx-resumen" role="status"><div class="t">' + (m.modo === "proveedor" && m.marca ? txt(m.marca) + ': ' : '') +
     (s.n ? n(s.n, "artículo cambia", "artículos cambian") : "no cambia ningún artículo") + '</div>' +
@@ -17209,8 +17255,10 @@ function cxTablaHtml(){
     return '<p class="cx-nota">Estos artículos de ' + txt(m.marca) + ' están cargados pero <b>no aparecen en la lista</b>: quedan como están. Puede que el proveedor los haya discontinuado.' +
       ' <button class="b1" type="button" data-cx-excel style="padding:7px 16px;margin-left:8px;display:inline-flex;align-items:center;gap:7px;vertical-align:middle">' +
       '<span style="width:16px;height:16px;display:inline-flex">' + icoSvg("download") + '</span>Bajar Excel de estos ' + m.noEnLista.length + ' artículos</button></p>' +
-      '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa"><thead><tr><th>Código</th><th>Artículo</th></tr></thead><tbody>' +
-      m.noEnLista.slice(0, 1000).map(x => '<tr><td>' + txt(x.cod) + '</td><td>' + txt(x.tit) + '</td></tr>').join("") + '</tbody></table></div>';
+      (m.noEnLista.some(x => x.parecidos && x.parecidos.length) ? '<p class="cx-res mal">Algunos se parecen a códigos de la lista (columna «En la lista hay»): si es uno de esos, poné ese código de fabricante en el artículo (lápiz en Artículos) y volvé a subir la lista.</p>' : '') +
+      '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa"><thead><tr><th>Código</th><th>Artículo</th><th>Cód. fabricante</th><th>En la lista hay</th></tr></thead><tbody>' +
+      m.noEnLista.slice(0, 1000).map(x => '<tr><td>' + txt(x.cod) + '</td><td>' + txt(x.tit) + '</td><td>' + txt(x.fab || "") + '</td><td>' +
+        (x.parecidos && x.parecidos.length ? '<b style="color:var(--bad)">' + txt(x.parecidos.join(", ")) + '</b>' : '') + '</td></tr>').join("") + '</tbody></table></div>';
   }
   // V.0.11.282: en "Sin cambios" quedan también los que cambian solo porque
   // les tocaste el markup acá (si no, desaparecían al escribirlo).
@@ -17241,7 +17289,8 @@ function cxTablaHtml(){
       ((m.cajaNo || {})[a.cod] ? '' : ' checked') + '> dividir por ' + r.caja + ' (caja)</label>' : '');
     return '<tr><td>' + (cambia ? '<input type="checkbox" data-cx-t="' + atrib(a.cod) + '"' + (m.tilde[a.cod] ? ' checked' : '') + ' aria-label="aplicar ' + atrib(a.cod) + '">' : '') + '</td>' +
       '<td class="nom">' + txt(a.cod) + '<small>' + txt(r.d && r.d.tit ? r.d.tit : a.tit) + '</small>' +
-        (r.porFab ? '<small>en la lista: ' + txt(r.porFab) + ' (cód. de fabricante)</small>' : '') + '</td>' +
+        (r.porFab ? '<small>en la lista: ' + txt(r.porFab) + ' (cód. de fabricante)</small>' : '') +
+        (r.kit ? '<small>kit: ' + txt(r.kit) + '</small>' : '') + '</td>' +
       '<td class="r">' + flecha(cent(+p.lista), cent(+p2.lista), fmt2) + '</td>' +
       '<td>' + flecha(cadH, cadN, x => txt(x)) + '</td>' +
       '<td class="r">' + flecha(cent(p.costo), cent(p2.costo), fmt2) + (cambia ? '<small class="' + (v > 0.05 ? 'cx-sube' : v < -0.05 ? 'cx-baja' : '') + '">' + vt + '</small>' : '') + '</td>' +

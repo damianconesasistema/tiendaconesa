@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.286";
+export const APP_VERSION = "V.0.11.287";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.287",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Lista de precios del proveedor: los kits con código de fabricante \"A + B\" (TST: \"542-4 + 702-1B\", extractor con persiana) se calculan sumando las dos piezas de la lista, cada una por unidad. Los artículos que no cruzan pero se parecen a un código de la lista (la persiana \"702-1\" de Punto; en la lista \"702-1B\" y \"702-1T\") se avisan en el resumen y en \"Cargados y no están en la lista\", para corregir el código de fabricante. Damián: \"las persianas plásticas están ahí y no las leyó el Excel, fijate por qué\".",
+    ],
+  },
   {
     version: "V.0.11.286",
     date: "2026-11-26",
