@@ -18,6 +18,12 @@
 export const TIENDA_HOST = "tienda.conesa.com.ar";
 export const TIENDA_URL = `https://${TIENDA_HOST}`;
 
+/** La direccion del sistema del local (Punto): conesa.com.ar/sistema. Los
+ *  links que Punto le manda al cliente (el PDF del comprobante por WhatsApp)
+ *  van aca y no a la tienda. Damian, 26/11/2026: "figura tienda y esto no es
+ *  de la tienda sino del sistema punto SANITARIOS CONESA, la url lo mismo". */
+export const PUNTO_URL = "https://conesa.com.ar";
+
 /** Las direcciones de antes. Las visitas que llegan por aca van a la tienda. */
 export const DIRECCIONES_VIEJAS: ReadonlySet<string> = new Set([
   "conesa.com.ar",
@@ -39,12 +45,15 @@ export const DIRECCIONES_VIEJAS: ReadonlySet<string> = new Set([
  *    (buenosaires.conesa.com.ar/admin), porque de ahi sale con que CUIT se
  *    factura. Pasarlo a tienda.conesa.com.ar es un trabajo aparte.
  *  - /sistema: el sistema del local (Punto), que no es la tienda.
+ *  - /comprobante: el PDF que Punto le manda al cliente (V.0.11.275, ver
+ *    PUNTO_URL). Los links viejos (tienda.conesa.com.ar/comprobante) andan igual.
  *  - Archivos (el logo de los mails, los iconos): se sirven donde se pidan. */
 export function quedaEnLaViejaDireccion(metodo: string, ruta: string): boolean {
   if (metodo !== "GET" && metodo !== "HEAD") return true;
   if (ruta === "/api" || ruta.startsWith("/api/")) return true;
   if (ruta === "/admin" || ruta.startsWith("/admin/")) return true;
   if (ruta === "/sistema" || ruta.startsWith("/sistema/")) return true;
+  if (ruta.startsWith("/comprobante/")) return true;
   if (/\.[a-z0-9]{2,5}$/i.test(ruta)) return true;
   return false;
 }

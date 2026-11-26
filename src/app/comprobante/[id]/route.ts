@@ -1,10 +1,13 @@
+import { PUNTO_URL } from "@/lib/dominio";
 import { documentoPorId } from "@/lib/punto-documentos";
 import { emisorDe } from "@/lib/punto-emisor";
 import { firmaValida } from "@/lib/punto-link";
-import { generarPdfPunto, nombreArchivo } from "@/lib/punto-pdf";
+import { generarPdfPunto, nombreArchivo, numeroDe, tituloDe } from "@/lib/punto-pdf";
+import { esVistaPrevia, paginaVistaPrevia, pesosAR } from "@/lib/punto-vista-previa";
 
 // El PDF de un comprobante de Punto para el CLIENTE, sin usuario:
-// tienda.conesa.com.ar/comprobante/<id>?f=<firma>. Es el link que Punto pone
+// conesa.com.ar/comprobante/<id>?f=<firma> (V.0.11.275; los links de antes,
+// en tienda.conesa.com.ar, andan igual). Es el link que Punto pone
 // en el mensaje de WhatsApp (ver src/lib/punto-link.ts). Sin la firma
 // correcta no se ve nada, y un comprobante eliminado deja de estar.
 //
@@ -39,6 +42,28 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   try {
     const d = await documentoPorId(id);
     if (!d || d.eliminado) return aviso("Este comprobante ya no está disponible. Consultá en el local.");
+    // V.0.11.275: WhatsApp (y los demas) piden el link para armar la vista
+    // previa. Un PDF no tiene titulo y mostraba "tienda.conesa.com.ar": a
+    // ellos se les da el titulo del comprobante, el total y el logo.
+    if (esVistaPrevia(req.headers.get("user-agent"))) {
+      const fecha = new Date(d.createdAt).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
+      return new Response(
+        paginaVistaPrevia({
+          titulo: `${tituloDe(d)} N° ${numeroDe(d)} · Sanitarios Conesa`,
+          descripcion: `Total ${pesosAR(d.total)} · ${fecha}. Tocá para ver y bajar el comprobante.`,
+          imagen: `${PUNTO_URL}/brand/logo-square.png`,
+          url: `${PUNTO_URL}/comprobante/${encodeURIComponent(id)}?f=${encodeURIComponent(firma)}`,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+            "Cache-Control": "private, no-store, max-age=0",
+            "X-Robots-Tag": "noindex, nofollow, noarchive",
+          },
+        },
+      );
+    }
     const pdf = await generarPdfPunto(d, await emisorDe(d.sucursal));
     return new Response(new Uint8Array(pdf), {
       status: 200,

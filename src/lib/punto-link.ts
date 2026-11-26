@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { TIENDA_URL } from "@/lib/dominio";
+import { PUNTO_URL } from "@/lib/dominio";
 
 // El link público del PDF de un comprobante de Punto, para mandárselo al
 // cliente por WhatsApp. Damian, 22/11/2026, con la captura del link que
@@ -38,10 +38,11 @@ export function firmaValida(id: string, firma: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-/** El link para el cliente, o null si el servidor no puede firmar. */
+/** El link para el cliente, o null si el servidor no puede firmar.
+ *  V.0.11.275: en conesa.com.ar (el sistema del local), no en la tienda. */
 export function linkDocumento(id: string): string | null {
   try {
-    return `${TIENDA_URL}/comprobante/${encodeURIComponent(id)}?f=${firmaDocumento(id)}`;
+    return `${PUNTO_URL}/comprobante/${encodeURIComponent(id)}?f=${firmaDocumento(id)}`;
   } catch {
     return null;
   }

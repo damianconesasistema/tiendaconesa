@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.274";
+export const APP_VERSION = "V.0.11.275";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.275",
+    date: "2026-11-26",
+    changes: [
+      "Punto, WhatsApp: el link del comprobante ahora es conesa.com.ar/comprobante/… (el sistema del local) y no tienda.conesa.com.ar (Damián: \"figura tienda y esto no es de la tienda sino del sistema punto SANITARIOS CONESA, la url lo mismo\"). La vista previa de WhatsApp muestra el comprobante (\"Factura A N° 0006-00000001 · Sanitarios Conesa\"), el total y el logo; al tocarlo el cliente abre el PDF como siempre. Los links que ya se mandaron siguen andando.",
+    ],
+  },
   {
     version: "V.0.11.274",
     date: "2026-11-26",
