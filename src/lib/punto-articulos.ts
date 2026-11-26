@@ -104,8 +104,10 @@ export type ArticuloPunto = {
   /** V.0.11.209: el descuento por pago contado del proveedor y a cuántos
    *  días (Damián: "en qué cantidad de días es esa promoción, por default
    *  60 días"). Va en el costo. Antes no se guardaba y al recargar el costo
-   *  salía sin él. De Punto: el import no lo toca; null lo saca. */
-  contado?: { pct: number; dias: number } | null;
+   *  salía sin él. De Punto: el import no lo toca; null lo saca.
+   *  V.0.11.270: "cheques" si se le paga con varios (Damián: "son 3 cheques
+   *  que se hacen", 30-60-90); "dias" es el último. */
+  contado?: { pct: number; dias: number; cheques?: number[] } | null;
   /** V.0.11.210: el stock mínimo de Punto en cada sucursal (Damián:
    *  "necesito setearle el stock mínimo del artículo por sucursal"). No es
    *  el "min" del Excel de GBP. De Punto: el import no lo toca; null lo saca. */
@@ -219,14 +221,20 @@ function limpiarSubrubro(v: unknown): string | null | undefined {
 }
 
 /** El pago contado que llega: undefined si no vino, null para sacarlo. */
-function limpiarContado(v: unknown): { pct: number; dias: number } | null | undefined {
+function limpiarContado(v: unknown): { pct: number; dias: number; cheques?: number[] } | null | undefined {
   if (v === undefined) return undefined;
   if (!v || typeof v !== "object" || Array.isArray(v)) return null;
   const o = v as Record<string, unknown>;
   const pct = Number(o.pct);
   const dias = Number(o.dias);
   if (!Number.isFinite(pct) || pct <= 0 || pct >= 100) return null;
-  return { pct: Math.round(pct * 100) / 100, dias: Number.isInteger(dias) && dias >= 0 && dias <= 365 ? dias : 60 };
+  const limpio = { pct: Math.round(pct * 100) / 100, dias: Number.isInteger(dias) && dias >= 0 && dias <= 365 ? dias : 60 };
+  // V.0.11.270: los cheques (30-60-90): de 2 a 6, enteros de 0 a 365, de menor a mayor y sin repetir.
+  if (Array.isArray(o.cheques)) {
+    const cs = [...new Set(o.cheques.map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n <= 365))].sort((a, b) => a - b).slice(0, 6);
+    if (cs.length > 1) return { ...limpio, dias: cs[cs.length - 1], cheques: cs };
+  }
+  return limpio;
 }
 
 /** El stock mínimo que llega: undefined si no vino, null (o los dos en 0) para sacarlo. */

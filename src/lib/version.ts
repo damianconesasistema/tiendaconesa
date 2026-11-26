@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.269";
+export const APP_VERSION = "V.0.11.270";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.270",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Artículos (Crear uno y Adjuntar): el pago contado puede ser con cheques (Damián: \"son 3 cheques que se hacen\"). El casillero de días acepta uno (60) o varios (30-60-90), y hay un botón \"3 cheques 30-60-90\" al lado de 30 / 60 / 90 días. Se guarda en el servidor (contado.cheques) y la ficha dice \"con 3 cheques a 30-60-90 días\". El costo no cambia: el % se aplica igual.",
+    ],
+  },
   {
     version: "V.0.11.269",
     date: "2026-11-26",
