@@ -2177,6 +2177,8 @@ footer{
       <div class="envio-acc" id="adjAcc" hidden style="padding:14px 0 0">
         <button class="b1" id="adjCargar">Cargar los artículos</button>
         <button class="b3" id="adjOtro">Elegir otro archivo</button>
+        <!-- V.0.11.268 (Damián: "agregale un cancelar ahi si no quiero subir nada"). -->
+        <button class="b3" id="adjCancelar" type="button">Cancelar</button>
       </div>
     </div>
   </div>
@@ -8332,6 +8334,13 @@ adjG("xDolar").addEventListener("blur", e=>{
 });
 adjG("adjCargar").addEventListener("click", cargarAdjuntos);
 adjG("adjOtro").addEventListener("click",()=>adjG("adjFile").click());
+// Cancelar: se cierra sin cargar nada (lo leído se descarta).
+adjG("adjCancelar").addEventListener("click", ()=>{
+  const card = adjG("adjCuerpo").closest(".card");
+  cerrarAdj();
+  toast("Listo: no se cargó nada.");
+  if(card) card.scrollIntoView({block:"nearest", behavior:"smooth"});
+});
 
 
 /* =================================================== PRODUCTOS */
