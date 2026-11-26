@@ -672,6 +672,16 @@ input.sel-art{width:16px; height:16px; margin:0 8px 0 0; vertical-align:-3px; ac
 .lev button:hover, .lev button.on{background:var(--accent-soft)}
 .lev button b{color:var(--accent)}
 .lev-no{padding:8px 10px; font-size:13px; color:var(--ink-3)}
+.lev button small{display:block; font-size:12px; color:var(--ink-3); margin-top:1px}
+/* V.0.11.285: las facturas del proveedor, en su ficha. */
+.pf-facts{margin:16px 0 4px; padding:12px 14px; border:1px solid var(--line); border-radius:10px; background:var(--surface-2)}
+.pf-facts h4{margin:0 0 4px; font-size:12.5px; letter-spacing:.07em; text-transform:uppercase; font-family:var(--font-d)}
+.pf-fnueva{display:grid; grid-template-columns:70px minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr); gap:8px 10px; align-items:end; margin:10px 0}
+.pf-fnueva label{display:flex; flex-direction:column; gap:3px; font-size:11px; font-weight:700; color:var(--ink-2); margin:0; text-transform:uppercase; letter-spacing:.04em}
+.pf-fnueva label.d2{grid-column:span 2}
+.pf-fnueva input, .pf-fnueva select{width:100%; min-width:0}
+.pf-fnueva button{height:40px}
+@media (max-width:700px){ .pf-fnueva{grid-template-columns:1fr 1fr} .pf-fnueva label.d2{grid-column:span 2} }
 .nc-grupo{display:grid; grid-template-columns:1fr auto; gap:6px 14px; padding:10px 0; border-bottom:1px solid var(--line)}
 .nc-grupo:last-child{border-bottom:0}
 .nc-tx{font-size:14.5px; font-weight:600}
@@ -2793,6 +2803,8 @@ footer{
         <div class="campo ancho"><label for="pfNotas">Notas</label>
           <textarea id="pfNotas" maxlength="500" rows="2"></textarea></div>
       </div>
+      <!-- V.0.11.285: las facturas del proveedor (se eligen al agendar un pago). -->
+      <div id="pfFacturas" hidden></div>
       <div class="envio-acc">
         <button class="b3" id="pfCancelar" type="button">Cancelar</button>
         <button class="b1" id="pfGuardar" type="button">Guardar</button>
@@ -13492,6 +13504,7 @@ function abrirFormPrv(p){
   opcionesPrv("pfCondOpc", [], "condicionCompra");
   prvG("prvForm").hidden = false;
   prvG(p ? "pfRs" : "pfCuit").focus();
+  pintarFactsPrv(p || null);
 }
 function cerrarFormPrv(){ PF_PIDIENDO++; prvG("prvForm").hidden = true; }
 /** "Ya está cargado": con el botón para abrir el que ya está. */
@@ -13585,6 +13598,85 @@ prvG("pfX").addEventListener("click", cerrarFormPrv);
 prvG("pfCancelar").addEventListener("click", cerrarFormPrv);
 prvG("pfGuardar").addEventListener("click", guardarFormPrv);
 prvG("pfTraer").addEventListener("click", traerPadronPrv);
+
+/* V.0.11.285: las facturas de cada proveedor (/sistema/proveedores/facturas).
+   Se cargan acá o solas al agendar un pago con el número en el concepto; al
+   agendar se eligen de la lista. */
+const FPRV_URL = "/sistema/proveedores/facturas";
+const FP = { prv: null, lista: [], en: 0 };
+const conceptoFact = f => "Factura " + (f.tipo ? f.tipo + " " : "") + f.nro;
+/** El número de factura que hay en un texto ("Factura A 0001-00001234"). */
+function nroFactTxt(t){
+  const m = /(\\d{1,5})\\s*-\\s*(\\d{1,8})(?!\\d)/.exec(String(t || ""));
+  return m ? m[1].padStart(m[1].length > 4 ? 5 : 4, "0") + "-" + m[2].padStart(8, "0") : "";
+}
+const tipoFactTxt = t => { const m = /\\b(?:factura|fact|fc|f)\\.?\\s*([ABCMEX])\\b/i.exec(String(t || "")); return m ? m[1].toUpperCase() : ""; };
+async function traerFactsPrv(nombre){
+  if(!nombre || !(puede("pagos") || puede("proveedores"))) return [];
+  const d = await pedirJson("GET", FPRV_URL + "?proveedor=" + encodeURIComponent(nombre));
+  if(d.error) throw new Error(d.error);
+  return d.facturas || [];
+}
+async function pintarFactsPrv(p){
+  const c = prvG("pfFacturas"); if(!c) return;
+  const en = ++FP.en;
+  FP.prv = p; FP.lista = [];
+  if(!p || !(puede("pagos") || puede("proveedores"))){ c.hidden = true; c.innerHTML = ""; return; }
+  c.hidden = false;
+  c.innerHTML = '<div class="pf-facts"><h4>Facturas del proveedor</h4><p class="por">Trayendo las facturas…</p></div>';
+  let error = "";
+  try{ FP.lista = await traerFactsPrv(p.razonSocial); }catch(e){ error = String(e.message || e); }
+  if(en !== FP.en) return;
+  pintarFactsPrvLista(error);
+}
+function pintarFactsPrvLista(error){
+  const c = prvG("pfFacturas"), p = FP.prv; if(!c || !p) return;
+  const cel = (t, h, cl) => '<label' + (cl ? ' class="' + cl + '"' : '') + '><span>' + t + '</span>' + h + '</label>';
+  const fila = f => '<tr><td>' + txt(conceptoFact(f)) + (f.origen === "compra" ? '<small style="display:block;color:var(--ink-3)">subida en Adjuntar</small>' : '') + '</td>' +
+    '<td>' + (f.fecha ? pgDia(f.fecha) : '') + '</td><td class="r">' + (f.monto ? fmt2(f.monto) : '—') + '</td>' +
+    '<td>' + (f.dtoPago ? pTxt(f.dtoPago) + ' %' : '') + '</td><td>' + (f.vence ? pgDia(f.vence) : '') + '</td>' +
+    '<td>' + (f.agenda === "pagado" ? '<span class="pill p-ok">pagada</span>' : f.agenda === "pendiente" ? '<span class="pill p-warn">agendada</span>' : '<span class="pill p-n">sin agendar</span>') + '</td>' +
+    '<td class="r">' + (f.origen === "compra" ? '' : '<button class="link-chico" type="button" data-fp-borrar="' + atrib(f.id) + '">Sacar</button>') + '</td></tr>';
+  c.innerHTML = '<div class="pf-facts"><h4>Facturas del proveedor</h4>' +
+    '<p class="por" style="margin:0">Las que cargues acá se eligen al agendar un pago (en Concepto): traen el total, el vencimiento y el descuento por pago en término.</p>' +
+    (error ? '<p class="cx-res mal">' + txt(error) + '</p>' : '') +
+    '<div class="pf-fnueva">' +
+      cel("Tipo", '<select id="fpTipo"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="M">M</option><option value="X">X</option><option value="">—</option></select>') +
+      cel("Número *", '<input id="fpNro" type="text" maxlength="20" placeholder="0001-00001234" autocomplete="off">') +
+      cel("Fecha", '<input id="fpFecha" type="date">') +
+      cel("Total $", '<input id="fpMonto" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off">') +
+      cel("Desc. por pago en término %", '<input id="fpDto" type="text" inputmode="decimal" placeholder="0" autocomplete="off">', "d2") +
+      cel("Vence", '<input id="fpVence" type="date">') +
+      '<button class="b1" type="button" id="fpCargar">Cargar la factura</button></div>' +
+    (FP.lista.length ? '<div class="tabla-wrap" style="max-height:230px;overflow:auto"><table class="densa"><thead><tr><th>Factura</th><th>Fecha</th><th class="r">Total</th><th>Desc. pago</th><th>Vence</th><th>Agenda</th><th></th></tr></thead><tbody>' +
+      FP.lista.map(fila).join("") + '</tbody></table></div>' : '<p class="por" style="margin:0">Todavía no tiene facturas cargadas.</p>') + '</div>';
+}
+async function cargarFactPrv(){
+  const p = FP.prv; if(!p) return;
+  const nro = prvG("fpNro").value.trim();
+  if(!nro){ toast("Poné el número de la factura."); prvG("fpNro").focus(); return; }
+  const b = prvG("fpCargar"); b.disabled = true; b.textContent = "Cargando…";
+  const r = await pedirJson("POST", FPRV_URL, { yo: soyYo(), accion:"cargar", proveedor: p.razonSocial, proveedorId: p.id || null,
+    tipo: prvG("fpTipo").value, nro, fecha: prvG("fpFecha").value, vence: prvG("fpVence").value,
+    monto: aNum(prvG("fpMonto").value) || 0, dtoPago: aNum(prvG("fpDto").value) || 0 });
+  if(r.error){ b.disabled = false; b.textContent = "Cargar la factura"; toast("No se cargó: " + r.error); return; }
+  toast(r.yaEstaba ? "Esa factura ya estaba cargada: le completé lo que faltaba." : "Factura cargada: ya se puede elegir al agendar el pago.");
+  pintarFactsPrv(p);
+}
+prvG("pfFacturas").addEventListener("click", async e => {
+  if(e.target.closest("#fpCargar")){ cargarFactPrv(); return; }
+  const b = e.target.closest("[data-fp-borrar]"); if(!b) return;
+  const f = FP.lista.find(x => x.id === b.dataset.fpBorrar); if(!f) return;
+  if(!confirm("¿Saco la " + conceptoFact(f) + " de " + (FP.prv ? FP.prv.razonSocial : "este proveedor") + "?\\n\\nLos pagos que ya agendaste con ella quedan como están.")) return;
+  const r = await pedirJson("POST", FPRV_URL, { yo: soyYo(), accion:"borrar", id: f.id });
+  if(r.error){ toast("No se sacó: " + r.error); return; }
+  toast("Factura sacada.");
+  pintarFactsPrv(FP.prv);
+});
+// Enter en la carga de la factura la carga (y no guarda el proveedor).
+prvG("pfFacturas").addEventListener("keydown", e => {
+  if(e.key === "Enter" && e.target.closest(".pf-fnueva")){ e.preventDefault(); e.stopPropagation(); cargarFactPrv(); }
+});
 
 /* ===================================================== CLIENTES (V.0.11.241)
    Damián, 24/11/2026: "tendrías que hacerme una sección clientes donde están
@@ -17956,13 +18048,18 @@ const pgPuede = () => puede("pagos") && vistaPermitida("proveedores");
 /* V.0.11.284: una lista para elegir dentro de la misma ventana. Se escribe y
    filtra (cada palabra, en cualquier orden); flechas y Enter, o el mouse;
    Escape la cierra sin cerrar la ventana. Si no está, queda lo escrito. */
-function listaEnVentana(inp, nombres){
+function listaEnVentana(inp, fuente, opc){
   if(!inp) return;
+  opc = opc || {};
   const caja = document.createElement("div");
   caja.className = "lev"; caja.hidden = true; caja.setAttribute("role", "listbox");
   inp.parentNode.style.position = "relative";
   inp.parentNode.appendChild(caja);
-  const todos = [...new Set(nombres.map(n => String(n || "").trim()).filter(Boolean))].sort((a, b) => COLL_ES.compare(a, b));
+  // V.0.11.285: la lista puede ser fija (nombres) o salir de una función
+  // ({v, d}: lo que se pone y un detalle abajo), y avisar qué se eligió.
+  const fijos = Array.isArray(fuente)
+    ? [...new Set(fuente.map(n => String(n || "").trim()).filter(Boolean))].sort((a, b) => COLL_ES.compare(a, b)).map(v => ({ v })) : null;
+  const items = () => fijos || ((typeof fuente === "function" ? fuente() : []) || []).map(x => typeof x === "string" ? { v: x } : x);
   const st = { vis: [], i: -1, callar: false };
   const resaltar = (n, toks) => {
     let h = txt(n);
@@ -17970,22 +18067,25 @@ function listaEnVentana(inp, nombres){
     return h;
   };
   const pintar = () => {
-    const toks = plano(inp.value).split(/\\s+/).filter(Boolean);
-    st.vis = todos.filter(n => { const b = plano(n); return toks.every(t => b.includes(t)); }).slice(0, 300);
+    const toks = plano(inp.value).split(/\\s+/).filter(Boolean), todos = items();
+    st.vis = todos.filter(x => { const b = plano(x.v + " " + (x.d || "")); return toks.every(t => b.includes(t)); }).slice(0, 300);
     if(st.i >= st.vis.length) st.i = st.vis.length - 1;
+    const vacio = typeof opc.vacio === "function" ? opc.vacio() : opc.vacio;
     caja.innerHTML = st.vis.length
-      ? st.vis.map((n, k) => '<button type="button" role="option" data-lev="' + k + '"' + (k === st.i ? ' class="on"' : '') + '>' + resaltar(n, toks) + '</button>').join("")
-      : '<div class="lev-no">No está en la lista: queda como lo escribiste.</div>';
+      ? st.vis.map((x, k) => '<button type="button" role="option" data-lev="' + k + '"' + (k === st.i ? ' class="on"' : '') + '>' + resaltar(x.v, toks) +
+          (x.d ? '<small>' + txt(x.d) + '</small>' : '') + '</button>').join("")
+      : '<div class="lev-no">' + txt(!todos.length && vacio ? vacio : "No está en la lista: queda como lo escribiste.") + '</div>';
     caja.hidden = false;
     const on = caja.querySelector(".on"); if(on) on.scrollIntoView({ block:"nearest" });
   };
   const cerrar = () => { caja.hidden = true; st.i = -1; };
   const elegir = k => {
-    if(st.vis[k] == null) return;
-    inp.value = st.vis[k]; cerrar();
+    const x = st.vis[k]; if(x == null) return;
+    inp.value = x.v; cerrar();
     st.callar = true;
     inp.dispatchEvent(new Event("input", { bubbles:true })); inp.dispatchEvent(new Event("change", { bubbles:true }));
     st.callar = false;
+    if(opc.alElegir) opc.alElegir(x);
   };
   inp.addEventListener("click", () => { if(caja.hidden) pintar(); });
   inp.addEventListener("input", () => { if(st.callar) return; st.i = -1; pintar(); });
@@ -18125,12 +18225,16 @@ async function abrirFormPg(p){
         sucs.map(s => '<option value="' + s.id + '"' + (s.id === sucIni ? ' selected' : '') + '>' + txt(s.n) + '</option>').join("") + '</select></div>' +
       '<div class="campo"><label for="pgfForma">Cómo se paga</label><select id="pgfForma">' +
         Object.keys(PG_FORMAS).map(k => '<option value="' + k + '">' + PG_FORMAS[k] + '</option>').join("") + '</select></div>' +
-      '<div class="campo ancho"><label for="pgfConc">Concepto</label><input id="pgfConc" type="text" maxlength="120" autocomplete="off" placeholder="Factura A 0001-00001234, saldo de la cuenta, cheque n° …"></div>' +
+      // V.0.11.285: las facturas del proveedor se eligen de la lista.
+      '<div class="campo ancho"><label for="pgfConc">Concepto <span class="por" id="pgfFactAyuda" style="text-transform:none;letter-spacing:0;font-weight:500"></span></label>' +
+        '<input id="pgfConc" type="text" maxlength="120" autocomplete="off" placeholder="Elegí una factura del proveedor o escribí: Factura A 0001-00001234, saldo, cheque n° …"></div>' +
       '<div class="campo"><label for="pgfMonto">' + (nuevo ? "Monto total *" : "Monto *") + '</label><input id="pgfMonto" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>' +
       '<div class="campo"><label for="pgfVence">' + (nuevo ? "Vence (la primera) *" : "Vence *") + '</label><input id="pgfVence" type="date"></div>' +
       (nuevo ? '<div class="campo"><label for="pgfCuotas">Cuotas</label><input id="pgfCuotas" type="number" min="1" max="36" step="1" value="1"></div>' +
         '<div class="campo"><label for="pgfCada">Cada cuántos días</label><input id="pgfCada" type="number" min="1" max="366" step="1" value="30"></div>' : '') +
       '<div class="campo"><label for="pgfAvisar">Avisar (días antes)</label><input id="pgfAvisar" type="number" min="0" max="60" step="1" value="3"></div>' +
+      // V.0.11.285: el descuento por pago en término de la factura.
+      (nuevo ? '<div class="campo"><label for="pgfDto">Desc. por pago en término %</label><input id="pgfDto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>' : '') +
       '<div class="campo ancho"><label for="pgfNota">Nota</label><input id="pgfNota" type="text" maxlength="300" autocomplete="off" placeholder="opcional"></div>' +
     '</div>' +
     '<div class="pg-cuotas" id="pgfVer"></div>' +
@@ -18139,19 +18243,57 @@ async function abrirFormPg(p){
   document.body.appendChild(fondo);
   const $ = id => fondo.querySelector("#" + id);
   listaEnVentana($("pgfPrv"), prvs.map(x => x.razonSocial));
+  // V.0.11.285: las facturas del proveedor elegido, para el concepto.
+  const FX = { prv: "", lista: [] };
+  const cargarFacts = async () => {
+    const nom = $("pgfPrv").value.replace(/\\s+/g, " ").trim();
+    if(nom === FX.prv) return;
+    FX.prv = nom; FX.lista = [];
+    const ay = $("pgfFactAyuda"); if(ay) ay.textContent = "";
+    if(!nom) return;
+    let l = []; try{ l = await traerFactsPrv(nom); }catch(e){ return; }
+    if(FX.prv !== nom) return;
+    FX.lista = l.slice().sort((a, b) => (a.agenda ? 1 : 0) - (b.agenda ? 1 : 0));
+    const sin = FX.lista.filter(f => !f.agenda).length;
+    if(ay) ay.textContent = FX.lista.length ? "· " + (sin === 1 ? "1 factura sin agendar" : sin + " facturas sin agendar") + ": tocá acá para elegir" : "";
+  };
+  $("pgfPrv").addEventListener("change", cargarFacts);
+  $("pgfPrv").addEventListener("blur", () => setTimeout(cargarFacts, 200));
+  listaEnVentana($("pgfConc"), () => FX.lista.map(f => ({ v: conceptoFact(f), f,
+    d: [f.fecha ? "del " + pgDia(f.fecha) : "", f.monto ? fmt2(f.monto) : "", f.dtoPago ? pTxt(f.dtoPago) + " % por pago en término" : "",
+      f.vence ? "vence " + pgDia(f.vence) : "", f.agenda === "pagado" ? "YA PAGADA" : f.agenda === "pendiente" ? "ya agendada" : "",
+      f.origen === "compra" ? "subida en Adjuntar" : ""].filter(Boolean).join(" · ") })), {
+    vacio: () => FX.prv ? "Este proveedor no tiene facturas cargadas: escribí el concepto (si tiene el número de factura, queda cargada en el proveedor)." : "Elegí primero el proveedor para ver sus facturas.",
+    alElegir: x => {
+      const f = x.f; if(!f) return;
+      if(f.monto && !(aNum($("pgfMonto").value) > 0)) $("pgfMonto").value = plata2(f.monto);
+      if(f.dtoPago && $("pgfDto") && !(aNum($("pgfDto").value) > 0)) $("pgfDto").value = pTxt(f.dtoPago);
+      if(f.vence && !$("pgfVence").value) $("pgfVence").value = f.vence;
+      ver();
+      if(f.agenda) toast(f.agenda === "pagado" ? "Ojo: esa factura ya figura pagada." : "Ojo: esa factura ya tiene un pago agendado.");
+    }
+  });
   if(p){
     $("pgfPrv").value = p.proveedor; $("pgfForma").value = p.forma || ""; $("pgfConc").value = p.concepto || "";
     $("pgfMonto").value = plata2(p.monto); $("pgfVence").value = p.vence; $("pgfAvisar").value = p.avisar; $("pgfNota").value = p.nota || "";
   }
+  // V.0.11.285: con descuento por pago en término, se agenda lo que se paga
+  // a tiempo (el total de la factura queda en la nota).
+  const dtoDe = () => { const d = nuevo && $("pgfDto") ? (aNum($("pgfDto").value) || 0) : 0; return d > 0 && d < 100 ? d : 0; };
+  const conDto = (m, d) => Math.round(Math.round(m * 100) * (1 - d / 100)) / 100;
   const ver = () => {
     if(!nuevo) return;
     const n = Math.max(1, Math.floor(+$("pgfCuotas").value || 1)), cada = Math.max(1, Math.floor(+$("pgfCada").value || 30));
-    const m = aNum($("pgfMonto").value) || 0, v = $("pgfVence").value;
+    const m0 = aNum($("pgfMonto").value) || 0, dto = dtoDe(), m = conDto(m0, dto), v = $("pgfVence").value;
     $("pgfCada").closest(".campo").style.opacity = n > 1 ? "" : ".45";
-    if(n < 2 || !(m > 0) || !v){ $("pgfVer").textContent = ""; return; }
-    const tot = Math.round(m * 100), base = Math.floor(tot / n);
-    $("pgfVer").textContent = n + " cuotas: " + Array.from({ length:n }, (_, i) =>
-      pgDia(pgSumarDias(v, i * cada)) + " " + fmt2((i === n - 1 ? tot - base * (n - 1) : base) / 100)).join(" · ");
+    const partes = [];
+    if(dto && m0 > 0) partes.push("Con " + pTxt(dto) + " % por pago en término se paga " + fmt2(m) + " (te ahorrás " + fmt2(Math.round((m0 - m) * 100) / 100) + "): eso queda agendado.");
+    if(n >= 2 && m > 0 && v){
+      const tot = Math.round(m * 100), base = Math.floor(tot / n);
+      partes.push(n + " cuotas: " + Array.from({ length:n }, (_, i) =>
+        pgDia(pgSumarDias(v, i * cada)) + " " + fmt2((i === n - 1 ? tot - base * (n - 1) : base) / 100)).join(" · "));
+    }
+    $("pgfVer").textContent = partes.join(" ");
   };
   const fin = () => fondo.remove();
   fondo.addEventListener("input", ver);
@@ -18169,12 +18311,30 @@ async function abrirFormPg(p){
     if(!cuerpo.vence){ toast("Poné la fecha en que vence."); $("pgfVence").focus(); return; }
     if(nuevo){ cuerpo.accion = "cargar"; cuerpo.idLocal = idLocal; cuerpo.cuotas = +$("pgfCuotas").value || 1; cuerpo.cada = +$("pgfCada").value || 30; }
     else { cuerpo.accion = "cambiar"; cuerpo.id = p.id; cuerpo.version = p.version; }
+    // V.0.11.285: el número de factura escrito como venga ("2-777") va como
+    // en las facturas ("0002-00000777"), así se reconoce después.
+    const nroEsc = nuevo ? nroFactTxt(cuerpo.concepto) : "";
+    if(nroEsc) cuerpo.concepto = String(cuerpo.concepto).replace(/(\\d{1,5})\\s*-\\s*(\\d{1,8})(?!\\d)/, nroEsc);
+    // V.0.11.285: con descuento por pago en término.
+    const total = cuerpo.monto, dto = dtoDe();
+    if(nuevo && dto && total > 0){
+      cuerpo.monto = conDto(total, dto);
+      cuerpo.nota = ("Total de la factura " + fmt2(total) + " con " + pTxt(dto) + " % de descuento por pago en término" + (cuerpo.nota ? " · " + cuerpo.nota : "")).slice(0, 300);
+    }
     const ok = $("pgfOk"); ok.disabled = true; ok.textContent = "Guardando…";
     const r = await pedirJson("POST", PG_URL, cuerpo);
     if(r.error){ ok.disabled = false; ok.textContent = nuevo ? "Agendar" : "Guardar"; toast("No se guardó: " + r.error); return; }
     fin();
-    toast(nuevo ? (r.pagos.length > 1 ? "Agendadas " + r.pagos.length + " cuotas: la primera vence el " + pgDia(r.pagos[0].vence) + "." :
-      "Pago agendado: vence el " + pgDia(r.pagos[0].vence) + ".") : "Pago cambiado.");
+    // V.0.11.285: el número de factura del concepto queda cargado en el proveedor.
+    let factNueva = false;
+    const nroC = nuevo ? nroFactTxt(cuerpo.concepto) : "";
+    if(nroC && !FX.lista.some(f => f.nro === nroC)){
+      const rf = await pedirJson("POST", FPRV_URL, { yo: soyYo(), accion:"cargar", proveedor: cuerpo.proveedor, proveedorId: cuerpo.proveedorId,
+        tipo: tipoFactTxt(cuerpo.concepto), nro: nroC, monto: total, dtoPago: dto, vence: cuerpo.vence, fecha: "" });
+      factNueva = !rf.error && !rf.yaEstaba;
+    }
+    toast((nuevo ? (r.pagos.length > 1 ? "Agendadas " + r.pagos.length + " cuotas: la primera vence el " + pgDia(r.pagos[0].vence) + "." :
+      "Pago agendado: vence el " + pgDia(r.pagos[0].vence) + ".") : "Pago cambiado.") + (factNueva ? " La factura quedó cargada en el proveedor." : ""));
     pintarPagos();
   });
   ver();

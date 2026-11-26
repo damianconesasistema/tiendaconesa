@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.284";
+export const APP_VERSION = "V.0.11.285";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.285",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Proveedores: cada proveedor tiene sus facturas. En la ficha del proveedor se cargan (tipo, número, fecha, total, descuento por pago en término y vencimiento) y se ve si ya están agendadas o pagadas; también aparecen las facturas de compra subidas en Adjuntar. Damián: \"en cada proveedor podamos cargar el número de factura para tener en la agenda de pagos\".",
+      "Agendar un pago: en Concepto se elige una factura del proveedor de la lista (trae el total, el vencimiento y el descuento por pago en término; avisa si ya estaba agendada o pagada). Si se escribe un número de factura que no estaba, queda cargado en el proveedor. Damián: \"acá que se pueda elegir las facturas que tenga cargadas del proveedor\".",
+      "Agendar un pago: \"Desc. por pago en término %\". Muestra cuánto se paga a tiempo y cuánto te ahorrás, y agenda ese monto (el total de la factura queda en la nota). Damián: \"hay [proveedores] que en la factura, en el total, me hacen descuento por pago en término\".",
+    ],
+  },
   {
     version: "V.0.11.284",
     date: "2026-11-26",
