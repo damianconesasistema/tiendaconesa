@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.266";
+export const APP_VERSION = "V.0.11.267";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.267",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Artículos → Adjuntar lee facturas (Damián, con una factura de proveedor: \"lee de todo menos lo importante\"). Busca el encabezado de la tabla de artículos (Código, Cant., Descripción, Precio) y saltea el membrete de arriba y los totales/CAE de abajo; separa celdas que el PDF dejaba pegadas; toma los descuentos de cada renglón (Bonif. Gral., Desc. Esp.) para el costo; la marca sale de la descripción cuando va entre comillas; el proveedor se elige solo por el CUIT si está en Proveedores; avisa el descuento por pago en término.",
+      "Cada renglón dice si ya está en Punto (por el código del proveedor: no se carga), si se parece a uno de la misma marca (\"¿Es este?\", destildado) o si es nuevo. Un renglón con 100 % de descuento (un recargo anulado) no se carga. El botón dice cuántos artículos NUEVOS se cargan.",
+    ],
+  },
   {
     version: "V.0.11.266",
     date: "2026-11-26",
