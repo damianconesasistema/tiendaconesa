@@ -1607,7 +1607,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOgAAABNCAYAAACseCglAAAAAklEQVR4AewaftIAAA4vSURBVO3B/5OkCX0Q4OfTvRDk20wACUhIN5KOAuJ0ohRojp1eMEEqgR1UorGsmrm/YCd/wcyVVf5kFZPyB3/QyvZqKWpFnSs04F3kuiEcCZjQI4GAXYZeMKVEzPVU5I47ru/jWUOqd3Znut/5tv3O3fs8kZkqlUo51VQqldKqqVQqpVVTqVRKq6ZSqZRWTaVSKa2aSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqldUVJRMQObpi6jbXMHJghInpYNXUtM3tmiIg09RB6eMzUD2fm2F0iooPHTF3LzJ67RMQ2thztoczcdoyI6OAxU/3M7JghInZww2G30cNmZo4dIyJ6WHVgLzPbZoiIbWxiyYHb2MzMXTNERBNdrJray8y2yrFqSiAitnHDYQ0sm2/ZYW0ns+YumTm2OE2HNc03dq8G1tFT3NgMEbGDLSyZauDfR0THbLtYddiKykxXlMOGw/pYNUdELGPFYW0ns4Km8ug4rBERy5k5VtxtNBxYiYhOZvacQUQ0ccPxttFxhIhoY8XUPsZoOEqr/hL8A/wovo9EmC/xEnwXjxpO/o1LrqYcGqb2MrODt2BktrZ7dZzchnOUmduZGeib6mdmZOa22dru1XEyGw5rO7s1h30Et0ytRsSyoy07bCczm7jmaG/H+/AArmIVV3EVV3EVV3EVV3EVV7GKB/B+fNALQE05PGxqJSK6GGfmyGwd92pExLKTWVUeK+7VdjIbDhs4u2V3yMxd9BzWdrSBw7YiYiMze+7Wqv8p/F28Ez+KBhpooIEGGmiggQYaaKCBN+Mt+IBW/W0uuZpy2Ma+qXX0ImLZbG1Te6Y6LqGI6Jjqm+o4mXVT+xg4u7Z7jRSQmWM85LCbEbHhXq/CRxBIJBKJRCKRSCQSiUQi8Wp81CVXUwKZOUAH+6ZWsGm2jqmuqbbLqWOqZ2rV6XUyc+zsxs4gM7fxSw67GREdh/0FvBV1BAKBQCAQCAQCgUAgEHgp/qZW/bUusZqSyMwBOtg31XGMiGhiyVTbVEdx+8qjbaqNfT8QEW2ns+x8jNyr7QQycwcPOqzjT7Tqy/jbqDm7K3gH3uYSu6IEImKAzczsRcQIKw40Ha/tsHVTq4rbxbpy6Ji67rAOBorpY9WBTfSc3cgdImIbbXfIzJ4jREQHG9hGz/Fejw85EM6ujl/Qqv+u4WTsEqophxU8FhGJFVMDx+uYISLaitlVAhHRxJLjtRXXNXU9IprObhf7prZw3dQts63jG/iGw0amVvAGsyWew3NIxwsk/hZe65KqKbdtx2ubeigzA3umOooZ45bFa5vaz8zAg6Y6CsrMLvZNbTqjzBxj09H2se3k9rDr/2vVX4+fR5jt/+Jx/DaeMVvgjfhJl1RNOfwy+g7s42H8ZGYOzNZHHwMHeuijj2XH66OPvgNd9NFHPyKWHW2MPvroY2y2AfroY2C2Jvroo+vAAH30MYqIZUcbo48++g7soI8+mo43QB99jMyQmV18BH0HbuMW2pk5crwRbmHPgdu4hU5mjh1o4oNIsz2Bf4h/iqcV8yGt+utcQpGZKpWFa9XX0TXfF/EAXo09/BmzJf4Q1w0nv+WSqalUFq1VX8JfR5rte/iC4eQZw8l38F/wjNkCP4J3uoSuqFQuWqv+RlxzIJEIB/4Y78L7EI6X+AP8K1P/BO/B6833c1r1TxhOvu0SuaLkImIZHbTRca8RehhhlJkjM0REE2too+leA/TQy8yxOSKijWXzjTNz4A4R0cay+UaZOYqIjvMxyMyxI0REE2voYNm9Rhigl5kDxfxF/CNHm+DleIXZAl/D5019Ct/E6833fqzgEZfIFSUVEU1sYw1LjreKdQeuYeQIEdHGDlbNtoob2I+IHexk5tjxOviY+W5hw2EbuGG+axhhG6vO7hp67hARbWzjutlWse55EbGPUWa2zfZSvMbZPIlPG04m/sRw8qxW/VG8HS8326vwbjziEqkpoYjYxADrWHJGEbGNL2FVcUvYwigiOo43UEzHvcZOpucCRMQGvoTrTmYJK+b7vrP7Cv6de/0zfFMxV7XqP+YSqSmZiOjiY1hyDiKiiy2nt4THImLD2TQiYk3JRMQGbrpY6ex+03Aycrfh5GsYKOZdeMAlUlMiEdHFunMSEV2sOx83I6LjbNaUSER0cNPFqzmbP8JjjvcpPGG+JbzHJVJTEhGxjXXnJCLWsO587UbEstNbi4hl5dF1OTyOxx3vEfxX8yXerVX/sy6JmhKIiDa2nK8d528J205vCWtKICI6aLgcPmM4+bbjDCf/E583X+Dt+KBLoqYcdpyjiNhAw8W4ERFNp7emHNZcDt/C4+b7dXzLfK/EqkuiZsEiooNV52vbxdpwetcjomnx2k5mD330se/++TX8jvk+h88o5h1a9Xe4BK5YvA0ns4/NzOx6XkQ00cG250VEGw3F7GMtM3sR0cW6Yjaw7fTWsOPi3ELX0ZYxUtw+1jKz5w4RsYZNrLo4iUcMJ0+ZZzj5nlb9MfwiamZr4hewpeSuWLw1xe2jk5kDP5CZI3QjYteBDcXtZGbP8zJzIyLaWDFfIyKamTlyOhvYcXFGmdkzQ0QoaJCZPXfJzF3sRsSGi7OHgeJ+A1/Gitlejvdp1f++4eRZJVazQBHRwZLiNjJz4AiZOc7MMdYUt+OwHcV1nN5KRDRdDk0zZGbXxfnnhpPfV9Rw8nX8qmLegvcouZrF6iiun5m75msrpp+ZY4f1FNd2NpsWa6SYRkR03X9P4T87uR6eNN9rsK7kaharo7iuYpYUM3CXzBxhXzFtZ7NmsQaKW4+IbkQsu3jpwKfwTSf33/Ap870M79eqv0qJXbFYTcXtmiMiOoobO9oAq+ZrOpsGOi5GJyK23WsZg8zsYhcfU9w62hGxlpkjF+9XDCdPOKnh5A+16h/H3zDfn8bP4t8qqZrFaihmLzPHzlfP2TSc3aqLsYotbGELW9jCDTQ9LzNHuOVkVjCIiLaLM8EIv+n0fge3kY4XeAk2tOovU1I1l8PA/TPy4rGJfSezhC9FxIaL8Sz+heHkO07vf+FfIsz2UlzDm5RUzeUwUkzH2Y28SGTmGBtO52ZEbDh/f4xbzmI4eRIfx9NIxwu8Ah/Qqv+QEqqpvKhl5i4edDo3I6JjvlTMs/htw8nQ2X0dn8XEfA/idUqopvKil5ldPIh9J7cbEctmS8U8ga7zMJw8g3+M75nvp/BWJVRzOSwrpqdyKpnZRQf7TmYJO2Z7RjHfxH9wfj6JbyHNVsPPaNVfrmRqLoe2+6fjRSozB2hiz8msR0TT8cJ8T+OzhpPvOi/DyVP4BL5rvo+iqWSuWKx9LJlv1flro+f09p3MHlbcHw9l5ra7RETHHJk5RjsiulhX3Aa2Ha1ltsS38K+dv5v4KF5ptp/AO/FVJVKzWAMFRUTbfAPFLTtaUzEDJ9O1YJnZy8yeAjJzA7cU13GUVv0N+DmzBb6MLzhvw8nX8BWk2QLv1aq/UonULNZAcZvmyMyx4tqO1lDMyMkMcNvlsonbimk62rvwXrM9ic8YTp5zMXbxR+b7AN6hRGoWq6e4tYhYNl9fMR13iYg1xQ2c3I4SiIhmRLTNkZlj7Cqm4Wh/Cctm+zI+6eI8jN8z31vxl5VIzWL1FLeEXfP1FLMUEWsOW1Ncz8ntKocmvhQR2+YbO61W/c34abMlfstw8nUXZTj5Dr6IidkCP61Vf4WSqFmgzBzjYcWtRkQ3IpbdISKWI2I7ItroKW7TD0REG+uKuZ2ZAyeUmSPsWaCIaOINDmxFxCgiNhwhIpaxoZg993oA7zbbE/isi/dJjMz3AP6qkrhi8XZxXXHrWIuIXYzQRgdL6GVmLyJuo2G+1YgYYRcbitt1eju46WJtRcSW4/2SqQZuRsQOehg4sIw1NBQzcq8H8CqzfR59F+9z+CLearY3o4NHlUDNgmVmF7edzBLWsYXrWHJYV3EN3MCS4rpOb1c5LeE6trCFG2gorudOrfqPoW2+Rw0n/9tFG06exOfwPfP9lFb9tUqgphw2na8dF6efmQOnlJljPOyFZ9dhP48/73iJP8AX3D+fxu+abwXXlEBNCWTmLh52TjJzjIdcjE1n1/XCciszRw57L17jeIFdfNX9Mpx8FY+Y7w34GSVQUx4b2HNOMnMbe87XQ5k5cEaZuYt9Lwz72HanVr2Ft5ntWXzacLLv/nocT5kt0Naqv8aC1ZREZo7RwW3nZw37zsetzNx2fna9MKxl5shhH0bDbF/G77n/9vCo+Zr4sAWrKZHMHKONvnOQmSN0sOdsbmXmhvO143Lbx7XM7LnXz+LVZvtV/L77bTj5H/iE+V6LD1uwmpLJzHFmdvAgbjujzBygg192crfxkczccLxlxSy7Q2YOcNvJNJ2fPaf3MNqZ2XO3Vv3H8RbUHC3xFH7dcPK0xRjgNtLx6vgJrfqbLNAVJZWZXXQjYgNr6GDJ0fYwwtgRMnOMzYjYwSbW0HC8PrqZ2TVfE33zNd1rF23zLZvqO7teZu5ExDI6WEMbK453G7vYycyR430YP4x0tMBnMLI4Q+ziBtLRAq/DB/ArFiQy02UREU00HTbIzLFTiIiOw8aZOfAiFhEdd8nMniJa9Tfi41g129/BruHkaYvSqv81/Bpe4niJ/4S/Zzj5PxbgikskM0cYOSeZ2VM5JDN7Tu8X8SP4Np5zWA3P4Rt4zHDytMX6Cv4j/goS6bBADW/Ch9C1AFdUKufnx/HfHXgO4UDiCr6PL2Js8cb4BF6GZ5EIU4k6JvhzFiQyU6VSKaeaSqVSWjWVSqW0aiqVSmnVVCqV0qqpVCqlVVOpVEqrplKplFZNpVIprZpKpVJaNZVKpbT+H/ThmLvjr5fGAAAAAElFTkSuQmCC">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.277</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.278</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -3997,7 +3997,10 @@ async function mirarVersion(){
   // a medio hacer, recarga sola; si hay, avisa con la franja.
   const ocupado = (S.linea && S.linea.length) || (typeof US_SUCIO === "object" && Object.keys(US_SUCIO).length) ||
     (typeof GBP === "object" && GBP.lotes && Object.keys(GBP.lotes).length) || CAT_PEND.size ||
-    !document.getElementById("altaCuerpo").hidden || (typeof OC === "object" && OC.ed && OC.ed.sucio);
+    !document.getElementById("altaCuerpo").hidden || (typeof OC === "object" && OC.ed && OC.ed.sucio) ||
+    // V.0.11.278: Adjuntar con un archivo leído, y las ventanas de precios.
+    (!document.getElementById("adjCuerpo").hidden && typeof ADJ === "object" && ADJ.filas && ADJ.filas.length) ||
+    !!document.getElementById("cxModal") || !!document.getElementById("msModal") || !document.getElementById("envio").hidden;
   let yaProbe = "";
   try{ yaProbe = sessionStorage.getItem("punto.recargo") || ""; }catch(e){}
   if(!ocupado && yaProbe !== v){
@@ -7630,7 +7633,15 @@ function infoYa(r){
       const hoy = Array.isArray(a.dtos) ? cxCadenaDe(a).cadena : cxCad(productoDeGbp(a).seis);
       // FV manda el descuento total en una cifra (57,96 %) y acá está en
       // cadena: si da lo mismo, no cambió.
-      if(c.length && Math.abs(factorDe(c) - factorDe(hoy)) > 0.00005) d.cadena = c;
+      if(c.length && Math.abs(factorDe(c) - factorDe(hoy)) > 0.00005){
+        // V.0.11.278: el total de FV se pasa a la cadena de siempre.
+        const ct = esDescTotal() && c.length === 1 && hoy.length ? cadenaConTotal(hoy, c[0]) : null;
+        if(ct && ct.cadena.length <= N_DTOS){
+          d.cadena = ct.cadena;
+          if(ct.recargo > 0) d.recargos = cxCadenaDe(a).recargos.concat([ct.recargo]);
+          info.total = c[0];
+        } else d.cadena = c;
+      }
       if(Object.keys(d).length){
         const x = cxArmar(a, d, true);
         if(!x.error){ info.d = d; info.p1 = x.p; info.p2 = x.p2; info.hoyCad = hoy; info.var = x.p.costo > 0 ? (x.p2.costo / x.p.costo - 1) * 100 : 0; }
@@ -7639,6 +7650,23 @@ function infoYa(r){
   }
   ADJ_INFO.set(k, info);
   return info;
+}
+/** V.0.11.278: ¿la columna de descuento es el total de toda la cadena (el
+    "coeficiente" de FV: "Descuento total") y no un descuento más? */
+function esDescTotal(){
+  const i1 = colAdj("dto1");
+  return i1 >= 0 && colAdj("dto2") < 0 && /total|coef|equiv/.test(plano(String(ADJ.cab[i1] || "")));
+}
+/** La cadena que da ese total partiendo de la de siempre: la misma, más el
+    descuento que falta (o un recargo si el total es menor). 55,75 % de
+    19,6 + 14 + 20 + 20 y la factura dice 57,96 % -> 19,6 + 14 + 20 + 20 + 5. */
+function cadenaConTotal(base, total){
+  const fb = factorDe(base), ft = 1 - (+total || 0) / 100;
+  if(!(fb > 0) || !(ft > 0)) return null;
+  const falta = (1 - ft / fb) * 100;
+  if(Math.abs(falta) < 0.005) return { cadena: base.slice(), recargo: 0 };
+  if(falta > 0) return { cadena: base.concat([Math.round(falta * 100) / 100]), recargo: 0 };
+  return { cadena: base.slice(), recargo: Math.round((ft / fb - 1) * 10000) / 100 };
 }
 /** Ya está y va a sumar stock (tildado y con cantidad). */
 const adjSuma = r => !ADJ.fuera[r.n] && estadoAdj(r).k === "ya" && !!(infoYa(r) || {}).cant;
@@ -7835,7 +7863,17 @@ const adjSirve = r => !ADJ.fuera[r.n] && r.tit.length >= 3 && r.lista > 0 &&
   !(r.dtos || []).some(d => d >= 100) && estadoAdj(r).k !== "ya";
 /** La cadena del renglón: sus descuentos y después los de arriba. */
 function cadenaAdj(r){
-  const ds = (r.dtos || []).filter(d => d > 0 && d < 100).concat(ADJ.seis.filter(d => limD(d) > 0)).map(limD).slice(0, N_DTOS);
+  // V.0.11.278: con el total de FV ("Descuento total") y la cadena de la
+  // marca puesta arriba, la cadena es esa más lo que falta. Antes se
+  // aplicaban las dos (57,96 % y además la cadena) y el costo salía bajísimo.
+  const base = ADJ.seis.filter(d => limD(d) > 0).map(limD);
+  const filaDs = (r.dtos || []).filter(d => d > 0 && d < 100);
+  if(esDescTotal() && filaDs.length === 1 && base.length){
+    const ct = cadenaConTotal(base, filaDs[0]);
+    if(ct && !ct.recargo && ct.cadena.length <= N_DTOS){ const c = ct.cadena.slice(); while(c.length < N_DTOS) c.push(0); return c; }
+    const solo = [limD(filaDs[0])]; while(solo.length < N_DTOS) solo.push(0); return solo;
+  }
+  const ds = filaDs.concat(base).map(limD).slice(0, N_DTOS);
   while(ds.length < N_DTOS) ds.push(0);
   return ds;
 }
@@ -7939,7 +7977,9 @@ function estadoAdjHtml(r){
     else if(inf.d){
       const ps = [];
       if(inf.d.lista !== undefined) ps.push('lista ' + plata2(+inf.a.lista) + ' → <b>' + plata2(inf.d.lista) + '</b>');
-      if(inf.d.cadena) ps.push('desc. ' + cxCadTxt(cxCad(inf.hoyCad)) + ' → <b>' + cxCadTxt(inf.d.cadena) + '</b>');
+      if(inf.d.cadena) ps.push('desc. ' + cxCadTxt(cxCad(inf.hoyCad)) + ' → <b>' + cxCadTxt(inf.d.cadena) + '</b>' +
+        (inf.d.recargos ? ' y recargo <b>' + pTxt(inf.d.recargos[inf.d.recargos.length - 1]) + ' %</b>' : '') +
+        (inf.total != null ? ' (= ' + pTxt(inf.total) + ' % de la factura)' : ''));
       h += '<label class="adj-ya adj-precio"><input type="checkbox" data-adj-precio="' + r.n + '"' + (ADJ.precio[r.n] ? ' checked' : '') + '> ' +
         '<b>Cambió:</b> ' + ps.join(' · ') + ' (costo ' + (inf.var >= 0 ? '+' : '') + pTxt(Math.round(inf.var * 10) / 10) + ' %) — actualizar</label>';
     } else if(r.lista > 0 && inf.a) h += '<div class="adj-ya">mismo precio y descuento</div>';

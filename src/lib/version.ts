@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.277";
+export const APP_VERSION = "V.0.11.278";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.278",
+    date: "2026-11-26",
+    changes: [
+      "Punto, factura de FV: el \"Descuento total\" (el coeficiente, una sola cifra) se pasa a la cadena de descuentos del artículo (Damián: \"los articulos nosotros los cargamos con descuentos, no con el coeficiente\"). Se mantiene la cadena de siempre y se le agrega lo que falta: 19,6+14+20+20 (55,75 %) con una factura al 57,96 % queda 19,6+14+20+20+5. Si el total es menor, se agrega un recargo. En los artículos nuevos, la cadena de la marca más lo que falta (antes se aplicaban las dos juntas y el costo salía muy bajo).",
+      "Punto ya no se recarga solo por una versión nueva si estás en Adjuntar con un archivo leído, en la ventana de cambios de precios o en la de WhatsApp (Damián: \"estamos haciendo la carga y se borró todo lo que teníamos seleccionado\"): muestra la franja de versión nueva y espera.",
+    ],
+  },
   {
     version: "V.0.11.277",
     date: "2026-11-26",
