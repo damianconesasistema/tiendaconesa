@@ -1,3 +1,4 @@
+import { leerDisco } from "@/lib/disco";
 import { APP_VERSION } from "@/lib/version";
 import { quienEntra } from "../clave";
 
@@ -22,8 +23,12 @@ export async function GET(): Promise<Response> {
   } catch {
     // Sin base o sin sesion: la version se contesta igual.
   }
+  // V.0.11.273: si al disco del servidor le queda poco lugar, va tambien (la
+  // pagina se lo muestra a gerencia). No depende de la base: si el disco se
+  // llena y la base se detiene, el aviso igual sale.
+  const disco = await leerDisco();
   return Response.json(
-    { version: APP_VERSION },
+    { version: APP_VERSION, ...(disco && disco.nivel !== "ok" ? { disco } : {}) },
     { headers: { "Cache-Control": "no-store, max-age=0", "X-Robots-Tag": "noindex" } },
   );
 }

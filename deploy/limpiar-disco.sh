@@ -28,9 +28,14 @@ libre() { df -Pm / | awk 'NR==2 {print $4}'; }
 
 decir "disco antes: $(df -h / | awk 'NR==2 {print $3" usados de "$2" ("$5")"}')"
 
-# 1. El lugar nuevo, si lo hay.
+# 1. El lugar nuevo, si lo hay. Primero que el sistema vuelva a mirar el
+#    tamano del disco (si se agrando en Google con la maquina prendida).
+echo 1 > /sys/class/block/sda/device/rescan 2>/dev/null || true
+decir "disco segun Google: $(lsblk -dn -o SIZE /dev/sda 2>/dev/null | tr -d ' ') · particion: $(lsblk -n -o SIZE /dev/sda1 2>/dev/null | tr -d ' ')"
 if command -v growpart >/dev/null 2>&1; then
   if growpart /dev/sda 1 >/dev/null 2>&1; then decir "la particion crecio al tamano nuevo del disco"; fi
+else
+  decir "no esta growpart (cloud-guest-utils): la particion no se puede agrandar con la maquina andando"
 fi
 resize2fs /dev/sda1 >/dev/null 2>&1 || true
 

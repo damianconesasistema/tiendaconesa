@@ -174,3 +174,49 @@ jobs:
       - name: Chequeo diario
         if: always()
         run: curl -s -m 90 -X POST https://tienda.conesa.com.ar/api/chequeo-diario || true
+
+      # 26/11/2026: el disco del servidor llego al 100 %, Postgres se detuvo y
+      # la tienda dio error 500. Damian: "siempre avisame antes cuando esta
+      # quedando poco espacio porque no podemos parar la produccion". Cada 10
+      # minutos se mira el disco y la base. Desde el 85 % (o con la base
+      # caida) el vigia falla, y GitHub manda el mail de aviso. Punto ademas
+      # le muestra una franja a gerencia desde el 80 % (src/lib/disco.ts).
+      - name: Lugar en el disco y la base
+        if: always()
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "${{ vars.VM_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          if ! salida=$(ssh -o BatchMode=yes -o ConnectTimeout=25 "${{ vars.VM_USER }}@${{ vars.VM_HOST }}" \
+              'df -P / | tail -1; df -h / | tail -1; if pg_isready -q; then echo BASE_OK; else echo BASE_MAL; fi'); then
+            echo "No pude entrar al servidor para mirar el disco (si la tienda anda, no es grave)."
+            exit 0
+          fi
+          pct=$(printf '%s\n' "$salida" | sed -n 1p | awk '{print $5}' | tr -d '%')
+          lugar=$(printf '%s\n' "$salida" | sed -n 2p | awk '{print $4" libres de "$2}')
+          base=$(printf '%s\n' "$salida" | sed -n 3p)
+          echo "Disco del servidor: ${pct}% usado (${lugar}). Base: ${base}."
+          mal=""
+          if [ "${pct:-0}" -ge 85 ]; then
+            mal="${mal}- EL DISCO DEL SERVIDOR ESTA AL ${pct}% (${lugar}). Si llega al 100 % la base se detiene y se frena todo."$'\n'
+          fi
+          if [ "$base" != "BASE_OK" ]; then
+            mal="${mal}- LA BASE DE DATOS NO ESTA ANDANDO."$'\n'
+          fi
+          if [ -n "$mal" ]; then
+            echo
+            echo "=============================================="
+            echo "EL SERVIDOR NECESITA ATENCION"
+            echo "=============================================="
+            printf '%s' "$mal"
+            echo
+            echo "Que hacer:"
+            echo "  1. Volver a publicar (Actions -> Publicar -> Run workflow): antes de"
+            echo "     compilar borra las copias de la base que ya estan en Google y,"
+            echo "     si la base esta caida, la levanta (deploy/limpiar-disco.sh)."
+            echo "  2. Si sigue lleno, agrandar el disco en Google Cloud (Compute Engine"
+            echo "     -> Discos -> conesa -> Editar) y volver a publicar."
+            exit 1
+          fi

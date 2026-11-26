@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.272";
+export const APP_VERSION = "V.0.11.273";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.273",
+    date: "2026-11-26",
+    changes: [
+      "Servidor: el 26/11 el disco de 30 GB llegó al 100 % (17 GB de copias de la base, una por cada publicación, guardadas 14 días), Postgres se detuvo y la tienda dio error 500. Se borraron las copias que ya estaban en Google (262 → 17) y se levantó la base. Desde ahora cada publicación, antes de compilar, hace esa limpieza y levanta la base si está caída (deploy/limpiar-disco.sh).",
+      "Aviso de poco lugar (Damián: \"siempre avisame antes cuando esta quedando poco espacio porque no podemos parar la produccion\"): Punto le muestra a gerencia una franja arriba desde el 80 % (amarilla) y el 90 % (roja) con lo que queda libre (src/lib/disco.ts, va con /sistema/version cada 2 minutos), y el vigía de GitHub mira el disco y la base cada 10 minutos: desde el 85 % o con la base caída falla y manda el mail.",
+    ],
+  },
   {
     version: "V.0.11.272",
     date: "2026-11-26",
