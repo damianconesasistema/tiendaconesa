@@ -10,6 +10,7 @@ import {
   limpiarPedidoPagar,
   limpiarPedidoPago,
   restoDe,
+  quienesAviso,
   resumenAgenda,
   situacion,
   sumarDias,
@@ -138,4 +139,18 @@ test("pagar menos deja el resto; pagar más (recargo) no deja nada", () => {
 test("el detalle del movimiento dice a quién y qué cuota", () => {
   assert.equal(detalleMovimiento({ proveedor: "FV S.A.", concepto: "FA 1234", cuota: 2, cuotas: 3 }, ""), "FV S.A. · FA 1234 · cuota 2/3");
   assert.equal(detalleMovimiento({ proveedor: "FV S.A.", concepto: "", cuota: 1, cuotas: 1 }, "transf. 55"), "FV S.A. · transf. 55");
+});
+
+// V.0.11.284: el aviso nombra a quién hay que pagarle.
+test("quiénes: por proveedor en cada situación, el vencimiento más cercano primero", () => {
+  const hoy = "2026-11-26";
+  const pg = (proveedor: string, vence: string, monto: number, estado = "pendiente") =>
+    ({ proveedor, vence, monto, estado, avisar: 3 }) as Parameters<typeof quienesAviso>[0][number];
+  const q = quienesAviso([pg("FV S.A.", "2026-11-20", 1000), pg("FV S.A.", "2026-11-22", 500.5), pg("PIAZZA", "2026-11-24", 200),
+    pg("FERRUM", "2026-11-26", 300), pg("LEKONS", "2026-11-28", 50), pg("ROTOPLAS", "2026-12-20", 9), pg("PAGADO", "2026-11-20", 7, "pagado")], hoy);
+  assert.deepEqual(q.vencido.lista, [{ proveedor: "FV S.A.", n: 2, total: 1500.5, vence: "2026-11-20" }, { proveedor: "PIAZZA", n: 1, total: 200, vence: "2026-11-24" }]);
+  assert.deepEqual(q.hoy.lista, [{ proveedor: "FERRUM", n: 1, total: 300, vence: "2026-11-26" }]);
+  assert.deepEqual(q.pronto.lista, [{ proveedor: "LEKONS", n: 1, total: 50, vence: "2026-11-28" }]);
+  const muchos = quienesAviso(Array.from({ length: 9 }, (_, i) => pg("P" + i, "2026-11-2" + (i % 5), 10)), hoy, 6);
+  assert.equal(muchos.vencido.lista.length + muchos.vencido.mas, 9 - muchos.hoy.lista.length - muchos.pronto.lista.length);
 });

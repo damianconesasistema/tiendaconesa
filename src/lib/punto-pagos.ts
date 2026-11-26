@@ -85,8 +85,9 @@ export async function listarPagos(f: { sucursales: readonly string[] | null; dia
 export async function pendientesParaAviso(sucursales: readonly string[] | null) {
   return prisma.puntoPago.findMany({
     where: { estado: "pendiente", ...deSucursales(sucursales) },
-    select: { estado: true, vence: true, avisar: true, monto: true },
-  }) as Promise<{ estado: EstadoPago; vence: string; avisar: number; monto: number }[]>;
+    // V.0.11.284: con el proveedor, para nombrarlo en el aviso.
+    select: { estado: true, vence: true, avisar: true, monto: true, proveedor: true },
+  }) as Promise<{ estado: EstadoPago; vence: string; avisar: number; monto: number; proveedor: string }[]>;
 }
 
 export async function pagoPorId(id: string): Promise<Pago | null> {

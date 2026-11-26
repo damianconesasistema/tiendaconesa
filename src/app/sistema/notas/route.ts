@@ -61,7 +61,9 @@ export async function GET(req: Request): Promise<Response> {
   if (yo instanceof Response) return yo;
   const u = new URL(req.url);
   try {
-    if (u.searchParams.get("aviso")) return json({ aviso: ve(yo) ? await contarNuevas(yo.sucursales) : null });
+    // V.0.11.284: el aviso de arriba, solo Gerencia para arriba ("igual que las notas").
+    if (u.searchParams.get("aviso"))
+      return json({ aviso: ve(yo) && puedePunto(yo.permisos, "gerencia") ? await contarNuevas(yo.sucursales) : null });
     if (!ve(yo)) return json({ error: "Lo que piden los clientes lo ve quien arma los pedidos (Proveedores o Gerencia)." });
     const dias = Math.min(366, Math.max(1, Math.round(Number(u.searchParams.get("dias")) || 60)));
     const notas = await listarNotas({ sucursales: yo.sucursales, dias });

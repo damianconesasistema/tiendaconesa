@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.283";
+export const APP_VERSION = "V.0.11.284";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,15 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.284",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Excel de artículos (el de Artículos y el que se baja en la lista del proveedor): muestra cómo está seteado cada artículo, en el orden en que se arma el precio: lista del proveedor, descuentos, pago contado (% y días), IVA, flete, costo, el markup al lado de cada lista, margen, subrubro, de a cuántos se compra y cómo se vende. Columnas más anchas y Código/Artículo fijos al correrse. Esos datos también se pueden cambiar en el Excel y subirlo. En la ventana de la lista del proveedor, un botón para bajar todos los artículos de la marca como están hoy. Damián: \"me refería al Excel que descarga en proveedores cuando querés bajar artículos para ver cómo tiene todo seteado\".",
+      "Aviso de pagos a proveedores: nombra a quién hay que pagarle, cuánto y cuándo vence (\"FV S.A. $1.850.000 vencía 24/11\"). Los avisos de pagos y de \"Lo que piden los clientes\" los ve solo Gerencia para arriba; la agenda la sigue viendo el que tiene el permiso. Damián: \"poneme el proveedor que es ... esas notificaciones las ven los usuarios gerencia para arriba, el resto no, igual que las notas\".",
+      "Agendar un pago: el proveedor se elige de una lista que se abre adentro de la misma ventana (antes se abría la del navegador, afuera). Damián: \"esto de elegir el proveedor arreglalo que sea dentro del mismo menú\".",
+    ],
+  },
   {
     version: "V.0.11.283",
     date: "2026-11-26",

@@ -662,6 +662,16 @@ input.sel-art{width:16px; height:16px; margin:0 8px 0 0; vertical-align:-3px; ac
 /* V.0.11.282: el aviso del combo tenía display:block a mano y se veía
    siempre, también en los que no son combo. */
 #aListaCombo[hidden]{display:none !important}
+/* V.0.11.284: la lista para elegir, dentro de la misma ventana (no la del
+   navegador, que se abría afuera). */
+.lev{position:absolute; left:0; right:0; top:100%; margin-top:3px; z-index:30; max-height:280px; overflow:auto;
+  background:var(--surface); border:1.5px solid var(--line-2); border-radius:8px; box-shadow:0 12px 30px rgba(0,0,0,.16); padding:4px}
+.lev[hidden]{display:none}
+.lev button{display:block; width:100%; text-align:left; border:0; background:none; padding:7px 10px; border-radius:6px;
+  font:inherit; font-size:14px; color:var(--ink); cursor:pointer; text-transform:none; letter-spacing:0}
+.lev button:hover, .lev button.on{background:var(--accent-soft)}
+.lev button b{color:var(--accent)}
+.lev-no{padding:8px 10px; font-size:13px; color:var(--ink-3)}
 .nc-grupo{display:grid; grid-template-columns:1fr auto; gap:6px 14px; padding:10px 0; border-bottom:1px solid var(--line)}
 .nc-grupo:last-child{border-bottom:0}
 .nc-tx{font-size:14.5px; font-weight:600}
@@ -11356,7 +11366,7 @@ function bajarBlob(nombre, blob){
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 /** Un Excel (.xlsx) con una hoja. cols: [{t, w, plata, num}]; filas: arrays. */
-function bajarXlsx(nombre, hoja, cols, filas){
+function bajarXlsx(nombre, hoja, cols, filas, fijas){
   const hj = String(hoja).replace(/[\\[\\]:*?\\/\\\\']/g, " ").slice(0, 31) || "Hoja1";
   const celda = (v, r, c, est) => {
     const ref = colLetra(c) + r, s = est ? ' s="' + est + '"' : "";
@@ -11367,7 +11377,9 @@ function bajarXlsx(nombre, hoja, cols, filas){
   const ult = colLetra(cols.length - 1) + (filas.length + 1);
   const hojaXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
     '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-    '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
+    (fijas > 0
+      ? '<sheetViews><sheetView workbookViewId="0"><pane xSplit="' + fijas + '" ySplit="1" topLeftCell="' + colLetra(fijas) + '2" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>'
+      : '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>') +
     '<cols>' + cols.map((c, i) => '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + (c.w || 14) + '" customWidth="1"/>').join("") + '</cols>' +
     '<sheetData><row r="1">' + cols.map((c, i) => celda(c.t, 1, i, 1)).join("") + '</row>' +
     filas.map((f, j) => '<row r="' + (j + 2) + '">' + f.map((v, i) => celda(v, j + 2, i, cols[i].plata ? 2 : 0)).join("") + '</row>').join("") +
@@ -11444,23 +11456,34 @@ document.getElementById("prvPdf").addEventListener("click", () => {
 });
 
 /* ---- Artículos: lo filtrado (todo, no solo las 300 filas que se ven) */
-const COLS_ART = [{ t:"Código", w:12 }, { t:"Cód. fabricante", w:16 }, { t:"Artículo", w:46 }, { t:"Marca", w:16 },
-  { t:"Proveedor", w:26 }, { t:"Rubro", w:14 }, { t:"Lista prov. s/IVA", w:15, plata:true }, { t:"Descuentos", w:20 },
-  { t:"Recargos", w:12 }, { t:"Costo s/IVA", w:13, plata:true }, { t:"IVA %", w:7, num:true }, { t:"Costo c/IVA", w:13, plata:true },
-  { t:"Lista 1", w:13, plata:true }, { t:"Lista 2", w:13, plata:true },
-  // V.0.11.282: el markup (Damián: "necesito que me muestres el markup de lista 1 y lista 2"). Se cambia y se sube con "Subir Excel".
-  { t:"Markup L1 %", w:11, num:true }, { t:"Markup L2 %", w:11, num:true }, { t:"Contado", w:13, plata:true },
-  { t:"Margen %", w:9, num:true }, { t:"Stock Bs. As.", w:10, num:true }, { t:"Stock Traslasierra", w:12, num:true }];
+/* V.0.11.284: el Excel muestra cómo está seteado cada artículo, en el orden
+   en que se arma el precio: lista del proveedor, descuentos, pago contado,
+   IVA, flete, costo; el markup al lado de cada lista; y cómo se compra y se
+   vende. Lo que no se calcula solo se puede cambiar y subir ("Subir Excel"). */
+const COLS_ART = [{ k:"cod", t:"Código", w:12 }, { k:"fab", t:"Cód. fabricante", w:16 }, { k:"tit", t:"Artículo", w:48 },
+  { k:"marca", t:"Marca", w:16 }, { k:"prov", t:"Proveedor", w:26 }, { k:"rub", t:"Rubro", w:14 }, { k:"sub", t:"Subrubro", w:16 },
+  { k:"lista", t:"Lista prov. s/IVA", w:17, plata:true }, { k:"desc", t:"Descuentos", w:22 }, { k:"rec", t:"Recargos", w:12 },
+  { k:"cpct", t:"Pago contado %", w:15, num:true }, { k:"cdias", t:"Pago contado días", w:17 },
+  { k:"csin", t:"Costo s/IVA", w:16, plata:true }, { k:"iva", t:"IVA %", w:8, num:true }, { k:"flete", t:"Flete $ c/IVA", w:14, plata:true },
+  { k:"ccon", t:"Costo c/IVA", w:16, plata:true },
+  { k:"mk1", t:"Markup L1 %", w:13, num:true }, { k:"l1", t:"Lista 1", w:16, plata:true },
+  { k:"mk2", t:"Markup L2 %", w:13, num:true }, { k:"l2", t:"Lista 2", w:16, plata:true },
+  { k:"cont", t:"Contado", w:16, plata:true }, { k:"marg", t:"Margen %", w:10, num:true },
+  { k:"bulto", t:"Se compra de a", w:15, num:true }, { k:"vende", t:"Se vende", w:18 },
+  { k:"sba", t:"Stock Bs. As.", w:13, num:true }, { k:"sts", t:"Stock Traslasierra", w:17, num:true }];
+const ixArt = k => COLS_ART.findIndex(c => c.k === k);
+const vendeTxtArt = p => p.vendeSuelto !== false && p.vendeCombo !== false ? "suelto y en combo" : p.vendeSuelto !== false ? "solo suelto" : "solo en combo";
 function filasArtExport(lista){
+  const r2 = n => Math.round(n * 100) / 100;
   return (lista || PROD_VER.todos || []).map(p => {
-    const a = GBP_CRUDO[p.cod];
-    const ds = (p.seis || []).filter(d => limD(d) > 0);
-    const l1 = lista1De(p);
-    return [p.cod.split("+")[0], p.codProv || "", p.tit || "", p.prov || "", String(p.cat || "").trim(), p.rub || "",
+    const ds = (p.seis || []).filter(d => limD(d) > 0), cont = +p.dctoCont > 0;
+    return [p.cod.split("+")[0], p.codProv || "", p.tit || "", p.prov || "", String(p.cat || "").trim(), p.rub || "", p.subrubro || "",
       +p.lista > 0 ? cent(+p.lista) : "", ds.length ? cadenaTxt(ds) : "", p.recs && p.recs.length ? recsTxt(p.recs) : "",
-      cent(netoProdDe(p)), ivaDe(p), cent(+p.costo || 0), l1, cent(+p.unPago || 0),
-      p.dtoGbp ? Math.round(p.l1 * 100) / 100 : "", Math.round(p.l2 * 100) / 100, cent(+p.contado || 0),
-      Math.round(margen(p) * 10) / 10, +p.dep.BA || 0, +p.dep.TS || 0];
+      cont ? r2(+p.dctoCont) : "", cont ? (p.contCheques ? p.contCheques.join("-") : (+p.contDias || 60)) : "",
+      cent(netoProdDe(p)), ivaDe(p), +p.fleteFijo > 0 ? cent(+p.fleteFijo) : "", cent(+p.costo || 0),
+      p.dtoGbp ? r2(p.l1) : "", lista1De(p), r2(p.l2), cent(+p.unPago || 0),
+      cent(+p.contado || 0), Math.round(margen(p) * 10) / 10,
+      +p.bulto > 1 ? +p.bulto : 1, vendeTxtArt(p), +p.dep.BA || 0, +p.dep.TS || 0];
   });
 }
 function nombreArt(ext){
@@ -11477,26 +11500,27 @@ function xlsxArtSeparado(lista){
   const cad = p => (p.seis || []).filter(d => limD(d) > 0).map(d => Math.round(limD(d) * 100) / 100);
   const rec = p => (p.recs || []).filter(r => +r > 0).map(r => Math.round(+r * 100) / 100);
   const nD = Math.max(4, ...ps.map(p => cad(p).length)), nR = Math.max(0, ...ps.map(p => rec(p).length));
-  const cols = COLS_ART.slice(0, 7)
-    .concat(Array.from({ length:nD }, (_, i) => ({ t:"Desc. " + (i + 1), w:8, num:true })))
-    .concat(Array.from({ length:nR }, (_, i) => ({ t:"Rec. " + (i + 1), w:8, num:true })))
-    .concat(COLS_ART.slice(9));
+  const iD = ixArt("desc"), iR = ixArt("rec");
+  const cols = COLS_ART.slice(0, iD)
+    .concat(Array.from({ length:nD }, (_, i) => ({ t:"Desc. " + (i + 1), w:9, num:true })))
+    .concat(Array.from({ length:nR }, (_, i) => ({ t:"Rec. " + (i + 1), w:9, num:true })))
+    .concat(COLS_ART.slice(iR + 1));
   const filas = filasArtExport(ps).map((f, j) => {
     const d = cad(ps[j]), r = rec(ps[j]);
-    return f.slice(0, 7).concat(Array.from({ length:nD }, (_, i) => d[i] != null ? d[i] : ""))
-      .concat(Array.from({ length:nR }, (_, i) => r[i] != null ? r[i] : "")).concat(f.slice(9));
+    return f.slice(0, iD).concat(Array.from({ length:nD }, (_, i) => d[i] != null ? d[i] : ""))
+      .concat(Array.from({ length:nR }, (_, i) => r[i] != null ? r[i] : "")).concat(f.slice(iR + 1));
   });
   return { cols, filas };
 }
 document.getElementById("fXlsx").addEventListener("click", () => {
   const x = xlsxArtSeparado(); if(!x.filas.length){ toast("No hay artículos con esos filtros."); return; }
-  bajarXlsx(nombreArt("xlsx"), "Artículos", x.cols, x.filas);
+  bajarXlsx(nombreArt("xlsx"), "Artículos", x.cols, x.filas, 3);
 });
 document.getElementById("fPdf").addEventListener("click", () => {
   const f = filasArtExport(); if(!f.length){ toast("No hay artículos con esos filtros."); return; }
   if(f.length > 1500 && !confirm("Son " + f.length.toLocaleString("es-AR") + " artículos: el PDF va a tener unas " +
       Math.ceil(f.length / 38) + " hojas. ¿Lo armo igual?\\n\\nPara achicarlo, elegí una marca o un proveedor antes.")) return;
-  const cols = [0, 2, 3, 7, 11, 12, 13, 16, 17, 18, 19];
+  const cols = ["cod", "tit", "marca", "desc", "ccon", "l1", "l2", "cont", "marg", "sba", "sts"].map(ixArt);
   const fp = document.getElementById("fProv").value, fc = document.getElementById("fCat").value;
   imprimirLista("Artículos" + (fp ? " · " + fp : "") + (fc ? " · " + fc : ""),
     "Sanitarios Conesa · " + f.length + " artículos · " + new Date().toLocaleDateString("es-AR"),
@@ -16583,7 +16607,10 @@ function cxColsPunto(cab){
   const col = { cod: ix("codigo"), fab: ix("cod. fabricante"), tit: ix("articulo"), lista: ix("lista prov. s/iva"),
     descTxt: ix("descuentos"), recTxt: ix("recargos"), iva: ix("iva %"), l1: ix("lista 1"),
     l2: ix("lista 2") >= 0 ? ix("lista 2") : ix("lista 2 (1 pago)"), csin: ix("costo s/iva"), ccon: ix("costo c/iva"),
-    cont: ix("contado"), marg: ix("margen %"), mk1: ix("markup l1 %"), mk2: ix("markup l2 %"), sba: ix("stock bs. as."), sts: ix("stock traslasierra"), desc: [], rec: [] };
+    cont: ix("contado"), marg: ix("margen %"), mk1: ix("markup l1 %"), mk2: ix("markup l2 %"),
+    // V.0.11.284: lo que se setea en cada artículo.
+    sub: ix("subrubro"), cpct: ix("pago contado %"), cdias: ix("pago contado dias"), flete: ix("flete $ c/iva"),
+    bulto: ix("se compra de a"), vende: ix("se vende"), sba: ix("stock bs. as."), sts: ix("stock traslasierra"), desc: [], rec: [] };
   h.forEach((x, i) => {
     let m = /^desc\\.? ?(\\d+)$/.exec(x); if(m) col.desc[+m[1] - 1] = i;
     m = /^rec\\.? ?(\\d+)$/.exec(x); if(m) col.rec[+m[1] - 1] = i;
@@ -16633,6 +16660,38 @@ function cxRevisarPunto(m){
     const t = cxT(f[col.tit]).replace(/[<>]/g, "");
     if(t && t !== cxT(p.tit)) d.tit = t.slice(0, 200);
     if(col.fab >= 0){ const x = cxT(f[col.fab]).toUpperCase().replace(/[<>]/g, "").slice(0, 40); if(x !== cxT(p.codProv).toUpperCase()) d.fab = x; }
+    // V.0.11.284: subrubro, pago contado, flete, de a cuántos se compra y cómo se vende.
+    if(col.sub >= 0){ const x = cxT(f[col.sub]).toUpperCase().replace(/[<>]/g, "").slice(0, 40); if(x !== cxT(p.subrubro).toUpperCase()) d.subrubro = x || null; }
+    if(col.flete >= 0){
+      const v = cxN(f[col.flete]), nv = v == null ? 0 : v;
+      if(nv < 0) mal("el flete no puede ser negativo"); else if(!cxIgual(nv, +p.fleteFijo || 0, 0.005)) d.flete = nv > 0 ? cent(nv) : null;
+    }
+    if(col.bulto >= 0){
+      const v = cxN(f[col.bulto]), nv = v == null ? 1 : v;
+      if(Math.floor(nv) !== nv || nv < 1 || nv > 10000) mal("«Se compra de a» va de 1 a 10.000 unidades");
+      else if(nv !== (+p.bulto > 1 ? +p.bulto : 1)) d.bulto = nv > 1 ? nv : null;
+    }
+    if(col.vende >= 0){
+      const s = plano(cxT(f[col.vende]));
+      if(s){
+        const ns = !/solo\\s+(en\\s+)?combo/.test(s), nc = !/solo\\s+suelto/.test(s);
+        if(ns !== (p.vendeSuelto !== false) || nc !== (p.vendeCombo !== false)) d.vende = ns && nc ? null : { suelto: ns, combo: nc };
+      }
+    }
+    if(col.cpct >= 0){
+      const v = cxN(f[col.cpct]), pct = v == null ? 0 : v;
+      let dias = 60, cheques = null;
+      if(col.cdias >= 0){
+        const s = cxT(f[col.cdias]);
+        if(/^\\d+(\\s*-\\s*\\d+)+$/.test(s)){ cheques = s.split("-").map(x => parseInt(x, 10)); dias = cheques[cheques.length - 1]; }
+        else { const dv = cxN(f[col.cdias]); if(dv != null) dias = dv; }
+      }
+      const hoyPct = +p.dctoCont || 0, hoyD = +p.contDias || 60, hoyCh = p.contCheques ? p.contCheques.join("-") : "";
+      if(pct < 0 || pct >= 100) mal("el descuento por pago contado va de 0 a 99,99 %");
+      else if(!(dias >= 0 && dias <= 365) || Math.floor(dias) !== dias || (cheques && (cheques.length > 6 || cheques.some(x => !(x >= 0 && x <= 365))))) mal("los días del pago contado van de 0 a 365");
+      else if(!(pct === 0 && hoyPct === 0) && (!cxIgual(pct, hoyPct, 0.001) || (pct > 0 && (dias !== hoyD || (cheques ? cheques.join("-") : "") !== hoyCh))))
+        d.contado = pct > 0 ? Object.assign({ pct: Math.round(pct * 100) / 100, dias }, cheques ? { cheques } : {}) : null;
+    }
     const fac = cxFacFlete(p);
     if(col.l1 >= 0){ const v = cxN(f[col.l1]); if(v != null && !cxIgual(v, lista1De(p))){ if(!(v > 0)) mal("la Lista 1 quedó en cero"); else d.lista1 = cent(v / fac); } }
     if(col.l2 >= 0){ const v = cxN(f[col.l2]); if(v != null && !cxIgual(v, cent(+p.unPago || 0))){ if(!(v > 0)) mal("la Lista 2 quedó en cero"); else d.lista2 = cent(v / fac); } }
@@ -16663,7 +16722,7 @@ function cxRevisarPunto(m){
        (col.sts >= 0 && cxN(f[col.sts]) != null && cxN(f[col.sts]) !== (+p.dep.TS || 0)))
       r.avisos.push("el stock no se cambia por Excel (se mueve con las ventas): no se usa");
     if(r.estado === "error") continue;
-    if(usd && ["lista", "cadena", "recargos", "lista1", "lista2", "iva"].some(k => d[k] !== undefined)){
+    if(usd && ["lista", "cadena", "recargos", "lista1", "lista2", "iva", "contado"].some(k => d[k] !== undefined)){
       mal("tiene el costo en dólares: cambialo en la ficha"); continue;
     }
     cxCompletar(r, m);
@@ -16931,7 +16990,7 @@ function cxPintar(){
     '<div class="st"><b>' + (m.filas ? "Soltá otro Excel acá" : "Soltá el Excel acá") + '</b> o <button class="b2" type="button" data-cx-elegir>elegilo</button></div>' +
     '<span class="por">' + (m.desde === "proveedor"
       ? "La lista del proveedor como la manda (el Excel de FV, por ejemplo): elegís qué columna es el código, el precio de lista y los descuentos, y la próxima vez se acuerda."
-      : "El Excel que bajaste de Artículos (botón Excel), con tus cambios: lista del proveedor, descuentos (Desc. 1, 2…), recargos, IVA, Lista 1, Lista 2, descripción. También sirve la lista de un proveedor.") +
+      : "El Excel que bajaste de Artículos (botón Excel), con tus cambios: lista del proveedor, descuentos (Desc. 1, 2…), recargos, pago contado, IVA, flete, markup, Lista 1, Lista 2, subrubro, de a cuántos se compra, cómo se vende, descripción. También sirve la lista de un proveedor.") +
     ' Solo se cambian artículos que ya están: no se crea ninguno.</span></div>';
   if(!m.filas){
     cuerpo.innerHTML = zona + '<div class="cx-hist" style="margin:4px 0 10px">' + cxHistHtml() + '</div>';
@@ -16954,6 +17013,13 @@ function cxPintar(){
   else {
     html += '<div class="cx-opc"><label><input type="checkbox" id="cxAcomp"' + (m.acompanar ? ' checked' : '') + '> La Lista 1 y la 2 acompañan al costo (queda el mismo margen)</label>' +
       '<span class="cx-nota" style="margin:0">Si en el Excel cambiaste la Lista 1 o la 2 a mano, manda lo tuyo.</span></div>';
+    // V.0.11.284: cómo están hoy los de la marca (Damián: "bajar artículos para ver cómo tiene todo seteado").
+    if(m.modo === "proveedor"){
+      const nM = PRODUCTOS.filter(p => plano(p.prov || "").trim() === plano(m.marca).trim()).length;
+      if(nM) html += '<div class="cx-opc"><button class="b1" type="button" data-cx-excel-marca style="padding:7px 16px;display:inline-flex;align-items:center;gap:7px">' +
+        '<span style="width:16px;height:16px;display:inline-flex">' + icoSvg("download") + '</span>Bajar Excel de los ' + nM + ' artículos de ' + txt(m.marca) + '</button>' +
+        '<span class="cx-nota" style="margin:0">Cómo están hoy: descuentos, contado, flete, markup, listas, margen…</span></div>';
+    }
     const tabs = [["cambia", "Cambian", n.cambia], ["revisar", "Para revisar", n.revisar], ["error", "Con errores", n.error, true],
       ["igual", "Sin cambios", n.igual]];
     if(m.modo === "proveedor") tabs.push(["noenlista", "Cargados y no están en la lista", m.noEnLista.length]);
@@ -17138,6 +17204,14 @@ async function cxClic(e){
     cxPintar(); return;
   }
   const dh = t.closest("[data-cx-desh]"); if(dh){ cxDeshacer(dh.dataset.cxDesh); return; }
+  if(t.closest("[data-cx-excel-marca]")){
+    const ps = PRODUCTOS.filter(p => plano(p.prov || "").trim() === plano(m.marca || "").trim());
+    if(!ps.length){ toast("No hay artículos de esa marca."); return; }
+    const x = xlsxArtSeparado(ps);
+    const nombre = "Articulos-" + nombreArchivo(m.marca || "marca") + "-" + hoyArchivo() + ".xlsx";
+    bajarXlsx(nombre, "Artículos " + m.marca, x.cols, x.filas, 3);
+    return;
+  }
   // V.0.11.280: el Excel de "Cargados y no están en la lista", en el formato
   // de Artículos (se edita y se sube con "Subir Excel").
   if(t.closest("[data-cx-excel]")){
@@ -17146,7 +17220,7 @@ async function cxClic(e){
     if(!ps.length){ toast("No hay artículos para bajar."); return; }
     const x = xlsxArtSeparado(ps);
     const nombre = nombreArchivo(m.marca || "proveedor") + "-cargados-que-no-estan-en-la-lista-" + hoyArchivo() + ".xlsx";
-    bajarXlsx(nombre, "No están en la lista", x.cols, x.filas);
+    bajarXlsx(nombre, "No están en la lista", x.cols, x.filas, 3);
     toast("Bajando " + nombre + " (" + ps.length + " artículos).");
     return;
   }
@@ -17346,7 +17420,8 @@ document.getElementById("ncVer").addEventListener("change", e => { NC.ver = e.ta
 const NC_AVISO_KEY = "punto.notas.avisoCerrado";
 function pintarAvisoNotas(a){
   const b = document.getElementById("ncAviso"); if(!b) return;
-  if(!a || !a.nuevas || !ncVe()){ b.hidden = true; return; }
+  // V.0.11.284: el aviso, solo Gerencia para arriba.
+  if(!a || !a.nuevas || !ncVe() || !puede("gerencia")){ b.hidden = true; return; }
   const clave = a.nuevas + ":" + (a.ultima || "");
   let cerrado = ""; try{ cerrado = sessionStorage.getItem(NC_AVISO_KEY) || ""; }catch(e){}
   if(cerrado === clave){ b.hidden = true; return; }
@@ -17358,7 +17433,7 @@ function pintarAvisoNotas(a){
   b.hidden = false;
 }
 async function traerAvisoNotas(){
-  if(!ncVe()) return;
+  if(!ncVe() || !puede("gerencia")) return;
   const d = await pedirJson("GET", NC_URL + "?aviso=1");
   if(d.error) return;
   pintarAvisoNotas(d.aviso);
@@ -17878,6 +17953,57 @@ const PG_SIT = { vencido:"Vencidos", hoy:"Vencen hoy", pronto:"Por vencer", desp
 const PG_TIPO_CTA = { efectivo:"efectivo", mercadopago:"Mercado Pago", banco:"banco" };
 /** La agenda vive en Proveedores: hace falta el área y la solapa. */
 const pgPuede = () => puede("pagos") && vistaPermitida("proveedores");
+/* V.0.11.284: una lista para elegir dentro de la misma ventana. Se escribe y
+   filtra (cada palabra, en cualquier orden); flechas y Enter, o el mouse;
+   Escape la cierra sin cerrar la ventana. Si no está, queda lo escrito. */
+function listaEnVentana(inp, nombres){
+  if(!inp) return;
+  const caja = document.createElement("div");
+  caja.className = "lev"; caja.hidden = true; caja.setAttribute("role", "listbox");
+  inp.parentNode.style.position = "relative";
+  inp.parentNode.appendChild(caja);
+  const todos = [...new Set(nombres.map(n => String(n || "").trim()).filter(Boolean))].sort((a, b) => COLL_ES.compare(a, b));
+  const st = { vis: [], i: -1, callar: false };
+  const resaltar = (n, toks) => {
+    let h = txt(n);
+    for(const t of toks){ const i = plano(n).indexOf(t); if(i >= 0 && t.length > 1){ h = txt(n.slice(0, i)) + "<b>" + txt(n.slice(i, i + t.length)) + "</b>" + txt(n.slice(i + t.length)); break; } }
+    return h;
+  };
+  const pintar = () => {
+    const toks = plano(inp.value).split(/\\s+/).filter(Boolean);
+    st.vis = todos.filter(n => { const b = plano(n); return toks.every(t => b.includes(t)); }).slice(0, 300);
+    if(st.i >= st.vis.length) st.i = st.vis.length - 1;
+    caja.innerHTML = st.vis.length
+      ? st.vis.map((n, k) => '<button type="button" role="option" data-lev="' + k + '"' + (k === st.i ? ' class="on"' : '') + '>' + resaltar(n, toks) + '</button>').join("")
+      : '<div class="lev-no">No está en la lista: queda como lo escribiste.</div>';
+    caja.hidden = false;
+    const on = caja.querySelector(".on"); if(on) on.scrollIntoView({ block:"nearest" });
+  };
+  const cerrar = () => { caja.hidden = true; st.i = -1; };
+  const elegir = k => {
+    if(st.vis[k] == null) return;
+    inp.value = st.vis[k]; cerrar();
+    st.callar = true;
+    inp.dispatchEvent(new Event("input", { bubbles:true })); inp.dispatchEvent(new Event("change", { bubbles:true }));
+    st.callar = false;
+  };
+  inp.addEventListener("click", () => { if(caja.hidden) pintar(); });
+  inp.addEventListener("input", () => { if(st.callar) return; st.i = -1; pintar(); });
+  inp.addEventListener("keydown", e => {
+    if(e.key === "ArrowDown" || e.key === "ArrowUp"){
+      e.preventDefault();
+      if(caja.hidden) pintar();
+      const n = st.vis.length; if(!n) return;
+      st.i = e.key === "ArrowDown" ? (st.i + 1) % n : (st.i <= 0 ? n - 1 : st.i - 1);
+      pintar();
+    } else if(e.key === "Enter" && !caja.hidden && st.i >= 0){ e.preventDefault(); e.stopPropagation(); elegir(st.i); }
+    else if(e.key === "Escape" && !caja.hidden){ e.preventDefault(); e.stopPropagation(); cerrar(); }
+    else if(e.key === "Tab") cerrar();
+  });
+  // mousedown y no click: así no se pierde por el blur de la casilla.
+  caja.addEventListener("mousedown", e => { e.preventDefault(); const b = e.target.closest("[data-lev]"); if(b) elegir(+b.dataset.lev); });
+  inp.addEventListener("blur", () => setTimeout(cerrar, 150));
+}
 const pgDia = d => d ? String(d).split("-").reverse().join("/") : "";
 const pgDiasEntre = (a, b) => Math.round((Date.parse(b + "T12:00:00Z") - Date.parse(a + "T12:00:00Z")) / 864e5);
 const pgSumarDias = (d, n) => new Date(Date.parse(d + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
@@ -17915,7 +18041,7 @@ async function pintarPagos(){
   const d = await pedirJson("GET", PG_URL + "?dias=120");
   if(d.error) PG.error = d.error; else { PG.d = d; PG.error = ""; }
   pintarListaPg();
-  if(PG.d) pintarAvisoPagos(PG.d.resumen, PG.d.hoy);
+  if(PG.d) pintarAvisoPagos(PG.d.resumen, PG.d.hoy, PG.d.quienes);
 }
 function pintarListaPg(){
   const tb = document.getElementById("tbPg"), cnt = document.getElementById("pgCount"), tiles = document.getElementById("pgTiles");
@@ -17993,8 +18119,8 @@ async function abrirFormPg(p){
     '<p class="envio-n">' + (nuevo ? "A quién, cuánto y cuándo vence. Si va en cuotas (por ejemplo cheques a 30, 60 y 90 días), poné cuántas y cada cuántos días: el total se reparte." :
       "Cambiá la fecha, el monto o lo que haga falta." + (p.cuotas > 1 ? " Es la cuota " + p.cuota + " de " + p.cuotas + ": las otras no se tocan." : "")) + '</p>' +
     '<div class="campos">' +
-      '<div class="campo ancho"><label for="pgfPrv">Proveedor *</label><input id="pgfPrv" type="text" list="pgfPrvOpc" maxlength="120" autocomplete="off" placeholder="Escribí y elegilo de la lista (o uno que no esté)">' +
-        '<datalist id="pgfPrvOpc">' + prvs.map(x => '<option value="' + atrib(x.razonSocial) + '"></option>').join("") + '</datalist></div>' +
+      // V.0.11.284: la lista se abre acá adentro (listaEnVentana), no la del navegador.
+      '<div class="campo ancho"><label for="pgfPrv">Proveedor *</label><input id="pgfPrv" type="text" maxlength="120" autocomplete="off" placeholder="Escribí y elegilo de la lista (o uno que no esté)"></div>' +
       '<div class="campo"><label for="pgfSuc">Paga *</label><select id="pgfSuc">' +
         sucs.map(s => '<option value="' + s.id + '"' + (s.id === sucIni ? ' selected' : '') + '>' + txt(s.n) + '</option>').join("") + '</select></div>' +
       '<div class="campo"><label for="pgfForma">Cómo se paga</label><select id="pgfForma">' +
@@ -18012,6 +18138,7 @@ async function abrirFormPg(p){
       '<button class="b1" type="button" id="pgfOk">' + (nuevo ? "Agendar" : "Guardar") + '</button></div></div>';
   document.body.appendChild(fondo);
   const $ = id => fondo.querySelector("#" + id);
+  listaEnVentana($("pgfPrv"), prvs.map(x => x.razonSocial));
   if(p){
     $("pgfPrv").value = p.proveedor; $("pgfForma").value = p.forma || ""; $("pgfConc").value = p.concepto || "";
     $("pgfMonto").value = plata2(p.monto); $("pgfVence").value = p.vence; $("pgfAvisar").value = p.avisar; $("pgfNota").value = p.nota || "";
@@ -18143,9 +18270,18 @@ function marcarNavPg(n){
   s.textContent = n > 99 ? "99+" : String(n);
   s.title = n + (n === 1 ? " pago vencido o que vence hoy" : " pagos vencidos o que vencen hoy");
 }
-function pintarAvisoPagos(res, hoy){
+/** V.0.11.284: a quién hay que pagarle ("poneme el proveedor que es"). */
+function pgQuienesTxt(q, s){
+  if(!q || !q[s] || !q[s].lista.length) return "";
+  const fecha = d => { const x = String(d || "").split("-"); return x.length === 3 ? x[2] + "/" + x[1] : ""; };
+  return ": " + q[s].lista.map(g => txt(g.proveedor) + " " + fmt2(g.total) + (g.n > 1 ? " (" + g.n + " pagos)" : "") +
+    (s === "vencido" ? " vencía " + fecha(g.vence) : s === "pronto" ? " el " + fecha(g.vence) : "")).join(", ") +
+    (q[s].mas ? " y " + q[s].mas + (q[s].mas === 1 ? " proveedor más" : " proveedores más") : "");
+}
+function pintarAvisoPagos(res, hoy, quienes){
   const b = document.getElementById("pgAviso"); if(!b) return;
-  if(!res || !pgPuede()){ b.hidden = true; marcarNavPg(0); return; }
+  // V.0.11.284: el aviso, solo Gerencia para arriba (la agenda, el que tiene el permiso).
+  if(!res || !pgPuede() || !puede("gerencia")){ b.hidden = true; marcarNavPg(0); return; }
   const cero = { n:0, total:0 };
   const v = res.vencido || cero, h = res.hoy || cero, pr = res.pronto || cero;
   marcarNavPg(v.n + h.n);
@@ -18153,9 +18289,9 @@ function pintarAvisoPagos(res, hoy){
   let cerrado = ""; try{ cerrado = sessionStorage.getItem(PG_AVISO_KEY) || ""; }catch(e){}
   if(!(v.n + h.n + pr.n) || cerrado === clave){ b.hidden = true; return; }
   const partes = [];
-  if(v.n) partes.push("<b>" + v.n + (v.n === 1 ? " vencido" : " vencidos") + "</b> (" + fmt2(v.total) + ")");
-  if(h.n) partes.push("<b>" + h.n + (h.n === 1 ? " vence hoy" : " vencen hoy") + "</b> (" + fmt2(h.total) + ")");
-  if(pr.n) partes.push(pr.n + (pr.n === 1 ? " vence en los próximos días" : " vencen en los próximos días") + " (" + fmt2(pr.total) + ")");
+  if(v.n) partes.push("<b>" + v.n + (v.n === 1 ? " vencido" : " vencidos") + "</b> (" + fmt2(v.total) + ")" + pgQuienesTxt(quienes, "vencido"));
+  if(h.n) partes.push("<b>" + h.n + (h.n === 1 ? " vence hoy" : " vencen hoy") + "</b> (" + fmt2(h.total) + ")" + pgQuienesTxt(quienes, "hoy"));
+  if(pr.n) partes.push(pr.n + (pr.n === 1 ? " vence en los próximos días" : " vencen en los próximos días") + " (" + fmt2(pr.total) + ")" + pgQuienesTxt(quienes, "pronto"));
   b.className = "pg-aviso" + (v.n ? " mal" : "");
   b.dataset.clave = clave;
   b.innerHTML = '<span><b>Pagos a proveedores:</b> ' + partes.join(" · ") + '</span>' +
@@ -18164,10 +18300,10 @@ function pintarAvisoPagos(res, hoy){
   b.hidden = false;
 }
 async function traerAvisoPagos(){
-  if(!pgPuede()) return;
+  if(!pgPuede() || !puede("gerencia")){ pintarAvisoPagos(null); return; }
   const d = await pedirJson("GET", PG_URL + "?aviso=1");
   if(d.error || !d.aviso) return;
-  pintarAvisoPagos(d.aviso, d.hoy);
+  pintarAvisoPagos(d.aviso, d.hoy, d.quienes);
 }
 document.getElementById("pgAviso").addEventListener("click", e => {
   const b = document.getElementById("pgAviso");

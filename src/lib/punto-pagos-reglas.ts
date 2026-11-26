@@ -266,6 +266,37 @@ export function resumenAgenda(pagos: readonly Pick<Pago, "estado" | "vence" | "a
   return r;
 }
 
+/** V.0.11.284: a quién hay que pagarle, para el aviso de arriba. Por
+ *  proveedor dentro de cada situación (vencido, hoy, pronto): cuántos, cuánto
+ *  y el vencimiento más cercano. Los primeros "tope" y cuántos quedan. */
+export type QuienAviso = { proveedor: string; n: number; total: number; vence: string };
+export type QuienesAviso = Record<"vencido" | "hoy" | "pronto", { lista: QuienAviso[]; mas: number }>;
+export function quienesAviso(
+  pagos: readonly Pick<Pago, "estado" | "vence" | "avisar" | "monto" | "proveedor">[],
+  hoy: string,
+  tope = 6,
+): QuienesAviso {
+  const grupos: Record<string, Map<string, { n: number; cent: number; vence: string }>> = { vencido: new Map(), hoy: new Map(), pronto: new Map() };
+  for (const p of pagos) {
+    const s = situacion(p, hoy);
+    if (s !== "vencido" && s !== "hoy" && s !== "pronto") continue;
+    const k = String(p.proveedor || "").trim() || "Sin proveedor";
+    const g = grupos[s].get(k) ?? { n: 0, cent: 0, vence: p.vence };
+    g.n++;
+    g.cent += aCentavos(p.monto);
+    if (p.vence < g.vence) g.vence = p.vence;
+    grupos[s].set(k, g);
+  }
+  const r = {} as QuienesAviso;
+  for (const s of ["vencido", "hoy", "pronto"] as const) {
+    const todos = [...grupos[s]]
+      .map(([proveedor, g]) => ({ proveedor, n: g.n, total: dePesos(g.cent), vence: g.vence }))
+      .sort((a, b) => (a.vence < b.vence ? -1 : a.vence > b.vence ? 1 : b.total - a.total));
+    r[s] = { lista: todos.slice(0, tope), mas: Math.max(0, todos.length - tope) };
+  }
+  return r;
+}
+
 /** Lo que queda pendiente si se paga menos de lo agendado (0 si se pago todo
  *  o mas: un recargo o intereses). */
 export const restoDe = (agendado: number, pagado: number): number => dePesos(Math.max(0, aCentavos(agendado) - aCentavos(pagado)));

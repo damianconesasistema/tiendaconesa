@@ -18,6 +18,7 @@ import {
   limpiarPedidoPagar,
   limpiarPedidoPago,
   pesosTxt,
+  quienesAviso,
   resumenAgenda,
 } from "@/lib/punto-pagos-reglas";
 import { fueraDeSucursal, nombreSucursalPunto, nombresSucursales, puedePunto } from "@/lib/punto-permisos";
@@ -104,8 +105,12 @@ export async function GET(req: Request): Promise<Response> {
   const tiene = puedePunto(yo.permisos, "pagos");
   try {
     if (u.searchParams.get("aviso")) {
-      if (!tiene) return json({ aviso: null, hoy });
-      return json({ aviso: resumenAgenda(await pendientesParaAviso(yo.sucursales), hoy), hoy });
+      // V.0.11.284: el aviso lo ve Gerencia para arriba (Damián: "esas
+      // notificaciones las ven los usuarios gerencia para arriba, el resto
+      // no"); la agenda la sigue viendo el que tiene el permiso.
+      if (!tiene || !puedePunto(yo.permisos, "gerencia")) return json({ aviso: null, hoy });
+      const pend = await pendientesParaAviso(yo.sucursales);
+      return json({ aviso: resumenAgenda(pend, hoy), quienes: quienesAviso(pend, hoy), hoy });
     }
     if (!tiene) return json({ error: "Tu usuario no tiene la agenda de pagos. Pedíselo a quien administra los usuarios." });
     const dias = Math.min(366, Math.max(1, Math.round(Number(u.searchParams.get("dias")) || 60)));
@@ -114,6 +119,7 @@ export async function GET(req: Request): Promise<Response> {
       pagos: lista.pagos,
       truncado: lista.truncado,
       resumen: resumenAgenda(lista.pagos, hoy),
+      quienes: quienesAviso(lista.pagos, hoy),
       // Solo lo que hace falta para elegir (sin saldos).
       cuentas: cuentasPara(yo, cuentas).map(({ id, sucursal, tipo, nombre, banco }) => ({ id, sucursal, tipo, nombre, banco })),
       puedeTodo: puedeTodo(yo),
