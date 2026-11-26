@@ -1,6 +1,8 @@
-import { getAdminSession } from "@/lib/admin-auth";
+import { cookies } from "next/headers";
+import { type AdminSession, getAdminSession, inicioDeSesion } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { leerPunto, leerSucursales, permisosEfectivos } from "@/lib/punto-permisos";
+import { COOKIE_VER_COMO, type ComoQuien, aplicarVerComo, leerVerComo } from "@/lib/punto-ver-como";
 import { PRINCIPAL } from "@/lib/usuarios";
 
 // Quien esta usando Punto y que puede hacer adentro (src/lib/punto-permisos.ts).
@@ -32,11 +34,35 @@ export type YoPunto = {
    *  Los controles de emitir, cobrar y mover caja miran esta. */
   sucursales: string[] | null;
   adminUsuarios: boolean;
+  /** V.0.11.266: si esta mirando Punto como otro perfil o usuario
+   *  (src/lib/punto-ver-como.ts). Entonces permisos y sucursales ya son los
+   *  de ese perfil (cruzados con los suyos) y adminUsuarios es false. */
+  como?: ComoQuien | null;
 };
 
+/** Quien usa Punto y que puede, ya visto como el perfil que eligio para
+ *  revisar ("ver como"), si eligio uno. Es lo que usan la pagina y todas las
+ *  direcciones de /sistema: asi lo que ve y lo que el servidor le deja hacer
+ *  coinciden. */
 export async function yoPunto(): Promise<YoPunto | null> {
   const s = await getAdminSession();
   if (!s) return null;
+  const yo = await yoDeSesion(s);
+  if (!yo) return yo;
+  const jar = await cookies();
+  return aplicarVerComo(yo, leerVerComo(jar.get(COOKIE_VER_COMO)?.value), inicioDeSesion(s));
+}
+
+/** Lo de verdad, sin el "ver como": solo para la direccion que lo prende y
+ *  lo apaga (/sistema/ver-como). */
+export async function yoPuntoReal(): Promise<{ yo: YoPunto; sesion: number } | null> {
+  const s = await getAdminSession();
+  if (!s) return null;
+  const yo = await yoDeSesion(s);
+  return yo ? { yo, sesion: inicioDeSesion(s) } : null;
+}
+
+async function yoDeSesion(s: AdminSession): Promise<YoPunto | null> {
   // "admin" no esta en la tabla (src/lib/usuarios.ts): puede todo.
   if (s.username === PRINCIPAL)
     return { usuario: s.username, nombre: s.username, permisos: permisosEfectivos(null), sucursal: null, sucursales: null, adminUsuarios: true };

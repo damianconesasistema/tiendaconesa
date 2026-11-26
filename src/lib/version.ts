@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.265";
+export const APP_VERSION = "V.0.11.266";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.266",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Usuarios: \"Ver el sistema como otro\". El que administra los usuarios elige un perfil (Vendedor, Cajero, Depósito, Encargado, Gerencia) con su sucursal, o un usuario, y Punto se abre como lo vería ese: las mismas solapas, los mismos botones y lo que el servidor le deja hacer (src/lib/punto-ver-como.ts, /sistema/ver-como). Solo achica: se cruza con los permisos de verdad. Arriba queda una franja oscura con \"Volver a mi usuario\"; se corta solo a las 8 horas o al salir. Lo que se haga mirando así es de verdad y queda a nombre del que entró.",
+    ],
+  },
   {
     version: "V.0.11.265",
     date: "2026-11-25",
