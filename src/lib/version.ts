@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.278";
+export const APP_VERSION = "V.0.11.279";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.279",
+    date: "2026-11-26",
+    changes: [
+      "Punto: las ventanas \"Lista de precios del proveedor\" y \"Cambiar precios\" se abren anchas (hasta 1280 px) y la tabla se puede correr de costado (Damián: \"no se lee de costado y el scroll no se puede hacer\"). Pedían 1200 px pero otro estilo las dejaba en 620.",
+      "Punto, Excel y CSV: las letras que vienen perdidas en el archivo (\"Categor�a\", \"Descripci�n\" en la lista de FV) se reponen con las palabras conocidas (las de los artículos cargados y una lista fija: Categoría, Descripción, Caño, Bañera, Desagüe…). Si no se sabe cuál era, queda como vino.",
+    ],
+  },
   {
     version: "V.0.11.278",
     date: "2026-11-26",

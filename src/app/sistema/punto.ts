@@ -580,6 +580,9 @@ tr.mov-eliminado td:last-child{opacity:1}
 .efe-aviso.mal{background:#fdecea;color:var(--bad)}
 /* V.0.11.258: cambios de precios por Excel. */
 .cx-caja{width:min(1200px,100%); max-height:calc(100vh - 24px); display:flex; flex-direction:column}
+/* V.0.11.279: con las dos clases, para ganarle a .envio-caja (620 px). */
+.envio-caja.cx-caja{width:min(1280px,100%); max-height:calc(100vh - 24px); overflow:hidden}
+.cx-cuerpo .tabla-wrap{overflow:auto}
 .cx-cuerpo{overflow:auto; padding:0 16px 8px; flex:1; min-height:0}
 .cx-map{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px 14px; margin:10px 0}
 .cx-map label{font-size:12px; font-weight:600; color:var(--ink-2); display:block; margin-bottom:4px}
@@ -1607,7 +1610,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.278</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.279</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -7041,6 +7044,44 @@ const desescapar = t => String(t)
   .replace(/&amp;/g,"&");
 
 /** El CSV, con el separador que venga y respetando las comillas. */
+/* V.0.11.279: letras que vienen perdidas en el archivo ("Categor\\uFFFDa",
+   "Descripci\\uFFFDn"): la letra se perdió antes de llegar (al exportar o
+   guardar el Excel). Se repone con las palabras conocidas: las de los
+   artículos cargados y una lista fija. Si no se sabe, queda como vino. */
+const PALABRAS_CON_TILDE = ("categoría descripción código bonificación artículo número línea válvula cerámica cerámico " +
+  "acrílico grifería plástico plástica extensión campaña baño bañera caño cañería desagüe año tamaño diseño pequeño " +
+  "único más ángulo térmico térmica eléctrico eléctrica automático métrico depósito presentación posición dirección " +
+  "observación información fabricación promoción condición excepción teléfono razón jabón cajón colección sección " +
+  "conexión reducción unión tensión presión rápido económico múltiple compañía señal mañana niño").split(" ");
+let DIC_ROTOS = null;
+function dicRotos(){
+  if(DIC_ROTOS && DIC_ROTOS.n === PRODUCTOS.length) return DIC_ROTOS;
+  const m = new Map(), poner = w => { const k = w.toUpperCase(); m.set(k, (m.get(k) || 0) + 1); };
+  for(const w of PALABRAS_CON_TILDE) poner(w);
+  for(const p of PRODUCTOS) for(const w of (String(p.tit || "").match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/g) || []))
+    if(/[ÁÉÍÓÚÜÑáéíóúüñ]/.test(w)) poner(w);
+  return DIC_ROTOS = { n: PRODUCTOS.length, m };
+}
+function arreglarPalabra(w){
+  const up = w.toUpperCase();
+  if((up.match(/\\uFFFD/g) || []).length !== 1) return w;
+  const d = dicRotos().m;
+  let mejor = "", n = 0;
+  for(const c of "ÑÁÉÍÓÚÜ"){ const k = d.get(up.replace("\\uFFFD", c)) || 0; if(k > n){ n = k; mejor = c; } }
+  if(!mejor){ if(/[CSX]I\\uFFFDN(ES)?$/.test(up)) mejor = "Ó"; else return w; }
+  // En minúscula si la palabra va en minúscula ("Categoría", no "CategorÍa").
+  const i = w.indexOf("\\uFFFD"), vecino = w[i - 1] || w[i + 1] || "";
+  const minus = !!vecino && vecino === vecino.toLowerCase() && vecino !== vecino.toUpperCase();
+  return w.slice(0, i) + (minus ? mejor.toLowerCase() : mejor) + w.slice(i + 1);
+}
+function arreglarRotos(filas){
+  for(const f of filas) for(let i = 0; i < f.length; i++){
+    const v = f[i];
+    if(typeof v === "string" && v.indexOf("\\uFFFD") >= 0)
+      f[i] = v.replace(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\\uFFFD]*\\uFFFD[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\\uFFFD]*/g, arreglarPalabra);
+  }
+  return filas;
+}
 function filasCSV(txt){
   txt = String(txt).replace(/^﻿/, "");
   const prim = txt.split(/\\r?\\n/).find(x=>x.trim()) || "";
@@ -7064,7 +7105,7 @@ function filasCSV(txt){
     else if(ch !== "\\r") v += ch;
   }
   if(v !== "" || f.length){ f.push(v); filas.push(f); }
-  return filas.filter(x => x.some(c => String(c).trim()));
+  return arreglarRotos(filas.filter(x => x.some(c => String(c).trim())));
 }
 
 /** Un .xlsx es un zip. Esto lo abre sin ninguna librería. */
@@ -7160,7 +7201,7 @@ async function filasXlsx(buf, tipado){
     filas.push(f);
   }
   if(!filas.length) throw new Error("Ese Excel está vacío.");
-  return filas.filter(x => x.some(c => String(c).trim()));
+  return arreglarRotos(filas.filter(x => x.some(c => String(c).trim())));
 }
 
 /* ------------------------------------------------ leer un PDF de verdad
