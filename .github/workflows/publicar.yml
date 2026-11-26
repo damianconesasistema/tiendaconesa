@@ -61,6 +61,12 @@ jobs:
           git -C /opt/conesa checkout -q "${{ github.sha }}"
           git -C /opt/conesa log --oneline -1
 
+      # 26/11/2026: el disco del servidor llego al 100 %. Antes de nada: que
+      # use el lugar nuevo si se agrando, y borrar las copias de la base que
+      # ya estan en Google (ver deploy/limpiar-disco.sh). Nunca frena.
+      - name: Lugar en el disco del servidor
+        run: $SSH 'sudo bash -s' < /opt/conesa/deploy/limpiar-disco.sh || echo "    (no se pudo revisar el disco, seguimos)"
+
       # Sin cache de npm: el cache busca el package-lock DENTRO de la carpeta
       # del runner y el nuestro esta en /opt/conesa, que es a proposito (ver
       # arriba). Pedirselo igual hace fallar el paso entero. Bajar las
