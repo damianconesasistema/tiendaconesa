@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.271";
+export const APP_VERSION = "V.0.11.272";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.272",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Artículos → Adjuntar con una factura de compra (Damián, con una de FV: \"si no estan los productos se cargan nuevo, si ya estan deberian actualizarse al stock de la que ya esta creada. tambien deberia preguntar si quiero cambiar los precios o descuentos si cambiaron\"). Lo que ya está suma la cantidad al stock del depósito de la razón social de la factura (CNC/SRL → Buenos Aires, Carlos Daniel → Córdoba), una sola vez por factura (proveedor + número; subirla de nuevo no suma). Si cambió la lista o el descuento, el renglón lo muestra (antes → ahora y cuánto cambia el costo) con un tilde \"actualizar\" (o \"Tildar todos los precios\"); se aplica con Lista 1 y 2 acompañando al costo y queda en Últimas subidas para deshacer. El descuento total de FV en una cifra (55,75 %) se compara con la cadena de Punto: si da lo mismo, no cambió.",
+      "Lectura de PDF: sigue las referencias de /Length y /Filter (las facturas de FV salen de SAP y antes daban 0 renglones); los renglones se arman por cercanía (el texto y los números del mismo renglón ya no se parten); una factura (con CUIT arriba) se acomoda por las columnas de su encabezado, así una columna vacía no corre las demás. Con CUIT, el proveedor de la factura se elige solo aunque hubiera otro elegido.",
+    ],
+  },
   {
     version: "V.0.11.271",
     date: "2026-11-26",

@@ -739,6 +739,53 @@ export async function moverStockEnTx(
 }
 
 // ---------------------------------------------------------------------------
+// V.0.11.272: el stock que entra con una factura de compra (Articulos →
+// Adjuntar). Damian, 26/11/2026: "si ya estan deberian actualizarse al stock
+// de la que ya esta creada". Cada factura queda anotada (proveedor + numero):
+// subirla otra vez no suma dos veces.
+
+export const CLAVE_INGRESOS = "punto.articulos.ingresos";
+const INGRESOS_MAXIMO = 500;
+export type IngresoFactura = {
+  clave: string;
+  factura: string;
+  proveedor: string;
+  dep: "BA" | "TS";
+  fecha: string;
+  por: string;
+  /** Cuantos articulos que ya estaban sumaron stock. */
+  n: number;
+};
+
+/** Suma el stock de una factura de compra, una sola vez por factura. Con
+ *  movs vacio igual la anota (la factura solo traia articulos nuevos, que
+ *  se crean con su cantidad). */
+export async function ingresarStockFactura(
+  info: { clave: string; factura: string; proveedor: string; dep: "BA" | "TS" },
+  movs: MovimientoStock[],
+  usuario: string,
+): Promise<{ ya: IngresoFactura } | { stock: StockArticulo[] }> {
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT 1 AS "ok" FROM pg_advisory_xact_lock(hashtext(${CLAVE_INGRESOS}))`;
+    const fila = await tx.setting.findUnique({ where: { key: CLAVE_INGRESOS } });
+    let lista: IngresoFactura[] = [];
+    try {
+      const d: unknown = fila ? JSON.parse(fila.value) : [];
+      if (Array.isArray(d)) lista = d as IngresoFactura[];
+    } catch {
+      lista = [];
+    }
+    const ya = lista.find((x) => x && x.clave === info.clave);
+    if (ya) return { ya };
+    const stock = movs.length ? await moverStockEnTx(tx, info.dep, movs) : [];
+    lista.push({ ...info, fecha: new Date().toISOString(), por: usuario, n: stock.length });
+    const value = JSON.stringify(lista.slice(-INGRESOS_MAXIMO));
+    await tx.setting.upsert({ where: { key: CLAVE_INGRESOS }, update: { value }, create: { key: CLAVE_INGRESOS, value } });
+    return { stock };
+  }, TIEMPO);
+}
+
+// ---------------------------------------------------------------------------
 // V.0.11.258: cambios de precios por Excel (el de Articulos de Punto editado,
 // o la lista de un proveedor). Las reglas: src/lib/punto-cambios-excel.ts.
 // Solo para los que YA estan (nunca crea); cada cambio trae lo que se vio y,
@@ -748,7 +795,9 @@ export async function moverStockEnTx(
 /** El historial de las subidas y las columnas de la lista de cada
  *  proveedor (otro renglon de Setting: el de los articulos ya es grande). */
 export const CLAVE_CAMBIOS = "punto.articulos.cambios";
-export type OrigenCambios = "excel" | "proveedor" | "masivo";
+/** V.0.11.272: "factura" = los precios que cambiaron en una factura de
+ *  compra subida en Artículos → Adjuntar (y se tildaron para actualizar). */
+export type OrigenCambios = "excel" | "proveedor" | "masivo" | "factura";
 const HISTORIAL_MAXIMO = 6;
 
 export type RenglonHistorial = { cod: string; antes: FotoArticulo; despues: FotoArticulo };

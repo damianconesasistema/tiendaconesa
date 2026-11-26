@@ -1121,6 +1121,11 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 /* V.0.11.267: lo que ya hay en Punto de cada renglón. No se tacha: es lo que explica por qué el renglón no va. */
 .adj-prev td.adj-st, .adj-prev th.adj-st{white-space:nowrap; max-width:300px; overflow:hidden; text-overflow:ellipsis; font-size:12px}
 .adj-prev tr.fuera td.adj-st{text-decoration:none}
+/* V.0.11.272: lo que pasa con lo que ya está (stock, precio). */
+.adj-prev td.adj-st{white-space:normal; min-width:240px; max-width:420px}
+.adj-prev .adj-ya{display:block; margin-top:3px; font-size:11.5px; color:var(--ink-2)}
+.adj-prev label.adj-precio{color:var(--warn); cursor:pointer}
+.adj-prev label.adj-precio input{vertical-align:-2px}
 .adj-prev tr.fuera td{text-decoration:line-through}
 .adj-prev input.adj-cel{width:100%; min-width:64px; max-width:250px; font:inherit; color:inherit;
   background:transparent; border:1px solid transparent; border-bottom-color:var(--line);
@@ -1602,7 +1607,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.271</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.272</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -7169,6 +7174,22 @@ async function streamsPdf(buf){
   const b = new Uint8Array(buf);
   const crudo = new TextDecoder("latin1").decode(b);
   const salida = [];
+  // V.0.11.272: "/Length 4 0 R" y "/Filter 3 0 R" apuntan a otro objeto (así
+  // los arma SAP, por ejemplo la factura de FV). Se busca ese objeto y se
+  // pone su valor en el lugar de la referencia.
+  let objetos = null;
+  const objeto = (n, g) => {
+    if(!objetos){
+      objetos = new Map();
+      for(const o of crudo.matchAll(/(?:^|[\\r\\n\\s])(\\d+)\\s+(\\d+)\\s+obj\\b/g)) objetos.set(o[1] + " " + o[2], o.index + o[0].length);
+    }
+    const ini = objetos.get(n + " " + g); if(ini == null) return "";
+    const fin = crudo.indexOf("endobj", ini);
+    return crudo.slice(ini, fin < 0 ? ini + 200 : Math.min(fin, ini + 2000)).trim();
+  };
+  const sinRefs = dic => /\\/(Length|Filter)\\s+\\d+\\s+\\d+\\s+R\\b/.test(dic)
+    ? dic.replace(/\\/(Length|Filter)\\s+(\\d+)\\s+(\\d+)\\s+R\\b/g, (x, k, n, g) => { const v = objeto(n, g); return v && !/stream/.test(v) ? "/" + k + " " + v + " " : x; })
+    : dic;
   // "endstream" también termina en "stream": sin el (?<!end) se lee basura.
   const re = /(?<!end)stream\\r?\\n?/g;
   let m;
@@ -7178,7 +7199,7 @@ async function streamsPdf(buf){
     if(cierre < 0) continue;
     // El diccionario del objeto: lo que va entre su "obj" y este "stream".
     const desde = crudo.lastIndexOf(" obj", m.index);
-    const dic = crudo.slice(desde < 0 ? Math.max(0, m.index - 900) : desde, m.index);
+    const dic = sinRefs(crudo.slice(desde < 0 ? Math.max(0, m.index - 900) : desde, m.index));
     re.lastIndex = cierre;
     if(/\\/Image|\\/DCTDecode|\\/JPXDecode|\\/CCITTFaxDecode/.test(dic)) continue;
     // El largo que declara el propio PDF manda; si no está, hasta el cierre.
@@ -7229,14 +7250,21 @@ function trozosPdf(contenido){
 
 /** Los trozos, acomodados en renglones y columnas. */
 function filasDeTrozos(tr){
-  const porY = {};
-  for(const t of tr){
-    const k = Math.round(t.y / 3) * 3;      // misma línea, con medio punto de juego
-    (porY[k] = porY[k] || []).push(t);
+  // V.0.11.272: los renglones se arman por cercanía. Antes iban en casilleros
+  // de 3 puntos y en la factura de FV el texto (353,4) y los números (352,2)
+  // del mismo renglón caían en casilleros distintos: el renglón salía partido.
+  const ord = tr.slice().sort((a, b) => b.y - a.y), lineas = [];
+  for(const t of ord){
+    const l = lineas[lineas.length - 1];
+    const tol = Math.max(1.5, Math.min(3, (+t.tam || 10) * 0.35));
+    if(l && Math.abs(l.y - t.y) <= tol) l.ts.push(t); else lineas.push({ y: t.y, ts: [t] });
   }
   const filas = [];
-  for(const k of Object.keys(porY).map(Number).sort((a,b)=>b-a)){
-    const linea = porY[k].sort((a,b)=>a.x - b.x);
+  for(const ln of lineas){
+    const linea = ln.ts.sort((a,b)=>a.x - b.x);
+    // El ancho de cada trozo, con la letra que más se usa en el renglón (un
+    // tamaño mal leído, como el 26 de un título de otra factura, no lo estira).
+    const tams = linea.map(t => +t.tam || 10).sort((a, b) => a - b), tamM = Math.min(14, tams[Math.floor(tams.length / 2)] || 10);
     const celdas = [];
     let act = null, finAnt = -1e9;
     for(const t of linea){
@@ -7249,7 +7277,12 @@ function filasDeTrozos(tr){
       finAnt = t.x + t.t.length * t.tam * 0.5;
     }
     const f = celdas.map(c => c.t.replace(/\\s+/g, " ").trim()).filter(c => c !== "");
-    if(f.length) filas.push(f);
+    if(f.length){
+      // V.0.11.272: los trozos con su lugar, para acomodar una factura por las
+      // columnas de su encabezado (grillaFactura).
+      Object.defineProperty(f, "_ts", { value: linea.filter(t => t.t.trim()).map(t => ({ t: t.t.replace(/\\s+/g, " ").trim(), x: t.x, fin: t.x + t.t.replace(/\\s+$/, "").length * tamM * 0.5 })), enumerable: false });
+      filas.push(f);
+    }
   }
   return filas;
 }
@@ -7319,7 +7352,7 @@ function adivinarColumnas(cab){
    como encabezado ("FECHA: 24/11/2026") y todo el membrete entraba como
    artículos. Ahora se busca el renglón que de verdad es el encabezado de la
    tabla, y se cortan el membrete y el pie. */
-const ETIQ_FACTURA = /(C[oó]d(?:igo)?\\.?|Art[ií]culo|Cant(?:idad)?\\.?|Descripci[oó]n|Detalle|Precio\\s*Unit(?:ario)?\\.?|P\\.\\s*Unit\\.?|Bonif(?:icaci[oó]n)?\\.?\\s*(?:Gral\\.?)?|Desc\\.?\\s*Esp\\.?|Dto\\.?\\s*\\d?|Precio\\s*Neto|Neto|Importe|Subtotal|Sub\\s*Total|Total|Alic\\.?\\s*IVA|IVA)/gi;
+const ETIQ_FACTURA = /(C[oó]d(?:igo)?\\.?|Art[ií]culo|Cant(?:idad)?\\.?|Descripci[oó]n(?:\\s+de\\s+la\\s+compra)?|Detalle|Orden\\s*(?:de\\s*)?compra|Nro\\.?\\s*pedido|Fecha\\s*pedido|Precio\\s*de\\s*lista|Precio\\s*Unit(?:ario)?\\.?|P\\.\\s*Unit\\.?|Bonif(?:icaci[oó]n)?\\.?\\s*(?:Gral\\.?)?|Desc\\.?\\s*Esp\\.?|Descuento(?:\\s*total)?|Dto\\.?\\s*\\d?|Precio\\s*Neto|Importe(?:\\s*neto)?|Neto|Subtotal|Sub\\s*Total|Total|Alic\\.?\\s*IVA|IVA)/gi;
 /** Qué clase de encabezado es una celda: código, cantidad, descripción o plata. */
 function claseEtiqueta(c){
   const t = plano(c).replace(/[^a-z0-9]/g, "");
@@ -7361,6 +7394,67 @@ function finDeTabla(filas){
     if(/^(observaciones|sub ?total|total|son:?\\b|son pesos|importe total|iva\\b|factura electr|cae\\b|c\\.a\\.e|vencimiento cae|vto\\.? cae|por pago|recibi|transporte|bultos|neto gravado|percepc)/.test(t)) return i;
   }
   return -1;
+}
+/** V.0.11.272: una factura en PDF acomodada por las columnas de su
+    encabezado. Cada dato va a la columna cuyo título le queda más cerca (por
+    el medio): una columna vacía ("Orden compra" en FV) ya no corre las
+    demás, y un renglón que el PDF partió en dos (el texto arriba y los
+    números un punto más abajo) se vuelve a juntar. Sigue en las páginas
+    siguientes si el encabezado se repite. null si no se puede. */
+function grillaFactura(filas, h){
+  const etiquetas = cab => {
+    const out = [];
+    for(const t of (cab && cab._ts) || []){
+      // Un trozo con dos títulos pegados ("Fecha pedidoCantidad") se parte.
+      const ms = [...t.t.matchAll(ETIQ_FACTURA)].map(m => m.index);
+      const ini = ms.length >= 2 ? (ms[0] > 0 ? [0].concat(ms) : ms) : [0];
+      const ancho = (t.fin - t.x) / Math.max(1, t.t.length);
+      for(let k = 0; k < ini.length; k++){
+        const txt0 = t.t.slice(ini[k], ini[k + 1]).trim(); if(!txt0) continue;
+        const x0 = t.x + ini[k] * ancho, x1 = t.x + (ini[k + 1] == null ? t.t.length : ini[k + 1]) * ancho;
+        const ult = out[out.length - 1];
+        // Un título partido en dos trozos ("Descripción" "de la compra") se junta.
+        if(ult && k === 0 && !new RegExp("^" + ETIQ_FACTURA.source, "i").test(txt0) && x0 - ult.fin < ancho * 3){ ult.t += " " + txt0; ult.fin = x1; continue; }
+        out.push({ t: txt0, x: x0, fin: x1 });
+      }
+    }
+    return out;
+  };
+  let cols = etiquetas(filas[h]);
+  if(cols.length < 3) return null;
+  // El corte entre dos columnas: el medio del hueco entre un título y el
+  // siguiente. Cada dato va por su centro (los números van alineados a la
+  // derecha y el texto a la izquierda, así sirve para los dos).
+  const limites = cs => cs.map((c, i) => i + 1 < cs.length ? (c.fin + cs[i + 1].x) / 2 : Infinity);
+  let lims = limites(cols);
+  const iCod = cols.findIndex(c => claseEtiqueta(c.t) === "cod");
+  const out = [];
+  let i = h + 1, fin = filas.length, adentro = true;
+  for(; i < filas.length; i++){
+    const f = filas[i];
+    // Otra vez el encabezado (la página siguiente): se sigue con sus columnas.
+    if(filaDeEncabezado([f]) === 0){ const c2 = etiquetas(f); if(c2.length >= 3){ cols = c2; lims = limites(cols); } adentro = true; continue; }
+    if(!adentro) continue;
+    if(!f._ts){ continue; }
+    const g = cols.map(() => "");
+    for(const t of f._ts){
+      const medio = (t.x + t.fin) / 2;
+      let k = lims.findIndex(l => medio < l); if(k < 0) k = cols.length - 1;
+      g[k] = g[k] ? g[k] + " " + t.t : t.t;
+    }
+    const primera = g.find(c => c) || "";
+    if(/^(observaciones|sub ?total|total\\b|son:?\\b|son pesos|importe total|iva\\b|i\\.v\\.a|factura electr|cae\\b|c\\.a\\.e|vencimiento cae|vto\\.? cae|por pago|recibi|transporte|bultos|neto gravado|percepc|jurisdicci)/i.test(plano(primera).trim())){
+      adentro = false; fin = Math.min(fin, i); continue;
+    }
+    // Continuación del renglón de arriba: sin código y llenando lo que le faltaba.
+    const prev = out[out.length - 1];
+    if(iCod >= 0 && !g[iCod] && prev && g.every((c, k) => !c || !prev[k])){
+      g.forEach((c, k) => { if(c) prev[k] = c; });
+      continue;
+    }
+    out.push(g);
+  }
+  return { cab: cols.map(c => c.t), filas: out, pie: filas.slice(fin) };
 }
 /** La marca que el proveedor escribe entre comillas: CUPLA ... "AS",
     VENECIA ... "KLOSS". La última, de dos letras o más. */
@@ -7459,6 +7553,69 @@ function estadoAdj(r){
   ADJ_EST.set(k, e);
   return e;
 }
+
+/* V.0.11.272. Damián, 26/11/2026, con una factura de compra de FV: "si no
+   estan los productos se cargan nuevo, si ya estan deberian actualizarse al
+   stock de la que ya esta creada. tambien deberia preguntar si quiero
+   cambiar los precios o descuentos si cambiaron, avisame". De cada renglón
+   que ya está: cuánto suma al stock y si cambió la lista o el descuento. */
+const ADJ_INFO = new Map();
+function infoYa(r){
+  const e = estadoAdj(r);
+  if(e.k !== "ya" || !e.p) return null;
+  const k = e.p.cod + "|" + r.lista + "|" + r.stock + "|" + (r.dtos || []).join(",");
+  if(ADJ_INFO.has(k)) return ADJ_INFO.get(k);
+  const a = GBP_CRUDO[e.p.cod] || null;
+  const info = { p: e.p, a, cant: r.stock > 0 ? r.stock : 0, d: null, bolsa: 0, usd: false };
+  if(a && r.lista > 0){
+    if(a.mon === "USD") info.usd = true;
+    else {
+      let lista = r.lista;
+      const bolsa = cxPareceBolsa(+a.lista, lista, cxBolsaCod(a.cod));
+      if(bolsa){ info.bolsa = bolsa; lista = lista * bolsa; if(info.cant) info.cant = Math.round(info.cant / bolsa * 100) / 100; }
+      lista = cent(lista);
+      const d = {};
+      if(!cxIgual(lista, +a.lista, Math.max(0.05, Math.abs(+a.lista) * 0.0001))) d.lista = lista;
+      const c = cxCad((r.dtos || []).filter(x => x < 100));
+      const hoy = Array.isArray(a.dtos) ? cxCadenaDe(a).cadena : cxCad(productoDeGbp(a).seis);
+      // FV manda el descuento total en una cifra (57,96 %) y acá está en
+      // cadena: si da lo mismo, no cambió.
+      if(c.length && Math.abs(factorDe(c) - factorDe(hoy)) > 0.00005) d.cadena = c;
+      if(Object.keys(d).length){
+        const x = cxArmar(a, d, true);
+        if(!x.error){ info.d = d; info.p1 = x.p; info.p2 = x.p2; info.hoyCad = hoy; info.var = x.p.costo > 0 ? (x.p2.costo / x.p.costo - 1) * 100 : 0; }
+      }
+    }
+  }
+  ADJ_INFO.set(k, info);
+  return info;
+}
+/** Ya está y va a sumar stock (tildado y con cantidad). */
+const adjSuma = r => !ADJ.fuera[r.n] && estadoAdj(r).k === "ya" && !!(infoYa(r) || {}).cant;
+/** Ya está y se tildó actualizar el precio. */
+const adjPrecio = r => !!ADJ.precio[r.n] && !!(infoYa(r) || {}).d;
+/** El renglón hace algo (crear, sumar stock o cambiar precio). */
+const adjVa = r => adjSirve(r) || adjSuma(r) || adjPrecio(r);
+/** El depósito donde entra la mercadería: el de la razón social a la que
+    está hecha la factura (CONESA CARLOS NICOLAS -> Buenos Aires); si no se
+    sabe, el de la sucursal en la que estás. */
+const SUC_DE_CUIT = { "20102997752":"cnc", "30711321647":"srl", "20275870685":"tsl" };
+function depositoDeFactura(){
+  const t = (ADJ.membrete || []).map(f => f.join(" ")).join(" ");
+  for(const m of t.matchAll(/\\b(\\d{2})-?(\\d{8})-?(\\d)\\b/g)){
+    const suc = SUC_DE_CUIT[m[1] + m[2] + m[3]];
+    if(suc) return { suc, dep: sucDe(suc).dep, de: sucDe(suc).n };
+  }
+  return { suc: S.suc, dep: sucAct().dep, de: "" };
+}
+const nombreDep = dep => dep === "TS" ? "Córdoba (Traslasierra)" : "Buenos Aires";
+/** El número de la factura (para no sumar el stock dos veces). */
+function numeroDeFactura(){
+  const t = (ADJ.membrete || []).map(f => f.join(" ")).join(" ");
+  const m = t.match(/factura[^0-9]{0,40}?(\\d{4,5}\\s*-\\s*\\d{6,8})/i) || t.match(/\\b(\\d{4,5}-\\d{8})\\b/);
+  return m ? m[1].replace(/\\s+/g, "") : "";
+}
+const esFactura = () => (ADJ.membrete || []).length > 0 && colAdj("stock") >= 0;
 
 /** Si la primera fila no son nombres de columna, es un renglón más. */
 function pareceCabecera(f){
@@ -7681,7 +7838,7 @@ function pintarAdjTabla(){
     '</tr></thead><tbody>'+
     verse.map((f, n)=>{
       const r = rs[n];
-      return '<tr'+(adjSirve(r)?"":' class="fuera"')+'>'+
+      return '<tr'+(adjVa(r)?"":' class="fuera"')+'>'+
         '<td><input type="checkbox" data-fila="'+n+'"'+(ADJ.fuera[n]?"":" checked")+' aria-label="incluir"></td>'+
         '<td class="adj-st">'+estadoAdjHtml(r)+'</td>'+
         Array.from({length:anchos}, (_,i)=>{
@@ -7709,12 +7866,13 @@ function pintarAdjTabla(){
       (ADJ.filas.length > verse.length
         ? ' <b>(se ven y se corrigen los primeros '+verse.length+' renglones de '+ADJ.filas.length+
           '; los demás se cargan como salieron)</b>' : '')+
+      (rs.some(r => (infoYa(r) || {}).d) ? ' <button type="button" class="b3" data-adj-precios="1" style="padding:2px 10px">Tildar todos los precios</button> <button type="button" class="b3" data-adj-precios="0" style="padding:2px 10px">Ninguno</button>' : '')+
       '. <b>Si algo salió mal leído, escribí encima y se corrige.</b> '+
       'Un renglón entra si tiene descripción y precio: destildá el que no quieras.</div>';
   adjG("adjAcc").hidden = false;
   ADJ.vacia = (ok === 0);
   adjG("adjCargar").textContent = textoAdjCargar(ok);
-  adjG("adjCargar").disabled = !ok;
+  adjG("adjCargar").disabled = !hayQueHacerAdj(rs);
 }
 
 /** "Ya está · 5126 ASIENTO..." / "¿Es este? · ..." / "Nuevo". */
@@ -7723,20 +7881,50 @@ function estadoAdjHtml(r){
   if((r.dtos || []).some(d => d >= 100)) return '<span class="pill p-n" title="Tiene 100 % de descuento: no es un artículo">no va</span>';
   const e = estadoAdj(r);
   const de = p => '<b>' + txt(String(p.cod).split("+")[0]) + '</b> ' + txt(String(p.tit || "").slice(0, 46));
-  if(e.k === "ya") return '<span class="pill p-n">Ya está</span> <small>' + de(e.p) + '</small>';
+  if(e.k === "ya"){
+    const inf = infoYa(r) || {};
+    let h = '<span class="pill p-n">Ya está</span> <small>' + de(e.p) + '</small>';
+    if(inf.cant) h += '<div class="adj-ya">' + (ADJ.fuera[r.n] ? 'no suma stock (destildado)' : '<b>+' + pTxt(inf.cant) + '</b> al stock' + (inf.bolsa ? ' (bolsas de ' + inf.bolsa + ')' : '')) + '</div>';
+    if(inf.usd) h += '<div class="adj-ya">está en dólares: el precio no lo comparo</div>';
+    else if(inf.d){
+      const ps = [];
+      if(inf.d.lista !== undefined) ps.push('lista ' + plata2(+inf.a.lista) + ' → <b>' + plata2(inf.d.lista) + '</b>');
+      if(inf.d.cadena) ps.push('desc. ' + cxCadTxt(cxCad(inf.hoyCad)) + ' → <b>' + cxCadTxt(inf.d.cadena) + '</b>');
+      h += '<label class="adj-ya adj-precio"><input type="checkbox" data-adj-precio="' + r.n + '"' + (ADJ.precio[r.n] ? ' checked' : '') + '> ' +
+        '<b>Cambió:</b> ' + ps.join(' · ') + ' (costo ' + (inf.var >= 0 ? '+' : '') + pTxt(Math.round(inf.var * 10) / 10) + ' %) — actualizar</label>';
+    } else if(r.lista > 0 && inf.a) h += '<div class="adj-ya">mismo precio y descuento</div>';
+    return h;
+  }
   if(e.k === "parecido") return '<span class="pill p-warn" title="Destildado: si es otro artículo, tildalo y se carga como nuevo">¿Es este?</span> <small>' + de(e.p) + '</small>';
   return '<span class="pill p-ok">Nuevo</span>';
 }
 /** " · 2 ya están en Punto · 1 parecido (destildado)". */
 function textoYaHay(rs){
-  let ya = 0, par = 0;
-  for(const r of rs){ if(!(r.tit || r.cod) || (r.dtos || []).some(d => d >= 100)) continue; const k = estadoAdj(r).k; if(k === "ya") ya++; else if(k === "parecido") par++; }
-  return (ya ? " · " + ya + (ya === 1 ? " ya está en Punto (no se carga)" : " ya están en Punto (no se cargan)") : "") +
+  let ya = 0, par = 0, suma = 0, cambio = 0;
+  for(const r of rs){
+    if(!(r.tit || r.cod) || (r.dtos || []).some(d => d >= 100)) continue;
+    const k = estadoAdj(r).k;
+    if(k === "ya"){ ya++; if(adjSuma(r)) suma++; if((infoYa(r) || {}).d) cambio++; }
+    else if(k === "parecido") par++;
+  }
+  return (ya ? " · " + ya + (ya === 1 ? " ya está en Punto" : " ya están en Punto") +
+      (suma ? " (" + (suma === 1 ? "se le suma el stock" : "a " + suma + " se les suma el stock") + ")" : " (no se cargan de nuevo)") : "") +
+    (cambio ? " · " + cambio + (cambio === 1 ? " cambió de precio o descuento: tildá «actualizar» si lo querés" : " cambiaron de precio o descuento: tildá «actualizar» en los que quieras") : "") +
     (par ? " · " + par + (par === 1 ? " parecido a uno que ya está: fijate y tildalo si es otro" : " parecidos a otros que ya están: fijate y tildalos si son otros") : "");
 }
 /** Lo que dice el botón de cargar, según lo que falte. */
 function textoAdjCargar(ok){
   const faltaTit = colAdj("tit") < 0, faltaPre = colAdj("lista") < 0;
+  // V.0.11.272: también lo que se hace con lo que ya está.
+  const rs = filasUtiles(), suma = rs.filter(adjSuma).length, pre = rs.filter(adjPrecio).length;
+  if(suma || pre){
+    const ps = [];
+    if(ok) ps.push(ok === 1 ? "cargar 1 nuevo" : "cargar " + ok + " nuevos");
+    if(suma) ps.push("sumar stock a " + suma);
+    if(pre) ps.push("actualizar " + pre + (pre === 1 ? " precio" : " precios"));
+    const t = ps.join(" · ");
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
   return ok === 1 ? "Cargar 1 artículo nuevo"
     : ok ? "Cargar los "+ok+" artículos nuevos"
     : faltaTit && faltaPre ? "Falta marcar la descripción y el precio"
@@ -7754,16 +7942,18 @@ function refrescarAdjCuenta(){
   const rs = filasUtiles(), ok = rs.filter(adjSirve).length;
   for(const tr of adjG("adjTabla").querySelectorAll("tbody tr")){
     const c = tr.querySelector("input[data-fila]");
-    if(c && rs[+c.dataset.fila]) tr.classList.toggle("fuera", !adjSirve(rs[+c.dataset.fila]));
+    if(c && rs[+c.dataset.fila]) tr.classList.toggle("fuera", !adjVa(rs[+c.dataset.fila]));
   }
   const n = adjG("adjCuenta"), pal = adjG("adjCuentaPal");
   if(n) n.textContent = ok;
   if(pal) pal.textContent = ok === 1 ? "artículo nuevo" : "artículos nuevos";
   { const y = adjG("adjYaHay"); if(y) y.textContent = textoYaHay(rs); }
   adjG("adjCargar").textContent = textoAdjCargar(ok);
-  adjG("adjCargar").disabled = !ok;
+  adjG("adjCargar").disabled = !hayQueHacerAdj(rs);
   return ok;
 }
+/** Hay algo para hacer: crear, sumar stock o cambiar precios. */
+const hayQueHacerAdj = rs => (rs || filasUtiles()).some(adjVa);
 
 function adjEstado(txt, clase){
   adjG("adjEstado").innerHTML = txt ? '<div class="adj-est'+(clase?" "+clase:"")+'">'+txt+'</div>' : "";
@@ -7855,7 +8045,10 @@ function pintarAvisoAdjunto(){
             : '')+
           (colAdj("dto1") >= 0 ? ' Los descuentos de cada renglón van al costo, antes de los de abajo.' : '')+
           (ADJ.marcaComillas ? ' La marca de cada artículo sale de la descripción (la que va entre comillas).' : '')+
-          (ADJ.pronto ? ' La factura dice <b>'+pTxt(ADJ.pronto)+'% por pago en término</b>: si lo querés en el costo, ponelo en "Descuento por pago contado".' : '')
+          (ADJ.pronto ? ' La factura dice <b>'+pTxt(ADJ.pronto)+'% por pago en término</b>: si lo querés en el costo, ponelo en "Descuento por pago contado".' : '')+
+          (esFactura() ? (() => { const d = depositoDeFactura(), n = numeroDeFactura();
+            return ' El stock entra al depósito de <b>'+nombreDep(d.dep)+'</b>'+(d.de ? ' (la factura es a '+txt(d.de)+')' : ' (el de la sucursal en la que estás)')+'.'+
+              (n ? ' Factura <b>'+txt(n)+'</b>: si ya se cargó, no se suma dos veces.' : ''); })() : '')
         : ''),
     sinPrecio || ADJ.total || ADJ.duda ? "ojo" : "");
 }
@@ -7864,7 +8057,7 @@ function pintarAvisoAdjunto(){
 function elegirProvDeFactura(){
   const r = proveedorDeMembrete();
   ADJ.provFactura = r;
-  if(r && r.pv && !provElegido("xProvSel", "xProvNuevo")){
+  if(r && r.pv && provElegido("xProvSel", "xProvNuevo") !== r.pv.razonSocial){
     pintarProvSel(r.pv.razonSocial, "xProvSel", "xProvNuevo");
     pintarMarcaSel("xMarcaSel", "xProv", provElegido("xProvSel", "xProvNuevo"));
   }
@@ -7884,8 +8077,18 @@ function cambioDeColumna(){
 function armarAdjunto(){
   ADJ_EST.clear();
   ADJ.membrete = []; ADJ.pie = [];
+  ADJ.precio = {};
+  ADJ_INFO.clear();
   const h = filaDeEncabezado(ADJ.filas);
-  if(h >= 0){
+  // La grilla, solo en facturas y remitos (con un CUIT arriba de la tabla):
+  // una lista de precios con descripciones de varias líneas sale peor.
+  const conCuit = h > 0 && /\\b\\d{2}-?\\d{8}-?\\d\\b/.test(ADJ.filas.slice(0, h).map(f => f.join(" ")).join(" "));
+  const grilla = conCuit && ADJ.filas[h]._ts ? grillaFactura(ADJ.filas, h) : null;
+  if(grilla){
+    ADJ.membrete = ADJ.filas.slice(0, h);
+    ADJ.pie = grilla.pie;
+    ADJ.filas = [grilla.cab].concat(grilla.filas);
+  } else if(h >= 0){
     ADJ.membrete = ADJ.filas.slice(0, h);
     ADJ.filas = ADJ.filas.slice(h);
     ADJ.filas[0] = partirCabecera(ADJ.filas[0]);
@@ -7954,10 +8157,13 @@ function armarAdjunto(){
     elegirProvDeFactura();
     cargarPrvSiFalta().then(elegirProvDeFactura).catch(() => {});
   }
-  // Lo que ya está, lo que se parece y lo que va al 100 % arrancan destildados.
+  // Lo que se parece y lo que va al 100 % arrancan destildados. Lo que ya
+  // está, tildado si la factura trae cantidad (se le suma el stock).
   filasUtiles().forEach(r => {
     if(!(r.tit || r.cod)) return;
-    if((r.dtos || []).some(d => d >= 100) || estadoAdj(r).k !== "nuevo") ADJ.fuera[r.n] = true;
+    const k = estadoAdj(r).k;
+    if((r.dtos || []).some(d => d >= 100) || k === "parecido") ADJ.fuera[r.n] = true;
+    else if(k === "ya" && !(esFactura() && (infoYa(r) || {}).cant)) ADJ.fuera[r.n] = true;
   });
   pintarAdjTabla();
   adjG("adjConfig").scrollIntoView({block:"nearest", behavior:"smooth"});
@@ -8205,7 +8411,8 @@ async function encogerParaLaIA(file){
 }
 
 /* ---------------------------------------------------- cargarlos */
-function cargarAdjuntos(){
+async function cargarAdjuntos(){
+  if(ADJ.cargando) return;
   const l1 = +adjG("xL1").value || 0, l2 = +adjG("xL2").value || 0;
   if(l1 <= 0){ toast("Falta la Lista 1: poné el porcentaje que le cargás al costo."); adjG("xL1").focus(); return; }
   const provBase = adjG("xProv").value.trim().toUpperCase();
@@ -8222,12 +8429,46 @@ function cargarAdjuntos(){
 
   const todas = filasUtiles();
   const rs = todas.filter(adjSirve);
-  // Los que ya estaban en Punto (no se cargan): para decirlo al final.
-  let repes = todas.filter(r => !ADJ.fuera[r.n] && r.tit && estadoAdj(r).k === "ya").length;
-  if(!rs.length){ toast(repes ? "Todos los renglones ya están en Punto: no hay nada nuevo para cargar." : "No hay ningún renglón para cargar."); return; }
-  if(!provBase && rs.some(r=>!r.prov)){
+  const sumar = todas.filter(adjSuma), precios = todas.filter(adjPrecio);
+  // Los que ya estaban en Punto y no hacen nada: para decirlo al final.
+  let repes = todas.filter(r => r.tit && estadoAdj(r).k === "ya" && !adjSuma(r) && !adjPrecio(r)).length;
+  if(!rs.length && !sumar.length && !precios.length){ toast(repes ? "Todos los renglones ya están en Punto: no hay nada nuevo para cargar." : "No hay ningún renglón para cargar."); return; }
+  if(rs.length && !provBase && rs.some(r=>!r.prov)){
     toast("Falta la marca: el archivo no la trae. Elegila arriba."); adjG(adjG("xProv").hidden ? "xMarcaSel" : "xProv").focus(); return;
   }
+  // V.0.11.272: de una factura, antes que nada lo que ya está: el stock y
+  // los precios tildados. Y queda anotado el número de factura (también si
+  // solo trae nuevos), para que subirla de nuevo no sume dos veces.
+  const fac = esFactura(), dep = fac ? depositoDeFactura() : { dep: sucAct().dep, de: "" };
+  const numero = fac ? numeroDeFactura() : "";
+  const prov = ADJ.provFactura && ADJ.provFactura.pv ? ADJ.provFactura.pv.razonSocial : catBase;
+  const conStock = rs.filter(r => r.stock > 0).length + sumar.length;
+  if(!confirm([
+      rs.length ? "• Cargar " + rs.length + (rs.length === 1 ? " artículo nuevo" : " artículos nuevos") + (fac && rs.some(r => r.stock > 0) ? " con su cantidad de stock" : "") : "",
+      sumar.length ? "• Sumar stock a " + sumar.length + (sumar.length === 1 ? " artículo que ya está" : " artículos que ya están") : "",
+      conStock ? "  (depósito de " + nombreDep(dep.dep) + ")" : "",
+      precios.length ? "• Actualizar precio o descuento de " + precios.length + " (Lista 1 y 2 acompañan al costo; se puede deshacer en Últimas subidas)" : "",
+      "", "¿Sigo?"].filter((x, i, a) => x || i >= a.length - 2).join("\\n"))) return;
+  ADJ.cargando = true; adjG("adjCargar").disabled = true;
+  try{
+    if(fac && conStock){
+      const clave = (ADJ.provFactura ? ADJ.provFactura.cuit : "sin-cuit") + ":" + (numero || ("archivo " + ADJ.nombre));
+      const movs = sumar.map(r => ({ cod: estadoAdj(r).p.cod, cant: infoYa(r).cant }));
+      const rr = await pedirJson("POST", CX_URL, { accion:"stock", yo: soyYo(), clave, factura: numero || ADJ.nombre, proveedor: prov || "", dep: dep.dep, movs });
+      if(rr.error){ toast("No se cargó nada: " + rr.error); return; }
+      ponerStockServidor(rr.stock || []);
+    }
+    let preciosOk = 0, preciosNo = 0;
+    if(precios.length){
+      const cambios = precios.map(r => { const inf = infoYa(r); return { cod: inf.a.cod, antes: { lista: +inf.a.lista || 0, lista1: +inf.a.lista1 || 0, lista2: +inf.a.lista2 || 0 }, despues: inf.d }; });
+      const rp = await pedirJson("POST", CX_URL, { accion:"aplicar", yo: soyYo(), origen:"factura", marca: String(prov || "").slice(0, 60), archivo: ("Factura " + (numero || ADJ.nombre)).slice(0, 120), cambios });
+      if(rp.error){ toast("El stock se sumó, pero los precios no se actualizaron: " + rp.error); }
+      else { preciosOk = rp.actualizados || 0; preciosNo = (rp.cambiados || []).length + (rp.malos || []).length; }
+      await traerDeGbp();
+      try{ cxTraerHist(); }catch(e){}
+    }
+    ADJ.resumen = { suma: sumar.length, preciosOk, preciosNo };
+  } finally { ADJ.cargando = false; }
 
   let hechos = 0;
   for(const r of rs){
@@ -8252,7 +8493,7 @@ function cargarAdjuntos(){
       // La lista es la del proveedor de ESTA sucursal: la mercaderia entra
       // en su deposito. Antes iba siempre a Traslasierra, asi que al que
       // cargaba desde Buenos Aires le quedaba todo en cero.
-      dep: sucAct().dep === "TS"
+      dep: (fac ? dep.dep : sucAct().dep) === "TS"
         ? { BA: 0, TS: r.stock || 0 }
         : { BA: r.stock || 0, TS: 0 },
       propio: plano(cod+" "+codProv+" "+r.tit+" "+rub+" "+prov),
@@ -8261,14 +8502,17 @@ function cargarAdjuntos(){
     PRODUCTOS.push(p);
     hechos++;
   }
-  guardarCatalogo();
+  if(hechos) guardarCatalogo();
   llenarSelects(); pintarProd(); buscar();
+  const rz = ADJ.resumen || {};
+  ADJ.resumen = null;
   cerrarAdj();
-  toast(!hechos && repes
-    ? (repes===1 ? "Ese artículo ya estaba cargado" : "Esos "+repes+" artículos ya estaban cargados")+
-      ", por el código del proveedor. No dupliqué nada."
-    : hechos+" "+(hechos===1?"artículo cargado":"artículos cargados")+" desde "+ADJ.nombre+
-      (repes ? ". "+repes+" ya estaban por código del proveedor y los salteé." : "."));
+  const partes = [];
+  if(hechos) partes.push(hechos + (hechos === 1 ? " artículo nuevo" : " artículos nuevos"));
+  if(rz.suma) partes.push("stock sumado a " + rz.suma);
+  if(rz.preciosOk) partes.push(rz.preciosOk + (rz.preciosOk === 1 ? " precio actualizado" : " precios actualizados"));
+  if(rz.preciosNo) partes.push(rz.preciosNo + " precios no se pudieron (cambiaron en el medio)");
+  toast(partes.length ? "Listo: " + partes.join(" · ") + "." : (repes===1 ? "Ese artículo ya estaba cargado" : "Esos "+repes+" artículos ya estaban cargados") + ", por el código del proveedor. No dupliqué nada.");
 }
 
 function cerrarAdj(){
@@ -8330,7 +8574,10 @@ adjG("adjTabla").addEventListener("change", e=>{
   if(c){
     if(c.checked) delete ADJ.fuera[+c.dataset.fila]; else ADJ.fuera[+c.dataset.fila] = true;
     pintarAdjTabla();
+    return;
   }
+  const pc = e.target.closest("input[data-adj-precio]");
+  if(pc){ if(pc.checked) ADJ.precio[+pc.dataset.adjPrecio] = true; else delete ADJ.precio[+pc.dataset.adjPrecio]; pintarAdjTabla(); }
 });
 // Corregir una celda a mano. Lo que se escribe va derecho al renglon:
 // lo que se ve en la tabla es exactamente lo que se va a cargar.
@@ -8379,8 +8626,15 @@ adjG("xDolar").addEventListener("blur", e=>{
   if(v > 0){ const cambio = v !== DOLAR; if(cambio) guardarDolarFormador(v); DOLAR = v; if(cambio) rearmarGbpEnDolares(); }
   e.target.value = v ? plata2(v) : "";
 });
-adjG("adjCargar").addEventListener("click", cargarAdjuntos);
+adjG("adjCargar").addEventListener("click", () => { cargarAdjuntos().catch(e => { ADJ.cargando = false; toast("No se pudo cargar: " + (e && e.message || e)); }); });
 adjG("adjOtro").addEventListener("click",()=>adjG("adjFile").click());
+// V.0.11.272: "Tildar todos los precios" (lo que cambió y ya está).
+adjG("adjTabla").addEventListener("click", e => {
+  const b = e.target.closest("[data-adj-precios]"); if(!b) return;
+  const si = b.dataset.adjPrecios === "1";
+  for(const r of filasUtiles()) if((infoYa(r) || {}).d){ if(si) ADJ.precio[r.n] = true; else delete ADJ.precio[r.n]; }
+  pintarAdjTabla();
+});
 // Cancelar: se cierra sin cargar nada (lo leído se descarta).
 adjG("adjCancelar").addEventListener("click", ()=>{
   const card = adjG("adjCuerpo").closest(".card");
@@ -16336,6 +16590,7 @@ function cxHistHtml(){
     CX.hist.map(h => '<div><span>' + fechaHoraAR(h.fecha) + '</span><span>' +
       (h.origen === "proveedor" ? "Lista de <b>" + txt(h.marca) + "</b>" + (h.archivo ? ' · ' + txt(h.archivo) : '')
         : h.origen === "masivo" ? "Cambio masivo: <b>" + txt(h.archivo) + "</b>" + (h.marca ? ' · ' + txt(h.marca) : '')
+        : h.origen === "factura" ? "<b>" + txt(h.archivo) + "</b>" + (h.marca ? ' · ' + txt(h.marca) : '')
         : "Excel de artículos" + (h.archivo ? ' · ' + txt(h.archivo) : '')) + '</span>' +
       '<span>' + h.n + (h.n === 1 ? ' artículo' : ' artículos') + ' · ' + txt(h.por) + '</span>' +
       (h.deshecho ? '<span class="pill p-n">deshecha (' + h.deshecho.n + ')</span>'
