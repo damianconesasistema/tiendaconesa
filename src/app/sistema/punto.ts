@@ -583,6 +583,21 @@ tr.mov-eliminado td:last-child{opacity:1}
 /* V.0.11.279: con las dos clases, para ganarle a .envio-caja (620 px). */
 .envio-caja.cx-caja{width:min(1280px,100%); max-height:calc(100vh - 24px); overflow:hidden}
 .cx-cuerpo .tabla-wrap{overflow:auto}
+/* V.0.11.280: la tabla entra en el ancho de la pantalla, sin correrla de
+   costado: columnas en proporción y el texto hace renglones. Cada monto
+   queda entero; el "antes → después" baja de renglón si no entra. */
+table.cx-t{table-layout:fixed; width:100%}
+table.cx-t th, table.cx-t td{white-space:normal; overflow-wrap:anywhere}
+table.cx-t th{overflow-wrap:normal; letter-spacing:.03em}
+table.cx-t td.nom{min-width:0}
+table.cx-t td.r span, table.cx-t td.r b{white-space:nowrap}
+table.cx-t th:nth-child(1){width:34px}
+table.cx-t th:nth-child(2){width:24%}
+table.cx-t th:nth-child(3){width:14%}
+table.cx-t th:nth-child(4){width:15%}
+table.cx-t th:nth-child(5){width:13%}
+table.cx-t th:nth-child(6){width:12%}
+table.cx-t td:last-child{min-width:0}
 .cx-cuerpo{overflow:auto; padding:0 16px 8px; flex:1; min-height:0}
 .cx-map{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px 14px; margin:10px 0}
 .cx-map label{font-size:12px; font-weight:600; color:var(--ink-2); display:block; margin-bottom:4px}
@@ -600,7 +615,7 @@ tr.mov-eliminado td:last-child{opacity:1}
 .cx-res{margin:10px 0; padding:10px 12px; border-radius:9px; background:var(--ok-soft); color:var(--ok); font-size:13.5px}
 .cx-res.mal{background:var(--bad-soft); color:var(--bad)}
 table.cx-t td{vertical-align:top}
-table.cx-t td:last-child{min-width:230px}
+table.cx-t td:last-child{min-width:0}
 table.cx-t td small{display:block; color:var(--ink-3); font-size:11.5px}
 .cx-sube{color:var(--bad); font-weight:600}
 .cx-baja{color:var(--ok); font-weight:600}
@@ -1610,7 +1625,7 @@ footer{
     <img class="marca" alt="Sanitarios Conesa" width="232" height="77" src="data:image/png;base64,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">
     <span class="bar-sep"></span>
     <span class="app">Punto</span>
-    <span class="ver" id="ver" title="versión del sistema">V.0.11.279</span>
+    <span class="ver" id="ver" title="versión del sistema">V.0.11.280</span>
     <a class="ir" id="irAsistente" href="#asistente" data-v="asistente" title="Preguntarle al sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span class="et">Asistente</span></a>
     <span class="relo" id="relo"></span>
     <span class="relo dolar" id="dolarBar" hidden></span>
@@ -11382,8 +11397,8 @@ const COLS_ART = [{ t:"Código", w:12 }, { t:"Cód. fabricante", w:16 }, { t:"Ar
   { t:"Recargos", w:12 }, { t:"Costo s/IVA", w:13, plata:true }, { t:"IVA %", w:7, num:true }, { t:"Costo c/IVA", w:13, plata:true },
   { t:"Lista 1", w:13, plata:true }, { t:"Lista 2", w:13, plata:true }, { t:"Contado", w:13, plata:true },
   { t:"Margen %", w:9, num:true }, { t:"Stock Bs. As.", w:10, num:true }, { t:"Stock Traslasierra", w:12, num:true }];
-function filasArtExport(){
-  return (PROD_VER.todos || []).map(p => {
+function filasArtExport(lista){
+  return (lista || PROD_VER.todos || []).map(p => {
     const a = GBP_CRUDO[p.cod];
     const ds = (p.seis || []).filter(d => limD(d) > 0);
     const l1 = lista1De(p);
@@ -11402,8 +11417,8 @@ function nombreArt(ext){
    En el Excel cada descuento va en su columna (Desc. 1, Desc. 2...) y los
    recargos igual; ese mismo Excel, editado, se sube con "Subir Excel". El
    PDF sigue con los descuentos juntos (entra mejor en la hoja). */
-function xlsxArtSeparado(){
-  const ps = PROD_VER.todos || [];
+function xlsxArtSeparado(lista){
+  const ps = lista || PROD_VER.todos || [];
   const cad = p => (p.seis || []).filter(d => limD(d) > 0).map(d => Math.round(limD(d) * 100) / 100);
   const rec = p => (p.recs || []).filter(r => +r > 0).map(r => Math.round(+r * 100) / 100);
   const nD = Math.max(4, ...ps.map(p => cad(p).length)), nR = Math.max(0, ...ps.map(p => rec(p).length));
@@ -11411,7 +11426,7 @@ function xlsxArtSeparado(){
     .concat(Array.from({ length:nD }, (_, i) => ({ t:"Desc. " + (i + 1), w:8, num:true })))
     .concat(Array.from({ length:nR }, (_, i) => ({ t:"Rec. " + (i + 1), w:8, num:true })))
     .concat(COLS_ART.slice(9));
-  const filas = filasArtExport().map((f, j) => {
+  const filas = filasArtExport(ps).map((f, j) => {
     const d = cad(ps[j]), r = rec(ps[j]);
     return f.slice(0, 7).concat(Array.from({ length:nD }, (_, i) => d[i] != null ? d[i] : ""))
       .concat(Array.from({ length:nR }, (_, i) => r[i] != null ? r[i] : "")).concat(f.slice(9));
@@ -16859,7 +16874,8 @@ function cxTablaHtml(){
   const m = CX.m, f = m.filtro;
   if(f === "noenlista"){
     if(!m.noEnLista.length) return '<p class="cx-nota">Todos los artículos de ' + txt(m.marca) + ' están en la lista.</p>';
-    return '<p class="cx-nota">Estos artículos de ' + txt(m.marca) + ' están cargados pero <b>no aparecen en la lista</b>: quedan como están. Puede que el proveedor los haya discontinuado.</p>' +
+    return '<p class="cx-nota">Estos artículos de ' + txt(m.marca) + ' están cargados pero <b>no aparecen en la lista</b>: quedan como están. Puede que el proveedor los haya discontinuado.' +
+      ' <button class="b3" type="button" data-cx-excel style="padding:3px 12px;margin-left:6px">Bajar Excel</button></p>' +
       '<div class="tabla-wrap" style="max-height:46vh;overflow:auto"><table class="densa"><thead><tr><th>Código</th><th>Artículo</th></tr></thead><tbody>' +
       m.noEnLista.slice(0, 1000).map(x => '<tr><td>' + txt(x.cod) + '</td><td>' + txt(x.tit) + '</td></tr>').join("") + '</tbody></table></div>';
   }
@@ -16942,6 +16958,18 @@ async function cxClic(e){
     cxPintar(); return;
   }
   const dh = t.closest("[data-cx-desh]"); if(dh){ cxDeshacer(dh.dataset.cxDesh); return; }
+  // V.0.11.280: el Excel de "Cargados y no están en la lista", en el formato
+  // de Artículos (se edita y se sube con "Subir Excel").
+  if(t.closest("[data-cx-excel]")){
+    const cods = new Set((m.noEnLista || []).map(x => x.cod));
+    const ps = PRODUCTOS.filter(p => cods.has(p.cod));
+    if(!ps.length){ toast("No hay artículos para bajar."); return; }
+    const x = xlsxArtSeparado(ps);
+    const nombre = nombreArchivo(m.marca || "proveedor") + "-cargados-que-no-estan-en-la-lista-" + hoyArchivo() + ".xlsx";
+    bajarXlsx(nombre, "No están en la lista", x.cols, x.filas);
+    toast("Bajando " + nombre + " (" + ps.length + " artículos).");
+    return;
+  }
   if(t.closest("[data-cx-aplicar]")) cxAplicarYa();
 }
 async function cxAplicarYa(){

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.279";
+export const APP_VERSION = "V.0.11.280";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.280",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Lista de precios del proveedor: en \"Cargados y no están en la lista\" hay un botón \"Bajar Excel\" (Damián: \"que me permita descargar el excel ... ahí mismo\"). Baja esos artículos en el formato de Artículos (un descuento por columna, Lista 1, Lista 2, stock): se trabajan y se suben con \"Subir Excel\".",
+      "La tabla de esa ventana se adapta siempre al ancho de la pantalla, sin barra para el costado (Damián: \"tratá de que no tenga scroll\", \"adaptalo a la pantalla siempre\"): columnas en proporción y el texto hace renglones. Probado a 1440, 1024 y 800 px.",
+    ],
+  },
   {
     version: "V.0.11.279",
     date: "2026-11-26",
