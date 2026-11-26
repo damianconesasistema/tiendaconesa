@@ -74,4 +74,24 @@ if [ -d /root/.npm/_cacache ]; then
 fi
 
 decir "disco despues: $(df -h / | awk 'NR==2 {print $3" usados de "$2" ("$5"), libres "$4}')"
+
+# 4. La base. 26/11/2026: con el disco lleno Postgres se detuvo (asi no
+#    rompe datos) y al liberar lugar NO volvio sola: la tienda daba 500. Si
+#    no esta atendiendo, se levanta y se comprueba.
+if command -v pg_isready >/dev/null 2>&1 && ! pg_isready -q 2>/dev/null; then
+  decir "LA BASE NO ESTABA ANDANDO: la levanto"
+  systemctl start postgresql >/dev/null 2>&1 || true
+  for u in $(systemctl list-units --all --plain --no-legend 'postgresql@*' 2>/dev/null | awk '{print $1}'); do
+    systemctl start "$u" >/dev/null 2>&1 || true
+  done
+  for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do pg_isready -q 2>/dev/null && break; sleep 5; done
+  if pg_isready -q 2>/dev/null; then
+    decir "la base volvio a andar"
+  else
+    decir "LA BASE SIGUE SIN ANDAR. Lo que dice:"
+    journalctl -u 'postgresql*' -n 25 --no-pager -o cat 2>/dev/null | sed 's/^/      /' | tail -25
+  fi
+else
+  decir "la base esta andando"
+fi
 exit 0
