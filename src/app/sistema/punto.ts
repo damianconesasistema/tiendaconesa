@@ -681,6 +681,12 @@ input.sel-art{width:16px; height:16px; margin:0 8px 0 0; vertical-align:-3px; ac
 .pf-fnueva label.d2{grid-column:span 2}
 .pf-fnueva input, .pf-fnueva select{width:100%; min-width:0}
 .pf-fnueva button{height:40px}
+/* V.0.11.286: el resumen de la lista, como un aviso, arriba de todo. */
+.cx-resumen{margin:10px 0 12px; padding:12px 16px; border:2px solid var(--accent); border-radius:10px; background:var(--accent-soft); font-size:14.5px; line-height:1.5}
+.cx-resumen .t{font-family:var(--font-d); font-weight:800; font-size:15.5px; margin-bottom:2px}
+.cx-resumen ul{margin:4px 0 0; padding-left:18px}
+.cx-resumen li{margin:1px 0}
+.cx-resumen .mal{color:var(--bad); font-weight:700}
 @media (max-width:700px){ .pf-fnueva{grid-template-columns:1fr 1fr} .pf-fnueva label.d2{grid-column:span 2} }
 .nc-grupo{display:grid; grid-template-columns:1fr auto; gap:6px 14px; padding:10px 0; border-bottom:1px solid var(--line)}
 .nc-grupo:last-child{border-bottom:0}
@@ -17045,7 +17051,7 @@ async function cxLeer(file){
   let filas;
   try{ filas = await filasXlsx(await file.arrayBuffer(), true); }
   catch(e){ toast("No pude leer " + file.name + ": " + (e && e.message ? e.message : "¿es un Excel?")); return; }
-  m.filas = filas; m.archivo = file.name; m.tilde = {}; m.mk = {}; m.bolsaNo = {}; m.cajaNo = {}; m.resultado = null; m.hecho = false;
+  m.filas = filas; m.archivo = file.name; m.tilde = {}; m.mk = {}; m.bolsaNo = {}; m.cajaNo = {}; m.resultado = null; m.hecho = false; m.avisado = false;
   m.colP = cxColsPunto(filas[0] || []);
   if(m.colP){ m.modo = "excel"; m.filtro = "cambia"; }
   else {
@@ -17075,6 +17081,49 @@ function cxCuenta(){
   }
   return n;
 }
+/* V.0.11.286: el resumen de lo que trae la lista: cuántos cambian y cuánto
+   (agrupados por el % que cambia el costo), lo que viene por caja o bolsa,
+   los saltos, los errores y lo que no cruza. */
+function cxResumen(m){
+  const rs = m.renglones || [], camb = rs.filter(r => r.estado === "cambia");
+  const grupos = new Map();
+  for(const r of camb){ const k = Math.round((r.varCosto || 0) * 10) / 10; grupos.set(k, (grupos.get(k) || 0) + 1); }
+  const orden = [...grupos].sort((a, b) => b[1] - a[1] || b[0] - a[0]);
+  const txtG = ([k, n]) => k > 0 ? n + (n === 1 ? " sube " : " suben ") + pTxt(k) + " %"
+    : k < 0 ? n + (n === 1 ? " baja " : " bajan ") + pTxt(-k) + " %"
+    : n + (n === 1 ? " queda con el mismo costo (cambian descuentos o listas)" : " quedan con el mismo costo (cambian descuentos o listas)");
+  const tope = 6, partes = orden.slice(0, tope).map(txtG);
+  if(orden.length > tope){ const resto = orden.slice(tope).reduce((s, g) => s + g[1], 0); partes.push(resto + " con otros porcentajes"); }
+  return { n: camb.length, partes,
+    saltos: camb.filter(r => r.salto).length,
+    cajas: camb.filter(r => r.caja && !(m.cajaNo || {})[r.a.cod]).length,
+    bolsas: camb.filter(r => r.bolsa && !(m.bolsaNo || {})[r.a.cod]).length,
+    errores: rs.filter(r => r.estado === "error").length,
+    igual: rs.filter(r => r.estado === "igual").length,
+    noEnLista: m.modo === "proveedor" ? (m.noEnLista || []).length : 0,
+    nocargado: rs.filter(r => r.estado === "nocargado").length };
+}
+function cxResumenTxt(m){
+  const s = cxResumen(m), de = m.modo === "proveedor" && m.marca ? m.marca + ": " : "";
+  return de + (s.n ? s.n + (s.n === 1 ? " artículo cambia: " : " artículos cambian: ") + s.partes.join(", ") + "." : "no cambia ningún artículo.") +
+    (s.noEnLista ? " " + s.noEnLista + (s.noEnLista === 1 ? " cargado no está en la lista." : " cargados no están en la lista.") : "") +
+    (s.errores ? " " + s.errores + " con errores." : "");
+}
+function cxResumenHtml(m){
+  const s = cxResumen(m), n = (x, uno, varios) => x.toLocaleString("es-AR") + " " + (x === 1 ? uno : varios);
+  const li = [];
+  if(s.saltos) li.push('<li class="mal">' + n(s.saltos, "tiene", "tienen") + ' un salto de costo de más del ' + CX_SALTO + ' %: fijate antes de aplicar (no van tildados).</li>');
+  if(s.cajas) li.push('<li>' + n(s.cajas, "viene", "vienen") + ' por caja en la lista y acá está por unidad: se divide por la cantidad de la caja.</li>');
+  if(s.bolsas) li.push('<li>' + n(s.bolsas, "viene", "vienen") + ' por unidad y acá está por bolsa: se multiplica por la cantidad.</li>');
+  if(s.errores) li.push('<li class="mal">' + n(s.errores, "renglón con errores", "renglones con errores") + ': mirá la pestaña «Con errores».</li>');
+  if(s.igual) li.push('<li>' + n(s.igual, "queda igual", "quedan iguales") + '.</li>');
+  if(s.noEnLista) li.push('<li>' + n(s.noEnLista, "artículo cargado no está", "artículos cargados no están") + ' en la lista (puede que ' + (s.noEnLista === 1 ? 'esté discontinuado' : 'estén discontinuados') + ').</li>');
+  if(s.nocargado) li.push('<li>' + n(s.nocargado, "código de la lista no está cargado", "códigos de la lista no están cargados") + ' en Punto: no se crean.</li>');
+  return '<div class="cx-resumen" role="status"><div class="t">' + (m.modo === "proveedor" && m.marca ? txt(m.marca) + ': ' : '') +
+    (s.n ? n(s.n, "artículo cambia", "artículos cambian") : "no cambia ningún artículo") + '</div>' +
+    (s.n ? '<div>' + s.partes.map(p => '<b>' + txt(p) + '</b>').join(' · ') + '</div>' : '') +
+    (li.length ? '<ul>' + li.join("") + '</ul>' : '') + '</div>';
+}
 function cxPintar(){
   const m = CX.m, cuerpo = document.getElementById("cxCuerpo"), pie = document.getElementById("cxPie");
   if(!m || !cuerpo) return;
@@ -17091,6 +17140,11 @@ function cxPintar(){
   }
   let html = '<p class="cx-nota" style="margin-top:12px"><b>' + txt(m.archivo) + '</b> · ' +
     (m.modo === "excel" ? "el Excel de Artículos de Punto" : "la lista de un proveedor") + ' · ' + (m.filas.length - 1) + ' renglones</p>';
+  // V.0.11.286: el resumen, arriba de todo, y un aviso la primera vez.
+  if(m.renglones.length && !m.hecho && (m.modo === "excel" || m.marca)){
+    html += cxResumenHtml(m);
+    if(!m.avisado){ m.avisado = true; toast(cxResumenTxt(m)); }
+  }
   if(m.modo === "proveedor") html += cxMapaHtml();
   if(m.resultado) html += m.resultado;
   const n = cxCuenta();

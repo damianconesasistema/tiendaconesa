@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.285";
+export const APP_VERSION = "V.0.11.286";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.286",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Lista de precios del proveedor (y Subir Excel): al subir la lista aparece arriba de todo, como un aviso, el resumen de lo que cambia de la lista que está cargada a la nueva: cuántos artículos cambian y cuánto (\"TST: 23 artículos cambian: 20 suben 5 %, 3 suben 8,1 %\"), los que tienen un salto grande, los que vienen por caja o por bolsa, los que tienen errores, los que quedan iguales, los cargados que no están en la lista y los de la lista que no están cargados. También sale en un aviso abajo. Damián: \"ese resumen, cuando subo el Excel, siempre informámelo, que es importante para saberlo, como una notificación\" / \"sería lo que cambia de una lista a otra lista nueva, un resumen\".",
+    ],
+  },
   {
     version: "V.0.11.285",
     date: "2026-11-26",
