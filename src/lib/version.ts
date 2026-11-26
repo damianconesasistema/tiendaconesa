@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.280";
+export const APP_VERSION = "V.0.11.281";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,14 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.281",
+    date: "2026-11-26",
+    changes: [
+      "Punto, Proveedores: \"Lista de precios del proveedor\" es el tercer ícono de arriba, con su nombre entero y un dibujo propio (antes estaba sexto, como \"Lista de precios\" y con el mismo ícono que Importar de GBP). Damián: \"eso agregámelo arriba con los íconos ... y ponelo 3\".",
+      "El botón para bajar el Excel de \"Cargados y no están en la lista\" es rojo, con el ícono de bajar y la cantidad (\"Bajar Excel de estos 108 artículos\"). Damián: \"no se ve, ponelo en rojo\".",
+    ],
+  },
   {
     version: "V.0.11.280",
     date: "2026-11-26",
