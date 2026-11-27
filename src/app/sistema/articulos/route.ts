@@ -3,6 +3,7 @@ import { leerAsociaciones } from "@/lib/punto-asociar";
 import { VACIAS, aplicarAsociaciones } from "@/lib/punto-asociar-reglas";
 import {
   cambiarCostosArticulo,
+  cambiarDolarTipo,
   type CostosArticulo,
   type DescuentosArticulo,
   type EstructuraArticulo,
@@ -193,6 +194,8 @@ export async function PATCH(req: Request): Promise<Response> {
     otroNombre?: unknown;
     bulto?: unknown;
     dolar?: unknown;
+    dolarTipo?: unknown;
+    cods?: unknown;
     yo?: unknown;
   };
   try {
@@ -212,6 +215,28 @@ export async function PATCH(req: Request): Promise<Response> {
   if (otro) return json({ error: otro });
   if (!puedePunto(yo.permisos, "productos"))
     return json({ error: "Tu usuario no tiene permiso para cambiar artículos. Pedíselo a quien administra los usuarios." }, 403);
+
+  // V.0.11.291: que dolar toman (Blue o BNA, compra) muchos de una vez:
+  // {cods: [...], dolarTipo: "blue" | "bna"}.
+  if (Array.isArray(cuerpo.cods)) {
+    if (cuerpo.dolarTipo !== "blue" && cuerpo.dolarTipo !== "bna")
+      return json({ error: "Elegí si toman el dólar Blue o el del Banco Nación." }, 400);
+    const cods = [...new Set(cuerpo.cods.filter((x): x is string => typeof x === "string").map((x) => x.trim().slice(0, 40)).filter(Boolean))];
+    if (!cods.length) return json({ error: "No llegó ningún artículo." }, 400);
+    if (cods.length > 20000) return json({ error: "Son demasiados artículos de una vez." }, 400);
+    try {
+      const n = await cambiarDolarTipo(cods, cuerpo.dolarTipo === "blue" ? "blue" : null);
+      if (n)
+        await registrar(
+          "Punto: cambió el dólar de los artículos",
+          `${n} ${n === 1 ? "artículo toma" : "artículos toman"} el dólar ${cuerpo.dolarTipo === "blue" ? "Blue" : "Banco Nación"} (compra)`,
+          yo.usuario,
+        );
+      return json({ ok: true, cambiados: n });
+    } catch {
+      return json({ error: "No pude guardar el cambio: probá de nuevo en un momento." });
+    }
+  }
 
   // El codigo tal cual se guardo al importar (limpiarArticulo: sin espacios
   // de los costados, hasta 40).
@@ -248,6 +273,12 @@ export async function PATCH(req: Request): Promise<Response> {
     if (dolar === "mal") return json({ error: "El dólar es un monto en pesos." }, 400);
     cambios.dolar = dolar;
   }
+  if (vino("dolarTipo")) {
+    // V.0.11.291: "blue", o "bna" / null = Banco Nacion.
+    if (cuerpo.dolarTipo !== "blue" && cuerpo.dolarTipo !== "bna" && cuerpo.dolarTipo !== null)
+      return json({ error: "Elegí si toma el dólar Blue o el del Banco Nación." }, 400);
+    cambios.dolarTipo = cuerpo.dolarTipo === "blue" ? "blue" : null;
+  }
   if (!Object.keys(cambios).length) return json({ error: "No llegó nada para cambiar del artículo." }, 400);
 
   try {
@@ -264,6 +295,7 @@ export async function PATCH(req: Request): Promise<Response> {
           : `sin otro costo${articulo.otroNombre ? ` (${articulo.otroNombre})` : ""}`,
       );
     if ("bulto" in cambios) partes.push(articulo.bulto ? `se compra de a ${articulo.bulto}` : "se compra suelto");
+    if ("dolarTipo" in cambios) partes.push(`toma el dólar ${articulo.dolarTipo === "blue" ? "Blue" : "Banco Nación"} (compra)`);
     const soloFlete = Object.keys(cambios).length === 1 && "flete" in cambios;
     await registrar(
       soloFlete ? `Punto: cambió el flete del artículo ${cod}` : `Punto: cambió los costos del artículo ${cod}`,

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.290";
+export const APP_VERSION = "V.0.11.291";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.291",
+    date: "2026-11-27",
+    changes: [
+      "Punto, Artículos: cada artículo con la lista del proveedor en dólares dice qué dólar toma, Blue o Banco Nación, y usa la cotización de COMPRA del día: sus precios en pesos se actualizan solos cuando cambia el dólar (antes todos usaban un solo \"dólar del formador\" cargado a mano). Si no se eligió, toma BNA. Un dólar fijo cargado en el artículo le sigue ganando. En la lista se ve \"U$S 100,00 × BNA $1.550,00\" y se cambia ahí mismo; filtro \"En dólares (N)\" con cuántos toman cada uno y botones para pasar los que ves (o los tildados) a Blue o a BNA. En la ficha, \"Toma el dólar\": BNA, Blue o Fijo. Damián: \"necesito ver cuántos artículos tengo en dólares, me debería aparecer qué tipo de cambio toma el artículo, si blue o banco nación\" / \"de compra es la cotización y que se actualice automáticamente\".",
+    ],
+  },
   {
     version: "V.0.11.290",
     date: "2026-11-27",

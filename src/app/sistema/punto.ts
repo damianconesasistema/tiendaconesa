@@ -1003,6 +1003,10 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 .cs-compras-h h4{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
 /* V.0.11.290: la cuenta corriente del cliente y la ventana de cobro. */
 #csCC{margin:16px 16px 0;padding-top:12px;border-top:1px solid var(--line)}
+/* V.0.11.291: el dólar de los artículos en dólares (Blue o BNA, compra). */
+.dol-art{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;margin-top:3px;font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+.dol-art select{font-size:11.5px;padding:1px 4px;border:1px solid var(--line-2);border-radius:5px;background:var(--surface)}
+.usd-barra{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;padding:8px 12px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-3);font-size:13px}
 .cb-tabla td{vertical-align:middle}
 .cb-tabla td small,.cb-hist td small{display:block;color:var(--ink-3);font-size:11.5px}
 .cb-total{margin:12px 0 2px;padding:10px 12px;border-radius:8px;background:var(--surface-3);font-size:14px}
@@ -2421,12 +2425,15 @@ footer{
           <div class="sub-campo dos-chicos" style="margin-top:10px">
             <div><label for="aMoneda">Moneda de la lista</label>
               <select id="aMoneda"><option value="ARS">Pesos ($)</option><option value="USD">Dólares (U$S)</option></select></div>
-            <div id="cajaDolar" hidden><label for="aDolar">Dólar, a cuánto lo tomás</label>
-              <div class="plata"><span class="sig">$</span>
+            <div id="cajaDolar" hidden><label for="aDolarTipo">Toma el dólar</label>
+              <select id="aDolarTipo">
+                <option value="bna">Banco Nación, compra (se actualiza solo)</option>
+                <option value="blue">Blue, compra (se actualiza solo)</option>
+                <option value="fijo">Fijo, solo para este artículo</option></select>
+              <div class="plata" style="margin-top:6px"><span class="sig">$</span>
                 <input id="aDolar" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
-              <label style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:12.5px;font-weight:500;text-transform:none;letter-spacing:0">
-                <input type="checkbox" id="aDolarPropio"> Solo para este artículo</label>
-              <span class="por" id="aDolarAviso">Sin tildar, es el dólar del formador: cambia para todos los artículos en dólares.</span></div>
+              <input type="checkbox" id="aDolarPropio" hidden>
+              <span class="por" id="aDolarAviso"></span></div>
           </div>
           <span class="por" style="display:block;margin:6px 0 14px">Antes de descuentos. La coma y el punto valen igual.</span>
           <div class="sub-campo">
@@ -2529,9 +2536,11 @@ footer{
         <label>Rubro <select id="fRub"></select></label>
         <label>Ordenar <select id="fOrden" aria-label="Ordenar los artículos"></select></label>
         <label style="flex-direction:row;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="fCombos"> Solo combos</label>
+        <label style="flex-direction:row;align-items:center;gap:6px;cursor:pointer" title="Los que tienen la lista del proveedor en dólares"><input type="checkbox" id="fUsd"> En dólares <span id="fUsdN"></span></label>
       </div>
       <div class="art-chips" id="fChips"></div>
     </div>
+    <div class="usd-barra" id="usdBarra" hidden></div>
     <div class="sel-barra" id="selArtBarra" hidden>
       <b data-sel-n></b>
       <button class="b1" type="button" data-sel-masivo style="padding:6px 16px">Cambios masivos a los tildados</button>
@@ -3793,6 +3802,7 @@ function articuloServidorDe(p){
   if(+p.bulto > 1) o.bulto = +p.bulto;
   if(p.dolarPropio && +p.dolar > 0) o.dolar = +p.dolar;
   if(usd && +p.dolar > 0) o.dolarRef = +p.dolar;
+  if(usd && p.dolarTipo === "blue") o.dolarTipo = "blue";
   if(p.may) o.mayor = { pct: +p.mayPct || 0, desde: Math.max(1, Math.floor(+p.mayDesde || 1)) };
   else if(crudo && crudo.mayor) o.mayor = null;
   if(p.combo && Array.isArray(p.combo.piezas) && p.combo.piezas.length)
@@ -4432,6 +4442,17 @@ document.getElementById("selUsuario").addEventListener("change",e=>{
    mostrador no hace falta que ande para vender.
    Ojo: esto NO toca el dolar del formador de precios. Ese lo pone a mano
    el que carga los articulos, y no se le cambia solo por atras. */
+/* V.0.11.291: la compra del día del Blue y del BNA, la que toman los artículos
+   en dólares (cada uno dice cuál). Damián: "de compra es la cotización y que
+   se actualice automáticamente". */
+var COTIZ = { blue:0, bna:0 };
+/** Cuando cambia la cotización, los artículos en dólares se rearman; si está
+    escribiendo en algún lado, se espera a que termine (no le roba el foco). */
+function rearmarDolarCuandoSePueda(){
+  const ae = document.activeElement;
+  if(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)){ setTimeout(rearmarDolarCuandoSePueda, 5000); return; }
+  try{ rearmarGbpEnDolares(); }catch(e){}
+}
 (function dolarDelDia(){
   const el = document.getElementById("dolarBar");
   if(!el) return;
@@ -4444,12 +4465,18 @@ document.getElementById("selUsuario").addEventListener("change",e=>{
       if(!r.ok) return;
       const d = await r.json();
       if(d.error || (!d.blue && !d.oficial)) return;
+      const nb = d.blue ? +d.blue.compra || 0 : 0, nn = d.oficial ? +d.oficial.compra || 0 : 0;
+      if((nb && nb !== COTIZ.blue) || (nn && nn !== COTIZ.bna)){
+        if(nb) COTIZ.blue = nb;
+        if(nn) COTIZ.bna = nn;
+        rearmarDolarCuandoSePueda();
+      }
       el.innerHTML = [uno("Blue", d.blue), uno("BNA", d.oficial)].filter(Boolean).join('<span class="sep">·</span>');
       el.hidden = false;
       el.title = "Dólar del día, compra (C) y venta (V)." +
         (d.blue ? "\\nBlue: actualizado " + hora(d.blue.fecha) + "." : "") +
         (d.oficial ? "\\nBanco Nación (oficial): actualizado " + hora(d.oficial.fecha) + "." : "") +
-        "\\nEs solo para mirar: el dólar del formador de precios se pone a mano.";
+        "\\nLos artículos en dólares toman la compra del Blue o del BNA (cada uno dice cuál) y se actualizan solos.";
     }catch(e){ /* sin internet se queda como estaba */ }
   };
   mirar(); setInterval(mirar, 15 * 60000);
@@ -6126,6 +6153,15 @@ try{ localStorage.removeItem(DOLAR_GUARDA); }catch(e){}
     }
   }catch(e){ /* sin conexión: el último que se usó en esta compu */ }
 })();
+/** V.0.11.291: el dólar de un artículo con el costo en dólares. Un dólar fijo
+    (solo para ese artículo) le gana; si no, la compra del día del Blue o del
+    BNA (BNA si no dice). Sin cotización todavía, el del formador. */
+function dolarDeArt(a){
+  if(+a.dolar > 0) return +a.dolar;
+  const v = a.dolarTipo === "blue" ? COTIZ.blue : COTIZ.bna;
+  return v > 0 ? v : DOLAR;
+}
+const DOL_TIPO_TXT = { bna:"BNA", blue:"Blue", fijo:"Fijo" };
 /** Los artículos de GBP con el costo en dólares, con el dólar de ahora. */
 function rearmarGbpEnDolares(){
   try{
@@ -6155,6 +6191,20 @@ function pintarMoneda(){
   document.getElementById("cajaLista").classList.toggle("usd", usd);
   document.getElementById("cajaDolar").hidden = !usd;
   if(usd && !dolarAlta() && DOLAR) V("aDolar", plata2(DOLAR));
+  if(usd) pintarDolarTipo();
+}
+/** V.0.11.291: Blue o BNA toman la compra del día (el número no se escribe);
+    Fijo, el que se escriba, solo para este artículo. */
+function pintarDolarTipo(){
+  const t = document.getElementById("aDolarTipo").value, inp = document.getElementById("aDolar");
+  document.getElementById("aDolarPropio").checked = t === "fijo";
+  inp.readOnly = t !== "fijo";
+  if(t !== "fijo"){ const v = COTIZ[t] > 0 ? COTIZ[t] : DOLAR; if(v > 0) inp.value = plata2(v); }
+  const v = aNum(inp.value);
+  document.getElementById("aDolarAviso").textContent = t === "fijo"
+    ? "Este artículo usa este valor y no cambia solo."
+    : (COTIZ[t] > 0 ? "Hoy " + DOL_TIPO_TXT[t] + " compra: " + fmt2(v) + ". Cambia solo cuando cambia la cotización."
+      : "Todavía no llegó la cotización: por ahora va " + (v > 0 ? fmt2(v) : "sin dólar") + ".");
 }
 
 document.addEventListener("input", e => { if(e.target && /^(aFlete|aOtro|aOtroNom)$/.test(e.target.id)) altaCuenta(); });
@@ -6331,6 +6381,8 @@ function abrirAlta(p){
     V("aMoneda", p.mon === "USD" ? "USD" : "ARS");
     V("aDolar", p.mon === "USD" && p.dolar ? plata2(p.dolar) : (DOLAR ? plata2(DOLAR) : ""));
     document.getElementById("aDolarPropio").checked = !!p.dolarPropio;
+    V("aDolarTipo", p.dolarPropio ? "fijo" : p.dolarTipo === "blue" ? "blue" : "bna");
+    pintarDolarTipo();
     V("aLista", plata2(p.mon === "USD" ? (p.listaMon || 0) : (p.lista || 0)));
     V("aCont", p.dctoCont || 0); V("aContDias", plazoTxt(p));
     V("aFlete", plata2(p.fleteFijo || 0)); V("aOtro", plata2(p.otroCosto || 0)); V("aOtroNom", p.otroNombre || "");
@@ -6358,6 +6410,8 @@ function abrirAlta(p){
     V("aLista","0,00"); V("aMoneda","ARS");
     V("aDolar", DOLAR ? plata2(DOLAR) : "");
     document.getElementById("aDolarPropio").checked = false;
+    V("aDolarTipo", "bna");
+    pintarDolarTipo();
     document.getElementById("aPromo").checked = false;
     document.getElementById("aMay").checked = false;
     V("aMayPct", 15); V("aMayDesde", 10);
@@ -6523,7 +6577,7 @@ function textoForma(p){
 function fotoFormaAlta(){
   const g = id => document.getElementById(id);
   return { seis: ALTA.seis.slice(), recs: (ALTA.recs || []).slice(), cont: g("aCont").value, dias: g("aContDias").value,
-    l1: g("aL1").value, l2: g("aL2").value, iva: g("aIva").value, mon: g("aMoneda").value, dolar: g("aDolar").value,
+    l1: g("aL1").value, l2: g("aL2").value, iva: g("aIva").value, mon: g("aMoneda").value, dolar: g("aDolar").value, dtipo: g("aDolarTipo").value,
     may: g("aMay").checked, mayPct: g("aMayPct").value, mayDesde: g("aMayDesde").value, rub: g("aRubro").value,
     cat: provElegido(), fletePct: ALTA.fletePct };
 }
@@ -6531,6 +6585,7 @@ function volverFormaAlta(f){
   if(!f) return;
   ALTA.seis = f.seis.slice(); ALTA.recs = f.recs.slice();
   V("aCont", f.cont); V("aContDias", f.dias); V("aL1", f.l1); V("aL2", f.l2); V("aIva", f.iva); V("aMoneda", f.mon); V("aDolar", f.dolar);
+  if(f.dtipo){ V("aDolarTipo", f.dtipo); pintarDolarTipo(); }
   document.getElementById("aMay").checked = f.may; V("aMayPct", f.mayPct); V("aMayDesde", f.mayDesde); V("aRubro", f.rub);
   if(provElegido() !== f.cat) pintarProvSel(f.cat);
   ALTA.fletePct = f.fletePct;
@@ -6756,11 +6811,13 @@ document.getElementById("aMay").addEventListener("change",()=>{ pintarMay(); alt
 for(const id of ["aMayPct","aMayDesde"]) document.getElementById(id).addEventListener("input", altaCuenta);
 document.getElementById("aDolar").addEventListener("input", altaCuenta);
 document.getElementById("aDolar").addEventListener("blur",e=>{
+  // V.0.11.291: acá ya no se cambia el dólar del formador: Blue o BNA van
+  // solos, y el fijo es solo de este artículo.
   const v = aNum(e.target.value);
-  if(v > 0 && !document.getElementById("aDolarPropio").checked){ const cambio = v !== DOLAR; if(cambio) guardarDolarFormador(v); DOLAR = v; if(cambio) rearmarGbpEnDolares(); }
   e.target.value = v ? plata2(v) : "";
   altaCuenta();
 });
+document.getElementById("aDolarTipo").addEventListener("change", () => { pintarDolarTipo(); altaCuenta(); });
 document.getElementById("aLista").addEventListener("blur",e=>{
   e.target.value = plata2(aNum(e.target.value));
   altaCuenta();
@@ -6999,7 +7056,9 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
   if(tit.length < 6){ toast("Falta el título del artículo."); document.getElementById("aTit").focus(); return; }
   if(!prov){ toast("Falta la marca."); document.getElementById(document.getElementById("aMarca").hidden ? "aMarcaSel" : "aMarca").focus(); return; }
   if(puesto <= 0){ toast("Falta la lista del proveedor: sin eso no hay costo."); document.getElementById("aLista").focus(); return; }
-  if(usd && dol <= 0){ toast("Poné a cuánto tomás el dólar: sin eso no hay costo en pesos."); document.getElementById("aDolar").focus(); return; }
+  if(usd && dol <= 0){ toast(document.getElementById("aDolarTipo").value === "fijo" ? "Poné a cuánto tomás el dólar: sin eso no hay costo en pesos."
+    : "Todavía no llegó la cotización del dólar: probá en un momento, o elegí Fijo y poné el valor."); document.getElementById("aDolar").focus(); return; }
+  const dolTipo = document.getElementById("aDolarTipo").value;
   if(l1 <= 0 && !(ALTA.editando && (prod(ALTA.editando) || {}).gbp)){ toast("Falta la Lista 1: poné el porcentaje que le cargás al costo."); document.getElementById("aL1").focus(); return; }
 
   const esCombo = document.getElementById("aEsCombo").checked;
@@ -7024,6 +7083,7 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
     listaMon: usd ? puesto : null,     // el número tal cual lo lista el proveedor
     dolar: usd ? dol : null,           // a cuánto se tomó el dólar ese día
     dolarPropio: usd && document.getElementById("aDolarPropio").checked,
+    dolarTipo: usd && dolTipo === "blue" ? "blue" : "bna",
     dctoCont: limD(document.getElementById("aCont").value),
     contDias: leerPlazo(document.getElementById("aContDias").value).dias,
     contCheques: leerPlazo(document.getElementById("aContDias").value).cheques,
@@ -7061,11 +7121,13 @@ document.getElementById("aGuardar").addEventListener("click",()=>{
       if((+p.bulto || 0) !== bulto) extras.bulto = bulto > 1 ? bulto : 1;
       const dolPropio = usd && document.getElementById("aDolarPropio").checked && dol > 0 ? dol : 0;
       if((p.dolarPropio ? +p.dolar : 0) !== dolPropio) extras.dolar = dolPropio;
+      if(usd && dolTipo !== "fijo" && (p.dolarTipo === "blue" ? "blue" : "bna") !== dolTipo) extras.dolarTipo = dolTipo;
       if(Object.keys(extras).length) guardarFleteServidor(cod, extras);
     }
     if(p.gbp && !p.tocado && GBP_CRUDO[p.cod] && !esCombo && !p.combo && soloLoDePunto(p, datos)){
       const crudo = Object.assign({}, GBP_CRUDO[p.cod], { flete: fleteFijoA, otroCosto: otro, otroNombre: otroNom, bulto,
-        dolar: usd && document.getElementById("aDolarPropio").checked && dol > 0 ? dol : 0 });
+        dolar: usd && document.getElementById("aDolarPropio").checked && dol > 0 ? dol : 0,
+        dolarTipo: usd && dolTipo !== "fijo" ? (dolTipo === "blue" ? "blue" : undefined) : GBP_CRUDO[p.cod].dolarTipo });
       GBP_CRUDO[p.cod] = crudo;
       const np = productoDeGbp(crudo);
       for(const k of CAMPOS_GBP_PUNTO) p[k] = np[k];
@@ -9058,9 +9120,10 @@ function pintarProd(){
   const fc = document.getElementById("fCat").value;
   const toks = plano(document.getElementById("fBusca").value).split(/\\s+/).filter(Boolean);
   const fco = document.getElementById("fCombos").checked;
+  const fusd = document.getElementById("fUsd").checked;
   const saca = ORD_PROD[S.ordProd.col] || ORD_PROD.margen;
   const todos = PRODUCTOS
-    .filter(p=>(!fp||p.prov===fp) && (!fr||p.rub===fr) && (!fc||String(p.cat||"").trim()===fc) && (!fco||esComboArt(p))
+    .filter(p=>(!fp||p.prov===fp) && (!fr||p.rub===fr) && (!fc||String(p.cat||"").trim()===fc) && (!fco||esComboArt(p)) && (!fusd||p.mon==="USD")
              && (!REV.sel || REV.res[REV.sel].has(p.cod))
              && (!toks.length || (b => toks.every(t=>b.includes(t)))(textoBuscaArt(p))))
     .sort((a,b)=>{
@@ -9071,7 +9134,8 @@ function pintarProd(){
   // Con todo GBP son 7.000 filas: pintarlas todas trababa la pantalla en
   // cada tecla. Se ven de a 300; "Mostrar más" suma otras 300. Cambiar el
   // filtro o el orden vuelve a las primeras 300.
-  const firma = fp+"|"+fr+"|"+fc+"|"+toks.join(" ")+"|"+fco+"|"+S.ordProd.col+"|"+S.ordProd.asc+"|"+REV.sel;
+  const firma = fp+"|"+fr+"|"+fc+"|"+toks.join(" ")+"|"+fco+"|"+fusd+"|"+S.ordProd.col+"|"+S.ordProd.asc+"|"+REV.sel;
+  pintarUsdBarra(fusd, todos);
   pintarFiltrosArt(fp, fr, fc, toks, todos.length);
   pintarSugeridos(toks);
   if(firma !== PROD_VER.firma){ PROD_VER.firma = firma; PROD_VER.max = PROD_DE_A; }
@@ -9106,7 +9170,8 @@ function pintarProd(){
               (p.dtoInfo === "no cierra" ? ' <b style="color:var(--warn)" title="Con estos descuentos el costo da más que la Lista 1 de GBP: revisalo en GBP">· no cierra</b>' : "")+'</small>'
           : p.dtoInfo && p.cadenaGbp
           ? '<small style="display:block;color:var(--warn)" title="'+(p.dtoInfo === "no cierra" ? "Con estos descuentos el costo da más que la Lista 1 de GBP: revisalos en GBP. El costo sale de la Lista 1 ÷ 1,25." : "Falta el dólar del formador: el costo sale de la Lista 1 ÷ 1,25.")+'">'+
-              cadenaTxt(p.cadenaGbp.cadena)+' · '+(p.dtoInfo === "no cierra" ? "no cierra" : "falta el dólar")+'</small>' : '')+'</td>'+
+              cadenaTxt(p.cadenaGbp.cadena)+' · '+(p.dtoInfo === "no cierra" ? "no cierra" : "falta el dólar")+'</small>' : '')+
+        dolArtHtml(p)+'</td>'+
       '<td class="r"><select class="ed" data-iva="'+p.cod+'" aria-label="IVA del artículo">'+
         ALICUOTAS.map(a=>'<option value="'+a+'"'+(a===ivaDe(p)?" selected":"")+'>'+ivaTxt(a)+'</option>').join("")+
       '</select><small style="display:block;color:var(--ink-3)">+'+fmt2(costoProdDe(p)-netoProdDe(p))+'</small>'+
@@ -18926,7 +18991,7 @@ function productoDeGbp(a){
   // del formador, el mismo de los artículos cargados a mano en dólares. Sin
   // dólar cargado, el costo sale de la Lista 1 hasta que lo pongan.
   const usd = a.mon === "USD";
-  const dolArt = +a.dolar > 0 ? +a.dolar : DOLAR;
+  const dolArt = dolarDeArt(a);
   // Las listas de un artículo con costo en dólares siguen al dólar: GBP las
   // armó con el dólar del día del import (dolarRef). Con otro dólar suben o
   // bajan en la misma proporción y el margen queda igual.
@@ -18984,7 +19049,8 @@ function productoDeGbp(a){
     vendeSuelto: !(a.vende && a.vende.suelto === false), vendeCombo: !(a.vende && a.vende.combo === false),
     codProv, lista: listaArs, seis, seisOrig: seis.slice(), recs: gd ? gd.recs : cadenaGbp ? cadenaGbp.recs : [], dtoGbp: !!gd, l1, l2, iva,
     dtoInfo, cadenaGbp: dtoInfo ? cadenaGbp : null,
-    ...(usd ? { mon:"USD", listaMon: +a.lista || 0, dolar: dolArt > 0 ? dolArt : null, dolarPropio: +a.dolar > 0 } : {}),
+    ...(usd ? { mon:"USD", listaMon: +a.lista || 0, dolar: dolArt > 0 ? dolArt : null, dolarPropio: +a.dolar > 0,
+      dolarTipo: a.dolarTipo === "blue" ? "blue" : "bna" } : {}),
     // El mínimo y el óptimo de stock de GBP, para verlos en la ficha. NO son
     // el "min" que usa el pedido al proveedor para sumar lo que quedó abajo
     // del mínimo: eso se prende cuando Damián diga (serían cientos de
@@ -19061,7 +19127,7 @@ async function reintentarFletesProv(){
 const PUNTO_DEL_SERVIDOR = ["flete","fleteFijo","fletePct","otroCosto","otroNombre","bulto","dolar"];
 /** Lo que cambia en un artículo de GBP cuando se le vuelve a armar el precio. */
 const CAMPOS_GBP_PUNTO = ["costo","costoBase","contado","unPago","costoProducto","flete","fleteFijo","fletePct","subrubro",
-  "otroCosto","otroNombre","bulto","markup"];
+  "otroCosto","otroNombre","bulto","markup","lista","listaMon","dolar","dolarPropio","dolarTipo"];
 
 /** Mete los de GBP en el catálogo. El mismo código pisa al de muestra. */
 function aplicarGbp(arts){
@@ -19942,6 +20008,78 @@ async function pintarCCCls(c){
 // En Caja: el botón, para el que puede cobrar.
 document.getElementById("btnCobrarCC").hidden = !puedeCobrarCC();
 document.getElementById("btnCobrarCC").addEventListener("click", () => abrirCobranza(null));
+
+/* ======================================================= el dólar
+   V.0.11.291: cuántos artículos hay en dólares y qué dólar toma cada uno
+   (Blue o BNA, compra del día; o fijo). Damián, 27/11/2026: "necesito ver
+   cuántos artículos tengo en dólares, me debería aparecer qué tipo de cambio
+   toma el artículo, si blue o banco nación". */
+function dolArtHtml(p){
+  if(p.mon !== "USD") return "";
+  const t = p.dolarPropio ? "fijo" : p.dolarTipo === "blue" ? "blue" : "bna";
+  const ed = puede("productos") && p.gbp;
+  return '<span class="dol-art" title="La lista del proveedor está en dólares. Blue o BNA: la compra del día, se actualiza sola.">U$S '+plata2(+p.listaMon || 0)+' × '+
+    (ed ? '<select data-dol-art="'+atrib(p.cod)+'" aria-label="qué dólar toma '+atrib(p.cod)+'">'+
+        (t === "fijo" ? '<option value="fijo" selected>Fijo</option>' : '')+
+        '<option value="bna"'+(t === "bna" ? ' selected' : '')+'>BNA</option><option value="blue"'+(t === "blue" ? ' selected' : '')+'>Blue</option></select>'
+      : '<b>'+DOL_TIPO_TXT[t]+'</b>')+
+    ' '+(+p.dolar > 0 ? fmt2(+p.dolar) : '<b style="color:var(--warn)">sin dólar</b>')+'</span>';
+}
+function pintarUsdBarra(fusd, todos){
+  const usd = PRODUCTOS.filter(p => p.mon === "USD");
+  const n = document.getElementById("fUsdN"); if(n) n.textContent = usd.length ? "(" + usd.length.toLocaleString("es-AR") + ")" : "(0)";
+  const b = document.getElementById("usdBarra"); if(!b) return;
+  if(!fusd){ b.hidden = true; return; }
+  b.hidden = false;
+  const vis = todos.filter(p => p.mon === "USD");
+  const cuenta = t => vis.filter(p => (p.dolarPropio ? "fijo" : p.dolarTipo === "blue" ? "blue" : "bna") === t).length;
+  const nb = cuenta("bna"), nl = cuenta("blue"), nf = cuenta("fijo");
+  const sel = (typeof SEL_ART === "object" && SEL_ART) ? vis.filter(p => SEL_ART.has(p.cod)) : [];
+  const cuales = sel.length ? sel : vis, que = sel.length ? (sel.length === 1 ? "el tildado" : "los " + sel.length + " tildados") : (vis.length === 1 ? "el que ves" : "los " + vis.length + " que ves");
+  b.innerHTML = '<b>' + vis.length.toLocaleString("es-AR") + (vis.length === 1 ? ' artículo' : ' artículos') + ' en dólares</b>' +
+    '<span>· ' + nb + ' toman BNA · ' + nl + ' Blue' + (nf ? ' · ' + nf + ' con dólar fijo' : '') + '</span>' +
+    '<span style="color:var(--ink-2)">· hoy compra: BNA ' + (COTIZ.bna > 0 ? fmt2(COTIZ.bna) : "—") + ' · Blue ' + (COTIZ.blue > 0 ? fmt2(COTIZ.blue) : "—") + '</span>' +
+    (puede("productos") && cuales.length
+      ? '<span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">Pasar ' + que + ' a ' +
+        '<button class="b2" type="button" data-usd-todos="bna" style="padding:3px 10px">BNA</button>' +
+        '<button class="b2" type="button" data-usd-todos="blue" style="padding:3px 10px">Blue</button></span>' : '');
+  b.dataset.cods = JSON.stringify(cuales.filter(p => p.gbp).map(p => p.cod));
+}
+/** Cambia qué dólar toman: en el servidor (para todas las compus) y acá. */
+async function cambiarDolarArts(cods, tipo, sacarFijo){
+  if(!cods.length) return false;
+  const cuerpo = cods.length === 1 ? Object.assign({ cod: cods[0], dolarTipo: tipo, yo: soyYo() }, sacarFijo ? { dolar: 0 } : {})
+    : { cods, dolarTipo: tipo, yo: soyYo() };
+  const r = await pedirJson("PATCH", GBP_URL, cuerpo);
+  if(r.error){ toast("No se cambió el dólar: " + r.error); return false; }
+  for(const c of cods){
+    const a = GBP_CRUDO[c]; if(!a) continue;
+    if(tipo === "blue") a.dolarTipo = "blue"; else delete a.dolarTipo;
+    if(sacarFijo) delete a.dolar;
+  }
+  try{ rearmarGbpEnDolares(); }catch(e){}
+  return true;
+}
+document.getElementById("fUsd").addEventListener("change", pintarProd);
+document.getElementById("usdBarra").addEventListener("click", async e => {
+  const b = e.target.closest("[data-usd-todos]"); if(!b) return;
+  const tipo = b.dataset.usdTodos, cods = JSON.parse(document.getElementById("usdBarra").dataset.cods || "[]");
+  if(!cods.length) return;
+  if(cods.length > 1 && !confirm("¿Pasar " + cods.length + " artículos al dólar " + DOL_TIPO_TXT[tipo] + " (compra del día)? Sus precios en pesos se recalculan con ese dólar." +
+    "\\nLos que tienen un dólar fijo lo siguen usando.")) return;
+  b.disabled = true;
+  if(await cambiarDolarArts(cods, tipo, false)) toast(cods.length + (cods.length === 1 ? " artículo toma" : " artículos toman") + " el dólar " + DOL_TIPO_TXT[tipo] + ".");
+  b.disabled = false;
+});
+document.getElementById("tbProd").addEventListener("change", async e => {
+  const s = e.target.closest("select[data-dol-art]"); if(!s) return;
+  const cod = s.dataset.dolArt, p = PRODUCTOS.find(x => x.cod === cod);
+  if(!p || s.value === "fijo") return;
+  s.disabled = true;
+  const ok = await cambiarDolarArts([cod], s.value, !!p.dolarPropio);
+  if(ok) toast(cod + " toma el dólar " + DOL_TIPO_TXT[s.value] + ": la Lista 2 pasa a " + fmt2((PRODUCTOS.find(x => x.cod === cod) || p).unPago) + ".");
+  else pintarProd();
+});
 
 // Primero los artículos de GBP, después lo que había quedado cargado en esta
 // compu (puede tener artículos de GBP) y lo emitido hoy (ver arrancar()).

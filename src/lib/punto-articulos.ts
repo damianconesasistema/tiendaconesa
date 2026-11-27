@@ -89,6 +89,13 @@ export type ArticuloPunto = {
   /** V.0.99.92: el dolar de ESTE articulo (Costo en USD). No esta = el del
    *  formador, el mismo para todos. Se carga en Punto; el import no lo pisa. */
   dolar?: number;
+  /** V.0.11.291: que cotizacion toma el articulo con Costo en USD, la de
+   *  compra del dia (se actualiza sola): "blue", o no esta = Banco Nacion.
+   *  Damian, 27/11/2026: "me deberia aparecer que tipo de cambio toma el
+   *  articulo, si blue o banco nacion" / "de compra es la cotizacion y que
+   *  se actualice automaticamente". Un dolar fijo (arriba) le gana. Se carga
+   *  en Punto; el import no lo pisa. */
+  dolarTipo?: "blue";
   /** V.0.99.95: es un combo armado en Punto con articulos que ya estan. El
    *  import de GBP no lo toca; null al guardar lo saca. */
   combo?: ComboArticulo | null;
@@ -144,7 +151,7 @@ export type ArticuloPunto = {
 };
 
 /** Lo que se carga en Punto y el import de GBP no pisa nunca. */
-export const CAMPOS_DE_PUNTO = ["flete", "otroCosto", "otroNombre", "bulto", "dolar"] as const;
+export const CAMPOS_DE_PUNTO = ["flete", "otroCosto", "otroNombre", "bulto", "dolar", "dolarTipo"] as const;
 type CampoDePunto = (typeof CAMPOS_DE_PUNTO)[number];
 /** Lo de GBP que llega en los Excel de descuentos y de estructura: el Excel
  *  de listas no los trae, asi que importarlo no los toca. */
@@ -160,6 +167,8 @@ export type CostosArticulo = {
   otroNombre?: string | null;
   bulto?: number | null;
   dolar?: number | null;
+  /** "blue", o null = Banco Nacion. */
+  dolarTipo?: "blue" | null;
 };
 
 export type Guardados = {
@@ -321,6 +330,7 @@ export function limpiarArticulo(x: unknown): ArticuloPunto | null {
     ...(typeof otroNombre === "string" ? { otroNombre } : {}),
     ...(typeof bulto === "number" ? { bulto } : {}),
     ...(dolar > 0 ? { dolar } : {}),
+    ...(o.mon === "USD" && o.dolarTipo === "blue" ? { dolarTipo: "blue" as const } : {}),
     ...(combo !== undefined ? { combo } : {}),
     ...(mayor !== undefined ? { mayor } : {}),
     ...(subrubro !== undefined ? { subrubro } : {}),
@@ -388,7 +398,7 @@ function deOtroExcel(o: Record<string, unknown>): Partial<ArticuloPunto> {
  *  corresponde. */
 function sinLoDePunto(a: ArticuloPunto): Omit<ArticuloPunto, CampoDePunto> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { flete, otroCosto, otroNombre, bulto, dolar, ...resto } = a;
+  const { flete, otroCosto, otroNombre, bulto, dolar, dolarTipo, ...resto } = a;
   return resto;
 }
 
@@ -401,6 +411,7 @@ function conLoDePunto(base: Omit<ArticuloPunto, CampoDePunto>, c: CostosArticulo
   if (c.otroNombre) a.otroNombre = c.otroNombre;
   if (c.bulto && c.bulto > 1) a.bulto = c.bulto;
   if (c.dolar && c.dolar > 0) a.dolar = c.dolar;
+  if (c.dolarTipo === "blue") a.dolarTipo = "blue";
   return a;
 }
 
@@ -480,6 +491,7 @@ export async function guardarArticulos(
         otroNombre: ya?.otroNombre ?? a.otroNombre,
         bulto: ya?.bulto ?? a.bulto,
         dolar: ya?.dolar ?? a.dolar,
+        dolarTipo: ya ? ya.dolarTipo : a.dolarTipo,
       });
       // Los descuentos y lo de la estructura vienen de otros Excel: si este
       // no los trae, quedan los que ya tenia.
@@ -643,6 +655,32 @@ export function limpiarBulto(v: unknown): number | null | "mal" {
  *  su nombre, bulto): lo que no vino queda como estaba, y lo demas del
  *  articulo (y la fecha y el usuario del ultimo import) tambien. null en un
  *  campo lo saca. Null si ese codigo no esta. */
+/** V.0.11.291: que dolar toman muchos articulos de una vez ("blue", o null =
+ *  Banco Nacion). Solo los que tienen el Costo en USD; lo demas del articulo
+ *  queda como estaba. Devuelve cuantos cambiaron. */
+export async function cambiarDolarTipo(cods: readonly string[], tipo: "blue" | null): Promise<number> {
+  const quiero = new Set(cods);
+  return prisma.$transaction(async (tx) => {
+    await bloquearArticulos(tx);
+    const c = await leerCrudo(tx);
+    if (!c || !Array.isArray(c.d.articulos)) return 0;
+    const articulos = c.d.articulos as ArticuloPunto[];
+    let n = 0;
+    for (let i = 0; i < articulos.length; i++) {
+      const a = articulos[i];
+      if (!a || !quiero.has(a.cod) || a.mon !== "USD") continue;
+      if ((a.dolarTipo === "blue" ? "blue" : null) === tipo) continue;
+      const nuevo = { ...a };
+      if (tipo === "blue") nuevo.dolarTipo = "blue";
+      else delete nuevo.dolarTipo;
+      articulos[i] = nuevo;
+      n++;
+    }
+    if (n) await tx.setting.update({ where: { key: CLAVE_ARTICULOS }, data: { value: JSON.stringify({ ...c.d, articulos }) } });
+    return n;
+  }, TIEMPO);
+}
+
 export async function cambiarCostosArticulo(cod: string, cambios: CostosArticulo): Promise<ArticuloPunto | null> {
   return prisma.$transaction(async (tx) => {
     await bloquearArticulos(tx);
@@ -659,6 +697,7 @@ export async function cambiarCostosArticulo(cod: string, cambios: CostosArticulo
       otroNombre: valor("otroNombre"),
       bulto: valor("bulto"),
       dolar: valor("dolar"),
+      dolarTipo: valor("dolarTipo"),
     });
     articulos[i] = nuevo;
     const value = JSON.stringify({ ...c.d, articulos });
