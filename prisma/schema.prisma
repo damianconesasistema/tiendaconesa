@@ -898,6 +898,13 @@ model PuntoCobranza {
   anuladoEn    DateTime?
   anuladoPor   String?
   motivo       String?
+  /// El comprobante de pago (foto o PDF), migracion 64 (V.0.11.292). Uno por
+  /// cobranza. Las listas no lo leen: solo GET ?adjunto=ID.
+  adjunto       Bytes?
+  adjuntoTipo   String?
+  adjuntoNombre String?
+  adjuntoEn     DateTime?
+  adjuntoPor    String?
 
   @@unique([sucursal, numero])
   @@index([clienteId])

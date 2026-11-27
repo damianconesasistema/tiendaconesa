@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.291";
+export const APP_VERSION = "V.0.11.292";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.292",
+    date: "2026-11-27",
+    changes: [
+      "Punto, Cobrar cuenta corriente: adjuntar el comprobante del pago (foto o PDF, hasta 6 MB; las fotos se achican solas). Se adjunta al cobrar o después, desde \"Cobranzas anteriores\" (botón Adjuntar), y se ve con el botón Comprobante. Damián: \"agregale adjuntar comprobante\".",
+    ],
+  },
   {
     version: "V.0.11.291",
     date: "2026-11-27",

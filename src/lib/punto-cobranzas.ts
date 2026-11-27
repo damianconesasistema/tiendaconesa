@@ -1,4 +1,4 @@
-import { Prisma, type PuntoCobranza } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { siguienteRecibo } from "@/lib/punto-documentos";
 import type { Cuenta } from "@/lib/punto-cuentas-reglas";
@@ -50,7 +50,20 @@ export type Cobranza = {
   anuladoEn: string | null;
   anuladoPor: string | null;
   motivo: string | null;
+  /** V.0.11.292: el comprobante de pago adjunto (el archivo va aparte). */
+  adjuntoTipo: string | null;
+  adjuntoNombre: string | null;
+  adjuntoEn: string | null;
+  adjuntoPor: string | null;
 };
+
+/** Todo menos el archivo adjunto: las listas no lo leen. */
+const CAMPOS = {
+  id: true, idLocal: true, numero: true, sucursal: true, dia: true, creadoEn: true, usuario: true, clienteId: true, cliente: true,
+  clienteDoc: true, forma: true, cuentaId: true, cuentaNombre: true, operacion: true, nota: true, monto: true, imputaciones: true,
+  anuladoEn: true, anuladoPor: true, motivo: true, adjuntoTipo: true, adjuntoNombre: true, adjuntoEn: true, adjuntoPor: true,
+} as const;
+type FilaCobranza = Prisma.PuntoCobranzaGetPayload<{ select: typeof CAMPOS }>;
 
 const imputacionesDe = (x: Prisma.JsonValue): Imputacion[] =>
   Array.isArray(x)
@@ -59,7 +72,7 @@ const imputacionesDe = (x: Prisma.JsonValue): Imputacion[] =>
         .map((i) => ({ docId: String(i.docId ?? ""), nro: String(i.nro ?? ""), monto: Number(i.monto) || 0 }))
     : [];
 
-const cobranzaDe = (c: PuntoCobranza): Cobranza => ({
+const cobranzaDe = (c: FilaCobranza): Cobranza => ({
   id: c.id,
   idLocal: c.idLocal,
   numero: c.numero,
@@ -81,6 +94,10 @@ const cobranzaDe = (c: PuntoCobranza): Cobranza => ({
   anuladoEn: c.anuladoEn ? c.anuladoEn.toISOString() : null,
   anuladoPor: c.anuladoPor,
   motivo: c.motivo,
+  adjuntoTipo: c.adjuntoTipo,
+  adjuntoNombre: c.adjuntoNombre,
+  adjuntoEn: c.adjuntoEn ? c.adjuntoEn.toISOString() : null,
+  adjuntoPor: c.adjuntoPor,
 });
 
 type Cliente = Prisma.TransactionClient | typeof prisma;
@@ -136,14 +153,39 @@ export async function listarCobranzas(f: { clienteId?: string; clienteDoc?: stri
   const where: Prisma.PuntoCobranzaWhereInput = o.length
     ? { OR: o }
     : { creadoEn: { gte: new Date(Date.now() - Math.max(1, f.dias ?? 30) * 86_400_000) } };
-  const filas = await prisma.puntoCobranza.findMany({ where, orderBy: { creadoEn: "desc" }, take: TOPE_COBRANZAS });
+  const filas = await prisma.puntoCobranza.findMany({ where, orderBy: { creadoEn: "desc" }, take: TOPE_COBRANZAS, select: CAMPOS });
   return filas.map(cobranzaDe);
 }
 
 export async function cobranzaPorId(id: string): Promise<Cobranza | null> {
   if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) return null;
-  const c = await prisma.puntoCobranza.findUnique({ where: { id } });
+  const c = await prisma.puntoCobranza.findUnique({ where: { id }, select: CAMPOS });
   return c ? cobranzaDe(c) : null;
+}
+
+/** V.0.11.292: guarda (o cambia) el comprobante de pago de una cobranza. */
+export async function guardarAdjunto(
+  id: string,
+  a: { tipo: string; nombre: string; datos: Buffer },
+  quien: string,
+): Promise<Cobranza | string> {
+  const r = await prisma.puntoCobranza.updateMany({
+    where: { id },
+    data: { adjunto: a.datos, adjuntoTipo: a.tipo, adjuntoNombre: a.nombre, adjuntoEn: new Date(), adjuntoPor: quien },
+  });
+  if (r.count !== 1) return "Esa cobranza ya no está.";
+  return (await cobranzaPorId(id)) ?? "Esa cobranza ya no está.";
+}
+
+/** El archivo adjunto, para verlo. */
+export async function adjuntoDe(id: string): Promise<{ tipo: string; nombre: string; datos: Buffer; sucursal: string } | null> {
+  if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) return null;
+  const c = await prisma.puntoCobranza.findUnique({
+    where: { id },
+    select: { adjunto: true, adjuntoTipo: true, adjuntoNombre: true, sucursal: true },
+  });
+  if (!c || !c.adjunto || !c.adjuntoTipo) return null;
+  return { tipo: c.adjuntoTipo, nombre: c.adjuntoNombre || "comprobante", datos: Buffer.from(c.adjunto), sucursal: c.sucursal };
 }
 
 class NoSePudo extends Error {}
@@ -164,7 +206,7 @@ export async function cobrar(
   ve: (x: readonly Pendiente[]) => Pendiente[],
 ): Promise<{ cobranza: Cobranza; yaEstaba: boolean } | string> {
   const otro = "Ese cobro ya se había guardado con otros datos: cerrá la ventana y cobralo de nuevo.";
-  const antes = await prisma.puntoCobranza.findUnique({ where: { idLocal: p.idLocal } });
+  const antes = await prisma.puntoCobranza.findUnique({ where: { idLocal: p.idLocal }, select: CAMPOS });
   if (antes) return mismoCobro(cobranzaDe(antes), p) ? { cobranza: cobranzaDe(antes), yaEstaba: true } : otro;
   const previo = armarCobranza(p, ve(await deudasCC()));
   if (typeof previo === "string") return previo;
@@ -180,6 +222,7 @@ export async function cobrar(
         if (typeof a === "string") throw new NoSePudo(a);
         if (a.sucursal !== previo.sucursal) throw new NoSePudo("Cambió lo que se debe mientras cobrabas: recargá la ventana.");
         const c = await tx.puntoCobranza.create({
+          select: CAMPOS,
           data: {
             idLocal: p.idLocal,
             sucursal: a.sucursal,
@@ -221,7 +264,7 @@ export async function cobrar(
     if (e instanceof NoSePudo) return e.message;
     // El mismo pedido a la vez: el segundo choca con el unico y devuelve lo del primero.
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      const ya = await prisma.puntoCobranza.findUnique({ where: { idLocal: p.idLocal } });
+      const ya = await prisma.puntoCobranza.findUnique({ where: { idLocal: p.idLocal }, select: CAMPOS });
       if (ya) return mismoCobro(cobranzaDe(ya), p) ? { cobranza: cobranzaDe(ya), yaEstaba: true } : otro;
     }
     throw e;
@@ -231,7 +274,7 @@ export async function cobrar(
 /** Anula la cobranza (vuelve a deberse) y su movimiento en la cuenta. Si ya
  *  estaba anulada, la devuelve igual. */
 export async function anularCobranza(id: string, quien: string, motivo: string): Promise<Cobranza | string> {
-  const c = await prisma.puntoCobranza.findUnique({ where: { id } });
+  const c = await prisma.puntoCobranza.findUnique({ where: { id }, select: CAMPOS });
   if (!c) return "Esa cobranza ya no está.";
   if (c.anuladoEn) return cobranzaDe(c);
   const ahora = new Date();
@@ -242,6 +285,6 @@ export async function anularCobranza(id: string, quien: string, motivo: string):
       data: { anuladoEn: ahora, anuladoPor: quien, motivo: ("Se anuló la cobranza: " + motivo).slice(0, 200) },
     }),
   ]);
-  const ahoraC = await prisma.puntoCobranza.findUniqueOrThrow({ where: { id } });
+  const ahoraC = await prisma.puntoCobranza.findUniqueOrThrow({ where: { id }, select: CAMPOS });
   return cobranzaDe(ahoraC);
 }

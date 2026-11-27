@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/db";
 import { registrar } from "@/lib/actividad";
-import { anularCobranza, cobrar, cobranzaPorId, deudasCC, listarCobranzas } from "@/lib/punto-cobranzas";
+import { adjuntoDe, anularCobranza, cobrar, cobranzaPorId, deudasCC, guardarAdjunto, listarCobranzas } from "@/lib/punto-cobranzas";
 import {
   NOMBRE_FORMA,
   type Pendiente,
   armarCobranza,
   deudores,
   esDelCliente,
+  limpiarAdjunto,
   limpiarPedidoCobranza,
   nroRecibo,
   pesosTxt,
@@ -33,6 +34,7 @@ import { quienEntra } from "../clave";
 //   Cuentas y gastos o Clientes. El que tiene sucursales fijas solo ve lo de
 //   esas razones sociales.
 // GET ?recibo=ID -> el PDF del recibo.
+// GET ?adjunto=ID -> el comprobante de pago adjunto (V.0.11.292).
 // POST {yo, accion}:
 //   - "cobrar" {idLocal, forma, cuentaId, dia, operacion, nota,
 //     imputaciones: [{docId, monto}]}: el recibo, la cobranza y la "cobranza"
@@ -41,6 +43,9 @@ import { quienEntra } from "../clave";
 //     sucursal, hoy.
 //   - "anular" {id, motivo}: la venta vuelve a deberse y el movimiento se
 //     anula. Gerencia, o el que lo cobro el mismo dia.
+//   - "adjunto" {id, nombre, tipo, datos (base64)}: el comprobante de pago
+//     (foto o PDF, hasta 6 MB). Uno por cobranza; cambiarlo es de Gerencia o
+//     del que lo adjunto.
 // Sin "Ver Recibo X" no aparece lo vendido con Recibo X.
 // Los errores van con 200 y {error}: Cloudflare tapa los 5xx con su pagina.
 
@@ -121,6 +126,25 @@ export async function GET(req: Request): Promise<Response> {
       });
     }
     if (!puedeVer(yo)) return json({ error: NO_VE });
+
+    const adj = u.searchParams.get("adjunto");
+    if (adj) {
+      const a = await adjuntoDe(adj);
+      if (!a) return json({ error: "Esa cobranza no tiene comprobante adjunto." });
+      if (yo.sucursales && fueraDeSucursal(yo.sucursales, a.sucursal))
+        return json({ error: `Esa cobranza es de ${nombreSucursalPunto(a.sucursal)}.` });
+      const nombre = a.nombre.replace(/[^A-Za-z0-9 _.-]/g, "_").slice(0, 100) || "comprobante";
+      return new Response(new Uint8Array(a.datos), {
+        status: 200,
+        headers: {
+          "Content-Type": a.tipo,
+          "Content-Disposition": `inline; filename="${nombre}"`,
+          "Cache-Control": "private, no-store, max-age=0",
+          "X-Content-Type-Options": "nosniff",
+          "X-Robots-Tag": "noindex, nofollow, noarchive",
+        },
+      });
+    }
 
     const recibo = u.searchParams.get("recibo");
     if (recibo) {
@@ -255,6 +279,26 @@ export async function POST(req: Request): Promise<Response> {
           `Recibo ${nroRecibo(c.numero)} (${c.sucursal}) · ${c.cliente} · ${pesosTxt(c.monto)} · ${motivo}`,
           quien,
         );
+      return json({ ok: true, cobranza: r });
+    }
+    if (cuerpo.accion === "adjunto") {
+      if (!puedeCobrar(yo)) return json({ error: "Adjuntar el comprobante lo hace el que tiene Caja o Cuentas y gastos." });
+      const id = typeof cuerpo.id === "string" ? cuerpo.id.trim().slice(0, 40) : "";
+      const c = await cobranzaPorId(id);
+      if (!c) return json({ error: "Esa cobranza ya no está." });
+      if (yo.sucursales && fueraDeSucursal(yo.sucursales, c.sucursal))
+        return json({ error: `Esa cobranza es de ${nombreSucursalPunto(c.sucursal)}.` });
+      if (c.adjuntoTipo && !puedeTodo(yo) && c.adjuntoPor !== quien)
+        return json({ error: "Esa cobranza ya tiene comprobante. Cambiarlo es de Gerencia o del que lo adjuntó." });
+      const a = limpiarAdjunto(cuerpo);
+      if (typeof a === "string") return json({ error: a });
+      const r = await guardarAdjunto(c.id, { tipo: a.tipo, nombre: a.nombre, datos: Buffer.from(a.base64, "base64") }, quien);
+      if (typeof r === "string") return json({ error: r });
+      await registrar(
+        c.adjuntoTipo ? "Punto: cambió el comprobante de una cobranza" : "Punto: adjuntó el comprobante de una cobranza",
+        `Recibo ${nroRecibo(c.numero)} (${c.sucursal}) · ${c.cliente} · ${pesosTxt(c.monto)} · ${a.nombre} (${Math.round(a.bytes / 1024)} KB)`,
+        quien,
+      );
       return json({ ok: true, cobranza: r });
     }
     return json({ error: "No entendí qué hacer." });

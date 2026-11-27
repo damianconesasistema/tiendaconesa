@@ -1016,6 +1016,7 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 .cb-volver{display:inline-block;margin:12px 0 2px}
 .cb-hist tr.cb-anul td{color:var(--ink-3)}
 .cb-hist tr.cb-anul td b{text-decoration:line-through}
+.cb-adj{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px dashed var(--line-2);border-radius:7px;font-size:13px}
 #tbCsCompras td small{display:block;color:var(--ink-3);font-size:11.5px;font-weight:500}
 .cls-fila{cursor:pointer}
 #clsForm .campo label.cs-tilde{display:flex;align-items:center;justify-content:flex-start;gap:8px;font-size:13.5px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);margin:6px 0 0}
@@ -19698,7 +19699,7 @@ async function abrirCobranza(cli, docId){
     '<div class="envio-h"><h3 id="cbTit">Cuenta corriente de clientes</h3><button class="x" type="button" data-cb-no aria-label="cerrar">×</button></div>' +
     '<div class="cx-cuerpo" id="cbCuerpo"></div><div class="cx-pie" id="cbPie"></div></div>';
   document.body.appendChild(fondo);
-  Object.assign(CB, { fondo, cli:null, d:null, lista:null, marc:{}, hecho:null, listo:0, enviando:false, forma:"transferencia", cuenta:null });
+  Object.assign(CB, { fondo, cli:null, d:null, lista:null, marc:{}, hecho:null, listo:0, enviando:false, forma:"transferencia", cuenta:null, adj:null, adjError:"", subiendo:false });
   fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); cbCerrar(); } });
   fondo.addEventListener("click", cbClic);
   fondo.addEventListener("input", cbInput);
@@ -19755,7 +19756,7 @@ async function cbCliente(cli, docId){
   const d = await pedirJson("GET", CB_URL + "?" + q.toString());
   if(!CB.fondo) return;
   if(d.error){ cbG("cbCuerpo").innerHTML = '<p class="cx-res mal">' + txt(d.error) + '</p>'; return; }
-  CB.d = d; CB.idLocal = cbMarca(); CB.marc = {}; CB.dia = d.hoy; CB.op = ""; CB.nota = ""; CB.listo = 0;
+  CB.d = d; CB.idLocal = cbMarca(); CB.marc = {}; CB.dia = d.hoy; CB.op = ""; CB.nota = ""; CB.listo = 0; CB.adj = null; CB.adjError = "";
   const deben = (d.pendientes || []).filter(p => p.debe > 0.004);
   // La venta desde la que se abrió, o la única que debe.
   const pre = docId ? deben.filter(p => p.docId === docId) : deben.length === 1 ? deben : [];
@@ -19822,6 +19823,11 @@ function cbPintarForm(){
     '<div class="campo"><label for="cbOp">' + (CB.forma === "cheque" ? "Cheque (banco, número, fecha)" : CB.forma === "efectivo" ? "Detalle" : "Nº de operación") + '</label>' +
       '<input id="cbOp" type="text" maxlength="120" autocomplete="off" value="' + atrib(CB.op) + '" placeholder="opcional" style="text-align:left"></div>' +
     '<div class="campo ancho"><label for="cbNota">Nota (sale en el recibo)</label><input id="cbNota" type="text" maxlength="200" autocomplete="off" value="' + atrib(CB.nota) + '" placeholder="opcional" style="text-align:left"></div>' +
+    // V.0.11.292: el comprobante (Damián: "agregale adjuntar comprobante").
+    '<div class="campo ancho"><label for="cbAdj">Comprobante del pago (foto o PDF, opcional)</label>' +
+      (CB.adj ? '<span class="cb-adj">Adjunto: <b>' + txt(CB.adj.name) + '</b> (' + Math.max(1, Math.round(CB.adj.size / 1024)).toLocaleString("es-AR") + ' KB)' +
+          ' <button class="link-chico" type="button" data-cb-adj-quitar>Quitar</button></span>'
+        : '<input id="cbAdj" type="file" accept="image/*,application/pdf">') + '</div>' +
     '</div><div class="cb-total" id="cbTotal"></div>';
   cbPintarTotal();
 }
@@ -19878,6 +19884,59 @@ function cbCambio(e){
   if(t.id === "cbForma"){ CB.forma = t.value; CB.cuenta = null; cbPintarForm(); const s = cbG("cbForma"); if(s) s.focus(); return; }
   if(t.id === "cbCuenta"){ CB.cuenta = t.value; cbPintarPie(); return; }
   if(t.id === "cbDiaPago") CB.dia = t.value;
+  if(t.id === "cbAdj"){
+    const f = t.files && t.files[0]; if(!f) return;
+    const no = cbAdjNo(f); if(no){ toast(no); t.value = ""; return; }
+    CB.adj = f; cbPintarForm(); return;
+  }
+  if(t.id === "cbAdjHist"){
+    const f = t.files && t.files[0], id = t.dataset.id; t.value = "";
+    if(f && id) cbAdjuntarYa(id, f);
+  }
+}
+/** Si ese archivo no sirve como comprobante, el motivo. */
+function cbAdjNo(f){
+  if(!f) return "No llegó el archivo.";
+  if(!(/^image\\//.test(f.type) || f.type === "application/pdf")) return "El comprobante tiene que ser una foto o un PDF.";
+  if(f.type === "application/pdf" && f.size > 6 * 1024 * 1024) return "Ese PDF pesa más de 6 MB.";
+  if(f.size > 25 * 1024 * 1024) return "Esa foto pesa demasiado.";
+  return "";
+}
+/** El archivo listo para mandar: las fotos se achican (lado más largo 1800 px,
+    JPG), el PDF va como está. */
+function cbPrepararAdj(f){
+  const leer = blob => new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = () => mal(new Error("No pude leer el archivo.")); r.readAsDataURL(blob); });
+  if(f.type === "application/pdf") return leer(f).then(datos => ({ tipo:"application/pdf", nombre:f.name, datos }));
+  return new Promise((ok, mal) => {
+    const url = URL.createObjectURL(f), img = new Image();
+    img.onload = () => {
+      try{
+        const k = Math.min(1, 1800 / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+        const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        ok({ tipo:"image/jpeg", nombre: f.name.replace(/\\.[^.]+$/, "") + ".jpg", datos: c.toDataURL("image/jpeg", 0.85) });
+      }catch(e){ URL.revokeObjectURL(url); mal(new Error("No pude leer esa foto: mandala como JPG o PDF.")); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); mal(new Error("No pude leer esa foto: mandala como JPG o PDF.")); };
+    img.src = url;
+  });
+}
+/** Adjunta el comprobante a una cobranza ya hecha. Devuelve la cobranza o un error. */
+async function cbSubirAdj(id, f){
+  let a;
+  try{ a = await cbPrepararAdj(f); }catch(e){ return { error: e.message }; }
+  return pedirJson("POST", CB_URL, Object.assign({ accion:"adjunto", yo: soyYo(), id }, a));
+}
+async function cbAdjuntarYa(id, f){
+  const no = cbAdjNo(f); if(no){ toast(no); return; }
+  toast("Subiendo el comprobante…");
+  const r = await cbSubirAdj(id, f);
+  if(r.error){ toast("No se adjuntó: " + r.error); return; }
+  toast("Comprobante adjunto.");
+  if(CB.hecho && CB.hecho.id === id){ CB.hecho = r.cobranza; cbPintarHecho(); }
+  else if(CB.fondo && CB.cli) await cbCliente(CB.cli);
 }
 async function cbClic(e){
   const t = e.target;
@@ -19888,6 +19947,9 @@ async function cbClic(e){
   const pdf = t.closest("[data-cb-pdf]"); if(pdf){ cbPdf(pdf.dataset.cbPdf, pdf.dataset.cbImp === "1", pdf); return; }
   const an = t.closest("[data-cb-anular]"); if(an){ await cbAnular(an.dataset.cbAnular); return; }
   if(t.closest("[data-cb-otra]")){ await cbCliente(CB.cli); return; }
+  if(t.closest("[data-cb-adj-quitar]")){ CB.adj = null; cbPintarForm(); return; }
+  const ah = t.closest("[data-cb-adjuntar]");
+  if(ah){ const inp = cbG("cbAdjHist"); if(inp){ inp.dataset.id = ah.dataset.cbAdjuntar; inp.click(); } return; }
   if(t.closest("#cbOk")) await cbConfirmar();
 }
 async function cbConfirmar(){
@@ -19904,6 +19966,14 @@ async function cbConfirmar(){
   if(r.error){ cbPintarPie(); toast("No se cobró: " + r.error); return; }
   CB.hecho = r.cobranza;
   cbRefrescar();
+  if(CB.adj){
+    CB.subiendo = true; cbPintarHecho();
+    const ra = await cbSubirAdj(CB.hecho.id, CB.adj);
+    CB.subiendo = false;
+    if(ra.error){ CB.adjError = ra.error; toast("El pago quedó confirmado, pero el comprobante no se adjuntó: " + ra.error); }
+    else { CB.hecho = ra.cobranza; CB.adj = null; CB.adjError = ""; }
+    if(!CB.fondo) return;
+  }
   cbPintarHecho();
 }
 /** Lo que debe cada uno cambió: la venta, Comprobantes y la caja se vuelven a leer. */
@@ -19923,6 +19993,11 @@ function cbPintarHecho(){
       ' · el ' + cbDia(c.dia) + '</div>' +
     '<ul style="margin:8px 0 0 18px;padding:0">' + lineas + '</ul>' +
     (c.cuentaNombre ? '<p class="cx-nota" style="margin:8px 0 0">La cobranza quedó anotada en ' + txt(c.cuentaNombre) + ' (Gerencia → Cuentas y gastos): no hace falta anotarla a mano.</p>' : '') +
+    '<p class="cx-nota" style="margin:8px 0 0">' + (CB.subiendo ? 'Subiendo el comprobante…'
+      : c.adjuntoTipo ? 'Comprobante adjunto: <a href="' + CB_URL + '?adjunto=' + encodeURIComponent(c.id) + '" target="_blank" rel="noopener">' + txt(c.adjuntoNombre || "ver") + '</a>'
+      : (CB.adjError ? '<b style="color:var(--bad)">El comprobante no se adjuntó (' + txt(CB.adjError) + ').</b> ' : 'Sin comprobante adjunto. ') +
+        '<button class="link-chico" type="button" data-cb-adjuntar="' + atrib(c.id) + '">Adjuntar comprobante</button>') + '</p>' +
+    '<input type="file" id="cbAdjHist" accept="image/*,application/pdf" hidden>' +
     '<div class="cb-acc"><button class="b1" type="button" data-cb-pdf="' + atrib(c.id) + '" data-cb-num="' + c.numero + '">Bajar el recibo</button>' +
       '<button class="b2" type="button" data-cb-pdf="' + atrib(c.id) + '" data-cb-num="' + c.numero + '" data-cb-imp="1">Imprimir el recibo</button>' +
       '<button class="b3" type="button" data-cb-otra>Volver a la cuenta del cliente</button></div></div>';
@@ -19943,8 +20018,10 @@ function cbHistoriaHtml(){
           (c.operacion ? '<small>' + txt(c.operacion) + '</small>' : '') + '</td>' +
         '<td class="r"><b>' + fmt2(c.monto) + '</b>' + (c.anulado ? '<small><span class="pill p-bad" title="' + atrib(c.motivo || "") + '">anulada</span></small>' : '') + '</td>' +
         '<td class="r" style="white-space:nowrap"><button class="b3" type="button" data-cb-pdf="' + atrib(c.id) + '" data-cb-num="' + c.numero + '" style="padding:3px 10px">Recibo</button>' +
+          (c.adjuntoTipo ? ' <a class="b3" href="' + CB_URL + '?adjunto=' + encodeURIComponent(c.id) + '" target="_blank" rel="noopener" style="padding:3px 10px;text-decoration:none" title="' + atrib(c.adjuntoNombre || "") + '">Comprobante</a>'
+            : !c.anulado && CB.d.puedeCobrar ? ' <button class="b3" type="button" data-cb-adjuntar="' + atrib(c.id) + '" style="padding:3px 10px">Adjuntar</button>' : '') +
           (anula ? ' <button class="b3" type="button" data-cb-anular="' + atrib(c.id) + '" style="padding:3px 10px">Anular</button>' : '') + '</td></tr>';
-    }).join("") + '</tbody></table></div>';
+    }).join("") + '</tbody></table></div><input type="file" id="cbAdjHist" accept="image/*,application/pdf" hidden>';
 }
 async function cbPdf(id, imprimir, boton){
   if(boton) boton.disabled = true;

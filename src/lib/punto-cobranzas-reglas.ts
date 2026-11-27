@@ -387,3 +387,27 @@ export function detalleCobranza(
   const s = `${a.cliente} · ${ventas} · recibo ${nroRecibo(numero)} · ${NOMBRE_FORMA[forma]}${operacion ? ` ${operacion}` : ""}`;
   return s.replace(/[<>]/g, "").slice(0, 200);
 }
+
+// ---------------------------------------------------- el comprobante adjunto
+// V.0.11.292. Damian: "agregale adjuntar comprobante" (la foto o el PDF de la
+// transferencia). La pagina achica las fotos antes de mandarlas.
+export const TIPOS_ADJUNTO: readonly string[] = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+export const MAX_ADJUNTO = 6 * 1024 * 1024;
+
+export type AdjuntoPedido = { tipo: string; nombre: string; base64: string; bytes: number };
+
+/** Lo que manda la pagina para adjuntar. String = el error. */
+export function limpiarAdjunto(x: unknown): AdjuntoPedido | string {
+  if (!x || typeof x !== "object") return "No llegó el comprobante.";
+  const o = x as Record<string, unknown>;
+  const tipo = typeof o.tipo === "string" ? o.tipo.toLowerCase().trim() : "";
+  if (!TIPOS_ADJUNTO.includes(tipo)) return "El comprobante tiene que ser una foto (JPG o PNG) o un PDF.";
+  const base64 = typeof o.datos === "string" ? o.datos.replace(/^data:[^,]*,/, "").replace(/\s+/g, "") : "";
+  if (!base64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) return "El archivo no llegó bien: probá de nuevo.";
+  const relleno = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  const bytes = Math.floor((base64.length * 3) / 4) - relleno;
+  if (bytes < 100) return "El archivo está vacío.";
+  if (bytes > MAX_ADJUNTO) return "El comprobante pesa más de 6 MB: sacale una foto más chica o mandá el PDF.";
+  const nombre = texto(o.nombre, 120) || (tipo === "application/pdf" ? "comprobante.pdf" : "comprobante.jpg");
+  return { tipo, nombre, base64, bytes };
+}
