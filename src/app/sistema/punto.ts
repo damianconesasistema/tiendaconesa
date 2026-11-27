@@ -16782,7 +16782,8 @@ const cxIgual = (a, b, tol) => Math.abs((+a || 0) - (+b || 0)) <= (tol == null ?
 const cxCad = ds => (ds || []).filter(d => +d > 0).map(d => Math.round(+d * 100) / 100);
 const cxMismaCad = (x, y) => x.length === y.length && x.every((d, i) => Math.abs(d - y[i]) < 0.005);
 const cxCadTxt = c => c.length ? c.map(d => pTxt(d)).join(" + ") : "sin desc.";
-const cxBolsaCod = cod => { const m = /-D(\\d{1,3})$/i.exec(cxT(cod)); const n = m ? +m[1] : 0; return n >= 2 ? n : 0; };
+// V.0.11.289: también con el color o la terminación atrás ("0801.5B-D5-N", "-D10-CR").
+const cxBolsaCod = cod => { const m = /-D(\\d{1,3})(?:-[A-Z]{1,3})?$/i.exec(cxT(cod)); const n = m ? +m[1] : 0; return n >= 2 ? n : 0; };
 /** La lista parece por unidad y el artículo por bolsa de N (igual que
     pareceBolsa() de src/lib/punto-cambios-excel.ts). */
 function cxPareceBolsa(hoy, nueva, nCod){
@@ -17270,9 +17271,9 @@ function cxRevisar(){
   m.renglones = m.modo === "excel" ? cxRevisarPunto(m) : cxRevisarProveedor(m);
 }
 function cxCuenta(){
-  const m = CX.m, n = { cambia:0, revisar:0, error:0, igual:0, nocargado:0, tildados:0 };
+  const m = CX.m, n = { cambia:0, revisar:0, error:0, igual:0, nocargado:0, tildados:0, sintilde:0 };
   for(const r of m.renglones){
-    if(r.estado === "cambia"){ n.cambia++; if(m.tilde[r.a.cod]) n.tildados++; }
+    if(r.estado === "cambia"){ n.cambia++; if(m.tilde[r.a.cod]) n.tildados++; else n.sintilde++; }
     if(r.estado === "error") n.error++;
     if(r.estado === "igual" || r.deIgual) n.igual++;
     if(r.estado === "nocargado") n.nocargado++;
@@ -17311,7 +17312,8 @@ function cxResumenTxt(m){
 function cxResumenHtml(m){
   const s = cxResumen(m), n = (x, uno, varios) => x.toLocaleString("es-AR") + " " + (x === 1 ? uno : varios);
   const li = [];
-  if(s.saltos) li.push('<li class="mal">' + n(s.saltos, "tiene", "tienen") + ' un salto de costo de más del ' + CX_SALTO + ' %: fijate antes de aplicar (no van tildados).</li>');
+  if(s.saltos) li.push('<li class="mal">' + n(s.saltos, "tiene", "tienen") + ' un salto de costo de más del ' + CX_SALTO + ' %: fijate antes de aplicar (no van tildados).' +
+    ' <button class="link-chico" type="button" data-cx-f="sintilde">ver cuáles</button></li>');
   if(s.cajas) li.push('<li>' + n(s.cajas, "viene", "vienen") + ' por caja en la lista y acá está por unidad: se divide por la cantidad de la caja.</li>');
   if(s.bolsas) li.push('<li>' + n(s.bolsas, "viene", "vienen") + ' por unidad y acá está por bolsa: se multiplica por la cantidad.</li>');
   if(s.errores) li.push('<li class="mal">' + n(s.errores, "renglón con errores", "renglones con errores") + ': mirá la pestaña «Con errores».</li>');
@@ -17372,8 +17374,11 @@ function cxPintar(){
         '<span style="width:16px;height:16px;display:inline-flex">' + icoSvg("download") + '</span>Bajar Excel de los ' + nM + ' artículos de ' + txt(m.marca) + '</button>' +
         '<span class="cx-nota" style="margin:0">Cómo están hoy: descuentos, contado, flete, markup, listas, margen…</span></div>';
     }
-    const tabs = [["cambia", "Cambian", n.cambia], ["revisar", "Para revisar", n.revisar], ["error", "Con errores", n.error, true],
-      ["igual", "Sin cambios", n.igual]];
+    const tabs = [["cambia", "Cambian", n.cambia]];
+    // V.0.11.289: los que cambian y no van tildados (Damián: "me podes marcar
+    // esos 2 que no tildaste, no tengo forma de filtrarlos").
+    if(n.sintilde || m.filtro === "sintilde") tabs.push(["sintilde", "Sin tildar", n.sintilde, true]);
+    tabs.push(["revisar", "Para revisar", n.revisar], ["error", "Con errores", n.error, true], ["igual", "Sin cambios", n.igual]);
     if(m.modo === "proveedor") tabs.push(["noenlista", "Cargados y no están en la lista", m.noEnLista.length]);
     tabs.push(["nocargado", m.modo === "proveedor" ? "En la lista y no cargados" : "No están cargados", n.nocargado]);
     html += '<div class="cx-tabs">' + tabs.map(([k, t, c, mal]) => '<button type="button" data-cx-f="' + k + '" aria-pressed="' + (m.filtro === k) + '"' +
@@ -17422,7 +17427,8 @@ function cxTablaHtml(){
   }
   // V.0.11.282: en "Sin cambios" quedan también los que cambian solo porque
   // les tocaste el markup acá (si no, desaparecían al escribirlo).
-  const lista = m.renglones.filter(r => f === "revisar" ? (r.estado === "nota" || (r.estado === "cambia" && (r.avisos.length || r.cambiaDesc)))
+  const lista = m.renglones.filter(r => f === "sintilde" ? (r.estado === "cambia" && (m.sinTildeVer ? m.sinTildeVer.has(r.a.cod) : !m.tilde[r.a.cod]))
+    : f === "revisar" ? (r.estado === "nota" || (r.estado === "cambia" && (r.avisos.length || r.cambiaDesc)))
     : f === "igual" ? (r.estado === "igual" || r.deIgual) : r.estado === f);
   if(f === "nocargado"){
     if(!lista.length) return '<p class="cx-nota">Todos los códigos del Excel están cargados.</p>';
@@ -17432,7 +17438,7 @@ function cxTablaHtml(){
       (lista.length > 1000 ? '<tr><td colspan="2" class="vacio">y ' + (lista.length - 1000) + ' más</td></tr>' : '') + '</tbody></table></div>';
   }
   if(!lista.length) return '<p class="cx-nota">' + (f === "cambia" ? "No hay nada que cambiar: lo del Excel ya es lo que está cargado." :
-    f === "error" ? "Ningún renglón con errores." : f === "revisar" ? "Nada para revisar." : "Ninguno.") + '</p>';
+    f === "error" ? "Ningún renglón con errores." : f === "revisar" ? "Nada para revisar." : f === "sintilde" ? "Están todos tildados." : "Ninguno.") + '</p>';
   const tope = 600, flecha = (h, n, fmt) => h === n ? fmt(h) : '<span style="color:var(--ink-3)">' + fmt(h) + '</span> → <b>' + fmt(n) + '</b>';
   const filas = lista.slice(0, tope).map(r => {
     const a = r.a;
@@ -17459,7 +17465,7 @@ function cxTablaHtml(){
       '<td>' + r.avisos.map(t => '<span class="cx-av' + (r.salto ? ' mal' : '') + '">' + txt(t) + '</span>').join("") +
         (r.cambiaDesc && !r.avisos.length ? '<span class="cx-av">cambian los descuentos</span>' : '') + bolsa + '</td></tr>';
   }).join("");
-  const conTilde = f === "cambia" || f === "revisar";
+  const conTilde = f === "cambia" || f === "revisar" || f === "sintilde";
   return (conTilde ? '<div class="cx-opc"><button class="b3" type="button" data-cx-todos="1" style="padding:3px 10px">Tildar todos</button>' +
       '<button class="b3" type="button" data-cx-todos="0" style="padding:3px 10px">Destildar todos</button>' +
       '<span class="cx-nota" style="margin:0">El markup se cambia acá mismo: escribilo y la Lista 1 y la 2 se arman con ese %.</span></div>' :
@@ -17551,11 +17557,19 @@ async function cxClic(e){
   if(t.closest("[data-cx-no]")){ document.getElementById("cxModal").remove(); return; }
   if(t.closest("[data-cx-elegir]")){ document.getElementById("cxFile").click(); return; }
   const z = t.closest("#cxZona"); if(z && !t.closest("button") && !t.closest("input")){ document.getElementById("cxFile").click(); return; }
-  const fb = t.closest("[data-cx-f]"); if(fb){ m.filtro = fb.dataset.cxF; cxPintar(); return; }
+  const fb = t.closest("[data-cx-f]");
+  if(fb){
+    m.filtro = fb.dataset.cxF;
+    m.sinTildeVer = m.filtro === "sintilde" ? new Set(m.renglones.filter(r => r.estado === "cambia" && !m.tilde[r.a.cod]).map(r => r.a.cod)) : null;
+    cxPintar();
+    if(fb.closest(".cx-resumen")){ const tb = document.querySelector("#cxCuerpo .cx-tabs"); if(tb) tb.scrollIntoView({ block:"start", behavior:"smooth" }); }
+    return;
+  }
   const todos = t.closest("[data-cx-todos]");
   if(todos){
     const si = todos.dataset.cxTodos === "1";
-    for(const r of m.renglones) if(r.estado === "cambia" && (m.filtro === "cambia" || r.avisos.length || r.cambiaDesc)) m.tilde[r.a.cod] = si;
+    for(const r of m.renglones) if(r.estado === "cambia" && (m.filtro === "sintilde" ? (m.sinTildeVer && m.sinTildeVer.has(r.a.cod))
+      : (m.filtro === "cambia" || r.avisos.length || r.cambiaDesc))) m.tilde[r.a.cod] = si;
     cxPintar(); return;
   }
   const dh = t.closest("[data-cx-desh]"); if(dh){ cxDeshacer(dh.dataset.cxDesh); return; }
