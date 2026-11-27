@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.293";
+export const APP_VERSION = "V.0.11.294";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.294",
+    date: "2026-11-27",
+    changes: [
+      "Punto: una venta en cuenta corriente ya pagada tiene \"Ver cobro\" en Comprobantes, y la ficha del cliente muestra \"Ver cobranzas\" aunque no deba nada: se llega a la cobranza para bajar el recibo, ver el comprobante o anularla y cobrarla de nuevo. Antes, pagada, no había botón para llegar. Damián: \"no está todavía el comprobante de cuenta corriente para volver a hacer\".",
+    ],
+  },
   {
     version: "V.0.11.293",
     date: "2026-11-27",

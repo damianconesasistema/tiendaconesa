@@ -12330,7 +12330,7 @@ function clicCp(e){
     if(a === "nodespachar") despacharDoc(d, acc, true);
     if(a === "nc") abrirNota(d, "credito");
     if(a === "nd") abrirNota(d, "debito");
-    if(a === "cobrarcc"){ const cli = (d.datos || {}).cliente || {}; abrirCobranza({ id: cli.id || "", doc: cli.doc || "", n: cli.n || d.cliente }, d.id); }
+    if(a === "cobrarcc" || a === "vercc"){ const cli = (d.datos || {}).cliente || {}; abrirCobranza({ id: cli.id || "", doc: cli.doc || "", n: cli.n || d.cliente }, a === "cobrarcc" ? d.id : null); }
     return;
   }
   const f = e.target.closest("tr[data-cp]");
@@ -19696,8 +19696,11 @@ function pillCC(d){
 }
 function cbBotonCp(d, bt){
   const x = SALDOS_CC && SALDOS_CC.docs[d.id];
-  return esVentaCC(d) && puedeCobrarCC() && x && x.debe > 0.004
-    ? bt("cobrarcc", "Cobrar", "b1", "Confirmar el pago de esta venta en cuenta corriente") : "";
+  if(!esVentaCC(d) || !x) return "";
+  if(x.debe > 0.004) return puedeCobrarCC() ? bt("cobrarcc", "Cobrar", "b1", "Confirmar el pago de esta venta en cuenta corriente") : "";
+  // V.0.11.294: la pagada también, para ver el recibo y el comprobante o anular
+  // la cobranza (Damián: "no está todavía el comprobante para volver a hacer").
+  return puedeVerCC() ? bt("vercc", "Ver cobro", "b2", "La cobranza de esta venta: el recibo, el comprobante, o anularla para cobrarla de nuevo") : "";
 }
 
 /** La ventana: sin cliente, los que deben; con cliente, sus ventas y el cobro.
@@ -20090,8 +20093,9 @@ async function pintarCCCls(c){
   sub.innerHTML = deben.length
     ? 'debe <b style="color:var(--bad)">' + fmt2(tot) + '</b> en ' + deben.length + (deben.length === 1 ? ' venta' : ' ventas') + ' · la más vieja del ' + fechaAR(deben[0].fecha)
     : (d.pendientes || []).length ? 'no debe nada: lo vendido en cuenta corriente está pagado' : 'no tiene ventas en cuenta corriente';
-  b.hidden = !deben.length;
-  b.textContent = d.puedeCobrar ? "Cobrar" : "Ver";
+  // V.0.11.294: aunque no deba, si tiene cobranzas se pueden ver (y anular).
+  b.hidden = !deben.length && !(d.cobranzas || []).length;
+  b.textContent = deben.length ? (d.puedeCobrar ? "Cobrar" : "Ver") : "Ver cobranzas";
   b.onclick = () => abrirCobranza({ id:c.id, doc, n:c.nombre });
 }
 // En Caja: el botón, para el que puede cobrar.
