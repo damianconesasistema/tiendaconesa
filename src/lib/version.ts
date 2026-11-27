@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.300";
+export const APP_VERSION = "V.0.11.301";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.301",
+    date: "2026-11-27",
+    changes: [
+      "Punto, Artículos: \"Ver los eliminados\" alineado en la misma línea que Solo combos y En dólares; y ya no queda una franja gris vacía abajo de los filtros (el recuadro de En dólares se veía aunque no estuviera tildado). Damián: \"alineá eso\".",
+    ],
+  },
   {
     version: "V.0.11.300",
     date: "2026-11-27",

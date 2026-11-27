@@ -1007,6 +1007,9 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 .dol-art{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;margin-top:3px;font-size:11.5px;color:var(--ink-2);white-space:nowrap}
 .dol-art select{font-size:11.5px;padding:1px 4px;border:1px solid var(--line-2);border-radius:5px;background:var(--surface)}
 .usd-barra{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;padding:8px 12px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-3);font-size:13px}
+.usd-barra[hidden]{display:none}
+/* V.0.11.301: "Ver los eliminados", alineado con Solo combos y En dólares. */
+.art-sel .art-elim{align-self:flex-end;padding:0;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;line-height:19px}
 .cb-tabla td{vertical-align:middle}
 .cb-tabla td small,.cb-hist td small{display:block;color:var(--ink-3);font-size:11.5px}
 .cb-total{margin:12px 0 2px;padding:10px 12px;border-radius:8px;background:var(--surface-3);font-size:14px}
@@ -2538,8 +2541,8 @@ footer{
         <label>Rubro <select id="fRub"></select></label>
         <label>Ordenar <select id="fOrden" aria-label="Ordenar los artículos"></select></label>
         <label style="flex-direction:row;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="fCombos"> Solo combos</label>
-        <button class="link-chico" type="button" id="fEliminados" hidden style="align-self:center">Ver los eliminados</button>
         <label style="flex-direction:row;align-items:center;gap:6px;cursor:pointer" title="Los que tienen la lista del proveedor en dólares"><input type="checkbox" id="fUsd"> En dólares <span id="fUsdN"></span></label>
+        <button class="link-chico art-elim" type="button" id="fEliminados" hidden>Ver los eliminados</button>
       </div>
       <div class="art-chips" id="fChips"></div>
     </div>
