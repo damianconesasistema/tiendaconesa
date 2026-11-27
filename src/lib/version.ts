@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.289";
+export const APP_VERSION = "V.0.11.290";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.290",
+    date: "2026-11-27",
+    changes: [
+      "Punto: cobrar la cuenta corriente de los clientes. Lo vendido con forma de pago \"Cuenta corriente\" queda debiéndose hasta que se cobra. \"Cobrar cuenta corriente\" (en Caja, en la ficha del cliente, en el escritorio y en cada venta de Comprobantes): se tilda la venta que pagó (o varias, o una parte), cómo pagó (transferencia, efectivo, Mercado Pago o cheque), a qué cuenta entró y qué día. Al confirmar: la venta queda pagada, la cobranza se anota sola en esa cuenta (Gerencia → Cuentas y gastos) y sale el recibo de cobranza en PDF (numerado por razón social). Se puede anular: la venta vuelve a deberse y el movimiento se anula. Gerencia cobra a cualquier cuenta y con cualquier fecha; el cajero, en el efectivo de su sucursal y con la fecha de hoy. En Venta, el cliente muestra lo que debe de verdad (antes siempre 0) y el límite de su cuenta lo tiene en cuenta; en Comprobantes, \"debe $\" o \"pagada\". Damián: \"nos pagaron la venta a cuenta corriente de ayer, ahora hay que confirmar el pago\" / \"la transferencia fue a banco santander\" / \"también deberíamos anotarlo\".",
+    ],
+  },
   {
     version: "V.0.11.289",
     date: "2026-11-27",

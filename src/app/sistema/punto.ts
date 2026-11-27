@@ -1001,6 +1001,17 @@ table.densa th{padding:8px 10px; font-size:11.5px}
 #csCompras{margin:16px 16px 0;padding-top:12px;border-top:1px solid var(--line)}
 .cs-compras-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 8px}
 .cs-compras-h h4{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+/* V.0.11.290: la cuenta corriente del cliente y la ventana de cobro. */
+#csCC{margin:16px 16px 0;padding-top:12px;border-top:1px solid var(--line)}
+.cb-tabla td{vertical-align:middle}
+.cb-tabla td small,.cb-hist td small{display:block;color:var(--ink-3);font-size:11.5px}
+.cb-total{margin:12px 0 2px;padding:10px 12px;border-radius:8px;background:var(--surface-3);font-size:14px}
+.cb-ok{margin:14px 0;padding:14px 16px;border:1px solid var(--line-2);border-left:4px solid #2e7d32;border-radius:10px;background:var(--surface-3)}
+.cb-ok .t{font-weight:700;font-size:15px;margin-bottom:4px}
+.cb-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cb-volver{display:inline-block;margin:12px 0 2px}
+.cb-hist tr.cb-anul td{color:var(--ink-3)}
+.cb-hist tr.cb-anul td b{text-decoration:line-through}
 #tbCsCompras td small{display:block;color:var(--ink-3);font-size:11.5px;font-weight:500}
 .cls-fila{cursor:pointer}
 #clsForm .campo label.cs-tilde{display:flex;align-items:center;justify-content:flex-start;gap:8px;font-size:13.5px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);margin:6px 0 0}
@@ -2893,6 +2904,11 @@ footer{
         <div class="campo" id="csBajaCampo"><label for="csBaja">Baja</label>
           <label class="cs-tilde"><input type="checkbox" id="csBaja"> dado de baja (no se borra)</label></div>
       </div>
+      <!-- V.0.11.290: la cuenta corriente: lo que debe y el botón para cobrar. -->
+      <div id="csCC" hidden>
+        <div class="cs-compras-h"><h4>Cuenta corriente</h4><span class="sub" id="csCCSub"></span>
+          <button class="b1" type="button" id="csCobrar" style="margin-left:auto;padding:5px 14px" hidden>Cobrar</button></div>
+      </div>
       <!-- V.0.11.242: lo que compró, con el PDF de cada uno. -->
       <div id="csCompras" hidden>
         <div class="cs-compras-h"><h4>Lo que compró</h4><span class="sub" id="csComprasSub"></span></div>
@@ -2994,6 +3010,7 @@ footer{
     <label for="cajaVend">Vendedor</label>
     <select id="cajaVend"></select>
     <span class="n" id="cajaVendN"></span>
+    <button class="b1" type="button" id="btnCobrarCC" style="margin-left:auto;padding:7px 14px" hidden>Cobrar cuenta corriente</button>
   </div>
   <!-- V.0.11.255: la caja de efectivo, con su apertura y su cierre. -->
   <div class="card" id="efeCard" style="margin-bottom:16px">
@@ -10450,6 +10467,8 @@ document.getElementById("selCliente").innerHTML = opcionesClientePedido();
 
 function pintarCliente(){
   const c = clienteDe(PED.cliente);
+  // V.0.11.290: lo que debe de verdad (las ventas en cuenta corriente sin cobrar).
+  if(c && c.id) traerSaldosCC();
   const pasado = c.lim > 0 && c.saldo > c.lim;
   document.getElementById("cliDatos").innerHTML =
     '<div><span>Condición</span><b style="font-size:12.5px;font-family:var(--font-b)">'+txt(c.t)+'</b></div>'+
@@ -10458,7 +10477,9 @@ function pintarCliente(){
       ? '<div><span>Cuenta corriente</span><b style="color:'+(pasado?"var(--bad)":"var(--ink)")+'">'+
         fmt(c.saldo)+' de '+fmt(c.lim)+'</b></div>'+
         (pasado?'<div><span>&nbsp;</span><span class="pill p-bad">pasó el límite</span></div>':'')
-      : '<div><span>Cuenta corriente</span><b style="font-size:12.5px;font-family:var(--font-b)">no tiene</b></div>');
+      : c.saldo > 0
+        ? '<div><span>Cuenta corriente</span><b style="color:var(--bad)">debe '+fmt(c.saldo)+'</b></div>'
+        : '<div><span>Cuenta corriente</span><b style="font-size:12.5px;font-family:var(--font-b)">no tiene</b></div>');
 
   const siempre = c.siempre.map(prod).filter(Boolean);
   document.getElementById("siempre").innerHTML =
@@ -11065,8 +11086,8 @@ const ESCRITORIO = [
   ]],
   ["Cobrar", [
     ["Caja del día","Lo que entró, por dónde entró y quién lo vendió.","caja"],
-    ["Cuenta corriente de clientes","Quién debe, cuánto y cuánto le queda. Se ve al elegir el cliente en Venta.","mostrador"],
-    ["Ingresar cobranzas","Imputar un pago a las facturas que salda.",null],
+    ["Cuenta corriente de clientes","Quién debe, cuánto y desde cuándo. También se ve al elegir el cliente en Venta.","cobranzas"],
+    ["Ingresar cobranzas","Confirmar un pago: salda la venta, anota la plata en la cuenta y da el recibo.","cobranzas"],
     ["Valores recibidos","Cheques: dónde están y cuándo vencen.",null],
     ["Transferencias entre cajas y bancos","Mover plata entre cajas, bancos y sucursales.",null]
   ]],
@@ -11114,6 +11135,7 @@ function pintarEscritorio(){
 }
 document.getElementById("escritorio").addEventListener("click",function(e){
   const b = e.target.closest("button[data-ir]"); if(!b) return;
+  if(b.dataset.ir === "cobranzas"){ abrirCobranza(null); return; }
   irA(b.dataset.ir);
 });
 
@@ -12130,6 +12152,8 @@ function pintarListaCp(){
   const toks = plano(document.getElementById("cpBusca").value).split(/\\s+/).filter(Boolean);
   // V.0.11.236: sin "Ver Recibo X" no se muestran (el servidor tampoco los manda).
   if(!veRecibosX()) CP.docs = CP.docs.filter(d => d.tipo !== "sin-comprobante");
+  // V.0.11.290: lo que debe cada venta en cuenta corriente (vuelve a pintar al llegar).
+  if(CP.docs.some(esVentaCC) && !saldosFrescosCC()) traerSaldosCC().then(r => { if(r) pintarListaCp(); });
   const porId = {};
   for(const d of CP.docs) porId[d.id] = d;
   const lista = CP.docs.filter(d => {
@@ -12159,7 +12183,7 @@ function pintarListaCp(){
     // Si se vendió lo dice el servidor, aparte de los filtros de la lista.
     const vendido = d.tipo === "presupuesto" ? d.vendidoEn : null;
     const madre = d.origenId ? porId[d.origenId] : null;
-    const pills =
+    const pills = pillCC(d) +
       (d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito"
         ? (((d.datos || {}).arca || {}).cae ? ' <span class="pill p-ok" title="Autorizada por ARCA">CAE</span>' : ' <span class="pill p-warn">sin CAE</span>')
         : "") +
@@ -12228,6 +12252,7 @@ function clicCp(e){
     if(a === "nodespachar") despacharDoc(d, acc, true);
     if(a === "nc") abrirNota(d, "credito");
     if(a === "nd") abrirNota(d, "debito");
+    if(a === "cobrarcc"){ const cli = (d.datos || {}).cliente || {}; abrirCobranza({ id: cli.id || "", doc: cli.doc || "", n: cli.n || d.cliente }, d.id); }
     return;
   }
   const f = e.target.closest("tr[data-cp]");
@@ -12264,7 +12289,8 @@ function accionesCp(d, vendido){
   if(d.eliminado) return bt("pdf", "PDF") + (puede("eliminar") ? bt("recuperar", "Recuperar", "b2", "Vuelve a la lista y a la Caja") : "");
   const whats = bt("whats", "WhatsApp", "b2", "Mandarle al cliente el detalle con el link al PDF");
   const presuLibre = d.tipo === "presupuesto" && !vendido && puede("venta");
-  return (esVentaEditable(d) && puede("cobrar") ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número y el stock se acomoda") : "") +
+  return cbBotonCp(d, bt) +
+    (esVentaEditable(d) && puede("cobrar") ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número y el stock se acomoda") : "") +
     (presuLibre ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número") +
       '<button class="b2" type="button" data-pasar="' + id + '">Pasar a venta</button>' : "") +
     bt("pdf", "PDF", "b2", "Bajar el PDF") + whats +
@@ -14001,6 +14027,7 @@ function abrirFormCls(c){
   clsG("csAviso").textContent = "";
   clsG("clsForm").hidden = false;
   if(c) traerComprasCls(c); else { CS_COMPRAS++; clsG("csCompras").hidden = true; }
+  pintarCCCls(c);
   clsG(c ? "csNom" : "csCuit").focus();
 }
 function cerrarFormCls(){ CS_PIDIENDO++; clsG("clsForm").hidden = true; }
@@ -16601,7 +16628,7 @@ function clienteDeServidor(c){
   const conDni = !!c.dni && (!c.cuit || c.condicionIva !== "Responsable Inscripto");
   return { id:c.id, n:c.nombre, t:c.condicionIva || "Consumidor Final",
     doc: conDni ? c.dni : (c.cuit ? conGuiones(c.cuit) : "—"), cuit: cuit.length === 11 ? cuit : "",
-    saldo:0, lim:+c.limite || 0, dir:c.domicilio || "", loc:c.localidad || "", prov:c.provincia || "",
+    saldo:saldoCC({ id:c.id, cuit:c.cuit, dni:c.dni }), lim:+c.limite || 0, dir:c.domicilio || "", loc:c.localidad || "", prov:c.provincia || "",
     tel:c.telefono || "", mail:c.email || "", lista:c.lista || "", siempre:[], srv:true };
 }
 function repintarClientes(){
@@ -19511,6 +19538,411 @@ gbpG("gbpZona").addEventListener("drop", e => {
 });
 gbpG("gbpCargar").addEventListener("click", guardarGbp);
 gbpG("gbpLimpiar").addEventListener("click", () => { GBP.lotes = {}; pintarLotesGbp([]); gbpEstado(""); });
+/* ===================================================== cuenta corriente
+   V.0.11.290: la cuenta corriente de los clientes y sus cobranzas
+   (/sistema/cobranzas). Damián, 27/11/2026: "nos pagaron la venta a cuenta
+   corriente de ayer, ahora hay que confirmar el pago"; "la transferencia fue
+   a banco santander"; "también deberíamos anotarlo". Cobrar salda la venta,
+   anota la cobranza en la cuenta donde entró la plata y da el recibo.
+   SALDOS_CC con var: la venta lo lee antes de que corra este bloque. */
+var SALDOS_CC = { en:0, porId:{}, porDoc:{}, docs:{}, cargando:null };
+const CB_URL = "/sistema/cobranzas";
+const CB_FORMAS = { transferencia:"Transferencia", efectivo:"Efectivo", mercadopago:"Mercado Pago", cheque:"Cheque" };
+const CB_CUENTAS = { transferencia:["banco","mercadopago"], efectivo:["efectivo"], mercadopago:["mercadopago"], cheque:["banco"] };
+const CB_TIPOS_DEUDA = ["factura", "pedido-interno", "sin-comprobante"];
+const CB = { fondo:null, cli:null, d:null, lista:null, marc:{}, idLocal:"", forma:"transferencia", cuenta:null, dia:"", op:"", nota:"", hecho:null, listo:0, enviando:false };
+const puedeVerCC = () => puede("caja") || puede("cuentas") || puede("clientes");
+const puedeCobrarCC = () => puede("caja") || puede("cuentas");
+const esFormaCC = f => /^\\s*08\\s*[-.]/.test(String(f || "")) || /cuenta\\s+corriente/i.test(String(f || ""));
+const esVentaCC = d => !!d && !d.eliminado && CB_TIPOS_DEUDA.indexOf(d.tipo) >= 0 && esFormaCC((d.datos || {}).forma);
+const cbMarca = () => "cb" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+const cbDia = d => d ? String(d).split("-").reverse().join("/") : "";
+const cbDiaDe = iso => new Date(Date.parse(iso) - 3 * 3600e3).toISOString().slice(0, 10);
+const cbCent = n => Math.round((+n || 0) * 100);
+const nroReciboCC = n => String(Math.max(0, +n || 0)).padStart(8, "0");
+const cbDocTxt = d => { const x = soloNum(d); return x.length === 11 ? "CUIT " + conGuiones(x) : x.length >= 7 ? "DNI " + x : ""; };
+const cbG = id => CB.fondo ? CB.fondo.querySelector("#" + id) : null;
+function saldosFrescosCC(){ return !!SALDOS_CC && SALDOS_CC.en > 0 && Date.now() - SALDOS_CC.en < 60000; }
+
+/** Lo que debe cada cliente y cada venta en cuenta corriente. Se vuelve a
+    leer si pasó más de un minuto, o si se pide. null si no se pudo. */
+function traerSaldosCC(forzar){
+  if(!SALDOS_CC) return Promise.resolve(null);
+  if(!forzar && saldosFrescosCC()) return Promise.resolve(SALDOS_CC);
+  if(SALDOS_CC.cargando) return SALDOS_CC.cargando;
+  // Marca la hora antes de pedir: un error no se reintenta enseguida (no hay vueltas).
+  SALDOS_CC.en = Date.now();
+  SALDOS_CC.cargando = pedirJson("GET", CB_URL + "?saldos=1").then(d => {
+    SALDOS_CC.cargando = null;
+    if(!d || d.error) return null;
+    const porId = {}, porDoc = {};
+    for(const x of (d.saldos || [])){
+      if(x.id) porId[x.id] = (porId[x.id] || 0) + (+x.debe || 0);
+      else if(x.doc) porDoc[x.doc] = (porDoc[x.doc] || 0) + (+x.debe || 0);
+    }
+    SALDOS_CC.porId = porId; SALDOS_CC.porDoc = porDoc; SALDOS_CC.docs = d.docs || {}; SALDOS_CC.en = Date.now();
+    aplicarSaldosCC();
+    return SALDOS_CC;
+  });
+  return SALDOS_CC.cargando;
+}
+/** Lo que debe un cliente: por su id y por su CUIT o DNI (lo vendido con el
+    cliente escrito a mano). */
+function saldoCC(c){
+  if(!c || !SALDOS_CC) return 0;
+  const cu = soloNum(c.cuit || ""), dn = soloNum(c.dni || "");
+  let x = (c.id && SALDOS_CC.porId[c.id]) || 0;
+  if(cu.length === 11 && SALDOS_CC.porDoc[cu]) x += SALDOS_CC.porDoc[cu];
+  if(dn.length >= 7 && dn !== cu && SALDOS_CC.porDoc[dn]) x += SALDOS_CC.porDoc[dn];
+  return Math.round(x * 100) / 100;
+}
+/** Pone lo que debe en los clientes de la venta; si cambió el elegido, lo repinta. */
+function aplicarSaldosCC(){
+  let cambio = false;
+  for(const c of CLIENTES){
+    if(!c || !c.id || !c.srv) continue;
+    const x = saldoCC({ id:c.id, cuit:c.cuit, dni: soloNum(c.doc).length < 11 ? c.doc : "" });
+    if(x !== c.saldo){ c.saldo = x; if(c.id === PED.cliente) cambio = true; }
+  }
+  if(cambio){ try{ pintarCliente(); }catch(e){} }
+}
+/** En Comprobantes: "debe $X" o "pagada" en lo vendido en cuenta corriente. */
+function pillCC(d){
+  if(!esVentaCC(d)) return "";
+  const x = SALDOS_CC && SALDOS_CC.docs[d.id];
+  if(!x) return ' <span class="pill p-n">cuenta corriente</span>';
+  return x.debe > 0.004
+    ? ' <span class="pill p-warn" title="Cuenta corriente: falta cobrar">debe ' + fmt2(x.debe) + '</span>'
+    : ' <span class="pill p-ok" title="Cuenta corriente: ya se cobró">pagada</span>';
+}
+function cbBotonCp(d, bt){
+  const x = SALDOS_CC && SALDOS_CC.docs[d.id];
+  return esVentaCC(d) && puedeCobrarCC() && x && x.debe > 0.004
+    ? bt("cobrarcc", "Cobrar", "b1", "Confirmar el pago de esta venta en cuenta corriente") : "";
+}
+
+/** La ventana: sin cliente, los que deben; con cliente, sus ventas y el cobro.
+    docId: la venta desde la que se abrió (queda tildada). */
+async function abrirCobranza(cli, docId){
+  if(!puedeVerCC()){ toast("Tu usuario no ve la cuenta corriente de los clientes: hace falta Caja, Cuentas y gastos o Clientes."); return; }
+  const viejo = document.getElementById("cbModal"); if(viejo) viejo.remove();
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "cbModal";
+  fondo.innerHTML = '<div class="envio-caja cx-caja" role="dialog" aria-label="Cuenta corriente de clientes">' +
+    '<div class="envio-h"><h3 id="cbTit">Cuenta corriente de clientes</h3><button class="x" type="button" data-cb-no aria-label="cerrar">×</button></div>' +
+    '<div class="cx-cuerpo" id="cbCuerpo"></div><div class="cx-pie" id="cbPie"></div></div>';
+  document.body.appendChild(fondo);
+  Object.assign(CB, { fondo, cli:null, d:null, lista:null, marc:{}, hecho:null, listo:0, enviando:false, forma:"transferencia", cuenta:null });
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); cbCerrar(); } });
+  fondo.addEventListener("click", cbClic);
+  fondo.addEventListener("input", cbInput);
+  fondo.addEventListener("change", cbCambio);
+  if(cli) await cbCliente(cli, docId); else await cbDeudores();
+}
+function cbCerrar(){ if(CB.fondo) CB.fondo.remove(); CB.fondo = null; }
+
+async function cbDeudores(){
+  CB.cli = null; CB.hecho = null; CB.d = null;
+  cbG("cbTit").textContent = "Cuenta corriente de clientes";
+  cbG("cbCuerpo").innerHTML = '<p class="cx-nota" style="margin-top:12px">Trayendo quién debe…</p>';
+  cbG("cbPie").innerHTML = '<button class="b3" type="button" data-cb-no>Cerrar</button>';
+  const d = await pedirJson("GET", CB_URL);
+  if(!CB.fondo) return;
+  if(d.error){ cbG("cbCuerpo").innerHTML = '<p class="cx-res mal">' + txt(d.error) + '</p>'; return; }
+  CB.lista = d.deudores || [];
+  const total = CB.lista.reduce((a, x) => a + cbCent(x.debe), 0) / 100;
+  cbG("cbCuerpo").innerHTML =
+    '<p class="cx-nota" style="margin-top:12px">Lo vendido con forma de pago «Cuenta corriente» que todavía no se cobró. Tocá un cliente para ver sus ventas y confirmar un pago.</p>' +
+    (CB.lista.length
+      ? '<div class="cx-resumen"><div class="t">Te deben ' + fmt2(total) + '</div><div>' + CB.lista.length + (CB.lista.length === 1 ? ' cliente' : ' clientes') +
+          ' con ventas sin cobrar</div></div>' +
+        '<div class="campos" style="margin:4px 0 8px"><div class="campo ancho"><label for="cbBusca">Buscar cliente</label>' +
+          '<input id="cbBusca" type="text" autocomplete="off" placeholder="Nombre, CUIT o DNI…"></div></div>' +
+        '<div class="tabla-wrap" style="max-height:52vh;overflow:auto"><table class="densa cb-tabla"><thead><tr><th>Cliente</th><th class="r">Ventas</th>' +
+          '<th>La más vieja</th><th class="r">Debe</th><th></th></tr></thead><tbody id="cbTbD"></tbody></table></div>'
+      : '<p class="cx-res">Nadie debe nada: no hay ventas en cuenta corriente sin cobrar.</p>');
+  cbPintarDeudores();
+  const b = cbG("cbBusca"); if(b) b.focus();
+}
+function cbPintarDeudores(){
+  const tb = cbG("cbTbD"); if(!tb) return;
+  const toks = plano((cbG("cbBusca") || {}).value || "").split(/\\s+/).filter(Boolean);
+  const vis = CB.lista.filter(x => { const t = plano((x.cliente || "") + " " + (x.clienteDoc || "")); return toks.every(k => t.indexOf(k) >= 0); });
+  tb.innerHTML = vis.length ? vis.map(x => {
+    const i = CB.lista.indexOf(x);
+    return '<tr data-cb-cli="' + i + '" style="cursor:pointer"><td><b>' + txt(x.cliente || "(sin nombre)") + '</b>' +
+      (x.clienteDoc ? '<small>' + txt(cbDocTxt(x.clienteDoc)) + '</small>' : '') + '</td>' +
+      '<td class="r">' + x.ventas + '</td><td style="white-space:nowrap">' + fechaAR(x.desde) + '</td><td class="r"><b>' + fmt2(x.debe) + '</b></td>' +
+      '<td class="r"><button class="b1" type="button" data-cb-cli="' + i + '" style="padding:4px 12px">' + (puedeCobrarCC() ? 'Cobrar' : 'Ver') + '</button></td></tr>';
+  }).join("") : '<tr><td colspan="5" class="vacio">Nadie que coincida.</td></tr>';
+}
+
+async function cbCliente(cli, docId){
+  CB.cli = cli; CB.hecho = null; CB.d = null;
+  cbG("cbTit").textContent = "Cobrar cuenta corriente";
+  cbG("cbCuerpo").innerHTML = '<p class="cx-nota" style="margin-top:12px">Trayendo las ventas de ' + txt(cli.n || "el cliente") + '…</p>';
+  cbG("cbPie").innerHTML = '<button class="b3" type="button" data-cb-no>Cerrar</button>';
+  const q = new URLSearchParams();
+  if(cli.clave) q.set("clave", cli.clave);
+  if(cli.id) q.set("id", cli.id);
+  const doc = soloNum(cli.doc || ""); if(doc.length >= 7) q.set("doc", doc);
+  const d = await pedirJson("GET", CB_URL + "?" + q.toString());
+  if(!CB.fondo) return;
+  if(d.error){ cbG("cbCuerpo").innerHTML = '<p class="cx-res mal">' + txt(d.error) + '</p>'; return; }
+  CB.d = d; CB.idLocal = cbMarca(); CB.marc = {}; CB.dia = d.hoy; CB.op = ""; CB.nota = ""; CB.listo = 0;
+  const deben = (d.pendientes || []).filter(p => p.debe > 0.004);
+  // La venta desde la que se abrió, o la única que debe.
+  const pre = docId ? deben.filter(p => p.docId === docId) : deben.length === 1 ? deben : [];
+  if(d.puedeCobrar) for(const p of pre) CB.marc[p.docId] = plata2(p.debe);
+  if(!cli.n){ const p0 = (d.pendientes || [])[0]; if(p0) cli.n = p0.cliente; }
+  cbPintarCliente();
+}
+function cbPintarCliente(){
+  const d = CB.d, cli = CB.cli, pend = d.pendientes || [];
+  const deben = pend.filter(p => p.debe > 0.004), pagadas = pend.filter(p => !(p.debe > 0.004));
+  const total = deben.reduce((a, p) => a + cbCent(p.debe), 0) / 100;
+  const docTxt = cbDocTxt(cli.doc || (pend[0] || {}).clienteDoc || "");
+  let h = '<button class="link-chico cb-volver" type="button" data-cb-todos>← Todos los que deben</button>' +
+    '<div class="cx-resumen"><div class="t">' + txt(cli.n || "Cliente") + (docTxt ? ' <span style="font-weight:500;font-size:13px">· ' + txt(docTxt) + '</span>' : '') + '</div>' +
+    '<div>' + (deben.length ? 'Debe <b>' + fmt2(total) + '</b> en ' + deben.length + (deben.length === 1 ? ' venta' : ' ventas') + ' en cuenta corriente.'
+      : 'No debe nada en cuenta corriente.') + '</div></div>';
+  if(deben.length){
+    const c1 = d.puedeCobrar;
+    h += '<div class="tabla-wrap"><table class="densa cb-tabla"><thead><tr>' + (c1 ? '<th></th>' : '') +
+      '<th>Venta</th><th>Fecha</th><th class="r">Total</th><th class="r">Ya pagó</th><th class="r">Debe</th>' + (c1 ? '<th class="r">Paga ahora</th>' : '') +
+      '</tr></thead><tbody>' + deben.map(p => {
+        const m = CB.marc[p.docId] != null;
+        return '<tr>' + (c1 ? '<td><input type="checkbox" data-cb-t="' + atrib(p.docId) + '"' + (m ? ' checked' : '') + ' aria-label="Cobrar ' + atrib(p.nro) + '"></td>' : '') +
+          '<td><b>' + txt(p.nro) + '</b><small>' + txt(sucDe(p.sucursal).n) + '</small></td>' +
+          '<td style="white-space:nowrap">' + fechaAR(p.fecha) + '</td>' +
+          '<td class="r">' + fmt2(p.total) + (p.notas ? '<small>' + (p.notas < 0 ? 'nota de crédito −' : 'nota de débito +') + fmt2(Math.abs(p.notas)) + '</small>' : '') + '</td>' +
+          '<td class="r">' + (p.cobrado ? fmt2(p.cobrado) : '—') + '</td><td class="r"><b>' + fmt2(p.debe) + '</b></td>' +
+          (c1 ? '<td class="r"><input type="text" inputmode="decimal" autocomplete="off" data-cb-m="' + atrib(p.docId) + '" value="' + atrib(m ? CB.marc[p.docId] : "") + '"' +
+            (m ? '' : ' disabled') + ' style="width:130px;text-align:right" aria-label="Cuánto paga de ' + atrib(p.nro) + '"></td>' : '') + '</tr>';
+      }).join("") + '</tbody></table></div>';
+    h += c1 ? '<div id="cbForm"></div>' : '<p class="cx-nota">Confirmar un pago lo hace el que tiene Caja o Cuentas y gastos.</p>';
+  }
+  if(pagadas.length) h += '<details style="margin:12px 0 0"><summary class="cx-nota" style="cursor:pointer;margin:0">Ventas en cuenta corriente ya pagadas (' + pagadas.length + ')</summary>' +
+    '<div class="tabla-wrap"><table class="densa cb-tabla"><thead><tr><th>Venta</th><th>Fecha</th><th class="r">Total</th></tr></thead><tbody>' +
+    pagadas.slice().reverse().map(p => '<tr><td>' + txt(p.nro) + '<small>' + txt(sucDe(p.sucursal).n) + '</small></td><td>' + fechaAR(p.fecha) + '</td>' +
+      '<td class="r">' + fmt2(p.total) + ' <span class="pill p-ok">pagada</span></td></tr>').join("") + '</tbody></table></div></details>';
+  h += cbHistoriaHtml();
+  cbG("cbCuerpo").innerHTML = h;
+  cbPintarForm();
+}
+const cbMarcadas = () => ((CB.d && CB.d.pendientes) || []).filter(p => CB.marc[p.docId] != null);
+const cbSucsMarcadas = () => [...new Set(cbMarcadas().map(p => p.sucursal))];
+/** Cómo pagó, a qué cuenta, qué día. Se rearma al tildar o al cambiar la forma. */
+function cbPintarForm(){
+  const f = cbG("cbForm"); if(!f){ cbPintarPie(); return; }
+  const d = CB.d, sucs = cbSucsMarcadas(), suc = sucs.length === 1 ? sucs[0] : "";
+  const tipos = CB_CUENTAS[CB.forma] || [];
+  const cuentas = (d.cuentas || []).filter(c => tipos.indexOf(c.tipo) >= 0 && (!suc || c.sucursal === suc))
+    .sort((a, b) => (a.tipo === "banco" ? 0 : 1) - (b.tipo === "banco" ? 0 : 1) || COLL_ES.compare(a.nombre, b.nombre));
+  const enCartera = CB.forma === "cheque" && d.puedeTodo;
+  if(!(cuentas.some(c => c.id === CB.cuenta) || (enCartera && CB.cuenta === ""))) CB.cuenta = enCartera ? "" : ((cuentas[0] || {}).id || "");
+  const nomCta = c => txt(c.nombre) + (c.banco && plano(c.nombre).indexOf(plano(c.banco)) < 0 ? ' (' + txt(c.banco) + ')' : '') + (suc ? '' : ' · ' + txt(sucDe(c.sucursal).n));
+  const soloHoy = !d.puedeTodo;
+  f.innerHTML = '<div class="campos" style="margin-top:12px">' +
+    '<div class="campo"><label for="cbForma">¿Cómo pagó?</label><select id="cbForma">' +
+      Object.keys(CB_FORMAS).map(k => '<option value="' + k + '"' + (k === CB.forma ? ' selected' : '') + '>' + CB_FORMAS[k] + '</option>').join("") + '</select></div>' +
+    '<div class="campo"><label for="cbCuenta">¿A qué cuenta entró la plata?</label>' +
+      (cuentas.length || enCartera
+        ? '<select id="cbCuenta">' + cuentas.map(c => '<option value="' + atrib(c.id) + '"' + (c.id === CB.cuenta ? ' selected' : '') + '>' + nomCta(c) + '</option>').join("") +
+          (enCartera ? '<option value=""' + (CB.cuenta === "" ? ' selected' : '') + '>Todavía no se depositó (en cartera)</option>' : '') + '</select>'
+        : '<span class="por" style="color:var(--bad)">' + cbSinCuentaTxt(suc) + '</span>') + '</div>' +
+    '<div class="campo"><label for="cbDiaPago">Fecha del pago</label><input id="cbDiaPago" type="date" max="' + atrib(d.hoy) + '" value="' + atrib(CB.dia || d.hoy) + '"' +
+      (soloHoy ? ' disabled title="Desde la caja se anota con la fecha de hoy. Otro día, desde Gerencia."' : '') + '></div>' +
+    '<div class="campo"><label for="cbOp">' + (CB.forma === "cheque" ? "Cheque (banco, número, fecha)" : CB.forma === "efectivo" ? "Detalle" : "Nº de operación") + '</label>' +
+      '<input id="cbOp" type="text" maxlength="120" autocomplete="off" value="' + atrib(CB.op) + '" placeholder="opcional" style="text-align:left"></div>' +
+    '<div class="campo ancho"><label for="cbNota">Nota (sale en el recibo)</label><input id="cbNota" type="text" maxlength="200" autocomplete="off" value="' + atrib(CB.nota) + '" placeholder="opcional" style="text-align:left"></div>' +
+    '</div><div class="cb-total" id="cbTotal"></div>';
+  cbPintarTotal();
+}
+function cbSinCuentaTxt(suc){
+  const n = suc ? sucDe(suc).n : "esa razón social";
+  if(!CB.d.puedeTodo) return CB.forma === "efectivo" ? "Tu usuario no tiene la caja de efectivo de " + txt(n) + "."
+    : "Desde la caja se cobra en efectivo. Una transferencia, Mercado Pago o un cheque los confirma Gerencia.";
+  return "No hay ninguna cuenta de " + (CB.forma === "efectivo" ? "efectivo" : CB.forma === "mercadopago" ? "Mercado Pago" : "banco") + " de " + txt(n) +
+    " cargada: cargala en Gerencia → Cuentas y gastos.";
+}
+function cbPintarTotal(){
+  const t = cbG("cbTotal"), marc = cbMarcadas();
+  let tot = 0, mal = "";
+  for(const p of marc){
+    const m = aNum(CB.marc[p.docId]) || 0;
+    if(!(m > 0)) mal = mal || p.nro + ": poné cuánto paga.";
+    else if(cbCent(m) > cbCent(p.debe)) mal = mal || p.nro + ": quedan " + fmt2(p.debe) + ", no se puede cobrar más que eso.";
+    tot += cbCent(m);
+  }
+  if(cbSucsMarcadas().length > 1) mal = "Las ventas tildadas son de razones sociales distintas: cobralas por separado (la plata entra a la cuenta de cada una).";
+  const queda = marc.reduce((a, p) => a + cbCent(p.debe), 0) - tot;
+  if(t) t.innerHTML = !marc.length ? 'Tildá la venta (o las ventas) que pagó.' : mal ? '<b style="color:var(--bad)">' + txt(mal) + '</b>' :
+    'Cobrás <b>' + fmt2(tot / 100) + '</b> de ' + marc.length + (marc.length === 1 ? ' venta' : ' ventas') +
+    (queda > 0 ? ' · de esas queda debiendo ' + fmt2(queda / 100) : marc.length === 1 ? ' · queda pagada' : ' · quedan pagadas');
+  CB.listo = marc.length && !mal ? tot / 100 : 0;
+  cbPintarPie();
+}
+function cbPintarPie(){
+  const p = cbG("cbPie"); if(!p) return;
+  if(CB.hecho || !CB.d || !CB.d.puedeCobrar || !cbG("cbForm")){ p.innerHTML = '<button class="b3" type="button" data-cb-no>Cerrar</button>'; return; }
+  const puede = CB.listo > 0 && !!cbG("cbCuenta") && !CB.enviando;
+  p.innerHTML = '<button class="b3" type="button" data-cb-no>Cancelar</button>' +
+    '<button class="b1" type="button" id="cbOk" style="margin-left:auto"' + (puede ? '' : ' disabled') + '>' +
+    (CB.enviando ? 'Guardando…' : CB.listo > 0 ? 'Confirmar el pago de ' + fmt2(CB.listo) : 'Confirmar el pago') + '</button>';
+}
+function cbInput(e){
+  const t = e.target;
+  if(t.id === "cbBusca"){ cbPintarDeudores(); return; }
+  if(t.dataset && t.dataset.cbM != null){ CB.marc[t.dataset.cbM] = t.value; cbPintarTotal(); return; }
+  if(t.id === "cbOp") CB.op = t.value;
+  if(t.id === "cbNota") CB.nota = t.value;
+  if(t.id === "cbDiaPago") CB.dia = t.value;
+}
+function cbCambio(e){
+  const t = e.target;
+  if(t.dataset && t.dataset.cbT != null){
+    const p = ((CB.d && CB.d.pendientes) || []).find(x => x.docId === t.dataset.cbT); if(!p) return;
+    const inp = [...CB.fondo.querySelectorAll("[data-cb-m]")].find(x => x.dataset.cbM === p.docId);
+    if(t.checked){ CB.marc[p.docId] = plata2(p.debe); if(inp){ inp.disabled = false; inp.value = CB.marc[p.docId]; } }
+    else { delete CB.marc[p.docId]; if(inp){ inp.disabled = true; inp.value = ""; } }
+    cbPintarForm();
+    return;
+  }
+  if(t.id === "cbForma"){ CB.forma = t.value; CB.cuenta = null; cbPintarForm(); const s = cbG("cbForma"); if(s) s.focus(); return; }
+  if(t.id === "cbCuenta"){ CB.cuenta = t.value; cbPintarPie(); return; }
+  if(t.id === "cbDiaPago") CB.dia = t.value;
+}
+async function cbClic(e){
+  const t = e.target;
+  if(t.closest("[data-cb-no]")){ cbCerrar(); return; }
+  if(t.closest("[data-cb-todos]")){ await cbDeudores(); return; }
+  const cl = t.closest("[data-cb-cli]");
+  if(cl){ const x = CB.lista && CB.lista[+cl.dataset.cbCli]; if(x) await cbCliente({ clave:x.clave, id:x.clienteId, doc:x.clienteDoc, n:x.cliente }); return; }
+  const pdf = t.closest("[data-cb-pdf]"); if(pdf){ cbPdf(pdf.dataset.cbPdf, pdf.dataset.cbImp === "1", pdf); return; }
+  const an = t.closest("[data-cb-anular]"); if(an){ await cbAnular(an.dataset.cbAnular); return; }
+  if(t.closest("[data-cb-otra]")){ await cbCliente(CB.cli); return; }
+  if(t.closest("#cbOk")) await cbConfirmar();
+}
+async function cbConfirmar(){
+  if(!(CB.listo > 0) || CB.enviando) return;
+  const imputaciones = cbMarcadas().map(p => ({ docId:p.docId, monto: aNum(CB.marc[p.docId]) || 0 }));
+  const sel = cbG("cbCuenta"), cuentaId = sel ? sel.value : "";
+  const dia = (cbG("cbDiaPago") || {}).value || CB.d.hoy;
+  if(dia > CB.d.hoy){ toast("La fecha del pago no puede ser de más adelante."); return; }
+  CB.enviando = true; cbPintarPie();
+  const r = await pedirJson("POST", CB_URL, { accion:"cobrar", yo: soyYo(), idLocal: CB.idLocal, forma: CB.forma, cuentaId: cuentaId || null,
+    dia, operacion: CB.op, nota: CB.nota, imputaciones });
+  CB.enviando = false;
+  if(!CB.fondo) return;
+  if(r.error){ cbPintarPie(); toast("No se cobró: " + r.error); return; }
+  CB.hecho = r.cobranza;
+  cbRefrescar();
+  cbPintarHecho();
+}
+/** Lo que debe cada uno cambió: la venta, Comprobantes y la caja se vuelven a leer. */
+function cbRefrescar(){
+  traerSaldosCC(true).then(() => { try{ if(CP.docs && CP.docs.length) pintarListaCp(); }catch(e){} });
+  try{ EFE.en = 0; }catch(e){}
+}
+function cbPintarHecho(){
+  const c = CB.hecho, pend = (CB.d && CB.d.pendientes) || [];
+  const lineas = c.imputaciones.map(i => {
+    const p = pend.find(x => x.docId === i.docId), queda = p ? (cbCent(p.debe) - cbCent(i.monto)) / 100 : 0;
+    return '<li><b>' + txt(i.nro) + '</b>: ' + fmt2(i.monto) + (queda > 0.004 ? ' · queda debiendo ' + fmt2(queda) : ' · <span class="pill p-ok">queda pagada</span>') + '</li>';
+  }).join("");
+  cbG("cbCuerpo").innerHTML = '<div class="cb-ok"><div class="t">Pago confirmado · Recibo Nº ' + nroReciboCC(c.numero) + '</div>' +
+    '<div>' + txt(c.cliente) + ' pagó <b>' + fmt2(c.monto) + '</b> · ' + CB_FORMAS[c.forma] +
+      (c.cuentaNombre ? (c.forma === "efectivo" ? ' (' + txt(c.cuentaNombre) + ')' : ' a ' + txt(c.cuentaNombre)) : c.forma === "cheque" ? ' (en cartera)' : '') +
+      ' · el ' + cbDia(c.dia) + '</div>' +
+    '<ul style="margin:8px 0 0 18px;padding:0">' + lineas + '</ul>' +
+    (c.cuentaNombre ? '<p class="cx-nota" style="margin:8px 0 0">La cobranza quedó anotada en ' + txt(c.cuentaNombre) + ' (Gerencia → Cuentas y gastos): no hace falta anotarla a mano.</p>' : '') +
+    '<div class="cb-acc"><button class="b1" type="button" data-cb-pdf="' + atrib(c.id) + '" data-cb-num="' + c.numero + '">Bajar el recibo</button>' +
+      '<button class="b2" type="button" data-cb-pdf="' + atrib(c.id) + '" data-cb-num="' + c.numero + '" data-cb-imp="1">Imprimir el recibo</button>' +
+      '<button class="b3" type="button" data-cb-otra>Volver a la cuenta del cliente</button></div></div>';
+  cbPintarPie();
+}
+function cbHistoriaHtml(){
+  const cs = (CB.d && CB.d.cobranzas) || [];
+  if(!cs.length) return "";
+  const hoy = CB.d.hoy, yo = soyYo();
+  return '<h4 class="as-sec">Cobranzas anteriores</h4><div class="tabla-wrap" style="max-height:32vh;overflow:auto"><table class="densa cb-hist"><thead><tr>' +
+    '<th>Pagó</th><th>Recibo</th><th>Qué saldó</th><th>Cómo</th><th class="r">Monto</th><th></th></tr></thead><tbody>' +
+    cs.slice(0, 60).map(c => {
+      const anula = !c.anulado && (CB.d.puedeTodo || (CB.d.puedeCobrar && c.usuario === yo && cbDiaDe(c.creadoEn) === hoy));
+      return '<tr' + (c.anulado ? ' class="cb-anul"' : '') + '><td style="white-space:nowrap">' + cbDia(c.dia) + '<small>' + txt(c.usuario) + '</small></td>' +
+        '<td>' + nroReciboCC(c.numero) + '<small>' + txt(sucDe(c.sucursal).n) + '</small></td>' +
+        '<td style="font-size:12.5px">' + c.imputaciones.map(i => txt(i.nro)).join("<br>") + '</td>' +
+        '<td style="font-size:12.5px">' + (CB_FORMAS[c.forma] || txt(c.forma)) + (c.cuentaNombre ? '<small>' + txt(c.cuentaNombre) + '</small>' : '') +
+          (c.operacion ? '<small>' + txt(c.operacion) + '</small>' : '') + '</td>' +
+        '<td class="r"><b>' + fmt2(c.monto) + '</b>' + (c.anulado ? '<small><span class="pill p-bad" title="' + atrib(c.motivo || "") + '">anulada</span></small>' : '') + '</td>' +
+        '<td class="r" style="white-space:nowrap"><button class="b3" type="button" data-cb-pdf="' + atrib(c.id) + '" data-cb-num="' + c.numero + '" style="padding:3px 10px">Recibo</button>' +
+          (anula ? ' <button class="b3" type="button" data-cb-anular="' + atrib(c.id) + '" style="padding:3px 10px">Anular</button>' : '') + '</td></tr>';
+    }).join("") + '</tbody></table></div>';
+}
+async function cbPdf(id, imprimir, boton){
+  if(boton) boton.disabled = true;
+  try{
+    const r = await fetch(CB_URL + "?recibo=" + encodeURIComponent(id), { cache:"no-store", credentials:"same-origin" });
+    if(r.status === 401){ toast("Se cerró tu sesión: entrá de nuevo con tu usuario."); return; }
+    const tipo = r.headers.get("Content-Type") || "";
+    if(!r.ok || tipo.indexOf("application/pdf") < 0){ const j = await r.json().catch(() => null); toast((j && j.error) || "No pude armar el recibo. Probá de nuevo."); return; }
+    const url = URL.createObjectURL(await r.blob());
+    if(imprimir) mandarAImprimir(url);
+    else {
+      const nom = "Recibo-de-cobranza-" + nroReciboCC(boton ? boton.dataset.cbNum : 0) + ".pdf";
+      const a = document.createElement("a");
+      a.href = url; a.download = nom;
+      document.body.appendChild(a); a.click(); a.remove();
+      toast("Bajando " + nom + ".");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+  }catch(e){
+    toast("No pude traer el recibo: revisá la conexión y probá de nuevo.");
+  }finally{
+    if(boton) boton.disabled = false;
+  }
+}
+async function cbAnular(id){
+  const c = ((CB.d && CB.d.cobranzas) || []).find(x => x.id === id); if(!c) return;
+  const motivo = (prompt("¿Por qué se anula esta cobranza? La venta vuelve a deberse y se anula su movimiento en la cuenta.\\n\\nRecibo " +
+    nroReciboCC(c.numero) + " · " + c.cliente + " · " + fmt2(c.monto)) || "").trim();
+  if(!motivo) return;
+  const r = await pedirJson("POST", CB_URL, { accion:"anular", yo: soyYo(), id, motivo });
+  if(r.error){ toast("No se anuló: " + r.error); return; }
+  toast("Cobranza anulada: la venta vuelve a deberse.");
+  cbRefrescar();
+  if(CB.fondo && CB.cli) await cbCliente(CB.cli);
+}
+
+/* En la ficha del cliente (Clientes): lo que debe y el botón para cobrar. */
+let CS_CC = 0;
+async function pintarCCCls(c){
+  const box = clsG("csCC"); if(!box) return;
+  const este = ++CS_CC;
+  if(!c || !puedeVerCC()){ box.hidden = true; return; }
+  box.hidden = false;
+  const sub = clsG("csCCSub"), b = clsG("csCobrar");
+  sub.textContent = "Buscando…"; b.hidden = true;
+  const conDni = !!c.dni && (!c.cuit || c.condicionIva !== "Responsable Inscripto");
+  const doc = soloNum(conDni ? c.dni : c.cuit);
+  const q = new URLSearchParams({ id:c.id }); if(doc.length >= 7) q.set("doc", doc);
+  const d = await pedirJson("GET", CB_URL + "?" + q.toString());
+  if(este !== CS_CC || clsG("clsForm").hidden) return;
+  if(d.error){ sub.textContent = d.error; return; }
+  const deben = (d.pendientes || []).filter(p => p.debe > 0.004);
+  const tot = deben.reduce((a, p) => a + cbCent(p.debe), 0) / 100;
+  sub.innerHTML = deben.length
+    ? 'debe <b style="color:var(--bad)">' + fmt2(tot) + '</b> en ' + deben.length + (deben.length === 1 ? ' venta' : ' ventas') + ' · la más vieja del ' + fechaAR(deben[0].fecha)
+    : (d.pendientes || []).length ? 'no debe nada: lo vendido en cuenta corriente está pagado' : 'no tiene ventas en cuenta corriente';
+  b.hidden = !deben.length;
+  b.textContent = d.puedeCobrar ? "Cobrar" : "Ver";
+  b.onclick = () => abrirCobranza({ id:c.id, doc, n:c.nombre });
+}
+// En Caja: el botón, para el que puede cobrar.
+document.getElementById("btnCobrarCC").hidden = !puedeCobrarCC();
+document.getElementById("btnCobrarCC").addEventListener("click", () => abrirCobranza(null));
+
 // Primero los artículos de GBP, después lo que había quedado cargado en esta
 // compu (puede tener artículos de GBP) y lo emitido hoy (ver arrancar()).
 arrancar();

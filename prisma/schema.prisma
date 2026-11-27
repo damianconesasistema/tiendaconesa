@@ -866,3 +866,40 @@ model PuntoNotaCliente {
 
   @@index([estado, creadoEn])
 }
+
+/// Las cobranzas de cuenta corriente de los clientes (migracion 63,
+/// V.0.11.289). Damian, 27/11/2026: "nos pagaron la venta a cuenta corriente
+/// de ayer, ahora hay que confirmar el pago". Cada una salda una o varias
+/// ventas en cuenta corriente (imputaciones: [{docId, nro, monto}]) y, si
+/// entro a una cuenta, anota la "cobranza" en PuntoMovimiento con su idLocal
+/// como grupo. El numero es el del recibo, por razon social. No se borra: se
+/// anula (y se anula su movimiento). Ver src/lib/punto-cobranzas.ts.
+model PuntoCobranza {
+  id           String    @id @default(cuid())
+  idLocal      String    @unique
+  /// srl | cnc | tsl: la razon social de las ventas que salda.
+  sucursal     String
+  numero       Int
+  /// YYYY-MM-DD: el dia que pago el cliente.
+  dia          String
+  creadoEn     DateTime  @default(now())
+  usuario      String
+  clienteId    String    @default("")
+  cliente      String
+  clienteDoc   String    @default("")
+  /// transferencia | efectivo | mercadopago | cheque
+  forma        String
+  cuentaId     String?
+  cuentaNombre String    @default("")
+  operacion    String    @default("")
+  nota         String    @default("")
+  monto        Float
+  imputaciones Json
+  anuladoEn    DateTime?
+  anuladoPor   String?
+  motivo       String?
+
+  @@unique([sucursal, numero])
+  @@index([clienteId])
+  @@index([creadoEn])
+}

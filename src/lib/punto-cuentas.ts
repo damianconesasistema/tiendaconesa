@@ -192,6 +192,20 @@ export async function anotarMovimiento(
   }
 }
 
+/** V.0.11.289: el movimiento de una cobranza de cuenta corriente
+ *  (src/lib/punto-cobranzas.ts, mismo idLocal como grupo). Si se anula o se
+ *  elimina desde aca, la cobranza tambien se anula: la venta vuelve a deberse
+ *  y el saldo de la cuenta y lo que debe el cliente dicen lo mismo. */
+function cobranzaDelMovimiento(m: PuntoMovimiento, quien: string, motivo: string, ahora: Date) {
+  if (m.tipo !== "cobranza") return [];
+  return [
+    prisma.puntoCobranza.updateMany({
+      where: { idLocal: m.grupo, anuladoEn: null },
+      data: { anuladoEn: ahora, anuladoPor: quien, motivo: ("Se anuló su movimiento en Cuentas y gastos: " + motivo).slice(0, 200) },
+    }),
+  ];
+}
+
 export async function movimientoPorId(id: string): Promise<Movimiento | null> {
   const m = await prisma.puntoMovimiento.findUnique({ where: { id } });
   return m ? movimientoDe(m) : null;
@@ -202,10 +216,14 @@ export async function movimientoPorId(id: string): Promise<Movimiento | null> {
 export async function anularMovimiento(id: string, quien: string, motivo: string): Promise<Movimiento[] | string> {
   const m = await prisma.puntoMovimiento.findUnique({ where: { id } });
   if (!m) return "Ese movimiento ya no está.";
-  await prisma.puntoMovimiento.updateMany({
-    where: { grupo: m.grupo, anuladoEn: null },
-    data: { anuladoEn: new Date(), anuladoPor: quien, motivo },
-  });
+  const ahora = new Date();
+  await prisma.$transaction([
+    prisma.puntoMovimiento.updateMany({
+      where: { grupo: m.grupo, anuladoEn: null },
+      data: { anuladoEn: ahora, anuladoPor: quien, motivo },
+    }),
+    ...cobranzaDelMovimiento(m, quien, motivo, ahora),
+  ]);
   const filas = await prisma.puntoMovimiento.findMany({ where: { grupo: m.grupo } });
   return filas.map(movimientoDe);
 }
@@ -227,6 +245,7 @@ export async function eliminarMovimiento(id: string, quien: string, motivo: stri
       where: { grupo: m.grupo, eliminadoEn: null },
       data: { eliminadoEn: ahora, eliminadoPor: quien },
     }),
+    ...cobranzaDelMovimiento(m, quien, motivo || "Eliminado", ahora),
   ]);
   return (await prisma.puntoMovimiento.findMany({ where: { grupo: m.grupo } })).map(movimientoDe);
 }

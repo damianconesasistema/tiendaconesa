@@ -378,6 +378,15 @@ export function siguienteCompra(tx: Prisma.TransactionClient): Promise<number> {
   return siguiente(tx, `${NUMERADOR}compra`, 1);
 }
 
+/** El numero del recibo de cobranza de cuenta corriente (V.0.11.289,
+ *  src/lib/punto-cobranzas.ts): una serie por razon social ("srl:recibo"),
+ *  que arranca en 1. El lock de la fila tambien pone en fila a dos cobros de
+ *  la misma razon social a la vez: el segundo ve lo que ya cobro el primero. */
+export function siguienteRecibo(tx: Prisma.TransactionClient, sucursal: string): Promise<number> {
+  if (!SUCURSALES.includes(sucursal)) throw new Error("Esa razón social no existe.");
+  return siguiente(tx, `${NUMERADOR}${sucursal}:recibo`, 1);
+}
+
 function esRepetido(e: unknown): boolean {
   return e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002";
 }
