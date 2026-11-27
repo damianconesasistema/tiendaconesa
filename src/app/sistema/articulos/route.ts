@@ -4,6 +4,7 @@ import { VACIAS, aplicarAsociaciones } from "@/lib/punto-asociar-reglas";
 import {
   cambiarCostosArticulo,
   cambiarDolarTipo,
+  eliminarArticulos,
   type CostosArticulo,
   type DescuentosArticulo,
   type EstructuraArticulo,
@@ -62,14 +63,17 @@ function json(cuerpo: unknown, status = 200): Response {
   });
 }
 
-export async function GET(): Promise<Response> {
+export async function GET(req: Request): Promise<Response> {
   if ((await quienEntra()) !== "ok") return json({ error: "Tenés que entrar con tu usuario." }, 401);
+  // V.0.11.300: los eliminados no van (?eliminados=1 trae solo esos).
+  const soloEliminados = new URL(req.url).searchParams.get("eliminados") === "1";
   try {
     // V.0.11.288: cada artículo con su proveedor de la lista (las
     // asociaciones de Proveedores -> Asociar artículos). Si no se pueden
     // leer, van como vienen de GBP: nunca dejan sin artículos.
     const [g, asoc] = await Promise.all([leerArticulos(), leerAsociaciones().catch(() => VACIAS)]);
-    return json({ ...g, articulos: aplicarAsociaciones(g.articulos, asoc) });
+    const lista = g.articulos.filter((a) => !!(a && a.eliminado) === soloEliminados);
+    return json({ ...g, articulos: aplicarAsociaciones(lista, asoc) });
   } catch {
     // Con 200, como todo lo de /sistema: un 5xx lo tapa Cloudflare con su
     // propia pagina y la pantalla no puede decir que paso.
@@ -195,6 +199,7 @@ export async function PATCH(req: Request): Promise<Response> {
     bulto?: unknown;
     dolar?: unknown;
     dolarTipo?: unknown;
+    eliminar?: unknown;
     cods?: unknown;
     yo?: unknown;
   };
@@ -215,6 +220,28 @@ export async function PATCH(req: Request): Promise<Response> {
   if (otro) return json({ error: otro });
   if (!puedePunto(yo.permisos, "productos"))
     return json({ error: "Tu usuario no tiene permiso para cambiar artículos. Pedíselo a quien administra los usuarios." }, 403);
+
+  // V.0.11.300: eliminar o recuperar: {cods: [...], eliminar: true | false}.
+  // No se borran: quedan marcados y se pueden recuperar.
+  if (Array.isArray(cuerpo.cods) && typeof cuerpo.eliminar === "boolean") {
+    if (!puedePunto(yo.permisos, "eliminar") && !puedePunto(yo.permisos, "importar"))
+      return json({ error: "Eliminar artículos lo hace el que tiene Importar o Eliminar." }, 403);
+    const cods = [...new Set(cuerpo.cods.filter((x): x is string => typeof x === "string").map((x) => x.trim().slice(0, 40)).filter(Boolean))];
+    if (!cods.length) return json({ error: "No llegó ningún artículo." }, 400);
+    if (cods.length > 20000) return json({ error: "Son demasiados artículos de una vez." }, 400);
+    try {
+      const hechos = await eliminarArticulos(cods, yo.usuario, cuerpo.eliminar);
+      if (hechos.length)
+        await registrar(
+          cuerpo.eliminar ? "Punto: eliminó artículos" : "Punto: recuperó artículos",
+          `${hechos.length}: ${hechos.slice(0, 30).map((h) => `${h.cod} ${h.tit}`).join(" · ")}${hechos.length > 30 ? " …" : ""}`,
+          yo.usuario,
+        );
+      return json({ ok: true, cambiados: hechos.length });
+    } catch {
+      return json({ error: "No pude guardar el cambio: probá de nuevo en un momento." });
+    }
+  }
 
   // V.0.11.291: que dolar toman (Blue o BNA, compra) muchos de una vez:
   // {cods: [...], dolarTipo: "blue" | "bna"}.

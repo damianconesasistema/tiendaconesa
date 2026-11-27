@@ -82,7 +82,8 @@ export async function filasDesdePunto(): Promise<FilasDePunto> {
     }),
   ]);
   // El proveedor asociado cuenta para el flete % (como en la pantalla de Punto).
-  const articulos = aplicarAsociaciones(g.articulos, asoc) as unknown as ArticuloPrecio[];
+  // Los eliminados en Punto (V.0.11.300) no le dan precio a la web.
+  const articulos = aplicarAsociaciones(g.articulos.filter((a) => a && !a.eliminado), asoc) as unknown as ArticuloPrecio[];
   const { raw, noEstan, sinPrecio, conOferta, conCandado } = cruzarWebConPunto(productos, articulos, ctx);
   const avisos = [
     `${raw.length.toLocaleString("es-AR")} productos de la web toman la Lista 2 (1 pago) de Punto, con el flete y el dólar de hoy, en pesos sin centavos.`,

@@ -2500,6 +2500,7 @@ footer{
           <div class="envio-acc" style="padding:14px 0 0">
             <button class="b1" id="aGuardar">Guardar el artículo</button>
             <button class="b3" id="aCancelar">Cancelar</button>
+            <button class="b3" type="button" id="aEliminar" hidden style="margin-left:auto;color:var(--bad)" title="No se borra: se puede recuperar desde «Ver los eliminados»">Eliminar el artículo</button>
           </div>
         </div>
       </div>
@@ -2537,6 +2538,7 @@ footer{
         <label>Rubro <select id="fRub"></select></label>
         <label>Ordenar <select id="fOrden" aria-label="Ordenar los artículos"></select></label>
         <label style="flex-direction:row;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="fCombos"> Solo combos</label>
+        <button class="link-chico" type="button" id="fEliminados" hidden style="align-self:center">Ver los eliminados</button>
         <label style="flex-direction:row;align-items:center;gap:6px;cursor:pointer" title="Los que tienen la lista del proveedor en dólares"><input type="checkbox" id="fUsd"> En dólares <span id="fUsdN"></span></label>
       </div>
       <div class="art-chips" id="fChips"></div>
@@ -2546,6 +2548,7 @@ footer{
       <b data-sel-n></b>
       <button class="b1" type="button" data-sel-masivo style="padding:6px 16px">Cambios masivos a los tildados</button>
       <button class="b3" type="button" data-sel-nada style="padding:6px 14px">Destildar todos</button>
+      <button class="b3" type="button" data-sel-elim style="padding:6px 14px;color:var(--bad)" title="No se borran: se recuperan desde «Ver los eliminados»">Eliminar los tildados</button>
       <span class="por">Siguen tildados aunque cambies el filtro.</span>
     </div>
     <div class="tabla-wrap">
@@ -6373,6 +6376,8 @@ function abrirAlta(p){
     ? p.cod.split("+")[0]+" · "+p.tit.slice(0,40)
     : "el precio se arma solo";
   document.getElementById("aGuardar").textContent = p ? "Guardar los cambios" : "Guardar el artículo";
+  // V.0.11.300: eliminar (solo uno guardado en el servidor).
+  document.getElementById("aEliminar").hidden = !(p && p.gbp && puedeElimArt());
 
   if(p){
     // Los descuentos guardados del artículo; si no tiene, los del proveedor.
@@ -18456,7 +18461,82 @@ document.getElementById("tbProd").addEventListener("change", e => {
 document.getElementById("selArtBarra").addEventListener("click", e => {
   if(e.target.closest("[data-sel-masivo]")){ abrirMasivo(); return; }
   if(e.target.closest("[data-sel-nada]")){ SEL_ART.clear(); pintarProd(); }
+  if(e.target.closest("[data-sel-elim]")){ eliminarArts(PRODUCTOS.filter(p => SEL_ART.has(p.cod)).map(p => p.cod)); }
 });
+
+/* V.0.11.300: eliminar artículos. Damián: "si querés eliminar un artículo
+   ¿cómo hacés?". No se borran: quedan marcados en el servidor, no aparecen
+   en Artículos ni en la venta, un import de GBP no los vuelve a traer y se
+   recuperan desde «Ver los eliminados». */
+const puedeElimArt = () => puede("productos") && (puede("eliminar") || puede("importar"));
+/** Los saca de la pantalla (ya eliminados en el servidor). */
+function sacarArtsDePantalla(cods){
+  const fuera = new Set(cods);
+  for(let i = PRODUCTOS.length - 1; i >= 0; i--) if(PRODUCTOS[i] && fuera.has(PRODUCTOS[i].cod)) PRODUCTOS.splice(i, 1);
+  for(const c of fuera){ delete GBP_CRUDO[c]; try{ SEL_ART.delete(c); }catch(e){} }
+  try{ llenarSelects(); }catch(e){}
+  try{ pintarProd(); }catch(e){}
+}
+async function eliminarArts(cods){
+  if(!puedeElimArt()){ toast("Eliminar artículos lo hace el que tiene Importar o Eliminar."); return false; }
+  const ps = cods.map(c => PRODUCTOS.find(p => p.cod === c)).filter(p => p && p.gbp);
+  if(!ps.length){ toast("Ninguno de esos está guardado en el servidor."); return false; }
+  const conStock = ps.filter(p => (+p.stock || 0) > 0 || ((p.dep || {}).BA > 0) || ((p.dep || {}).TS > 0));
+  const set = new Set(ps.map(p => p.cod));
+  const combos = PRODUCTOS.filter(p => p.combo && Array.isArray(p.combo.piezas) && p.combo.piezas.some(x => set.has(x.cod)) && !set.has(p.cod));
+  const lista = ps.slice(0, 6).map(p => "· " + p.cod + " " + String(p.tit || "").slice(0, 50)).join("\\n") + (ps.length > 6 ? "\\n· y " + (ps.length - 6) + " más" : "");
+  if(!confirm("¿Elimino " + (ps.length === 1 ? "este artículo" : "estos " + ps.length + " artículos") + "?\\n\\n" + lista +
+    (conStock.length ? "\\n\\nOJO: " + conStock.length + (conStock.length === 1 ? " tiene" : " tienen") + " stock." : "") +
+    (combos.length ? "\\n\\nOJO: " + (combos.length === 1 ? "es pieza del combo " : "son piezas de " + combos.length + " combos: ") + combos.slice(0, 3).map(c => c.cod).join(", ") + "." : "") +
+    "\\n\\nNo se borran: dejan de aparecer en Artículos y en la venta, y los recuperás desde «Ver los eliminados».")) return false;
+  const r = await pedirJson("PATCH", GBP_URL, { cods: ps.map(p => p.cod), eliminar: true, yo: soyYo() });
+  if(r.error){ toast("No se eliminó: " + r.error); return false; }
+  sacarArtsDePantalla(ps.map(p => p.cod));
+  toast((r.cambiados === 1 ? "Eliminado." : r.cambiados + " artículos eliminados.") + " Los recuperás desde «Ver los eliminados».");
+  return true;
+}
+document.getElementById("aEliminar").addEventListener("click", async () => {
+  const cod = ALTA.editando; if(!cod) return;
+  if(await eliminarArts([cod])) cerrarAlta();
+});
+/** Los eliminados, para recuperarlos. */
+async function abrirEliminados(){
+  const viejo = document.getElementById("elimModal"); if(viejo) viejo.remove();
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "elimModal";
+  fondo.innerHTML = '<div class="envio-caja cx-caja" role="dialog" aria-label="Artículos eliminados">' +
+    '<div class="envio-h"><h3>Artículos eliminados</h3><button class="x" type="button" data-el-no aria-label="cerrar">×</button></div>' +
+    '<div class="cx-cuerpo" id="elCuerpo"><p class="cx-nota" style="margin-top:12px">Trayendo los eliminados…</p></div>' +
+    '<div class="cx-pie"><button class="b3" type="button" data-el-no>Cerrar</button></div></div>';
+  document.body.appendChild(fondo);
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fondo.remove(); } });
+  const pintar = async () => {
+    const d = await pedirJson("GET", GBP_URL + "?eliminados=1");
+    const c = fondo.querySelector("#elCuerpo"); if(!c) return;
+    if(d.error){ c.innerHTML = '<p class="cx-res mal">' + txt(d.error) + '</p>'; return; }
+    const ls = (d.articulos || []).slice().sort((a, b) => String((b.eliminado || {}).en || "").localeCompare(String((a.eliminado || {}).en || "")));
+    c.innerHTML = '<p class="cx-nota" style="margin-top:12px">' + (ls.length ? ls.length + (ls.length === 1 ? " artículo eliminado." : " artículos eliminados.") + ' «Recuperar» lo vuelve a Artículos y a la venta, como estaba.' : 'No hay artículos eliminados.') + '</p>' +
+      (ls.length ? '<div class="tabla-wrap" style="max-height:56vh;overflow:auto"><table class="densa"><thead><tr><th>Código</th><th>Artículo</th><th>Proveedor</th><th>Eliminado</th><th></th></tr></thead><tbody>' +
+        ls.map(a => '<tr><td class="num">' + txt(a.cod) + '</td><td>' + txt(a.tit || "") + '</td><td style="font-size:12.5px">' + txt(a.cat || "") + '</td>' +
+          '<td style="font-size:12.5px;white-space:nowrap">' + (a.eliminado ? fechaAR(a.eliminado.en) + ' ' + horaAR(a.eliminado.en) + '<small>' + txt(a.eliminado.por) + '</small>' : '') + '</td>' +
+          '<td class="r"><button class="b2" type="button" data-el-rec="' + atrib(a.cod) + '" style="padding:3px 10px">Recuperar</button></td></tr>').join("") +
+        '</tbody></table></div>' : '');
+  };
+  fondo.addEventListener("click", async e => {
+    if(e.target.closest("[data-el-no]")){ fondo.remove(); return; }
+    const b = e.target.closest("[data-el-rec]"); if(!b) return;
+    b.disabled = true;
+    const r = await pedirJson("PATCH", GBP_URL, { cods: [b.dataset.elRec], eliminar: false, yo: soyYo() });
+    if(r.error){ b.disabled = false; toast("No se recuperó: " + r.error); return; }
+    toast("Recuperado: vuelve a Artículos.");
+    try{ await traerDeGbp(); }catch(e2){}
+    try{ pintarProd(); }catch(e2){}
+    pintar();
+  });
+  pintar();
+}
+document.getElementById("fEliminados").addEventListener("click", abrirEliminados);
+setTimeout(() => { const b = document.getElementById("fEliminados"); if(b) b.hidden = !puedeElimArt(); }, 0);
 document.getElementById("fMasivo").addEventListener("click", abrirMasivo);
 setTimeout(() => { for(const id of ["fMasivo", "fSelTodos"]){ const b = document.getElementById(id); if(b) b.hidden = !puede("importar"); } }, 0);
 

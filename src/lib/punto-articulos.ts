@@ -104,6 +104,10 @@ export type ArticuloPunto = {
    *  ella con el mismo % de siempre. De Punto: el import no lo toca; null lo
    *  saca. */
   mayor?: { pct: number; desde: number } | null;
+  /** V.0.11.300: eliminado desde Punto (no se borra: se marca, y se puede
+   *  recuperar). No aparece en Artículos ni en la venta; un import de GBP no
+   *  lo vuelve a traer. Damian: "si queres eliminar un articulo como haces?". */
+  eliminado?: { en: string; por: string } | null;
   /** V.0.11.299: el proveedor de la lista elegido para ESTE articulo
    *  (cambios masivos). Le gana al de GBP y a las asociaciones. De Punto: el
    *  import de GBP no lo toca. */
@@ -522,6 +526,9 @@ export async function guardarArticulos(
       // El proveedor propio (V.0.11.299), igual: de Punto.
       if (a.proveedor === undefined && ya?.proveedor) nuevo.proveedor = ya.proveedor;
       if (nuevo.proveedor === null) delete nuevo.proveedor;
+      // Eliminado (V.0.11.300): un import de GBP no lo vuelve a traer.
+      if (a.eliminado === undefined && ya?.eliminado) nuevo.eliminado = ya.eliminado;
+      if (nuevo.eliminado === null) delete nuevo.eliminado;
       // Cuándo se creó (V.0.11.213): el que ya estaba conserva el suyo (o
       // ninguno); el código nuevo, ahora.
       delete nuevo.creado;
@@ -662,6 +669,35 @@ export function limpiarBulto(v: unknown): number | null | "mal" {
  *  su nombre, bulto): lo que no vino queda como estaba, y lo demas del
  *  articulo (y la fecha y el usuario del ultimo import) tambien. null en un
  *  campo lo saca. Null si ese codigo no esta. */
+/** V.0.11.300: elimina (o recupera) esos articulos. No se borran: quedan
+ *  marcados con cuando y quien. Devuelve los que cambiaron. */
+export async function eliminarArticulos(
+  cods: readonly string[],
+  por: string,
+  eliminar: boolean,
+): Promise<{ cod: string; tit: string }[]> {
+  const quiero = new Set(cods);
+  return prisma.$transaction(async (tx) => {
+    await bloquearArticulos(tx);
+    const c = await leerCrudo(tx);
+    if (!c || !Array.isArray(c.d.articulos)) return [];
+    const articulos = c.d.articulos as ArticuloPunto[];
+    const hechos: { cod: string; tit: string }[] = [];
+    const en = new Date().toISOString();
+    for (let i = 0; i < articulos.length; i++) {
+      const a = articulos[i];
+      if (!a || !quiero.has(a.cod) || !!a.eliminado === eliminar) continue;
+      const nuevo = { ...a };
+      if (eliminar) nuevo.eliminado = { en, por };
+      else delete nuevo.eliminado;
+      articulos[i] = nuevo;
+      hechos.push({ cod: a.cod, tit: a.tit });
+    }
+    if (hechos.length) await tx.setting.update({ where: { key: CLAVE_ARTICULOS }, data: { value: JSON.stringify({ ...c.d, articulos }) } });
+    return hechos;
+  }, TIEMPO);
+}
+
 /** V.0.11.291: que dolar toman muchos articulos de una vez ("blue", o null =
  *  Banco Nacion). Solo los que tienen el Costo en USD; lo demas del articulo
  *  queda como estaba. Devuelve cuantos cambiaron. */
