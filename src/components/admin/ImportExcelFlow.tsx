@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Upload,
@@ -64,6 +64,30 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   const [archivo, setArchivo] = useState<File | null>(null);
   // V.0.11.295: los precios pueden venir de Punto en vez de un archivo.
   const [fuente, setFuente] = useState<"archivo" | "punto">("archivo");
+  // V.0.11.296: y se actualizan solos (src/lib/tienda-sync-punto.ts).
+  const [sync, setSync] = useState<EstadoSync | null>(null);
+  const [syncCorriendo, setSyncCorriendo] = useState(false);
+  useEffect(() => {
+    fetch("/api/admin/precios-punto", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setSync(d); })
+      .catch(() => {});
+  }, []);
+  async function accionSync(accion: "ahora" | "pausar" | "activar") {
+    setSyncCorriendo(true);
+    try {
+      const r = await fetch("/api/admin/precios-punto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion }),
+      });
+      const d = await r.json().catch(() => null);
+      if (d && !d.error) setSync((x) => ({ cadaMin: x?.cadaMin ?? 15, activo: d.activo ?? x?.activo ?? true, ultimo: d.ultimo ?? x?.ultimo ?? null }));
+      else alert((d && d.error) || "No se pudo: probá de nuevo.");
+    } finally {
+      setSyncCorriendo(false);
+    }
+  }
   const [filename, setFilename] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
@@ -893,6 +917,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
             no se toca.
           </p>
         </div>
+        <EstadoSyncPunto sync={sync} corriendo={syncCorriendo} accion={accionSync} />
         <button
           type="button"
           disabled={pending}
@@ -1284,5 +1309,102 @@ function TemplateCol({
       <td className="px-3 py-2 text-[var(--muted)]">{field}</td>
       <td className="px-3 py-2 font-mono text-[11px] text-[var(--muted)]">{ex}</td>
     </tr>
+  );
+}
+
+// V.0.11.296: la actualizacion automatica de los precios desde Punto.
+type SaltoSync = { itemId: string; titulo: string; antes: number; ahora: number };
+type EstadoSync = {
+  activo: boolean;
+  cadaMin: number;
+  ultimo: {
+    en: string;
+    por: string;
+    enganchan: number;
+    cambiaron: number;
+    ofertasSacadas: number;
+    combos: number;
+    saltos: SaltoSync[];
+    sinFila: number;
+    local: string;
+    error?: string;
+  } | null;
+};
+
+function EstadoSyncPunto({
+  sync,
+  corriendo,
+  accion,
+}: {
+  sync: EstadoSync | null;
+  corriendo: boolean;
+  accion: (a: "ahora" | "pausar" | "activar") => void;
+}) {
+  const u = sync?.ultimo;
+  const cuando = u
+    ? new Date(u.en).toLocaleString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "America/Argentina/Buenos_Aires",
+      })
+    : null;
+  return (
+    <div className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className={sync?.activo === false ? "font-bold text-amber-700" : "font-bold text-green-700"}>
+          {sync == null
+            ? "Actualización automática…"
+            : sync.activo
+              ? `Se actualiza sola cada ${sync.cadaMin} minutos`
+              : "Actualización automática en pausa"}
+        </span>
+        {cuando && (
+          <span className="text-[var(--muted)]">
+            · última {cuando} ({u!.por}){u!.local ? ` en ${u!.local}` : ""}:{" "}
+            {u!.error
+              ? <b className="text-red-700">{u!.error}</b>
+              : `${u!.enganchan} de la web en Punto · ${u!.cambiaron} cambiaron${u!.combos ? ` · ${u!.combos} combos` : ""}${u!.ofertasSacadas ? ` · ${u!.ofertasSacadas} sin oferta` : ""}`}
+          </span>
+        )}
+        <span className="ml-auto flex gap-2">
+          <button
+            type="button"
+            disabled={corriendo}
+            onClick={() => accion("ahora")}
+            className="rounded-lg border border-[var(--border)] bg-white px-3 py-1.5 text-xs font-bold disabled:opacity-60"
+          >
+            {corriendo ? "Actualizando…" : "Actualizar ahora"}
+          </button>
+          {sync && (
+            <button
+              type="button"
+              disabled={corriendo}
+              onClick={() => accion(sync.activo ? "pausar" : "activar")}
+              className="rounded-lg border border-[var(--border)] bg-white px-3 py-1.5 text-xs font-bold disabled:opacity-60"
+            >
+              {sync.activo ? "Pausar" : "Activar"}
+            </button>
+          )}
+        </span>
+      </div>
+      {u && u.saltos && u.saltos.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div className="font-bold text-amber-900">
+            {u.saltos.length} con un salto de más del 50 %: no se aplicaron solos. Revisalos en Punto; si están bien, aplicalos con
+            &quot;Traer precios de Punto&quot;.
+          </div>
+          <ul className="mt-1 text-xs text-amber-900">
+            {u.saltos.slice(0, 12).map((x) => (
+              <li key={x.itemId}>
+                {x.itemId} · {x.titulo}: {formatPrice(x.antes)} → {formatPrice(x.ahora)} (contado)
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.295";
+export const APP_VERSION = "V.0.11.296";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.296",
+    date: "2026-11-27",
+    changes: [
+      "Tienda: los precios de la web se actualizan SOLOS desde Punto cada 15 minutos (la Lista 2, 1 pago, en pesos enteros, en el local que vende). Solo se escribe lo que cambió; pisa ofertas y candado; los combos de la web se recalculan con sus piezas. Un salto de más del 50 % no se aplica solo: queda anotado en Productos → Importar para revisarlo (y aplicarlo con \"Traer precios de Punto\" si está bien). Ahí mismo se ve la última actualización (cuántos cambiaron), \"Actualizar ahora\" y \"Pausar\". Cada cambio queda en el Registro. Damián: \"Sí, automático\".",
+    ],
+  },
   {
     version: "V.0.11.295",
     date: "2026-11-27",
