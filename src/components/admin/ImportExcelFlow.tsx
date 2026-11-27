@@ -62,6 +62,8 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   // tachado hasta que la cuenta de ese numero. Es cartel, no rebaja.
   const [mostrarDcto, setMostrarDcto] = useState<string>("");
   const [archivo, setArchivo] = useState<File | null>(null);
+  // V.0.11.295: los precios pueden venir de Punto en vez de un archivo.
+  const [fuente, setFuente] = useState<"archivo" | "punto">("archivo");
   const [filename, setFilename] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
@@ -74,6 +76,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
   ) {
     setFilename(file.name);
     setArchivo(file);
+    setFuente("archivo");
     startTransition(async () => {
       const fd = new FormData();
       fd.append("file", file);
@@ -97,6 +100,30 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
     });
   }
 
+  // V.0.11.295: los precios de Punto. Damian: "los productos de la pagina web
+  // tienen que estar conectados con el sistema punto y tomar la lista 2 que es
+  // la de 1 pago". Solo precios de 1 pago; pisa ofertas y candado.
+  function traerDePunto(descComboPct?: number, mostrarPct?: number) {
+    setFilename("Precios de Punto (Lista 2, 1 pago)");
+    setArchivo(null);
+    setFuente("punto");
+    setModo("precios");
+    setAltas(false);
+    setPrecioEs("unpago");
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.append("fuente", "punto");
+      const r = await previewExcel(fd, "precios", "unpago", undefined, descComboPct, mostrarPct);
+      setParse(r);
+      if (r.ok) {
+        setStage("preview");
+        if (r.descuentoLista !== undefined) setDescuento(String(r.descuentoLista));
+        if (r.descuentoCombo !== undefined) setDescCombo(String(r.descuentoCombo));
+        if (r.mostrarDcto !== undefined) setMostrarDcto(String(r.mostrarDcto));
+      }
+    });
+  }
+
   // Rehace la cuenta sobre el mismo archivo, sin volver a subirlo. Nada se
   // guarda hasta que se aplica.
   const pct = (v: string) => {
@@ -107,8 +134,12 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
     const lista = pct(descuento);
     const combo = pct(descCombo);
     const mostrar = pct(mostrarDcto);
-    if (!archivo || lista === null || combo === null || mostrar === null)
+    if (lista === null || combo === null || mostrar === null) return;
+    if (fuente === "punto") {
+      traerDePunto(combo, mostrar);
       return;
+    }
+    if (!archivo) return;
     handleFile(archivo, lista, combo, mostrar);
   }
 
@@ -126,6 +157,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
         // usar || : convertiria el 0 en undefined y se guardaria el de antes.
         descuentoCombo: pct(descCombo) ?? undefined,
         mostrarDcto: pct(mostrarDcto) ?? undefined,
+        pisarCandado: fuente === "punto",
       });
       setImportResult(r);
       if (r.ok) setStage("done");
@@ -422,7 +454,7 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
           {parse.delSistema && (
             <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
               <div className="font-display text-xs font-black uppercase tracking-wider text-blue-900">
-                Leído del Excel del sistema
+                {fuente === "punto" ? "Traído de Punto" : "Leído del Excel del sistema"}
               </div>
               <p className="mt-2 text-sm text-blue-900">{parse.delSistema.regla}</p>
               {parse.delSistema.avisos.map((a) => (
@@ -849,6 +881,27 @@ export function ImportExcelFlow({ dctoContado }: { dctoContado: number }) {
               : "precio y stock"}
           . Lo demás es opcional. Sirve el Excel tal cual sale del sistema.
         </p>
+      </div>
+
+      {/* V.0.11.295: los precios de Punto, sin archivo. */}
+      <div className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+        <div className="min-w-[260px] flex-1">
+          <h3 className="font-display text-sm font-black uppercase tracking-wider">Precios desde Punto</h3>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Cada producto de la web toma la Lista 2 (1 pago) de su artículo en Punto, con el flete y el dólar de hoy, en
+            pesos sin centavos. Antes de aplicar ves qué sube y qué baja. Pisa también las ofertas y el candado; el stock
+            no se toca.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => traerDePunto()}
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3 font-display text-sm font-black uppercase tracking-wider text-white disabled:opacity-60"
+        >
+          {pending && fuente === "punto" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          Traer precios de Punto
+        </button>
       </div>
 
       <div

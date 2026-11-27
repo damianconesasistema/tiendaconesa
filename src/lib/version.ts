@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.294";
+export const APP_VERSION = "V.0.11.295";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.295",
+    date: "2026-11-27",
+    changes: [
+      "Tienda, Productos → Importar: \"Traer precios de Punto\". Cada producto de la web toma la Lista 2 (1 pago) de su artículo en Punto, la misma que se ve en Punto (con el flete % del proveedor y el dólar Blue/BNA de compra de hoy), en pesos sin centavos. Cruza por el código de sistema, el SKU o el código del sitio. Se ve antes de aplicar (qué sube y qué baja, los combos de la web recalculados con sus piezas) y recién ahí se aplica. Pisa también las ofertas y el candado; el stock no se toca. Damián: \"los productos de la página web tienen que estar conectados con el sistema punto y tomar la lista 2 que es la de 1 pago\" / \"pisarlos también\" / \"por ahora solo precio\" / \"números redondos siempre sin decimales\".",
+    ],
+  },
   {
     version: "V.0.11.294",
     date: "2026-11-27",

@@ -31,6 +31,7 @@ import {
   type ComboStock,
 } from "@/lib/combos";
 import { conRegistro } from "@/lib/actividad";
+import { filasDesdePunto } from "@/lib/tienda-desde-punto";
 
 // Que se vino a cambiar. Lo elige el que importa, antes de subir el
 // archivo, y de ahi en adelante manda: una lista de precios de una marca no
@@ -352,136 +353,32 @@ async function previewExcel__(
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "No autorizado" };
 
+  // V.0.11.295: los precios de Punto en vez de un archivo (fuente=punto).
+  // Damian: "los productos de la pagina web tienen que estar conectados con el
+  // sistema punto y tomar la lista 2 que es la de 1 pago".
+  const desdePunto = formData.get("fuente") === "punto";
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0)
-    return { ok: false, error: "No se recibió el archivo" };
+  if (!desdePunto) {
+    if (!(file instanceof File) || file.size === 0)
+      return { ok: false, error: "No se recibió el archivo" };
 
-  if (file.size > 10 * 1024 * 1024)
-    return { ok: false, error: "El archivo no puede superar 10 MB" };
+    if (file.size > 10 * 1024 * 1024)
+      return { ok: false, error: "El archivo no puede superar 10 MB" };
+  }
 
   try {
-    const buf = Buffer.from(await file.arrayBuffer());
-    const wb = XLSX.read(buf, { type: "buffer" });
-    const sheetName = wb.SheetNames[0];
-    if (!sheetName) return { ok: false, error: "Excel sin hojas" };
-    const sheet = wb.Sheets[sheetName];
-    let raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
-      defval: null,
-      raw: true,
-    });
-
-    if (raw.length === 0)
-      return { ok: false, error: "La hoja está vacía" };
-
-    // Mapear nombres de columnas a canónicos
-    const originalKeys = Object.keys(raw[0]);
-    let keyMap: Record<string, string> = {};
-    for (const k of originalKeys) {
-      const canonical = COL_ALIASES[norm(k)];
-      if (canonical) keyMap[k] = canonical;
-    }
-    // Un Excel con "SKU" y "Stock" y sin columna de codigo (Damian,
-    // 17/11/2026, la lista de Pringles): el SKU hace de codigo. Mas abajo se
-    // busca por el codigo del sitio, el del sistema o el SKU interno.
-    if (!Object.values(keyMap).includes("itemId"))
-      for (const [k, v] of Object.entries(keyMap)) if (v === "sku") keyMap[k] = "itemId";
-
     const tocaPrecios = modo !== "stock";
     const tocaStock = modo !== "precios";
-
-    // Pre-chequeo: que esten las columnas de lo que se vino a cambiar.
-    // El titulo NO es obligatorio: hace falta solo para dar de alta algo que
-    // no esta en la tienda, y eso se avisa fila por fila. Exigirlo rechazaba
-    // el archivo entero, que es lo que impedia subir una lista de precios.
-    const canonicals = new Set(Object.values(keyMap));
-    const missing: string[] = [];
-    if (!canonicals.has("itemId")) missing.push("código");
-    if (tocaPrecios && !canonicals.has("price")) missing.push("precio");
-    if (tocaStock && !canonicals.has("stock")) missing.push("stock");
-    // Si no tiene las columnas del importador, puede ser el Excel tal cual
-    // sale del sistema. Esos vienen con item_code / item_desc y la columna
-    // del precio cambia de nombre segun el proveedor: eso se reconoce solo.
+    let raw: Record<string, unknown>[] = [];
+    let keyMap: Record<string, string> = {};
     let delSistema: { regla: string; avisos: string[] } | undefined;
-    if (missing.length) {
-      // El local del panel: si el listado trae el stock de varios depositos
-      // ("Dep BS AS", "Dep Traslasierra"), se toma el de este local.
-      const local = await sucursalDeEdicion();
-      const lectura = leerExportDelSistema(wb, { deposito: local?.slug });
-      if (!lectura) {
-        return {
-          ok: false,
-          error: `Faltan columnas obligatorias: ${missing.join(", ")}. Usá la plantilla, o subí el Excel tal cual sale del sistema.`,
-        };
-      }
-
-      // Un listado de existencias ("Dep BS AS") no trae precio.
-      if (tocaPrecios && !lectura.traePrecio)
-        return {
-          ok: false,
-          error: `Este archivo trae solo el stock (columna "${lectura.columnaStock ?? "stock"}"), sin precio. Elegí "Solo stock" arriba y volvé a subirlo.`,
-        };
-
-      // El stock de un deposito es de ese local. Cargarle a Traslasierra el
-      // stock de Buenos Aires haria vender alla lo que solo hay aca.
-      const otro =
-        tocaStock && lectura.columnaStock
-          ? depositoDeOtroLocal(lectura.columnaStock, local?.slug)
-          : null;
-      if (otro)
-        return {
-          ok: false,
-          error: `Este archivo trae el stock del depósito "${lectura.columnaStock}", que no es de ${local?.nombre ?? "este local"}. Subilo desde el panel del local de ese depósito.`,
-        };
-
-      // Para no pisar lo que ya esta cargado. El archivo del sistema trae el
-      // precio y el stock; el titulo, la categoria y la marca del sitio son
-      // trabajo hecho a mano y NO se tocan si el producto ya existe.
-      const yaCargados = await prisma.product.findMany({
-        select: {
-          itemId: true,
-          sku: true,
-          title: true,
-          category: true,
-          brand: true,
-          stock: true,
-          codigoSistema: true,
-        },
-      });
-      const porCodigoSistema = new Map<string, (typeof yaCargados)[number]>();
-      for (const p of yaCargados) {
-        if (p.codigoSistema) porCodigoSistema.set(p.codigoSistema, p);
-        if (p.sku) porCodigoSistema.set(p.sku.trim(), p);
-        // Los codigos del sitio se armaron como MARCA-1234: el numero de
-        // atras es el del sistema. Asi enganchan los que se cargaron antes
-        // de que existiera la columna.
-        const cola = p.itemId.split("-").pop();
-        if (cola && !porCodigoSistema.has(cola)) porCodigoSistema.set(cola, p);
-      }
-
-      const marcasParaDetectar = await getMarcas();
-      raw = lectura.filas.map((f) => {
-        const ya = porCodigoSistema.get(f.itemCode);
-        // La marca se guarda por su id ("bosca"), no por como la escribe el
-        // sistema. Se deduce del titulo, que es de donde sale en el resto del
-        // panel; la columna brand_desc del sistema solo se usa para armar el
-        // codigo de un producto nuevo.
-        const marcaDetectada = detectarMarca(f.descripcion, marcasParaDetectar);
-        return {
-          // El codigo del articulo nuevo es el del sistema, pelado. Antes se
-          // le pegaba la marca adelante (HEINEKEN-8354) y eso obligaba a
-          // traducir a mano cada vez que se comparaba el panel con el
-          // sistema. Ver la migracion 25.
-          codigo: ya?.itemId ?? f.itemCode,
-          titulo: ya?.title ?? f.descripcion,
-          categoria: ya?.category ?? "otros",
-          marca: ya?.brand ?? marcaDetectada,
-          precio: f.precio,
-          oferta: f.oferta,
-          stock: f.stock ?? ya?.stock ?? 0,
-          codigo_sistema: f.itemCode,
-        } as Record<string, unknown>;
-      });
-
+    if (desdePunto) {
+      if (modo !== "precios" || precioEs !== "unpago")
+        return { ok: false, error: "Desde Punto se traen solo los precios de 1 pago (la Lista 2)." };
+      const dp = await filasDesdePunto();
+      if (!dp.raw.length)
+        return { ok: false, error: "Ningún producto de la web está en Punto con precio: no hay nada para traer." };
+      raw = dp.raw;
       keyMap = {
         codigo: "itemId",
         codigo_sistema: "codigoSistema",
@@ -489,20 +386,150 @@ async function previewExcel__(
         categoria: "category",
         marca: "brand",
         precio: "price",
-        oferta: "salePrice",
-        stock: "stock",
       };
-      delSistema = { regla: lectura.regla, avisos: lectura.avisos };
+      delSistema = { regla: "Precios de Punto: la Lista 2 (1 pago) de cada artículo.", avisos: dp.avisos };
+    } else {
+      const buf = Buffer.from(await (file as File).arrayBuffer());
+      const wb = XLSX.read(buf, { type: "buffer" });
+      const sheetName = wb.SheetNames[0];
+      if (!sheetName) return { ok: false, error: "Excel sin hojas" };
+      const sheet = wb.Sheets[sheetName];
+      raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+        defval: null,
+        raw: true,
+      });
 
-      // El sistema exporta el stock solo en algunos listados. Si se eligio
-      // actualizarlo y no vino, mejor frenar aca: dejarlo pasar pondria en
-      // cero el stock de todo lo que entre.
-      if (tocaStock && !lectura.traeStock)
-        return {
-          ok: false,
-          error:
-            "Elegiste actualizar el stock, pero este archivo del sistema no trae columna de stock. Exportá el listado con stock, o importá solo los precios.",
+      if (raw.length === 0)
+        return { ok: false, error: "La hoja está vacía" };
+
+      // Mapear nombres de columnas a canónicos
+      const originalKeys = Object.keys(raw[0]);
+      keyMap = {};
+      for (const k of originalKeys) {
+        const canonical = COL_ALIASES[norm(k)];
+        if (canonical) keyMap[k] = canonical;
+      }
+      // Un Excel con "SKU" y "Stock" y sin columna de codigo (Damian,
+      // 17/11/2026, la lista de Pringles): el SKU hace de codigo. Mas abajo se
+      // busca por el codigo del sitio, el del sistema o el SKU interno.
+      if (!Object.values(keyMap).includes("itemId"))
+        for (const [k, v] of Object.entries(keyMap)) if (v === "sku") keyMap[k] = "itemId";
+
+
+      // Pre-chequeo: que esten las columnas de lo que se vino a cambiar.
+      // El titulo NO es obligatorio: hace falta solo para dar de alta algo que
+      // no esta en la tienda, y eso se avisa fila por fila. Exigirlo rechazaba
+      // el archivo entero, que es lo que impedia subir una lista de precios.
+      const canonicals = new Set(Object.values(keyMap));
+      const missing: string[] = [];
+      if (!canonicals.has("itemId")) missing.push("código");
+      if (tocaPrecios && !canonicals.has("price")) missing.push("precio");
+      if (tocaStock && !canonicals.has("stock")) missing.push("stock");
+      // Si no tiene las columnas del importador, puede ser el Excel tal cual
+      // sale del sistema. Esos vienen con item_code / item_desc y la columna
+      // del precio cambia de nombre segun el proveedor: eso se reconoce solo.
+      if (missing.length) {
+        // El local del panel: si el listado trae el stock de varios depositos
+        // ("Dep BS AS", "Dep Traslasierra"), se toma el de este local.
+        const local = await sucursalDeEdicion();
+        const lectura = leerExportDelSistema(wb, { deposito: local?.slug });
+        if (!lectura) {
+          return {
+            ok: false,
+            error: `Faltan columnas obligatorias: ${missing.join(", ")}. Usá la plantilla, o subí el Excel tal cual sale del sistema.`,
+          };
+        }
+
+        // Un listado de existencias ("Dep BS AS") no trae precio.
+        if (tocaPrecios && !lectura.traePrecio)
+          return {
+            ok: false,
+            error: `Este archivo trae solo el stock (columna "${lectura.columnaStock ?? "stock"}"), sin precio. Elegí "Solo stock" arriba y volvé a subirlo.`,
+          };
+
+        // El stock de un deposito es de ese local. Cargarle a Traslasierra el
+        // stock de Buenos Aires haria vender alla lo que solo hay aca.
+        const otro =
+          tocaStock && lectura.columnaStock
+            ? depositoDeOtroLocal(lectura.columnaStock, local?.slug)
+            : null;
+        if (otro)
+          return {
+            ok: false,
+            error: `Este archivo trae el stock del depósito "${lectura.columnaStock}", que no es de ${local?.nombre ?? "este local"}. Subilo desde el panel del local de ese depósito.`,
+          };
+
+        // Para no pisar lo que ya esta cargado. El archivo del sistema trae el
+        // precio y el stock; el titulo, la categoria y la marca del sitio son
+        // trabajo hecho a mano y NO se tocan si el producto ya existe.
+        const yaCargados = await prisma.product.findMany({
+          select: {
+            itemId: true,
+            sku: true,
+            title: true,
+            category: true,
+            brand: true,
+            stock: true,
+            codigoSistema: true,
+          },
+        });
+        const porCodigoSistema = new Map<string, (typeof yaCargados)[number]>();
+        for (const p of yaCargados) {
+          if (p.codigoSistema) porCodigoSistema.set(p.codigoSistema, p);
+          if (p.sku) porCodigoSistema.set(p.sku.trim(), p);
+          // Los codigos del sitio se armaron como MARCA-1234: el numero de
+          // atras es el del sistema. Asi enganchan los que se cargaron antes
+          // de que existiera la columna.
+          const cola = p.itemId.split("-").pop();
+          if (cola && !porCodigoSistema.has(cola)) porCodigoSistema.set(cola, p);
+        }
+
+        const marcasParaDetectar = await getMarcas();
+        raw = lectura.filas.map((f) => {
+          const ya = porCodigoSistema.get(f.itemCode);
+          // La marca se guarda por su id ("bosca"), no por como la escribe el
+          // sistema. Se deduce del titulo, que es de donde sale en el resto del
+          // panel; la columna brand_desc del sistema solo se usa para armar el
+          // codigo de un producto nuevo.
+          const marcaDetectada = detectarMarca(f.descripcion, marcasParaDetectar);
+          return {
+            // El codigo del articulo nuevo es el del sistema, pelado. Antes se
+            // le pegaba la marca adelante (HEINEKEN-8354) y eso obligaba a
+            // traducir a mano cada vez que se comparaba el panel con el
+            // sistema. Ver la migracion 25.
+            codigo: ya?.itemId ?? f.itemCode,
+            titulo: ya?.title ?? f.descripcion,
+            categoria: ya?.category ?? "otros",
+            marca: ya?.brand ?? marcaDetectada,
+            precio: f.precio,
+            oferta: f.oferta,
+            stock: f.stock ?? ya?.stock ?? 0,
+            codigo_sistema: f.itemCode,
+          } as Record<string, unknown>;
+        });
+
+        keyMap = {
+          codigo: "itemId",
+          codigo_sistema: "codigoSistema",
+          titulo: "title",
+          categoria: "category",
+          marca: "brand",
+          precio: "price",
+          oferta: "salePrice",
+          stock: "stock",
         };
+        delSistema = { regla: lectura.regla, avisos: lectura.avisos };
+
+        // El sistema exporta el stock solo en algunos listados. Si se eligio
+        // actualizarlo y no vino, mejor frenar aca: dejarlo pasar pondria en
+        // cero el stock de todo lo que entre.
+        if (tocaStock && !lectura.traeStock)
+          return {
+            ok: false,
+            error:
+              "Elegiste actualizar el stock, pero este archivo del sistema no trae columna de stock. Exportá el listado con stock, o importá solo los precios.",
+          };
+      }
     }
 
     // El recargo de 1 pago y el descuento salen de la configuracion del
@@ -822,6 +849,9 @@ async function importExcel__(
     descuentoCombo?: number;
     /** El descuento a mostrar, que infla el tachado. */
     mostrarDcto?: number;
+    /** V.0.11.295: los precios de Punto pisan tambien a los que tienen
+     *  candado (Damian: "pisarlos tambien"). */
+    pisarCandado?: boolean;
   },
 ): Promise<ImportResult> {
   const session = await getAdminSession();
@@ -847,14 +877,16 @@ async function importExcel__(
   // lista de precios: justo el cambio masivo del que el candado deberia
   // protegerlo. Lo pidio Damian para un combo descontinuado que esta
   // liquidando al 50%: si se recalcula, pierde el precio de liquidacion.
-  const conCandado = new Set(
-    (
-      await prisma.product.findMany({
-        where: { locked: true },
-        select: { itemId: true },
-      })
-    ).map((p) => p.itemId),
-  );
+  const conCandado = options.pisarCandado
+    ? new Set<string>()
+    : new Set(
+        (
+          await prisma.product.findMany({
+            where: { locked: true },
+            select: { itemId: true },
+          })
+        ).map((p) => p.itemId),
+      );
   let bloqueados = 0;
 
   let updated = 0;
