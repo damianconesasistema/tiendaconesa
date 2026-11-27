@@ -16927,6 +16927,11 @@ function cxAplicar(a, d){
   for(const k of ["lista1", "lista2", "iva", "tit"]) if(d[k] !== undefined) n[k] = d[k];
   // V.0.11.282: los de los cambios masivos; null lo saca.
   for(const k of ["subrubro", "flete", "contado", "bulto", "vende"]) if(d[k] !== undefined){ if(d[k] === null) delete n[k]; else n[k] = d[k]; }
+  // V.0.11.299: el proveedor propio; null vuelve al de GBP.
+  if(d.proveedor !== undefined){
+    if(d.proveedor === null){ delete n.proveedor; if(n.catGbp != null) n.cat = n.catGbp; }
+    else { if(n.catGbp == null) n.catGbp = a.cat; n.proveedor = d.proveedor; n.cat = d.proveedor; }
+  }
   if(d.fab !== undefined){ if(d.fab) n.fab = d.fab; else delete n.fab; }
   return n;
 }
@@ -18042,7 +18047,10 @@ const MS_MODOS = [
   { k:"bulto", g:"Otros", t:"Se compra de a (unidades)", en:"entero", ph:"1 = suelto",
     ayuda:"Si el proveedor lo vende solo en caja cerrada (por ejemplo de a 6): el pedido al proveedor se redondea para arriba. 1 = suelto." },
   { k:"vende", g:"Otros", t:"Cómo se vende (suelto o en combo)", en:"vende",
-    ayuda:"Solo en combo: en la venta no se puede sumar suelto. Solo suelto: no se puede usar como pieza de un combo." }
+    ayuda:"Solo en combo: en la venta no se puede sumar suelto. Solo suelto: no se puede usar como pieza de un combo." },
+  // V.0.11.299. Damián: "si yo acá le quiero cambiar a los 5 el proveedor".
+  { k:"proveedor", g:"Otros", t:"Proveedor (de tu lista)", en:"proveedor",
+    ayuda:"El proveedor de tu lista de Proveedores para estos artículos: le gana al que trae GBP y a las asociaciones, y un import de GBP nuevo no lo pisa. Cuenta para el filtro Proveedor, su flete % y los pedidos. «Volver al de GBP» lo saca." }
 ];
 /** Los que tocan el costo o los precios (no van con combos ni en dólares). */
 const MS_PRECIO = ["l1", "l2", "margen", "subir", "lista", "desc", "contado", "iva", "flete"];
@@ -18084,14 +18092,28 @@ function msLeer(){
     if(MS.sel === "__nuevo"){ const n = s.toUpperCase().replace(/[<>]/g, "").slice(0, 40); return n ? { v: n } : { falta:true }; }
     return { v: MS.sel || null };
   }
+  if(md.en === "proveedor"){
+    if(MS.sel === "__gbp") return { v: null };
+    if(!s) return { falta:true };
+    const real = msPrvReal(s);
+    return real ? { v: real } : { error:"«" + s + "» no está en la lista de proveedores: elegilo de la lista (o cargalo en Proveedores)." };
+  }
   if(md.en === "vende"){
     if(MS.sel === "__") return { falta:true };
     return { v: MS.sel === "ambos" ? null : { suelto: MS.sel === "suelto", combo: MS.sel === "combo" } };
   }
   return { falta:true };
 }
+/** Los proveedores de la lista (sin los dados de baja). */
+const msPrvNombres = () => ((typeof PRV === "object" && PRV && PRV.lista) || []).filter(p => p && !p.inactivo && p.razonSocial).map(p => p.razonSocial);
+/** El nombre tal cual está en la lista, o "" si no está. */
+function msPrvReal(nom){
+  const k = claveAs(nom); if(!k) return "";
+  return msPrvNombres().find(n => claveAs(n) === k) || "";
+}
 /** Cómo está (o queda) un artículo en lo que no es precio. */
 function msTxtDe(k, a){
+  if(k === "proveedor") return cxT(a.cat || "") || "sin proveedor";
   if(k === "subrubro") return cxT(a.subrubro || "") || "sin subrubro";
   if(k === "bulto") return +a.bulto > 1 ? "de a " + Math.floor(+a.bulto) : "suelto (de a 1)";
   if(k === "vende"){
@@ -18153,6 +18175,9 @@ function msCalcular(){
       if(cxT(a.subrubro || "").toUpperCase() !== (v || "")) d.subrubro = v;
     } else if(k === "bulto"){
       if((+a.bulto > 1 ? Math.floor(+a.bulto) : 0) !== (v || 0)) d.bulto = v;
+    } else if(k === "proveedor"){
+      if(v === null){ if(a.proveedor) d.proveedor = null; }
+      else if(claveAs(a.cat || "") !== claveAs(v) || (a.proveedor && a.proveedor !== v)) d.proveedor = v;
     } else if(k === "vende"){
       const hs = !(a.vende && a.vende.suelto === false), hc = !(a.vende && a.vende.combo === false);
       if(hs !== (v ? v.suelto : true) || hc !== (v ? v.combo : true)) d.vende = v ? Object.assign({}, v) : null;
@@ -18226,6 +18251,10 @@ function msEntradaHtml(md){
     '<input id="msDias" type="text" inputmode="numeric" autocomplete="off" placeholder="60" value="' + atrib(MS.dias) + '"><span>días</span></div>';
   if(md.en === "iva") return '<label for="msSel">IVA</label><select id="msSel">' + opc("__", "Elegí…") +
     [0, 10.5, 21, 27].map(i => opc(String(i), ivaTxt(i))).join("") + '</select>';
+  if(md.en === "proveedor") return '<label for="msVal">Proveedor</label>' +
+    '<input id="msVal" type="text" autocomplete="off" placeholder="Elegí el proveedor de la lista…" value="' + atrib(MS.val) + '"' + (MS.sel === "__gbp" ? ' disabled' : '') + '>' +
+    '<label style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:12.5px;font-weight:500;text-transform:none;letter-spacing:0">' +
+    '<input type="checkbox" id="msGbp"' + (MS.sel === "__gbp" ? ' checked' : '') + '> Volver al de GBP (sacarles el proveedor elegido)</label>';
   if(md.en === "vende") return '<label for="msSel">Se vende</label><select id="msSel">' + opc("__", "Elegí…") +
     opc("ambos", "Suelto y en combo") + opc("suelto", "Solo suelto") + opc("combo", "Solo en combo") + '</select>';
   if(md.en === "subrubro"){
@@ -18256,6 +18285,12 @@ function msPintar(){
     '<div id="msRes">' + (MS.resultado || '') + '</div>' +
     '<div id="msTabla"></div>' +
     '<div class="cx-hist" id="msHist" style="margin:12px 0 10px">' + cxHistHtml() + '</div>';
+  // V.0.11.299: el proveedor se elige de la lista, adentro de la ventana.
+  if(md.en === "proveedor"){
+    const i = document.getElementById("msVal");
+    if(i) listaEnVentana(i, () => msPrvNombres(), { vacio: "Todavía no llegó la lista de proveedores: esperá un segundo." });
+    if(!msPrvNombres().length){ try{ cargarPrvSiFalta().then(() => { if(MS && MS.modo === "proveedor"){ msCalcular(); msPintarTabla(); } }); }catch(e){} }
+  }
   msPintarTabla();
 }
 function msPintarTabla(){
@@ -18319,6 +18354,11 @@ function msCambio(e){
     msCalcular(); msPintarTabla(); return;
   }
   if(t.id === "msAcomp"){ MS.acomp = t.checked; MS.tilde = {}; msCalcular(); msPintarTabla(); return; }
+  if(t.id === "msGbp"){
+    MS.sel = t.checked ? "__gbp" : "__"; MS.tilde = {};
+    const i = document.getElementById("msVal"); if(i) i.disabled = t.checked;
+    msCalcular(); msPintarTabla(); return;
+  }
   if(t.dataset.msT){ MS.tilde[t.dataset.msT] = t.checked; msPintarTabla(); }
 }
 async function msClic(e){
@@ -18346,6 +18386,7 @@ function msQueTxt(){
   if(k === "subrubro") return "Subrubro: " + (v || "sin subrubro");
   if(k === "bulto") return v ? "Se compra de a " + v : "Se compra suelto";
   if(k === "vende") return "Se vende " + (!v ? "suelto y en combo" : v.suelto ? "solo suelto" : "solo en combo");
+  if(k === "proveedor") return v ? "Proveedor: " + v : "Proveedor: el de GBP";
   return "Cambio masivo";
 }
 async function msAplicar(){

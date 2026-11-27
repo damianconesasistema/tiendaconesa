@@ -44,11 +44,14 @@ export type DespuesExcel = {
   bulto?: number | null;
   /** Cómo se vende: suelto, en combo o de las dos formas (null). */
   vende?: VendeArticulo | null;
+  /** V.0.11.299: el proveedor de la lista para este articulo (le gana al de
+   *  GBP y a las asociaciones). null vuelve al de GBP. */
+  proveedor?: string | null;
 };
 export type ContadoArticulo = { pct: number; dias: number; cheques?: number[] };
 export type VendeArticulo = { suelto: boolean; combo: boolean };
 /** Los campos de los cambios masivos (V.0.11.282), en el orden de la foto. */
-export const CAMPOS_MASIVOS = ["subrubro", "flete", "contado", "bulto", "vende"] as const;
+export const CAMPOS_MASIVOS = ["subrubro", "flete", "contado", "bulto", "vende", "proveedor"] as const;
 /** Los de siempre (los del Excel). */
 export const CAMPOS_FOTO = ["lista", "dtos", "recs", "lista1", "lista2", "iva", "tit", "fab"] as const;
 
@@ -78,6 +81,7 @@ export type FotoArticulo = {
   contado?: ContadoArticulo;
   bulto?: number;
   vende?: VendeArticulo;
+  proveedor?: string;
 };
 
 export const IVAS = [0, 10.5, 21, 27] as const;
@@ -181,6 +185,7 @@ export function limpiarCambioExcel(x: unknown): CambioExcel | string {
   if (d.fab !== undefined) despues.fab = texto(d.fab, 40);
   // V.0.11.282: los de los cambios masivos.
   if (d.subrubro !== undefined) despues.subrubro = d.subrubro === null ? null : texto(d.subrubro, 40).toUpperCase() || null;
+  if (d.proveedor !== undefined) despues.proveedor = d.proveedor === null ? null : texto(d.proveedor, 80) || null;
   if (d.flete !== undefined) {
     if (d.flete === null || d.flete === 0) despues.flete = null;
     else {
@@ -261,6 +266,7 @@ export function fotoDe(a: Record<string, unknown>): FotoArticulo {
   if (typeof a.bulto === "number" && a.bulto > 1) f.bulto = a.bulto;
   const v = a.vende as VendeArticulo | null | undefined;
   if (v && typeof v === "object") f.vende = { suelto: v.suelto !== false, combo: v.combo !== false };
+  if (typeof a.proveedor === "string" && a.proveedor) f.proveedor = a.proveedor;
   return f;
 }
 
@@ -299,7 +305,8 @@ export function mismaFoto(a: FotoArticulo, b: FotoArticulo): boolean {
         igualPlata(a.flete, b.flete) &&
         igualContado(a.contado, b.contado) &&
         (a.bulto ?? 0) === (b.bulto ?? 0) &&
-        vendeTxt(a.vende) === vendeTxt(b.vende)))
+        vendeTxt(a.vende) === vendeTxt(b.vende) &&
+        (a.proveedor ?? "") === (b.proveedor ?? "")))
   );
 }
 

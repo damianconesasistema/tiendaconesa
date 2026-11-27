@@ -36,7 +36,10 @@ export const esRubroGbp = (cat: unknown): boolean => {
 };
 
 /** El proveedor de un artículo con las asociaciones puestas. */
-export function proveedorAsociado(a: { cat?: unknown; prov?: unknown }, asoc: Asociaciones): string {
+export function proveedorAsociado(a: { cat?: unknown; prov?: unknown; proveedor?: unknown }, asoc: Asociaciones): string {
+  // V.0.11.299: el proveedor elegido para ESTE articulo (cambios masivos) le
+  // gana a todo. Damian: "si yo aca le quiero cambiar a los 5 el proveedor".
+  if (typeof a.proveedor === "string" && a.proveedor.trim()) return a.proveedor.trim();
   const c = String(a.cat ?? "").trim();
   if (!esRubroGbp(c)) return asoc.porNombre[claveAsoc(c)] || c;
   return asoc.porMarca[claveAsoc(a.prov)] || c;
@@ -44,8 +47,7 @@ export function proveedorAsociado(a: { cat?: unknown; prov?: unknown }, asoc: As
 
 /** Los artículos con su proveedor de la lista. El de GBP queda en catGbp
  *  (para la ventana de asociar y para volver atrás). */
-export function aplicarAsociaciones<T extends { cat?: unknown; prov?: unknown }>(articulos: readonly T[], asoc: Asociaciones): T[] {
-  if (!Object.keys(asoc.porNombre).length && !Object.keys(asoc.porMarca).length) return articulos.slice();
+export function aplicarAsociaciones<T extends { cat?: unknown; prov?: unknown; proveedor?: unknown }>(articulos: readonly T[], asoc: Asociaciones): T[] {
   return articulos.map((a) => {
     const nuevo = proveedorAsociado(a, asoc);
     return nuevo === String(a.cat ?? "").trim() ? a : { ...a, cat: nuevo, catGbp: a.cat };

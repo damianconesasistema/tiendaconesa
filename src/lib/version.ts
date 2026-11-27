@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.298";
+export const APP_VERSION = "V.0.11.299";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.299",
+    date: "2026-11-27",
+    changes: [
+      "Punto, Artículos → Cambios masivos: \"Proveedor (de tu lista)\". A los tildados (o a los que ves con los filtros) se les pone el proveedor que elijas de la lista de Proveedores, adentro de la misma ventana. Le gana al que trae GBP y a las asociaciones, y un import de GBP nuevo no lo pisa; cuenta para el filtro Proveedor, el flete % y los pedidos (y para la tienda web). \"Volver al de GBP\" lo saca. Como los otros cambios masivos: se ve antes de aplicar, queda en Actividad y se puede deshacer. Damián: \"si yo acá le quiero cambiar a los 5 el proveedor, ¿cómo podemos hacer el cambio masivo?\".",
+    ],
+  },
   {
     version: "V.0.11.298",
     date: "2026-11-27",

@@ -104,6 +104,10 @@ export type ArticuloPunto = {
    *  ella con el mismo % de siempre. De Punto: el import no lo toca; null lo
    *  saca. */
   mayor?: { pct: number; desde: number } | null;
+  /** V.0.11.299: el proveedor de la lista elegido para ESTE articulo
+   *  (cambios masivos). Le gana al de GBP y a las asociaciones. De Punto: el
+   *  import de GBP no lo toca. */
+  proveedor?: string | null;
   /** V.0.11.207: el subrubro de Punto (LAVATORIO, DUCHA, BIDET...). Damian,
    *  23/11/2026: "en subrubro deberia aparecer ... son categorias lavatorio,
    *  ducha, bidet". No es el "subrub" de GBP (que es la linea del
@@ -515,6 +519,9 @@ export async function guardarArticulos(
       // Cómo se vende (V.0.11.217), igual: de Punto.
       if (a.vende === undefined && ya?.vende) nuevo.vende = ya.vende;
       if (nuevo.vende === null) delete nuevo.vende;
+      // El proveedor propio (V.0.11.299), igual: de Punto.
+      if (a.proveedor === undefined && ya?.proveedor) nuevo.proveedor = ya.proveedor;
+      if (nuevo.proveedor === null) delete nuevo.proveedor;
       // Cuándo se creó (V.0.11.213): el que ya estaba conserva el suyo (o
       // ninguno); el código nuevo, ahora.
       delete nuevo.creado;
