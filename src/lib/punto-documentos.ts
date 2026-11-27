@@ -4,6 +4,7 @@ import { linkDocumento } from "@/lib/punto-link";
 import { moverStockEnTx, type StockArticulo } from "@/lib/punto-articulos";
 import { arcaDe, caeParaPunto, olvidarIntento, vaPorArca, type ArcaPunto } from "@/lib/punto-arca";
 import { nombreSucursalPunto } from "@/lib/punto-permisos";
+import { revisarFacturaDePedido } from "@/lib/punto-cobranzas-reglas";
 
 // Lo que se emite en el sistema Punto, guardado en la base (migracion 50).
 //
@@ -526,17 +527,47 @@ async function crear(d: DocumentoNuevo, usuario: string): Promise<Emitido> {
         if (!viejo || viejo.tipo !== "presupuesto")
           return { error: "El presupuesto que querés actualizar no está. No se guardó nada." };
       }
+      // V.0.11.302: la factura de un pedido interno (cuenta corriente: se
+      // retiro con el pedido y se factura al pagar). No mueve stock ni suma
+      // deuda; ver revisarFacturaDePedido en src/lib/punto-cobranzas-reglas.ts.
+      let dePedido: { id: string; nro: string } | null = null;
       if (d.origenId) {
         await tx.$queryRaw`SELECT "id" FROM "PuntoDocumento" WHERE "id" = ${d.origenId} FOR UPDATE`;
+        const origen = await tx.puntoDocumento.findUnique({
+          where: { id: d.origenId },
+          select: { id: true, tipo: true, sucursal: true, total: true, pv: true, numero: true, pedido: true, eliminadoEn: true, datos: true },
+        });
+        const esPedido = origen?.tipo === "pedido-interno";
+        if (esPedido && origen) {
+          const od = (origen.datos && typeof origen.datos === "object" && !Array.isArray(origen.datos) ? origen.datos : {}) as Record<string, unknown>;
+          const mal = revisarFacturaDePedido(
+            {
+              tipo: origen.tipo,
+              sucursal: origen.sucursal,
+              total: Number(origen.total),
+              eliminado: !!origen.eliminadoEn,
+              renglones: Array.isArray(od.renglones) ? (od.renglones as { cod?: unknown; cant?: unknown }[]) : [],
+            },
+            { tipo: d.tipo, sucursal: d.sucursal, total: d.total, renglones: d.renglones },
+          );
+          if (mal) return { error: mal + " No se emitió nada." };
+          // El numero del pedido interno ("0003-00000120"), como en Comprobantes.
+          dePedido = { id: origen.id, nro: origen.numero != null ? `${origen.pv}-${pad8(Number(origen.numero))}` : `P-${origen.pedido}` };
+        }
         // Un presupuesto se vende una sola vez. Dos puestos que lo pasan a
         // venta a la vez esperan uno al otro en el FOR UPDATE de arriba, y el
         // segundo encuentra aca la venta del primero. Sin esto salian dos
-        // facturas del mismo presupuesto.
+        // facturas del mismo presupuesto. Un pedido interno se factura una vez.
         if (d.tipo !== "presupuesto") {
           const vendido = await tx.puntoDocumento.findFirst({
             where: { origenId: d.origenId, tipo: { not: "presupuesto" }, eliminadoEn: null },
           });
-          if (vendido) return { error: `Ese presupuesto ya se vendió (${aGuardado(vendido).nroTexto}).` };
+          if (vendido)
+            return {
+              error: esPedido
+                ? `Ese pedido ya se facturó (${aGuardado(vendido).nroTexto}).`
+                : `Ese presupuesto ya se vendió (${aGuardado(vendido).nroTexto}).`,
+            };
         }
       }
       // V.0.99.98: la factura de Traslasierra la autoriza ARCA (punto de
@@ -586,7 +617,11 @@ async function crear(d: DocumentoNuevo, usuario: string): Promise<Emitido> {
           cliente: d.cliente.n,
           total: d.total,
           origenId: d.origenId,
-          datos: (arca ? { ...datos, fiscal: true, arca } : datos) as Prisma.InputJsonValue,
+          // La factura de un pedido: el stock ya salio con el pedido.
+          datos: {
+            ...(arca ? { ...datos, fiscal: true, arca } : datos),
+            ...(dePedido ? { dePedido, stock: STOCK_EN_PEDIDO } : {}),
+          } as Prisma.InputJsonValue,
         },
       });
       if (arca) await olvidarIntento(tx, d.idLocal);
@@ -679,6 +714,16 @@ async function editar(ed: Edicion, d: DocumentoNuevo, usuario: string): Promise<
         select: { id: true },
       });
       if (nota) return { error: "Esa factura tiene notas de crédito o débito: no se cambia." };
+      // V.0.11.302: el pedido ya facturado no se cambia (la factura salio de
+      // lo que decia), y la factura de un pedido tampoco (su stock es el del
+      // pedido): se elimina y se factura de nuevo.
+      if (prev.dePedido) return { error: "Esa factura salió de un pedido: no se cambia. Eliminala y facturá el pedido de nuevo." };
+      if (actual.tipo === "pedido-interno") {
+        const fac = await tx.puntoDocumento.findFirst({
+          where: { origenId: ed.id, tipo: { not: "presupuesto" }, eliminadoEn: null },
+        });
+        if (fac) return { error: `Ese pedido ya se facturó (${aGuardado(fac).nroTexto}): no se cambia.` };
+      }
     }
     // La venta en la que se estaba editando (V.0.99.82) se revisa como al
     // emitir (que sea suya, que no sea un ticket de caja). Como es un
@@ -791,14 +836,23 @@ export async function eliminarDocumento(
         error: `Esa factura tiene la ${nota.comp} ${nota.pv}-${pad8(nota.numero ?? 0)}: eliminá primero la nota.`,
       };
   }
+  // V.0.11.302: un pedido facturado no se elimina (la mercaderia salio con
+  // el y la factura no movio stock): primero la factura.
+  if (!recuperar && actual.tipo === "pedido-interno") {
+    const fac = await prisma.puntoDocumento.findFirst({
+      where: { origenId: id, tipo: { not: "presupuesto" }, eliminadoEn: null },
+    });
+    if (fac) return { error: `Ese pedido está facturado (${aGuardado(fac).nroTexto}): eliminá o anulá primero la factura.` };
+  }
   if (recuperar && actual.origenId && actual.tipo !== "presupuesto") {
     const otra = await prisma.puntoDocumento.findFirst({
       where: { origenId: actual.origenId, tipo: { not: "presupuesto" }, eliminadoEn: null, id: { not: id } },
       select: { comp: true, letra: true, pv: true, numero: true, pedido: true },
     });
+    const dp = (actual.datos && typeof actual.datos === "object" && !Array.isArray(actual.datos) ? actual.datos : {}) as Record<string, unknown>;
     if (otra)
       return {
-        error: `Ese presupuesto ya se vendió de nuevo (${otra.comp.replace(/^\d+\./, "")} ${
+        error: `${dp.dePedido ? "Ese pedido ya se facturó de nuevo" : "Ese presupuesto ya se vendió de nuevo"} (${otra.comp.replace(/^\d+\./, "")} ${
           otra.letra && otra.numero != null ? `${otra.pv}-${pad8(otra.numero)}` : `P-${otra.pedido}`
         }). Si recupero esta venta quedarían dos.`,
       };
@@ -1013,6 +1067,8 @@ export async function crearNota(facturaId: string, n: NotaNueva, usuario: string
 // negro o vendes en blanco"). El presupuesto no: todavia no se vendio. El
 // remito tampoco: acompaña una venta que ya desconto.
 const MUEVEN_STOCK = ["factura", "sin-comprobante", "pedido-interno", "nota-credito"];
+/** V.0.11.302: la factura de un pedido interno: su stock es el del pedido. */
+const STOCK_EN_PEDIDO = "en-pedido";
 /** V.0.99.96: lo de la nota de credito vuelve al deposito: mueve al reves. */
 const ENTRA_STOCK = ["nota-credito"];
 
@@ -1036,7 +1092,7 @@ export async function ajustarStockDe(id: string, alEmitir = false): Promise<Stoc
           : {}) as Record<string, unknown>;
         const quiere = actual.eliminadoEn ? "devuelto" : "salio";
         const esta = datos.stock;
-        if (esta === quiere) return [];
+        if (esta === quiere || esta === STOCK_EN_PEDIDO) return [];
         if (esta !== "salio" && esta !== "devuelto" && !(alEmitir && quiere === "salio")) return [];
         // "salio" = lo del comprobante esta hecho: en una venta salio del
         // deposito; en una nota de credito, entro.
@@ -1188,7 +1244,8 @@ export function inicioDelDiaAR(diasAtras = 0, ahora = Date.now()): Date {
 }
 
 export type ConVenta = DocumentoGuardado & {
-  /** En un presupuesto: la venta que salio de el, aunque no entre en los
+  /** En un presupuesto: la venta que salio de el; en un pedido interno
+   *  (V.0.11.302), su factura. Aunque no entre en los
    *  filtros de la lista (otro dia, otra sucursal, otro tipo). */
   vendidoEn?: { id: string; comp: string; nroTexto: string; tipo: string } | null;
   /** En un presupuesto: el mas nuevo que lo puso a precios de hoy
@@ -1222,10 +1279,12 @@ export async function listarDocumentos(f: {
   const documentos: ConVenta[] = await conNombres(filas.slice(0, MAX_LISTADO).map(aGuardado));
   // Si un presupuesto ya se vendio se sabe aparte de los filtros: si no, con
   // "solo presupuestos" volvia a ofrecer "Pasar a venta" y se vendia dos veces.
+  // V.0.11.302: el pedido interno facturado tambien (no se factura dos veces).
   const presus = documentos.filter((d) => d.tipo === "presupuesto").map((d) => d.id);
-  if (presus.length) {
+  const conHijos = documentos.filter((d) => d.tipo === "presupuesto" || d.tipo === "pedido-interno").map((d) => d.id);
+  if (conHijos.length) {
     const hijos = await prisma.puntoDocumento.findMany({
-      where: { origenId: { in: presus }, tipo: { not: "presupuesto" }, eliminadoEn: null },
+      where: { origenId: { in: conHijos }, tipo: { not: "presupuesto" }, eliminadoEn: null },
       orderBy: { createdAt: "asc" },
       select: { id: true, comp: true, letra: true, pv: true, numero: true, pedido: true, tipo: true, origenId: true },
     });
@@ -1239,7 +1298,9 @@ export async function listarDocumentos(f: {
         nroTexto: h.letra && h.numero != null ? `${h.letra} ${h.pv}-${pad8(h.numero)}` : `P-${h.pedido}`,
       });
     }
-    for (const d of documentos) if (d.tipo === "presupuesto") d.vendidoEn = porOrigen.get(d.id) ?? null;
+    for (const d of documentos) if (d.tipo === "presupuesto" || d.tipo === "pedido-interno") d.vendidoEn = porOrigen.get(d.id) ?? null;
+  }
+  if (presus.length) {
 
     // "Actualizar a precios de hoy" (V.0.99.82): el viejo queda intacto y la
     // lista dice que ya hay uno nuevo, aunque el nuevo no entre en el filtro.

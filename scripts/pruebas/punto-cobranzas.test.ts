@@ -123,3 +123,19 @@ test("la cuenta: de la razón social de la venta y del tipo que va con la forma"
   assert.equal(revisarCuenta("cheque", null, "srl"), null);
   assert.match(String(revisarCuenta("transferencia", null, "srl")), /Elegí/);
 });
+
+test("la factura de un pedido interno lleva lo mismo que el pedido", async () => {
+  const { revisarFacturaDePedido } = await import("../../src/lib/punto-cobranzas-reglas.ts");
+  const ped = { tipo: "pedido-interno", sucursal: "srl", total: 100000, eliminado: false,
+    renglones: [{ cod: "A-1", cant: 2 }, { cod: "B-2", cant: 1 }] };
+  const fac = { tipo: "factura", sucursal: "srl", total: 100000, renglones: [{ cod: "B-2", cant: 1 }, { cod: "A-1", cant: 2 }] };
+  assert.equal(revisarFacturaDePedido(ped, fac), null);
+  assert.equal(revisarFacturaDePedido(ped, { ...fac, total: 100000.3 }), null);
+  assert.match(revisarFacturaDePedido(ped, { ...fac, total: 110000 }) ?? "", /actualizá el pedido/);
+  assert.match(revisarFacturaDePedido(ped, { ...fac, renglones: [{ cod: "A-1", cant: 3 }, { cod: "B-2", cant: 1 }] }) ?? "", /lo mismo que el pedido/);
+  assert.match(revisarFacturaDePedido(ped, { ...fac, renglones: [{ cod: "A-1", cant: 2 }] }) ?? "", /lo mismo que el pedido/);
+  assert.match(revisarFacturaDePedido(ped, { ...fac, tipo: "sin-comprobante" }) ?? "", /factura A o B/);
+  assert.match(revisarFacturaDePedido(ped, { ...fac, sucursal: "ts" }) ?? "", /misma razón social/);
+  assert.match(revisarFacturaDePedido({ ...ped, eliminado: true }, fac) ?? "", /eliminado/);
+  assert.match(revisarFacturaDePedido({ ...ped, tipo: "presupuesto" }, fac) ?? "", /no es un pedido/);
+});

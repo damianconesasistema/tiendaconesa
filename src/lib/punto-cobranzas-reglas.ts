@@ -411,3 +411,60 @@ export function limpiarAdjunto(x: unknown): AdjuntoPedido | string {
   const nombre = texto(o.nombre, 120) || (tipo === "application/pdf" ? "comprobante.pdf" : "comprobante.jpg");
   return { tipo, nombre, base64, bytes };
 }
+
+// ------------------------------------------ LA FACTURA DE UN PEDIDO INTERNO
+// V.0.11.302. Damian, 27/11/2026: "cuando es con cuenta corriente la persona
+// retira no paga pero se lleva el producto, tiene que tener un detalle de lo
+// que se lleva, valorizado y tiene que firmar el recibo de retiro, por lo
+// tanto se tiene que descontar del stock, pero aun no se facturo". Al retirar
+// sale el pedido interno (baja el stock, lo firma el que retira); cuando paga
+// se cobra (Comprobantes → Cobrar) y, si lleva factura, se factura ese pedido.
+//
+// La factura de un pedido (origenId = el pedido, datos.dePedido):
+// - no mueve stock: ya salio con el pedido;
+// - no suma deuda: la deuda es la del pedido, que se cobra con la cobranza;
+// - lleva lo mismo que el pedido y da el mismo total. Si cambiaron los
+//   precios, el pedido se actualiza antes (Editar), no la factura.
+// - un pedido se factura una sola vez (como el presupuesto se vende una vez).
+
+/** Lo que hace falta del pedido y de la factura nueva para revisarlos. */
+export type PedidoParaFacturar = {
+  tipo: string;
+  sucursal: string;
+  total: number;
+  eliminado: boolean;
+  renglones: readonly { cod?: unknown; cant?: unknown }[];
+};
+export type FacturaDePedido = {
+  tipo: string;
+  sucursal: string;
+  total: number;
+  renglones: readonly { cod?: unknown; cant?: unknown }[];
+};
+
+/** Cuanto de cada articulo, para comparar sin importar el orden. */
+function cantidades(rs: readonly { cod?: unknown; cant?: unknown }[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const r of rs) {
+    const cod = String(r?.cod ?? "").trim();
+    if (!cod) continue;
+    m.set(cod, Math.round(((m.get(cod) ?? 0) + (Number(r?.cant) || 0)) * 1000) / 1000);
+  }
+  return m;
+}
+
+/** null si la factura puede salir de ese pedido; si no, por que no. */
+export function revisarFacturaDePedido(pedido: PedidoParaFacturar, f: FacturaDePedido): string | null {
+  if (pedido.tipo !== "pedido-interno") return "Eso no es un pedido interno.";
+  if (pedido.eliminado) return "Ese pedido está eliminado: no se factura.";
+  if (f.tipo !== "factura") return "De un pedido interno sale la factura A o B: el pedido ya es el comprobante sin factura.";
+  if (f.sucursal !== pedido.sucursal) return "La factura tiene que salir de la misma razón social que el pedido.";
+  const a = cantidades(pedido.renglones);
+  const b = cantidades(f.renglones);
+  const igual = a.size === b.size && [...a].every(([cod, cant]) => b.get(cod) === cant);
+  if (!igual)
+    return "La factura tiene que llevar lo mismo que el pedido (los mismos artículos y cantidades). Si cambió algo, primero editá el pedido.";
+  if (Math.abs(cent(f.total) - cent(pedido.total)) > 50)
+    return `La factura da ${pesosTxt(f.total)} y el pedido ${pesosTxt(pedido.total)}. Si cambiaron los precios, primero actualizá el pedido (Editar) y después facturalo.`;
+  return null;
+}

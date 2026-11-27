@@ -130,7 +130,9 @@ export async function deudasCC(db: Cliente = prisma): Promise<Pendiente[]> {
       FROM "PuntoDocumento"
      WHERE "eliminadoEn" IS NULL
        AND "tipo" = ANY(${tipos}::text[])
-       AND ("datos"->>'forma' LIKE '08%' OR "datos"->>'forma' ILIKE '%cuenta corriente%')`;
+       AND ("datos"->>'forma' LIKE '08%' OR "datos"->>'forma' ILIKE '%cuenta corriente%')
+       -- V.0.11.302: la factura de un pedido no es otra deuda: se debe el pedido.
+       AND "datos"->'dePedido' IS NULL`;
   const docs = filas.map((f) =>
     docCCDe({ ...f, numero: f.numero == null ? null : Number(f.numero), pedido: Number(f.pedido), total: Number(f.total), createdAt: f.createdAt.toISOString() }),
   );

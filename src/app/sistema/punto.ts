@@ -3575,6 +3575,10 @@ function precioLinea(p, cant){
   // con que se vendió; lo que se agrega, al de hoy.
   const fijo = S.editando && S.editando.precios ? S.editando.precios[p.cod] : undefined;
   if(fijo != null && isFinite(+fijo)) return { contado: +fijo, unPago: +fijo, may: false };
+  // V.0.11.302: facturando un pedido interno, lo del pedido va a su precio
+  // (si cambiaron los precios, el pedido se actualiza antes de cobrarlo).
+  const fp = S.facturaPedido && S.origen === S.facturaPedido.id ? S.facturaPedido.precios[p.cod] : undefined;
+  if(fp != null && isFinite(+fp)) return { contado: +fp, unPago: +fp, may: false };
   // Con Lista 1 elegida arriba, el precio sale de la Lista 1 (en un artículo
   // cargado a mano no hay Lista 1: va su precio).
   // Como GBP (V.0.11.190): el precio es el de la Lista elegida, tal cual.
@@ -5698,7 +5702,7 @@ document.getElementById("btnGuardarEd").addEventListener("click", guardarEdicion
 document.getElementById("btnFactura").addEventListener("click",()=>{
   // Sin un pedido abierto para cobrar (o sin permiso), el botón (o Alt+F)
   // confirma el pedido: en Venta no se factura.
-  if(!puedeCobrar() || !(VSRV.caja || S.cobrarPresu)){ document.getElementById("btnCaja").click(); return; }
+  if(!puedeCobrar() || !(VSRV.caja || S.cobrarPresu || facturandoPedido())){ document.getElementById("btnCaja").click(); return; }
   // El botón principal emite siempre un comprobante de verdad: si arriba
   // decía presupuesto, lo pasa a la factura que corresponde y la emite.
   const comp = compAct();
@@ -11232,6 +11236,14 @@ document.getElementById("escritorio").addEventListener("click",function(e){
 /* Las notas de crédito todavía no se emiten desde Punto: hasta que se
    puedan, no hay ninguna (antes había tres inventadas). */
 const NOTAS_CREDITO = [];
+/* V.0.11.302: la factura de un pedido interno no es otra venta (la venta es
+   el pedido, que se contó el día del retiro y ya bajó el stock), pero es una
+   factura: va al Contable y al Libro IVA. Las de hoy. */
+const FACT_PEDIDO = [];
+const esDePedido = g => !!(g && g.datos && g.datos.dePedido);
+function sumarFactPedido(g){ if(g && !g.eliminado && esDePedido(g) && !FACT_PEDIDO.some(v => v.docId === g.id)) FACT_PEDIDO.push(ventaDeDocumento(g)); }
+function sacarFactPedido(id){ const i = FACT_PEDIDO.findIndex(v => v.docId === id); if(i >= 0) FACT_PEDIDO.splice(i, 1); }
+const factPedidoDe = id => id ? FACT_PEDIDO.filter(v => v.suc === id) : FACT_PEDIDO;
 /** V.0.99.96: una nota de crédito del servidor, como la muestra el Contable. */
 function ncDeDocumento(g){
   const dt = g.datos || {};
@@ -11400,7 +11412,7 @@ function pintarContable(){
   const id = S_FIL.conta;
   const vs = filtrar(id);
   const quien = id ? sucDe(id).n : "las tres razones sociales";
-  const fact = vs.filter(v=>v.facturada);
+  const fact = vs.filter(v=>v.facturada).concat(factPedidoDe(id));
   const sinF = vs.filter(v=>!v.facturada);
   const ncs  = id ? NOTAS_CREDITO.filter(n=>n.suc===id) : NOTAS_CREDITO;
 
@@ -11710,7 +11722,7 @@ document.getElementById("bajadas").addEventListener("click",e=>{
   } else if(b.dataset.baja==="iva"){
     const f = [["Fecha","Tipo","Punto de venta","Numero","Razon social","Cliente","CUIT/DNI",
                 "Condicion IVA","Neto gravado","IVA 21%","Total"]];
-    for(const v of vs.filter(x=>x.facturada)){
+    for(const v of vs.filter(x=>x.facturada).concat(factPedidoDe(S_FIL.conta))){
       const t = ventaCobrado(v), c = clienteDeVenta(v);
       f.push([HOY, "Factura "+v.letra, sucDe(v.suc).pv, v.nro, sucDe(v.suc).n,
               c?c.n:"Consumidor final", c?c.doc:"", c?c.t:"Consumidor Final",
@@ -11732,7 +11744,7 @@ document.getElementById("bajadas").addEventListener("click",e=>{
   } else {
     const f = [["Fecha","Comprobante","Razon social","Codigo","Articulo","Rubro","Marca",
                 "Cantidad","Precio unitario","Subtotal","Costo unitario"]];
-    for(const v of vs.filter(x=>x.facturada)) for(const l of v.linea){
+    for(const v of vs.filter(x=>x.facturada).concat(factPedidoDe(S_FIL.conta))) for(const l of v.linea){
       const p = pdl(l);
       f.push([HOY, v.nro, sucDe(v.suc).n, p.cod, p.tit, p.rub, p.prov,
               l.cant, num2(p.contado), num2(p.contado*l.cant), num2(p.costo)]);
@@ -12009,7 +12021,8 @@ function registrarEmitido(g){
   const editada = g.tipo !== "presupuesto" && !!(dt.editado);
   if(editada) S.ventas = S.ventas.filter(v => v.docId !== g.id);
   if(g.tipo !== "presupuesto"){
-    if(!g.eliminado && !S.ventas.some(v => v.docId === g.id) && (g.tipo !== "sin-comprobante" || veRecibosX())){
+    if(esDePedido(g)) sumarFactPedido(g);
+    else if(!g.eliminado && !S.ventas.some(v => v.docId === g.id) && (g.tipo !== "sin-comprobante" || veRecibosX())){
       // El stock lo descuenta el servidor y vuelve con la respuesta
       // (ponerStockServidor, V.0.99.94).
       S.ventas.push(ventaDeDocumento(g));
@@ -12052,6 +12065,9 @@ function textoEmitido(g){
   if(g.tipo === "sin-comprobante")
     return "Entregado sin comprobante por " + fmt(g.total) + " en " + su.n + ", P-" + g.pedido +
       ". Quedó guardado y marcado como tal. " + deDonde;
+  if(g.tipo === "factura" && dt.dePedido)
+    return nombre + " " + g.nroTexto.slice(2) + " del pedido interno " + (dt.dePedido.nro || "") + ", por " + fmt(g.total) + "." + conCaeTxt(g) +
+      " El stock no se movió: salió con el pedido. La ves en Comprobantes.";
   if(g.tipo === "factura")
     return nombre + " " + g.nroTexto.slice(2) + " guardada, por " + fmt(g.total) +
       ". Es interna: todavía no va a ARCA (sin CAE). La ves en Comprobantes. " + deDonde;
@@ -12074,17 +12090,22 @@ function trasEmitir(res){
     return;
   }
   limpiarVentaEmitida();
-  toast((res.previo ? "Ya había quedado guardado. " : "") + textoEmitido(g));
+  // V.0.11.302 (Damián: "la persona retira no paga pero se lleva el
+  // producto ... tiene que firmar el recibo de retiro"): la venta nueva en
+  // cuenta corriente sale a la impresora con el detalle, el total y la firma.
+  const ccRetiro = !!(g && g.id && !g.eliminado && esVentaCC(g) && !(g.datos || {}).editado);
+  toast((res.previo ? "Ya había quedado guardado. " : "") + textoEmitido(g) +
+    (ccRetiro ? " Cuenta corriente: sale impreso con el recibo de retiro, para que firme el que se lo lleva. Cuando pague: Comprobantes → Cobrar." : ""));
   // V.0.11.227: el presupuesto sale directo a la impresora ("lo que hice fue
   // imprimirlo para dárselo al cliente"): el mismo PDF de Comprobantes → Imprimir.
   // V.0.11.274: la factura A o B también (Damián: "cuando emitís una factura
   // a o b ... debería abrir para guardar o imprimir la factura"). La ventana
   // de imprimir del navegador deja elegir la impresora o "Guardar como PDF".
-  if(g && g.id && (g.tipo === "presupuesto" || (g.tipo === "factura" && !(g.datos || {}).editado))) traerPdf(g, null, true);
+  if(g && g.id && (g.tipo === "presupuesto" || (g.tipo === "factura" && !(g.datos || {}).editado) || ccRetiro)) traerPdf(g, null, true);
 }
 
 function limpiarVentaEmitida(){
-  S.cobrarPresu = null; S.origenPresu = null;
+  S.cobrarPresu = null; S.origenPresu = null; S.facturaPedido = null;
   S.linea = []; S.desc = 0; S.lista = 2; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
   // El ticket de caja ya se cobró (o se mandó, o se devolvió).
@@ -12166,10 +12187,12 @@ async function traerDocumentosDeHoy(){
       if(Math.abs((+g.total || 0) - (+v.total || 0)) > 0.004 && g.tipo !== "nota-credito"){ S.ventas[i] = ventaDeDocumento(g); n++; }
     }
     for(const id of NOTAS_CREDITO.filter(x => x.docId && !vivos.has(x.docId)).map(x => x.docId)){ sacarNota(id); n++; }
+    for(const id of FACT_PEDIDO.filter(x => x.docId && !vivos.has(x.docId)).map(x => x.docId)){ sacarFactPedido(id); n++; }
     const ya = new Set(S.ventas.filter(v => v.docId).map(v => v.docId));
     for(const g of docs.slice().reverse()){
       if(g.tipo === "presupuesto" || ya.has(g.id)) continue;
       if(g.tipo === "nota-credito"){ if(!NOTAS_CREDITO.some(x => x.docId === g.id)){ sumarNota(g); n++; } continue; }
+      if(esDePedido(g)){ if(!FACT_PEDIDO.some(x => x.docId === g.id)){ sumarFactPedido(g); n++; } continue; }
       S.ventas.push(ventaDeDocumento(g));
       n++;
     }
@@ -12275,13 +12298,16 @@ function pintarListaCp(){
     const dt = d.datos || {}, cli = dt.cliente || {};
     // Si se vendió lo dice el servidor, aparte de los filtros de la lista.
     const vendido = d.tipo === "presupuesto" ? d.vendidoEn : null;
+    const facturado = d.tipo === "pedido-interno" ? d.vendidoEn : null;
     const madre = d.origenId ? porId[d.origenId] : null;
     const pills = pillCC(d) +
       (d.tipo === "factura" || d.tipo === "nota-credito" || d.tipo === "nota-debito"
         ? (((d.datos || {}).arca || {}).cae ? ' <span class="pill p-ok" title="Autorizada por ARCA">CAE</span>' : ' <span class="pill p-warn">sin CAE</span>')
         : "") +
       (vendido ? ' <span class="pill p-ok">vendido · ' + txt(vendido.comp.replace(/^\\d+\\./, "")) + ' ' + txt(numeroCorto(vendido)) + '</span>' : "") +
-      (d.origenId ? ' <span class="pill p-n">de presupuesto' + (madre ? " " + txt(numeroCorto(madre)) : "") + '</span>' : "") +
+      (facturado ? ' <span class="pill p-ok">facturado · ' + txt(facturado.comp.replace(/^\\d+\\./, "")) + ' ' + txt(numeroCorto(facturado)) + '</span>' : "") +
+      (d.origenId ? (dt.dePedido ? ' <span class="pill p-n">del pedido ' + txt(dt.dePedido.nro || "") + '</span>'
+        : ' <span class="pill p-n">de presupuesto' + (madre ? " " + txt(numeroCorto(madre)) : "") + '</span>') : "") +
       (dt.editado ? ' <span class="pill p-n">cambiado</span>' : "") +
       (d.actualizadoEn ? ' <span class="pill p-n">actualizado en ' + txt(numeroCorto(d.actualizadoEn)) + '</span>' : "") +
       (dt.actualizaDe ? ' <span class="pill p-n">actualiza ' + (porId[dt.actualizaDe] ? "al " + txt(numeroCorto(porId[dt.actualizaDe])) : "a uno anterior") + '</span>' : "") +
@@ -12345,7 +12371,13 @@ function clicCp(e){
     if(a === "nodespachar") despacharDoc(d, acc, true);
     if(a === "nc") abrirNota(d, "credito");
     if(a === "nd") abrirNota(d, "debito");
-    if(a === "cobrarcc" || a === "vercc"){ const cli = (d.datos || {}).cliente || {}; abrirCobranza({ id: cli.id || "", doc: cli.doc || "", n: cli.n || d.cliente }, a === "cobrarcc" ? d.id : null); }
+    if(a === "facturar") facturarPedido(d);
+    if(a === "cobrarcc" || a === "vercc"){
+      const cli = (d.datos || {}).cliente || {};
+      const abrir = () => abrirCobranza({ id: cli.id || "", doc: cli.doc || "", n: cli.n || d.cliente }, a === "cobrarcc" ? d.id : null);
+      // V.0.11.302 (Damián: "que pregunte cuando cambian los precios si se los actualizamos o no").
+      if(a === "cobrarcc") preguntarPreciosCC(d, abrir); else abrir();
+    }
     return;
   }
   const f = e.target.closest("tr[data-cp]");
@@ -12384,6 +12416,9 @@ function accionesCp(d, vendido){
   const presuLibre = d.tipo === "presupuesto" && !vendido && puede("venta");
   return cbBotonCp(d, bt) +
     (esVentaEditable(d) && puede("cobrar") ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número y el stock se acomoda") : "") +
+    // V.0.11.302: el pedido interno (cuenta corriente) se factura cuando paga.
+    (d.tipo === "pedido-interno" && !d.vendidoEn && puede("cobrar")
+      ? bt("facturar", "Facturar", "b2", "Saca la Factura A o B de este pedido, con lo mismo y los mismos precios. El stock no se mueve: ya salió con el pedido") : "") +
     (presuLibre ? bt("editar", "Editar", "b2", "Cambiarlo: queda con el mismo número") +
       '<button class="b2" type="button" data-pasar="' + id + '">Pasar a venta</button>' : "") +
     bt("pdf", "PDF", "b2", "Bajar el PDF") + whats +
@@ -12601,11 +12636,12 @@ async function eliminarDoc(d, boton, recuperar){
     // La Caja, la Rentabilidad y el Contable de esta pantalla.
     if(recuperar){
       if(j.documento.tipo === "nota-credito"){ if(esDeHoy(j.documento.createdAt)) sumarNota(j.documento); }
+      else if(esDePedido(j.documento)){ if(esDeHoy(j.documento.createdAt)) sumarFactPedido(j.documento); }
       else if(j.documento.tipo !== "presupuesto" && esDeHoy(j.documento.createdAt) && !S.ventas.some(v => v.docId === j.documento.id))
         S.ventas.push(ventaDeDocumento(j.documento));
     } else {
       S.ventas = S.ventas.filter(v => v.docId !== d.id);
-      sacarNota(d.id);
+      sacarNota(d.id); sacarFactPedido(d.id);
     }
     if(S.editando && S.editando.id === d.id && !recuperar){
       terminarEdicion(); S.origen = null; pintarCamposVenta(); pintarTicket();
@@ -12669,15 +12705,18 @@ function pintarEdicion(){
   }
   if(!S.editando){ a.hidden = true; a.innerHTML = ""; return; }
   a.hidden = false;
-  a.innerHTML = '<span>✎</span><div><b>Estás cambiando el Presupuesto ' + txt(S.editando.nro) + ' de ' + txt(sucDe(S.editando.suc).n) + '.</b> ' +
+  // V.0.11.302: una venta ya emitida (pedido interno, factura...) dice lo que es; antes decía siempre "Presupuesto".
+  const esVtaEd = !!(S.editando.tipo && S.editando.tipo !== "presupuesto");
+  const nomEd = esVtaEd ? (S.editando.comp || "").replace(/^\\d+\\./, "") || "comprobante" : "Presupuesto";
+  a.innerHTML = '<span>✎</span><div><b>Estás cambiando ' + (esVtaEd ? 'el ' + txt(nomEd) : 'el Presupuesto') + ' ' + txt(S.editando.nro) + ' de ' + txt(sucDe(S.editando.suc).n) + '.</b> ' +
     'Sumá o sacá artículos y tocá <b>Guardar cambios</b>: sigue con el mismo número y lo de antes queda guardado. ' +
-    'Si en cambio lo facturás, la venta queda unida a él. ' +
+    (esVtaEd ? '' : 'Si en cambio lo facturás, la venta queda unida a él. ') +
     '<button class="b3" type="button" id="btnNoEditar" style="padding:2px 9px;margin-left:4px">Dejar de editar</button></div>';
 }
 document.addEventListener("click", e => {
   if(!e.target.closest || !e.target.closest("#btnNoEditar")) return;
   if(EMITIENDO || trabadaPorDuda()) return;
-  if(!confirm("¿Lo dejás? La venta de la pantalla se vacía y el presupuesto queda como estaba.")) return;
+  if(!confirm("¿Lo dejás? La venta de la pantalla se vacía y " + (S.editando && S.editando.tipo && S.editando.tipo !== "presupuesto" ? "el comprobante" : "el presupuesto") + " queda como estaba.")) return;
   S.linea = []; S.desc = 0; S.lista = 2; S.comp = null; S.dep = null; S.nroLibre = false;
   S.origen = null; S.emision = null; terminarEdicion();
   pintarCamposVenta(); pintarDtos(); pintarTicket(); guardarLocal();
@@ -12729,7 +12768,9 @@ function editarPresu(d){
     precio con que se vendió; "Guardar cambios" lo guarda con el mismo
     número y el stock se acomoda a la diferencia. */
 const esVentaEditable = d => ["pedido-interno","sin-comprobante","remito","factura"].indexOf(d.tipo) >= 0 &&
-  !d.eliminado && !((d.datos || {}).arca || {}).cae;
+  !d.eliminado && !((d.datos || {}).arca || {}).cae &&
+  // V.0.11.302: el pedido ya facturado y la factura de un pedido no se cambian.
+  !(d.tipo === "pedido-interno" && d.vendidoEn) && !(d.datos || {}).dePedido;
 function editarVenta(d){
   if(EMITIENDO){ toast("Esperá un segundo: se está guardando un comprobante."); return; }
   if(trabadaPorDuda()) return;
@@ -12775,6 +12816,115 @@ async function guardarEdicionVenta(){
   const doc = armarDocumento(S.editando.comp, S.editando.letra);
   doc.edita = { id:S.editando.id, base:S.editando.base };
   trasEmitir(await emitirEnServidor(doc));
+}
+
+/* V.0.11.302: CUENTA CORRIENTE. Damián, 27/11/2026: "cuando es con cuenta
+   corriente la persona retira no paga pero se lleva el producto, tiene que
+   tener un detalle de lo que se lleva, valorizado y tiene que firmar el
+   recibo de retiro, por lo tanto se tiene que descontar del stock, pero aun
+   no se facturo". Al retirar: el pedido interno con forma Cuenta corriente
+   (baja el stock y sale con el recibo de retiro). Cuando paga: Cobrar, y si
+   lleva factura, Facturar ese pedido. Si cambiaron los precios, al cobrar
+   pregunta si se los actualizamos. */
+
+/** Lo que daría hoy una venta ya emitida: los mismos artículos, con su
+    descuento y su forma de pago, a los precios de hoy. Lo que ya no está en
+    el catálogo queda a su precio. */
+function totalHoyDe(d){
+  const dt = d.datos || {}, ren = dt.renglones || [];
+  const antes = { ed:S.editando, lista:S.lista, fp:S.facturaPedido };
+  S.editando = null; S.lista = 2; S.facturaPedido = null;
+  try{
+    let bruto = 0;
+    for(const r of ren){
+      const p = prod(r.cod), cant = +r.cant || 0;
+      bruto += (p ? precioLinea(p, cant).contado : (+r.contado || 0)) * cant;
+    }
+    const descuento = cent(bruto * (+dt.desc || 0) / 100);
+    return Math.round((bruto - descuento) * (MULT[dt.forma] || 1) * 100) / 100;
+  }finally{ S.editando = antes.ed; S.lista = antes.lista; S.facturaPedido = antes.fp; }
+}
+/** Antes de cobrar una venta en cuenta corriente: si los precios cambiaron
+    desde que se retiró, pregunta si se los actualizamos. */
+function preguntarPreciosCC(d, seguir){
+  const x = SALDOS_CC && SALDOS_CC.docs[d.id];
+  if(!GBP.listo || !esVentaEditable(d) || !(x && x.debe > 0.004)) return seguir();
+  const hoy = totalHoyDe(d);
+  if(hoy == null || Math.abs(hoy - (+d.total || 0)) < 1) return seguir();
+  const nro = d.letra ? nombreDoc(d) + " " + numeroCorto(d) : "Pedido interno P-" + d.pedido;
+  const dif = d.total > 0 ? (hoy - d.total) / d.total * 100 : 0;
+  const viejo = document.getElementById("ppModal"); if(viejo) viejo.remove();
+  const fondo = document.createElement("div");
+  fondo.className = "envio"; fondo.id = "ppModal";
+  fondo.innerHTML = '<div class="envio-caja" role="dialog" aria-label="Cambiaron los precios" style="width:min(580px,100%)">' +
+    '<div class="envio-h"><h3>Cambiaron los precios</h3><button class="x" type="button" data-pp="no" aria-label="cerrar">×</button></div>' +
+    '<div style="padding:10px 16px 2px">' +
+      '<p class="cx-nota"><b>' + txt(nro) + '</b> de ' + txt(d.cliente) + ' se retiró el ' + fechaAR(d.createdAt) + ' por <b>' + fmt2(d.total) +
+        '</b>. A precios de hoy da <b>' + fmt2(hoy) + '</b> (' + (dif >= 0 ? "+" : "") + pTxt(Math.round(dif * 10) / 10) + '%).</p>' +
+      (x.debe < (+d.total || 0) - 0.004 ? '<p class="cx-nota">Ya pagó una parte: hoy debe ' + fmt2(x.debe) + '.</p>' : '') +
+      '<p class="cx-nota">¿Se los actualizamos? Si sí, se abre en Venta con los precios de hoy: revisalo, tocá <b>Guardar cambios</b> y después cobralo. El stock no se mueve.</p>' +
+    '</div>' +
+    '<div class="cx-pie"><button class="b1" type="button" data-pp="hoy">Actualizar a precios de hoy</button>' +
+      '<button class="b2" type="button" data-pp="firmado">Cobrar lo firmado (' + fmt2(d.total) + ')</button>' +
+      '<button class="b3" type="button" data-pp="no">Cancelar</button></div></div>';
+  document.body.appendChild(fondo);
+  fondo.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); fondo.remove(); } });
+  fondo.addEventListener("click", e => {
+    const b = e.target.closest("[data-pp]"); if(!b) return;
+    fondo.remove();
+    if(b.dataset.pp === "hoy") editarVentaHoy(d);
+    else if(b.dataset.pp === "firmado") seguir();
+  });
+  const pri = fondo.querySelector('[data-pp="hoy"]'); if(pri) pri.focus();
+}
+/** Editar con los precios de hoy (en vez de los del retiro). */
+function editarVentaHoy(d){
+  editarVenta(d);
+  if(!S.editando || S.editando.id !== d.id) return;
+  S.editando.precios = {};
+  pintarDtos(); pintarTicket(); guardarLocal();
+  toast((d.letra ? nombreDoc(d) + " " + numeroCorto(d) : "Pedido interno P-" + d.pedido) + " abierto con los precios de hoy. Revisalo y tocá Guardar cambios; después lo cobrás desde Comprobantes. El stock no se mueve.");
+}
+/** Facturar un pedido interno: va a la venta con lo mismo y con los precios
+    del pedido, como Factura A o B. El stock no se mueve (salió con el
+    pedido) y no suma deuda: se debe el pedido. */
+function facturarPedido(d){
+  if(EMITIENDO){ toast("Esperá un segundo: se está guardando un comprobante."); return; }
+  if(trabadaPorDuda()) return;
+  if(!GBP.listo){ toast("Esperá un segundo: se están cargando los artículos."); return; }
+  if(d.tipo !== "pedido-interno" || d.eliminado){ toast("Lo que se factura acá es un pedido interno."); return; }
+  if(d.vendidoEn){ toast("Ese pedido ya se facturó: " + d.vendidoEn.comp.replace(/^\\d+\\./, "") + " " + numeroCorto(d.vendidoEn) + "."); return; }
+  if(!puedeSuc(d.sucursal)){ toast("Ese pedido es de " + sucDe(d.sucursal).n + ": tu usuario no puede facturarlo."); return; }
+  if(VSRV.caja){ toast("Estás cobrando un pedido: terminalo o devolvelo a la caja antes de facturar otro."); return; }
+  const dt = d.datos || {}, ren = dt.renglones || [];
+  recuperarManuales(ren);
+  const faltan = ren.filter(r => !prod(r.cod));
+  if(faltan.length){ toast("No se puede facturar: " + (faltan.length === 1 ? "un artículo del pedido ya no está" : faltan.length + " artículos del pedido ya no están") + " en el catálogo (" + faltan.slice(0, 3).map(r => r.cod).join(", ") + ")."); return; }
+  const nroP = d.letra ? numeroCorto(d) : "P-" + d.pedido;
+  if(S.linea.length && !confirm("Hay una venta empezada. ¿La reemplazo por la factura del pedido interno " + nroP + "?")) return;
+  const precios = {};
+  for(const r of ren){ if(precios[r.cod] == null) precios[r.cod] = +r.contado || 0; }
+  terminarEdicion();
+  S.linea = ren.map(r => ({ cod:r.cod, cant:Math.max(1, Math.floor(+r.cant || 1)) }));
+  const cid = dt.cliente && dt.cliente.id;
+  const hayCliente = !!cid && CLIENTES.some(c => c.id === cid);
+  S.cliente = hayCliente ? cid : "";
+  S.desc = +dt.desc || 0; S.lista = 2;
+  const fo = dt.forma;
+  if(fo && MULT[fo]){ S.forma = fo; S.cond = fo; }
+  if(SUCURSALES.some(x => x.id === d.sucursal)){ S.suc = d.sucursal; document.getElementById("selSuc").value = S.suc; }
+  S.dep = dt.deposito && dt.deposito !== sucDe(d.sucursal).dep ? dt.deposito : null;
+  S.cobrarPresu = null; S.origenPresu = null; S.actualiza = null; S.nroLibre = false; S.emision = null;
+  S.origen = d.id;
+  S.facturaPedido = { id:d.id, nro:nroP, precios };
+  const letraA = conFacturaA(clienteVta());
+  S.comp = letraA ? "01.Factura A" : "02.Factura B";
+  abrirVista("mostrador");
+  pintarCamposVenta(); pintarDtos(); pintarTicket(); pintarCajaTicket();
+  guardarLocal();
+  window.scrollTo(0, 0);
+  toast("Pedido interno " + nroP + " listo para facturar como Factura " + (letraA ? "A" : "B") + ": lo mismo y con los precios del pedido (" + fmt2(d.total) + "). Revisalo y tocá Emitir factura. El stock no se mueve: salió con el pedido." +
+    (cid && !hayCliente ? " El cliente no está cargado en esta compu: elegilo de nuevo." : ""));
 }
 
 /** Lo guardado de "precios de hoy", revisado. */
@@ -16020,6 +16170,12 @@ function pintarCajaTicket(){
   aplicarCobrar();
   // V.0.11.229: sin aviso ("el cartel sacalo"): la factura ya viene elegida.
   if(!VSRV.caja && S.cobrarPresu){ e.innerHTML = ""; return; }
+  if(facturandoPedido()){
+    e.innerHTML = '<div class="aviso" style="margin:0 14px 10px"><span>$</span><div>' +
+      '<b>Facturando el pedido interno ' + txt(S.facturaPedido.nro) + '</b>: lo mismo y con los precios del pedido. Elegí A o B arriba y tocá Emitir factura. El stock no se mueve: salió con el pedido.' +
+      '<div style="margin-top:8px"><button class="b3" id="btnNoFacturarPed" type="button" style="padding:5px 12px;font-size:12.5px">Dejar de facturar</button></div></div></div>';
+    return;
+  }
   if(!VSRV.caja){ e.innerHTML = ""; return; }
   const v = txt(VSRV.caja.vendedor || "el vendedor");
   e.innerHTML = '<div class="aviso" style="margin:0 14px 10px"><span>$</span><div>' +
@@ -16033,6 +16189,12 @@ function pintarCajaTicket(){
 
 /* "No cobrar ahora": el presupuesto queda en la venta, como presupuesto. */
 document.getElementById("tkCaja").addEventListener("click", e => {
+  if(e.target.closest("#btnNoFacturarPed")){
+    S.facturaPedido = null; S.origen = null; S.linea = []; S.desc = 0; S.comp = null;
+    pintarCamposVenta(); pintarDtos(); pintarTicket(); pintarCajaTicket(); guardarLocal();
+    toast("Listo: no se facturó. El pedido sigue como estaba.");
+    return;
+  }
   if(!e.target.closest("#btnNoCobrarPresu")) return;
   S.cobrarPresu = null; S.comp = null;
   pintarCamposVenta(); pintarDtos(); pintarCajaTicket();
@@ -16431,6 +16593,17 @@ function aplicarCobrar(){
   const bs = document.getElementById("btnSinFactura"); if(bs) bs.hidden = true;
   const bc = document.getElementById("btnCaja"); if(bc){ bc.hidden = cobrando; bc.className = "b1"; }
   const bo = document.getElementById("btnOtraSuc"); if(bo) bo.hidden = cobrando || SUCURSALES.length < 2;
+  // V.0.11.302: facturando un pedido interno, solo la factura (A o B). Ni
+  // "Confirmar pedido" (iría a la caja a cobrarse otra vez), ni Recibo X,
+  // ni pedido interno, ni presupuesto.
+  if(facturandoPedido()){
+    for(const id of ["btnSinFacturaC","btnPedInt","btnCaja","btnPresu","btnBorrador","btnOtraSuc"]){ const b = document.getElementById(id); if(b) b.hidden = true; }
+    const bf = document.getElementById("btnFactura"); if(bf) bf.hidden = !c;
+  }
+}
+/** V.0.11.302: la venta de la pantalla es la factura de un pedido interno. */
+function facturandoPedido(){
+  try{ return !!(S && S.facturaPedido && S.origen === S.facturaPedido.id && !VSRV.caja && !S.editando); }catch(e){ return false; }
 }
 
 /* ---------------------------------------------- la caja: por cobrar */
@@ -19764,7 +19937,8 @@ const CB = { fondo:null, cli:null, d:null, lista:null, marc:{}, idLocal:"", form
 const puedeVerCC = () => puede("caja") || puede("cuentas") || puede("clientes");
 const puedeCobrarCC = () => puede("caja") || puede("cuentas");
 const esFormaCC = f => /^\\s*08\\s*[-.]/.test(String(f || "")) || /cuenta\\s+corriente/i.test(String(f || ""));
-const esVentaCC = d => !!d && !d.eliminado && CB_TIPOS_DEUDA.indexOf(d.tipo) >= 0 && esFormaCC((d.datos || {}).forma);
+// La factura de un pedido (V.0.11.302) no es otra deuda: se debe el pedido.
+const esVentaCC = d => !!d && !d.eliminado && CB_TIPOS_DEUDA.indexOf(d.tipo) >= 0 && esFormaCC((d.datos || {}).forma) && !(d.datos || {}).dePedido;
 const cbMarca = () => "cb" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
 const cbDia = d => d ? String(d).split("-").reverse().join("/") : "";
 const cbDiaDe = iso => new Date(Date.parse(iso) - 3 * 3600e3).toISOString().slice(0, 10);

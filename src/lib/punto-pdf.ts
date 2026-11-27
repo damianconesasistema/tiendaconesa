@@ -93,7 +93,15 @@ type Datos = {
   /** Notas de credito y de debito: la factura que modifican. */
   facturaNro?: string;
   motivo?: string;
+  /** V.0.11.302: la factura que salio de un pedido interno. */
+  dePedido?: { id: string; nro: string } | null;
 };
+
+/** V.0.11.302: lo vendido en cuenta corriente (la misma regla que
+ *  esCuentaCorriente de src/lib/punto-cobranzas-reglas.ts; copiada para que
+ *  el PDF no cargue otro modulo). */
+const esFormaCC = (f: unknown) => typeof f === "string" && (/^\s*08\s*[-.]/.test(f) || /cuenta\s+corriente/i.test(f));
+const VENTAS_CC = ["factura", "pedido-interno", "sin-comprobante"];
 
 const TITULO: Record<string, string> = {
   presupuesto: "Presupuesto",
@@ -345,6 +353,7 @@ export async function generarPdfPunto(
     arca ? COND_IVA[arca.condIva] || "" : cli.t || "",
     dt.forma ? `Forma de pago: ${sinPrefijo(dt.forma)}` : "",
     dt.motivo ? `Motivo: ${dt.motivo}` : "",
+    dt.dePedido && dt.dePedido.nro ? `Del pedido interno ${dt.dePedido.nro}` : "",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -612,6 +621,39 @@ export async function generarPdfPunto(
       .fontSize(7.5)
       .text("Comprobante autorizado por ARCA. Escaneá el QR para verificarlo.", M + 92, y + 50, { width: anchoUtil - 110 });
     y += 84;
+  }
+
+  // ------------------------------- CUENTA CORRIENTE: FIRMA DE QUIEN RETIRA
+  // V.0.11.302. Damian, 27/11/2026: "cuando es con cuenta corriente la
+  // persona retira no paga pero se lleva el producto, tiene que tener un
+  // detalle de lo que se lleva, valorizado y tiene que firmar el recibo de
+  // retiro". El detalle con precios y el total ya estan arriba; aca, lo que
+  // firma. La factura que sale despues de ese pedido (al pagar) no lo lleva.
+  if (!remito && !d.eliminado && VENTAS_CC.includes(d.tipo) && esFormaCC(dt.forma) && !dt.dePedido) {
+    if (y + 118 > PIE) otraHoja();
+    y += 14;
+    doc.rect(M, y, anchoUtil, 104).strokeColor(NEGRO).lineWidth(1).stroke();
+    doc.font("Helvetica-Bold").fontSize(9.5).fillColor(NEGRO).text("RECIBO DE RETIRO · CUENTA CORRIENTE", M + 12, y + 10);
+    doc
+      .font("Helvetica")
+      .fontSize(8)
+      .fillColor(GRIS)
+      .text(
+        `Recibí conforme la mercadería detallada arriba. Queda a pagar en cuenta corriente: ${pesos(d.total)}.`,
+        M + 12,
+        y + 25,
+        { width: anchoUtil - 24 },
+      );
+    const ancho = (anchoUtil - 24 - 30) / 4;
+    const lineaFirma = (x: number, etq: string) => {
+      doc.moveTo(x, y + 78).lineTo(x + ancho, y + 78).strokeColor(GRIS).lineWidth(0.6).stroke();
+      doc.font("Helvetica").fontSize(7.5).fillColor(GRIS).text(etq, x, y + 82, { width: ancho, align: "center" });
+    };
+    lineaFirma(M + 12, "Firma de quien retira");
+    lineaFirma(M + 12 + (ancho + 10), "Aclaración");
+    lineaFirma(M + 12 + (ancho + 10) * 2, "DNI");
+    lineaFirma(M + 12 + (ancho + 10) * 3, "Fecha");
+    y += 104;
   }
 
   // ------------------------------------------------------------------- PIE

@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.301";
+export const APP_VERSION = "V.0.11.302";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,17 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.302",
+    date: "2026-11-27",
+    changes: [
+      "Punto, cuenta corriente: el que retira firma y el stock baja al retirar. Damián: \"la persona retira no paga pero se lleva el producto, tiene que tener un detalle de lo que se lleva, valorizado y tiene que firmar el recibo de retiro, por lo tanto se tiene que descontar del stock, pero aún no se facturó\".",
+      "Al retirar: pedido interno con forma Cuenta corriente. Baja el stock y sale impreso solo, con el detalle, los precios, el total y el recuadro RECIBO DE RETIRO (firma de quien retira, aclaración, DNI y fecha).",
+      "Al cobrar (Comprobantes → Cobrar): si los precios cambiaron desde el retiro, pregunta si se los actualizamos (lo firmado contra lo de hoy). Actualizar abre el pedido en Venta a precios de hoy; Guardar cambios y después se cobra. Damián: \"que pregunte cuando cambian los precios si se los actualizamos o no\".",
+      "Facturar: botón nuevo en el pedido interno. Saca la Factura A o B con lo mismo y los precios del pedido; no mueve stock (salió con el pedido) ni suma deuda (se debe el pedido). Un pedido se factura una vez; facturado no se cambia ni se elimina sin antes eliminar la factura. La factura va al Contable y al Libro IVA, pero no suma otra venta en la Caja (la venta se contó el día del retiro).",
+      "Editar una venta ya emitida: el cartel dice lo que es (Pedido interno, Factura B...); antes decía siempre Presupuesto.",
+    ],
+  },
   {
     version: "V.0.11.301",
     date: "2026-11-27",
