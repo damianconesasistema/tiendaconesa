@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.292";
+export const APP_VERSION = "V.0.11.293";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.293",
+    date: "2026-11-27",
+    changes: [
+      "Punto: al anular (o eliminar) en Cuentas y gastos el movimiento de una cobranza de cuenta corriente, Comprobantes vuelve a mostrar la venta con \"debe\" y el botón Cobrar, para cobrarla de nuevo (la cobranza ya se anulaba, pero la lista seguía diciendo \"pagada\" hasta recargar). El aviso lo dice. Damián: \"hicimos mal lo del banco y pusimos anular, la idea es que debería volver a hacerse de vuelta\".",
+    ],
+  },
   {
     version: "V.0.11.292",
     date: "2026-11-27",

@@ -10075,7 +10075,10 @@ async function eliminarMov(id, luego){
   } else if(!confirm("Se saca de la lista. Lo ves tildando «ver los eliminados». ¿Lo elimino?")) return;
   const { d } = await pedirSrv(CTA_URL, { accion:"eliminar", id, motivo });
   if(!d || d.error){ toast("No se eliminó: " + ((d && d.error) || "probá de nuevo.")); return; }
-  toast("Eliminado. Lo ves tildando «ver los eliminados».");
+  // V.0.11.293: si era una cobranza de cuenta corriente, se anuló también: la venta vuelve a deberse.
+  if(m.tipo === "cobranza"){ try{ SALDOS_CC.en = 0; }catch(e){} }
+  toast(m.tipo === "cobranza" && !m.anulado ? "Eliminado. La cobranza también se anuló: la venta vuelve a deberse y la podés cobrar de nuevo."
+    : "Eliminado. Lo ves tildando «ver los eliminados».");
   if(luego) luego();
 }
 async function mostrarMov(id, luego){
@@ -10103,7 +10106,11 @@ async function anularMov(id, luego){
   if(!motivo) return;
   const { d } = await pedirSrv(CTA_URL, { accion:"anular", id, motivo });
   if(!d || d.error){ toast("No se anuló: " + ((d && d.error) || "probá de nuevo.")); return; }
-  toast("Anulado. Queda a la vista, tachado.");
+  // V.0.11.293: si era una cobranza de cuenta corriente, se anuló también: la venta vuelve a deberse.
+  const mv = PLATA.d && PLATA.d.movimientos.find(x => x.id === id);
+  if(mv && mv.tipo === "cobranza"){ try{ SALDOS_CC.en = 0; }catch(e){} }
+  toast(mv && mv.tipo === "cobranza" ? "Anulado. La cobranza también se anuló: la venta vuelve a deberse y la podés cobrar de nuevo."
+    : "Anulado. Queda a la vista, tachado.");
   if(luego) luego();
 }
 /** El formulario de un movimiento. op: { sucursal, soloEfectivo, luego } */
@@ -12196,8 +12203,13 @@ async function pintarComprobantes(silencioso){
     if(silencioso) return;            // un corte en el refresco no borra la lista
     CP.docs = []; CP.error = e.message || "No se pudo leer.";
   }
+  // V.0.11.293: lo que debe cada venta en cuenta corriente, al día: si la
+  // cobranza se anuló en otro lado (Cuentas y gastos), "pagada" no queda colgado.
+  try{ if(CP.docs.some(esVentaCC) && (!SALDOS_CC.en || Date.now() - SALDOS_CC.en > 15000)) await traerSaldosCC(true); }catch(e){}
+  if(este !== CP.pedido) return;
   CP.cargando = false;
-  CP.firma = JSON.stringify(CP.docs.map(x => [x.id, x.total, !!x.eliminado, x.vendidoEn ? 1 : 0, (x.datos || {}).despacho ? 1 : 0, (x.datos || {}).ed || 0]));
+  CP.firma = JSON.stringify(CP.docs.map(x => [x.id, x.total, !!x.eliminado, x.vendidoEn ? 1 : 0, (x.datos || {}).despacho ? 1 : 0, (x.datos || {}).ed || 0,
+    (SALDOS_CC && SALDOS_CC.docs && SALDOS_CC.docs[x.id]) ? SALDOS_CC.docs[x.id].debe : ""]));
   if(silencioso && CP.firma === antes) return;
   pintarListaCp();
 }
