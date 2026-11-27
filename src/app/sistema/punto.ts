@@ -3128,7 +3128,8 @@ footer{
   <div class="tiles" id="gerTiles"></div>
   <div class="card" style="margin-bottom:16px">
     <div class="card-h"><h3>Cierres de caja</h3><span class="sub">efectivo: lo contado contra lo que tendría que haber</span>
-      <button class="b3" type="button" id="gerResetCaja" style="margin-left:auto;padding:5px 14px;color:var(--bad)" hidden title="Solo gerencia: los cierres de esa caja dejan de contar (no se borran) y la caja vuelve a abrirse de cero">Resetear caja</button></div>
+      <label class="ver-elim" style="margin-left:auto" title="También las aperturas y los cierres que se dieron de baja con un reset o al eliminarlos"><input type="checkbox" id="gerCierresHist"> ver el historial (también lo reseteado)</label>
+      <button class="b3" type="button" id="gerResetCaja" style="padding:5px 14px;color:var(--bad)" hidden title="Solo gerencia: los cierres de esa caja dejan de contar (no se borran) y la caja vuelve a abrirse de cero">Resetear caja</button></div>
     <div class="tabla-wrap" style="max-height:40vh;overflow-y:auto"><table class="densa"><thead id="gerCierresCab"></thead><tbody id="gerCierres"></tbody></table></div>
   </div>
   <div class="dos">
@@ -9742,7 +9743,10 @@ document.addEventListener("click", e => {
 });
 let CIE_GER = [];
 function filaCierre(c, conSuc, borrable){
-  return '<tr title="' + atrib(billetesTxt(c.billetes || {})) + '">' +
+  // V.0.11.297: lo dado de baja (reset o eliminado), en el historial: gris y con cuándo y quién.
+  const baja = c.baja ? ' <span class="pill p-bad" title="Dejó de contar: se reseteó la caja o se eliminó">dado de baja el ' + fechaAR(c.baja.en) + ' ' + horaAR(c.baja.en) + ' · ' + txt(c.baja.por) + '</span>' : '';
+  if(c.baja) borrable = false;
+  return '<tr title="' + atrib(billetesTxt(c.billetes || {})) + '"' + (c.baja ? ' style="opacity:.6"' : '') + '>' +
     '<td class="num" style="white-space:nowrap;font-size:12.5px">' + fechaAR(c.hasta) + '<small>' + horaAR(c.hasta) + '</small></td>' +
     (conSuc ? '<td style="font-size:12.5px">' + txt(sucDe(c.sucursal).n) + '</td>' : '') +
     '<td style="font-size:12.5px">' + txt(c.usuario) + (c.tipo === "apertura" ? ' <span class="pill p-n">apertura</span>' : '') + '</td>' +
@@ -9751,7 +9755,7 @@ function filaCierre(c, conSuc, borrable){
     '<td class="r num" style="font-weight:700;color:' + (c.tipo === "apertura" ? "var(--ink-3)" : difColor(c.diferencia)) + '">' + (c.tipo === "apertura" ? "—" : difTxt(c.diferencia)) + '</td>' +
     '<td class="r num">' + (c.retiro > 0 ? fmt2(c.retiro) + (c.destino ? '<small>' + txt(c.destino) + '</small>' : '') : "—") + '</td>' +
     '<td class="r num">' + fmt2(c.queda) + '</td>' +
-    '<td style="font-size:12px;color:var(--ink-2)">' + txt(c.nota || "") +
+    '<td style="font-size:12px;color:var(--ink-2)">' + txt(c.nota || "") + baja +
       (borrable ? ' <button class="b3" type="button" data-cie-elim="' + atrib(c.id) + '" style="padding:3px 10px;font-size:12px" title="Solo gerencia: si fue de prueba">Eliminar</button>' : '') + '</td></tr>';
 }
 const cabezaCierres = conSuc => '<tr><th>Cuándo</th>' + (conSuc ? '<th>Sucursal</th>' : '') +
@@ -9934,15 +9938,18 @@ async function pintarCierresGer(){
   // V.0.11.256: el reset, solo gerencia.
   const rb = document.getElementById("gerResetCaja");
   if(rb) rb.hidden = !(puede("gerencia") || puede("cuentas"));
-  const d = await pedirJson("GET", CIE_URL + (suc ? "?suc=" + encodeURIComponent(suc) : ""));
+  const hist = !!(document.getElementById("gerCierresHist") || {}).checked;
+  const q = [suc ? "suc=" + encodeURIComponent(suc) : "", hist ? "historial=1" : ""].filter(Boolean).join("&");
+  const d = await pedirJson("GET", CIE_URL + (q ? "?" + q : ""));
   const cab = document.getElementById("gerCierresCab");
   if(cab) cab.innerHTML = cabezaCierres(!suc);
   if(d.error){ tb.innerHTML = '<tr><td colspan="9" class="vacio">' + txt(d.error) + '</td></tr>'; return; }
   const cs = d.cierres || [];
   CIE_GER = cs;
-  const ult = ultimosCierres(cs);
+  const ult = ultimosCierres(cs.filter(c => !c.baja));
   tb.innerHTML = cs.length ? cs.map(c => filaCierre(c, !suc, puedeElimCierre() && ult.has(c.id))).join("") : '<tr><td colspan="9" class="vacio">Todavía no hay cierres de caja.</td></tr>';
 }
+document.getElementById("gerCierresHist").addEventListener("change", () => { try{ pintarCierresGer(); }catch(e){} });
 
 function pintarCaja(){
   pintarCajaSucs();

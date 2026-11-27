@@ -54,13 +54,16 @@ const lasQueVe = (yo: YoPunto): string[] | null => (esGerencia(yo) ? null : yo.s
 export async function GET(req: Request): Promise<Response> {
   const yo = await quienSoy();
   if (yo instanceof Response) return yo;
-  const suc = new URL(req.url).searchParams.get("suc") ?? "";
+  const u = new URL(req.url);
+  const suc = u.searchParams.get("suc") ?? "";
+  // V.0.11.297: ?historial=1 trae tambien lo dado de baja (reset o eliminado).
+  const historial = u.searchParams.get("historial") === "1";
   try {
-    if (!suc) return json({ cierres: await listarCierres(lasQueVe(yo)) });
+    if (!suc) return json({ cierres: await listarCierres(lasQueVe(yo), historial) });
     if (!esSucursalPunto(suc)) return json({ error: "Esa sucursal no existe." }, 400);
     if (!esGerencia(yo) && fueraDeSucursal(yo.sucursales, suc))
       return json({ error: `Tu usuario no ve la caja de ${nombreSucursalPunto(suc)}.` }, 403);
-    const [estado, cierres] = await Promise.all([estadoCaja(suc), listarCierres([suc])]);
+    const [estado, cierres] = await Promise.all([estadoCaja(suc), listarCierres([suc], historial)]);
     return json({ estado, cierres });
   } catch {
     return json({ error: "No pude leer la caja: probá de nuevo en un momento." });

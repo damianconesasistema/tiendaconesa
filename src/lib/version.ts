@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.296";
+export const APP_VERSION = "V.0.11.297";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.297",
+    date: "2026-11-27",
+    changes: [
+      "Punto, Gerencia → Cierres de caja: \"ver el historial (también lo reseteado)\". Muestra también las aperturas y los cierres que se dieron de baja con \"Resetear caja\" o al eliminarlos, en gris y con cuándo y quién. Nunca se borraban, pero la lista los escondía. Damián: \"hicimos la apertura y reseteo de la caja pero no queda un historial de cuándo quedó, cuánto se cerró y se abrió\".",
+    ],
+  },
   {
     version: "V.0.11.296",
     date: "2026-11-27",

@@ -32,6 +32,9 @@ export type CierreGuardado = {
   billetes: Billetes;
   nota: string;
   usuario: string;
+  /** V.0.11.297: si se dio de baja (reset o eliminado), cuando y quien. Solo
+   *  viene en el historial: la caja no la cuenta. */
+  baja: { en: string; por: string } | null;
 };
 
 export type EstadoCaja = {
@@ -77,6 +80,7 @@ function aGuardado(c: PuntoCierre): CierreGuardado {
     billetes: (c.billetes && typeof c.billetes === "object" ? c.billetes : {}) as Billetes,
     nota: c.nota,
     usuario: c.usuario,
+    baja: c.reseteadoEn ? { en: c.reseteadoEn.toISOString(), por: c.reseteadoPor ?? "?" } : null,
   };
 }
 
@@ -152,12 +156,15 @@ export async function porQueNoCobra(sucursal: string, nombre: string): Promise<s
   return null;
 }
 
-/** Los ultimos cierres, de una sucursal o de todas (null). */
-export async function listarCierres(sucursales: string[] | null): Promise<CierreGuardado[]> {
+/** Los ultimos cierres, de una sucursal o de todas (null). Con `historial`
+ *  (V.0.11.297), tambien los dados de baja por un reset o al eliminarlos.
+ *  Damian, 27/11/2026: "hicimos la apertura y reseteo de la caja pero no
+ *  queda un historial de cuando quedo cuanto se cerro, y se abrio". */
+export async function listarCierres(sucursales: string[] | null, historial = false): Promise<CierreGuardado[]> {
   const filas = await prisma.puntoCierre.findMany({
-    where: { reseteadoEn: null, ...(sucursales ? { sucursal: { in: sucursales } } : {}) },
+    where: { ...(historial ? {} : { reseteadoEn: null }), ...(sucursales ? { sucursal: { in: sucursales } } : {}) },
     orderBy: [{ hasta: "desc" }, { creadoEn: "desc" }],
-    take: MAX_HISTORIAL,
+    take: historial ? 300 : MAX_HISTORIAL,
   });
   return filas.map(aGuardado);
 }
