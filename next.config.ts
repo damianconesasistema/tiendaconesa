@@ -21,8 +21,16 @@ const nextConfig: NextConfig = {
     // un link de afuera no viaje la direccion de adentro.
     const privado = [
       { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
-      { key: "X-Frame-Options", value: "SAMEORIGIN" },
-      { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+      // V.0.11.298: tambien desde las otras direcciones de conesa.com.ar. El
+      // panel de cada local vive en su subdominio (buenosaires.conesa.com.ar)
+      // y Punto lo muestra en su solapa Web: con 'self' solo, al tocar
+      // Productos el navegador lo bloqueaba (Damian: "no me funciona la
+      // pagina productos"). Sin X-Frame-Options: no admite mas de un sitio, y
+      // los navegadores usan frame-ancestors cuando estan los dos.
+      {
+        key: "Content-Security-Policy",
+        value: "frame-ancestors 'self' https://conesa.com.ar https://*.conesa.com.ar",
+      },
       { key: "Referrer-Policy", value: "same-origin" },
     ];
     return [

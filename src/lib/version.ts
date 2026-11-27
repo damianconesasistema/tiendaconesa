@@ -11,7 +11,7 @@
 // (2026), el mes va con dos cifras y el número cuenta las versiones del mes
 // (pasa de 100 si hace falta). Diciembre arranca en V.0.12.01; enero de 2027,
 // V.1.01.01.
-export const APP_VERSION = "V.0.11.297";
+export const APP_VERSION = "V.0.11.298";
 
 export type VersionEntry = {
   version: string;
@@ -21,6 +21,13 @@ export type VersionEntry = {
 
 // Historial de versiones visible en el panel. La mas nueva primero.
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "V.0.11.298",
+    date: "2026-11-27",
+    changes: [
+      "Punto, solapa Web: el panel de la tienda ya se puede usar adentro de Punto también cuando va al panel de un local (Productos te manda a elegir el local y cada uno vive en su dirección, como buenosaires.conesa.com.ar). Antes el navegador lo bloqueaba y quedaba la hoja gris. Solo se deja mostrar adentro de páginas de conesa.com.ar. Damián: \"no me funciona la página productos\".",
+    ],
+  },
   {
     version: "V.0.11.297",
     date: "2026-11-27",
